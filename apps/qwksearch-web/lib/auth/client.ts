@@ -16,7 +16,7 @@ export const authClient = createAuthClient({
     oneTapClient({
       clientId: NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
       additionalOptions: {
-        use_fedcm_for_prompt: true,
+        use_fedcm_for_prompt: false,
       },
     }),
     magicLinkClient(),
