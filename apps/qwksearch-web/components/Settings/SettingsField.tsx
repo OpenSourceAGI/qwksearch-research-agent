@@ -248,7 +248,7 @@ const SettingsPasswordInput = ({
         await grab('config', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: { key: `${dataAdd}.${field.key}`, value: newValue },
+          body: JSON.stringify({ key: `${dataAdd}.${field.key}`, value: newValue }),
         });
       }
     } catch (error) {
@@ -325,10 +325,10 @@ const SettingsTextarea = ({
           headers: {
             'Content-Type': 'application/json',
           },
-          body: {
+          body: JSON.stringify({
             key: `${dataAdd}.${field.key}`,
             value: newValue,
-          },
+          }),
         });
       }
     } catch (error) {

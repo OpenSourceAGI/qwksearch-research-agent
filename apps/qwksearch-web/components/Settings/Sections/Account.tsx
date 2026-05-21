@@ -109,7 +109,7 @@ export default function Account() {
 
   const [apiKey, setApiKey] = useState('');
   const [keyGenerating, setKeyGenerating] = useState(false);
-  const [showApiKey, setShowApiKey] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(true);
 
   const [name, setName] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -529,6 +529,17 @@ export default function Account() {
             <p className="text-xs text-black/40 dark:text-white/40">No active sessions found.</p>
           )}
         </div>
+      </SectionCard>
+
+      {/* Sign Out */}
+      <SectionCard>
+        <SectionTitle title="Sign Out" subtitle="Sign out of your account on this device." />
+        <button
+          onClick={() => authClient.signOut()}
+          className="px-4 py-2 rounded-lg border border-black/20 dark:border-dark-200 text-black/80 dark:text-white/80 hover:bg-light-200 dark:hover:bg-dark-200 text-xs font-medium transition-colors"
+        >
+          Sign Out
+        </button>
       </SectionCard>
 
       {/* Delete Account */}
