@@ -16,9 +16,5 @@
   },
   "devDependencies": {
     "turbo": "^2.9.9"
-  },
-  "resolutions": {
-    "@vitejs/plugin-react": "5.2.0",
-    "@opennextjs/aws": "3.10.4"
   }
 }

@@ -31,7 +31,14 @@ export const GET = async (req: Request) => {
         and(eq(messages.chatId, chats.id), eq(messages.role, "user")),
       )
       .where(eq(chats.userId, userId))
-      .groupBy(chats.id)
+      .groupBy(
+        chats.id,
+        chats.title,
+        chats.createdAt,
+        chats.focusMode,
+        chats.userId,
+        chats.files,
+      )
       .orderBy(sql`${chats.createdAt} DESC`);
 
     return Response.json({ chats: userChats }, { status: 200 });

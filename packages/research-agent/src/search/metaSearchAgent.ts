@@ -135,6 +135,12 @@ class MetaSearchAgent implements MetaSearchAgentType {
 
         let res: { results: any[]; suggestions: string[] };
 
+        const runSearxng = () => searchSearxng(question, {
+          language: "en",
+          engines: this.config.activeEngines,
+          categories: [category],
+        });
+
         if (
           isTavilyConfigured() &&
           this.config.activeEngines.length === 0 &&
@@ -144,18 +150,39 @@ class MetaSearchAgent implements MetaSearchAgentType {
             res = await searchTavily(question, { searchDepth: "basic", maxResults: 10 });
           } catch (error) {
             console.error("Tavily search failed, falling back to SearXNG:", error);
-            res = await searchSearxng(question, {
-              language: "en",
-              engines: this.config.activeEngines,
-              categories: [category],
-            });
+            res = await runSearxng();
           }
         } else {
-          res = await searchSearxng(question, {
-            language: "en",
-            engines: this.config.activeEngines,
-            categories: [category],
-          });
+          if (isTavilyConfigured()) {
+            try {
+              res = await Promise.race([
+                runSearxng(),
+                new Promise<{ results: any[]; suggestions: string[] }>((_, reject) =>
+                  setTimeout(() => reject(new Error("Timeout")), 10000)
+                )
+              ]);
+            } catch (err: any) {
+              if (err.message === "Timeout") {
+                console.warn("[MetaSearchAgent] SearXNG search did not respond in 10 seconds, falling back to Tavily.");
+                try {
+                  res = await searchTavily(question, { searchDepth: "basic", maxResults: 10 });
+                } catch (tavilyErr) {
+                  console.error("[MetaSearchAgent] Tavily fallback also failed, awaiting SearXNG directly:", tavilyErr);
+                  res = await runSearxng();
+                }
+              } else {
+                console.error("[MetaSearchAgent] SearXNG search failed, falling back to Tavily:", err);
+                try {
+                  res = await searchTavily(question, { searchDepth: "basic", maxResults: 10 });
+                } catch (tavilyErr) {
+                  console.error("[MetaSearchAgent] Tavily fallback also failed:", tavilyErr);
+                  throw err;
+                }
+              }
+            }
+          } else {
+            res = await runSearxng();
+          }
         }
 
         let documents: Document[] = res.results.map(

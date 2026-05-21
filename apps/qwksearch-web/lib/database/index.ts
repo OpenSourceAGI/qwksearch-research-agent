@@ -4,6 +4,12 @@ import { cache } from "react";
 import * as schema from "./schema";
 
 export const getDB = cache(() => {
-  const { env } = getCloudflareContext();
-  return drizzle(env.DB, { schema });
+  try {
+    const { env } = getCloudflareContext();
+    if (!env.DB) throw new Error("D1 binding 'DB' is not configured");
+    return drizzle(env.DB, { schema });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`D1 database unavailable: ${msg}`);
+  }
 });
