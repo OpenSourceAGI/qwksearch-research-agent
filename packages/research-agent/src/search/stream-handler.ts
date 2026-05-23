@@ -76,6 +76,17 @@ export async function handleStream(
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[handleStream] caught error from LangChain stream:", message, err);
-    emitter.emit("error", JSON.stringify({ data: message }));
+    let userMessage = message;
+    if (message.includes("410")) {
+      userMessage =
+        "The selected AI model is no longer available (deprecated by the provider). Please go to Settings → Model Providers and select a different model.";
+    } else if (message.includes("401") || message.includes("authentication")) {
+      userMessage =
+        "Authentication failed with the AI provider. Please check your API key in Settings.";
+    } else if (message.includes("429") || message.includes("rate limit")) {
+      userMessage =
+        "Rate limit reached for the AI provider. Please wait a moment and try again.";
+    }
+    emitter.emit("error", JSON.stringify({ data: userMessage }));
   }
 }

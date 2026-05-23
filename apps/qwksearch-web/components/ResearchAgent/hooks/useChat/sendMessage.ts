@@ -71,6 +71,8 @@ export interface SendMessageDeps {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   /** Setter for chat history */
   setChatHistory: React.Dispatch<React.SetStateAction<[string, string][]>>;
+  /** Setter for the selected chat model provider (optional — used to reset on model errors) */
+  setChatModelProvider?: (provider: ChatModelProvider) => void;
 }
 
 /**
@@ -125,6 +127,7 @@ export async function sendMessage(
     setMessageAppeared,
     setMessages,
     setChatHistory,
+    setChatModelProvider,
   } = deps;
   const sourceExtractionEnabled =
     typeof window !== "undefined" &&
@@ -184,7 +187,22 @@ export async function sendMessage(
   const messageHandler = async (data: any) => {
     // Handle error events
     if (data.type === "error") {
-      toast.error(data.data);
+      let errorMsg: string = data.data;
+      // If the model has been deprecated/removed, clear the stale selection so
+      // the next request picks a fresh model from the provider's current list.
+      if (
+        typeof errorMsg === "string" &&
+        (errorMsg.includes("no longer available") ||
+          errorMsg.includes("deprecated") ||
+          errorMsg.includes("410"))
+      ) {
+        localStorage.removeItem("chatModelKey");
+        localStorage.removeItem("chatModelProviderId");
+        // Reset in-memory model state so the selector shows "Select" and
+        // the user is prompted to pick a valid model before the next send.
+        setChatModelProvider?.({ key: "", providerId: "" });
+      }
+      toast.error(errorMsg);
       setLoading(false);
       return;
     }

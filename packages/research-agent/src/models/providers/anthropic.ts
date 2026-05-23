@@ -61,12 +61,19 @@ class AnthropicProvider extends BaseModelProvider<AnthropicConfig> {
         return { chat: [] };
       }
 
-      const models: Model[] = data.data.map((m: any) => {
-        return {
+      const now = Date.now();
+      const models: Model[] = data.data
+        .filter((m: any) => {
+          // Exclude models that the provider has marked as deprecated
+          if (m.deprecated_at) {
+            return new Date(m.deprecated_at).getTime() > now;
+          }
+          return true;
+        })
+        .map((m: any) => ({
           key: m.id,
           name: m.display_name,
-        };
-      });
+        }));
 
       return {
         chat: models,

@@ -224,6 +224,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           setMessageAppeared: setters.setMessageAppeared,
           setMessages: setters.setMessages,
           setChatHistory: setters.setChatHistory,
+          setChatModelProvider: setters.setChatModelProvider,
         },
       );
     },
