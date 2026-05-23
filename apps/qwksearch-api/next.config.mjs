@@ -16,6 +16,15 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   serverExternalPackages: ["@libsql/isomorphic-ws"],
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/api/docs",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
