@@ -13,6 +13,7 @@
       "binding": "DB",
       "database_name": "qwksearch",
       "database_id": "9f45c816-5b19-43e0-8e4e-9edbd6c115b0",
+      "migrations_dir": "./drizzle",
     },
   ],
   "env": {

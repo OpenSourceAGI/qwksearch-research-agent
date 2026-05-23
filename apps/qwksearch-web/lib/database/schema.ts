@@ -11,7 +11,7 @@ export const messages = sqliteTable("messages", {
   id: integer("id").primaryKey(),
   role: text("type", { enum: ["assistant", "user", "source"] }).notNull(),
   chatId: text("chatId").notNull(),
-  userId: text("userId").references(() => user.id),
+  userId: text("userId"),
   createdAt: text("createdAt")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -36,7 +36,7 @@ export const chats = sqliteTable("chats", {
   title: text("title").notNull(),
   createdAt: text("createdAt").notNull(),
   focusMode: text("focusMode").notNull(),
-  userId: text("userId").references(() => user.id),
+  userId: text("userId"),
   files: text("files", { mode: "json" })
     .$type<File[]>()
     .default(sql`'[]'`),
