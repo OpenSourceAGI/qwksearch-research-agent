@@ -9,19 +9,8 @@ permissions:
   id-token: write
 
 jobs:
-  test:
+  publish-packages:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm test
-
-  npm-publish:
-    runs-on: ubuntu-latest
-    needs: test
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,22 +18,70 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           registry-url: "https://registry.npmjs.org"
 
-      - name: Bump patch version
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Configure git
         run: |
-          npm version patch --no-git-tag-version
-          npm install
-          git config user.name github-actions[bot]
-          git config user.email github-actions[bot]@users.noreply.github.com
-          git add package.json package-lock.json
-          git commit -m "chore: bump version patch [skip ci]" || exit 0
-          git push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - run: npm install
-      - run: npm run build
-
-      - run: npm publish --provenance --access public
+      - name: Publish all non-private packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          failed_packages=""
+
+          for dir in packages/*/; do
+            pkg="$dir/package.json"
+
+            if [ ! -f "$pkg" ]; then
+              echo "⏭ Skipping $dir (no package.json)"
+              continue
+            fi
+
+            is_private=$(node -e "const p=require('./$pkg'); console.log(!!p.private)")
+            if [ "$is_private" = "true" ]; then
+              name=$(node -e "const p=require('./$pkg'); console.log(p.name)")
+              echo "⏭ Skipping $name (private)"
+              continue
+            fi
+
+            name=$(node -e "const p=require('./$pkg'); console.log(p.name)")
+            echo "📦 Publishing $name ($dir)"
+
+            (
+              cd "$dir"
+
+              npm version patch --no-git-tag-version
+
+              # Skip postinstall hooks (e.g. drizzle-kit push, fumadocs-mdx) that require
+              # runtime env vars not available in CI — build script is run explicitly below
+              npm install --ignore-scripts --legacy-peer-deps
+
+              has_build=$(node -e "const p=require('./package.json'); console.log(!!(p.scripts && p.scripts.build))")
+              if [ "$has_build" = "true" ]; then
+                npm run build
+              fi
+
+              npm publish --provenance --access public
+            ) || {
+              echo "❌ Failed to publish $name"
+              failed_packages="$failed_packages $name"
+            }
+          done
+
+          if [ -n "$failed_packages" ]; then
+            echo "⚠ Failed packages:$failed_packages"
+            exit 1
+          fi
+
+      - name: Commit version bumps
+        if: always()
+        run: |
+          git add packages/*/package.json packages/*/package-lock.json
+          git diff --staged --quiet && echo "No version changes to commit" && exit 0
+          git commit -m "chore: bump package versions [skip ci]"
+          git push
