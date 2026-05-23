@@ -397,10 +397,10 @@ const SettingsSwitch = ({
           headers: {
             'Content-Type': 'application/json',
           },
-          body: {
+          body: JSON.stringify({
             key: `${dataAdd}.${field.key}`,
             value: newValue,
-          },
+          }),
         });
       }
     } catch (error) {
