@@ -71,9 +71,9 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
   const [isLoadingFiles, setIsLoadingFiles] = useState(false);
   const [isScanningFolder, setIsScanningFolder] = useState(false);
   const [thinkingTimeLimit, setThinkingTimeLimit] = useState<number>(() => {
-    if (typeof window === 'undefined') return 0;
-    const n = Number(localStorage.getItem('thinkingTimeLimit') ?? '0');
-    return Number.isFinite(n) ? n : 0;
+    if (typeof window === 'undefined') return 5;
+    const n = Number(localStorage.getItem('thinkingTimeLimit') ?? '5');
+    return Number.isFinite(n) ? n : 5;
   });
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -398,15 +398,15 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
         </div>
       </div>
 
-      <div className="relative flex shrink min-w-8 !shrink-0 group">
+      <div className="relative hidden sm:flex shrink-0 group -ml-1">
         <button
           type="button"
           disabled={disabled}
           onClick={handleLocalFileUpload}
           aria-label="Attach files"
-          className="inline-flex items-center justify-center relative shrink-0 transition-colors duration-200 h-8 w-8 rounded-lg active:scale-95 text-text-400 hover:text-text-200 hover:bg-bg-200 disabled:opacity-50 disabled:cursor-not-allowed group-active:scale-95"
+          className="inline-flex items-center justify-center relative shrink-0 transition-colors duration-200 h-7 w-7 rounded-md active:scale-95 text-text-400 hover:text-text-200 hover:bg-bg-200 disabled:opacity-50 disabled:cursor-not-allowed group-active:scale-95"
         >
-          <Paperclip className="w-5 h-5" />
+          <Paperclip className="w-[18px] h-[18px]" />
         </button>
         <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#1F1E1D] dark:bg-[#EEEEEC] text-[11px] font-medium rounded-[6px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-sm tracking-wide">
           <span className="text-[#ECECEC] dark:text-[#1F1E1D]">Attach files</span>

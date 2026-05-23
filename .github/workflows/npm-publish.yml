@@ -15,32 +15,36 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
-
-      - uses: oven-sh/setup-bun@v2
+          cache: pnpm
 
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Publish all non-private packages
+      - name: Install workspace dependencies
+        run: pnpm install --ignore-scripts --no-frozen-lockfile
+
+      - name: Bump, build, and publish packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          set -u
           failed_packages=""
 
           for dir in packages/*/; do
             pkg="$dir/package.json"
-
-            if [ ! -f "$pkg" ]; then
-              echo "⏭ Skipping $dir (no package.json)"
-              continue
-            fi
+            [ -f "$pkg" ] || { echo "⏭ Skipping $dir (no package.json)"; continue; }
 
             is_private=$(node -e "const p=require('./$pkg'); console.log(!!p.private)")
             if [ "$is_private" = "true" ]; then
@@ -49,24 +53,39 @@ jobs:
               continue
             fi
 
-            name=$(node -e "const p=require('./$pkg'); console.log(p.name)")
-            echo "📦 Publishing $name ($dir)"
+            name=$(node -e "const p=require('./$pkg'); console.log(p.name||'')")
+            version=$(node -e "const p=require('./$pkg'); console.log(p.version||'')")
+            if [ -z "$name" ] || [ -z "$version" ]; then
+              echo "⏭ Skipping $dir (missing name or version)"
+              continue
+            fi
+
+            echo "📦 Processing $name ($dir)"
 
             (
+              set -e
               cd "$dir"
 
-              npm version patch --no-git-tag-version
-
-              # Skip postinstall hooks (e.g. drizzle-kit push, fumadocs-mdx) that require
-              # runtime env vars not available in CI — build script is run explicitly below
-              npm install --ignore-scripts --legacy-peer-deps
+              # Bump patch only if the current version is already on the registry.
+              # This makes the workflow idempotent: if you bumped manually, we honor it;
+              # if the version is taken, we move to the next patch.
+              published=$(npm view "$name" version 2>/dev/null || echo "")
+              if [ "$published" = "$version" ]; then
+                npm version patch --no-git-tag-version
+                version=$(node -e "console.log(require('./package.json').version)")
+                echo "   bumped to $version (was $published on registry)"
+              else
+                echo "   version $version not on registry yet, publishing as-is"
+              fi
 
               has_build=$(node -e "const p=require('./package.json'); console.log(!!(p.scripts && p.scripts.build))")
               if [ "$has_build" = "true" ]; then
-                npm run build
+                echo "   building..."
+                pnpm run build
               fi
 
-              npm publish --provenance --access public
+              echo "   publishing..."
+              pnpm publish --access public --no-git-checks --provenance
             ) || {
               echo "❌ Failed to publish $name"
               failed_packages="$failed_packages $name"
@@ -81,7 +100,10 @@ jobs:
       - name: Commit version bumps
         if: always()
         run: |
-          git add packages/*/package.json packages/*/package-lock.json
-          git diff --staged --quiet && echo "No version changes to commit" && exit 0
+          git add packages/*/package.json
+          if git diff --staged --quiet; then
+            echo "No version changes to commit"
+            exit 0
+          fi
           git commit -m "chore: bump package versions [skip ci]"
           git push

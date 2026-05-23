@@ -79,7 +79,7 @@ export const bodySchema = z.object({
    * Max seconds to spend extracting source content.
    * 0 = unlimited (uses server default); >0 = budget spread across top 3 sources.
    */
-  thinkingTimeLimit: z.number().int().min(0).optional().default(0),
+  thinkingTimeLimit: z.number().int().min(0).optional().default(5),
 });
 
 /**
