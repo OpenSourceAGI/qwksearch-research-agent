@@ -1,1 +1,0 @@
-export { handler } from "./apps/qwksearch-api/handler.mjs";
