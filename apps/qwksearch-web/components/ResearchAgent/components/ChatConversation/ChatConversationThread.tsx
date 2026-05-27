@@ -4,7 +4,8 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { Share2, Link, FileText, FileType, FileDown, FileSpreadsheet, SquarePen, BookMarked } from 'lucide-react';
 import { toast } from 'sonner';
 import MessageBox from './ChatMessageBubble';
-import MessageBoxLoading from './ChatMessageLoadingSkeleton';
+import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
+
 import { useChat } from '../../hooks/useChat';
 import { useExtractPanel } from '../ArticleReader/ExtractPanelContext';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
@@ -81,120 +82,120 @@ const Chat = () => {
         style={{ right: isDesktop && isPanelOpen ? `${panelWidth}px` : '0' }}
       >
         <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <button className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground">
-                    <Share2 size={18} />
-                  </button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Share</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel className="text-xs text-muted-foreground">Share & Export</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  const url = window.location.href;
-                  navigator.clipboard.writeText(url);
-                  toast.success('Link copied to clipboard');
-                }}
-              >
-                <Link size={16} />
-                Copy link
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={async () => {
-                  const title = sections[0]?.userMessage?.content || 'Chat';
-                  const content = sections.map(s =>
-                    `## ${s.userMessage.content}\n\n${s.assistantMessage?.content || ''}`
-                  ).join('\n\n---\n\n');
-                  try {
-                    await grab('doc/documents', {
-                      method: 'POST',
-                      body: {
-                        title,
-                        name: title,
-                        content,
-                        metadata: { source: 'chat', chatId: window.location.pathname },
-                      },
-                    });
-                    toast.success('Saved to QwkDocs');
-                  } catch {
-                    toast.error('Failed to save to QwkDocs');
-                  }
-                }}
-              >
-                <BookMarked size={16} />
-                Save to QwkDocs
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  const title = sections[0]?.userMessage?.content || 'Chat';
-                  const html = sections.map(s =>
-                    `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
-                  ).join('\n');
-                  exportAsMarkdown(title, html);
-                }}
-              >
-                <FileText size={16} />
-                Export as Markdown
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  const title = sections[0]?.userMessage?.content || 'Chat';
-                  const html = sections.map(s =>
-                    `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
-                  ).join('\n');
-                  exportAsPdf(title, html);
-                }}
-              >
-                <FileType size={16} />
-                Export as PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  const title = sections[0]?.userMessage?.content || 'Chat';
-                  const html = sections.map(s =>
-                    `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
-                  ).join('\n');
-                  exportAsDocx(title, html);
-                }}
-              >
-                <FileDown size={16} />
-                Export as DOCX
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  const title = sections[0]?.userMessage?.content || 'Chat';
-                  const html = sections.map(s =>
-                    `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
-                  ).join('\n');
-                  exportToGoogleDocs(title, html);
-                }}
-              >
-                <FileSpreadsheet size={16} />
-                Export to Google Docs
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <HistoryDropdown />
-
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
-                onClick={newChat}
-                className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground"
-              >
-                <SquarePen size={18} />
-              </button>
+              <DropdownMenuTrigger asChild>
+                <button className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground">
+                  <Share2 size={18} />
+                </button>
+              </DropdownMenuTrigger>
             </TooltipTrigger>
-            <TooltipContent side="bottom">New chat</TooltipContent>
+            <TooltipContent side="bottom">Share</TooltipContent>
           </Tooltip>
-        </div>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Share & Export</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                const url = window.location.href;
+                navigator.clipboard.writeText(url);
+                toast.success('Link copied to clipboard');
+              }}
+            >
+              <Link size={16} />
+              Copy link
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                const title = sections[0]?.userMessage?.content || 'Chat';
+                const content = sections.map(s =>
+                  `## ${s.userMessage.content}\n\n${s.assistantMessage?.content || ''}`
+                ).join('\n\n---\n\n');
+                try {
+                  await grab('doc/documents', {
+                    method: 'POST',
+                    body: {
+                      title,
+                      name: title,
+                      content,
+                      metadata: { source: 'chat', chatId: window.location.pathname },
+                    },
+                  });
+                  toast.success('Saved to QwkDocs');
+                } catch {
+                  toast.error('Failed to save to QwkDocs');
+                }
+              }}
+            >
+              <BookMarked size={16} />
+              Save to QwkDocs
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => {
+                const title = sections[0]?.userMessage?.content || 'Chat';
+                const html = sections.map(s =>
+                  `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
+                ).join('\n');
+                exportAsMarkdown(title, html);
+              }}
+            >
+              <FileText size={16} />
+              Export as Markdown
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                const title = sections[0]?.userMessage?.content || 'Chat';
+                const html = sections.map(s =>
+                  `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
+                ).join('\n');
+                exportAsPdf(title, html);
+              }}
+            >
+              <FileType size={16} />
+              Export as PDF
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                const title = sections[0]?.userMessage?.content || 'Chat';
+                const html = sections.map(s =>
+                  `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
+                ).join('\n');
+                exportAsDocx(title, html);
+              }}
+            >
+              <FileDown size={16} />
+              Export as DOCX
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                const title = sections[0]?.userMessage?.content || 'Chat';
+                const html = sections.map(s =>
+                  `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
+                ).join('\n');
+                exportToGoogleDocs(title, html);
+              }}
+            >
+              <FileSpreadsheet size={16} />
+              Export to Google Docs
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <HistoryDropdown />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={newChat}
+              className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground"
+            >
+              <SquarePen size={18} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">New chat</TooltipContent>
+        </Tooltip>
+      </div>
 
       <div
         className="flex flex-col min-h-full transition-all duration-300"
@@ -224,7 +225,14 @@ const Chat = () => {
           })}
           {loading && !messageAppeared && (
             <div className="flex items-center justify-center">
-              <MessageBoxLoading />
+
+              <div style={{ height: '200px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <QuantumWaveOrbital
+                  autoRandomize={true}
+                  onSphereClick={() => console.log('Sphere clicked')}
+                  className="my-custom-class"
+                />
+              </div>
             </div>
           )}
           <div ref={messageEnd} className="h-0" />

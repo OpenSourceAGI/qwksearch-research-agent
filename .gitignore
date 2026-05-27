@@ -15,8 +15,9 @@ dist/
 .vscode/
 .idea/
 *.iml
-
+.open-next/*
 data/*
+apps/qwksearch-api/.open-next
 
 ai-research-agent/
 # Environment variables

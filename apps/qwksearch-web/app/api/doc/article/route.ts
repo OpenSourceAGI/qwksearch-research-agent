@@ -1,14 +1,14 @@
 /**
  * @fileoverview Article extraction and caching API. GET fetches an article
  * by URL with database caching and hit-count tracking, falling back to
- * an external extraction service. POST stores Q&A pairs and follow-up
- * questions for cached articles.
+ * in-process extraction via ai-research-agent. POST stores Q&A pairs and
+ * follow-up questions for cached articles.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database";
 import { articleCache, articleQA } from "@/lib/database/schema";
 import { eq, sql } from "drizzle-orm";
-import grab from "grab-url";
+import { extractContent } from "ai-research-agent/extractor/url-to-content/url-to-content";
 
 interface Article {
   html?: string;
@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
       .where(eq(articleCache.url, url))
       .limit(1);
 
-    if (cached.length > 0) {
+    if (cached.length > 0 && cached[0].html) {
       const cachedArticle = cached[0];
 
       // Update hit count and last accessed
@@ -130,14 +130,24 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // If not in cache, fetch from external API
-    const article: Article = await grab(
-      `https://app.qwksearch.com/api/extract?url=${encodeURIComponent(url)}`,
-    );
+    // If not in cache (or cached row was empty), extract in-process
+    const extracted = await extractContent(url);
+    const article: Article = extracted as Article;
 
-    // Store in cache
-    await db.insert(articleCache).values({
-      url: url,
+    if (!article || !article.html || (extracted as { error?: unknown }).error) {
+      return NextResponse.json(
+        {
+          error: "Article extraction returned no content",
+          url,
+          detail: (extracted as { error?: unknown }).error,
+        },
+        { status: 502 },
+      );
+    }
+
+    // Upsert: replace any prior empty row so we don't keep poisoning future reads
+    const values = {
+      url,
       title: article.title || null,
       cite: article.cite || null,
       author: article.author || null,
@@ -147,10 +157,16 @@ export async function GET(req: NextRequest) {
       date: article.date || null,
       source: article.source || null,
       word_count: article.word_count || null,
-      html: article.html || null,
+      html: article.html,
       followUpQuestions: [],
       hitCount: 1,
-    });
+    };
+
+    if (cached.length > 0) {
+      await db.update(articleCache).set(values).where(eq(articleCache.url, url));
+    } else {
+      await db.insert(articleCache).values(values);
+    }
 
     return NextResponse.json({
       cached: false,
