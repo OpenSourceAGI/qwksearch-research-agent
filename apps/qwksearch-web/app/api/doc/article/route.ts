@@ -31,11 +31,13 @@ interface CachedArticle extends Article {
 
 // GET /api/article?url=... - Get article with cache
 export async function GET(req: NextRequest) {
+  console.log("[article] GET start", { url: req.nextUrl.searchParams.get("url") });
   try {
     const db = getDB();
     const url = req.nextUrl.searchParams.get("url");
 
     if (!url) {
+      console.log("[article] missing url param");
       return NextResponse.json(
         { error: "URL parameter is required" },
         { status: 400 },
@@ -50,6 +52,7 @@ export async function GET(req: NextRequest) {
       /^https?:\/\/(www\.)?duckduckgo\.com\/\?/i,
     ];
     if (/\s/.test(url) || searchEnginePatterns.some((p) => p.test(url))) {
+      console.log("[article] rejected non-extractable url", { url });
       return NextResponse.json(
         { error: "URL is not an extractable article" },
         { status: 400 },
@@ -66,6 +69,7 @@ export async function GET(req: NextRequest) {
 
     const isVideoUrl = videoPatterns.some((pattern) => pattern.test(url));
     if (isVideoUrl) {
+      console.log("[article] video url short-circuit", { url });
       return NextResponse.json({
         cached: false,
         article: {
@@ -81,11 +85,19 @@ export async function GET(req: NextRequest) {
     }
 
     // Check cache first
+    console.log("[article] checking cache", { url });
     const cached = await db
       .select()
       .from(articleCache)
       .where(eq(articleCache.url, url))
       .limit(1);
+    console.log("[article] cache lookup result", {
+      url,
+      rowCount: cached.length,
+      hasHtml: cached.length > 0 ? !!cached[0].html : false,
+      htmlLength: cached.length > 0 && cached[0].html ? cached[0].html.length : 0,
+      title: cached.length > 0 ? cached[0].title : null,
+    });
 
     if (cached.length > 0 && cached[0].html) {
       const cachedArticle = cached[0];
@@ -107,6 +119,13 @@ export async function GET(req: NextRequest) {
         })
         .from(articleQA)
         .where(eq(articleQA.articleUrl, url));
+      console.log("[article] returning cached article", {
+        url,
+        qaCount: qaHistory.length,
+        followUps: Array.isArray(cachedArticle.followUpQuestions)
+          ? (cachedArticle.followUpQuestions as string[]).length
+          : 0,
+      });
 
       const response: CachedArticle = {
         url: cachedArticle.url,
@@ -131,10 +150,30 @@ export async function GET(req: NextRequest) {
     }
 
     // If not in cache (or cached row was empty), extract in-process
+    console.log("[article] cache miss — extracting in-process", { url });
     const extracted = await extractContent(url);
     const article: Article = extracted as Article;
+    console.log("[article] extractContent result", {
+      url,
+      hasArticle: !!article,
+      hasHtml: !!article?.html,
+      htmlLength: article?.html?.length || 0,
+      title: article?.title,
+      source: article?.source,
+      word_count: article?.word_count,
+      error: (extracted as { error?: unknown }).error,
+      keys: article ? Object.keys(article) : [],
+    });
 
     if (!article || !article.html || (extracted as { error?: unknown }).error) {
+      console.log("[article] extraction returned no content — aborting", {
+        url,
+        reason: !article
+          ? "no article object"
+          : !article.html
+            ? "no html"
+            : "error field set",
+      });
       return NextResponse.json(
         {
           error: "Article extraction returned no content",
@@ -163,11 +202,17 @@ export async function GET(req: NextRequest) {
     };
 
     if (cached.length > 0) {
+      console.log("[article] updating empty cached row", { url });
       await db.update(articleCache).set(values).where(eq(articleCache.url, url));
     } else {
+      console.log("[article] inserting new cache row", { url });
       await db.insert(articleCache).values(values);
     }
 
+    console.log("[article] returning freshly extracted article", {
+      url,
+      htmlLength: article.html.length,
+    });
     return NextResponse.json({
       cached: false,
       article: {

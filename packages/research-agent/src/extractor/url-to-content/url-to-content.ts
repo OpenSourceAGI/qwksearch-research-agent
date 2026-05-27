@@ -178,44 +178,71 @@ export async function extractContent(
     typeof urlOrDoc === "string" &&
     /<\/[^>]+>/.test(urlOrDoc.trim())
   ) {
+    console.log("[extractContent] input is raw HTML string");
     // If urlOrDoc is an HTML string, treat as HTML content
     options.url = options.url || "";
 
     response = extractContentAndCite(urlOrDoc, options);
+    console.log("[extractContent] extractContentAndCite (raw html) result", {
+      hasHtml: !!response?.html,
+      htmlLength: response?.html?.length || 0,
+      title: response?.title,
+      error: response?.error,
+    });
 
     return response;
     // if URL
   } else if (typeof urlOrDoc === "string" && urlOrDoc.startsWith("http")) {
     url = urlOrDoc;
+    console.log("[extractContent] input is URL", { url });
 
     // check if google doc, then extract html or pdf file
     let googleDocId = url.match(/google\.com\/(file|document)\/d\/([\w-]+)/);
-    if (googleDocId)
+    if (googleDocId) {
       url =
         googleDocId[1] === "file"
           ? `https://drive.google.com/uc?export=download&id=${googleDocId[2]}`
           : `https://docs.google.com/document/d/${googleDocId[2]}/export?format=html`;
+      console.log("[extractContent] rewrote google doc url", { url });
+    }
 
     isPdf = url.endsWith(".pdf") || (await isUrlPDF(url));
     let youtubeID = getURLYoutubeVideo(url);
+    console.log("[extractContent] branch detection", { isPdf, youtubeID, isDocx: url.endsWith(".docx") });
 
     if (isPdf) {
       // pdf checker - use dynamic import to prevent build-time evaluation
       const { convertPDFToHTML } = await import("../pdf-to-html/pdf-to-html");
       response = await convertPDFToHTML(url, options as any);
+      console.log("[extractContent] pdf branch result", { hasHtml: !!response?.html, error: response?.error });
     } else if (url.endsWith(".docx")) {
       response.html = await convertDOCXToHTML(url);
+      console.log("[extractContent] docx branch result", { hasHtml: !!response?.html });
 
       // check youtube
     } else if (youtubeID) {
       response = await convertYoutubeToText(url, options);
+      console.log("[extractContent] youtube branch result", { hasHtml: !!response?.html, error: response?.error });
     } else {
-      // try {
+      console.log("[extractContent] scraping URL", { url, proxy });
       const html = await scrapeURL(url, {
         proxy,
       });
+      console.log("[extractContent] scrapeURL returned", {
+        url,
+        hasHtml: !!html,
+        htmlLength: typeof html === "string" ? html.length : 0,
+        sample: typeof html === "string" ? html.slice(0, 200) : null,
+      });
       options.url = url;
       response = extractContentAndCite(html, options);
+      console.log("[extractContent] extractContentAndCite result", {
+        url,
+        hasHtml: !!response?.html,
+        htmlLength: response?.html?.length || 0,
+        title: response?.title,
+        error: response?.error,
+      });
     }
   } else if (typeof urlOrDoc == "object" && urlOrDoc.location) {
     //if passing in dom object document from front end

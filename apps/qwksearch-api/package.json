@@ -6,7 +6,6 @@
   "license": "rights.institute/prosper",
   "scripts": {
     "dev": "rm -rf .next; next dev --turbo",
-    "dev:cf": "npx wrangler dev --local",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "build": "NODE_OPTIONS='--max-old-space-size=4096' next build && opennextjs-cloudflare build",
     "start": "opennextjs-cloudflare start",
