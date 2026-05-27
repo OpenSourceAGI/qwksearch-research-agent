@@ -14,7 +14,7 @@ import { ExtractPanelProvider } from '@/components/ResearchAgent/components/Arti
 import { APP_NAME } from '@/lib/config/site';
 import { CategoryDock } from '@/components/layout/CategoryDock';
 import { CategoryDockProvider } from '@/components/layout/category-dock-context';
-import { OneTap } from '@/components/auth/OneTap';
+import { OneTap } from '@/components/layout/OneTap';
 
 export const metadata: Metadata = {
   title: APP_NAME + ' - Reimagine the Web as a Self-Organizing Mind Map',

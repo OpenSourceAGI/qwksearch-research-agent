@@ -8,7 +8,7 @@
     "dev": "rm -rf .next; next dev --turbo",
     "dev:cf": "npx wrangler dev --local",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build && opennextjs-cloudflare build",
     "start": "opennextjs-cloudflare start",
     "preview": "NODE_OPTIONS='--max-old-space-size=4096' opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy:staging": "NODE_OPTIONS='--max-old-space-size=4096' opennextjs-cloudflare build && opennextjs-cloudflare deploy --env staging",
