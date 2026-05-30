@@ -63,7 +63,7 @@ type UrlLikeDocument = {
  */
 
 /**
- * ### \u1f69c\u1f4dc Tractor the Text Extractor
+ * ### 🚜 Tractor the Text Extractor
  * <img width="350px"  src="https://i.imgur.com/o8NTXxY.png" />
  *
  * 1. Main Content Detection: Extract the main content from a URL by combining
@@ -208,21 +208,33 @@ export async function extractContent(
 
     isPdf = url.endsWith(".pdf") || (await isUrlPDF(url));
     let youtubeID = getURLYoutubeVideo(url);
-    console.log("[extractContent] branch detection", { isPdf, youtubeID, isDocx: url.endsWith(".docx") });
+    console.log("[extractContent] branch detection", {
+      isPdf,
+      youtubeID,
+      isDocx: url.endsWith(".docx"),
+    });
 
     if (isPdf) {
       // pdf checker - use dynamic import to prevent build-time evaluation
       const { convertPDFToHTML } = await import("../pdf-to-html/pdf-to-html");
       response = await convertPDFToHTML(url, options as any);
-      console.log("[extractContent] pdf branch result", { hasHtml: !!response?.html, error: response?.error });
+      console.log("[extractContent] pdf branch result", {
+        hasHtml: !!response?.html,
+        error: response?.error,
+      });
     } else if (url.endsWith(".docx")) {
       response.html = await convertDOCXToHTML(url);
-      console.log("[extractContent] docx branch result", { hasHtml: !!response?.html });
+      console.log("[extractContent] docx branch result", {
+        hasHtml: !!response?.html,
+      });
 
       // check youtube
     } else if (youtubeID) {
       response = await convertYoutubeToText(url, options);
-      console.log("[extractContent] youtube branch result", { hasHtml: !!response?.html, error: response?.error });
+      console.log("[extractContent] youtube branch result", {
+        hasHtml: !!response?.html,
+        error: response?.error,
+      });
     } else {
       console.log("[extractContent] scraping URL", { url, proxy });
       const html = await scrapeURL(url, {
@@ -249,7 +261,7 @@ export async function extractContent(
 
     url = urlOrDoc.location.href;
 
-    //pdf checker for embeded docs
+    //pdf checker for embedded docs
     if (urlOrDoc?.querySelectorAll)
       isPdf = urlOrDoc?.querySelectorAll(
         'embed[type="application/pdf"]',
@@ -260,8 +272,7 @@ export async function extractContent(
       // pdf checker - use dynamic import to prevent build-time evaluation
       const { convertPDFToHTML } = await import("../pdf-to-html/pdf-to-html");
       response = await convertPDFToHTML(url, {});
-    }
-    else if (youtubeID) {
+    } else if (youtubeID) {
       // from front end
 
       //if on same domain page in chrome-extension
@@ -292,17 +303,18 @@ export async function extractContent(
   var apa_cite_date =
     new Date(date).getFullYear() > 1971
       ? " (" +
-      new Date(date).getFullYear() +
-      ", " +
-      new Date(date).toLocaleDateString("en-US", {
-        month: citeFormatMonthFull ? "long" : "short",
-        day: "numeric",
-      }) +
-      ")"
+        new Date(date).getFullYear() +
+        ", " +
+        new Date(date).toLocaleDateString("en-US", {
+          month: citeFormatMonthFull ? "long" : "short",
+          day: "numeric",
+        }) +
+        ")"
       : ""; //"(N.D.)";
 
-  var cite = `${author_cite || source || " "}${apa_cite_date}. <b>${title || ""
-    }</b>. <i>${source || ""}</i>. <a href="${url}" target="_blank">${url}</a>`;
+  var cite = `${author_cite || source || " "}${apa_cite_date}. <b>${
+    title || ""
+  }</b>. <i>${source || ""}</i>. <a href="${url}" target="_blank">${url}</a>`;
 
   //shorten long urls by removing ?params=get used as state tracking
   if (url && url.includes("?") && url.length > 150)

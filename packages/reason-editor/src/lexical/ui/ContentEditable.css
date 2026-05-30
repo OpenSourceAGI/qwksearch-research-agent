@@ -12,7 +12,7 @@
   display: block;
   position: relative;
   outline: 0;
-  padding: 8px 46px 40px;
+  padding: 8px 16px 40px;
   min-height: calc(100vh - 200px);
 }
 @media (max-width: 1025px) {
@@ -29,8 +29,8 @@
   position: absolute;
   text-overflow: ellipsis;
   top: 8px;
-  left: 46px;
-  right: 28px;
+  left: 16px;
+  right: 16px;
   user-select: none;
   white-space: nowrap;
   display: inline-block;

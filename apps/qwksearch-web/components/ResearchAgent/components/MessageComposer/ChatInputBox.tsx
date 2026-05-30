@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from "react";
-import { Lightbulb, Globe } from "lucide-react";
+import { Lightbulb, Globe, Search } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Icons } from "./MessageInputIconSet";
 import { FilePreviewCard } from "../FileUpload/FilePreviewCard";
@@ -100,6 +100,57 @@ const ChatInputBox = () => {
     const [thinkActive, setThinkActive] = useState(false);
     const [deepSearchActive, setDeepSearchActive] = useState(false);
 
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+    const suppressNextFetchRef = useRef(false);
+    const autocompleteAbortRef = useRef<AbortController | null>(null);
+
+    useEffect(() => {
+        const query = message.trim();
+        if (suppressNextFetchRef.current) {
+            suppressNextFetchRef.current = false;
+            return;
+        }
+        if (!isActive || query.length < 2) {
+            setSuggestions([]);
+            setSuggestionsOpen(false);
+            setHighlightedIndex(-1);
+            return;
+        }
+
+        const timeout = setTimeout(async () => {
+            autocompleteAbortRef.current?.abort();
+            const controller = new AbortController();
+            autocompleteAbortRef.current = controller;
+            try {
+                const res = await fetch(
+                    `/api/agent/autocomplete?q=${encodeURIComponent(query)}`,
+                    { signal: controller.signal },
+                );
+                if (!res.ok) return;
+                const data = await res.json();
+                const list: string[] = Array.isArray(data?.suggestions) ? data.suggestions : [];
+                setSuggestions(list);
+                setSuggestionsOpen(list.length > 0);
+                setHighlightedIndex(-1);
+            } catch (err: any) {
+                if (err?.name !== "AbortError") console.error("Autocomplete fetch failed", err);
+            }
+        }, 180);
+
+        return () => clearTimeout(timeout);
+    }, [message, isActive]);
+
+    const selectSuggestion = (value: string) => {
+        suppressNextFetchRef.current = true;
+        setMessage(value);
+        setSuggestions([]);
+        setSuggestionsOpen(false);
+        setHighlightedIndex(-1);
+        textareaRef.current?.focus();
+    };
+
     useEffect(() => {
         if (isActive || message) return;
         const interval = setInterval(() => {
@@ -137,6 +188,34 @@ const ChatInputBox = () => {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (suggestionsOpen && suggestions.length > 0) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setHighlightedIndex(i => (i + 1) % suggestions.length);
+                return;
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setHighlightedIndex(i => (i <= 0 ? suggestions.length - 1 : i - 1));
+                return;
+            }
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                setSuggestionsOpen(false);
+                setHighlightedIndex(-1);
+                return;
+            }
+            if (e.key === 'Tab' && highlightedIndex >= 0) {
+                e.preventDefault();
+                selectSuggestion(suggestions[highlightedIndex]);
+                return;
+            }
+            if (e.key === 'Enter' && !e.shiftKey && highlightedIndex >= 0) {
+                e.preventDefault();
+                selectSuggestion(suggestions[highlightedIndex]);
+                return;
+            }
+        }
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSend();
@@ -368,6 +447,45 @@ const ChatInputBox = () => {
                     </div>
                 </motion.div>
             </motion.div>
+
+            {/* Autocomplete Dropdown */}
+            <AnimatePresence>
+                {suggestionsOpen && suggestions.length > 0 && (
+                    <motion.div
+                        ref={(node) => {
+                            if (node && wrapperRef.current && !wrapperRef.current.contains(node)) {
+                                // no-op; rendered outside wrapper, handled by mousedown stopPropagation below
+                            }
+                        }}
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.12 }}
+                        className="absolute left-2 right-2 md:left-0 md:right-0 top-full mt-2 z-20 rounded-2xl bg-white dark:bg-[#30302E] border border-bg-300 dark:border-transparent shadow-xl overflow-hidden"
+                        onMouseDown={(e) => e.preventDefault()}
+                    >
+                        <ul className="max-h-72 overflow-y-auto custom-scrollbar py-1">
+                            {suggestions.map((s, i) => (
+                                <li key={`${s}-${i}`}>
+                                    <button
+                                        type="button"
+                                        onMouseEnter={() => setHighlightedIndex(i)}
+                                        onClick={() => selectSuggestion(s)}
+                                        className={`w-full text-left px-4 py-2 text-[15px] flex items-center gap-2 transition-colors ${
+                                            i === highlightedIndex
+                                                ? 'bg-bg-200 text-text-100'
+                                                : 'text-text-200 hover:bg-bg-200'
+                                        }`}
+                                    >
+                                        <Search className="w-4 h-4 text-text-400 shrink-0" />
+                                        <span className="truncate">{s}</span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Drag Overlay */}
             {isDragging && (

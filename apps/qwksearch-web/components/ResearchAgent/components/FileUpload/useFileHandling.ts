@@ -77,7 +77,7 @@ export function useFileHandling({
         const formData = new FormData();
         uploadable.forEach((f) => formData.append("files", f.file));
 
-        const data: { files: ChatFile[] } = await grab("/api/doc/uploads", {
+        const data: { files: ChatFile[] } = await grab("/doc/uploads", {
           method: "POST",
           body: formData,
         });

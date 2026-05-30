@@ -9,10 +9,6 @@ import { useEffect, useRef } from 'react';
 const getGapi = () => window.gapi as GapiAPI | undefined;
 const getGoogle = () => window.google as GoogleAPI | undefined;
 
-interface GoogleDrivePickerProps {
-  onFilesSelected: (files: google.picker.DocumentObject[]) => void;
-  onError?: (error: string) => void;
-}
 
 export const useGooglePicker = () => {
   const pickerApiLoaded = useRef(false);
