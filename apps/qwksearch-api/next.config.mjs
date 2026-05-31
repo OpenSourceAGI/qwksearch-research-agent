@@ -15,7 +15,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  serverExternalPackages: ["@libsql/isomorphic-ws"],
+  serverExternalPackages: [
+    "@libsql/isomorphic-ws",
+    "kysely",
+    "@better-auth/kysely-adapter",
+  ],
   async redirects() {
     return [
       {

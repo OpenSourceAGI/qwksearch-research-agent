@@ -29,6 +29,8 @@ const nextConfig = {
   },
   serverExternalPackages: [
     "@libsql/isomorphic-ws",
+    "kysely",
+    "@better-auth/kysely-adapter",
     // Client-only packages pulled in via reason-editor (transpilePackages) — never run server-side
     "prettier",
     "@huggingface/transformers",

@@ -1,11 +1,21 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { ThemeDropdown } from "shadcn-theme-menu"
+import { Moon, Sun, Monitor } from "lucide-react"
+import { useTheme } from "next-themes"
+import { themeNames, themeColors, formatThemeName } from "shadcn-theme-menu"
 import { cn } from "@/lib/utils"
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import iconRead from '@/components/icons/icon-read.svg'
 import iconSettings from '@/components/icons/icon-configure.svg'
 
@@ -14,47 +24,137 @@ const NAV_ITEMS = [
   { href: "/docs", label: "Docs", icon: iconRead },
 ]
 
-function DockInstance({
-  dockClassName,
-  allItems,
-}: {
-  dockClassName: string
-  allItems: { key: string; label: string; icon: any; active: boolean; onClick: () => void }[]
-}) {
-  const router = useRouter()
+function SettingsDockItem({ side }: { side: "bottom" | "top" }) {
+  const { theme, setTheme } = useTheme()
+  const [colorTheme, setColorTheme] = useState("modern-minimal")
+  const [mounted, setMounted] = useState(false)
+  const [previewTheme, setPreviewTheme] = useState<string | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+    const saved = localStorage.getItem("color-theme")
+    if (saved && themeNames.includes(saved)) setColorTheme(saved)
+  }, [])
+
+  const handleThemeChange = (name: string) => {
+    setColorTheme(name)
+    localStorage.setItem("color-theme", name)
+    document.cookie = `color-theme=${name}; path=/; max-age=31536000`
+    themeNames.forEach(t => document.documentElement.classList.remove(`theme-${t}`))
+    document.documentElement.classList.add(`theme-${name}`)
+    setPreviewTheme(null)
+  }
+
+  const handleThemePreview = (name: string) => {
+    setPreviewTheme(name)
+    themeNames.forEach(t => document.documentElement.classList.remove(`theme-${t}`))
+    document.documentElement.classList.add(`theme-${name}`)
+  }
+
+  const handlePreviewEnd = () => {
+    if (previewTheme) {
+      themeNames.forEach(t => document.documentElement.classList.remove(`theme-${t}`))
+      document.documentElement.classList.add(`theme-${colorTheme}`)
+      setPreviewTheme(null)
+    }
+  }
 
   return (
-    <div className="flex items-center">
-      <Dock direction="middle" className={dockClassName}>
-        {allItems.map(({ key, label, icon, active, onClick }) => (
-          <DockItem
-            key={key}
-            onClick={onClick}
-            className={cn(
-              "flex flex-col items-center gap-0.5 rounded-full transition-colors cursor-pointer",
-              active
-                ? "bg-primary/20 ring-2 ring-primary"
-                : "bg-gray-200 dark:bg-neutral-800",
-            )}
-          >
-            <DockLabel>{label}</DockLabel>
-            <DockIcon>
-              <Image src={icon} alt={label} width={24} height={24} className="w-full h-full" />
-            </DockIcon>
-          </DockItem>
-        ))}
-        <DockItem
-          onClick={() => router.push('/settings')}
-          className="flex flex-col items-center gap-0.5 rounded-full transition-colors cursor-pointer bg-gray-200 dark:bg-neutral-800"
-        >
+    <DropdownMenu onOpenChange={(open) => !open && handlePreviewEnd()}>
+      <DropdownMenuTrigger asChild>
+        <DockItem className="flex flex-col items-center gap-0.5 rounded-full transition-colors cursor-pointer bg-gray-200 dark:bg-neutral-800">
           <DockLabel>Settings</DockLabel>
           <DockIcon>
             <Image src={iconSettings} alt="settings" width={24} height={24} className="w-full h-full" />
           </DockIcon>
         </DockItem>
-      </Dock>
-      <ThemeDropdown />
-    </div>
+      </DropdownMenuTrigger>
+      {mounted && (
+        <DropdownMenuContent side={side} align="end" className="w-56 max-h-[min(400px,70vh)] overflow-y-auto" collisionPadding={8}>
+          <DropdownMenuLabel>Appearance</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer py-1 h-7">
+            <Sun className="mr-2 h-3.5 w-3.5" />
+            <span className="text-sm">Light</span>
+            {theme === "light" && <span className="ml-auto text-xs">✓</span>}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("dark")} className="cursor-pointer py-1 h-7">
+            <Moon className="mr-2 h-3.5 w-3.5" />
+            <span className="text-sm">Dark</span>
+            {theme === "dark" && <span className="ml-auto text-xs">✓</span>}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("system")} className="cursor-pointer py-1 h-7">
+            <Monitor className="mr-2 h-3.5 w-3.5" />
+            <span className="text-sm">System</span>
+            {theme === "system" && <span className="ml-auto text-xs">✓</span>}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>Color Theme</DropdownMenuLabel>
+          <div className="text-xs text-muted-foreground px-2 py-1.5">
+            Current: {formatThemeName(colorTheme)}
+          </div>
+          <DropdownMenuSeparator />
+          {themeNames.map((name) => {
+            const colors = themeColors[name]
+            return (
+              <DropdownMenuItem
+                key={name}
+                onClick={() => handleThemeChange(name)}
+                onMouseEnter={() => handleThemePreview(name)}
+                onMouseLeave={handlePreviewEnd}
+                className={cn("cursor-pointer", colorTheme === name && "bg-accent")}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    {colors && (
+                      <div className="flex gap-1">
+                        <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: colors.primary }} />
+                        <div className="w-3 h-3 rounded-full border border-border" style={{ backgroundColor: colors.secondary }} />
+                      </div>
+                    )}
+                    <span>{formatThemeName(name)}</span>
+                  </div>
+                  {colorTheme === name && <span className="text-xs">✓</span>}
+                </div>
+              </DropdownMenuItem>
+            )
+          })}
+        </DropdownMenuContent>
+      )}
+    </DropdownMenu>
+  )
+}
+
+function DockInstance({
+  dockClassName,
+  side,
+  allItems,
+}: {
+  dockClassName: string
+  side: "bottom" | "top"
+  allItems: { key: string; label: string; icon: any; active: boolean; onClick: () => void }[]
+}) {
+  return (
+    <Dock direction="middle" className={dockClassName}>
+      {allItems.map(({ key, label, icon, active, onClick }) => (
+        <DockItem
+          key={key}
+          onClick={onClick}
+          className={cn(
+            "flex flex-col items-center gap-0.5 rounded-full transition-colors cursor-pointer",
+            active
+              ? "bg-primary/20 ring-2 ring-primary"
+              : "bg-gray-200 dark:bg-neutral-800",
+          )}
+        >
+          <DockLabel>{label}</DockLabel>
+          <DockIcon>
+            <Image src={icon} alt={label} width={24} height={24} className="w-full h-full" />
+          </DockIcon>
+        </DockItem>
+      ))}
+      <SettingsDockItem side={side} />
+    </Dock>
   )
 }
 
@@ -93,6 +193,7 @@ export function CategoryDock() {
       <div className="hidden md:block fixed top-0 left-2 z-50">
         <DockInstance
           dockClassName="h-[52px] shrink-0 !mt-0 !mx-0"
+          side="bottom"
           allItems={allItems}
         />
       </div>
@@ -101,6 +202,7 @@ export function CategoryDock() {
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe">
         <DockInstance
           dockClassName="h-[52px] shrink-0 !mt-0 mx-auto w-max mb-2 !gap-1 !p-1"
+          side="top"
           allItems={allItems}
         />
       </div>
