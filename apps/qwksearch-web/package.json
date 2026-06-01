@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "rm -rf .next; open-ready next dev  --turbo",
     "build": "next build",
-    "deploy": "opennextjs-cloudflare build --skipNextBuild && node scripts/patch-better-auth.mjs && opennextjs-cloudflare deploy",
+    "deploy": "node scripts/patch-better-auth.mjs && opennextjs-cloudflare build --skipNextBuild && opennextjs-cloudflare deploy",
     "deploy:full": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "start": "opennextjs-cloudflare start",
     "dev:cf": "npx wrangler dev --local",
