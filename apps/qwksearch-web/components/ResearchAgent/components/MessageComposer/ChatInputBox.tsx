@@ -234,7 +234,7 @@ const ChatInputBox = () => {
         >
             <motion.div
                 ref={wrapperRef}
-                className="!box-content flex flex-col mx-2 md:mx-0 items-stretch relative z-10 rounded-[28px] bg-white dark:bg-[#30302E] border border-bg-300 dark:border-transparent cursor-text font-sans antialiased"
+                className="!box-content flex flex-col mx-2 md:mx-0 items-stretch relative z-10 rounded-[28px] bg-gray-50 dark:bg-[#30302E] border border-bg-300 dark:border-transparent cursor-text font-sans antialiased"
                 animate={{
                     boxShadow: showExpanded
                         ? "0 8px 32px 0 rgba(0,0,0,0.16)"
@@ -298,7 +298,7 @@ const ChatInputBox = () => {
                                 onPaste={handlePaste}
                                 onKeyDown={handleKeyDown}
                                 onFocus={() => setIsActive(true)}
-                                className="w-full bg-transparent border-0 outline-none text-text-100 text-[16px] resize-none overflow-hidden py-1 leading-relaxed block font-normal antialiased"
+                                className="w-full bg-transparent border-0 outline-none text-text-200 dark:text-text-100 text-[16px] resize-none overflow-hidden py-1 leading-relaxed block font-normal antialiased"
                                 rows={1}
                                 autoFocus
                                 style={{ minHeight: "1.5em" }}
@@ -461,7 +461,7 @@ const ChatInputBox = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.12 }}
-                        className="absolute left-2 right-2 md:left-0 md:right-0 top-full mt-2 z-20 rounded-2xl bg-white dark:bg-[#30302E] border border-bg-300 dark:border-transparent shadow-xl overflow-hidden"
+                        className="absolute left-2 right-2 md:left-0 md:right-0 top-full mt-2 z-20 rounded-2xl bg-gray-50 dark:bg-[#30302E] border border-bg-300 dark:border-transparent shadow-xl overflow-hidden"
                         onMouseDown={(e) => e.preventDefault()}
                     >
                         <ul className="max-h-72 overflow-y-auto custom-scrollbar py-1">

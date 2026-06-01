@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "rm -rf .next; open-ready next dev  --turbo",
     "build": "next build",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy": "opennextjs-cloudflare build --skipNextBuild && opennextjs-cloudflare deploy",
+    "deploy:full": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "start": "opennextjs-cloudflare start",
     "dev:cf": "npx wrangler dev --local",
     "preview": "NODE_OPTIONS='--max-old-space-size=4096' opennextjs-cloudflare build && opennextjs-cloudflare preview",
@@ -22,7 +23,6 @@
     "favicon": "bun create favicon public/favicon-512.png public/ --overwrite"
   },
   "dependencies": {
-    "@better-auth/infra": "^0.2.8",
     "@floating-ui/react": "^0.27.19",
     "@headless-tree/core": "^1.6.3",
     "@headless-tree/react": "^1.6.3",
