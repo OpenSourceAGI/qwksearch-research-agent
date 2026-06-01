@@ -70,11 +70,11 @@ export async function convertPDFToHTML(
   let pdfDocument;
   try {
     let resolvePDFJS;
-    try {
-      ({ resolvePDFJS } = await import("pdfjs-serverless"));
-    } catch {
+    // try {
+    //   // ({ resolvePDFJS } = await import("pdfjs-serverless"));
+    // } catch {
       ({ resolvePDFJS } = await import("https://cdn.jsdelivr.net/npm/pdfjs-serverless@1.1.0/+esm" as any));
-    }
+    // }
     const { getDocument } = await resolvePDFJS();
     pdfDocument = await getDocument({
       data: new Uint8Array(buffer),
