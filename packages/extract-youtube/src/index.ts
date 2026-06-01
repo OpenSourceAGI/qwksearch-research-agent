@@ -6,6 +6,9 @@
 // Main API
 export { YouTubeTranscriptApi } from './youtube-transcript-api';
 
+// Transcript utilities
+export { encodeTranscriptSpeeds, getTimestampAtChar, decompressTimestampsArray } from './utils/transcript-utils';
+
 // Transcript model classes
 export {
   FetchedTranscript,

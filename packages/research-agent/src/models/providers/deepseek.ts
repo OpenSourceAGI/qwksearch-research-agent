@@ -15,11 +15,11 @@ interface DeepSeekConfig {
 
 const defaultChatModels: Model[] = [
   {
-    name: "Deepseek Chat 3.2",
+    name: "Deepseek Chat 4.0",
     key: "deepseek-chat",
   },
   {
-    name: "Deepseek Reasoner 3.2",
+    name: "Deepseek Reasoner 4.0",
     key: "deepseek-reasoner",
   },
 ];

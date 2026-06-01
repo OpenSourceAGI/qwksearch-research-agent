@@ -2,7 +2,7 @@
  * @fileoverview All error classes for the YouTube Transcript API
  */
 
-import type { ProxyConfig } from './proxies';
+import type { ProxyConfig } from '../proxies';
 
 const YOUTUBE_WATCH_URL = 'https://www.youtube.com/watch?v={video_id}';
 

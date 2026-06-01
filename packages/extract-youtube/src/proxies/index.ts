@@ -2,7 +2,7 @@
  * @fileoverview Proxy configuration classes for the YouTube Transcript API
  */
 
-import { RequestsProxyConfigDict } from './types';
+import { RequestsProxyConfigDict } from '../types';
 
 /**
  * Exception for invalid proxy configurations

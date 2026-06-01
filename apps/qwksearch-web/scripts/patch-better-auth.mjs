@@ -2,8 +2,8 @@
 // @better-auth/core@1.6.x exports ./instrumentation with a "workerd" condition
 // pointing to pure.index.mjs, but that file is missing from the published package.
 // opennext-cloudflare builds with the workerd esbuild condition, causing a build failure.
-// This script creates the missing stub before opennext bundles the server.
-import { existsSync, writeFileSync, readdirSync } from "fs";
+// Run this AFTER opennextjs-cloudflare build so the .open-next tree exists to patch.
+import { existsSync, mkdirSync, writeFileSync, readdirSync } from "fs";
 import { join } from "path";
 
 const STUB =
@@ -19,24 +19,30 @@ const STUB =
 
 function patchDir(instrDir) {
   const target = join(instrDir, "pure.index.mjs");
-  if (existsSync(instrDir) && !existsSync(target)) {
+  if (!existsSync(instrDir)) {
+    mkdirSync(instrDir, { recursive: true });
+  }
+  if (!existsSync(target)) {
     writeFileSync(target, STUB);
     console.log("[patch-better-auth] created", target);
   }
 }
 
-// Patch bun content-addressable store entries in .next/standalone
-const standaloneStore = join(process.cwd(), ".next/standalone/node_modules/.bun");
-if (existsSync(standaloneStore)) {
-  for (const entry of readdirSync(standaloneStore)) {
+function patchBunStore(bunStoreDir) {
+  if (!existsSync(bunStoreDir)) return;
+  for (const entry of readdirSync(bunStoreDir)) {
     if (!entry.startsWith("@better-auth+core@")) continue;
     patchDir(
-      join(standaloneStore, entry, "node_modules/@better-auth/core/dist/instrumentation")
+      join(bunStoreDir, entry, "node_modules/@better-auth/core/dist/instrumentation")
     );
   }
 }
 
-// Also patch the flat symlink target (covers cases where opennext uses node_modules directly)
-patchDir(
-  join(process.cwd(), "node_modules/@better-auth/core/dist/instrumentation")
-);
+// Patch bun store in .next/standalone (Next.js output)
+patchBunStore(join(process.cwd(), ".next/standalone/node_modules/.bun"));
+
+// Patch bun store in .open-next (opennextjs-cloudflare output — must run after the build)
+patchBunStore(join(process.cwd(), ".open-next/server-functions/default/node_modules/.bun"));
+
+// Also patch the flat node_modules path (covers direct resolution during esbuild)
+patchDir(join(process.cwd(), "node_modules/@better-auth/core/dist/instrumentation"));

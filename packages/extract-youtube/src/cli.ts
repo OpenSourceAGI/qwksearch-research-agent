@@ -3,7 +3,8 @@
  * @fileoverview CLI for extracting YouTube transcripts
  */
 
-import { YouTubeTranscriptApi, encodeTranscriptSpeeds } from './youtube-transcript-api';
+import { YouTubeTranscriptApi } from './youtube-transcript-api';
+import { encodeTranscriptSpeeds } from './utils/transcript-utils';
 import { GenericProxyConfig, WebshareProxyConfig } from './proxies';
 import {
   JSONFormatter,

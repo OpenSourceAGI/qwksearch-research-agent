@@ -2,8 +2,8 @@
  * @fileoverview All formatter classes for transcript formatting
  */
 
-import type { FetchedTranscript } from './models/fetched-transcript';
-import type { FetchedTranscriptSnippet } from './types';
+import type { FetchedTranscript } from '../models/fetched-transcript';
+import type { FetchedTranscriptSnippet } from '../types';
 
 /**
  * Base abstract class for all transcript formatters.
