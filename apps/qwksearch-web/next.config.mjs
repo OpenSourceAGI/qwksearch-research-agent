@@ -31,6 +31,8 @@ const nextConfig = {
     "@libsql/isomorphic-ws",
     "kysely",
     "@better-auth/kysely-adapter",
+    "better-auth",
+    "better-auth-cloudflare",
     // Client-only packages pulled in via reason-editor (transpilePackages) — never run server-side
     "prettier",
     "@huggingface/transformers",
