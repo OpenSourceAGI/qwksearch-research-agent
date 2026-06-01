@@ -1,0 +1,18 @@
+diff --git a/dist/instrumentation/pure.index.mjs b/dist/instrumentation/pure.index.mjs
+new file mode 100644
+index 0000000..1a2b3c4
+--- /dev/null
++++ b/dist/instrumentation/pure.index.mjs
+@@ -0,0 +1,14 @@
++// Pure stub for workerd/edge — no OpenTelemetry dependency
++const ATTR_DB_COLLECTION_NAME = "db.collection.name";
++const ATTR_DB_OPERATION_NAME = "db.operation.name";
++const ATTR_HTTP_RESPONSE_STATUS_CODE = "http.response.status_code";
++const ATTR_HTTP_ROUTE = "http.route";
++const ATTR_OPERATION_ID = "better_auth.operation_id";
++const ATTR_HOOK_TYPE = "better_auth.hook.type";
++const ATTR_CONTEXT = "better_auth.context";
++function withSpan(_name, _attributes, fn) {
++	return fn();
++}
++export { ATTR_CONTEXT, ATTR_DB_COLLECTION_NAME, ATTR_DB_OPERATION_NAME, ATTR_HOOK_TYPE, ATTR_HTTP_RESPONSE_STATUS_CODE, ATTR_HTTP_ROUTE, ATTR_OPERATION_ID, withSpan };
