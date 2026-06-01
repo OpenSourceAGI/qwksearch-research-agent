@@ -62,7 +62,7 @@ export class HighlightNode extends TextNode {
   }
 
   updateDOM(
-    prevNode: HighlightNode,
+    prevNode: this,
     dom: HTMLElement,
     config: EditorConfig,
   ): boolean {

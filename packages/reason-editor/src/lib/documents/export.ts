@@ -38,3 +38,20 @@ export async function exportAsText(title: string, htmlContent: string): Promise<
   const text = htmlContent.replace(/<[^>]+>/g, '').trim();
   downloadFile(text, `${title}.txt`, 'text/plain');
 }
+
+export async function exportAsDocx(title: string, htmlContent: string): Promise<void> {
+  const text = htmlContent.replace(/<[^>]+>/g, '').trim();
+  const rtf = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}}\n{\\b ${title.replace(/[{}\\]/g, '')}}\n\\par\\par\n${text.replace(/[{}\\]/g, '')}}`;
+  downloadFile(rtf, `${title}.rtf`, 'application/rtf');
+}
+
+export async function exportAsPdf(title: string, htmlContent: string): Promise<void> {
+  const originalTitle = document.title;
+  document.title = title;
+  window.print();
+  document.title = originalTitle;
+}
+
+export async function exportToGoogleDocs(title: string, htmlContent: string): Promise<void> {
+  throw new Error('Google Docs export requires OAuth authentication via the Google Docs Integration panel.');
+}

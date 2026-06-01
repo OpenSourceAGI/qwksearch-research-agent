@@ -106,7 +106,7 @@ async function renderMermaidDiagram(
  */
 export default function MermaidPlugin(): null {
   const [editor] = useLexicalComposerContext();
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const processedNodesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {

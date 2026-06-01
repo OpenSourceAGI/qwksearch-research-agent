@@ -80,6 +80,7 @@
     "baseline-browser-mapping": "^2.10.29",
     "better-auth": "^1.6.11",
     "better-auth-cloudflare": "^0.3.0",
+    "kysely": "^0.28.17",
     "chrono-node": "^2.9.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

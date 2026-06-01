@@ -41,7 +41,7 @@ export function useDocumentSync(
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const pendingChangesRef = useRef<Map<string, Document>>(new Map());
-  const syncTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   /**
    * Fetches all documents from the remote API and replaces the current

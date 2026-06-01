@@ -20,7 +20,7 @@ function Skeleton({
       <div className="shimmer-wrapper">
         <div className="shimmer"></div>
       </div>
-      <style jsx>{`
+      <style>{`
         .background-animate {
           background-size: 200% 200%;
           animation: gradientAnimation 1s ease infinite;

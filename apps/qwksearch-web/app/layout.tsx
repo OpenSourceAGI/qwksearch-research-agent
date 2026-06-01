@@ -9,7 +9,7 @@ import { Toaster } from 'sonner';
 import { ChatProvider } from '@/components/ResearchAgent/hooks/useChat';
 import { SessionProvider } from '@/components/ResearchAgent/hooks/useSession';
 import { ThemeProvider } from "shadcn-theme-menu";
-import { FontProvider } from "@/components/theme/font-provider";
+import { FontProvider } from "@/components/layout/font-provider";
 import { ExtractPanelProvider } from '@/components/ResearchAgent/components/ArticleReader/ExtractPanelContext';
 import { APP_NAME } from '@/lib/config/site';
 import { CategoryDock } from '@/components/layout/CategoryDock';

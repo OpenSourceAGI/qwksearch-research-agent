@@ -24,7 +24,7 @@ import {
 } from '../../ui/context-menu';
 import '../../styles/split-pane.css';
 
-type DocumentTreeHandle = { collapseAll: () => void; edit: (nodeId: string) => void; expandAll: () => void };
+type DocumentTreeHandle = { collapseAll: () => void; edit: (nodeId: string) => void; expandAll: () => void; cancelExpand: () => void };
 
 /** Props for the {@link SidebarContent} component. */
 interface SidebarContentProps {

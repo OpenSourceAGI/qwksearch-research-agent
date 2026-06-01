@@ -195,6 +195,7 @@ export function EmojiPickerDialog({
   const [EmojiPicker, setEmojiPicker] = useState<any>(null);
 
   useEffect(() => {
+    // @ts-ignore
     import(/* @vite-ignore */ 'https://esm.sh/emoji-picker-react').then((mod) => {
       setEmojiPicker(() => mod.default);
     });

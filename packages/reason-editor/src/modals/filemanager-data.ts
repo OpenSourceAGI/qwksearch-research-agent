@@ -2,6 +2,7 @@ import type { Document } from '../documents/DocumentTree';
 
 export interface FileItem {
   id: string;
+  parent?: string;
   type: "folder" | "file";
   date?: Date;
   size?: number;
@@ -32,8 +33,15 @@ export function convertDocumentsToFileItems(documents: Document[]): FileItem[] {
     return '/' + segments.join('/');
   }
 
+  function parentPathFor(doc: Document): string {
+    if (!doc.parentId) return '0';
+    const parent = byId.get(doc.parentId);
+    return parent ? pathFor(parent) : '0';
+  }
+
   return documents.map(doc => ({
     id: pathFor(doc),
+    parent: parentPathFor(doc),
     type: doc.isFolder ? 'folder' : 'file',
     date: new Date(),
     size: doc.isFolder ? undefined : (doc.content?.length || 0),
