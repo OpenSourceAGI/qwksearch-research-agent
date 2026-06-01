@@ -16,8 +16,5 @@
   },
   "devDependencies": {
     "turbo": "^2.9.9"
-  },
-  "patchedDependencies": {
-    "@better-auth/core@1.6.11": "patches/@better-auth+core@1.6.11.patch"
   }
 }

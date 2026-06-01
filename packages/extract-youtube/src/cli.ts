@@ -3,7 +3,7 @@
  * @fileoverview CLI for extracting YouTube transcripts
  */
 
-import { YouTubeTranscriptApi } from './youtube-transcript-api';
+import { YouTubeTranscriptApi, encodeTranscriptSpeeds } from './youtube-transcript-api';
 import { GenericProxyConfig, WebshareProxyConfig } from './proxies';
 import {
   JSONFormatter,
@@ -16,7 +16,7 @@ import {
 interface CliOptions {
   videoId: string;
   languages?: string[];
-  format?: 'json' | 'text' | 'srt' | 'webvtt' | 'pretty';
+  format?: 'json' | 'text' | 'srt' | 'webvtt' | 'pretty' | 'speeds';
   preserveFormatting?: boolean;
   proxy?: string;
   webshareUser?: string;
@@ -84,7 +84,7 @@ OPTIONS:
   -h, --help                    Show this help message
   -v, --version                 Show version number
   -l, --languages <codes>       Comma-separated language codes (e.g., en,de,fr)
-  -f, --format <type>           Output format: json, text, srt, webvtt, pretty (default: json)
+  -f, --format <type>           Output format: json, text, srt, webvtt, pretty, speeds (default: json)
   -p, --preserve-formatting     Preserve text formatting (line breaks, etc.)
   --proxy <url>                 HTTP/HTTPS proxy URL
   --webshare-user <username>    Webshare proxy username
@@ -108,6 +108,9 @@ EXAMPLES:
 
   # Extract transcript as plain text with preserved formatting
   extract-youtube jNQXAC9IVRw -f text -p
+
+  # Extract speech speed encoding with joined text and timestamps
+  extract-youtube jNQXAC9IVRw -f speeds
 `);
 }
 
@@ -178,6 +181,11 @@ async function main() {
       case 'pretty':
         output = new PrettyPrintFormatter().formatTranscript(transcript);
         break;
+      case 'speeds': {
+        const { html, word_count, speeds } = encodeTranscriptSpeeds(transcript);
+        output = JSON.stringify({ html, word_count, speeds });
+        break;
+      }
       default:
         throw new Error(`Unknown format: ${format}`);
     }

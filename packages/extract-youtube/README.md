@@ -7,7 +7,7 @@
     </a>
      <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
      <img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
-    <img src="https://img.shields.io/badge/Next.js-16-black" alt="Next.js" />
+    <img src="https://img.shields.io/badge/Next.js-black" alt="Next.js" />
 <br />
     <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
     <img alt="GitHub Discussions"
@@ -17,6 +17,7 @@
         <img src="https://img.shields.io/github/commit-activity/m/vtempest/qwksearch-research-agent" />
     </a>
     <img src="https://img.shields.io/github/last-commit/vtempest/qwksearch-research-agent.svg" alt="GitHub last commit" />
+    <a href="https://www.npmjs.com/package/extract-youtube"><img src="https://img.shields.io/badge/NPM-%23CB3837.svg" /></a>
 <br />
     <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request">
         <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"
