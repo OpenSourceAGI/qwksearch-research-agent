@@ -14,6 +14,9 @@
     "dev:editor": "turbo dev --filter=reason-editor",
     "build:editor": "turbo build --filter=reason-editor"
   },
+  "overrides": {
+    "@vitejs/plugin-react": "5.2.0"
+  },
   "devDependencies": {
     "turbo": "^2.9.9"
   }
