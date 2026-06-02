@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from "react";
-import { Lightbulb, Globe, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Icons } from "./MessageInputIconSet";
 import { FilePreviewCard } from "../FileUpload/FilePreviewCard";
@@ -97,9 +97,6 @@ const ChatInputBox = () => {
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const [showPlaceholder, setShowPlaceholder] = useState(true);
     const [isActive, setIsActive] = useState(false);
-    const [thinkActive, setThinkActive] = useState(false);
-    const [deepSearchActive, setDeepSearchActive] = useState(false);
-
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [suggestionsOpen, setSuggestionsOpen] = useState(false);
@@ -223,7 +220,6 @@ const ChatInputBox = () => {
     };
 
     const hasContent = !!(message.trim() || files.length > 0 || pastedContent.length > 0);
-    const showExpanded = isActive || !!message;
 
     return (
         <div
@@ -236,7 +232,7 @@ const ChatInputBox = () => {
                 ref={wrapperRef}
                 className="!box-content flex flex-col mx-2 md:mx-0 items-stretch relative z-10 rounded-[28px] bg-gray-50 dark:bg-[#30302E] border border-bg-300 dark:border-transparent cursor-text font-sans antialiased"
                 animate={{
-                    boxShadow: showExpanded
+                    boxShadow: isActive || !!message
                         ? "0 8px 32px 0 rgba(0,0,0,0.16)"
                         : "0 2px 8px 0 rgba(0,0,0,0.08)",
                 }}
@@ -381,71 +377,6 @@ const ChatInputBox = () => {
                     </div>
                 </div>
 
-                {/* Expanded Controls (Think + Deep Search) */}
-                <motion.div
-                    className="w-full flex justify-start px-4 items-center text-sm overflow-hidden"
-                    variants={{
-                        hidden: {
-                            opacity: 0,
-                            y: 16,
-                            height: 0,
-                            marginBottom: 0,
-                            pointerEvents: "none" as const,
-                            transition: { duration: 0.2 },
-                        },
-                        visible: {
-                            opacity: 1,
-                            y: 0,
-                            height: "auto",
-                            marginBottom: 10,
-                            pointerEvents: "auto" as const,
-                            transition: { duration: 0.3, delay: 0.08 },
-                        },
-                    }}
-                    initial="hidden"
-                    animate={showExpanded ? "visible" : "hidden"}
-                >
-                    <div className="flex gap-3 items-center">
-                        {/* Think toggle */}
-                        <button
-                            className={`flex items-center gap-1 px-4 py-2 rounded-full transition-all font-medium group ${
-                                thinkActive
-                                    ? "bg-blue-600/10 outline outline-blue-600/60 text-blue-950 dark:text-blue-300"
-                                    : "bg-bg-200 text-text-300 hover:bg-bg-300"
-                            }`}
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); setThinkActive(a => !a); }}
-                        >
-                            <Lightbulb className="group-hover:fill-yellow-300 transition-all" size={18} />
-                            Think
-                        </button>
-
-                        {/* Deep Search toggle */}
-                        <motion.button
-                            className={`flex items-center px-4 gap-1 py-2 rounded-full transition font-medium whitespace-nowrap overflow-hidden justify-start ${
-                                deepSearchActive
-                                    ? "bg-blue-600/10 outline outline-blue-600/60 text-blue-950 dark:text-blue-300"
-                                    : "bg-bg-200 text-text-300 hover:bg-bg-300"
-                            }`}
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); setDeepSearchActive(a => !a); }}
-                            initial={false}
-                            animate={{
-                                width: deepSearchActive ? 130 : 36,
-                                paddingLeft: deepSearchActive ? 8 : 9,
-                            }}
-                        >
-                            <div className="flex-1"><Globe size={18} /></div>
-                            <motion.span
-                                className="pb-[2px]"
-                                initial={false}
-                                animate={{ opacity: deepSearchActive ? 1 : 0 }}
-                            >
-                                Deep Search
-                            </motion.span>
-                        </motion.button>
-                    </div>
-                </motion.div>
             </motion.div>
 
             {/* Autocomplete Dropdown */}
