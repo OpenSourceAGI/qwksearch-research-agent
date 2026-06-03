@@ -1,5 +1,6 @@
 /**
- * React component that renders ModelSelector within the ResearchAgent area of ResearchAgent.
+ * Full-featured popover model selector with text search, provider grouping, checkmark for the active model,
+ * and an "Add model" footer link; accepts optional external props to work in standalone contexts.
  */
 "use client";
 

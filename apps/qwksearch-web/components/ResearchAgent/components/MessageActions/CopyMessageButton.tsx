@@ -1,5 +1,6 @@
 /**
- * React component that renders CopyMessageButton within the ResearchAgent area of ResearchAgent.
+ * Button that copies the assistant message text plus citation URLs to the clipboard, showing a brief
+ * checkmark confirmation after a successful copy.
  */
 import { Check, ClipboardList } from 'lucide-react';
 import { useState } from 'react';

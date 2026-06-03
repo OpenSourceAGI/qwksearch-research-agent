@@ -1,3 +1,6 @@
+/**
+ * Maps the custom `<think>` markdown tag in AI responses to the collapsible MessageReasoningPanel component.
+ */
 'use client';
 
 import React from 'react';

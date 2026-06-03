@@ -1,5 +1,6 @@
 /**
- * React component that renders ActionBar within the ResearchAgent area of ResearchAgent.
+ * Bottom action row for the message composer with the file-upload/settings dropdown, an optional microphone
+ * button (when speech is supported), and a send/stop-streaming button.
  */
 import React from "react";
 import FileUploadDropdown from '../FileUpload/FileUploadDropdown';

@@ -1,5 +1,6 @@
 /**
- * React component that renders ChatWindow within the ResearchAgent area of ResearchAgent.
+ * Top-level chat window that switches between ChatHomepage and the active thread, handles error/loading/404 states,
+ * and defines all shared message type interfaces (UserMessage, AssistantMessage, SourceMessage, SearchingMessage).
  */
 'use client';
 

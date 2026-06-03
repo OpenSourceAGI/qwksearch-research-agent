@@ -1,5 +1,6 @@
 /**
- * React component that renders PastedContentCard within the ResearchAgent area of ResearchAgent.
+ * Small card shown in the attachment tray when a large block of text (>300 chars) is pasted into the input;
+ * displays a truncated preview with a "PASTED" label and a hover-revealed remove button.
  */
 import React from "react";
 import { Icons } from "./MessageInputIconSet";

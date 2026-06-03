@@ -1,3 +1,7 @@
+/**
+ * Sticky navigation bar showing the abbreviated chat title, Markdown/PDF export options, and a delete-chat
+ * button; shifts right when the article side panel is open on desktop.
+ */
 import { Edit, Share, Trash, FileText, FileDown } from 'lucide-react';
 import { Message } from './ChatWindow';
 import { useEffect, useState } from 'react';

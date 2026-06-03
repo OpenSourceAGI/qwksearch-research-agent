@@ -1,5 +1,7 @@
 /**
- * Custom React hook that encapsulates speech input behavior for ResearchAgent.
+ * Hook providing `toggleSpeech` for voice input: uses the Web Speech API when available, falling back to
+ * MediaRecorder + server-side transcription endpoint. Exposes `isListening` and `isSpeechSupported`.
+ * Global Ctrl+` shortcut toggles listening while the hook is mounted.
  */
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";

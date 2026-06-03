@@ -1,5 +1,5 @@
 /**
- * React component that renders ArticleFollowupQuestions within the ResearchAgent area of ResearchAgent.
+ * Renders a clickable list of AI-generated follow-up question suggestions for the open article.
  */
 import React from 'react';
 import { DEFAULT_SUMMARIZE_PROMPT } from '@/lib/config/site';

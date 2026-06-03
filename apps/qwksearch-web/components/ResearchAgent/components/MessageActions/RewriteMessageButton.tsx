@@ -1,5 +1,6 @@
 /**
- * React component that renders RewriteMessageButton within the ResearchAgent area of ResearchAgent.
+ * Button that opens a searchable provider/model picker popover and regenerates the selected
+ * assistant message using the chosen model.
  */
 'use client';
 

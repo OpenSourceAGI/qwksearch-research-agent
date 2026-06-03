@@ -1,3 +1,7 @@
+/**
+ * Full-screen homepage with a randomised AI-themed background artwork (image or video), the
+ * QuantumWaveOrbital animation, recent history chips, the main chat input box, and an app footer.
+ */
 'use client';
 import { useEffect, useState } from 'react';
 import Footer from '@/components/layout/Footer';

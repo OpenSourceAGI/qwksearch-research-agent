@@ -1,5 +1,6 @@
 /**
- * React component that renders WebCitationBadge within the ResearchAgent area of ResearchAgent.
+ * Inline citation badge rendered from `<citation>` tags in AI responses; clicking opens the source in the
+ * article extract panel, and hovering shows the page title and favicon in a tooltip.
  */
 'use client';
 

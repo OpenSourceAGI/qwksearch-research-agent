@@ -1,5 +1,6 @@
 /**
- * React component that renders FilePreviewCard within the ResearchAgent area of ResearchAgent.
+ * Thumbnail card for a single attached file showing an image preview or a file-type icon with name and size;
+ * overlays upload status (spinner / error) and a hover-revealed remove button.
  */
 import React from "react";
 import { Icons } from "../MessageComposer/MessageInputIconSet";

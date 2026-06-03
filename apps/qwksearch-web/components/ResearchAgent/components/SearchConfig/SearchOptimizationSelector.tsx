@@ -1,5 +1,5 @@
 /**
- * React component that renders SearchOptimizationSelector within the ResearchAgent area of ResearchAgent.
+ * Popover selector for the response optimization mode: Speed (fastest), Balanced, or Quality (coming soon).
  */
 import { ChevronDown, Sliders, Star, Zap } from 'lucide-react';
 import { cn } from '../../../lib/utils';

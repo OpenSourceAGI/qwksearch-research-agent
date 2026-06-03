@@ -1,5 +1,5 @@
 /**
- * Barrel module that re-exports ResearchAgent APIs for the ResearchAgent feature.
+ * Barrel module that re-exports all ArticleReader components, the Lexical article viewer, and research types.
  */
 export { default as ArticlePanelHeader } from "./ArticlePanelHeader";
 export { default as ArticleActionButtons } from "./ArticleActionButtons";

@@ -1,3 +1,7 @@
+/**
+ * Renders AI-generated follow-up question suggestions as clickable buttons below the last assistant response;
+ * hidden while loading or for non-final messages.
+ */
 'use client';
 
 import React from 'react';

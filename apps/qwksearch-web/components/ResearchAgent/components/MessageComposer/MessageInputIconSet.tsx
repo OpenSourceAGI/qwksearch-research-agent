@@ -1,5 +1,6 @@
 /**
- * React component that renders MessageInputIconSet within the ResearchAgent area of ResearchAgent.
+ * Central `Icons` export map of Lucide icons and custom SVGs (Thinking clock, SelectArrow)
+ * used across MessageComposer and related components.
  */
 import React from "react";
 import { Plus, Paperclip, ChevronDown, ArrowUp, X, FileText, Loader2, Check, Archive, Cloud, Upload, File, Mic, Square } from "lucide-react";

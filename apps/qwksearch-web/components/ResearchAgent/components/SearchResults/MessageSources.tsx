@@ -1,5 +1,7 @@
 /**
- * React component that renders MessageSources within the ResearchAgent area of ResearchAgent.
+ * Source card grid with category tabs (Web/News/Videos/Images/Academic/Files) that renders search results as
+ * image tiles, video thumbnails, or web-result cards; supports infinite scroll pagination and opens URLs in
+ * the article extract panel. Auto-opens the first source on desktop.
  */
 /* eslint-disable @next/next/no-img-element */
 import type { Document } from '@langchain/core/documents';

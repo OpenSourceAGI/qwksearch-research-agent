@@ -1,3 +1,7 @@
+/**
+ * Dropdown submenu variant of the AI model picker (provider-grouped list with checkmark) used inside
+ * the FileUploadDropdown settings menu; includes an "Add model" link to the settings page.
+ */
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';

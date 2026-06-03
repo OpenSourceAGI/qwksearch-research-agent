@@ -1,5 +1,6 @@
 /**
- * React component that renders ResearchFocusToggleButton within the ResearchAgent area of ResearchAgent.
+ * Popover toggle for selecting the research focus mode: All web, Academic, Writing (no search),
+ * Wolfram Alpha, YouTube, or Reddit.
  */
 import {
   BadgePercent,

@@ -1,9 +1,7 @@
 /**
- * Custom React hook for text-to-speech using Cloudflare Workers AI (aura-1)
- * with browser speechSynthesis fallback.
- *
- * VAD-based live interruption is commented out pending switch to
- * @huggingface/transformers — see useInteruptionDetection.ts.
+ * Hook that plays AI-generated speech via the Cloudflare Workers AI TTS endpoint with browser
+ * speechSynthesis as a fallback. Exposes `speechStatus`, `start`, and `stop`.
+ * VAD-based live interruption is commented out pending a switch to @huggingface/transformers.
  */
 "use client";
 

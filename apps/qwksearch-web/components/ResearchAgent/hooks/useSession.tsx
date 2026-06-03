@@ -1,5 +1,6 @@
 /**
- * Custom React hook that encapsulates session behavior for ResearchAgent.
+ * SessionProvider and `useSession` hook wrapping better-auth to expose the current user, authentication
+ * status, and Google OAuth sign-in/sign-out actions throughout the application.
  */
 'use client';
 

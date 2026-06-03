@@ -1,5 +1,6 @@
 /**
- * React component that renders CompactFileAttachmentButton within the ResearchAgent area of ResearchAgent.
+ * Small inline paperclip button for attaching files in the follow-up input bar; shows a popover list
+ * of attached files with add/clear actions when files are present.
  */
 import { cn } from '../../../lib/utils';
 import {

@@ -1,5 +1,6 @@
 /**
- * React component that renders FileAttachmentButton within the ResearchAgent area of ResearchAgent.
+ * Standard paperclip button for attaching files to a message; shows a popover list of attached files
+ * with add/clear actions when files are present.
  */
 import { useRef, useState } from 'react';
 import { cn } from '../../../lib/utils';

@@ -1,5 +1,5 @@
 /**
- * React component that renders ArticleActionButtons within the ResearchAgent area of ResearchAgent.
+ * Toolbar with Ask AI, Suggest, Copy, Highlight, and Favorite buttons shown at the top of the article extract panel.
  */
 import React from 'react';
 import { Bot, MessageCircleQuestion, Clipboard, Star, Highlighter } from 'lucide-react';

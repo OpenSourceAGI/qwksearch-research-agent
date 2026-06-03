@@ -1,5 +1,6 @@
 /**
- * Category metadata used by ResearchAgent search configuration controls.
+ * Static array of search category metadata (code, SVG icon, display name) shared across CategoriesMenu,
+ * FileUploadDropdown, and SearchSpotlight components.
  */
 import iconSearchWeb from '@/components/ResearchAgent/icons/icon-search-web.svg';
 import iconSearchNews from '@/components/ResearchAgent/icons/icon-search-news.svg';

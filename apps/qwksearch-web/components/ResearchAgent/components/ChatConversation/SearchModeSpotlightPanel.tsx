@@ -1,5 +1,6 @@
 /**
- * React component that renders SearchModeSpotlightPanel within the ResearchAgent area of ResearchAgent.
+ * Animated spotlight search input with category shortcut buttons that appear on hover (blob SVG filter effect),
+ * model selection, and an optimization selector; used as an alternative homepage input.
  */
 'use client';
 

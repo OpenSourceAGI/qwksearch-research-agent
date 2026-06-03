@@ -1,5 +1,6 @@
 /**
- * React component that renders CategoriesMenu within the ResearchAgent area of ResearchAgent.
+ * Popover button showing a grid of search category icons (Web, News, Videos, Images, Academic, Files, Tech)
+ * for selecting the active search category used in each chat request.
  */
 import Image from 'next/image';
 import { cn } from '@/lib/utils';

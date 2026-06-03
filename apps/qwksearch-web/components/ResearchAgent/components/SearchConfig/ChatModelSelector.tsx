@@ -1,5 +1,6 @@
 /**
- * React component that renders ChatModelSelector within the ResearchAgent area of ResearchAgent.
+ * Popover model picker with text search and speed/capability filter tabs (All/Most Capable/Balanced/Fast/Specialized)
+ * used in the empty-state homepage input.
  */
 'use client';
 

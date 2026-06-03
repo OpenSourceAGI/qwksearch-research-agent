@@ -1,5 +1,5 @@
 /**
- * React component that renders ArticlePanelHeader within the ResearchAgent area of ResearchAgent.
+ * Minimal header bar for the article extract panel with a close button.
  */
 import React from 'react';
 import { X } from 'lucide-react';

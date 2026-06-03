@@ -1,3 +1,7 @@
+/**
+ * Primary animated chat input box with cycling placeholder text, debounced autocomplete dropdown,
+ * drag-and-drop / paste file handling, voice input waveform, and attachment tray for files and pasted content.
+ */
 "use client"
 
 import React, { useState, useRef, useEffect } from "react";

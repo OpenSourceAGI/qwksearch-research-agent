@@ -43,7 +43,7 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
 pub fn register(app: &mut tauri::App) {
     let session_type = std::env::var("XDG_SESSION_TYPE").unwrap_or_else(|_| "unknown".into());
     let gdk_backend = std::env::var("GDK_BACKEND").unwrap_or_else(|_| "unset".into());
-    println!("[hotkeys] XDG_SESSION_TYPE={session_type}, GDK_BACKEND={gdk_backend}");
+    // println!("[hotkeys] XDG_SESSION_TYPE={session_type}, GDK_BACKEND={gdk_backend}");
 
     let gs = app.handle().global_shortcut();
     match gs.register("Alt+`") {

@@ -1,5 +1,6 @@
 /**
- * React component that renders ArticleExtractPanel within the ResearchAgent area of ResearchAgent.
+ * Resizable side panel (desktop) or full-screen dialog (mobile) that fetches and displays a web article,
+ * supports AI Q&A, follow-up question generation, text highlighting, favorites, and clipboard copy.
  */
 'use client';
 

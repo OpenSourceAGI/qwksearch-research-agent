@@ -1,5 +1,6 @@
 /**
- * React component that renders FileUploadDropdown within the ResearchAgent area of ResearchAgent.
+ * Settings dropdown combining search category, thinking-time limit, model selector, file upload from device/folder/Google Drive,
+ * private mode toggle, and links to History and Settings pages.
  */
 'use client';
 

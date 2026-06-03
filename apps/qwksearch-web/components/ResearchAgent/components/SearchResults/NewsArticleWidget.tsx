@@ -1,5 +1,6 @@
 /**
- * React component that renders NewsArticleWidget within the ResearchAgent area of ResearchAgent.
+ * Compact thumbnail card that fetches a random trending article from the discover API and links to a
+ * chat summary of it; shows a skeleton loader while fetching.
  */
 import { useEffect, useState } from 'react';
 import grab from 'grab-url';

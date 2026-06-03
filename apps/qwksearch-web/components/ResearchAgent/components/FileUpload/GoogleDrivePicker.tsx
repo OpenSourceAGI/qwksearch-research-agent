@@ -1,5 +1,6 @@
 /**
- * React component that renders GoogleDrivePicker within the ResearchAgent area of ResearchAgent.
+ * React hook that lazily loads the Google Picker API scripts and exposes `openPicker` to let users
+ * select files from Google Drive using an OAuth access token.
  */
 'use client';
 

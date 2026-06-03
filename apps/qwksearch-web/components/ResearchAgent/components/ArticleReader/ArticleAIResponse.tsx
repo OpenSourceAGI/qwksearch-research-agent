@@ -1,5 +1,5 @@
 /**
- * React component that renders ArticleAIResponse within the ResearchAgent area of ResearchAgent.
+ * Displays the AI-generated response to a user's prompt about the current article, with loading spinner and error state.
  */
 import React from 'react';
 

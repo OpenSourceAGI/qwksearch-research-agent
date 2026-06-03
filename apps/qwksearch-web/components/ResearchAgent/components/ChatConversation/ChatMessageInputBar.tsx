@@ -1,5 +1,6 @@
 /**
- * React component that renders ChatMessageInputBar within the ResearchAgent area of ResearchAgent.
+ * Follow-up message input bar in the active chat thread; auto-expands from single-line to multi-line,
+ * supports file attachment, category picker, and a stop-streaming button while the AI is responding.
  */
 import { cn } from '@/lib/utils';
 import { ArrowUp, Square } from 'lucide-react';

@@ -1,3 +1,7 @@
+/**
+ * Live progress panel showing each search query's category label and running/done status while the agent
+ * is executing searches; collapses to "Analysis complete" once all queries finish.
+ */
 'use client';
 
 import { Loader2, Search } from 'lucide-react';

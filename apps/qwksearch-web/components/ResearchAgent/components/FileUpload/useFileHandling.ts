@@ -1,5 +1,6 @@
 /**
- * Custom React hook that encapsulates file handling behavior for ResearchAgent.
+ * Hook managing file attachment state: uploads supported document types (PDF, DOCX, TXT, HTML) to the server,
+ * handles drag-and-drop events, and converts large clipboard pastes into PastedContent cards.
  */
 import { useState, useCallback } from "react";
 import React from "react";

@@ -1,5 +1,6 @@
 /**
- * React component that renders DeleteChatSessionButton within the ResearchAgent area of ResearchAgent.
+ * Trash button that opens a confirmation dialog then deletes the current chat from the API (authenticated users)
+ * or localStorage (guests), optionally redirecting to the homepage after deletion.
  */
 import { Trash } from 'lucide-react';
 import { useState } from 'react';

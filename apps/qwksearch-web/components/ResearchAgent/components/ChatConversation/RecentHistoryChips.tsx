@@ -1,3 +1,6 @@
+/**
+ * Horizontal row of pill chips linking to the three most recent chat sessions plus the history dropdown trigger.
+ */
 'use client';
 
 import Link from 'next/link';

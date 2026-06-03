@@ -1,5 +1,5 @@
 /**
- * Custom React hook that encapsulates chat behavior for ResearchAgent.
+ * Re-exports ChatProvider, useChat hook, chatContext, and shared types from the chat module index.
  */
 'use client';
 

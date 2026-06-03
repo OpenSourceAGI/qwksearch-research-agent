@@ -1,3 +1,8 @@
+/**
+ * Main chat conversation thread: renders ordered message sections, a floating share/export toolbar
+ * (Markdown, PDF, DOCX, Google Docs, QwkDocs, copy link), the history dropdown, new-chat button,
+ * the sticky ChatInputBox, and the global ArticleExtractPanel. Adjusts layout when the side panel is open.
+ */
 'use client';
 
 import { Fragment, useEffect, useRef, useState } from 'react';

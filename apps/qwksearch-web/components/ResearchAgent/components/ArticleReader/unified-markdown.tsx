@@ -1,5 +1,6 @@
 /**
- * Shared markdown rendering utilities for article reader content in ResearchAgent.
+ * Unified markdown renderer using Streamdown with custom component overrides for headings, code blocks
+ * (with copy button), links (Next.js routing for internal, new tab for external), tables, images, and GFM task lists.
  */
 "use client";
 

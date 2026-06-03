@@ -1,3 +1,8 @@
+/**
+ * Hook that uses Silero VAD (via @huggingface/transformers, currently disabled) to detect speech and silence
+ * boundaries for live turn-end interruption during TTS playback.
+ * The pipeline and all VAD processing are commented out pending the library switch.
+ */
 import { useState, useEffect, useRef, useCallback } from "react";
 // HuggingFace transformers commented out for now
 // import { pipeline, env } from "@huggingface/transformers";
