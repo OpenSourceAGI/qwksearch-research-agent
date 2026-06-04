@@ -1,0 +1,29 @@
+{
+  "name": "domain-rank",
+  "description": "Domain Rank Top Million domains, source names, duplicates, and favicons",
+  "scripts": {
+    "download": "bun src/import-domains-1m.js",
+    "info": "bun src/parse-domain-info.ts",
+    "merge": "bun src/merge-domain-lists.ts",
+    "favicons": "bun src/favicons.js",
+    "test": "bun test",
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "type": "module",
+  "dependencies": {
+    "fuse.js": "^7.1.0",
+    "grab-url": "^1.6.19",
+    "tldts": "^7.0.11",
+    "unzipper": "^0.12.3",
+    "vitest": "^1.6.0",
+    "zlib": "^1.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
