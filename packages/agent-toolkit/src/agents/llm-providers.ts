@@ -1,85 +1,88 @@
-// @ts-nocheck
 /**
- * @fileoverview Provider factory for instantiating LangChain chat-model instances.
- * Supports OpenAI, Anthropic, Groq, Google, and more.
+ * @fileoverview Provider factory for Vercel AI SDK language model instances.
+ * Supports OpenAI, Anthropic, Groq, Google, xAI, Ollama, and OpenAI-compatible endpoints.
  */
-import { ChatOpenAI } from "@langchain/openai";
-import { ChatAnthropic } from "@langchain/anthropic";
-import { ChatGroq } from "@langchain/groq";
-// import { ChatPerplexity } from "@langchain/community/chat_models/perplexity";
-import { ChatCloudflareWorkersAI } from "@langchain/cloudflare";
-import { ChatOllama } from "@langchain/ollama";
-import { ChatXAI } from "@langchain/xai";
-import { ChatVertexAI } from "@langchain/google-vertexai-web";
+import { createOpenAI } from "@ai-sdk/openai";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGroq } from "@ai-sdk/groq";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createVertex } from "@ai-sdk/google-vertex";
+import { createXai } from "@ai-sdk/xai";
+import type { LanguageModelV1 } from "ai";
 
 /**
- * Instantiates the appropriate LangChain chat-model for the given provider.
+ * Instantiates the appropriate Vercel AI SDK language model for the given provider.
  *
  * @param provider    - Normalised (lowercase) provider name
  * @param apiKey      - Provider API key (not required for `ollama`)
  * @param model       - Model ID to use
- * @param temperature - Sampling temperature
- * @returns A LangChain chat-model instance, or `null` for an unrecognised provider
+ * @param _temperature - Unused here; temperature is passed to generateText at call time
+ * @returns A LanguageModelV1 instance, or `null` for an unrecognised provider
  */
 export function createLLMProvider(
   provider: string,
   apiKey: string,
   model: string,
-  temperature: number,
-) {
+  _temperature: number,
+): LanguageModelV1 | null {
   switch (provider) {
     case "groq":
-      return new ChatGroq({ apiKey, model, temperature });
+      return createGroq({ apiKey })(model);
 
     case "togetherai":
-      return new ChatOpenAI({
+      return createOpenAI({
         apiKey,
-        model,
-        temperature,
-        configuration: { baseURL: "https://api.together.xyz/v1" },
-      });
+        baseURL: "https://api.together.xyz/v1",
+      })(model);
 
     case "openai":
-      return new ChatOpenAI({ openAIApiKey: apiKey, model, temperature });
+      return createOpenAI({ apiKey })(model);
 
     case "anthropic":
-      return new ChatAnthropic({ anthropicApiKey: apiKey, model, temperature });
+      return createAnthropic({ apiKey })(model);
 
     case "xai":
-      return new ChatXAI({ apiKey, model, temperature });
+      return createXai({ apiKey })(model);
 
     case "google":
-      return new ChatVertexAI({ apiKey, model, temperature });
+      return createGoogleGenerativeAI({ apiKey })(model);
 
-    // case "perplexity":
-    //   return new ChatPerplexity({ apiKey, model, temperature });
+    case "vertex": {
+      const [projectId, location = "us-central1"] = apiKey.split(":");
+      return createVertex({ project: projectId, location, googleAuthOptions: {} })(model);
+    }
 
     case "cloudflare": {
-      const [cloudflareApiToken, cloudflareAccountId] = apiKey.split(":");
-      return new ChatCloudflareWorkersAI({
-        cloudflareApiToken,
-        cloudflareAccountId,
-        model,
-      });
+      const [cfApiToken, accountId] = apiKey.split(":");
+      return createOpenAI({
+        apiKey: cfApiToken,
+        baseURL: `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`,
+      })(model);
     }
 
     case "ollama":
-      return new ChatOllama({ model, temperature });
+      return createOpenAI({
+        apiKey: "ollama",
+        baseURL: "http://localhost:11434/v1",
+      })(model);
 
     case "nvidia":
-      return new ChatOpenAI({
+      return createOpenAI({
         apiKey,
-        model,
-        configuration: { baseURL: "https://integrate.api.nvidia.com/v1" },
-      });
+        baseURL: "https://integrate.api.nvidia.com/v1",
+      })(model);
 
     case "openrouter":
-      return new ChatOpenAI({
+      return createOpenAI({
         apiKey,
-        model,
-        temperature,
-        configuration: { baseURL: "https://openrouter.ai/api/v1" },
-      });
+        baseURL: "https://openrouter.ai/api/v1",
+      })(model);
+
+    case "perplexity":
+      return createOpenAI({
+        apiKey,
+        baseURL: "https://api.perplexity.ai",
+      })(model);
 
     default:
       return null;

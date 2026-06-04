@@ -1,0 +1,48 @@
+{
+  "name": "extract-pdf",
+  "version": "0.1.0",
+  "description": "Convert a PDF (URL or ArrayBuffer) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic. Works in Node.js, Cloudflare Workers, and browser environments.",
+  "author": "vtempest <grokthiscontact@gmail.com>",
+  "license": "rights.institute/PROSPER",
+  "type": "module",
+  "main": "./dist/pdf-to-html.cjs.js",
+  "module": "./dist/pdf-to-html.es.js",
+  "types": "./dist/pdf-to-html.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/pdf-to-html.d.ts",
+      "import": "./dist/pdf-to-html.es.js",
+      "require": "./dist/pdf-to-html.cjs.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "bun test",
+    "ship": "npm run build && npx standard-version --release-as patch; rm -f CHANGELOG.md; npm publish"
+  },
+  "dependencies": {
+    "grab-url": "^1.6.19"
+  },
+  "devDependencies": {
+    "terser": "^5.46.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-dts": "^4.5.4"
+  },
+  "keywords": [
+    "pdf",
+    "html",
+    "pdf-parser",
+    "pdfjs",
+    "pdf-to-text",
+    "document-extraction"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vtempest/qwksearch-research-agent/packages/extract-pdf"
+  }
+}

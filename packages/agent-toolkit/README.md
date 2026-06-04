@@ -1,4 +1,5 @@
-# ai-research-agent
+# agent-toolkit
+
 
 Multi-provider AI agent toolkit for generating language responses, searching the web, extracting page content, and managing long-term memory across 10+ LLM providers.
 

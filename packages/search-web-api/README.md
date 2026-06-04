@@ -1,3 +1,32 @@
+<p align="center">
+    <img width="300px" src="https://i.imgur.com/BmaDQeR.png" />
+<br />
+    <a href="https://discord.gg/SJdBqBz3tV">
+        <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
+            alt="Join Discord" />
+    </a>
+     <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
+     <img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
+    <img src="https://img.shields.io/badge/Next.js-16-black" alt="Next.js" />
+<br />
+    <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
+    <img alt="GitHub Discussions"
+        src="https://img.shields.io/github/discussions/vtempest/qwksearch-research-agent" />
+    </a>
+    <a href="https://github.com/vtempest/qwksearch-research-agent/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/vtempest/qwksearch-research-agent" />
+    </a>
+    <img src="https://img.shields.io/github/last-commit/vtempest/qwksearch-research-agent.svg" alt="GitHub last commit" />
+<br />
+    <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request">
+        <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"
+            alt="PRs Welcome" />
+    </a>
+    <a href="https://codespaces.new/vtempest/qwksearch-research-agent">
+    <img src="https://github.com/codespaces/badge.svg" width="150" height="20" />
+    </a>
+</p>
+    
 # Meta-Search Web Sources API
 
 - **Multi-engine aggregation**: 70+ major sites search sources across 10 categories

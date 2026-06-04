@@ -1,0 +1,18 @@
+{
+  "include": ["src/pdf-to-html.ts", "src/models/**/*.ts", "src/transforms/**/*.ts", "src/utils/**/*.ts"],
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "strict": false,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": false
+  }
+}
