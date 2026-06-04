@@ -3,7 +3,7 @@
  * Manages model providers and search config in memory.
  */
 import type { ConfigModelProvider, MCPServerConfig, Config, UIConfigSections } from "./types";
-import { getModelProvidersUIConfigSection } from "../providers/ui-config";
+import { getModelProvidersUIConfigSection } from "./ui-config";
 import { getEnv } from "./env";
 
 const hashObj = (obj: { [key: string]: any }) => {

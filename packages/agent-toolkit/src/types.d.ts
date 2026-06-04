@@ -1,4 +1,4 @@
-import { Model } from "./providers/types";
+import { Model } from "./config/types";
 
 type BaseUIConfigField = {
   name: string;
