@@ -18,7 +18,7 @@ import {
   qwant,
   startpage,
   yandex,
-} from "../lib/suggest-next-words/autocomplete-search-engines";
+} from "../src/suggest-next-words/autocomplete-search-engines";
 
 async function main() {
   console.log("=== Search Autocomplete Examples ===\n");

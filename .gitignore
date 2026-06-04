@@ -10,7 +10,7 @@ dist/
 .vercel/
 .wrangler/
 *.tsbuildinfo
-
+.fuse*
 # IDE/Editor specific
 .vscode/
 .idea/

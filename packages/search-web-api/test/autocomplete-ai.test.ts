@@ -1,4 +1,4 @@
-import { predictNextWordsWithSmallLocalModel } from "../lib/suggest-next-words/autocomplete-ai";
+import { predictNextWordsWithSmallLocalModel } from "../src/suggest-next-words/autocomplete-ai";
 import { describe, it, expect } from "vitest";
 
 describe("predictNextWordsWithSmallLocalModel", () => {

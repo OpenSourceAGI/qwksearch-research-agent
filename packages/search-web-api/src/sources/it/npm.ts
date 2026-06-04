@@ -14,7 +14,7 @@ export const npm: EngineFunction = async (
           "User-Agent": "HonoxSearX/1.0",
         },
         onResponse(path: string, response: any) {
-          const results = [];
+          const results: any[] = [];
 
           if (response.data && response.data.objects) {
             response.data.objects.forEach((item: any) => {

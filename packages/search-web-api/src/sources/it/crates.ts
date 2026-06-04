@@ -16,7 +16,7 @@ export const crates: EngineFunction = async (
           Accept: "application/json",
         },
         onResponse(path: string, response: any) {
-          const results = [];
+          const results: any[] = [];
 
           if (response.data && response.data.crates) {
             response.data.crates.forEach((crate: any) => {

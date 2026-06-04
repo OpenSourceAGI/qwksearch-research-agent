@@ -16,7 +16,7 @@ export const packagist: EngineFunction = async (
           Accept: "application/json",
         },
         onResponse(path: string, response: any) {
-          const results = [];
+          const results: any[] = [];
 
           if (response.data && response.data.results) {
             response.data.results.forEach((pkg: any) => {

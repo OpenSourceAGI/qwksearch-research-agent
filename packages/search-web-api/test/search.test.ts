@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { Search } from "../lib/search";
-import { validateEngineResults } from "../lib/test-utils";
+import { Search } from "../src/search";
+import { validateEngineResults } from "./test-utils";
 
 describe("Search Class", () => {
   const search = new Search();

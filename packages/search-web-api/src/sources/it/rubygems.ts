@@ -15,7 +15,7 @@ export const rubygems: EngineFunction = async (
           Accept: "application/json",
         },
         onResponse(path: string, response: any) {
-          const results = [];
+          const results: any[] = [];
 
           if (Array.isArray(response.data)) {
             response.data.forEach((gem: any) => {

@@ -10,6 +10,7 @@
         "forceConsistentCasingInFileNames": true,
     },
     "include": [
-        "app/**/*"
-, "lib", "test/test-utils.ts"    ]
+        "src/**/*",
+        "test/**/*"
+    ]
 }

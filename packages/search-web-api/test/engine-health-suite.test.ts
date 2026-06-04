@@ -7,9 +7,9 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { Search } from '../lib/search-web/search.js';
-import { engineStatusTracker } from '../lib/search-web/engine-status.js';
-import { CATEGORIES } from '../lib/search-web/category-registry.js';
+import { Search } from '../src/search.js';
+import { engineStatusTracker } from '../src/engine-status.js';
+import { CATEGORIES } from '../src/category-registry.js';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 

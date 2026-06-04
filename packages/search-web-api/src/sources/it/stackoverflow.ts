@@ -17,7 +17,7 @@ export const stackoverflow: EngineFunction = async (
           "User-Agent": "HonoxSearX/1.0",
         },
         onResponse(path: string, response: any) {
-          const results = [];
+          const results: any[] = [];
 
           if (response.data && response.data.items) {
             response.data.items.forEach((item: any) => {

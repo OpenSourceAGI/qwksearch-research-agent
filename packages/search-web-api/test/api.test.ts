@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { Hono } from 'hono';
-import { Search } from '../app/lib/search';
-import { validateEngineResults, TEST_QUERIES } from '../app/lib/test-utils';
+import { Search } from '../src/search';
+import { validateEngineResults, TEST_QUERIES } from './test-utils';
 
 // Mock API setup
 const app = new Hono();

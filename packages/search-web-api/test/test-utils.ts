@@ -1,4 +1,4 @@
-import { EngineResult } from "../lib/search-web/engine";
+import { EngineResult } from "../src/engine";
 
 /**
  * Mock HTML response helper

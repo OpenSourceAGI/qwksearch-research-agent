@@ -6,8 +6,8 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { EngineResult } from "../lib/search-web/search-web-types.js";
-import { extractResponseData } from "../lib/search-web/engine.js";
+import { EngineResult } from "../src/search-web-types.js";
+import { extractResponseData } from "../src/engine.js";
 import grab from "grab-url";
 
 grab("", {
@@ -19,7 +19,7 @@ grab("", {
 });
 
 // Import all engines from the exported list
-import { ALL_ENGINES } from "../lib/search-web/search.js";
+import { ALL_ENGINES } from "../src/search.js";
 
 /**
  * Validates that results are a non-empty array of objects with

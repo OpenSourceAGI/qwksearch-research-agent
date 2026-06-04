@@ -15,7 +15,7 @@ export const github: EngineFunction = async (
           Accept: "application/vnd.github.v3+json",
         },
         onResponse(path: string, response: any) {
-          const results = [];
+          const results: any[] = [];
 
           if (response.data && response.data.items) {
             response.data.items.forEach((item: any) => {
