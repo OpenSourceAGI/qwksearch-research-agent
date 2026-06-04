@@ -1,6 +1,7 @@
 import fs from "fs";
 
-type DomainEntry = [number, string]; // [rank, title]
+type OldDomainEntry = [number, string]; // [rank, title] (existing source format)
+type DomainEntry = [string, number | null, number | null, string | null]; // [realName, domainRank, newsRank, langCode]
 type DomainMap = Record<string, DomainEntry>;
 
 /**
@@ -21,38 +22,41 @@ export function mergeDomainLists(options: {
     outputPath = "./data/domain-rank-merged.json",
   } = options;
 
-  const domainInfo: DomainMap = fs.existsSync(domainInfoPath)
+  const domainInfoRaw: Record<string, OldDomainEntry> = fs.existsSync(domainInfoPath)
     ? JSON.parse(fs.readFileSync(domainInfoPath, "utf8"))
     : {};
 
-  const newsDomainRank: DomainMap = fs.existsSync(newsDomainRankPath)
+  const newsDomainRaw: Record<string, OldDomainEntry> = fs.existsSync(newsDomainRankPath)
     ? JSON.parse(fs.readFileSync(newsDomainRankPath, "utf8"))
     : {};
 
-  // Start with the general list, overriding titles with curated news titles
+  // Build merged map with new shape: [realName, domainRank, newsRank, langCode]
   const merged: DomainMap = {};
 
-  for (const [domain, [rank, title]] of Object.entries(domainInfo)) {
-    const newsEntry = newsDomainRank[domain];
-    merged[domain] = newsEntry ? [rank, newsEntry[1]] : [rank, title];
+  // copy general list first
+  for (const [domain, entry] of Object.entries(domainInfoRaw)) {
+    const [rank, title] = entry || [null, null];
+    const newsEntry = newsDomainRaw[domain];
+    const newsRank = newsEntry ? newsEntry[0] : null;
+    const newsTitle = newsEntry ? newsEntry[1] : null;
+    const realName = newsTitle || title || domain;
+    merged[domain] = [realName, typeof rank === 'number' ? rank : null, typeof newsRank === 'number' ? newsRank : null, null];
   }
 
-  // Append news-only domains not already in the general list
-  const maxRank = Object.values(merged).reduce(
-    (max, [rank]) => Math.max(max, rank),
-    0
-  );
-  let nextRank = maxRank + 1;
+  // Determine next rank for news-only domains
+  const maxDomainRank = Object.values(merged).reduce((max, [_name, domainRank]) => Math.max(max, domainRank || 0), 0);
+  let nextRank = maxDomainRank + 1;
 
-  for (const [domain, [, title]] of Object.entries(newsDomainRank)) {
-    if (!merged[domain]) {
-      merged[domain] = [nextRank++, title];
-    }
+  // append news-only domains
+  for (const [domain, entry] of Object.entries(newsDomainRaw)) {
+    if (merged[domain]) continue;
+    const [newsRank, newsTitle] = entry || [null, null];
+    merged[domain] = [newsTitle || domain, nextRank++, typeof newsRank === 'number' ? newsRank : null, null];
   }
 
   fs.writeFileSync(outputPath, JSON.stringify(merged), "utf8");
   console.log(
-    `Merged ${Object.keys(domainInfo).length} general + ${Object.keys(newsDomainRank).length} news entries → ${Object.keys(merged).length} total → ${outputPath}`
+    `Merged ${Object.keys(domainInfoRaw).length} general + ${Object.keys(newsDomainRaw).length} news entries → ${Object.keys(merged).length} total → ${outputPath}`
   );
 
   return merged;
