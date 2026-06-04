@@ -18,3 +18,16 @@
 * Bookmark Lists and Web App Launcher
 * Autocomplete for search engine or URL bar, with typo-tolerance fuzzy
 * LLM Chatbot for Web App Recommendations
+
+### Exporter (CLI)
+
+Build the exporter with Vite and produce JSON/CSV/NDJSON exports from the bundled data.
+
+Run locally from the package root:
+
+```bash
+pnpm run build:export
+pnpm run export -- --formats=json,csv,ndjson --out=./exports
+```
+
+The command writes `domain-rank.json`, `domain-rank.csv`, and `domain-rank.ndjson` into `./exports` by default.

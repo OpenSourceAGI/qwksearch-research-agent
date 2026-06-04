@@ -36,10 +36,44 @@
         "../../packages/reason-editor/src/reader.tsx"
       ],
       "ai-research-agent": [
-        "../../packages/research-agent/src/index.ts"
+        "../../packages/agent-toolkit/src/index.ts"
+      ],
+      "ai-research-agent/agents/*": [
+        "../../packages/agent-toolkit/src/agents/*"
+      ],
+      "ai-research-agent/memory/*": [
+        "../../packages/agent-toolkit/src/memory/*"
+      ],
+      "ai-research-agent/models/*": [
+        "../../packages/agent-toolkit/src/models/*"
+      ],
+      "ai-research-agent/config/*": [
+        "../../packages/agent-toolkit/src/config/*"
+      ],
+      "ai-research-agent/extractor/*": [
+        "../../packages/extract-webpage/src/*"
+      ],
+      "ai-research-agent/search": [
+        "../../packages/extract-webpage/src/search/index.ts"
+      ],
+      "ai-research-agent/search/*": [
+        "../../packages/extract-webpage/src/search/*"
+      ],
+      "ai-research-agent/suggest-next-words/*": [
+        "../../packages/extract-webpage/src/suggest-next-words/*"
+      ],
+      "ai-research-agent/tokenize/*": [
+        "../../packages/extract-webpage/src/tokenize/*"
+      ],
+      "ai-research-agent/topics/*": [
+        "../../packages/extract-webpage/src/seektopic/*"
+      ],
+      "ai-research-agent/utils/documents": [
+        "../../packages/extract-webpage/src/utils/documents.ts"
       ],
       "ai-research-agent/*": [
-        "../../packages/research-agent/src/*"
+        "../../packages/agent-toolkit/src/*",
+        "../../packages/extract-webpage/src/*"
       ]
     },
     "target": "ES2018"

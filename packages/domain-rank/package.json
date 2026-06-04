@@ -8,6 +8,9 @@
     "favicons": "bun src/favicons.js",
     "test": "bun test",
     "build": "tsc",
+    "build:export": "vite build --config vite.config.ts",
+    "export": "node dist/export.cjs",
+    "export:all": "pnpm run build:export && pnpm run export -- --formats=json,csv,ndjson",
     "type-check": "tsc --noEmit"
   },
   "type": "module",

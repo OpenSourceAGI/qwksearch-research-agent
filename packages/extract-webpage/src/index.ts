@@ -25,3 +25,4 @@ export * from "./html-to-content/extract-content/extract-content-mercury";
 export * from "./html-to-content/html-to-basic-html";
 export * from "./html-to-cite/extract-cite";
 export * from "./html-to-content/html-utils";
+export * from "./url-to-metadata/domain-rank-data";
