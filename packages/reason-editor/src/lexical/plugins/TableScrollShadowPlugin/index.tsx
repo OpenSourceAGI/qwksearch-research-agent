@@ -1,11 +1,14 @@
 /**
- * @fileoverview Plugin that adds visual scroll shadows to tables when they have horizontal overflow.
- * Helps indicate to the user that more content is available by scrolling.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
-
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useEffect } from 'react';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {isHTMLElement} from 'lexical';
+import {useEffect} from 'react';
 
 const SCROLLABLE_WRAPPER_CLASS =
   'PlaygroundEditorTheme__tableScrollableWrapper';
@@ -41,10 +44,6 @@ function updateTableScrollState(element: HTMLElement): void {
   }
 }
 
-/**
- * Plugin that monitors table wrappers for scroll events and applies shadow classes.
- * @returns {null} This plugin doesn't render any UI directly.
- */
 export default function TableScrollShadowPlugin(): null {
   const [editor] = useLexicalComposerContext();
 
@@ -88,23 +87,23 @@ export default function TableScrollShadowPlugin(): null {
       const handler = () => {
         updateTableScrollState(wrapper);
       };
-      wrapper.addEventListener('scroll', handler, { passive: true });
+      wrapper.addEventListener('scroll', handler, {passive: true});
       scrollHandlers.set(wrapper, handler);
     };
 
     const wrappers = editorElement.querySelectorAll<HTMLElement>(
       `.${SCROLLABLE_WRAPPER_CLASS}`,
     );
-    wrappers.forEach((wrapper) => {
+    wrappers.forEach(wrapper => {
       resizeObserver.observe(wrapper);
       addScrollListener(wrapper);
     });
 
     // Watch for new wrappers to observe
-    const wrapperObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node instanceof HTMLElement) {
+    const wrapperObserver = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (isHTMLElement(node)) {
             if (node.classList.contains(SCROLLABLE_WRAPPER_CLASS)) {
               resizeObserver.observe(node);
               addScrollListener(node);
@@ -114,7 +113,7 @@ export default function TableScrollShadowPlugin(): null {
             const childWrappers = node.querySelectorAll<HTMLElement>(
               `.${SCROLLABLE_WRAPPER_CLASS}`,
             );
-            childWrappers.forEach((wrapper) => {
+            childWrappers.forEach(wrapper => {
               resizeObserver.observe(wrapper);
               addScrollListener(wrapper);
               updateTableScrollState(wrapper);

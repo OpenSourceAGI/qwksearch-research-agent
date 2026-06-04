@@ -54,8 +54,8 @@ export function convertURLToDomain(domain: string): string {
     domain.match(tldRegExp) ||
     domain.match(/(?=[^^])\.[^a-z]{1,2}\.[^\.]{2,4}$/) ||
     domain.match(/\.[^\.]{2,}$/);
-  const tld = match && match.index;
-  let domainWithoutSuffix = domain.substring(0, tld);
+  const tld = match?.index;
+  let domainWithoutSuffix = domain.substring(0, tld ?? domain.length);
 
   // Get the main domain part, handling subdomains
   if (domainWithoutSuffix.includes(".")) {

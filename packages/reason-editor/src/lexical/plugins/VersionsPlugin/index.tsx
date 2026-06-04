@@ -1,13 +1,15 @@
 /**
- * @fileoverview Plugin that handles version history and diffing using Yjs snapshots.
- * Allows users to take snapshots and view changes between different versions of the document.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
-
 import './index.css';
 
-import { useCollaborationContext } from '@lexical/react/LexicalCollaborationContext';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { mergeRegister } from '@lexical/utils';
+import {useCollaborationContext} from '@lexical/react/LexicalCollaborationContext';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {mergeRegister} from '@lexical/utils';
 import {
   $getYChangeState,
   CLEAR_DIFF_VERSIONS_COMMAND__EXPERIMENTAL,
@@ -22,7 +24,7 @@ import {
   TextNode,
 } from 'lexical';
 import _ from 'lodash';
-import { useCallback, useEffect, useState } from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {
   PermanentUserData,
   Snapshot,
@@ -54,14 +56,9 @@ export const SHOW_VERSIONS_COMMAND: LexicalCommand<void> = createCommand(
   'SHOW_VERSIONS_COMMAND',
 );
 
-/**
- * Plugin that provides version history and diffing capabilities for collaboration.
- * @param {Object} props - Component props.
- * @param {string} props.id - The unique identifier for the collaboration session.
- */
-export function VersionsPlugin({ id }: { id: string }) {
+export function VersionsPlugin({id}: {id: string}) {
   const [editor] = useLexicalComposerContext();
-  const { name: username, yjsDocMap } = useCollaborationContext();
+  const {name: username, yjsDocMap} = useCollaborationContext();
   const yDoc = yjsDocMap.get(id);
 
   const [isDiffMode, setIsDiffMode] = useState(false);
@@ -99,7 +96,7 @@ export function VersionsPlugin({ id }: { id: string }) {
           },
           COMMAND_PRIORITY_CRITICAL,
         ),
-        editor.registerEditableListener((isEditable) => {
+        editor.registerEditableListener(isEditable => {
           if (isEditable && isDiffMode) {
             editor.dispatchCommand(
               CLEAR_DIFF_VERSIONS_COMMAND__EXPERIMENTAL,
@@ -139,7 +136,7 @@ export function VersionsPlugin({ id }: { id: string }) {
     }
     return editor.registerMutationListener(
       TextNode,
-      (nodes) => {
+      nodes => {
         const userToColor = new Map<User, string>();
         const getUserColor = (user: User): string => {
           if (userToColor.has(user)) {
@@ -160,7 +157,7 @@ export function VersionsPlugin({ id }: { id: string }) {
             if (!ychange || !element) {
               continue;
             }
-            const { type, user: changeUser } = ychange;
+            const {type, user: changeUser} = ychange;
             if (!changeUser) {
               continue;
             }
@@ -179,7 +176,7 @@ export function VersionsPlugin({ id }: { id: string }) {
           }
         });
       },
-      { skipInitialization: true },
+      {skipInitialization: true},
     );
   }, [editor, isDiffMode]);
 
@@ -189,7 +186,7 @@ export function VersionsPlugin({ id }: { id: string }) {
     }
 
     const now = Date.now();
-    setVersions((prevVersions) => [
+    setVersions(prevVersions => [
       ...prevVersions,
       {
         name: `Snapshot ${new Date(now).toLocaleString()}`,
@@ -213,9 +210,6 @@ export function VersionsPlugin({ id }: { id: string }) {
   );
 }
 
-/**
- * Modal dialog for interacting with version history.
- */
 function VersionsModal({
   versions,
   isDiffMode,
@@ -263,8 +257,9 @@ function VersionsModal({
                 <button
                   key={version.name}
                   onClick={() => setSelectedVersion(idx)}
-                  className={`VersionsPlugin_VersionItem ${isSelected ? 'VersionsPlugin_VersionItem--selected' : ''
-                    }`}>
+                  className={`VersionsPlugin_VersionItem ${
+                    isSelected ? 'VersionsPlugin_VersionItem--selected' : ''
+                  }`}>
                   Snapshot at {new Date(version.timestamp).toLocaleString()}
                 </button>
               );

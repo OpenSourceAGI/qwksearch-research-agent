@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
 
 .table-of-contents .heading2 {
   margin-left: 10px;
@@ -8,7 +15,7 @@
 }
 
 .selected-heading {
-  color: hsl(var(--primary));
+  color: #3578e5;
   position: relative;
 }
 
@@ -21,8 +28,8 @@
   z-index: 10;
   height: 4px;
   width: 4px;
-  background-color: hsl(var(--primary));
-  border: solid 4px hsl(var(--background));
+  background-color: #3578e5;
+  border: solid 4px white;
   border-radius: 50%;
 }
 
@@ -33,32 +40,37 @@
 }
 
 .table-of-contents {
-  color: hsl(var(--muted-foreground));
-  padding: 16px 16px 16px 0;
+  color: #65676b;
+  position: fixed;
+  top: 200px;
+  right: -35px;
+  padding: 10px;
+  width: 250px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: flex-start;
-  height: 100%;
-  background: hsl(var(--background));
-  overflow-y: auto;
-  overflow-x: hidden;
-  flex: 1;
+  z-index: 1;
+  height: 300px;
 }
 
 .first-heading {
-  color: hsl(var(--foreground));
+  color: black;
   font-weight: bold;
   cursor: pointer;
 }
 
 .headings {
   list-style: none;
-  margin-top: 10px;
-  margin-left: 0;
-  padding: 0 0 0 20px;
+  margin-top: 0;
+  margin-left: 10px;
+  padding: 0;
+  overflow: scroll;
+  width: 200px;
+  height: 220px;
   overflow-x: hidden;
-  overflow-y: visible;
-  flex: 1;
+  overflow-y: auto;
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -69,11 +81,11 @@
 .headings::before {
   content: ' ';
   position: absolute;
-  height: calc(100vh - 100px);
-  width: 3px;
-  left: 20px;
+  height: 220px;
+  width: 4px;
+  right: 240px;
   margin-top: 5px;
-  background-color: hsl(var(--border));
+  background-color: #ccd0d5;
   border-radius: 2px;
 }
 

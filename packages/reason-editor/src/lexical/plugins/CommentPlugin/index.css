@@ -40,7 +40,7 @@ i.add-comment {
   height: 20px;
   width: 20px;
   vertical-align: -10px;
-  background-image: url(../../icons/chat-left-text.svg);
+  background-image: url(../../images/icons/chat-left-text.svg);
 }
 
 @media (max-width: 600px) {
@@ -134,7 +134,7 @@ i.add-comment {
   border: 1px solid #ccc;
   background-color: #fff;
   border-radius: 5px;
-  font-size: 15px;
+  font-size: var(--playground-font-size);
   caret-color: rgb(5, 5, 5);
   display: block;
   padding: 9px 10px 10px 9px;
@@ -145,14 +145,37 @@ i.add-comment {
   outline: 1px solid rgb(66, 135, 245);
 }
 
+.CommentPlugin_ShowCommentsButton {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: #ddd;
+  border-radius: 10px;
+}
+
 i.comments {
   background-size: contain;
   display: inline-block;
   height: 20px;
   width: 20px;
   vertical-align: -10px;
-  background-image: url(../../icons/toggle-comments.svg);
+  background-image: url(../../images/icons/comments.svg);
+  opacity: 0.5;
   transition: opacity 0.2s linear;
+}
+
+@media (max-width: 600px) {
+  .CommentPlugin_ShowCommentsButton {
+    display: none;
+  }
+}
+
+.CommentPlugin_ShowCommentsButton:hover i.comments {
+  opacity: 1;
+}
+
+.CommentPlugin_ShowCommentsButton.active {
+  background-color: #ccc;
 }
 
 .CommentPlugin_CommentsPanel {
@@ -197,7 +220,7 @@ i.comments {
   border: 1px solid #ccc;
   background-color: #fff;
   border-radius: 5px;
-  font-size: 15px;
+  font-size: var(--playground-font-size);
   caret-color: rgb(5, 5, 5);
   display: block;
   padding: 9px 10px 10px 9px;
@@ -228,7 +251,7 @@ i.send {
   height: 20px;
   width: 20px;
   vertical-align: -10px;
-  background-image: url(../../icons/send.svg);
+  background-image: url(../../images/icons/send.svg);
   opacity: 0.5;
   transition: opacity 0.2s linear;
 }
@@ -250,7 +273,6 @@ i.send {
 
 .CommentPlugin_CommentsPanel_Empty {
   color: #777;
-  font-size: 15px;
   text-align: center;
   position: absolute;
   top: calc(50% - 15px);
@@ -415,6 +437,6 @@ i.send {
   height: 15px;
   width: 15px;
   vertical-align: -10px;
-  background-image: url(../../icons/trash3.svg);
+  background-image: url(../../images/icons/trash3.svg);
   transition: opacity 0.2s linear;
 }

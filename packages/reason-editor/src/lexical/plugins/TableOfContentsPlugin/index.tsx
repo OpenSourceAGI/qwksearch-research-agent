@@ -1,19 +1,21 @@
 /**
- * @fileoverview Plugin that generates a table of contents based on heading nodes in the editor.
- * Includes smooth scrolling to selected headings and automatic highlighting based on scroll position.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
-
-import type { TableOfContentsEntry } from '@lexical/react/LexicalTableOfContentsPlugin';
-import type { HeadingTagType } from '@lexical/rich-text';
-import type { NodeKey } from 'lexical';
-import type { JSX } from 'react';
+import type {TableOfContentsEntry} from '@lexical/react/LexicalTableOfContentsPlugin';
+import type {HeadingTagType} from '@lexical/rich-text';
+import type {NodeKey} from 'lexical';
+import type {JSX} from 'react';
 
 import './index.css';
 
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { TableOfContentsPlugin as LexicalTableOfContentsPlugin } from '@lexical/react/LexicalTableOfContentsPlugin';
-import { useEffect, useRef, useState } from 'react';
-import { ResizableSidebar } from './ResizableSidebar';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {TableOfContentsPlugin as LexicalTableOfContentsPlugin} from '@lexical/react/LexicalTableOfContentsPlugin';
+import * as React from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 const MARGIN_ABOVE_EDITOR = 624;
 const HEADING_WIDTH = 9;
@@ -42,9 +44,6 @@ function isHeadingBelowTheTopOfThePage(element: HTMLElement): boolean {
   return elementYPosition >= MARGIN_ABOVE_EDITOR + HEADING_WIDTH;
 }
 
-/**
- * Component that renders the list of headings in the table of contents.
- */
 function TableOfContentsList({
   tableOfContents,
 }: {
@@ -58,7 +57,7 @@ function TableOfContentsList({
     editor.getEditorState().read(() => {
       const domElement = editor.getElementByKey(key);
       if (domElement !== null) {
-        domElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        domElement.scrollIntoView({behavior: 'smooth', block: 'center'});
         setSelectedKey(key);
         selectedIndex.current = currIndex;
       }
@@ -160,8 +159,9 @@ function TableOfContentsList({
           } else {
             return (
               <div
-                className={`normal-heading-wrapper ${selectedKey === key ? 'selected-heading-wrapper' : ''
-                  }`}
+                className={`normal-heading-wrapper ${
+                  selectedKey === key ? 'selected-heading-wrapper' : ''
+                }`}
                 key={key}>
                 <div
                   onClick={() => scrollToNode(key, index)}
@@ -169,9 +169,9 @@ function TableOfContentsList({
                   className={indent(tag)}
                   tabIndex={0}>
                   <li
-                    className={`normal-heading ${selectedKey === key ? 'selected-heading' : ''
-                      }
-                    `}>
+                    className={`normal-heading ${
+                      selectedKey === key ? 'selected-heading' : ''
+                    } `}>
                     {('' + text).length > 27
                       ? text.substring(0, 27) + '...'
                       : text}
@@ -186,18 +186,12 @@ function TableOfContentsList({
   );
 }
 
-/**
- * Plugin that provides a Table of Contents UI.
- * @returns {JSX.Element} The rendered table of contents plugin.
- */
 export default function TableOfContentsPlugin() {
   return (
-    <ResizableSidebar>
-      <LexicalTableOfContentsPlugin>
-        {(tableOfContents) => {
-          return <TableOfContentsList tableOfContents={tableOfContents} />;
-        }}
-      </LexicalTableOfContentsPlugin>
-    </ResizableSidebar>
+    <LexicalTableOfContentsPlugin>
+      {tableOfContents => {
+        return <TableOfContentsList tableOfContents={tableOfContents} />;
+      }}
+    </LexicalTableOfContentsPlugin>
   );
 }

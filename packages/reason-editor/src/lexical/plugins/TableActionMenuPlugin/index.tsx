@@ -1,15 +1,16 @@
 /**
- * @fileoverview Plugin that provides an action menu for table cells.
- * Includes options for merging/unmerging cells, inserting/deleting rows and columns,
- * changing cell background color, and more.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
+import type {ElementNode, LexicalEditor} from 'lexical';
+import type {JSX} from 'react';
 
-import type { ElementNode, LexicalEditor } from 'lexical';
-import type { JSX } from 'react';
-
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useLexicalEditable } from '@lexical/react/useLexicalEditable';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {useLexicalEditable} from '@lexical/react/useLexicalEditable';
 import {
   $computeTableMapSkipCellCheck,
   $deleteTableColumnAtSelection,
@@ -32,7 +33,7 @@ import {
   TableObserver,
   TableSelection,
 } from '@lexical/table';
-import { mergeRegister } from '@lexical/utils';
+import {mergeRegister} from '@lexical/utils';
 import {
   $getSelection,
   $isElementNode,
@@ -45,13 +46,12 @@ import {
   SELECTION_CHANGE_COMMAND,
 } from 'lexical';
 import * as React from 'react';
-import { ReactPortal, useCallback, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import {ReactPortal, useCallback, useEffect, useRef, useState} from 'react';
+import {createPortal} from 'react-dom';
 
 import useModal from '../../hooks/useModal';
 import ColorPicker from '../../ui/ColorPicker';
-import DropDown, { DropDownItem } from '../../ui/DropDown';
-import Icon from '../../ui/Icon';
+import DropDown, {DropDownItem} from '../../ui/DropDown';
 
 function computeSelectionCount(selection: TableSelection): {
   columns: number;
@@ -102,7 +102,7 @@ function currentCellBackgroundColor(editor: LexicalEditor): null | string {
 }
 
 type TableCellActionMenuProps = Readonly<{
-  contextRef: { current: null | HTMLElement };
+  contextRef: {current: null | HTMLElement};
   onClose: () => void;
   setIsMenuOpen: (isOpen: boolean) => void;
   showColorPickerModal: (
@@ -113,9 +113,6 @@ type TableCellActionMenuProps = Readonly<{
   cellMerge: boolean;
 }>;
 
-/**
- * The menu component that displays various table actions.
- */
 function TableActionMenu({
   onClose,
   tableCellNode: _tableCellNode,
@@ -140,7 +137,7 @@ function TableActionMenu({
   useEffect(() => {
     return editor.registerMutationListener(
       TableCellNode,
-      (nodeMutations) => {
+      nodeMutations => {
         const nodeUpdated =
           nodeMutations.get(tableCellNode.getKey()) === 'updated';
 
@@ -151,7 +148,7 @@ function TableActionMenu({
           setBackgroundColor(currentCellBackgroundColor(editor) || '');
         }
       },
-      { skipInitialization: true },
+      {skipInitialization: true},
     );
   }, [editor, tableCellNode]);
 
@@ -162,8 +159,11 @@ function TableActionMenu({
       if ($isTableSelection(selection)) {
         const currentSelectionCounts = computeSelectionCount(selection);
         updateSelectionCounts(computeSelectionCount(selection));
+        const isCollapsedTableSelection = selection.anchor.is(selection.focus);
         setCanMergeCells(
-          currentSelectionCounts.columns > 1 || currentSelectionCounts.rows > 1,
+          !isCollapsedTableSelection &&
+            (currentSelectionCounts.columns > 1 ||
+              currentSelectionCounts.rows > 1),
         );
       }
       // Unmerge cell
@@ -273,6 +273,7 @@ function TableActionMenu({
     editor.update(() => {
       $unmergeCell();
     });
+    clearTableSelection();
   };
 
   const insertTableRowAtSelection = useCallback(
@@ -503,7 +504,7 @@ function TableActionMenu({
     <div
       className="dropdown"
       ref={dropDownRef}
-      onClick={(e) => {
+      onClick={e => {
         e.stopPropagation();
       }}>
       {mergeCellButton}
@@ -538,7 +539,7 @@ function TableActionMenu({
           }}
           className="item wide">
           <div className="icon-text-container">
-            <Icon name="vertical-top" />
+            <i className="icon vertical-top" />
             <span className="text">Top Align</span>
           </div>
         </DropDownItem>
@@ -548,7 +549,7 @@ function TableActionMenu({
           }}
           className="item wide">
           <div className="icon-text-container">
-            <Icon name="vertical-middle" />
+            <i className="icon vertical-middle" />
             <span className="text">Middle Align</span>
           </div>
         </DropDownItem>
@@ -558,7 +559,7 @@ function TableActionMenu({
           }}
           className="item wide">
           <div className="icon-text-container">
-            <Icon name="vertical-bottom" />
+            <i className="icon vertical-bottom" />
             <span className="text">Bottom Align</span>
           </div>
         </DropDownItem>
@@ -657,7 +658,7 @@ function TableActionMenu({
         data-test-id="table-row-header">
         <span className="text">
           {(tableCellNode.__headerState & TableCellHeaderStates.ROW) ===
-            TableCellHeaderStates.ROW
+          TableCellHeaderStates.ROW
             ? 'Remove'
             : 'Add'}{' '}
           row header
@@ -670,7 +671,7 @@ function TableActionMenu({
         data-test-id="table-column-header">
         <span className="text">
           {(tableCellNode.__headerState & TableCellHeaderStates.COLUMN) ===
-            TableCellHeaderStates.COLUMN
+          TableCellHeaderStates.COLUMN
             ? 'Remove'
             : 'Add'}{' '}
           column header
@@ -681,9 +682,6 @@ function TableActionMenu({
   );
 }
 
-/**
- * Container component that manages the positioning and visibility of the table cell action button.
- */
 function TableCellActionMenuContainer({
   anchorElem,
   cellMerge,
@@ -855,7 +853,7 @@ function TableCellActionMenuContainer({
     let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
     const callback = () => {
       timeoutId = undefined;
-      editor.getEditorState().read($moveMenu);
+      editor.getEditorState().read($moveMenu, {editor});
     };
     const delayedCallback = () => {
       if (timeoutId === undefined) {
@@ -871,12 +869,11 @@ function TableCellActionMenuContainer({
         COMMAND_PRIORITY_CRITICAL,
       ),
       editor.registerRootListener((rootElement, prevRootElement) => {
-        if (prevRootElement) {
-          prevRootElement.removeEventListener('pointerup', delayedCallback);
-        }
         if (rootElement) {
           rootElement.addEventListener('pointerup', delayedCallback);
           delayedCallback();
+          return () =>
+            rootElement.removeEventListener('pointerup', delayedCallback);
         }
       }),
       () => clearTimeout(timeoutId),
@@ -900,7 +897,7 @@ function TableCellActionMenuContainer({
           <button
             type="button"
             className="table-cell-action-button chevron-down"
-            onClick={(e) => {
+            onClick={e => {
               e.stopPropagation();
               setIsMenuOpen(!isMenuOpen);
             }}
@@ -924,13 +921,6 @@ function TableCellActionMenuContainer({
   );
 }
 
-/**
- * Plugin that renders a portal-based action menu for table cells.
- * @param {Object} props - Component props.
- * @param {HTMLElement} [props.anchorElem=document.body] - The element to anchor the menu UI to.
- * @param {boolean} [props.cellMerge=false] - Whether to show cell merge/unmerge options.
- * @returns {null | ReactPortal} The rendered table action menu plugin.
- */
 export default function TableActionMenuPlugin({
   anchorElem = document.body,
   cellMerge = false,

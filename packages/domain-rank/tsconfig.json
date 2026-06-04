@@ -12,8 +12,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": ["node"],
+    "declaration": true,
+    "declarationDir": "./dist",
+    "emitDeclarationOnly": false
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/index.ts", "src/domain-api.ts", "src/domain-name-formatter.ts", "src/data/**/*"],
+  "exclude": ["node_modules", "dist", "src/scripts", "src/export.ts"]
 }

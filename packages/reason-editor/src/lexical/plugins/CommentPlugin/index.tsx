@@ -1,11 +1,12 @@
 /**
- * @fileoverview Plugin that enables commenting on document content.
- * Supports inline comments (highlights) and a side panel for managing comment threads.
- * Integrates with Yjs for collaborative commenting.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
-
-import type { Provider } from '@lexical/yjs';
+import type {Provider} from '@lexical/yjs';
 import type {
   EditorState,
   LexicalCommand,
@@ -13,8 +14,8 @@ import type {
   NodeKey,
   RangeSelection,
 } from 'lexical';
-import type { JSX } from 'react';
-import type { Doc } from 'yjs';
+import type {JSX} from 'react';
+import type {Doc} from 'yjs';
 
 import './index.css';
 
@@ -26,19 +27,19 @@ import {
   $wrapSelectionInMarkNode,
   MarkNode,
 } from '@lexical/mark';
-import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
-import { ClearEditorPlugin } from '@lexical/react/LexicalClearEditorPlugin';
-import { useCollaborationContext } from '@lexical/react/LexicalCollaborationContext';
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { EditorRefPlugin } from '@lexical/react/LexicalEditorRefPlugin';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
-import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
-import { createDOMRange, createRectsFromDOMRange } from '@lexical/selection';
-import { $isRootTextContentEmpty, $rootTextContent } from '@lexical/text';
-import { mergeRegister, registerNestedElementResolver } from '@lexical/utils';
+import {AutoFocusPlugin} from '@lexical/react/LexicalAutoFocusPlugin';
+import {ClearEditorPlugin} from '@lexical/react/LexicalClearEditorPlugin';
+import {useCollaborationContext} from '@lexical/react/LexicalCollaborationContext';
+import {LexicalComposer} from '@lexical/react/LexicalComposer';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {EditorRefPlugin} from '@lexical/react/LexicalEditorRefPlugin';
+import {LexicalErrorBoundary} from '@lexical/react/LexicalErrorBoundary';
+import {HistoryPlugin} from '@lexical/react/LexicalHistoryPlugin';
+import {OnChangePlugin} from '@lexical/react/LexicalOnChangePlugin';
+import {PlainTextPlugin} from '@lexical/react/LexicalPlainTextPlugin';
+import {createDOMRange, createRectsFromDOMRange} from '@lexical/selection';
+import {$isRootTextContentEmpty, $rootTextContent} from '@lexical/text';
+import {mergeRegister, registerNestedElementResolver} from '@lexical/utils';
 import {
   $getNodeByKey,
   $getSelection,
@@ -52,6 +53,7 @@ import {
   getDOMSelection,
   KEY_ESCAPE_COMMAND,
 } from 'lexical';
+import * as React from 'react';
 import {
   useCallback,
   useEffect,
@@ -60,8 +62,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import * as React from 'react';
-import { createPortal } from 'react-dom';
+import {createPortal} from 'react-dom';
 
 import {
   Comment,
@@ -76,15 +77,57 @@ import useModal from '../../hooks/useModal';
 import CommentEditorTheme from '../../themes/CommentEditorTheme';
 import Button from '../../ui/Button';
 import ContentEditable from '../../ui/ContentEditable';
-import Icon from '../../ui/Icon';
 
 export const INSERT_INLINE_COMMAND: LexicalCommand<void> = createCommand(
   'INSERT_INLINE_COMMAND',
 );
 
-export const TOGGLE_COMMENTS_PANEL_COMMAND: LexicalCommand<void> = createCommand(
-  'TOGGLE_COMMENTS_PANEL_COMMAND',
-);
+function AddCommentBox({
+  anchorKey,
+  editor,
+  onAddComment,
+}: {
+  anchorKey: NodeKey;
+  editor: LexicalEditor;
+  onAddComment: () => void;
+}): JSX.Element {
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  const updatePosition = useCallback(() => {
+    const boxElem = boxRef.current;
+    const rootElement = editor.getRootElement();
+    const anchorElement = editor.getElementByKey(anchorKey);
+
+    if (boxElem !== null && rootElement !== null && anchorElement !== null) {
+      const {right} = rootElement.getBoundingClientRect();
+      const {top} = anchorElement.getBoundingClientRect();
+      boxElem.style.left = `${right - 20}px`;
+      boxElem.style.top = `${top - 30}px`;
+    }
+  }, [anchorKey, editor]);
+
+  useEffect(() => {
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [editor, updatePosition]);
+
+  useLayoutEffect(() => {
+    updatePosition();
+  }, [anchorKey, editor, updatePosition]);
+
+  return (
+    <div className="CommentPlugin_AddCommentBox" ref={boxRef}>
+      <button
+        className="CommentPlugin_AddCommentBox_button"
+        onClick={onAddComment}>
+        <i className="icon add-comment" />
+      </button>
+    </div>
+  );
+}
 
 function EscapeHandlerPlugin({
   onEscape,
@@ -116,7 +159,7 @@ function PlainTextEditor({
 }: {
   autoFocus?: boolean;
   className?: string;
-  editorRef?: { current: null | LexicalEditor };
+  editorRef?: {current: null | LexicalEditor};
   onChange: (editorState: EditorState, editor: LexicalEditor) => void;
   onEscape: (e: KeyboardEvent) => boolean;
   placeholder?: string;
@@ -165,9 +208,6 @@ function useOnChange(
   );
 }
 
-/**
- * Component that renders the comment input field and submit/cancel buttons.
- */
 function CommentInputBox({
   editor,
   cancelAddComment,
@@ -212,7 +252,7 @@ function CommentInputBox({
         );
         const boxElem = boxRef.current;
         if (range !== null && boxElem !== null) {
-          const { left, bottom, width } = range.getBoundingClientRect();
+          const {left, bottom, width} = range.getBoundingClientRect();
           const selectionRects = createRectsFromDOMRange(editor, range);
           let correctedLeft =
             selectionRects.length === 1 ? left + width / 2 - 125 : left - 125;
@@ -220,12 +260,13 @@ function CommentInputBox({
             correctedLeft = 10;
           }
           boxElem.style.left = `${correctedLeft}px`;
-          boxElem.style.top = `${bottom +
+          boxElem.style.top = `${
+            bottom +
             20 +
             (window.pageYOffset || document.documentElement.scrollTop)
-            }px`;
+          }px`;
           const selectionRectsLength = selectionRects.length;
-          const { container } = selectionState;
+          const {container} = selectionState;
           const elements: Array<HTMLSpanElement> = selectionState.elements;
           const elementsLength = elements.length;
 
@@ -238,12 +279,17 @@ function CommentInputBox({
               container.appendChild(elem);
             }
             const color = '255, 212, 0';
-            const style = `position:absolute;top:${selectionRect.top +
+            elem.style.position = 'absolute';
+            elem.style.top = `${
+              selectionRect.top +
               (window.pageYOffset || document.documentElement.scrollTop)
-              }px;left:${selectionRect.left}px;height:${selectionRect.height
-              }px;width:${selectionRect.width
-              }px;background-color:rgba(${color}, 0.3);pointer-events:none;z-index:5;`;
-            elem.style.cssText = style;
+            }px`;
+            elem.style.left = `${selectionRect.left}px`;
+            elem.style.height = `${selectionRect.height}px`;
+            elem.style.width = `${selectionRect.width}px`;
+            elem.style.backgroundColor = `rgba(${color}, 0.3)`;
+            elem.style.pointerEvents = 'none';
+            elem.style.zIndex = '5';
           }
           for (let i = elementsLength - 1; i >= selectionRectsLength; i--) {
             const elem = elements[i];
@@ -433,6 +479,7 @@ function CommentsPanelListComment({
   thread?: Thread;
 }): JSX.Element {
   const seconds = Math.round(
+    // eslint-disable-next-line react-hooks/purity
     (comment.timeStamp - (performance.timeOrigin + performance.now())) / 1000,
   );
   const minutes = Math.round(seconds / 60);
@@ -458,7 +505,7 @@ function CommentsPanelListComment({
         <>
           <Button
             onClick={() => {
-              showModal('Delete Comment', (onClose) => (
+              showModal('Delete Comment', onClose => (
                 <ShowDeleteCommentOrThreadDialog
                   commentOrThread={comment}
                   deleteCommentOrThread={deleteComment}
@@ -491,7 +538,7 @@ function CommentsPanelList({
     commentOrThread: Comment | Thread,
     thread?: Thread,
   ) => void;
-  listRef: { current: null | HTMLUListElement };
+  listRef: {current: null | HTMLUListElement};
   markNodeMap: Map<string, Set<NodeKey>>;
   submitAddComment: (
     commentOrThread: Comment | Thread,
@@ -525,7 +572,7 @@ function CommentsPanelList({
 
   return (
     <ul className="CommentPlugin_CommentsPanel_List" ref={listRef}>
-      {comments.map((commentOrThread) => {
+      {comments.map(commentOrThread => {
         const id = commentOrThread.id;
         if (commentOrThread.type === 'thread') {
           const handleClickThread = () => {
@@ -562,8 +609,9 @@ function CommentsPanelList({
             <li
               key={id}
               onClick={handleClickThread}
-              className={`CommentPlugin_CommentsPanel_List_Thread ${markNodeMap.has(id) ? 'interactive' : ''
-                } ${activeIDs.indexOf(id) === -1 ? '' : 'active'}`}>
+              className={`CommentPlugin_CommentsPanel_List_Thread ${
+                markNodeMap.has(id) ? 'interactive' : ''
+              } ${activeIDs.indexOf(id) === -1 ? '' : 'active'}`}>
               <div className="CommentPlugin_CommentsPanel_List_Thread_QuoteBox">
                 <blockquote className="CommentPlugin_CommentsPanel_List_Thread_Quote">
                   {'> '}
@@ -572,7 +620,7 @@ function CommentsPanelList({
                 {/* INTRODUCE DELETE THREAD HERE*/}
                 <Button
                   onClick={() => {
-                    showModal('Delete Thread', (onClose) => (
+                    showModal('Delete Thread', onClose => (
                       <ShowDeleteCommentOrThreadDialog
                         commentOrThread={commentOrThread}
                         deleteCommentOrThread={deleteCommentOrThread}
@@ -586,7 +634,7 @@ function CommentsPanelList({
                 {modal}
               </div>
               <ul className="CommentPlugin_CommentsPanel_List_Thread_Comments">
-                {commentOrThread.comments.map((comment) => (
+                {commentOrThread.comments.map(comment => (
                   <CommentsPanelListComment
                     key={comment.id}
                     comment={comment}
@@ -619,9 +667,6 @@ function CommentsPanelList({
   );
 }
 
-/**
- * Component that renders the side panel containing all comment threads.
- */
 function CommentsPanel({
   activeIDs,
   deleteCommentOrThread,
@@ -666,16 +711,10 @@ function CommentsPanel({
 
 function useCollabAuthorName(): string {
   const collabContext = useCollaborationContext();
-  const { yjsDocMap, name } = collabContext;
+  const {yjsDocMap, name} = collabContext;
   return yjsDocMap.has('comments') ? name : 'Playground User';
 }
 
-/**
- * The main Comment plugin component.
- * @param {Object} props - Component props.
- * @param {Function} [props.providerFactory] - Factory function for creating a collaboration provider.
- * @returns {JSX.Element} The rendered comment plugin UI.
- */
 export default function CommentPlugin({
   providerFactory,
 }: {
@@ -688,10 +727,11 @@ export default function CommentPlugin({
   const markNodeMap = useMemo<Map<string, Set<NodeKey>>>(() => {
     return new Map();
   }, []);
+  const [activeAnchorKey, setActiveAnchorKey] = useState<NodeKey | null>();
   const [activeIDs, setActiveIDs] = useState<Array<string>>([]);
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const { yjsDocMap } = collabContext;
+  const {yjsDocMap} = collabContext;
 
   useEffect(() => {
     if (providerFactory) {
@@ -721,7 +761,7 @@ export default function CommentPlugin({
         if (!deletionInfo) {
           return;
         }
-        const { markedComment, index } = deletionInfo;
+        const {markedComment, index} = deletionInfo;
         commentStore.addComment(markedComment, thread, index);
       } else {
         commentStore.deleteCommentOrThread(comment);
@@ -784,6 +824,7 @@ export default function CommentPlugin({
           if (elem !== null) {
             elem.classList.add('selected');
             changedElems.push(elem);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowComments(true);
           }
         }
@@ -810,14 +851,14 @@ export default function CommentPlugin({
         (from: MarkNode, to: MarkNode) => {
           // Merge the IDs
           const ids = from.getIDs();
-          ids.forEach((id) => {
+          ids.forEach(id => {
             to.addID(id);
           });
         },
       ),
       editor.registerMutationListener(
         MarkNode,
-        (mutations) => {
+        mutations => {
           editor.getEditorState().read(() => {
             for (const [key, mutation] of mutations) {
               const node: null | MarkNode = $getNodeByKey(key);
@@ -854,12 +895,13 @@ export default function CommentPlugin({
             }
           });
         },
-        { skipInitialization: false },
+        {skipInitialization: false},
       ),
-      editor.registerUpdateListener(({ editorState, tags }) => {
+      editor.registerUpdateListener(({editorState, tags}) => {
         editorState.read(() => {
           const selection = $getSelection();
           let hasActiveIds = false;
+          let hasAnchorKey = false;
 
           if ($isRangeSelection(selection)) {
             const anchorNode = selection.anchor.getNode();
@@ -873,12 +915,19 @@ export default function CommentPlugin({
                 setActiveIDs(commentIDs);
                 hasActiveIds = true;
               }
+              if (!selection.isCollapsed()) {
+                setActiveAnchorKey(anchorNode.getKey());
+                hasAnchorKey = true;
+              }
             }
           }
           if (!hasActiveIds) {
-            setActiveIDs((_activeIds) =>
+            setActiveIDs(_activeIds =>
               _activeIds.length === 0 ? _activeIds : [],
             );
+          }
+          if (!hasAnchorKey) {
+            setActiveAnchorKey(null);
           }
           if (!tags.has(COLLABORATION_TAG) && $isRangeSelection(selection)) {
             setShowCommentInput(false);
@@ -897,16 +946,12 @@ export default function CommentPlugin({
         },
         COMMAND_PRIORITY_EDITOR,
       ),
-      editor.registerCommand(
-        TOGGLE_COMMENTS_PANEL_COMMAND,
-        () => {
-          setShowComments((prev) => !prev);
-          return true;
-        },
-        COMMAND_PRIORITY_EDITOR,
-      ),
     );
   }, [editor, markNodeMap]);
+
+  const onAddComment = () => {
+    editor.dispatchCommand(INSERT_INLINE_COMMAND, undefined);
+  };
 
   return (
     <>
@@ -919,6 +964,28 @@ export default function CommentPlugin({
           />,
           document.body,
         )}
+      {activeAnchorKey !== null &&
+        activeAnchorKey !== undefined &&
+        !showCommentInput &&
+        createPortal(
+          <AddCommentBox
+            anchorKey={activeAnchorKey}
+            editor={editor}
+            onAddComment={onAddComment}
+          />,
+          document.body,
+        )}
+      {createPortal(
+        <Button
+          className={`CommentPlugin_ShowCommentsButton ${
+            showComments ? 'active' : ''
+          }`}
+          onClick={() => setShowComments(!showComments)}
+          title={showComments ? 'Hide Comments' : 'Show Comments'}>
+          <i className="comments" />
+        </Button>,
+        document.body,
+      )}
       {showComments &&
         createPortal(
           <CommentsPanel

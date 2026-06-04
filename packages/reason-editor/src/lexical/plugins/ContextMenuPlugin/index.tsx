@@ -1,13 +1,15 @@
 /**
- * @fileoverview Plugin that provides a custom context menu for the editor.
- * The menu includes options like Remove Link, Cut, Copy, Paste, and Delete Node.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
+import type {JSX} from 'react';
 
-import type { JSX } from 'react';
-
-import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import {$isLinkNode, TOGGLE_LINK_COMMAND} from '@lexical/link';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
 import {
   NodeContextMenuOption,
   NodeContextMenuPlugin,
@@ -23,13 +25,8 @@ import {
   type LexicalNode,
   PASTE_COMMAND,
 } from 'lexical';
-import { useMemo } from 'react';
-import Icon from '../../ui/Icon';
+import {useMemo} from 'react';
 
-/**
- * Plugin that renders a custom context menu when right-clicking on editor nodes.
- * @returns {JSX.Element} The rendered context menu plugin.
- */
 export default function ContextMenuPlugin(): JSX.Element {
   const [editor] = useLexicalComposerContext();
 
@@ -70,25 +67,29 @@ export default function ContextMenuPlugin(): JSX.Element {
             const readClipboardItems = await navigator.clipboard.read();
             const item = readClipboardItems[0];
 
-            const permission = await navigator.permissions.query({
-              // @ts-expect-error These types are incorrect.
-              name: 'clipboard-read',
-            });
-            if (permission.state === 'denied') {
-              alert('Not allowed to paste from clipboard.');
-              return;
+            if (navigator.permissions) {
+              const permission = await navigator.permissions.query({
+                // @ts-expect-error These types are incorrect.
+                name: 'clipboard-read',
+              });
+              if (permission.state === 'denied') {
+                alert('Not allowed to paste from clipboard.');
+                return;
+              }
+
+              for (const type of item.types) {
+                const dataString = await (await item.getType(type)).text();
+                data.setData(type, dataString);
+              }
+
+              const event = new ClipboardEvent('paste', {
+                clipboardData: data,
+              });
+
+              editor.dispatchCommand(PASTE_COMMAND, event);
+            } else {
+              alert('Your browser does not support navigator.permissions');
             }
-
-            for (const type of item.types) {
-              const dataString = await (await item.getType(type)).text();
-              data.setData(type, dataString);
-            }
-
-            const event = new ClipboardEvent('paste', {
-              clipboardData: data,
-            });
-
-            editor.dispatchCommand(PASTE_COMMAND, event);
           });
         },
         disabled: false,
@@ -96,29 +97,35 @@ export default function ContextMenuPlugin(): JSX.Element {
           <i className="PlaygroundEditorTheme__contextMenuItemIcon paste" />
         ),
       }),
-      new NodeContextMenuOption(`Paste Plain`, {
+      new NodeContextMenuOption(`Paste as Plain Text`, {
         $onSelect: () => {
-          navigator.clipboard.readText()
-            .then((clipboardText) => {
-              editor.update(() => {
-                const selection = $getSelection();
-                if ($isRangeSelection(selection)) {
-                  selection.insertRawText(clipboardText);
-                }
+          navigator.clipboard.read().then(async function (...args) {
+            if (navigator.permissions) {
+              const permission = await navigator.permissions.query({
+                // @ts-expect-error These types are incorrect.
+                name: 'clipboard-read',
               });
-            })
-            .catch((err) => {
-              console.warn('Failed to read clipboard:', err);
-              // Fallback: try to use the browser's native paste
-              try {
-                document.execCommand('paste');
-              } catch (e) {
-                console.error('Paste failed:', e);
+
+              if (permission.state === 'denied') {
+                alert('Not allowed to paste from clipboard.');
+                return;
               }
-            });
+
+              const data = new DataTransfer();
+              const clipboardText = await navigator.clipboard.readText();
+              data.setData('text/plain', clipboardText);
+
+              const event = new ClipboardEvent('paste', {
+                clipboardData: data,
+              });
+              editor.dispatchCommand(PASTE_COMMAND, event);
+            } else {
+              alert('Your browser does not support navigator.permissions');
+            }
+          });
         },
         disabled: false,
-        icon: <Icon name="paste-plain" className="PlaygroundEditorTheme__contextMenuItemIcon" />,
+        icon: <i className="PlaygroundEditorTheme__contextMenuItemIcon" />,
       }),
       new NodeContextMenuSeparator(),
       new NodeContextMenuOption(`Delete Node`, {
@@ -133,7 +140,7 @@ export default function ContextMenuPlugin(): JSX.Element {
             ancestorNodeWithRootAsParent?.remove();
           } else if ($isNodeSelection(selection)) {
             const selectedNodes = selection.getNodes();
-            selectedNodes.forEach((node) => {
+            selectedNodes.forEach(node => {
               if ($isDecoratorNode(node)) {
                 node.remove();
               }

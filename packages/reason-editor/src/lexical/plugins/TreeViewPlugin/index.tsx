@@ -1,19 +1,17 @@
 /**
- * @fileoverview Plugin that renders a debug view of the Lexical editor's state tree.
- * Primarily used for development to visualize node hierarchy and state changes.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
+import type {JSX} from 'react';
 
-import type { JSX } from 'react';
-
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { TreeView } from '@lexical/react/LexicalTreeView';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {TreeView} from '@lexical/react/LexicalTreeView';
 import * as React from 'react';
 
-/**
- * Plugin that renders the Lexical TreeView for debugging purposes.
- * @returns {JSX.Element} The rendered TreeView component.
- */
 export default function TreeViewPlugin(): JSX.Element {
   const [editor] = useLexicalComposerContext();
   return (

@@ -17,6 +17,22 @@ async function loadData() {
   } catch (e) {
     // ignore
   }
+  // If merged is an object mapping domain -> array, convert to array of objects
+  if (!Array.isArray(merged) && merged && typeof merged === 'object') {
+    const sample = Object.values(merged)[0];
+    if (Array.isArray(sample)) {
+      const converted = Object.entries(merged).map(([domain, arr]) => ({
+        domain,
+        name: arr[0] || '',
+        domainRank: typeof arr[1] === 'number' ? arr[1] : 0,
+        domainTitle: arr[2] || '',
+        newsRank: typeof arr[3] === 'number' ? arr[3] : 0,
+        newsTitle: arr[4] || '',
+        langCode: arr[5] || ''
+      }));
+      return { merged: converted, info };
+    }
+  }
   return { merged, info };
 }
 
@@ -57,13 +73,19 @@ async function writeCSVFile(outDir: string, name: string, arr: any[]) {
 }
 
 function makeRecords(merged: any[], info: Record<string, any>) {
-  return merged.map((m: any) => ({
-    rank: m.rank ?? null,
-    domain: m.domain ?? m.name ?? null,
-    source: m.source ?? null,
-    score: m.score ?? null,
-    info: info[m.domain] ?? null
-  }));
+  return merged.map((m: any) => {
+    const domain = m.domain ?? m.name ?? '';
+    const rank = m.rank ?? m.domainRank ?? 0;
+    const source = m.source ?? m.newsTitle ?? m.domainTitle ?? m.name ?? '';
+    const score = m.score ?? 0;
+    return {
+      rank,
+      domain,
+      source,
+      score,
+      info: info[domain] ?? {}
+    };
+  });
 }
 
 async function main() {

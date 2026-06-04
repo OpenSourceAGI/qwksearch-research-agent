@@ -1,29 +1,30 @@
 /**
- * @fileoverview Plugin that provides a "/" typeahead menu for inserting various editor components.
- * Components include headings, lists, tables, images, and other custom Lexical nodes.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
+import type {JSX} from 'react';
 
-import type { JSX } from 'react';
-
-import { $createCodeNode } from '@lexical/code';
-import Icon from '../../ui/Icon';
+import {$createCodeNode} from '@lexical/code';
+import {INSERT_HORIZONTAL_RULE_COMMAND} from '@lexical/extension';
 import {
   INSERT_CHECK_LIST_COMMAND,
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
 } from '@lexical/list';
-import { INSERT_EMBED_COMMAND } from '@lexical/react/LexicalAutoEmbedPlugin';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
+import {INSERT_EMBED_COMMAND} from '@lexical/react/LexicalAutoEmbedPlugin';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
 import {
   LexicalTypeaheadMenuPlugin,
   MenuOption,
   useBasicTypeaheadTriggerMatch,
 } from '@lexical/react/LexicalTypeaheadMenuPlugin';
-import { $createHeadingNode, $createQuoteNode } from '@lexical/rich-text';
-import { $setBlocksType } from '@lexical/selection';
-import { INSERT_TABLE_COMMAND } from '@lexical/table';
+import {$createHeadingNode, $createQuoteNode} from '@lexical/rich-text';
+import {$setBlocksType} from '@lexical/selection';
+import {INSERT_TABLE_COMMAND} from '@lexical/table';
 import {
   $createParagraphNode,
   $getSelection,
@@ -32,23 +33,22 @@ import {
   LexicalEditor,
   TextNode,
 } from 'lexical';
-import { useCallback, useMemo, useState } from 'react';
-import * as ReactDOM from 'react-dom';
+import {useCallback, useMemo, useState} from 'react';
 
 import useModal from '../../hooks/useModal';
-import { EmbedConfigs } from '../AutoEmbedPlugin';
-import { INSERT_COLLAPSIBLE_COMMAND } from '../CollapsiblePlugin';
-import { INSERT_DATETIME_COMMAND } from '../DateTimePlugin';
-import { InsertImageDialog } from '../ImagesPlugin';
-import InsertLayoutDialog from '../LayoutPlugin/InsertLayoutDialog';
-import { INSERT_PAGE_BREAK } from '../PageBreakPlugin';
-import { InsertPollDialog } from '../PollPlugin';
-import { InsertTableDialog } from '../TablePlugin';
+import catTypingGif from '../../images/cat-typing.gif';
+import {EmbedConfigs} from '../AutoEmbedPlugin';
+import {INSERT_COLLAPSIBLE_COMMAND} from '../CollapsibleExtension';
+import {INSERT_DATETIME_COMMAND} from '../DateTimeExtension';
+import {InsertEquationDialog} from '../EquationsExtension';
+import {INSERT_EXCALIDRAW_COMMAND} from '../ExcalidrawExtension';
+import {INSERT_IMAGE_COMMAND, InsertImageDialog} from '../ImagesExtension';
+import InsertLayoutDialog from '../LayoutExtension/InsertLayoutDialog';
+import {INSERT_PAGE_BREAK} from '../PageBreakExtension';
+import {InsertPollDialog} from '../PollExtension';
+import {InsertTableDialog} from '../TablePlugin';
 
-/**
- * Represents an option in the component picker typeahead menu.
- */
-class ComponentPickerOption extends MenuOption {
+export class ComponentPickerOption extends MenuOption {
   // What shows up in the editor
   title: string;
   // Icon for display
@@ -78,7 +78,7 @@ class ComponentPickerOption extends MenuOption {
   }
 }
 
-function ComponentPickerMenuItem({
+export function ComponentPickerMenuItem({
   index,
   isSelected,
   onClick,
@@ -112,7 +112,7 @@ function ComponentPickerMenuItem({
   );
 }
 
-function getDynamicOptions(editor: LexicalEditor, queryString: string) {
+export function getDynamicOptions(editor: LexicalEditor, queryString: string) {
   const options: Array<ComponentPickerOption> = [];
 
   if (queryString == null) {
@@ -129,12 +129,12 @@ function getDynamicOptions(editor: LexicalEditor, queryString: string) {
 
     options.push(
       ...colOptions.map(
-        (columns) =>
+        columns =>
           new ComponentPickerOption(`${rows}x${columns} Table`, {
-            icon: <Icon name="table" />,
+            icon: <i className="icon table" />,
             keywords: ['table'],
             onSelect: () =>
-              editor.dispatchCommand(INSERT_TABLE_COMMAND, { columns, rows }),
+              editor.dispatchCommand(INSERT_TABLE_COMMAND, {columns, rows}),
           }),
       ),
     );
@@ -143,12 +143,12 @@ function getDynamicOptions(editor: LexicalEditor, queryString: string) {
   return options;
 }
 
-type ShowModal = ReturnType<typeof useModal>[1];
+export type ShowModal = ReturnType<typeof useModal>[1];
 
-function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
+export function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
   return [
     new ComponentPickerOption('Paragraph', {
-      icon: <Icon name="paragraph" />,
+      icon: <i className="icon paragraph" />,
       keywords: ['normal', 'paragraph', 'p', 'text'],
       onSelect: () =>
         editor.update(() => {
@@ -159,9 +159,9 @@ function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
         }),
     }),
     ...([1, 2, 3] as const).map(
-      (n) =>
+      n =>
         new ComponentPickerOption(`Heading ${n}`, {
-          icon: <Icon name={`h${n}`} />,
+          icon: <i className={`icon h${n}`} />,
           keywords: ['heading', 'header', `h${n}`],
           onSelect: () =>
             editor.update(() => {
@@ -173,33 +173,33 @@ function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
         }),
     ),
     new ComponentPickerOption('Table', {
-      icon: <Icon name="table" />,
+      icon: <i className="icon table" />,
       keywords: ['table', 'grid', 'spreadsheet', 'rows', 'columns'],
       onSelect: () =>
-        showModal('Insert Table', (onClose) => (
+        showModal('Insert Table', onClose => (
           <InsertTableDialog activeEditor={editor} onClose={onClose} />
         )),
     }),
     new ComponentPickerOption('Numbered List', {
-      icon: <Icon name="number" />,
+      icon: <i className="icon number" />,
       keywords: ['numbered list', 'ordered list', 'ol'],
       onSelect: () =>
         editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined),
     }),
     new ComponentPickerOption('Bulleted List', {
-      icon: <Icon name="bullet" />,
+      icon: <i className="icon bullet" />,
       keywords: ['bulleted list', 'unordered list', 'ul'],
       onSelect: () =>
         editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined),
     }),
     new ComponentPickerOption('Check List', {
-      icon: <Icon name="check" />,
+      icon: <i className="icon check" />,
       keywords: ['check list', 'todo list'],
       onSelect: () =>
         editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined),
     }),
     new ComponentPickerOption('Quote', {
-      icon: <Icon name="quote" />,
+      icon: <i className="icon quote" />,
       keywords: ['block quote'],
       onSelect: () =>
         editor.update(() => {
@@ -210,7 +210,7 @@ function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
         }),
     }),
     new ComponentPickerOption('Code', {
-      icon: <Icon name="code" />,
+      icon: <i className="icon code" />,
       keywords: ['javascript', 'python', 'js', 'codeblock'],
       onSelect: () =>
         editor.update(() => {
@@ -230,26 +230,32 @@ function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
         }),
     }),
     new ComponentPickerOption('Divider', {
-      icon: <Icon name="horizontal-rule" />,
+      icon: <i className="icon horizontal-rule" />,
       keywords: ['horizontal rule', 'divider', 'hr'],
       onSelect: () =>
         editor.dispatchCommand(INSERT_HORIZONTAL_RULE_COMMAND, undefined),
     }),
     new ComponentPickerOption('Page Break', {
-      icon: <Icon name="page-break" />,
+      icon: <i className="icon page-break" />,
       keywords: ['page break', 'divider'],
       onSelect: () => editor.dispatchCommand(INSERT_PAGE_BREAK, undefined),
     }),
+    new ComponentPickerOption('Excalidraw', {
+      icon: <i className="icon diagram-2" />,
+      keywords: ['excalidraw', 'diagram', 'drawing'],
+      onSelect: () =>
+        editor.dispatchCommand(INSERT_EXCALIDRAW_COMMAND, undefined),
+    }),
     new ComponentPickerOption('Poll', {
-      icon: <Icon name="poll" />,
+      icon: <i className="icon poll" />,
       keywords: ['poll', 'vote'],
       onSelect: () =>
-        showModal('Insert Poll', (onClose) => (
+        showModal('Insert Poll', onClose => (
           <InsertPollDialog activeEditor={editor} onClose={onClose} />
         )),
     }),
     ...EmbedConfigs.map(
-      (embedConfig) =>
+      embedConfig =>
         new ComponentPickerOption(`Embed ${embedConfig.contentName}`, {
           icon: embedConfig.icon,
           keywords: [...embedConfig.keywords, 'embed'],
@@ -258,72 +264,86 @@ function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
         }),
     ),
     new ComponentPickerOption('Date', {
-      icon: <Icon name="calendar" />,
+      icon: <i className="icon calendar" />,
       keywords: ['date', 'calendar', 'time'],
       onSelect: () => {
         const dateTime = new Date();
         dateTime.setHours(0, 0, 0, 0); // Set time to midnight
-        editor.dispatchCommand(INSERT_DATETIME_COMMAND, { dateTime });
+        editor.dispatchCommand(INSERT_DATETIME_COMMAND, {dateTime});
       },
     }),
-
-    // new ComponentPickerOption('Tomorrow', {
-    //   icon: <Icon name="calendar" />,
-    //   keywords: ['date', 'calendar', 'time', 'tomorrow'],
-    //   onSelect: () => {
-    //     const dateTime = new Date();
-    //     dateTime.setDate(dateTime.getDate() + 1);
-    //     dateTime.setHours(0, 0, 0, 0); // Set time to midnight
-    //     editor.dispatchCommand(INSERT_DATETIME_COMMAND, { dateTime });
-    //   },
-    // }),
-    // new ComponentPickerOption('Yesterday', {
-    //   icon: <Icon name="calendar" />,
-    //   keywords: ['date', 'calendar', 'time', 'yesterday'],
-    //   onSelect: () => {
-    //     const dateTime = new Date();
-    //     dateTime.setDate(dateTime.getDate() - 1);
-    //     dateTime.setHours(0, 0, 0, 0); // Set time to midnight
-    //     editor.dispatchCommand(INSERT_DATETIME_COMMAND, { dateTime });
-    //   },
-    // }),
-    new ComponentPickerOption('Diagram', {
-      icon: <Icon name="diagram-2" />,
-      keywords: ['diagram', 'mermaid', 'flowchart', 'chart', 'graph'],
+    new ComponentPickerOption('Today', {
+      icon: <i className="icon calendar" />,
+      keywords: ['date', 'calendar', 'time', 'today'],
+      onSelect: () => {
+        const dateTime = new Date();
+        dateTime.setHours(0, 0, 0, 0); // Set time to midnight
+        editor.dispatchCommand(INSERT_DATETIME_COMMAND, {dateTime});
+      },
+    }),
+    new ComponentPickerOption('Tomorrow', {
+      icon: <i className="icon calendar" />,
+      keywords: ['date', 'calendar', 'time', 'tomorrow'],
+      onSelect: () => {
+        const dateTime = new Date();
+        dateTime.setDate(dateTime.getDate() + 1);
+        dateTime.setHours(0, 0, 0, 0); // Set time to midnight
+        editor.dispatchCommand(INSERT_DATETIME_COMMAND, {dateTime});
+      },
+    }),
+    new ComponentPickerOption('Yesterday', {
+      icon: <i className="icon calendar" />,
+      keywords: ['date', 'calendar', 'time', 'yesterday'],
+      onSelect: () => {
+        const dateTime = new Date();
+        dateTime.setDate(dateTime.getDate() - 1);
+        dateTime.setHours(0, 0, 0, 0); // Set time to midnight
+        editor.dispatchCommand(INSERT_DATETIME_COMMAND, {dateTime});
+      },
+    }),
+    new ComponentPickerOption('Equation', {
+      icon: <i className="icon equation" />,
+      keywords: ['equation', 'latex', 'math'],
       onSelect: () =>
-        editor.update(() => {
-          const selection = $getSelection();
-          if ($isRangeSelection(selection)) {
-            const codeNode = $createCodeNode('mermaid');
-            selection.insertNodes([codeNode]);
-            // Insert default mermaid example
-            selection.insertRawText(`graph TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[OK]
-    B -->|No| D[Cancel]`);
-          }
+        showModal('Insert Equation', onClose => (
+          <InsertEquationDialog activeEditor={editor} onClose={onClose} />
+        )),
+    }),
+    new ComponentPickerOption('GIF', {
+      icon: <i className="icon gif" />,
+      keywords: ['gif', 'animate', 'image', 'file'],
+      onSelect: () =>
+        editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
+          altText: 'Cat typing on a laptop',
+          src: catTypingGif,
         }),
     }),
     new ComponentPickerOption('Image', {
-      icon: <Icon name="image" />,
+      icon: <i className="icon image" />,
       keywords: ['image', 'photo', 'picture', 'file'],
       onSelect: () =>
-        showModal('Insert Image', (onClose) => (
+        showModal('Insert Image', onClose => (
           <InsertImageDialog activeEditor={editor} onClose={onClose} />
         )),
     }),
+    new ComponentPickerOption('Collapsible', {
+      icon: <i className="icon caret-right" />,
+      keywords: ['collapse', 'collapsible', 'toggle'],
+      onSelect: () =>
+        editor.dispatchCommand(INSERT_COLLAPSIBLE_COMMAND, undefined),
+    }),
     new ComponentPickerOption('Columns Layout', {
-      icon: <Icon name="columns" />,
+      icon: <i className="icon columns" />,
       keywords: ['columns', 'layout', 'grid'],
       onSelect: () =>
-        showModal('Insert Columns Layout', (onClose) => (
+        showModal('Insert Columns Layout', onClose => (
           <InsertLayoutDialog activeEditor={editor} onClose={onClose} />
         )),
     }),
     ...(['left', 'center', 'right', 'justify'] as const).map(
-      (alignment) =>
+      alignment =>
         new ComponentPickerOption(`Align ${alignment}`, {
-          icon: <Icon name={`${alignment}-align`} />,
+          icon: <i className={`icon ${alignment}-align`} />,
           keywords: ['align', 'justify', alignment],
           onSelect: () =>
             editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, alignment),
@@ -332,11 +352,6 @@ function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
   ];
 }
 
-/**
- * The main component picker plugin component.
- * Registers the "/" trigger and renders the typeahead menu.
- * @returns {JSX.Element} The rendered component picker plugin.
- */
 export default function ComponentPickerMenuPlugin(): JSX.Element {
   const [editor] = useLexicalComposerContext();
   const [modal, showModal] = useModal();
@@ -359,9 +374,9 @@ export default function ComponentPickerMenuPlugin(): JSX.Element {
     return [
       ...getDynamicOptions(editor, queryString),
       ...baseOptions.filter(
-        (option) =>
+        option =>
           regex.test(option.title) ||
-          option.keywords.some((keyword) => regex.test(keyword)),
+          option.keywords.some(keyword => regex.test(keyword)),
       ),
     ];
   }, [editor, queryString, showModal]);
@@ -390,35 +405,6 @@ export default function ComponentPickerMenuPlugin(): JSX.Element {
         onSelectOption={onSelectOption}
         triggerFn={checkForTriggerMatch}
         options={options}
-        menuRenderFn={(
-          anchorElementRef,
-          { selectedIndex, selectOptionAndCleanUp, setHighlightedIndex },
-        ) =>
-          anchorElementRef.current && options.length
-            ? ReactDOM.createPortal(
-              <div className="typeahead-popover component-picker-menu">
-                <ul>
-                  {options.map((option, i: number) => (
-                    <ComponentPickerMenuItem
-                      index={i}
-                      isSelected={selectedIndex === i}
-                      onClick={() => {
-                        setHighlightedIndex(i);
-                        selectOptionAndCleanUp(option);
-                      }}
-                      onMouseEnter={() => {
-                        setHighlightedIndex(i);
-                      }}
-                      key={option.key}
-                      option={option}
-                    />
-                  ))}
-                </ul>
-              </div>,
-              anchorElementRef.current,
-            )
-            : null
-        }
       />
     </>
   );

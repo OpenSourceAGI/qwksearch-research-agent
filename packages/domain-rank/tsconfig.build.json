@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "./dist",
+    "emitDeclarationOnly": true,
+    "noEmit": false
+  },
+  "include": ["src/index.ts", "src/domain-api.ts", "src/domain-name-formatter.ts", "src/data/**/*"],
+  "exclude": ["node_modules", "dist", "src/scripts", "src/export.ts"]
+}

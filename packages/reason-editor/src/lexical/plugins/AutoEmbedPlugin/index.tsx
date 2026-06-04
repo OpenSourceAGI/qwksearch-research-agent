@@ -1,11 +1,13 @@
 /**
- * @fileoverview Plugin for automatically embedding content (e.g., YouTube) from URLs.
- * Integrates with LexicalAutoEmbedPlugin and provides a typeahead menu for embed options.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
-
-import type { LexicalEditor } from 'lexical';
-import type { JSX } from 'react';
+import type {LexicalEditor} from 'lexical';
+import type {JSX} from 'react';
 
 import {
   AutoEmbedOption,
@@ -14,17 +16,15 @@ import {
   LexicalAutoEmbedPlugin,
   URL_MATCHER,
 } from '@lexical/react/LexicalAutoEmbedPlugin';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useMemo, useState, useEffect } from 'react';
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {useMemo, useState} from 'react';
 
 import useModal from '../../hooks/useModal';
 import Button from '../../ui/Button';
-import Icon from '../../ui/Icon';
-import { DialogActions } from '../../ui/Dialog';
-import { INSERT_YOUTUBE_COMMAND } from '../YouTubePlugin';
-import { INSERT_EMOJI_COMMAND } from '../EmojiSelectorPlugin';
+import {DialogActions} from '../../ui/Dialog';
+import {INSERT_FIGMA_COMMAND} from '../FigmaExtension';
+import {INSERT_TWEET_COMMAND} from '../TwitterExtension';
+import {INSERT_YOUTUBE_COMMAND} from '../YouTubeExtension';
 
 interface PlaygroundEmbedConfig extends EmbedConfig {
   // Human readable name of the embedded content e.g. Tweet or Google Map.
@@ -38,15 +38,18 @@ interface PlaygroundEmbedConfig extends EmbedConfig {
 
   // For extra searching.
   keywords: Array<string>;
+
+  // Embed a Figma Project.
+  description?: string;
 }
 
 export const YoutubeEmbedConfig: PlaygroundEmbedConfig = {
-  contentName: 'Youtube',
+  contentName: 'Youtube Video',
 
   exampleUrl: 'https://www.youtube.com/watch?v=jNQXAC9IVRw',
 
   // Icon for display.
-  icon: <Icon name="youtube" />,
+  icon: <i className="icon youtube" />,
 
   insertNode: (editor: LexicalEditor, result: EmbedMatchResult) => {
     editor.dispatchCommand(INSERT_YOUTUBE_COMMAND, result.id);
@@ -74,100 +77,81 @@ export const YoutubeEmbedConfig: PlaygroundEmbedConfig = {
   type: 'youtube-video',
 };
 
-export const EmojiSelectorEmbedConfig: PlaygroundEmbedConfig = {
-  contentName: 'Emoji',
+export const TwitterEmbedConfig: PlaygroundEmbedConfig = {
+  // e.g. Tweet or Google Map.
+  contentName: 'X(Tweet)',
 
-  exampleUrl: '',
+  exampleUrl: 'https://x.com/jack/status/20',
 
   // Icon for display.
-  icon: <Icon name="emoji" />,
+  icon: <i className="icon x" />,
 
+  // Create the Lexical embed node from the url data.
   insertNode: (editor: LexicalEditor, result: EmbedMatchResult) => {
-    editor.dispatchCommand(INSERT_EMOJI_COMMAND, result.id);
+    editor.dispatchCommand(INSERT_TWEET_COMMAND, result.id);
   },
 
-  keywords: ['emoji', 'emoticon', 'smiley'],
+  // For extra searching.
+  keywords: ['tweet', 'twitter', 'x'],
 
-  // For emoji selector, we don't parse URLs - just return the emoji directly
-  parseUrl: async (emoji: string) => {
-    if (emoji && emoji.length > 0) {
+  // Determine if a given URL is a match and return url data.
+  parseUrl: (text: string) => {
+    const match =
+      /^https:\/\/(twitter|x)\.com\/(#!\/)?(\w+)\/status(es)*\/(\d+)/.exec(
+        text,
+      );
+
+    if (match != null) {
       return {
-        id: emoji,
-        url: emoji,
+        id: match[5],
+        url: match[1],
       };
     }
+
     return null;
   },
 
-  type: 'emoji-selector',
+  type: 'tweet',
+};
+
+export const FigmaEmbedConfig: PlaygroundEmbedConfig = {
+  contentName: 'Figma Document',
+
+  exampleUrl: 'https://www.figma.com/file/LKQ4FJ4bTnCSjedbRpk931/Sample-File',
+
+  icon: <i className="icon figma" />,
+
+  insertNode: (editor: LexicalEditor, result: EmbedMatchResult) => {
+    editor.dispatchCommand(INSERT_FIGMA_COMMAND, result.id);
+  },
+
+  keywords: ['figma', 'figma.com', 'mock-up'],
+
+  // Determine if a given URL is a match and return url data.
+  parseUrl: (text: string) => {
+    const match =
+      /https:\/\/([\w.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/.exec(
+        text,
+      );
+
+    if (match != null) {
+      return {
+        id: match[3],
+        url: match[0],
+      };
+    }
+
+    return null;
+  },
+
+  type: 'figma',
 };
 
 export const EmbedConfigs = [
+  TwitterEmbedConfig,
   YoutubeEmbedConfig,
-  EmojiSelectorEmbedConfig,
+  FigmaEmbedConfig,
 ];
-
-function AutoEmbedMenuItem({
-  index,
-  isSelected,
-  onClick,
-  onMouseEnter,
-  option,
-}: {
-  index: number;
-  isSelected: boolean;
-  onClick: () => void;
-  onMouseEnter: () => void;
-  option: AutoEmbedOption;
-}) {
-  let className = 'item';
-  if (isSelected) {
-    className += ' selected';
-  }
-  return (
-    <li
-      key={option.key}
-      tabIndex={-1}
-      className={className}
-      ref={option.setRefElement}
-      role="option"
-      aria-selected={isSelected}
-      id={'typeahead-item-' + index}
-      onMouseEnter={onMouseEnter}
-      onClick={onClick}>
-      <span className="text">{option.title}</span>
-    </li>
-  );
-}
-
-function AutoEmbedMenu({
-  options,
-  selectedItemIndex,
-  onOptionClick,
-  onOptionMouseEnter,
-}: {
-  selectedItemIndex: number | null;
-  onOptionClick: (option: AutoEmbedOption, index: number) => void;
-  onOptionMouseEnter: (index: number) => void;
-  options: Array<AutoEmbedOption>;
-}) {
-  return (
-    <div className="typeahead-popover">
-      <ul>
-        {options.map((option: AutoEmbedOption, i: number) => (
-          <AutoEmbedMenuItem
-            index={i}
-            isSelected={selectedItemIndex === i}
-            onClick={() => onOptionClick(option, i)}
-            onMouseEnter={() => onOptionMouseEnter(i)}
-            key={option.key}
-            option={option}
-          />
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 const debounce = (callback: (text: string) => void, delay: number) => {
   let timeoutId: number;
@@ -179,47 +163,6 @@ const debounce = (callback: (text: string) => void, delay: number) => {
   };
 };
 
-/**
- * Dialog for emoji picker.
- */
-export function EmojiPickerDialog({
-  embedConfig,
-  onClose,
-}: {
-  embedConfig: PlaygroundEmbedConfig;
-  onClose: () => void;
-}): JSX.Element {
-  const [editor] = useLexicalComposerContext();
-
-  // Dynamically import EmojiPicker from CDN to avoid SSR issues and skip the npm package
-  const [EmojiPicker, setEmojiPicker] = useState<any>(null);
-
-  useEffect(() => {
-    // @ts-ignore
-    import(/* @vite-ignore */ 'https://esm.sh/emoji-picker-react').then((mod) => {
-      setEmojiPicker(() => mod.default);
-    });
-  }, []);
-
-  const onEmojiClick = (emojiData: any) => {
-    editor.dispatchCommand(INSERT_EMOJI_COMMAND, emojiData.emoji);
-    onClose();
-  };
-
-  return (
-    <div style={{ width: 'auto' }}>
-      {EmojiPicker ? (
-        <EmojiPicker onEmojiClick={onEmojiClick} width="100%" height="400px" />
-      ) : (
-        <div style={{ padding: '20px', textAlign: 'center' }}>Loading emoji picker...</div>
-      )}
-    </div>
-  );
-}
-
-/**
- * Dialog for confirming and inserting an auto-embed.
- */
 export function AutoEmbedDialog({
   embedConfig,
   onClose,
@@ -236,11 +179,9 @@ export function AutoEmbedDialog({
       debounce((inputText: string) => {
         const urlMatch = URL_MATCHER.exec(inputText);
         if (embedConfig != null && inputText != null && urlMatch != null) {
-          Promise.resolve(embedConfig.parseUrl(inputText)).then(
-            (parseResult) => {
-              setEmbedResult(parseResult);
-            },
-          );
+          Promise.resolve(embedConfig.parseUrl(inputText)).then(parseResult => {
+            setEmbedResult(parseResult);
+          });
         } else if (embedResult != null) {
           setEmbedResult(null);
         }
@@ -256,7 +197,7 @@ export function AutoEmbedDialog({
   };
 
   return (
-    <div style={{ width: '600px' }}>
+    <div style={{width: '600px'}}>
       <div className="Input__wrapper">
         <input
           type="text"
@@ -264,8 +205,8 @@ export function AutoEmbedDialog({
           placeholder={embedConfig.exampleUrl}
           value={text}
           data-test-id={`${embedConfig.type}-embed-modal-url`}
-          onChange={(e) => {
-            const { value } = e.target;
+          onChange={e => {
+            const {value} = e.target;
             setText(value);
             validateText(value);
           }}
@@ -283,24 +224,13 @@ export function AutoEmbedDialog({
   );
 }
 
-/**
- * Plugin that enables automatic embedding of recognized URLs.
- * @returns {JSX.Element} The rendered auto-embed plugin.
- */
 export default function AutoEmbedPlugin(): JSX.Element {
   const [modal, showModal] = useModal();
 
   const openEmbedModal = (embedConfig: PlaygroundEmbedConfig) => {
-    // Use different dialog for emoji picker
-    if (embedConfig.type === 'emoji-selector') {
-      showModal(`Select ${embedConfig.contentName}`, (onClose) => (
-        <EmojiPickerDialog embedConfig={embedConfig} onClose={onClose} />
-      ));
-    } else {
-      showModal(`Embed ${embedConfig.contentName}`, (onClose) => (
-        <AutoEmbedDialog embedConfig={embedConfig} onClose={onClose} />
-      ));
-    }
+    showModal(`Embed ${embedConfig.contentName}`, onClose => (
+      <AutoEmbedDialog embedConfig={embedConfig} onClose={onClose} />
+    ));
   };
 
   const getMenuOptions = (
@@ -325,37 +255,6 @@ export default function AutoEmbedPlugin(): JSX.Element {
         embedConfigs={EmbedConfigs}
         onOpenEmbedModalForConfig={openEmbedModal}
         getMenuOptions={getMenuOptions}
-        menuRenderFn={(
-          anchorElementRef,
-          { selectedIndex, options, selectOptionAndCleanUp, setHighlightedIndex },
-        ) =>
-          anchorElementRef.current
-            ? ReactDOM.createPortal(
-              <div
-                className="typeahead-popover auto-embed-menu"
-                style={{
-                  marginLeft: `${Math.max(
-                    parseFloat(anchorElementRef.current.style.width) - 200,
-                    0,
-                  )}px`,
-                  width: 200,
-                }}>
-                <AutoEmbedMenu
-                  options={options}
-                  selectedItemIndex={selectedIndex}
-                  onOptionClick={(option: AutoEmbedOption, index: number) => {
-                    setHighlightedIndex(index);
-                    selectOptionAndCleanUp(option);
-                  }}
-                  onOptionMouseEnter={(index: number) => {
-                    setHighlightedIndex(index);
-                  }}
-                />
-              </div>,
-              anchorElementRef.current,
-            )
-            : null
-        }
       />
     </>
   );

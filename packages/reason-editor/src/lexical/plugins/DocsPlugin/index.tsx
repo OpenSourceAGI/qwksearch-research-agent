@@ -1,16 +1,15 @@
 /**
- * @fileoverview Plugin that renders a link to the Lexical documentation.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
-
-import type { JSX } from 'react';
+import type {JSX} from 'react';
 
 import * as React from 'react';
 
-/**
- * Plugin that renders a button linking to Lexical's official documentation.
- * @returns {JSX.Element} The rendered documentation link button.
- */
 export default function DocsPlugin(): JSX.Element {
   return (
     <a target="__blank" href="https://lexical.dev/docs/intro">

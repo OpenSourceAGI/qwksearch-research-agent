@@ -1,13 +1,16 @@
-
 /**
- * @fileoverview Plugin for recording user actions in the editor to generate E2E test scripts.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
-import type { BaseSelection, LexicalEditor } from 'lexical';
-import type { JSX } from 'react';
+import type {BaseSelection, LexicalEditor} from 'lexical';
+import type {JSX} from 'react';
 
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { IS_APPLE } from '@lexical/utils';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {IS_APPLE} from '@lexical/utils';
 import {
   $createParagraphNode,
   $createTextNode,
@@ -15,7 +18,7 @@ import {
   getDOMSelection,
 } from 'lexical';
 import * as React from 'react';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 const copy = (text: string | null) => {
   const textArea = document.createElement('textarea');
@@ -105,15 +108,15 @@ export function isSelectAll(event: KeyboardEvent): boolean {
 
 // stolen from LexicalSelection-test
 function sanitizeSelection(selection: Selection) {
-  const { anchorNode, focusNode } = selection;
-  let { anchorOffset, focusOffset } = selection;
+  const {anchorNode, focusNode} = selection;
+  let {anchorOffset, focusOffset} = selection;
   if (anchorOffset !== 0) {
     anchorOffset--;
   }
   if (focusOffset !== 0) {
     focusOffset--;
   }
-  return { anchorNode, anchorOffset, focusNode, focusOffset };
+  return {anchorNode, anchorOffset, focusNode, focusOffset};
 }
 
 function getPathFromNodeToEditor(node: Node, rootElement: HTMLElement | null) {
@@ -152,9 +155,6 @@ type Step = {
 
 type Steps = Step[];
 
-/**
- * Hook for managing the state and logic of the test recorder.
- */
 function useTestRecorder(
   editor: LexicalEditor,
 ): [JSX.Element, JSX.Element | null] {
@@ -186,6 +186,13 @@ function useTestRecorder(
     }
 
     return `
+/**
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ */
 
 import {
   initializeE2E,
@@ -213,7 +220,7 @@ ${steps.map(formatStep).join(`\n`)}
   // coalesce some actions like insertText/moveNativeSelection
   const pushStep = useCallback(
     (name: string, value: Step['value']) => {
-      setSteps((currentSteps) => {
+      setSteps(currentSteps => {
         // trying to group steps
         const currentIndex = steps.length - 1;
         const lastStep = steps[currentIndex];
@@ -223,21 +230,21 @@ ${steps.map(formatStep).join(`\n`)}
               // for typing events we just append the text
               return [
                 ...steps.slice(0, currentIndex),
-                { ...lastStep, value: lastStep.value + value },
+                {...lastStep, value: lastStep.value + value},
               ];
             } else {
               // for other events we bump the counter if their values are the same
               if (lastStep.value === value) {
                 return [
                   ...steps.slice(0, currentIndex),
-                  { ...lastStep, count: lastStep.count + 1 },
+                  {...lastStep, count: lastStep.count + 1},
                 ];
               }
             }
           }
         }
         // could not group, just append a new one
-        return [...currentSteps, { count: 1, name, value }];
+        return [...currentSteps, {count: 1, name, value}];
       });
     },
     [steps, setSteps],
@@ -270,21 +277,16 @@ ${steps.map(formatStep).join(`\n`)}
       }
     };
 
-    return editor.registerRootListener(
-      (
-        rootElement: null | HTMLElement,
-        prevRootElement: null | HTMLElement,
-      ) => {
-        if (prevRootElement !== null) {
-          prevRootElement.removeEventListener('keydown', onKeyDown);
-          prevRootElement.removeEventListener('keyup', onKeyUp);
-        }
-        if (rootElement !== null) {
-          rootElement.addEventListener('keydown', onKeyDown);
-          rootElement.addEventListener('keyup', onKeyUp);
-        }
-      },
-    );
+    return editor.registerRootListener(rootElement => {
+      if (rootElement) {
+        rootElement.addEventListener('keydown', onKeyDown);
+        rootElement.addEventListener('keyup', onKeyUp);
+        return () => {
+          rootElement.removeEventListener('keydown', onKeyDown);
+          rootElement.removeEventListener('keyup', onKeyUp);
+        };
+      }
+    });
   }, [editor, isRecording, pushStep]);
 
   useLayoutEffect(() => {
@@ -297,6 +299,7 @@ ${steps.map(formatStep).join(`\n`)}
     if (steps) {
       const testContent = generateTestContent();
       if (testContent !== null) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTemplatedTest(testContent);
       }
       if (preRef.current) {
@@ -307,7 +310,7 @@ ${steps.map(formatStep).join(`\n`)}
 
   useEffect(() => {
     const removeUpdateListener = editor.registerUpdateListener(
-      ({ editorState, dirtyLeaves, dirtyElements }) => {
+      ({editorState, dirtyLeaves, dirtyElements}) => {
         if (!isRecording) {
           return;
         }
@@ -368,7 +371,7 @@ ${steps.map(formatStep).join(`\n`)}
         });
         setSteps([]);
       }
-      setIsRecording((currentIsRecording) => !currentIsRecording);
+      setIsRecording(currentIsRecording => !currentIsRecording);
     },
     [isRecording],
   );
@@ -385,7 +388,7 @@ ${steps.map(formatStep).join(`\n`)}
     ) {
       return;
     }
-    const { anchorNode, anchorOffset, focusNode, focusOffset } =
+    const {anchorNode, anchorOffset, focusNode, focusOffset} =
       sanitizeSelection(browserSelection);
     const rootElement = getCurrentEditor().getRootElement();
     let anchorPath;
@@ -453,9 +456,6 @@ ${steps.map(formatStep).join(`\n`)}
   return [button, output];
 }
 
-/**
- * Plugin that provides a UI for recording and generating E2E tests for the editor.
- */
 export default function TestRecorderPlugin(): JSX.Element {
   const [editor] = useLexicalComposerContext();
   const [testRecorderButton, testRecorderOutput] = useTestRecorder(editor);

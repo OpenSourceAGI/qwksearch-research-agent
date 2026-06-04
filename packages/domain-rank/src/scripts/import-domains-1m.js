@@ -146,7 +146,6 @@ async function importDomainsOfficialList(limit = 10000) {
         transform(chunk, encoding, callback) {
           if (done) return callback();
           for (const line of chunk.toString().split('\n')) {
-            if (isFirstLine) { isFirstLine = false; continue; }
             const domain = line.split(',')[1]?.replace(/"/g, '').trim();
             if (domain) domains.push(domain);
             if (domains.length >= limit) { done = true; break; }

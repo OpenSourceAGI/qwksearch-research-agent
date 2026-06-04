@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import domains from "../data/domains-1m.js";
+import domains from "../../data/domains-1m.js";
 
 const db = new Database("favicons.sqlite");
 

@@ -1,6 +1,6 @@
 import { getDomainWithoutSuffix } from "tldts";
-import { duplicates, removals, titles } from "./duplicates.js";
-import { domainExceptions } from "./domain-exceptions.js";
+import { duplicates, removals, titles } from "./data/duplicates.js";
+import { domainExceptions } from "./data/domain-exceptions.js";
 
 export function shouldRemoveDomain(domain: string): boolean {
   return removals.some((r) => r.main === domain);

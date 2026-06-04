@@ -1,37 +1,36 @@
 /**
- * @fileoverview Plugin that measures and reports typing performance metrics.
- * It tracks the time between input events and reports the average latency.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
-import type { JSX } from "react";
+import type {JSX} from 'react';
 
-import { useEffect } from "react";
+import {useEffect} from 'react';
 
-import useReport from "../../hooks/useReport";
+import useReport from '../../hooks/useReport';
 
 const validInputTypes = new Set([
-  "insertText",
-  "insertCompositionText",
-  "insertFromComposition",
-  "insertLineBreak",
-  "insertParagraph",
-  "deleteCompositionText",
-  "deleteContentBackward",
-  "deleteByComposition",
-  "deleteContent",
-  "deleteContentForward",
-  "deleteWordBackward",
-  "deleteWordForward",
-  "deleteHardLineBackward",
-  "deleteSoftLineBackward",
-  "deleteHardLineForward",
-  "deleteSoftLineForward",
+  'insertText',
+  'insertCompositionText',
+  'insertFromComposition',
+  'insertLineBreak',
+  'insertParagraph',
+  'deleteCompositionText',
+  'deleteContentBackward',
+  'deleteByComposition',
+  'deleteContent',
+  'deleteContentForward',
+  'deleteWordBackward',
+  'deleteWordForward',
+  'deleteHardLineBackward',
+  'deleteSoftLineBackward',
+  'deleteHardLineForward',
+  'deleteSoftLineForward',
 ]);
 
-/**
- * Plugin that monitors typing latency and reports performance statistics.
- * @returns {null} This plugin doesn't render any UI directly.
- */
 export default function TypingPerfPlugin(): JSX.Element | null {
   const report = useReport();
   useEffect(() => {
@@ -67,7 +66,7 @@ export default function TypingPerfPlugin(): JSX.Element | null {
       timerId = setTimeout(() => {
         const total = log.reduce((a, b) => a + b, 0);
         const reportedText =
-          "Typing Perf: " + Math.round((total / log.length) * 100) / 100 + "ms";
+          'Typing Perf: ' + Math.round((total / log.length) * 100) / 100 + 'ms';
         report(reportedText);
         log = [];
       }, 2000);
@@ -88,7 +87,7 @@ export default function TypingPerfPlugin(): JSX.Element | null {
     const keyDownHandler = function keyDownHandler(event: KeyboardEvent) {
       const key = event.key;
 
-      if (key === "Backspace" || key === "Enter") {
+      if (key === 'Backspace' || key === 'Enter') {
         measureEventStart();
       }
     };
@@ -101,18 +100,18 @@ export default function TypingPerfPlugin(): JSX.Element | null {
       invalidatingEvent = true;
     };
 
-    window.addEventListener("keydown", keyDownHandler, true);
-    window.addEventListener("selectionchange", measureEventEnd, true);
-    window.addEventListener("beforeinput", beforeInputHandler, true);
-    window.addEventListener("paste", pasteHandler, true);
-    window.addEventListener("cut", cutHandler, true);
+    window.addEventListener('keydown', keyDownHandler, true);
+    window.addEventListener('selectionchange', measureEventEnd, true);
+    window.addEventListener('beforeinput', beforeInputHandler, true);
+    window.addEventListener('paste', pasteHandler, true);
+    window.addEventListener('cut', cutHandler, true);
 
     return () => {
-      window.removeEventListener("keydown", keyDownHandler, true);
-      window.removeEventListener("selectionchange", measureEventEnd, true);
-      window.removeEventListener("beforeinput", beforeInputHandler, true);
-      window.removeEventListener("paste", pasteHandler, true);
-      window.removeEventListener("cut", cutHandler, true);
+      window.removeEventListener('keydown', keyDownHandler, true);
+      window.removeEventListener('selectionchange', measureEventEnd, true);
+      window.removeEventListener('beforeinput', beforeInputHandler, true);
+      window.removeEventListener('paste', pasteHandler, true);
+      window.removeEventListener('cut', cutHandler, true);
     };
   }, [report]);
 

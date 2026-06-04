@@ -1,20 +1,18 @@
 /**
- * @fileoverview Plugin that logs the content of the clipboard whenever a PASTE_COMMAND is dispatched.
- * Primarily used for development and debugging clipboard interactions.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
+import type {JSX} from 'react';
 
-import type { JSX } from 'react';
-
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { COMMAND_PRIORITY_NORMAL, PASTE_COMMAND } from 'lexical';
+import {useLexicalComposerContext} from '@lexical/react/LexicalComposerContext';
+import {COMMAND_PRIORITY_NORMAL, PASTE_COMMAND} from 'lexical';
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-/**
- * Plugin that provides a UI to enable/disable paste logging and displays the last captured clipboard data.
- * @returns {JSX.Element} The rendered paste log UI.
- */
 export default function PasteLogPlugin(): JSX.Element {
   const [editor] = useLexicalComposerContext();
   const [isActive, setIsActive] = useState(false);
@@ -26,10 +24,10 @@ export default function PasteLogPlugin(): JSX.Element {
       return editor.registerCommand(
         PASTE_COMMAND,
         (e: ClipboardEvent) => {
-          const { clipboardData } = e;
+          const {clipboardData} = e;
           const allData: string[] = [];
           if (clipboardData && clipboardData.types) {
-            clipboardData.types.forEach((type) => {
+            clipboardData.types.forEach(type => {
               allData.push(type.toUpperCase(), clipboardData.getData(type));
             });
           }

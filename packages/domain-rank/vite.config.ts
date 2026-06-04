@@ -3,16 +3,18 @@ import path from 'path';
 
 export default defineConfig({
   build: {
-    ssr: true,
     outDir: 'dist',
     lib: {
-      entry: path.resolve(__dirname, 'src/export.ts'),
-      fileName: 'export',
-      formats: ['cjs']
+      entry: path.resolve(__dirname, 'src/index.ts'),
+      name: 'DomainRank',
+      fileName: 'index',
+      formats: ['es', 'cjs']
     },
     rollupOptions: {
-      external: ['fs', 'path', 'url']
+      external: ['fs', 'fs/promises', 'path', 'url']
     },
-    target: 'node16'
+    target: 'node16',
+    minify: false,
+    sourcemap: true
   }
 });

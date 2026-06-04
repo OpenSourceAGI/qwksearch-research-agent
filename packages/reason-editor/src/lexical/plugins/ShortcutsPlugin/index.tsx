@@ -1,11 +1,12 @@
 /**
- * @fileoverview Plugin that handles keyboard shortcuts for various editor actions.
- * Maps key combinations to formatting commands and editor updates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
  */
 
-
-import { TOGGLE_LINK_COMMAND } from '@lexical/link';
-import { HeadingTagType } from '@lexical/rich-text';
+import {TOGGLE_LINK_COMMAND} from '@lexical/link';
 import {
   COMMAND_PRIORITY_NORMAL,
   FORMAT_ELEMENT_COMMAND,
@@ -16,13 +17,11 @@ import {
   LexicalEditor,
   OUTDENT_CONTENT_COMMAND,
 } from 'lexical';
-import { Dispatch, useEffect, useRef } from 'react';
+import {Dispatch, useEffect} from 'react';
 
-import { useToolbarState } from '../../context/ToolbarContext';
-import { sanitizeUrl } from '../../utils/url';
-import { INSERT_INLINE_COMMAND } from '../CommentPlugin';
-import { APPLY_HIGHLIGHT_COMMAND } from '../FloatingTextFormatToolbarPlugin';
-import { SPEECH_TO_TEXT_COMMAND } from '../SpeechToTextPlugin';
+import {useToolbarState} from '../../context/ToolbarContext';
+import {sanitizeUrl} from '../../utils/url';
+import {INSERT_INLINE_COMMAND} from '../CommentPlugin';
 import {
   clearFormatting,
   formatBulletList,
@@ -36,6 +35,7 @@ import {
   UpdateFontSizeType,
 } from '../ToolbarPlugin/utils';
 import {
+  getFormatHeading,
   isAddComment,
   isCapitalize,
   isCenterAlign,
@@ -44,11 +44,9 @@ import {
   isFormatBulletList,
   isFormatCheckList,
   isFormatCode,
-  isFormatHeading,
   isFormatNumberedList,
   isFormatParagraph,
   isFormatQuote,
-  isHighlight,
   isIncreaseFontSize,
   isIndent,
   isInsertCodeBlock,
@@ -62,16 +60,8 @@ import {
   isSubscript,
   isSuperscript,
   isUppercase,
-  isVoiceInput,
 } from './shortcuts';
 
-/**
- * Plugin that registers a global keyboard shortcut handler for the editor.
- * @param {Object} props - Component props.
- * @param {LexicalEditor} props.editor - The editor instance.
- * @param {Dispatch<boolean>} props.setIsLinkEditMode - State setter for link editing mode.
- * @returns {null} This plugin doesn't render any UI directly.
- */
 export default function ShortcutsPlugin({
   editor,
   setIsLinkEditMode,
@@ -79,20 +69,19 @@ export default function ShortcutsPlugin({
   editor: LexicalEditor;
   setIsLinkEditMode: Dispatch<boolean>;
 }): null {
-  const { toolbarState } = useToolbarState();
-  const isSpeechToTextRef = useRef(false);
+  const {toolbarState} = useToolbarState();
 
   useEffect(() => {
     const keyboardShortcutsHandler = (event: KeyboardEvent) => {
       // Short-circuit, a least one modifier must be set
       if (isModifierMatch(event, {})) {
         return false;
+      }
+      const headingSize = getFormatHeading(event);
+      if (headingSize) {
+        formatHeading(editor, toolbarState.blockType, headingSize);
       } else if (isFormatParagraph(event)) {
         formatParagraph(editor);
-      } else if (isFormatHeading(event)) {
-        const { code } = event;
-        const headingSize = `h${code[code.length - 1]}` as HeadingTagType;
-        formatHeading(editor, toolbarState.blockType, headingSize);
       } else if (isFormatBulletList(event)) {
         formatBulletList(editor, toolbarState.blockType);
       } else if (isFormatNumberedList(event)) {
@@ -147,13 +136,8 @@ export default function ShortcutsPlugin({
         const url = toolbarState.isLink ? null : sanitizeUrl('https://');
         setIsLinkEditMode(!toolbarState.isLink);
         editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
-      } else if (isHighlight(event)) {
-        editor.dispatchCommand(APPLY_HIGHLIGHT_COMMAND, '#FFFF00');
       } else if (isAddComment(event)) {
         editor.dispatchCommand(INSERT_INLINE_COMMAND, undefined);
-      } else if (isVoiceInput(event)) {
-        isSpeechToTextRef.current = !isSpeechToTextRef.current;
-        editor.dispatchCommand(SPEECH_TO_TEXT_COMMAND, isSpeechToTextRef.current);
       } else {
         // No match for any of the event handlers
         return false;

@@ -1,17 +1,31 @@
 {
   "name": "domain-rank",
+  "version": "0.1.1",
   "description": "Domain Rank Top Million domains, source names, duplicates, and favicons",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "data",
+    "readme.md"
+  ],
   "scripts": {
-    "download": "bun src/import-domains-1m.js",
-    "info": "bun src/parse-domain-info.ts",
-    "merge": "bun src/merge-domain-lists.ts",
-    "favicons": "bun src/favicons.js",
+    "download": "bun src/scripts/import-domains-1m.js",
+    "info": "bun src/scripts/parse-domain-info.ts",
+    "merge": "bun src/scripts/merge-domain-lists.ts",
+    "favicons": "bun src/scripts/favicons.js",
     "test": "bun test",
-    "build": "tsc",
-    "build:export": "vite build --config vite.config.ts",
-    "export": "node dist/export.cjs",
-    "export:all": "pnpm run build:export && pnpm run export -- --formats=json,csv,ndjson",
-    "type-check": "tsc --noEmit"
+    "build": "vite build && tsc --project tsconfig.build.json",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build"
   },
   "type": "module",
   "dependencies": {

@@ -1,4 +1,4 @@
-import domainsOfficial from "../data/domains-official-1m.js";
+import domainsOfficial from "../../data/domains-official-1m.js";
 import fs from "fs";
 import {
   shouldRemoveDomain,
@@ -7,7 +7,7 @@ import {
   formatDomainAsTitle,
   cleanSourceTitle,
   getSourceTitle,
-} from "./domain-name-formatter.js";
+} from "../domain-name-formatter.js";
 
 type DomainMap = Record<string, [number, string]>;
 
