@@ -49,8 +49,6 @@ export interface GenerateLanguageOptions {
   html?: boolean;
   /** Truncate the prompt to the model's context window length. Default: `true` */
   applyContextLimit?: boolean;
-  /** LangChain Hub API key for fetching remote agent prompts */
-  LANGCHAIN_API_KEY?: string;
   /** Additional template variables forwarded to the agent prompt */
   [key: string]: unknown;
 }

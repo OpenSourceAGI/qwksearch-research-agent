@@ -66,12 +66,10 @@ export default defineConfig({
       fileName: (format, entryName) => `${entryName}.${format}.js`,
     },
     rollupOptions: {
-      external: ["@langchain/langgraph"],
       output: {
         inlineDynamicImports: false,
       },
     },
-    optimizeDeps: { include: ["@langchain/core"] },
     minify: "terser",
     sourcemap: true,
     emptyOutDir: false,

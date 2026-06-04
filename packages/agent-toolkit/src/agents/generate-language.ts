@@ -1,10 +1,8 @@
 /**
- * @fileoverview Core logic for generating AI language responses using LangChain and various LLM providers.
+ * @fileoverview Core logic for generating AI language responses using Vercel AI SDK and various LLM providers.
  * Handles prompt interpolation, tool calling, and response formatting.
  */
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
-import { tool } from "@langchain/core/tools";
-import { pull } from "langchain/hub/node";
+import { generateText, tool } from "ai";
 import { AGENT_PROMPTS } from "./agent-prompts";
 import { AGENT_TOOLS } from "./agent-tools";
 import { LANGUAGE_MODELS, LANGUAGE_PROVIDERS } from "./language-model-names";
@@ -31,14 +29,13 @@ export { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
  * - _Requires_: LLM provider, API key, agent name, and context variables.
  * - _Providers_: groq, togetherai, openai, anthropic, xai, google,
  *   perplexity, ollama, cloudflare, nvidia
- * - _Agent Templates_: any template from [LangHub](https://smith.langchain.com/hub)
- *   or a custom local entry.
+ * - _Agent Templates_: custom local entries defined in AGENT_PROMPTS.
  * - _How it Works_: Language models predict the most likely next token given
  *   a prompt. They represent words as high-dimensional vectors, use
  *   transformer attention across all prior tokens, and sample from the
  *   resulting probability distribution to produce human-like text.
  *
- * @see [LangChain ReactAgent internals](https://medium.com/@terrycho/how-langchain-agent-works-internally-trace-by-using-langsmith-df23766e7fb4)
+ * @see [Vercel AI SDK generateText docs](https://sdk.vercel.ai/docs/reference/ai-sdk-core/generate-text)
  * @see [Hugging Face tutorials](https://huggingface.co/learn)
  * @see [Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)
  * @see [Building a Transformer with PyTorch](https://www.datacamp.com/tutorial/building-a-transformer-with-py-torch)
@@ -90,7 +87,6 @@ export async function generateLanguageResponse(
     temperature = 1,
     html = true,
     applyContextLimit = true,
-    LANGCHAIN_API_KEY,
     ...context
   } = options;
 
@@ -116,10 +112,10 @@ export async function generateLanguageResponse(
       };
     }
 
-    // \u2500\u2500 2. Load agent prompt (local registry \u2192 LangChain Hub fallback) \u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    const agentObject = ((AGENT_PROMPTS as AgentPrompt[]).find(
+    // \u2500\u2500 2. Load agent prompt from local registry \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    const agentObject = (AGENT_PROMPTS as AgentPrompt[]).find(
       (p) => p?.name === agent,
-    ) ?? (await pull(agent, { apiKey: LANGCHAIN_API_KEY }))) as AgentPrompt;
+    );
 
     if (!agentObject) return { error: `Agent "${agent}" not found` };
 
@@ -156,24 +152,30 @@ export async function generateLanguageResponse(
     if (!llm) return { error: "Invalid provider selected" };
 
     // \u2500\u2500 7. Resolve tools declared by the agent \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-    const tools = (AGENT_TOOLS as AgentTool[])
-      .filter((t) => agentObject.tools?.includes(t.name))
-      .map((t) => tool(t.func as Parameters<typeof tool>[0], t));
+    const agentToolDefs = (AGENT_TOOLS as AgentTool[]).filter((t) =>
+      agentObject.tools?.includes(t.name),
+    );
+    const tools =
+      agentToolDefs.length > 0
+        ? Object.fromEntries(
+            agentToolDefs.map((t) => [
+              t.name,
+              tool({
+                description: t.description as string,
+                parameters: t.schema as any,
+                execute: t.func as (args: any) => Promise<string>,
+              }),
+            ]),
+          )
+        : undefined;
 
-    // \u2500\u2500 8. Invoke LLM (ReAct agent when tools are present, plain otherwise) \u2500\u2500\u2500
-    let rawReply: string;
-    if (tools.length > 0) {
-      const agentResult = await createReactAgent({ llm, tools }).invoke({
-        messages: [{ role: "user", content: prompt }],
-      });
-      rawReply = String(agentResult.messages.at(-1)?.content ?? "");
-    } else {
-      const invokeResult = await llm.invoke(prompt);
-      rawReply =
-        typeof invokeResult === "string"
-          ? invokeResult
-          : String((invokeResult as { content?: unknown })?.content ?? "");
-    }
+    // \u2500\u2500 8. Invoke LLM via Vercel AI SDK generateText \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    const { text: rawReply } = await generateText({
+      model: llm,
+      prompt,
+      temperature,
+      ...(tools && { tools, maxSteps: 10 }),
+    });
 
     // \u2500\u2500 9. Format output (HTML or raw Markdown) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
     const content: string = html

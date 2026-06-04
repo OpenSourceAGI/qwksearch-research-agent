@@ -7,10 +7,6 @@
  */
 import { ModelProviderUISection } from "../types";
 
-// Re-export providers from registry
-// This export will only be evaluated when actually used, not during config initialization
-export { providers } from "./registry";
-
 /**
  * Gets provider UI configuration without triggering circular dependencies.
  * This function uses static metadata instead of importing provider classes.
