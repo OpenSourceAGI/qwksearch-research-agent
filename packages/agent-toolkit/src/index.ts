@@ -1,11 +1,18 @@
 /**
- * @fileoverview Research Agent Library entry point.
- * Exports specialized agents, tools, model registry, and memory utilities
- * for AI-driven research.
+ * @fileoverview AI Agent Toolkit
  *
+ * Multi-provider AI agent toolkit for generating language responses, searching the web,
+ * extracting page content, and managing long-term memory across 10+ LLM providers.
+ *
+ * Built on Vercel AI SDK with prompt templates for research, summarization, citation
+ * answering, query resolution, and knowledge-graph extraction.
+ *
+ * @module ai-research-agent
  * @author vtempest <grokthiscontact@gmail.com>
- * @license AGPL-3.0 Organizations should email grokthiscontact@gmail.com
- * to get a dual-use commercial license to remove the GPL requirements.
+ * @license AGPL-3.0
+ * @see {@link https://github.com/vtempest/ai-research-agent}
  */
-export * from "./agents";
+
+export * from "./language-generation";
 export * from "./memory";
+export * from "./tools";

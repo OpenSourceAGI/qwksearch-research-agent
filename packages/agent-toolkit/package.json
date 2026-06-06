@@ -12,12 +12,10 @@
     "url": "https://github.com/vtempest/ai-research-agent/issues"
   },
   "main": "./dist/research-agent.cjs.js",
-  "module": "./dist/research-agent.es.js",
   "types": "./dist/types.d.ts",
   "exports": {
     ".": {
       "types": "./dist/types.d.ts",
-      "import": "./dist/research-agent.es.js",
       "require": "./dist/research-agent.cjs.js"
     }
   },
@@ -25,6 +23,7 @@
     "dist",
     "src"
   ],
+  "sideEffects": false,
   "scripts": {
     "build": "vite build",
     "test": "vitest",
@@ -33,10 +32,14 @@
     "ship": "npx standard-version --release-as patch && npm publish --access public"
   },
   "peerDependencies": {
-    "next": ">=15.0.0"
+    "next": ">=15.0.0",
+    "@opennextjs/cloudflare": ">=0.1.0"
   },
   "peerDependenciesMeta": {
     "next": {
+      "optional": true
+    },
+    "@opennextjs/cloudflare": {
       "optional": true
     }
   },
@@ -51,27 +54,24 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "ai": "^4.3.16",
-    "@ai-sdk/openai": "^1.3.22",
+    "@ai-sdk/amazon-bedrock": "^1.0.11",
     "@ai-sdk/anthropic": "^1.2.12",
-    "@ai-sdk/groq": "^1.2.9",
     "@ai-sdk/google": "^1.2.19",
     "@ai-sdk/google-vertex": "^2.2.19",
+    "@ai-sdk/groq": "^1.2.9",
+    "@ai-sdk/mcp": "^1.0.0",
+    "@ai-sdk/openai": "^1.3.22",
     "@ai-sdk/xai": "^1.2.16",
-    "chrono-node": "^2.9.0",
+    "@composio/core": "^0.10.0",
+    "@mastra/core": "^0.1.0",
+    "@mastra/mcp": "^0.1.0",
+    "@openrouter/ai-sdk-provider": "^2.9.0",
+    "ai": "^5.0.0",
     "drizzle-orm": "^0.45.1",
-    "grab-url": "^1.6.7",
     "highlight.js": "^11.11.1",
     "html-entities": "^2.6.0",
-    "js-yaml": "^4.1.1",
-    "jsdom": "^28.1.0",
-    "jszip": "^3.10.1",
-    "linkedom": "^0.18.12",
     "marked": "^17.0.4",
-    "node-fetch": "^3.3.2",
     "qwksearch-api-client": "^0.0.12",
-    "tldts": "^7.0.25",
-    "youtube-po-token-generator": "^0.6.0",
     "zod": "^4.3.6"
   },
   "keywords": [

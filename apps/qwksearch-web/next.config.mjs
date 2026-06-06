@@ -33,43 +33,31 @@ const nextConfig = {
     "@better-auth/kysely-adapter",
     "better-auth",
     "better-auth-cloudflare",
-    // Client-only packages pulled in via reason-editor (transpilePackages) — never run server-side
+    // Client-only packages — never run server-side
     "prettier",
     "@huggingface/transformers",
     "onnxruntime-web",
   ],
-  transpilePackages: ["reason-editor", "quantum-sphere-loading-icon", "shadcn-theme-menu"],
+  transpilePackages: ["quantum-sphere-loading-icon", "shadcn-theme-menu"],
 
   webpack: (config) => {
-    // Resolve reason-editor from source, not dist
     config.resolve.alias = {
       ...config.resolve.alias,
-      "reason-editor/reader": path.resolve(
-        __dirname,
-        "../../packages/reason-editor/src/reader.tsx",
-      ),
-      "reason-editor": path.resolve(
-        __dirname,
-        "../../packages/reason-editor/src/index.tsx",
-      ),
       // Stub missing optional dependency of resend package
       "@react-email/render": path.resolve(
         __dirname,
         "lib/stubs/react-email-render.js",
       ),
-      // Force a single lucide-react copy across reason-editor and qwksearch-web.
-      // Without this, Next's SWC barrel optimizer (optimizePackageImports) could
-      // read metadata from one version's node_modules while webpack resolves to
-      // another, producing broken deep imports like "ChevronRight is not defined"
-      // when icon file paths differ between major versions.
+      // Force a single lucide-react copy across the monorepo.
+      // This prevents SWC's optimizePackageImports from picking mismatched
+      // metadata across nested node_modules, which can break deep imports.
       "lucide-react": path.resolve(__dirname, "node_modules/lucide-react"),
     };
 
-    // Prefer root node_modules over nested packages/reason-editor/node_modules
+      // Prefer root node_modules over nested node_modules
     config.resolve.modules = [
       path.resolve(__dirname, "../../node_modules"),
       path.resolve(__dirname, "node_modules"),
-      path.resolve(__dirname, "../../packages/reason-editor/node_modules"),
       "node_modules",
     ];
     return config;

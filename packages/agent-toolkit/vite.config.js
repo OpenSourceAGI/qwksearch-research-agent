@@ -59,19 +59,47 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: {
-        "research-agent": resolve(__dirname, "src/index.ts"),
-      },
-      formats: ["es", "cjs"],
-      fileName: (format, entryName) => `${entryName}.${format}.js`,
+      entry: resolve(__dirname, "src/index.ts"),
+      formats: ["cjs"],
+      fileName: () => "research-agent.cjs.js",
     },
     rollupOptions: {
+      external: [
+        "ai",
+        "@ai-sdk/openai",
+        "@ai-sdk/anthropic",
+        "@ai-sdk/groq",
+        "@ai-sdk/google",
+        "@ai-sdk/google-vertex",
+        "@ai-sdk/xai",
+        "@ai-sdk/amazon-bedrock",
+        "@openrouter/ai-sdk-provider",
+        "drizzle-orm",
+        "zod",
+      ],
       output: {
-        inlineDynamicImports: false,
+        inlineDynamicImports: true,
       },
     },
     minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: false,
+        drop_debugger: true,
+        passes: 2,
+        pure_funcs: ["console.log", "console.debug"],
+        dead_code: true,
+        unused: true,
+      },
+      mangle: {
+        safari10: true,
+      },
+      format: {
+        comments: false,
+      },
+    },
     sourcemap: true,
     emptyOutDir: false,
+    chunkSizeWarningLimit: 1000,
   },
 });

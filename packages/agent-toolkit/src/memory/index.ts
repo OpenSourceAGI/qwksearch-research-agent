@@ -1,16 +1,22 @@
 /**
- * Memory Module Entry Point
+ * @fileoverview Memory Management System
  *
- * Exports all memory system components with clean abstractions
+ * Intelligent long-term memory for AI agents with persistent storage,
+ * vector-based relevance search, and automatic conversation summarization.
+ * Supports in-memory and Drizzle ORM-backed persistence.
+ *
+ * @module memory
+ * @author ai-research-agent contributors
  */
 
-// Core classes
-export { SimpleMemory } from "./simple-memory";
-export { MemoryAgent } from "./memory-agent";
+// Core agent memory manager
+export { MemoryAgent } from "./agent-memory-manager";
+export type { MemoryAgentOptions } from "./agent-memory-manager";
 
 // Storage implementations
-export { DrizzleMemoryStorage, createMemorySchema } from "./drizzle-storage";
-export type { IMemoryStorage } from "./storage-interface";
+export { SimpleMemory } from "./storage/in-memory-storage";
+export { DrizzleMemoryStorage, createMemorySchema } from "./storage/drizzle-storage";
+export type { IMemoryStorage } from "./storage/storage-interface";
 
 // Types and constants
 export {
@@ -26,5 +32,3 @@ export {
   type MemoryOptions,
   type ExtractedFact,
 } from "./types";
-
-export type { MemoryAgentOptions } from "./memory-agent";

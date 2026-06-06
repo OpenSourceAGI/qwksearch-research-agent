@@ -1470,3 +1470,170 @@ export const LANGUAGE_MODELS = [
 export const LANGUAGE_PROVIDERS = LANGUAGE_MODELS.map((p) =>
   p.provider.toLocaleLowerCase(),
 );
+
+/**
+ * Model capability types for filtering
+ */
+export type ModelCapability = "text" | "vision" | "audio" | "code" | "reasoning";
+
+/**
+ * Extended model information with capabilities
+ */
+export interface ModelInfo {
+  name: string;
+  id: string;
+  contextLength: number;
+  capabilities?: ModelCapability[];
+  provider: string;
+}
+
+/**
+ * Get all models for a specific provider
+ * @param providerName - Name of the provider (case-insensitive)
+ * @returns Array of models for that provider
+ * @example
+ * const nvidiaModels = getModelsByProvider("nvidia");
+ */
+export function getModelsByProvider(providerName: string): ModelInfo[] {
+  const provider = LANGUAGE_MODELS.find(
+    (p) => p.provider.toLowerCase() === providerName.toLowerCase()
+  );
+
+  if (!provider) {
+    return [];
+  }
+
+  return provider.models.map((model) => ({
+    ...model,
+    provider: provider.provider,
+    capabilities: inferModelCapabilities(model.name, model.id),
+  }));
+}
+
+/**
+ * Get all available models across all providers
+ * @returns Array of all models with provider information
+ */
+export function getAllModels(): ModelInfo[] {
+  return LANGUAGE_MODELS.flatMap((provider) =>
+    provider.models.map((model) => ({
+      ...model,
+      provider: provider.provider,
+      capabilities: inferModelCapabilities(model.name, model.id),
+    }))
+  );
+}
+
+/**
+ * Filter models by capability (text-only, vision, etc.)
+ * @param capability - The capability to filter by
+ * @param providerName - Optional: filter by specific provider
+ * @returns Array of models with the specified capability
+ * @example
+ * const textOnlyModels = getModelsByCapability("text");
+ * const visionModels = getModelsByCapability("vision", "openai");
+ */
+export function getModelsByCapability(
+  capability: ModelCapability,
+  providerName?: string
+): ModelInfo[] {
+  const allModels = providerName
+    ? getModelsByProvider(providerName)
+    : getAllModels();
+
+  return allModels.filter((model) =>
+    model.capabilities?.includes(capability)
+  );
+}
+
+/**
+ * Get text-only models (no vision, audio, etc.)
+ * @param providerName - Optional: filter by specific provider
+ * @returns Array of text-only models
+ * @example
+ * const textModels = getTextOnlyModels();
+ * const groqTextModels = getTextOnlyModels("groq");
+ */
+export function getTextOnlyModels(providerName?: string): ModelInfo[] {
+  const allModels = providerName
+    ? getModelsByProvider(providerName)
+    : getAllModels();
+
+  return allModels.filter((model) => {
+    const caps = model.capabilities || [];
+    return caps.includes("text") &&
+           !caps.includes("vision") &&
+           !caps.includes("audio");
+  });
+}
+
+/**
+ * Get multimodal models (vision, audio, etc.)
+ * @param providerName - Optional: filter by specific provider
+ * @returns Array of multimodal models
+ * @example
+ * const multimodalModels = getMultimodalModels();
+ * const openaiMultimodal = getMultimodalModels("openai");
+ */
+export function getMultimodalModels(providerName?: string): ModelInfo[] {
+  const allModels = providerName
+    ? getModelsByProvider(providerName)
+    : getAllModels();
+
+  return allModels.filter((model) => {
+    const caps = model.capabilities || [];
+    return caps.includes("vision") || caps.includes("audio");
+  });
+}
+
+/**
+ * Infer model capabilities from name and ID
+ * @param name - Model name
+ * @param id - Model ID
+ * @returns Array of inferred capabilities
+ */
+function inferModelCapabilities(name: string, id: string): ModelCapability[] {
+  const capabilities: ModelCapability[] = ["text"]; // All models support text
+  const combined = `${name} ${id}`.toLowerCase();
+
+  // Vision models
+  if (
+    combined.includes("vision") ||
+    combined.includes("-vl") ||
+    combined.includes("gpt-4o") ||
+    combined.includes("gemini") ||
+    combined.includes("claude") && combined.includes("3")
+  ) {
+    capabilities.push("vision");
+  }
+
+  // Audio models
+  if (
+    combined.includes("whisper") ||
+    combined.includes("audio")
+  ) {
+    capabilities.push("audio");
+  }
+
+  // Code-specialized models
+  if (
+    combined.includes("code") ||
+    combined.includes("codex") ||
+    combined.includes("codestral") ||
+    combined.includes("deepseek-coder")
+  ) {
+    capabilities.push("code");
+  }
+
+  // Reasoning models
+  if (
+    combined.includes("reasoning") ||
+    combined.includes("o1") ||
+    combined.includes("o3") ||
+    combined.includes("thinking")
+  ) {
+    capabilities.push("reasoning");
+  }
+
+  return capabilities;
+}

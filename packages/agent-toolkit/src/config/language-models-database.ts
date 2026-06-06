@@ -1157,6 +1157,74 @@ export const LANGUAGE_MODELS = [
     ],
   },
   {
+    provider: "OpenRouter",
+    docs: "https://openrouter.ai/docs",
+    api_key: "https://openrouter.ai/settings/keys",
+    default: "anthropic/claude-3.7-sonnet",
+    models: [
+      {
+        name: "Claude 3.7 Sonnet",
+        id: "anthropic/claude-3.7-sonnet",
+        contextLength: 200000,
+      },
+      {
+        name: "Claude 3.5 Sonnet",
+        id: "anthropic/claude-3.5-sonnet",
+        contextLength: 200000,
+      },
+      {
+        name: "GPT-4o",
+        id: "openai/gpt-4o",
+        contextLength: 128000,
+      },
+      {
+        name: "GPT-4o Mini",
+        id: "openai/gpt-4o-mini",
+        contextLength: 128000,
+      },
+      {
+        name: "Gemini 2.5 Pro",
+        id: "google/gemini-2.5-pro",
+        contextLength: 1048576,
+      },
+      {
+        name: "Gemini 2.0 Flash",
+        id: "google/gemini-2.0-flash",
+        contextLength: 1048576,
+      },
+      {
+        name: "DeepSeek V3",
+        id: "deepseek/deepseek-v3",
+        contextLength: 64000,
+      },
+      {
+        name: "DeepSeek R1",
+        id: "deepseek/deepseek-r1",
+        contextLength: 64000,
+      },
+      {
+        name: "Llama 4 Scout 17B",
+        id: "meta-llama/llama-4-scout-17b-16e-instruct",
+        contextLength: 131072,
+      },
+      {
+        name: "Llama 3.3 70B",
+        id: "meta-llama/llama-3.3-70b-instruct",
+        contextLength: 131072,
+      },
+      {
+        name: "Qwen 2.5 72B",
+        id: "qwen/qwen-2.5-72b-instruct",
+        contextLength: 32768,
+      },
+      {
+        name: "Mistral Large 2",
+        id: "mistralai/mistral-large-2",
+        contextLength: 128000,
+      },
+    ],
+  },
+  {
     provider: "Ollama",
     docs: "https://ollama.com/",
     api_key: "Not required - runs locally",

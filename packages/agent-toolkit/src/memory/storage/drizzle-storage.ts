@@ -11,7 +11,7 @@ import type {
   MemoryType,
   MemorySearchOptions,
   MemoryUpdate,
-} from "./types";
+} from "../types";
 
 /**
  * Drizzle-based storage adapter

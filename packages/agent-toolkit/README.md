@@ -26,6 +26,50 @@ Built on top of the [Vercel AI SDK](https://sdk.vercel.ai), with a small registr
 | **Cloudflare**         | 🇺🇸  | (Llama, Mistral, Gemma, Qwen, DeepSeek)       | 🌐 Edge inference · ⚡ Serverless CDN scale · 🔒 Privacy-first        | [Docs](https://developers.cloudflare.com/workers-ai/)                                                 | [Keys](https://dash.cloudflare.com/profile/api-tokens)                                             | Public       |
 | **Ollama**             | 🇺🇸  | (Llama, Mistral, Gemma, Qwen, DeepSeek)       | 🖥️ #1 local inference · 🔒 Fully offline · 🆓 Free self-hosted        | [Docs](https://ollama.com/docs)                                                                       | [Keys](https://ollama.com/settings/keys)                                                           | ~$20M        |
 
+## Amazon Bedrock Provider
+
+Use Vercel AI SDK's official Bedrock provider: install `@ai-sdk/amazon-bedrock`, configure AWS auth, then call `bedrock('model-id')` in `generateText` or `streamText`. [ai-sdk](https://ai-sdk.dev/providers/ai-sdk-providers/amazon-bedrock)
+
+### Install
+
+- Run `pnpm add ai @ai-sdk/amazon-bedrock` or the npm/yarn equivalent. [vercel](https://vercel.com/changelog/amazon-bedrock-provider-for-the-vercel-ai-sdk-now-available)
+- Import either `bedrock` directly or `createAmazonBedrock` for custom config. [ai-sdk](https://ai-sdk.dev/providers/ai-sdk-providers/amazon-bedrock)
+
+### Env setup
+
+- Simplest path: set `AWS_BEARER_TOKEN_BEDROCK` with a Bedrock API key; the docs say API key auth is the recommended method. [ai-sdk](https://ai-sdk.dev/providers/ai-sdk-providers/amazon-bedrock)
+- SigV4 also works with `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION`, and the provider can also use the AWS credential chain. [ai-sdk](https://ai-sdk.dev/providers/ai-sdk-providers/amazon-bedrock)
+
+### Minimal example
+
+```ts
+import { generateText } from 'ai';
+import { bedrock } from '@ai-sdk/amazon-bedrock';
+
+const { text } = await generateText({
+  model: bedrock('anthropic.claude-3-haiku-20240307-v1:0'),
+  prompt: 'Explain Bedrock in one sentence.',
+});
+
+console.log(text);
+```
+
+### Custom region
+
+```ts
+import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
+
+export const amazonBedrock = createAmazonBedrock({
+  region: 'us-east-1',
+  apiKey: process.env.AWS_BEARER_TOKEN_BEDROCK,
+});
+```
+
+### Notes
+
+- You must enable model access in the AWS Bedrock console first; access is not granted by default. [ai-sdk](https://ai-sdk.dev/providers/ai-sdk-providers/amazon-bedrock)
+- `streamText` is supported too, and Bedrock-specific options like guardrails can be passed via `providerOptions.bedrock`. [ai-sdk](https://ai-sdk.dev/providers/ai-sdk-providers/amazon-bedrock)
+
 ## Install
 
 ```bash
@@ -49,20 +93,37 @@ console.log(response.content);
 
 `response.content` is HTML by default (set `html: false` for raw Markdown). Agents that define an `after` hook also return parsed data on `response.extract`.
 
+### Using Amazon Bedrock
+
+```ts
+import { generateLanguageResponse } from "ai-research-agent";
+
+const response = await generateLanguageResponse({
+  provider: "amazon",
+  apiKey: process.env.AWS_BEARER_TOKEN_BEDROCK, // or "region:accessKeyId:secretAccessKey"
+  model: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+  agent: "question",
+  query: "Explain transformer attention in two sentences.",
+});
+
+console.log(response.content);
+```
+
 ## Supported providers
 
-| Provider      | ID           | Default model                                   | Notes                     |
-| ------------- | ------------ | ----------------------------------------------- | ------------------------- |
-| Anthropic     | `anthropic`  | `claude-3-7-sonnet-20250219`                    |                           |
-| OpenAI        | `openai`     | `gpt-4o`                                        |                           |
-| Groq          | `groq`       | `meta-llama/llama-4-maverick-17b-128e-instruct` |                           |
-| Google Vertex | `google`     | Gemini 2.x                                      |                           |
-| XAI           | `xai`        | `grok-beta`                                     |                           |
-| Cloudflare    | `cloudflare` | `llama-4-scout-17b-16e-instruct`                | apiKey =`token:accountId` |
-| Together AI   | `togetherai` | `meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo`   |                           |
-| Perplexity    | `perplexity` | `sonar`                                         |                           |
-| NVIDIA NIM    | `nvidia`     | `moonshotai/kimi-k2.5`                          |                           |
-| Ollama        | `ollama`     | `llama3.2`                                      | Local — no key required   |
+| Provider        | ID           | Default model                                   | Notes                                             |
+| --------------- | ------------ | ----------------------------------------------- | ------------------------------------------------- |
+| Anthropic       | `anthropic`  | `claude-3-7-sonnet-20250219`                    |                                                   |
+| OpenAI          | `openai`     | `gpt-4o`                                        |                                                   |
+| Groq            | `groq`       | `meta-llama/llama-4-maverick-17b-128e-instruct` |                                                   |
+| Google Vertex   | `google`     | Gemini 2.x                                      |                                                   |
+| XAI             | `xai`        | `grok-beta`                                     |                                                   |
+| Amazon Bedrock  | `amazon`     | `anthropic.claude-3-5-sonnet-20241022-v2:0`     | apiKey = bearer token or `region:key:secret`     |
+| Cloudflare      | `cloudflare` | `llama-4-scout-17b-16e-instruct`                | apiKey =`token:accountId`                         |
+| Together AI     | `togetherai` | `meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo`   |                                                   |
+| Perplexity      | `perplexity` | `sonar`                                         |                                                   |
+| NVIDIA NIM      | `nvidia`     | `moonshotai/kimi-k2.5`                          |                                                   |
+| Ollama          | `ollama`     | `llama3.2`                                      | Local — no key required                           |
 
 The full registry (including context lengths) is exported as `LANGUAGE_MODELS`.
 
@@ -136,3 +197,17 @@ npm run test       # vitest
 ```
 
 Vite bundles ES + CJS targets to `dist/`, emits `.d.ts` files alongside, and applies a `fs/promises` polyfill so the bundle works in browser and edge runtimes (Cloudflare Workers, Vercel Edge).
+
+## Resources
+
+### Documentation & Guides
+- [Vercel AI SDK generateText docs](https://sdk.vercel.ai/docs/reference/ai-sdk-core/generate-text)
+- [Hugging Face tutorials](https://huggingface.co/learn)
+- [Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)
+- [Building a Transformer with PyTorch](https://www.datacamp.com/tutorial/building-a-transformer-with-py-torch)
+- [LLM training example](https://github.com/vtempest/ai-research-agent/blob/master/packages/neural-net/src/train/predict-next-word.js)
+
+### Transformer Architecture Visualizations
+
+<img src="https://i.imgur.com/bailW5n.gif" alt="Transformer attention mechanism visualization" />
+<img src="https://i.imgur.com/uW6E9VJ.gif" alt="Transformer architecture visualization" />

@@ -29,12 +29,6 @@
       "@/*": [
         "./*"
       ],
-      "reason-editor": [
-        "../../packages/reason-editor/src/index.tsx"
-      ],
-      "reason-editor/reader": [
-        "../../packages/reason-editor/src/reader.tsx"
-      ],
       "ai-research-agent": [
         "../../packages/agent-toolkit/src/index.ts"
       ],

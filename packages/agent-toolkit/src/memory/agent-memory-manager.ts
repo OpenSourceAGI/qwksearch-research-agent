@@ -10,8 +10,8 @@
  * - Memory analytics
  */
 
-import { SimpleMemory } from "./simple-memory";
-import type { IMemoryStorage } from "./storage-interface";
+import { SimpleMemory } from "./storage/in-memory-storage";
+import type { IMemoryStorage } from "./storage/storage-interface";
 import type { MemoryType, MemorySearchOptions } from "./types";
 import { MEMORY_CONFIG, MEMORY_TYPES } from "./types";
 

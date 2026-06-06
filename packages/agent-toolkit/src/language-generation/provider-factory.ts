@@ -1,6 +1,6 @@
 /**
- * @fileoverview Provider factory for Vercel AI SDK language model instances.
- * Supports OpenAI, Anthropic, Groq, Google, xAI, Ollama, and OpenAI-compatible endpoints.
+ * @fileoverview Provider factory for Vercel AI SDK v5 language model instances.
+ * Supports OpenAI, Anthropic, Groq, Google, xAI, Amazon Bedrock, OpenRouter, Ollama, and OpenAI-compatible endpoints.
  */
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
@@ -8,6 +8,8 @@ import { createGroq } from "@ai-sdk/groq";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createVertex } from "@ai-sdk/google-vertex";
 import { createXai } from "@ai-sdk/xai";
+import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import type { LanguageModelV1 } from "ai";
 
 /**
@@ -73,16 +75,28 @@ export function createLLMProvider(
       })(model);
 
     case "openrouter":
-      return createOpenAI({
-        apiKey,
-        baseURL: "https://openrouter.ai/api/v1",
-      })(model);
+      return createOpenRouter({ apiKey }).chat(model);
 
     case "perplexity":
       return createOpenAI({
         apiKey,
         baseURL: "https://api.perplexity.ai",
       })(model);
+
+    case "amazon":
+    case "bedrock": {
+      // Support both AWS_aBEARER_TOKEN_BEDROCK and AWS credential chain
+      // apiKey can be either the bearer token or "region:accessKey:secretKey"
+      const parts = apiKey.split(":");
+        // Format: region:accessKeyId:secretAccessKey
+        const [region, accessKeyId, secretAccessKey] = parts;
+        return createAmazonBedrock({
+          region,
+          accessKeyId,
+          secretAccessKey,
+        })(model);
+    
+    }
 
     default:
       return null;

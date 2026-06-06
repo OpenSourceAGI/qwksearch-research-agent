@@ -15,6 +15,8 @@ export type LLMProviderName =
   | "groq"
   | "cloudflare"
   | "perplexity"
+  | "amazon"
+  | "bedrock"
   | "ollama"
   | "togetherai"
   | (string & {}); // preserve autocomplete while allowing arbitrary strings
@@ -28,6 +30,7 @@ export interface GenerateLanguageOptions {
   /**
    * API key for the provider. Not required for `ollama`.
    * For `cloudflare`, use the `"apiToken:accountId"` format.
+   * For `amazon`/`bedrock`, use bearer token or `"region:accessKeyId:secretAccessKey"` format.
    */
   apiKey?: string;
   /** Agent prompt template name (default: `"question"`) */

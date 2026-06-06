@@ -11,7 +11,7 @@
  * - Conflict resolution
  */
 
-import { generateLanguageResponse } from "..";
+import { generateLanguageResponse } from "../../language-generation";
 import type { IMemoryStorage } from "./storage-interface";
 import type {
   MemoryRecord,
@@ -22,8 +22,8 @@ import type {
   MemoryContextOptions,
   ExtractedFact,
   MemoryType,
-} from "./types";
-import { MEMORY_CONFIG, MEMORY_TYPES } from "./types";
+} from "../types";
+import { MEMORY_CONFIG, MEMORY_TYPES } from "../types";
 
 export class SimpleMemory {
   private userId: string;

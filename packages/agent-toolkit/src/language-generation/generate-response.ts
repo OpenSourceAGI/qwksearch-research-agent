@@ -3,23 +3,23 @@
  * Handles prompt interpolation, tool calling, and response formatting.
  */
 import { generateText, tool } from "ai";
-import { AGENT_PROMPTS } from "./agent-prompts";
-import { AGENT_TOOLS } from "./agent-tools";
-import { LANGUAGE_MODELS, LANGUAGE_PROVIDERS } from "./language-model-names";
-import { createLLMProvider } from "./llm-providers";
+import { AGENT_PROMPTS } from "./prompt-templates";
+import { AGENT_TOOLS } from "../tools/qwksearch-api-tools";
+import { LANGUAGE_MODELS, LANGUAGE_PROVIDERS } from "./language-model-registry";
+import { createLLMProvider } from "./provider-factory";
 import { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
 import type {
   AgentPrompt,
   AgentTool,
   GenerateLanguageOptions,
   GenerateLanguageResult,
-} from "./generate-language-types";
+} from "./generation-types";
 
 export type {
   LLMProviderName,
   GenerateLanguageOptions,
   GenerateLanguageResult,
-} from "./generate-language-types";
+} from "./generation-types";
 export { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
 
 /**
@@ -43,30 +43,7 @@ export { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
  *
  * <img src="https://i.imgur.com/bailW5n.gif" />
  * <img src="https://i.imgur.com/uW6E9VJ.gif" />
- *
- * ### \u1f444 LIPs: Language Intelligence Providers
- * **IDs**: groq, togetherai, openai, anthropic, xai, google, perplexity, ollama, cloudflare, nvidia
- *
- * - **XAI** \u1f4da [Docs](https://docs.x.ai/docs#models) \u1f511 [Keys](https://console.x.ai/) \u1f4b0 80B \u1f4b8 100M:
- *   Grok, Grok Vision
- * - **Groq** \u1f4da [Docs](https://console.groq.com/docs/overview) \u1f511 [Keys](https://console.groq.com/keys) \u1f4b0 2.8B:
- *   Llama, DeepSeek, Gemini, Mistral
- * - **NVIDIA** \u1f4da [Docs](https://docs.api.nvidia.com/) \u1f511 [Keys](https://build.nvidia.com/settings/api-keys) \u1f4b0 1.2T \u1f4b8 30B:
- *   Kimi K2.5, Nemotron Nano, DeepSeek V3, Llama Nemotron, Qwen2.5, Gemma3, Llama 4
- * - **Ollama** \u1f4da [Docs](https://ollama.com/docs) \u2014 runs locally, no API key needed
- * - **OpenAI** \u1f4da [Docs](https://platform.openai.com/docs/overview) \u1f511 [Keys](https://platform.openai.com/api-keys) \u1f4b0 300B \u1f4b8 3.7B:
- *   o1, o4, GPT-4, GPT-4 Turbo, GPT-4 Omni
- * - **Anthropic** \u1f4da [Docs](https://docs.anthropic.com/en/docs/welcome) \u1f511 [Keys](https://console.anthropic.com/settings/keys) \u1f4b0 61.5B \u1f4b8 1B:
- *   Claude Sonnet, Claude Opus, Claude Haiku
- * - **TogetherAI** \u1f4da [Docs](https://docs.together.ai/docs/quickstart) \u1f511 [Keys](https://api.together.xyz/settings/api-keys) \u1f4b0 3.3B \u1f4b8 50M:
- *   Llama, Mistral, Mixtral, Qwen, Gemma, WizardLM, DBRX, DeepSeek, Hermes, SOLAR, StripedHyena
- * - **Perplexity** \u1f4da [Docs](https://docs.perplexity.ai/models/model-cards) \u1f511 [Keys](https://www.perplexity.ai/account/api/keys) \u1f4b0 18B \u1f4b8 20M:
- *   Sonar, Sonar Deep Research
- * - **Cloudflare** \u1f4da [Docs](https://developers.cloudflare.com/workers-ai/) \u1f511 [Keys](https://dash.cloudflare.com/profile/api-tokens) \u1f4b0 62.3B \u1f4b8 1.67B:
- *   Llama, Gemma, Mistral, Phi, Qwen, DeepSeek, Hermes, SQL Coder, Code Llama
- * - **Google Vertex** \u1f4da [Docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models)
- *   \u1f511 [Keys](https://cloud.google.com/vertex-ai/generative-ai/docs/start/express-mode/overview#api-keys): Gemini
- *
+
  * @param options - Configuration for the language-model call
  * @returns Resolved response object with `content`, optional `extract`, or `error`
  * @author [Language Model Researchers](https://arc.net/folder/D0472A20-9C20-4D3F-B145-D2865C0A9FEE)
@@ -197,8 +174,6 @@ export async function generateLanguageResponse(
     };
   }
 }
-
-// \u2500\u2500\u2500 Helpers \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 /**
  * Substitutes `{variableName}` placeholders in a template string with values

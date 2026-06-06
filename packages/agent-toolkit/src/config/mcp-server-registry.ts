@@ -1,5 +1,5 @@
-import configManager from "./index";
-import type { ConfigModelProvider } from "./types";
+import { configManager } from "./index";
+import type { ConfigModelProvider } from "./config-types";
 
 export const getConfiguredModelProviders = (): ConfigModelProvider[] => {
   return configManager.getConfig("modelProviders", []);

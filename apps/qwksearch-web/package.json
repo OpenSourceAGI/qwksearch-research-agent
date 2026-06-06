@@ -128,7 +128,6 @@
     "react-router-dom": "^7.16.0",
     "react-text-to-speech": "^5.1.10",
     "react-textarea-autosize": "^8.5.9",
-    "reason-editor": "workspace:*",
     "recharts": "^3.8.1",
     "remark-gfm": "^4.0.1",
     "resend": "^6.12.4",

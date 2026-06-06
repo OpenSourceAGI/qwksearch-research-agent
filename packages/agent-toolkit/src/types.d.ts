@@ -1,4 +1,11 @@
-import { Model } from "./config/types";
+/**
+ * @fileoverview Global Type Definitions
+ *
+ * Shared TypeScript types for UI configuration, model providers,
+ * and MCP server configuration used throughout the toolkit.
+ */
+
+import { Model } from "./config/config-types";
 
 type BaseUIConfigField = {
   name: string;

@@ -106,9 +106,12 @@ const total = getTotalDomains();
 
 ## Dataset Statistics
 
-- **Total domains**: ~10,000 top-ranked domains
-- **Data updated**: June 2026
+- **Total domains**: 10,020 top-ranked domains
+- **Data file**: `data/domain-rank-merged.json` (297 KB)
 - **Format**: Pre-loaded in memory for instant lookups
+- **Bundle size**: 
+  - ESM: 828 KB (231 KB gzipped)
+  - CJS: 828 KB (231 KB gzipped)
 
 ### Top 5 Domains
 
@@ -122,7 +125,23 @@ const total = getTotalDomains();
 
 ## Data Format
 
-The library includes ~10,000 top-ranked domains with the following information:
+### Source Data
+
+The raw data is stored in `data/domain-rank-merged.json` as a compact object format:
+
+```json
+{
+  "facebook.com": ["Facebook", 1],
+  "google.com": ["Google", 2],
+  "nytimes.com": [197, 38, "NY Times"]
+}
+```
+
+Format: `[name, rank]` or `[newsRank, rank, title]` for news domains.
+
+### Library API
+
+The library includes 10,020 top-ranked domains with the following information:
 
 - **domain**: The domain name (e.g., "facebook.com")
 - **name**: Human-readable name (e.g., "Facebook")
