@@ -3,9 +3,9 @@
  * and a model config, then uses the suggestion generator agent to produce
  * contextual follow-up question suggestions.
  */
-import generateSuggestions from "ai-research-agent/search/suggestionGeneratorAgent";
-import ModelRegistry from "ai-research-agent/models/registry";
-import { ModelWithProvider } from "ai-research-agent/models/types";
+import generateSuggestions from "extract-webpage/search/suggestionGeneratorAgent";
+import { ModelRegistry } from "chat-agent-toolkit";
+import type { ModelWithProvider } from "chat-agent-toolkit";
 import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
 
 interface SuggestionsGenerationBody {

@@ -4,7 +4,7 @@
  * a single config key-value pair.
  */
 import configManager from "@/lib/config";
-import ModelRegistry from "ai-research-agent/models/registry";
+import { ModelRegistry } from "chat-agent-toolkit";
 import { NextRequest, NextResponse } from "next/server";
 import { ConfigModelProvider } from "@/lib/config/types";
 

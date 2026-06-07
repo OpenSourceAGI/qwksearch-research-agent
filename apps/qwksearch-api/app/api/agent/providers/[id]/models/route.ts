@@ -2,8 +2,8 @@
  * @fileoverview Provider model management. POST adds a new chat model to
  * a provider. DELETE removes a specific model from a provider by key.
  */
-import ModelRegistry from "ai-research-agent/models/registry";
-import { Model } from "ai-research-agent/models/types";
+import { ModelRegistry } from "chat-agent-toolkit";
+import type { Model } from "chat-agent-toolkit";
 import { NextRequest } from "next/server";
 
 export const POST = async (

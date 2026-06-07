@@ -10,6 +10,7 @@
  */
 
 export { default as configManager } from "./config-manager";
+export { default as ModelRegistry } from "./model-registry";
 export { getEnv } from "./environment-variables";
 export { LANGUAGE_MODELS } from "./language-models-database";
 export { getModelProvidersUIConfigSection } from "./provider-ui-config";
@@ -18,4 +19,6 @@ export type {
   ConfigModelProvider,
   MCPServerConfig,
   UIConfigSections,
+  Model,
+  ModelWithProvider,
 } from "./config-types";

@@ -4,7 +4,7 @@ import {
   MCPServerConfig,
   UIConfigSections,
 } from "./types";
-import { getModelProvidersUIConfigSection } from "ai-research-agent/models/providers";
+import { getModelProvidersUIConfigSection } from "chat-agent-toolkit";
 import { getMCPServersUIConfigSection } from "../mcp-servers";
 import { getEnv } from "../env";
 

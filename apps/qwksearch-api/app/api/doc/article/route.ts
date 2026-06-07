@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database";
 import { articleCache, articleQA } from "@/lib/database/schema";
 import { eq, sql } from "drizzle-orm";
-import { extractContent } from "ai-research-agent/extractor/url-to-content/url-to-content";
+import { extractContent } from "extract-webpage";
 
 interface Article {
   html?: string;

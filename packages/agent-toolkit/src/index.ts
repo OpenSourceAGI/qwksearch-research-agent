@@ -16,3 +16,5 @@
 export * from "./language-generation";
 export * from "./memory";
 export * from "./tools";
+export { configManager, ModelRegistry, getEnv, getModelProvidersUIConfigSection } from "./config";
+export type { Config, ConfigModelProvider, MCPServerConfig, UIConfigSections, Model, ModelWithProvider } from "./config";

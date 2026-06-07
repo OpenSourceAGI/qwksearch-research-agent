@@ -1,4 +1,4 @@
-import { Model } from "ai-research-agent/models/types";
+import type { Model } from "chat-agent-toolkit";
 
 type BaseUIConfigField = {
   name: string;

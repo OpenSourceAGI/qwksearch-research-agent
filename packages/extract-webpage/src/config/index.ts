@@ -3,7 +3,6 @@
  * Manages model providers and search config in memory.
  */
 import type { ConfigModelProvider, MCPServerConfig, Config, UIConfigSections } from "./types";
-import { getModelProvidersUIConfigSection } from "../models/providers";
 import { getEnv } from "./env";
 
 const hashObj = (obj: { [key: string]: any }) => {
@@ -110,50 +109,6 @@ class ConfigManager {
   }
 
   private initialize() {
-    const providerConfigSections = getModelProvidersUIConfigSection();
-    this.uiConfigSections.modelProviders = providerConfigSections;
-
-    const newProviders: ConfigModelProvider[] = [];
-
-    providerConfigSections.forEach((provider) => {
-      const tempConfig: Record<string, any> = {};
-      const required: string[] = [];
-
-      provider.fields.forEach((field) => {
-        tempConfig[field.key] =
-          getEnv(field.env!) || field.default || "";
-        if (field.required) required.push(field.key);
-      });
-
-      let configured = true;
-      required.forEach((r) => {
-        if (!tempConfig[r]) configured = false;
-      });
-
-      if (configured) {
-        const hash = hashObj(tempConfig);
-        const exists = this.currentConfig.modelProviders.find(
-          (p) => p.hash === hash,
-        );
-
-        if (!exists) {
-          newProviders.push({
-            id: hash,
-            name: `${provider.name}`,
-            type: provider.key,
-            chatModels: [],
-            config: tempConfig,
-            hash: hash,
-            isEnvBased: true,
-          });
-        }
-      }
-    });
-
-    if (newProviders.length > 0) {
-      this.currentConfig.modelProviders.push(...newProviders);
-    }
-
     // Search config from env
     this.uiConfigSections.search.forEach((f) => {
       if (f.env && !this.currentConfig.search[f.key]) {

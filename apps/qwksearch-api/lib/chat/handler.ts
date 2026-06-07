@@ -6,8 +6,8 @@
 import crypto from "crypto";
 import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
 import { getDB } from "@/lib/database";
-import { searchHandlers } from "ai-research-agent/search";
-import ModelRegistry from "ai-research-agent/models/registry";
+import { searchHandlers } from "extract-webpage/search/index";
+import { ModelRegistry } from "chat-agent-toolkit";
 import { getUserId } from "@/lib/auth/session";
 import { checkGuestRateLimit } from "@/lib/rate-limit/guestRateLimiter";
 import { safeValidateBody } from "./schemas";

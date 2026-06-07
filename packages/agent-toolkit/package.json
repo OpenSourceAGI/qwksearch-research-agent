@@ -17,6 +17,14 @@
     ".": {
       "types": "./dist/types.d.ts",
       "require": "./dist/research-agent.cjs.js"
+    },
+    "./*": "./src/*"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "src/*"
+      ]
     }
   },
   "files": [
