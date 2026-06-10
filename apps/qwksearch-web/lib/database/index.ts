@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/d1";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getCloudflareContext } from "vinext";
 import { cache } from "react";
 import * as schema from "./schema";
 

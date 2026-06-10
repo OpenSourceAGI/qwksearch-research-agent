@@ -2,8 +2,6 @@
  * @fileoverview Type definitions for the YouTube Transcript API
  */
 
-import { Response, RequestInit } from 'node-fetch';
-
 /**
  * Represents a single snippet/cue of a transcript
  */

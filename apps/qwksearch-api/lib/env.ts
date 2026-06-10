@@ -1,8 +1,8 @@
 /**
- * Runtime env-var accessor for Cloudflare Workers (via @opennextjs/cloudflare).
+ * Runtime env-var accessor for Cloudflare Workers (via vinext).
  * Falls back to `process.env` when running outside a Worker (local dev / CLI).
  */
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getCloudflareContext } from "vinext";
 
 export function getEnv(key: string): string | undefined {
   try {

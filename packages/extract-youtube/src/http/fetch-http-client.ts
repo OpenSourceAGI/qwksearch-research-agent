@@ -1,13 +1,13 @@
 /**
- * @fileoverview HTTP client implementation using node-fetch
+ * @fileoverview HTTP client implementation using grab-url
  */
 
-import fetch, { Response, RequestInit } from 'node-fetch';
+import grab from 'grab-url';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { HttpClient, RequestsProxyConfigDict } from '../types';
 
 /**
- * Simple HTTP client implementation using node-fetch with proxy support.
+ * Simple HTTP client implementation using grab-url with proxy support.
  * This client handles HTTP/HTTPS requests with configurable headers and proxy settings.
  *
  * @internal
@@ -52,7 +52,7 @@ export class FetchHttpClient implements HttpClient {
    */
   async get(url: string, options?: RequestInit): Promise<Response> {
     const proxyAgent = this.getProxyAgentForUrl(url);
-    return fetch(url, {
+    return grab(url, {
       ...options,
       method: 'GET',
       headers: { ...this.requestHeaders, ...options?.headers },
@@ -69,7 +69,7 @@ export class FetchHttpClient implements HttpClient {
    */
   async post(url: string, options?: RequestInit): Promise<Response> {
     const proxyAgent = this.getProxyAgentForUrl(url);
-    return fetch(url, {
+    return grab(url, {
       ...options,
       method: 'POST',
       headers: { ...this.requestHeaders, ...options?.headers },

@@ -41,13 +41,13 @@
   },
   "peerDependencies": {
     "next": ">=15.0.0",
-    "@opennextjs/cloudflare": ">=0.1.0"
+    "vinext": ">=0.1.0"
   },
   "peerDependenciesMeta": {
     "next": {
       "optional": true
     },
-    "@opennextjs/cloudflare": {
+    "vinext": {
       "optional": true
     }
   },

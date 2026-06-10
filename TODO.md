@@ -36,4 +36,27 @@
 34. Reuse Fumadocs multi-tree/root-toggle ideas for docs organization.
 35. Release on HN, YouTube, and Product Hunt.
 36. https://21st.dev/community/agents
-37. from the drodpown menu have tit  insret to as about tabs
+37. from the drodpown menu have tit  insret to as about tabstion ...` to show where the warning was created)
+vite.config.ts (3:27) [UNRESOLVED_IMPORT] Could not resolve '@cloudflare/vite-plugin' in vite.config.ts
+   ╭─[ vite.config.ts:3:28 ]
+   │
+ 3 │ import { cloudflare } from "@cloudflare/vite-plugin";
+   │                            ────────────┬────────────  
+   │                                        ╰────────────── Module not found, treating it as an external dependency
+───╯
+
+failed to load config from /mnt/Data/Projects/qwksearch-research-agent/apps/qwksearch-web/vite.config.ts
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@cloudflare/vite-plugin' imported from /mnt/Data/Projects/qwksearch-research-agent/apps/qwksearch-web/node_modules/.vite-temp/vite.config.ts.timestamp-1780876003324-b31cf411d0f988.mjs
+    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+    at packageResolve (node:internal/modules/esm/resolve:768:81)
+    at moduleResolve (node:internal/modules/esm/resolve:859:18)
+    at defaultResolve (node:internal/modules/esm/resolve:992:11)
+    at nextResolve (node:internal/modules/esm/hooks:769:28)
+    at o (file:///mnt/Data/Projects/qwksearch-research-agent/node_modules/.pnpm/@tailwindcss+node@4.3.0/node_modules/@tailwindcss/node/dist/esm-cache.loader.mjs:1:69)
+    at nextResolve (node:internal/modules/esm/hooks:769:28)
+    at AsyncLoaderHooksOnLoaderHookWorker.resolve (node:internal/modules/esm/hooks:265:30)
+    at MessagePort.handleMessage (node:internal/modules/esm/worker:251:24)
+    at [nodejs.internal.kHybridDispatch] (node:internal/event_target:843:20) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+error: script "build" exited with code 1

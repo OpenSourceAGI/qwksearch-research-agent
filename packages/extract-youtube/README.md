@@ -32,14 +32,14 @@
 
 ⚡ **The fastest, most optimized YouTube transcript extractor for Node.js/TypeScript**
 
-A production-ready TypeScript port of the popular Python [`youtube-transcript-api`](https://github.com/jdepoix/youtube-transcript-api) (100k+ monthly PyPI downloads), optimized for serverless environments and edge computing. No API keys, no headless browsers, no dependencies bloat.
+A production-ready TypeScript port of the popular Python [`extract-youtube`](https://github.com/jdepoix/extract-youtube) (100k+ monthly PyPI downloads), optimized for serverless environments and edge computing. No API keys, no headless browsers, no dependencies bloat.
 
 ## Why This Package?
 
 ### 🚀 **Superior to Other NPM Alternatives**
 
 - 
-- ✅ **Proven algorithm** - Direct port of Python's `youtube-transcript-api` (100k+ monthly PyPI downloads)
+- ✅ **Proven algorithm** - Direct port of Python's `extract-youtube` (100k+ monthly PyPI downloads)
 - ✅ **Serverless-first** - Works flawlessly in AWS Lambda, Vercel, Cloudflare Workers, Next.js Edge
 - ✅ **70% smaller** - ~7KB gzipped vs 20-30KB+ for alternatives
 - ✅ **Zero native deps** - Pure TypeScript, no puppeteer or heavy scraping libraries
@@ -48,7 +48,7 @@ A production-ready TypeScript port of the popular Python [`youtube-transcript-ap
 
 ### 📊 **Package Comparison**
 
-| Feature                       | **extract-youtube** (this) | youtube-transcript (npm) | youtube-transcript-api (Python) |
+| Feature                       | **extract-youtube** (this) | youtube-transcript (npm) | extract-youtube (Python) |
 | ----------------------------- | -------------------------------- | ------------------------ | ------------------------------- |
 | **Language**            | TypeScript/Node.js               | JavaScript/Node.js       | Python                          |
 | **Bundle Size**         | **~7KB gzipped**           | ~20-30KB+                | N/A                             |
@@ -67,7 +67,7 @@ A production-ready TypeScript port of the popular Python [`youtube-transcript-ap
 
 ### 🎯 **Why Choose This Over Python?**
 
-**Top packages for YouTube transcripts are `youtube-transcript` (JS/NPM) and `youtube-transcript-api` (Python).** This package combines the best of both:
+**Top packages for YouTube transcripts are `youtube-transcript` (JS/NPM) and `extract-youtube` (Python).** This package combines the best of both:
 
 1. **Same reliability as Python** - Direct port of the proven Python implementation
 2. **Better for modern stacks** - Works natively in Node.js, Next.js, React Server Components
@@ -79,7 +79,7 @@ A production-ready TypeScript port of the popular Python [`youtube-transcript-ap
 
 - **Bundle optimized with Vite + Terser** - Aggressive minification and tree-shaking
 - **Dual ESM/CJS builds** - Works everywhere (Node.js, bundlers, edge runtimes)
-- **Zero external HTTP clients** - Uses native `node-fetch` (polyfilled in browsers)
+- **Zero external HTTP clients** - Uses native `grab-url` (polyfilled in browsers)
 - **Efficient parsing** - Fast XML parsing with minimal memory footprint
 
 ## 🎯 Quick Facts
@@ -96,7 +96,7 @@ TypeScript:     ✅ Full        (vs ⚠️ Partial/None)
 ## Installation
 
 ```bash
-npm install youtube-transcript-api
+npm install extract-youtube
 ```
 
 **Or try it instantly with npx:**
@@ -108,7 +108,7 @@ npx extract-youtube dQw4w9WgXcQ
 ## Quick Start
 
 ```typescript
-import { YouTubeTranscriptApi } from 'youtube-transcript-api';
+import { YouTubeTranscriptApi } from 'extract-youtube';
 
 const api = new YouTubeTranscriptApi();
 const transcript = await api.fetch('dQw4w9WgXcQ');
@@ -141,7 +141,7 @@ const fetched = await translated.fetch();
 ## Formatters
 
 ```typescript
-import { SRTFormatter, WebVTTFormatter, JSONFormatter, ArticleFormatter } from 'youtube-transcript-api';
+import { SRTFormatter, WebVTTFormatter, JSONFormatter, ArticleFormatter } from 'extract-youtube';
 
 const transcript = await api.fetch('video_id');
 
@@ -169,7 +169,7 @@ console.log(article);
 ## Proxy Support
 
 ```typescript
-import { WebshareProxyConfig } from 'youtube-transcript-api';
+import { WebshareProxyConfig } from 'extract-youtube';
 
 const api = new YouTubeTranscriptApi({
   proxyConfig: new WebshareProxyConfig({
@@ -182,7 +182,7 @@ const api = new YouTubeTranscriptApi({
 ## Error Handling
 
 ```typescript
-import { TranscriptsDisabled, NoTranscriptFound } from 'youtube-transcript-api';
+import { TranscriptsDisabled, NoTranscriptFound } from 'extract-youtube';
 
 try {
   const transcript = await api.fetch('video_id');
@@ -286,7 +286,7 @@ This package is optimized for serverless and edge computing environments:
 ### AWS Lambda
 
 ```typescript
-import { YouTubeTranscriptApi } from 'youtube-transcript-api';
+import { YouTubeTranscriptApi } from 'extract-youtube';
 
 export const handler = async (event) => {
   const api = new YouTubeTranscriptApi();
@@ -302,7 +302,7 @@ export const handler = async (event) => {
 ### Vercel Edge Functions
 
 ```typescript
-import { YouTubeTranscriptApi } from 'youtube-transcript-api';
+import { YouTubeTranscriptApi } from 'extract-youtube';
 
 export const config = { runtime: 'edge' };
 
@@ -322,7 +322,7 @@ export default async function handler(req: Request) {
 ### Cloudflare Workers
 
 ```typescript
-import { YouTubeTranscriptApi } from 'youtube-transcript-api';
+import { YouTubeTranscriptApi } from 'extract-youtube';
 
 export default {
   async fetch(request: Request) {
@@ -344,7 +344,7 @@ export default {
 ```typescript
 'use server';
 
-import { YouTubeTranscriptApi } from 'youtube-transcript-api';
+import { YouTubeTranscriptApi } from 'extract-youtube';
 
 export async function getTranscript(videoId: string) {
   const api = new YouTubeTranscriptApi();
@@ -396,7 +396,7 @@ Python package:     ~80MB   ❌
 
 ## Reliability
 
-This package uses the same proven algorithm as the Python `youtube-transcript-api`:
+This package uses the same proven algorithm as the Python `extract-youtube`:
 
 - ✅ **100k+ monthly downloads** on PyPI (Python version)
 - ✅ **Battle-tested** across thousands of production deployments
@@ -459,7 +459,7 @@ const spanish = await transcript.translate('es').fetch();
 If you're getting blocked by YouTube:
 
 ```typescript
-import { YouTubeTranscriptApi, WebshareProxyConfig } from 'youtube-transcript-api';
+import { YouTubeTranscriptApi, WebshareProxyConfig } from 'extract-youtube';
 
 const api = new YouTubeTranscriptApi({
   proxyConfig: new WebshareProxyConfig({

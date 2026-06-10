@@ -1,4 +1,4 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getCloudflareContext } from "vinext";
 
 /**
  * Runtime env-var accessor.

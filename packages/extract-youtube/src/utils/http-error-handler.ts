@@ -2,7 +2,6 @@
  * @fileoverview HTTP error handling utilities for YouTube API requests
  */
 
-import { Response } from 'node-fetch';
 import { IpBlocked, YouTubeRequestFailed } from '../errors';
 
 /**

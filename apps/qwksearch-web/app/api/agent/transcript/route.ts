@@ -4,7 +4,7 @@
  * (tiny, turbo, or large variants).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getCloudflareContext } from "vinext";
 
 export async function POST(request: NextRequest) {
   try {

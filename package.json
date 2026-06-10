@@ -2,6 +2,7 @@
   "name": "qwksearch",
   "private": true,
   "version": "2.2.0",
+  "packageManager": "pnpm@10.32.1",
   "workspaces": [
     "packages/*",
     "apps/*"

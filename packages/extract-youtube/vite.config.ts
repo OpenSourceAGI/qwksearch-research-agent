@@ -40,7 +40,7 @@ export default defineConfig({
         exports: 'named',
         // Provide global names for UMD/IIFE builds
         globals: {
-          'node-fetch': 'fetch',
+          'grab-url': 'grab',
           'fast-xml-parser': 'XMLParser',
           'html-entities': 'htmlEntities',
           'https-proxy-agent': 'HttpsProxyAgent',

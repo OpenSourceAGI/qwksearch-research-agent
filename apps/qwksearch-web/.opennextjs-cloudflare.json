@@ -1,7 +1,0 @@
-{
-  "disableRequestId": true,
-  "disableRouting": false,
-  "experimental": {
-    "incrementalCache": "kv"
-  }
-}

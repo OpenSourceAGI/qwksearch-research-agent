@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { withCloudflare } from "better-auth-cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { getCloudflareContext } from "vinext";
 import { oneTap, openAPI, magicLink, anonymous } from "better-auth/plugins";
 import { getDB } from "../database";
 import * as schema from "../database/schema";
