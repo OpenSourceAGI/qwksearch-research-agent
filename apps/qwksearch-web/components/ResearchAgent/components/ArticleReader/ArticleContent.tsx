@@ -7,7 +7,7 @@
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
 import { Article } from '@/types/research';
-import LexicalArticleViewer from 'reason-editor/reader';
+import LexicalArticleViewer from './LexicalArticleViewer';
 
 interface ArticleContentProps {
   article: Article;

@@ -29,17 +29,26 @@
       "@/*": [
         "./*"
       ],
-      "ai-research-agent": [
-        "../../packages/agent-toolkit/src/index.ts"
+      "ai-research-agent/agents/generate-language": [
+        "../../packages/agent-toolkit/src/language-generation/generate-response.ts"
       ],
       "ai-research-agent/agents/*": [
-        "../../packages/agent-toolkit/src/agents/*"
+        "../../packages/agent-toolkit/src/language-generation/*"
       ],
       "ai-research-agent/memory/*": [
         "../../packages/agent-toolkit/src/memory/*"
       ],
+      "ai-research-agent/models/registry": [
+        "../../packages/agent-toolkit/src/config/model-registry.ts"
+      ],
+      "ai-research-agent/models/types": [
+        "../../packages/agent-toolkit/src/config/config-types.ts"
+      ],
+      "ai-research-agent/models/providers": [
+        "../../packages/agent-toolkit/src/config/provider-ui-config.ts"
+      ],
       "ai-research-agent/models/*": [
-        "../../packages/agent-toolkit/src/models/*"
+        "../../packages/agent-toolkit/src/config/*"
       ],
       "ai-research-agent/config/*": [
         "../../packages/agent-toolkit/src/config/*"

@@ -21,6 +21,7 @@
   ],
   "scripts": {
     "build": "vite build",
+    "prepare": "vite build",
     "test": "bun test",
     "ship": "npm run build && npx standard-version --release-as patch; rm -f CHANGELOG.md; npm publish"
   },

@@ -4,7 +4,7 @@
  * and enforces per-user daily rate limits (10/day for guests).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "vinext";
+import { getCloudflareContext } from "@/lib/cloudflare-context";
 import { getUserId } from "@/lib/auth/session";
 import { checkTTSRateLimit } from "@/lib/rate-limit/guestRateLimiter";
 
