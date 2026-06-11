@@ -1,4 +1,5 @@
-import { getCloudflareContext } from "vinext";
+// @ts-expect-error - provided by @cloudflare/vite-plugin at build/runtime
+import { env as cloudflareEnv } from "cloudflare:workers";
 
 /**
  * Runtime env-var accessor.
@@ -6,8 +7,7 @@ import { getCloudflareContext } from "vinext";
  */
 export function getEnv(key: string): string | undefined {
   try {
-    const { env } = getCloudflareContext();
-    return (env as unknown as Record<string, string | undefined>)[key];
+    return (cloudflareEnv as unknown as Record<string, string | undefined>)[key];
   } catch {
     return process.env[key];
   }

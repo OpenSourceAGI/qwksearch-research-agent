@@ -59,8 +59,12 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "extract-pdf": "*",
-    "extract-youtube": "*",
+    "extract-pdf": "workspace:*",
+    "extract-youtube": "workspace:*",
+    "@huggingface/transformers": "^3.8.1",
+    "@langchain/core": "^1.1.48",
+    "@langchain/openai": "^1.4.7",
+    "@langchain/textsplitters": "^1.0.1",
     "chrono-node": "^2.9.0",
     "drizzle-orm": "^0.45.1",
     "grab-url": "^1.6.7",

@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import grab from 'grab-url';
 import { toast } from 'sonner';
 import { cn } from '../../lib/utils';
-import SmallNewsCard from '../../components/Discover/SmallNewsCard';
-import MajorNewsCard from '../../components/Discover/MajorNewsCard';
+import SmallNewsCard from '../../components/layout/Discover/SmallNewsCard';
+import MajorNewsCard from '../../components/layout/Discover/MajorNewsCard';
 
 export interface Discover {
   title: string;

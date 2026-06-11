@@ -4,7 +4,7 @@
  */
 import grab from "grab-url";
 import { extractContentAndCite } from "../html-to-content/html-to-content";
-import { getURLYoutubeVideo, convertYoutubeToText } from "extract-youtube";
+import { getURLYoutubeVideo, convertYoutubeToText } from "./youtube-helpers";
 import { convertPDFToHTML } from "extract-pdf";
 import { convertDOCXToHTML, isBufferDOCX } from "./docx-to-content";
 import { scrapeURL } from "./url-to-html";

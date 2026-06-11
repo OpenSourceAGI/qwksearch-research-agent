@@ -55,9 +55,9 @@ export class FetchHttpClient implements HttpClient {
     return grab(url, {
       ...options,
       method: 'GET',
-      headers: { ...this.requestHeaders, ...options?.headers },
+      headers: { ...this.requestHeaders, ...(options?.headers as Record<string, string>) },
       agent: proxyAgent
-    });
+    } as any);
   }
 
   /**
@@ -72,9 +72,9 @@ export class FetchHttpClient implements HttpClient {
     return grab(url, {
       ...options,
       method: 'POST',
-      headers: { ...this.requestHeaders, ...options?.headers },
+      headers: { ...this.requestHeaders, ...(options?.headers as Record<string, string>) },
       agent: proxyAgent
-    });
+    } as any);
   }
 
   /**
