@@ -6,7 +6,7 @@
   "license": "rights.institute/prosper",
   "type": "module",
   "scripts": {
-    "dev": "vinext dev",
+    "dev": "open-ready vinext dev",
     "build": "vinext build",
     "deploy": "vinext deploy",
     "start": "vinext start",

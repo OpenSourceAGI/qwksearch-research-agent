@@ -8,7 +8,6 @@
 'use client';
 
 import { useEffect, useCallback, useRef, useState } from 'react';
-import crypto from 'crypto';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { ChatTurn } from '@/components/ResearchAgent/components/ChatConversation/ChatWindow';
 import { saveGuestChat, GuestChat } from '@/lib/storage/guest';
@@ -121,7 +120,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       // No chat ID — start a fresh session immediately without waiting for auth.
       setters.setNewChatCreated(true);
       setters.setIsMessagesLoaded(true);
-      setters.setChatId(crypto.randomBytes(20).toString('hex'));
+      setters.setChatId(crypto.randomUUID());
     }
   }, [
     state.chatId,
