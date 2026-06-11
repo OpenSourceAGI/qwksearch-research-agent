@@ -42,7 +42,7 @@
     }
   },
   "devDependencies": {
-    "vinext": "^1.17.1",
+    "vinext": "latest",
     "@tsconfig/svelte": "^5.0.8",
     "@vitest/ui": "^4.0.18",
     "axios": "^1.13.6",
