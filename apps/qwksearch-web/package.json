@@ -113,6 +113,7 @@
     "prettier": "^3.8.3",
     "quantum-sphere-loading-icon": "^1.0.2",
     "qwksearch-api-client": "^0.0.12",
+    "reason-editor": "workspace:*",
     "radix-ui": "^1.4.3",
     "react": "^19.2.7",
     "react-arborist": "^3.8.0",
