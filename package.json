@@ -16,7 +16,8 @@
     "build:editor": "turbo build --filter=reason-editor"
   },
   "overrides": {
-    "@vitejs/plugin-react": "5.2.0"
+    "@vitejs/plugin-react": "5.2.0",
+    "vite": "npm:rolldown-vite@latest"
   },
   "devDependencies": {
     "turbo": "^2.9.9"
