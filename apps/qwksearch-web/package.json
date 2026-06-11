@@ -176,6 +176,6 @@
     "vinext": "latest",
     "vite": "^8.0.16",
     "wait-on": "^9.0.10",
-    "wrangler": "latest"
+    "wrangler": "^4.99.0"
   }
 }
