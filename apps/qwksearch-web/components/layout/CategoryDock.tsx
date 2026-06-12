@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { Moon, Sun, Monitor } from "lucide-react"
+import { Moon, Sun, Monitor, Settings, LogIn, LogOut } from "lucide-react"
 import { useTheme } from "next-themes"
 import { themeNames, themeColors, formatThemeName } from "shadcn-theme-menu"
 import { cn } from "@/lib/utils"
+import { useSession } from "@/components/ResearchAgent/hooks/useSession"
 import { Dock, DockIcon, DockItem, DockLabel } from "@/components/ui/dock"
 import {
   DropdownMenu,

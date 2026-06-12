@@ -53,22 +53,29 @@ export const checkConfig = async (
       );
     }
 
-    // Try to find the user's previously selected provider
-    let chatModelProvider = providers.find((p) => p.id === chatModelProviderId);
+    // Try to find the user's previously selected provider. Require it to have
+    // at least one model so a stale preference (provider whose models were
+    // removed or whose API key is missing) falls through to default selection.
+    let chatModelProvider = providers.find(
+      (p) => p.id === chatModelProviderId && (p.chatModels?.length ?? 0) > 0,
+    );
 
     // If no saved preference, select a default provider
     if (!chatModelProvider) {
       // Prefer Nvidia provider
       const nvidiaProvider = providers.find(
         (p) =>
-          p.name.toLowerCase().includes("nvidia") && p.chatModels.length > 0,
+          p.name.toLowerCase().includes("nvidia") &&
+          (p.chatModels?.length ?? 0) > 0,
       );
 
       if (nvidiaProvider) {
         chatModelProvider = nvidiaProvider;
       } else {
         // Fallback to any provider with available models
-        chatModelProvider = providers.find((p) => p.chatModels.length > 0);
+        chatModelProvider = providers.find(
+          (p) => (p.chatModels?.length ?? 0) > 0,
+        );
       }
     }
 
@@ -109,6 +116,12 @@ export const checkConfig = async (
       if (!chatModel) {
         chatModel = chatModelProvider.chatModels[0];
       }
+    }
+
+    if (!chatModel) {
+      throw new Error(
+        "No chat models found, please configure them in the settings page.",
+      );
     }
 
     chatModelKey = chatModel.key;
