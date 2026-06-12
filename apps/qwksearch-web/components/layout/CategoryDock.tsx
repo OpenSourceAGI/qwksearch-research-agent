@@ -64,7 +64,7 @@ function SettingsDockItem({ side }: { side: "bottom" | "top" }) {
         <DockItem className="flex flex-col items-center gap-0.5 rounded-full transition-colors cursor-pointer bg-gray-200 dark:bg-neutral-800">
           <DockLabel>Settings</DockLabel>
           <DockIcon>
-            <Image src={iconSettings} alt="settings" width={24} height={24} className="w-full h-full" />
+            <Image src={iconSettings} alt="settings" width={24} height={24} className="w-full h-full" unoptimized />
           </DockIcon>
         </DockItem>
       </DropdownMenuTrigger>
