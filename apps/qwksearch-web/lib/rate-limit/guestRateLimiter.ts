@@ -14,27 +14,24 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000;
 // In-memory store for rate limit tracking
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Clean up expired entries periodically (every hour)
+// Opportunistic cleanup of expired entries. The Cloudflare Workers runtime
+// disallows timers (setInterval) in global scope, so instead of a periodic
+// timer we sweep expired entries lazily, at most once per CLEANUP_INTERVAL,
+// from within the request-handling code paths below.
 const CLEANUP_INTERVAL = 60 * 60 * 1000;
-let cleanupTimer: NodeJS.Timeout | null = null;
+let lastCleanup = 0;
 
-function startCleanup() {
-  if (cleanupTimer) return;
-  cleanupTimer = setInterval(() => {
-    const now = Date.now();
-    for (const [ip, entry] of rateLimitStore.entries()) {
+function cleanupExpired(stores: Map<string, RateLimitEntry>[], now: number) {
+  if (now - lastCleanup < CLEANUP_INTERVAL) return;
+  lastCleanup = now;
+  for (const store of stores) {
+    for (const [key, entry] of store.entries()) {
       if (entry.resetAt <= now) {
-        rateLimitStore.delete(ip);
+        store.delete(key);
       }
     }
-  }, CLEANUP_INTERVAL);
-  // Don't prevent process from exiting (unref is Node.js only, not available in edge runtime)
-  if (cleanupTimer && typeof cleanupTimer.unref === 'function') {
-    cleanupTimer.unref();
   }
 }
-
-startCleanup();
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -49,6 +46,7 @@ export interface RateLimitResult {
  */
 export function checkGuestRateLimit(ip: string): RateLimitResult {
   const now = Date.now();
+  cleanupExpired([rateLimitStore, ttsRateLimitStore], now);
   let entry = rateLimitStore.get(ip);
 
   // If no entry or entry has expired, create a new one
@@ -120,6 +118,7 @@ const ttsRateLimitStore = new Map<string, RateLimitEntry>();
  */
 export function checkTTSRateLimit(key: string): RateLimitResult {
   const now = Date.now();
+  cleanupExpired([rateLimitStore, ttsRateLimitStore], now);
   let entry = ttsRateLimitStore.get(key);
 
   if (!entry || entry.resetAt <= now) {
