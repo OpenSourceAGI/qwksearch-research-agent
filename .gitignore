@@ -46,7 +46,6 @@ Thumbs.db
 
 certificates.open-next/
 wrangler.toml
-bun.lock
 pnpm-lock*
 
 apps/qwksearch-web/.open-next

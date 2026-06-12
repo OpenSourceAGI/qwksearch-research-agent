@@ -17,15 +17,14 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 9
+          bun-version: 1.3.11
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
-          cache: pnpm
 
       - name: Configure git
         run: |
@@ -33,7 +32,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Install workspace dependencies
-        run: pnpm install --ignore-scripts --no-frozen-lockfile
+        run: bun install --ignore-scripts --no-frozen-lockfile
 
       - name: Bump, build, and publish packages
         env:
@@ -81,11 +80,11 @@ jobs:
               has_build=$(node -e "const p=require('./package.json'); console.log(!!(p.scripts && p.scripts.build))")
               if [ "$has_build" = "true" ]; then
                 echo "   building..."
-                pnpm run build
+                bun run build
               fi
 
               echo "   publishing..."
-              pnpm publish --access public --no-git-checks --provenance
+              npm publish --access public --provenance
             ) || {
               echo "❌ Failed to publish $name"
               failed_packages="$failed_packages $name"

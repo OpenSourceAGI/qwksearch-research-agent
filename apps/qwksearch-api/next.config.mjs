@@ -17,8 +17,6 @@ const nextConfig = {
   },
   serverExternalPackages: [
     "@libsql/isomorphic-ws",
-    "kysely",
-    "@better-auth/kysely-adapter",
     "better-auth",
     "better-auth-cloudflare",
   ],

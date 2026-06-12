@@ -5,8 +5,8 @@
  */
 'use client';
 
-import React, { useMemo } from 'react';
-import DOMPurify from 'isomorphic-dompurify';
+import React, { useEffect, useState } from 'react';
+import DOMPurify from 'dompurify';
 
 interface LexicalArticleViewerProps {
   html: string;
@@ -15,18 +15,26 @@ interface LexicalArticleViewerProps {
 
 /**
  * Renders extracted article HTML as sanitized, styled prose.
+ *
+ * Sanitization runs only in the browser: `dompurify` requires a real DOM, and
+ * the isomorphic build pulls in `jsdom`, which cannot be bundled for the
+ * Cloudflare Workers runtime. SSR renders an empty container; the sanitized
+ * markup is injected after mount.
  */
 const LexicalArticleViewer: React.FC<LexicalArticleViewerProps> = ({
   html,
   isHighlightMode = false,
 }) => {
-  const cleanHtml = useMemo(
-    () => DOMPurify.sanitize(html || '', {
-      ADD_TAGS: ['figure', 'figcaption'],
-      ADD_ATTR: ['loading'],
-    }),
-    [html],
-  );
+  const [cleanHtml, setCleanHtml] = useState('');
+
+  useEffect(() => {
+    setCleanHtml(
+      DOMPurify.sanitize(html || '', {
+        ADD_TAGS: ['figure', 'figcaption'],
+        ADD_ATTR: ['loading'],
+      }),
+    );
+  }, [html]);
 
   return (
     <div
