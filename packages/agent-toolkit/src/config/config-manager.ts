@@ -4,9 +4,42 @@
  * Manages model providers, MCP servers, and search configuration in memory.
  * Handles environment variable loading, provider hashing, and config updates.
  */
-import type { ConfigModelProvider, MCPServerConfig, Config, UIConfigSections } from "./config-types";
+import type { ConfigModelProvider, MCPServerConfig, Config, UIConfigSections, Model } from "./config-types";
 import { getModelProvidersUIConfigSection } from "./provider-ui-config";
 import { getEnv } from "./environment-variables";
+import { LANGUAGE_MODELS } from "./language-models-database";
+
+// Maps a provider UI key (from provider-ui-config) to the matching
+// `provider` name in the LANGUAGE_MODELS database. Names differ in a few
+// cases (e.g. the "gemini" UI key corresponds to the "Google" model list).
+const PROVIDER_KEY_TO_DB_NAME: Record<string, string> = {
+  openai: "openai",
+  ollama: "ollama",
+  anthropic: "anthropic",
+  gemini: "google",
+  groq: "groq",
+  deepseek: "deepseek",
+  nvidia: "nvidia",
+  openrouter: "openrouter",
+};
+
+/**
+ * Returns the default chat models for a provider from the LANGUAGE_MODELS
+ * database so that env-based providers expose a usable model list instead of
+ * an empty one. Returns [] when no matching provider list exists.
+ */
+const getDefaultChatModels = (providerKey: string): Model[] => {
+  const dbName = PROVIDER_KEY_TO_DB_NAME[providerKey] ?? providerKey;
+  const entry = LANGUAGE_MODELS.find(
+    (p) => p.provider.toLowerCase() === dbName.toLowerCase(),
+  );
+  if (!entry?.models) return [];
+
+  return entry.models.map((m: any) => ({
+    name: m.name,
+    key: m.id,
+  }));
+};
 
 const hashObj = (obj: { [key: string]: any }) => {
   const str = JSON.stringify(obj, Object.keys(obj).sort());
@@ -142,7 +175,7 @@ class ConfigManager {
             id: hash,
             name: `${provider.name}`,
             type: provider.key,
-            chatModels: [],
+            chatModels: getDefaultChatModels(provider.key),
             config: tempConfig,
             hash: hash,
             isEnvBased: true,
