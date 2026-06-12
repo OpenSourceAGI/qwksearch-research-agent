@@ -5,7 +5,6 @@
  * @module components/ResearchAgent/state/chat/sendMessage
  */
 
-import crypto from "crypto";
 import { toast } from "sonner";
 import grab from "grab-url";
 import {
@@ -17,6 +16,16 @@ import { getAutoMediaSearch } from "@/lib/config/serverRegistry";
 import { ChatModelProvider } from "@/types/chat";
 
 const ARTICLE_PREFETCH_COUNT = 3;
+
+/**
+ * Generates a 14-char hex message ID using the Web Crypto API, matching the
+ * format of server-generated IDs (`crypto.randomBytes(7).toString("hex")`).
+ * Node's `crypto` module is unavailable in the browser bundle.
+ */
+const generateMessageId = () =>
+  Array.from(crypto.getRandomValues(new Uint8Array(7)), (b) =>
+    b.toString(16).padStart(2, "0"),
+  ).join("");
 
 const SOURCE_EXTRACTION_KEY = "sourceExtractionEnabled";
 const THINKING_TIME_KEY = "thinkingTimeLimit";
@@ -166,7 +175,7 @@ export async function sendMessage(
   let bufferedMessageId = "";
 
   // Generate or use provided message ID
-  const messageId = providedMessageId ?? crypto.randomBytes(7).toString("hex");
+  const messageId = providedMessageId ?? generateMessageId();
 
   // Add user message to chat immediately
   setMessages((prevMessages) => [
@@ -350,7 +359,7 @@ export async function sendMessage(
               suggestions: suggestions,
               chatId: chatId,
               createdAt: new Date(),
-              messageId: crypto.randomBytes(7).toString("hex"),
+              messageId: generateMessageId(),
             },
           ]);
         }
