@@ -21,5 +21,7 @@
   "devDependencies": {
     "turbo": "^2.9.9"
   },
-  "dependencies": {}
+  "dependencies": {
+    "workers-ai-provider": "0.7.3"
+  }
 }

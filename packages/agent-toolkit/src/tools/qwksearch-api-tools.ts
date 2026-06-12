@@ -9,7 +9,7 @@ import * as QwkSearch from 'qwksearch-api-client'; // Update this path to match 
 
 // Configuration for QwkSearch API
 const QWKSEARCH_CONFIG = {
-  baseURL: typeof process !== "undefined" && process?.env.QWKSEARCH_URL || 'https://api.qwksearch.com',
+  baseURL: typeof process !== "undefined" && process?.env.QWKSEARCH_URL || 'https://qwksearch.com',
   apiKey: typeof process !== "undefined" && process?.env.QWKSEARCH_API_KEY || null,
 };
 
