@@ -7,6 +7,7 @@ import configManager from "@/lib/config";
 import ModelRegistry from "ai-research-agent/models/registry";
 import { NextRequest, NextResponse } from "next/server";
 import { ConfigModelProvider } from "@/lib/config/types";
+import { getEnv } from "@/lib/env";
 
 type SaveConfigBody = {
   key: string;
@@ -33,7 +34,7 @@ export const GET = async (req: NextRequest) => {
     );
 
     // Don't expose the site-default Tavily key — users should only see their own override
-    const envTavilyKey = process.env.TAVILY_API_KEY || '';
+    const envTavilyKey = getEnv("TAVILY_API_KEY") || '';
     if (values.search?.tavilyApiKey === envTavilyKey) {
       values.search = { ...values.search, tavilyApiKey: '' };
     }

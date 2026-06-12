@@ -25,6 +25,8 @@ const NAV_ITEMS = [
 const iconSettings = "/icons/icon-configure.svg"
 
 function SettingsDockItem({ side }: { side: "bottom" | "top" }) {
+  const router = useRouter()
+  const { isAuthenticated, signIn, signOut } = useSession()
   const { theme, setTheme } = useTheme()
   const [colorTheme, setColorTheme] = useState("modern-minimal")
   const [mounted, setMounted] = useState(false)
@@ -71,6 +73,22 @@ function SettingsDockItem({ side }: { side: "bottom" | "top" }) {
       </DropdownMenuTrigger>
       {mounted && (
         <DropdownMenuContent side={side} align="end" className="w-56 max-h-[min(400px,70vh)] overflow-y-auto" collisionPadding={8}>
+          <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer py-1 h-7">
+            <Settings className="mr-2 h-3.5 w-3.5" />
+            <span className="text-sm">Settings</span>
+          </DropdownMenuItem>
+          {isAuthenticated ? (
+            <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer py-1 h-7">
+              <LogOut className="mr-2 h-3.5 w-3.5" />
+              <span className="text-sm">Logout</span>
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onClick={() => signIn()} className="cursor-pointer py-1 h-7">
+              <LogIn className="mr-2 h-3.5 w-3.5" />
+              <span className="text-sm">Login</span>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
           <DropdownMenuLabel>Appearance</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setTheme("light")} className="cursor-pointer py-1 h-7">
