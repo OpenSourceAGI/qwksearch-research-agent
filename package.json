@@ -15,6 +15,9 @@
     "dev:editor": "turbo dev --filter=reason-editor",
     "build:editor": "turbo build --filter=reason-editor"
   },
+  "overrides": {
+    "kysely": "0.28.17"
+  },
   "devDependencies": {
     "turbo": "^2.9.9"
   },
