@@ -8,7 +8,6 @@ import {
   AvatarImage,
 } from '../ui/avatar';
 import { useSession } from '@/components/ResearchAgent/hooks/useSession';
-import iconConfigure from '@/components/icons/icon-configure.svg';
 
 const SettingsButton = () => {
   const router = useRouter();
@@ -24,10 +23,11 @@ const SettingsButton = () => {
           <AvatarImage src={user?.image ?? undefined} alt={user?.name} />
           <AvatarFallback className="bg-light-200 dark:bg-dark-200 text-black dark:text-white text-xs font-medium">
             <Image
-              src={iconConfigure}
+              src="/icons/icon-configure.svg"
               alt='default'
               width={25}
               height={25}
+              unoptimized
             />
           </AvatarFallback>
         </Avatar>

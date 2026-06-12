@@ -148,7 +148,7 @@ function DockInstance({
         >
           <DockLabel>{label}</DockLabel>
           <DockIcon>
-            <Image src={icon} alt={label} width={24} height={24} className="w-full h-full" />
+            <Image src={icon} alt={label} width={24} height={24} className="w-full h-full" unoptimized />
           </DockIcon>
         </DockItem>
       ))}
