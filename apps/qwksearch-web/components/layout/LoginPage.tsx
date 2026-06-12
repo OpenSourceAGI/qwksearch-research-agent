@@ -4,8 +4,7 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Mail } from "lucide-react"
-import { SiGoogle, SiDiscord, SiFacebook } from "@icons-pack/react-simple-icons"
-import { FaLinkedin } from 'react-icons/fa'
+import { FaGoogle, FaDiscord, FaFacebook, FaLinkedin } from 'react-icons/fa'
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -40,7 +39,7 @@ function GoogleSignIn() {
             onClick={handleSignIn}
             disabled={isLoading}
         >
-            <SiGoogle className="w-4 h-4" />
+            <FaGoogle className="w-4 h-4" />
             Continue with Google
         </Button>
     )
@@ -70,8 +69,8 @@ function OAuthSignIn({ provider }: OAuthSignInProps) {
 
     const getIcon = () => {
         switch (provider) {
-            case "discord": return <SiDiscord className="w-4 h-4" />
-            case "facebook": return <SiFacebook className="w-4 h-4" />
+            case "discord": return <FaDiscord className="w-4 h-4" />
+            case "facebook": return <FaFacebook className="w-4 h-4" />
             case "linkedin": return <FaLinkedin className="w-4 h-4" />
         }
     }

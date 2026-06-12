@@ -132,7 +132,7 @@
     "recharts": "^3.8.1",
     "remark-gfm": "^4.0.1",
     "resend": "^6.12.4",
-    "sanitize-html": "^2.17.4",
+    "isomorphic-dompurify": "^2.18.3",
     "shadcn-theme-menu": "^1.1.10",
     "sonner": "^2.0.7",
     "streamdown": "^2.5.0",

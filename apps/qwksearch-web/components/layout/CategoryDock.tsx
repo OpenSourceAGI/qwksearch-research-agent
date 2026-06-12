@@ -16,13 +16,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import iconRead from '@/components/icons/icon-read.svg'
-import iconSettings from '@/components/icons/icon-configure.svg'
-
 const NAV_ITEMS = [
   { href: "/", label: "Research", icon: "/apple-touch-icon.png" },
-  { href: "/docs", label: "Docs", icon: iconRead },
+  { href: "/docs", label: "Docs", icon: "/icons/icon-read.svg" },
 ]
+
+const iconSettings = "/icons/icon-configure.svg"
 
 function SettingsDockItem({ side }: { side: "bottom" | "top" }) {
   const { theme, setTheme } = useTheme()

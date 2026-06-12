@@ -6,30 +6,12 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import sanitizeHtml from 'sanitize-html';
+import DOMPurify from 'isomorphic-dompurify';
 
 interface LexicalArticleViewerProps {
   html: string;
   isHighlightMode?: boolean;
 }
-
-const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
-  allowedTags: sanitizeHtml.defaults.allowedTags.concat([
-    'img',
-    'figure',
-    'figcaption',
-    'h1',
-    'h2',
-    'span',
-  ]),
-  allowedAttributes: {
-    ...sanitizeHtml.defaults.allowedAttributes,
-    '*': ['class', 'id', 'style'],
-    a: ['href', 'name', 'target', 'rel'],
-    img: ['src', 'alt', 'title', 'width', 'height', 'loading'],
-  },
-  allowedSchemes: ['http', 'https', 'mailto', 'data'],
-};
 
 /**
  * Renders extracted article HTML as sanitized, styled prose.
@@ -39,7 +21,10 @@ const LexicalArticleViewer: React.FC<LexicalArticleViewerProps> = ({
   isHighlightMode = false,
 }) => {
   const cleanHtml = useMemo(
-    () => sanitizeHtml(html || '', SANITIZE_OPTIONS),
+    () => DOMPurify.sanitize(html || '', {
+      ADD_TAGS: ['figure', 'figcaption'],
+      ADD_ATTR: ['loading'],
+    }),
     [html],
   );
 

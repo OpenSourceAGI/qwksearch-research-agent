@@ -16,7 +16,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '../../ui/popover';
-import { SiReddit, SiYoutube } from '@icons-pack/react-simple-icons';
+import { FaReddit, FaYoutube } from 'react-icons/fa';
 
 import { useChat } from '../hooks/useChat';
 
@@ -49,13 +49,13 @@ const focusModes = [
     key: 'youtubeSearch',
     title: 'Youtube',
     description: 'Search and watch videos',
-    icon: <SiYoutube className="h-[16px] w-auto mr-0.5" />,
+    icon: <FaYoutube className="h-[16px] w-auto mr-0.5" />,
   },
   {
     key: 'redditSearch',
     title: 'Reddit',
     description: 'Search for discussions and opinions',
-    icon: <SiReddit className="h-[16px] w-auto mr-0.5" />,
+    icon: <FaReddit className="h-[16px] w-auto mr-0.5" />,
   },
 ];
 
