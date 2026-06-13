@@ -10,6 +10,15 @@ import {
   DropdownMenuTrigger,
 } from "./components/dropdown-menu"
 
+export interface CategoryDockMenu {
+  /** Trigger icon — string src (via `renderImage`) or a node. Falls back to the item's own icon when used inline. */
+  triggerIcon?: ReactNode | string
+  triggerLabel?: string
+  contentClassName?: string
+  /** Full control over the dropdown body. Compose `<ThemeMenu />` here for the theme switcher. */
+  renderContent: (ctx: { side: "top" | "bottom"; close: () => void }) => ReactNode
+}
+
 export interface DockNavItem {
   /** Stable identity for the item (also used for React keys). */
   key: string
@@ -18,21 +27,12 @@ export interface DockNavItem {
   icon: ReactNode | string
   active?: boolean
   onClick?: () => void
-}
-
-export interface CategoryDockMenu {
-  /** Trigger icon — string src (via `renderImage`) or a node. */
-  triggerIcon: ReactNode | string
-  triggerLabel?: string
-  contentClassName?: string
-  /** Full control over the dropdown body. Compose `<ThemeMenu />` here for the theme switcher. */
-  renderContent: (ctx: { side: "top" | "bottom"; close: () => void }) => ReactNode
+  /** Optional inline dropdown menu. When set, the item renders as a dropdown trigger instead of a nav button. */
+  menu?: CategoryDockMenu
 }
 
 export interface CategoryDockProps {
   items: DockNavItem[]
-  /** Optional trailing dropdown menu (e.g. settings + theme switcher). */
-  menu?: CategoryDockMenu
   /** Renders string icons. Defaults to a plain `<img>`; pass next/image for Next apps. */
   renderImage?: (src: string, alt: string, size: number) => ReactNode
   /** Alt+1..n triggers the matching item's `onClick`. Default false. */
@@ -61,17 +61,23 @@ function MenuDockItem({
   menu,
   side,
   renderImage,
+  itemIcon,
+  itemLabel,
 }: {
   menu: CategoryDockMenu
   side: "bottom" | "top"
   renderImage: (src: string, alt: string, size: number) => ReactNode
+  itemIcon?: ReactNode | string
+  itemLabel?: string
 }) {
+  const triggerIcon = menu.triggerIcon ?? itemIcon
+  const triggerLabel = menu.triggerLabel ?? itemLabel
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <DockItem className="flex flex-col items-center gap-0.5 rounded-full transition-colors cursor-pointer bg-gray-200 dark:bg-neutral-800">
-          {menu.triggerLabel && <DockLabel>{menu.triggerLabel}</DockLabel>}
-          <DockIcon>{renderIcon(menu.triggerIcon, menu.triggerLabel ?? "menu", renderImage)}</DockIcon>
+          {triggerLabel && <DockLabel>{triggerLabel}</DockLabel>}
+          <DockIcon>{triggerIcon ? renderIcon(triggerIcon, triggerLabel ?? "menu", renderImage) : null}</DockIcon>
         </DockItem>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -97,40 +103,47 @@ function DockInstance({
   dockClassName,
   side,
   items,
-  menu,
   renderImage,
 }: {
   dockClassName: string
   side: "bottom" | "top"
   items: DockNavItem[]
-  menu?: CategoryDockMenu
   renderImage: (src: string, alt: string, size: number) => ReactNode
 }) {
   return (
     <Dock direction="middle" className={dockClassName}>
-      {items.map((item) => (
-        <DockItem
-          key={item.key}
-          onClick={item.onClick}
-          className={cn(
-            "flex flex-col items-center gap-0.5 rounded-full transition-colors cursor-pointer",
-            item.active
-              ? "bg-primary/20 ring-2 ring-primary"
-              : "bg-gray-200 dark:bg-neutral-800",
-          )}
-        >
-          <DockLabel>{item.label}</DockLabel>
-          <DockIcon>{renderIcon(item.icon, item.label, renderImage)}</DockIcon>
-        </DockItem>
-      ))}
-      {menu && <MenuDockItem menu={menu} side={side} renderImage={renderImage} />}
+      {items.map((item) =>
+        item.menu ? (
+          <MenuDockItem
+            key={item.key}
+            menu={item.menu}
+            side={side}
+            renderImage={renderImage}
+            itemIcon={item.icon}
+            itemLabel={item.label}
+          />
+        ) : (
+          <DockItem
+            key={item.key}
+            onClick={item.onClick}
+            className={cn(
+              "flex flex-col items-center gap-0.5 rounded-full transition-colors cursor-pointer",
+              item.active
+                ? "bg-primary/20 ring-2 ring-primary"
+                : "bg-gray-200 dark:bg-neutral-800",
+            )}
+          >
+            <DockLabel>{item.label}</DockLabel>
+            <DockIcon>{renderIcon(item.icon, item.label, renderImage)}</DockIcon>
+          </DockItem>
+        )
+      )}
     </Dock>
   )
 }
 
 export function CategoryDock({
   items,
-  menu,
   renderImage = defaultRenderImage,
   enableKeyboardShortcuts = false,
   className,
@@ -162,7 +175,6 @@ export function CategoryDock({
             dockClassName="h-[52px] shrink-0 !mt-0 !mx-0"
             side="bottom"
             items={items}
-            menu={menu}
             renderImage={renderImage}
           />
         </div>
@@ -174,7 +186,6 @@ export function CategoryDock({
             dockClassName="h-[52px] shrink-0 !mt-0 mx-auto w-max mb-2 !gap-1 !p-1"
             side="top"
             items={items}
-            menu={menu}
             renderImage={renderImage}
           />
         </div>

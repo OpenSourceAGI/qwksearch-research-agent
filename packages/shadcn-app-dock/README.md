@@ -32,7 +32,7 @@ import {
   ThemeMenu,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "category-dock"
+} from "shadcn-app-dock"
 
 const NAV = [
   { href: "/", label: "Research", icon: "/apple-touch-icon.png" },

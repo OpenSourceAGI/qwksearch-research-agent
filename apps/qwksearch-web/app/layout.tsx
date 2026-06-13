@@ -12,7 +12,7 @@ import { ThemeProvider } from "shadcn-theme-menu";
 import { ExtractPanelProvider } from '@/components/ResearchAgent/components/ArticleReader/ExtractPanelContext';
 import { APP_NAME } from '@/lib/config/site';
 import { CategoryDock } from '@/components/layout/CategoryDock';
-import { CategoryDockProvider } from 'category-dock';
+import { CategoryDockProvider } from 'shadcn-app-dock';
 
 export const metadata: Metadata = {
   title: APP_NAME + ' - Reimagine the Web as a Self-Organizing Mind Map',

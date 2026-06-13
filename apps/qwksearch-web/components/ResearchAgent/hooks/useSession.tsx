@@ -54,7 +54,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   // Prompt Google One Tap sign-in once we know the user is unauthenticated.
   useEffect(() => {
     if (isLoading || user) return;
-    authClient.oneTap();
+    authClient.oneTap({
+      fetchOptions: {
+        onSuccess: async () => {
+          const { data } = await authClient.getSession();
+          setUser(data?.user ?? null);
+        },
+      },
+    });
   }, [isLoading, user]);
 
   const signIn = () => {

@@ -5,10 +5,11 @@ import { usePathname, useRouter } from "next/navigation"
 import { Settings, LogIn, LogOut } from "lucide-react"
 import {
   CategoryDock as BaseCategoryDock,
+  type DockNavItem,
   ThemeMenu,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "category-dock"
+} from "shadcn-app-dock"
 import { useSession } from "@/components/ResearchAgent/hooks/useSession"
 
 const NAV_ITEMS = [
@@ -16,34 +17,27 @@ const NAV_ITEMS = [
   { href: "/docs", label: "Docs", icon: "/icons/icon-read.svg" },
 ]
 
-const iconSettings = "/icons/icon-configure.svg"
-
 export function CategoryDock() {
   const pathname = usePathname()
   const router = useRouter()
   const { isAuthenticated, signIn, signOut } = useSession()
 
-  const items = NAV_ITEMS.map(({ href, label, icon }) => ({
-    key: href,
-    label,
-    icon,
-    active:
-      href === "/"
-        ? pathname === "/" || pathname.startsWith("/c")
-        : pathname.startsWith(href),
-    onClick: () => router.push(href),
-  }))
-
-  return (
-    <BaseCategoryDock
-      items={items}
-      enableKeyboardShortcuts
-      renderImage={(src, alt, size) => (
-        <Image src={src} alt={alt} width={size} height={size} unoptimized className="w-full h-full" />
-      )}
-      menu={{
-        triggerIcon: iconSettings,
-        triggerLabel: "Settings",
+  const items: DockNavItem[] = [
+    ...NAV_ITEMS.map(({ href, label, icon }) => ({
+      key: href,
+      label,
+      icon,
+      active:
+        href === "/"
+          ? pathname === "/" || pathname.startsWith("/c")
+          : pathname.startsWith(href),
+      onClick: () => router.push(href),
+    })),
+    {
+      key: "settings",
+      label: "Settings",
+      icon: "/icons/icon-configure.svg",
+      menu: {
         renderContent: () => (
           <>
             <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer py-1 h-7">
@@ -65,7 +59,17 @@ export function CategoryDock() {
             <ThemeMenu />
           </>
         ),
-      }}
+      },
+    },
+  ]
+
+  return (
+    <BaseCategoryDock
+      items={items}
+      enableKeyboardShortcuts
+      renderImage={(src, alt, size) => (
+        <Image src={src} alt={alt} width={size} height={size} unoptimized className="w-full h-full" />
+      )}
     />
   )
 }
