@@ -49,5 +49,5 @@ marked.use({
 export async function convertMarkdownToHTMLEscaped(
   markdown: string,
 ): Promise<string> {
-  return decode((await marked.parse(markdown)).trim());
+  return (await marked.parse(decode(markdown))).trim();
 }
