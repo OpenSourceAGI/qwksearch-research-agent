@@ -9,12 +9,10 @@ import { Toaster } from 'sonner';
 import { ChatProvider } from '@/components/ResearchAgent/hooks/useChat';
 import { SessionProvider } from '@/components/ResearchAgent/hooks/useSession';
 import { ThemeProvider } from "shadcn-theme-menu";
-import { FontProvider } from "@/components/layout/font-provider";
 import { ExtractPanelProvider } from '@/components/ResearchAgent/components/ArticleReader/ExtractPanelContext';
 import { APP_NAME } from '@/lib/config/site';
 import { CategoryDock } from '@/components/layout/CategoryDock';
-import { CategoryDockProvider } from '@/components/layout/category-dock-context';
-import { OneTap } from '@/components/layout/OneTap';
+import { CategoryDockProvider } from 'category-dock';
 
 export const metadata: Metadata = {
   title: APP_NAME + ' - Reimagine the Web as a Self-Organizing Mind Map',
@@ -47,11 +45,10 @@ export default async function RootLayout({
           __html: `var __name = function(fn, name) { Object.defineProperty(fn, 'name', { value: name, configurable: true }); return fn; };`
         }} />
         <script dangerouslySetInnerHTML={{
-          __html: `(function(){try{var f=localStorage.getItem('fontFamily');if(f&&f!=='system-default')document.documentElement.style.fontFamily=f;}catch(e){}})();`
+          __html: `(function(){function apply(){try{var f=localStorage.getItem('fontFamily');var v=f&&f!=='system-default'?f:'';document.documentElement.style.fontFamily=v;if(document.body)document.body.style.fontFamily=v;}catch(e){}}apply();window.addEventListener('client-config-changed',apply);window.addEventListener('storage',apply);})();`
         }} />
       </head>
       <body className={cn('h-full', 'font-sans')}>
-        <FontProvider />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -59,7 +56,6 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider>
-            <OneTap />
             <ExtractPanelProvider>
               <ChatProvider>
                 <CategoryDockProvider>

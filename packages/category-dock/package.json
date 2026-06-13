@@ -1,0 +1,60 @@
+{
+  "name": "shadcn-app-dock",
+  "description": "Prop-driven macOS-style category dock with magnification, a custom dropdown menu, and a built-in shadcn theme switcher",
+  "version": "0.1.0",
+  "author": "vtempest",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "vite build && tsc --project tsconfig.build.json",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "dock",
+    "macos-dock",
+    "navigation",
+    "shadcn",
+    "theme-switcher",
+    "react"
+  ],
+  "peerDependencies": {
+    "next-themes": ">=0.3",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "@radix-ui/react-dropdown-menu": "^2.1.17",
+    "@radix-ui/react-slot": "^1.2.5",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.40.0",
+    "lucide-react": "^1.17.0",
+    "shadcn-theme-menu": "^1.1.13",
+    "tailwind-merge": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "next-themes": "^0.4.6",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0"
+  }
+}

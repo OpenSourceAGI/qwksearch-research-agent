@@ -8,20 +8,13 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "turbo dev",
+    "dev": "turbo dev --filter=qwksearch-web",
     "build": "turbo build",
-    "dev:web": "turbo dev --filter=qwksearch-web",
     "build:web": "turbo build --filter=qwksearch-web",
     "dev:editor": "turbo dev --filter=reason-editor",
     "build:editor": "turbo build --filter=reason-editor"
   },
-  "overrides": {
-    "kysely": "0.28.17"
-  },
   "devDependencies": {
     "turbo": "^2.9.9"
-  },
-  "dependencies": {
-    "workers-ai-provider": "0.7.3"
   }
 }

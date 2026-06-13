@@ -56,8 +56,8 @@ export function CategoryDockProvider({ children }: { children: ReactNode }) {
 }
 
 /**
- * Hook for pages to register their video category state into the global dock.
- * Call from the videos page to add category items to the shared dock.
+ * Hook for pages to register their category state into the global dock.
+ * Call from a page to add category items to the shared dock.
  */
 export function useCategoryDock(currentCategory: any, onCategoryChange: (category: any) => void) {
   const { register, unregister } = useContext(CategoryDockContext)

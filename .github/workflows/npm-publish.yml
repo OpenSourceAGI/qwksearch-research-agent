@@ -15,76 +15,72 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.11
+          fetch-depth: 2
 
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
 
+      - uses: oven-sh/setup-bun@v2
+
       - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Install workspace dependencies
-        run: bun install --ignore-scripts --no-frozen-lockfile
-
-      - name: Bump, build, and publish packages
+      - name: Publish changed non-private packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          set -u
+          set -euo pipefail
+
           failed_packages=""
 
           for dir in packages/*/; do
-            pkg="$dir/package.json"
-            [ -f "$pkg" ] || { echo "⏭ Skipping $dir (no package.json)"; continue; }
+            pkg="${dir}package.json"
+
+            if [ ! -f "$pkg" ]; then
+              echo "⏭ Skipping $dir (no package.json)"
+              continue
+            fi
 
             is_private=$(node -e "const p=require('./$pkg'); console.log(!!p.private)")
+            name=$(node -e "const p=require('./$pkg'); console.log(p.name)")
+            version=$(node -e "const p=require('./$pkg'); console.log(p.version)")
+
             if [ "$is_private" = "true" ]; then
-              name=$(node -e "const p=require('./$pkg'); console.log(p.name)")
               echo "⏭ Skipping $name (private)"
               continue
             fi
 
-            name=$(node -e "const p=require('./$pkg'); console.log(p.name||'')")
-            version=$(node -e "const p=require('./$pkg'); console.log(p.version||'')")
-            if [ -z "$name" ] || [ -z "$version" ]; then
-              echo "⏭ Skipping $dir (missing name or version)"
+            if git diff --quiet HEAD^ HEAD -- "$dir"; then
+              echo "⏭ Skipping $name (no changes)"
               continue
             fi
 
-            echo "📦 Processing $name ($dir)"
+            echo "📦 Releasing $name from $dir"
 
             (
-              set -e
               cd "$dir"
 
-              # Bump patch only if the current version is already on the registry.
-              # This makes the workflow idempotent: if you bumped manually, we honor it;
-              # if the version is taken, we move to the next patch.
-              published=$(npm view "$name" version 2>/dev/null || echo "")
-              if [ "$published" = "$version" ]; then
+              remote_version=$(npm view "$name" version 2>/dev/null || echo "")
+
+              if [ "$remote_version" = "$version" ]; then
+                echo "🔼 Bumping $name because $version already exists on npm"
                 npm version patch --no-git-tag-version
-                version=$(node -e "console.log(require('./package.json').version)")
-                echo "   bumped to $version (was $published on registry)"
-              else
-                echo "   version $version not on registry yet, publishing as-is"
+                version=$(node -e "const p=require('./package.json'); console.log(p.version)")
               fi
+
+              npm install --ignore-scripts --legacy-peer-deps
 
               has_build=$(node -e "const p=require('./package.json'); console.log(!!(p.scripts && p.scripts.build))")
               if [ "$has_build" = "true" ]; then
-                echo "   building..."
-                bun run build
+                npm run build
               fi
 
-              echo "   publishing..."
-              npm publish --access public --provenance
+              echo "Publishing $(node -e "const p=require('./package.json'); console.log(p.name+'@'+p.version)")"
+              npm publish --provenance --access public
             ) || {
               echo "❌ Failed to publish $name"
               failed_packages="$failed_packages $name"
@@ -97,12 +93,9 @@ jobs:
           fi
 
       - name: Commit version bumps
-        if: always()
+        if: success()
         run: |
-          git add packages/*/package.json
-          if git diff --staged --quiet; then
-            echo "No version changes to commit"
-            exit 0
-          fi
-          git commit -m "chore: bump package versions [skip ci]"
+          git add packages/*/package.json packages/*/package-lock.json
+          git diff --staged --quiet && echo "No version changes to commit" && exit 0
+          git commit -m "chore: bump published package versions [skip ci]"
           git push
