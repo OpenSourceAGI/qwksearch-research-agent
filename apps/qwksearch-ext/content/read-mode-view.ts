@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-import { extractContentAndCite } from "../../../packages/research-agent/src/extractor/html-to-content/html-to-content";
+import { extractContentAndCite } from "../../../packages/extract-webpage/src/html-to-content/html-to-content";
 
 export function setupReadModeView() {
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

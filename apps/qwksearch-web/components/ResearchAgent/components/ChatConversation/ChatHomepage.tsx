@@ -4,17 +4,15 @@
  */
 'use client';
 import { useEffect, useState } from 'react';
-import Footer from '@/components/layout/Footer';
-import * as config from '@/lib/config/site';
-import SettingsButtonMobile from '@/components/Settings/SettingsButtonMobile';
 import { GradientBlur } from '@/components/ui/gradient-blur';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
 import { useChat } from '@/components/ResearchAgent/hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
-const { listFooterLinks } = config;
-import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 
+// import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
+
+import QuantumWaveOrbital from 'grab-url/icons/quantum-sphere' ///loading-animations'
 
 /**
  * The homepage component for the chat interface.
@@ -109,7 +107,6 @@ export default function ChatHomepage() {
         </div>
       </div>
 
-      <Footer listFooterLinks={listFooterLinks} />
     </div>
   );
 }
