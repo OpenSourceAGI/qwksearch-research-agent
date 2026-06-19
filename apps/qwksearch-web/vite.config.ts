@@ -2,6 +2,7 @@ import vinext from "vinext";
 import { defineConfig } from "vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 
 // `cloudflare:workers` is only provided by @cloudflare/vite-plugin in the
 // server (rsc/ssr) environments. A few shared modules that read env vars are
@@ -11,6 +12,11 @@ const cloudflareWorkersStub = fileURLToPath(
 );
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "shadcn-app-dock": resolve(__dirname, "../../packages/shadcn-app-dock/src/index.ts"),
+    },
+  },
   build: {
     rollupOptions: {
       // `fsevents` is an optional macOS-only native module that rollup/chokidar
