@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "open-ready vinext dev",
-    "prebuild": "bun --cwd ../../packages/shadcn-app-dock run build",
+    "prebuild": "cd ../../packages/shadcn-app-dock && bun run build",
     "build": "vinext build",
     "deploy": "vinext deploy",
     "start": "vinext start",
