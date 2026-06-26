@@ -71,7 +71,7 @@ bun i qwksearch-api-client
 
 - 🔍 **Web Search** - 100+ popular sites search across 10 categories: Web Search, Academic, Videos, Images, Files, News, etc
 - 📝 **Article Preview** - Extract, format with APA cite, and summarize articles, PDFs, Youtube, and URLs before reading them
-- 🤖 **User Choice of LLM** - OpenAI, Claude, Gemini, Groq, Ollama, Anthropic, etc
+- 🤖 **Choice of Language Model** -  Claude, GPT, Gemini, Grok, Llama, Chinese LLMs, etc
 - 📄 **File Upload Support** - Ask questions about PDFs, URLs, DOCX, Google Docs, and Youtube
 - 📚 **Search History** - All searches saved with memories, except for privacy mode
 - ❓ **Follow-up Questions** - Generate follow-up questions to ask language models
