@@ -9,7 +9,7 @@ import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
 import { useChat } from '@/components/ResearchAgent/hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
-import { DOWNLOAD_CHROME_URL, DOWNLOAD_WINDOWS_STORE_ID } from '@/lib/config/site';
+import * as config from '@/lib/config/site';
 // import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 
 import QuantumWaveOrbital from 'grab-url/icons/quantum-sphere' ///loading-animations'
