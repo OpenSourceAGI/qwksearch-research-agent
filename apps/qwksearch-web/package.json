@@ -152,6 +152,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@babel/parser": "^7.23.0",
     "@cloudflare/vite-plugin": "^1.40.2",
     "@libsql/client": "^0.17.3",
     "@next/bundle-analyzer": "^16.2.9",

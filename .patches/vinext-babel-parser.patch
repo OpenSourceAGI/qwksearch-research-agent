@@ -1,0 +1,30 @@
+--- a/node_modules/vinext/dist/build/report.js
++++ b/node_modules/vinext/dist/build/report.js
+@@ -1,6 +1,22 @@
+ import { findDir } from "../utils/project.js";
+ import fs from "node:fs";
+-import { parseSync } from "vite";
++import { parse as babelParse } from "@babel/parser";
++
++function parseSync(filename, code, options) {
++	try {
++		const program = babelParse(code, {
++			sourceType: "module",
++			plugins: ["typescript", "jsx"],
++			errorRecovery: true
++		});
++		return {
++			program,
++			errors: program.errors || []
++		};
++	} catch (err) {
++		return {
++			program: null,
++			errors: [{
++				severity: "Error",
++				message: err.message
++			}]
++		};
++	}
++}
+ //#region src/build/report.ts
