@@ -56,4 +56,5 @@ packages/reason-editor/demo
 
 yarn.lock
 .yarnrc.yml
-.yarnbun.lock
+bun.lock
+bun.lockb
