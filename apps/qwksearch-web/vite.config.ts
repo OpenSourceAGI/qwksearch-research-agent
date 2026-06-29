@@ -38,6 +38,45 @@ export default defineConfig({
         return null;
       },
     },
+    {
+      // Provide a CommonJS `require` in the Worker (rsc/ssr) bundle.
+      //
+      // Several bundled CJS dependencies (e.g. @langchain/* and langsmith)
+      // call `require("node:async_hooks")` at module top level. In an ESM
+      // Worker `require` is not a global, so deploy validation crashes with
+      // "ReferenceError: require is not defined" before the Worker can run.
+      //
+      // `createRequire` works under the `nodejs_compat` flag and resolves
+      // Node built-ins (async_hooks, util, worker_threads, …). The other
+      // bundled `require()` calls target optional npm packages inside
+      // try/catch lazy-load guards, so they still throw a *catchable*
+      // MODULE_NOT_FOUND and degrade gracefully exactly as intended.
+      //
+      // Prepended to every server chunk (guarded + idempotent) so the global
+      // is set regardless of module evaluation order. The client bundle is
+      // never touched — `node:module` has no place in the browser.
+      name: "vinext-worker-require-shim",
+      apply: "build",
+      enforce: "post",
+      renderChunk(code, _chunk, outputOptions) {
+        const envName = this.environment?.name;
+        const dir = outputOptions.dir || "";
+        const isServer =
+          envName === "rsc" ||
+          envName === "ssr" ||
+          (!envName && /[\\/]server(?:[\\/]|$)/.test(dir));
+        if (!isServer) return null;
+        if (outputOptions.format && outputOptions.format !== "es") return null;
+        if (!/\brequire\s*\(/.test(code)) return null;
+
+        const shim =
+          'import { createRequire as __vinextCreateRequire } from "node:module";\n' +
+          'if (typeof globalThis.require === "undefined") {\n' +
+          "  try { globalThis.require = __vinextCreateRequire(import.meta.url); } catch {}\n" +
+          "}\n";
+        return { code: shim + code, map: null };
+      },
+    },
     vinext(),
     cloudflare({
       viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
