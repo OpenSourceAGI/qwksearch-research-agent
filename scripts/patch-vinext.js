@@ -21,9 +21,54 @@
 const fs = require('fs');
 const path = require('path');
 
-const vinextDist = path.join(__dirname, '../node_modules/vinext/dist');
+const repoRoot = path.join(__dirname, '..');
 
-function patchReportJs() {
+function getWorkspacePaths() {
+  const rootPkgPath = path.join(repoRoot, 'package.json');
+  if (!fs.existsSync(rootPkgPath)) {
+    return [];
+  }
+
+  let workspaces = [];
+  try {
+    const pkg = JSON.parse(fs.readFileSync(rootPkgPath, 'utf-8'));
+    workspaces = Array.isArray(pkg.workspaces) ? pkg.workspaces : [];
+  } catch {
+    return [];
+  }
+
+  const paths = [];
+  for (const pattern of workspaces) {
+    if (!pattern.endsWith('/*')) {
+      continue;
+    }
+    const baseDir = path.join(repoRoot, pattern.slice(0, -2));
+    if (!fs.existsSync(baseDir) || !fs.statSync(baseDir).isDirectory()) {
+      continue;
+    }
+
+    for (const entry of fs.readdirSync(baseDir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        paths.push(path.join(baseDir, entry.name));
+      }
+    }
+  }
+
+  return paths;
+}
+
+function getVinextDistDirs() {
+  const candidates = [
+    path.join(repoRoot, 'node_modules/vinext/dist'),
+    ...getWorkspacePaths().map((workspacePath) =>
+      path.join(workspacePath, 'node_modules/vinext/dist')
+    )
+  ];
+
+  return candidates.filter((candidatePath) => fs.existsSync(candidatePath));
+}
+
+function patchReportJs(vinextDist) {
   const reportJsPath = path.join(vinextDist, 'build/report.js');
 
   if (!fs.existsSync(reportJsPath)) {
@@ -79,10 +124,10 @@ function parseSync(filename, code, options) {
   );
 
   fs.writeFileSync(reportJsPath, patched);
-  console.log('✓ patched vinext report.js to use @babel/parser');
+  console.log(`✓ patched ${path.relative(repoRoot, reportJsPath)} to use @babel/parser`);
 }
 
-function patchIndexJs() {
+function patchIndexJs(vinextDist) {
   const indexJsPath = path.join(vinextDist, 'index.js');
 
   if (!fs.existsSync(indexJsPath)) {
@@ -142,13 +187,17 @@ async function transformWithOxcShim(code, id, options) {
   patched = patched.replace(/\btransformWithOxc\(/g, 'transformWithOxcShim(');
 
   fs.writeFileSync(indexJsPath, patched);
-  console.log('✓ patched vinext index.js to use transformWithEsbuild');
+  console.log(`✓ patched ${path.relative(repoRoot, indexJsPath)} to use transformWithEsbuild`);
 }
 
-if (!fs.existsSync(vinextDist)) {
-  console.log('vinext not yet installed, skipping patch');
+const vinextDistDirs = getVinextDistDirs();
+
+if (vinextDistDirs.length === 0) {
+  console.log('vinext not yet installed in known node_modules locations, skipping patch');
   process.exit(0);
 }
 
-patchReportJs();
-patchIndexJs();
+for (const vinextDist of vinextDistDirs) {
+  patchReportJs(vinextDist);
+  patchIndexJs(vinextDist);
+}
