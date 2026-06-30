@@ -3,7 +3,7 @@ Refine the local (small, undertrained) model's draft answers by calling out to
 a professional-grade hosted model: OpenRouter, OpenAI, Anthropic, or Google
 Gemini. The user supplies their own API key per request - nothing here ever
 reads a key from disk or an environment variable, and keys are never logged
-or persisted (see src/server.py's /api/improve handler).
+or persisted (see src/services/server.py's /api/improve handler).
 
 OpenRouter is included as the "etc others" catch-all: it proxies most hosted
 models (GPT, Claude, Gemini, Llama, Mistral, ...) behind one OpenAI-compatible

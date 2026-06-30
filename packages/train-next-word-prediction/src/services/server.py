@@ -9,7 +9,7 @@ same whether the container is reached locally, via docker compose, or proxied
 through a Cloudflare Worker.
 
 Run directly:
-    uvicorn src.server:app --host 0.0.0.0 --port 8080
+    uvicorn src.services.server:app --host 0.0.0.0 --port 8080
 """
 
 import asyncio
@@ -26,12 +26,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 
-try:  # `uvicorn src.server:app` imports this as part of the `src` package
-    from .training.improve import PROVIDERS, SAMPLE_QA, ImproveError, call_professional_model
-except ImportError:  # `python src/server.py` runs it as a standalone script
+try:  # `uvicorn src.services.server:app` imports this as part of the `src` package
+    from ..training.improve import PROVIDERS, SAMPLE_QA, ImproveError, call_professional_model
+except ImportError:  # `python src/services/server.py` runs it as a standalone script
     from training.improve import PROVIDERS, SAMPLE_QA, ImproveError, call_professional_model
 
-ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 LOG_DIR = os.environ.get("LOG_DIR", os.path.join(ROOT_DIR, "logs"))
 os.makedirs(LOG_DIR, exist_ok=True)
 

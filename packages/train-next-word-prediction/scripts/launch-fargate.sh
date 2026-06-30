@@ -2,8 +2,8 @@
 
 ###############################################################################
 # AWS Fargate Launch Script
-# Launches train-next-word-prediction service on AWS Fargate
-# Supports GPU and CPU instances with cost optimization
+# Launches Q&A Training Pipeline on AWS Fargate
+# Supports GPU and CPU instances with auto-run API and Dashboard
 ###############################################################################
 
 set -euo pipefail
@@ -12,17 +12,18 @@ set -euo pipefail
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration from environment or defaults
 AWS_REGION="${AWS_REGION:-us-east-1}"
 AWS_PROFILE="${AWS_PROFILE:-default}"
-CLUSTER_NAME="${CLUSTER_NAME:-transformer-training}"
-SERVICE_NAME="${SERVICE_NAME:-train-next-word-prediction}"
-CONTAINER_NAME="${CONTAINER_NAME:-train-next-word-prediction}"
-ECR_REPO="${ECR_REPO:-train-next-word-prediction}"
-TASK_FAMILY="${TASK_FAMILY:-train-next-word-prediction}"
-COMPUTE_TYPE="${COMPUTE_TYPE:-cpu}" # 'cpu', 'gpu', or 'gpu-spot'
+CLUSTER_NAME="${CLUSTER_NAME:-qa-training-cluster}"
+SERVICE_NAME="${SERVICE_NAME:-qa-training-service}"
+CONTAINER_NAME="${CONTAINER_NAME:-qa-training-pipeline}"
+ECR_REPO="${ECR_REPO:-qa-training}"
+TASK_FAMILY="${TASK_FAMILY:-qa-training-task}"
+COMPUTE_TYPE="${COMPUTE_TYPE:-cpu}" # 'cpu' or 'gpu'
 DESIRED_COUNT="${DESIRED_COUNT:-1}"
 CPU_UNITS="${CPU_UNITS:-1024}"        # 256, 512, 1024, 2048, 4096
 MEMORY_MB="${MEMORY_MB:-2048}"        # 512 to 30720
@@ -32,17 +33,26 @@ ENABLE_SPOT="${ENABLE_SPOT:-false}"
 GPU_COUNT="${GPU_COUNT:-1}"            # 1, 2, 4, 8
 FARGATE_GPU_INSTANCE_TYPE="${FARGATE_GPU_INSTANCE_TYPE:-GPU}"
 
+# Orchestration
+AUTO_DOWNLOAD_SQUAD="${AUTO_DOWNLOAD_SQUAD:-true}"
+AUTO_RUN_TRAINING="${AUTO_RUN_TRAINING:-false}"
+TRAINING_MODE="${TRAINING_MODE:-single}"  # single, parallel, async
+
+# API and Dashboard Ports
+API_PORT="${API_PORT:-8080}"
+DASHBOARD_PORT="${DASHBOARD_PORT:-8501}"
+
 # Cost optimization
 USE_FARGATE_SPOT="${USE_FARGATE_SPOT:-false}"
 SPOT_PRICE="${SPOT_PRICE:-}"
 
 # Logging
-LOG_GROUP="${LOG_GROUP:-/ecs/transformer-training}"
-LOG_STREAM="${LOG_STREAM:-train-next-word-prediction}"
+LOG_GROUP="${LOG_GROUP:-/ecs/qa-training}"
+LOG_STREAM="${LOG_STREAM:-qa-training-pipeline}"
 
 # IAM and Security
 EXECUTION_ROLE_NAME="${EXECUTION_ROLE_NAME:-ecsTaskExecutionRole}"
-TASK_ROLE_NAME="${TASK_ROLE_NAME:-ecsTaskRole}"
+TASK_ROLE_NAME="${TASK_ROLE_NAME:-qaTrainingTaskRole}"
 TASK_SECURITY_GROUPS="${TASK_SECURITY_GROUPS:-}"
 TASK_SUBNETS="${TASK_SUBNETS:-}"
 
@@ -406,6 +416,11 @@ create_task_definition() {
                 {
                     "containerPort": 8080,
                     "hostPort": 8080,
+                    "protocol": "tcp"
+                },
+                {
+                    "containerPort": 8501,
+                    "hostPort": 8501,
                     "protocol": "tcp"
                 }
             ],

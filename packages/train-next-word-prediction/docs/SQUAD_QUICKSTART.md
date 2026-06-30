@@ -43,7 +43,7 @@ chmod +x /app/scripts/run-qa-training-pipeline.sh
 
 | File | Purpose |
 |------|---------|
-| `src/aws_utils.py` | IAM auth, S3 operations, Fargate detection |
+| `src/cloud/aws_utils.py` | IAM auth, S3 operations, Fargate detection |
 | `src/training/squad_manager.py` | Download, extract, manage SQuAD data |
 | `src/training/qa_improver.py` | Single improvement loop with evaluation |
 | `src/training/qa_recursive_loops.py` | Parallel & async improvement loops |

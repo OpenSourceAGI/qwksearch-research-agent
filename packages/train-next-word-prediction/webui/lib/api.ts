@@ -1,5 +1,5 @@
 /**
- * Thin client for the FastAPI control API (../../src/server.py).
+ * Thin client for the FastAPI control API (../../src/services/server.py).
  *
  * Points at NEXT_PUBLIC_API_URL (defaults to localhost:8080, the port the
  * Dockerfile/wrangler.jsonc container exposes). Every job (download,

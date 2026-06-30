@@ -10,7 +10,7 @@ export default function DashboardPage() {
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold">train-next-word-prediction</h1>
         <p className="text-muted-foreground">
-          Control panel for the FastAPI training API (src/server.py) — start/stop the Wikipedia download
+          Control panel for the FastAPI training API (src/services/server.py) — start/stop the Wikipedia download
           and training jobs and watch their logs live, whether the API is running locally, in Docker, or
           behind a Cloudflare Container.
         </p>

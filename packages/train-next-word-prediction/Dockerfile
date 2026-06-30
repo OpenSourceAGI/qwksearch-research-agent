@@ -1,9 +1,10 @@
 # Transformer Language Model Training - Container Image
 #
-# Doubles as:
-#  1. A local dev/training image (docker compose, see docker/compose.yml)
-#  2. A Cloudflare Workers Container image (see wrangler.jsonc + worker/index.ts) -
-#     the default CMD runs an HTTP server on $PORT that the Worker proxies to.
+# Includes:
+#  1. Q&A training pipeline with SQuAD
+#  2. REST API for training control
+#  3. Web dashboard for metrics visualization
+#  4. Support for CPU and GPU training
 #
 # Build (from this directory): docker build -t train-next-word-prediction .
 # Run:   docker run -it --rm -p 8080:8080 train-next-word-prediction
@@ -11,15 +12,19 @@
 
 FROM python:3.11-slim
 
-LABEL maintainer="Transformer Training Demo"
-LABEL description="Transformer + micrograd language model training, packaged for Cloudflare Workers Containers"
+LABEL maintainer="Q&A Training Pipeline"
+LABEL description="SQuAD Q&A training pipeline with REST API and dashboard"
 LABEL version="2.0"
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PORT=8080
+    PORT=8080 \
+    CUDA_VISIBLE_DEVICES=0 \
+    SQUAD_DIR=/data/squad \
+    CHECKPOINT_DIR=/data/checkpoints \
+    LOG_DIR=/data/logs
 
 RUN groupadd -r transformer && useradd -r -g transformer transformer
 
@@ -45,12 +50,21 @@ RUN mkdir -p /app/logs /app/checkpoints /app/data \
 
 COPY config/requirements.txt .
 
-RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir boto3
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir \
+        boto3 \
+        fastapi \
+        uvicorn \
+        streamlit \
+        plotly \
+        pandas \
+        requests \
+        numpy
 
 COPY src/ ./src/
 COPY scripts/ ./scripts/
+COPY dashboard.py .
 COPY README.md .
 
 RUN chmod +x /app/scripts/*.sh
@@ -59,11 +73,10 @@ RUN chown -R transformer:transformer /app
 
 USER transformer
 
-# Run startup script then start server
-CMD ["/bin/bash", "-c", "/app/scripts/startup-server.sh && uvicorn src.server:app --host 0.0.0.0 --port 8080"]
+# Start orchestration (API + Dashboard + optional training)
+CMD ["/bin/bash", "/app/scripts/entrypoint-orchestration.sh"]
 
-EXPOSE 8080
-EXPOSE 8888
+EXPOSE 8080 8501
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1

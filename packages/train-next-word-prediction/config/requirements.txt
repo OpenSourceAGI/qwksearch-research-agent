@@ -3,7 +3,7 @@
 tinygrad[gpu]>=0.9.0
 numpy>=1.21.0
 
-# Control/monitoring API (src/server.py) - container entrypoint, talks to webui/
+# Control/monitoring API (src/services/server.py) - container entrypoint, talks to webui/
 fastapi>=0.110.0
 uvicorn[standard]>=0.29.0
 pydantic>=2.0.0

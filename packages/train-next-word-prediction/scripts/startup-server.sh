@@ -186,7 +186,7 @@ main() {
     echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
     echo ""
     echo -e "${YELLOW}To start the main server, run:${NC}"
-    echo "  uvicorn src.server:app --host 0.0.0.0 --port $PORT"
+    echo "  uvicorn src.services.server:app --host 0.0.0.0 --port $PORT"
     echo ""
     echo -e "${YELLOW}Health check available at: http://localhost:8081/health${NC}"
     echo ""
