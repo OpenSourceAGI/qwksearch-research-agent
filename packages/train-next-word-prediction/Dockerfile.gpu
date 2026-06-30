@@ -50,7 +50,8 @@ COPY config/requirements.txt .
 
 RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+    pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124 && \
+    pip install --no-cache-dir boto3 numpy requests
 
 COPY src/ ./src/
 COPY scripts/ ./scripts/

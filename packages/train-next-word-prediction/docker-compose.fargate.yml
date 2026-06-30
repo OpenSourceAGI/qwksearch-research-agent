@@ -26,6 +26,9 @@ services:
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - S3_BUCKET=${S3_BUCKET}
       - S3_PREFIX=${S3_PREFIX:-transformer-training}
+      - SQUAD_VERSION=${SQUAD_VERSION:-1.1}
+      - SQUAD_DIR=${SQUAD_DIR:-/data/squad}
+      - QA_PAIRS_LIMIT=${QA_PAIRS_LIMIT:-5000}
     volumes:
       - ./data:/data
       - ./logs:/app/logs
@@ -63,6 +66,10 @@ services:
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - S3_BUCKET=${S3_BUCKET}
       - S3_PREFIX=${S3_PREFIX:-transformer-training}
+      - SQUAD_VERSION=${SQUAD_VERSION:-1.1}
+      - SQUAD_DIR=${SQUAD_DIR:-/data/squad}
+      - QA_PAIRS_LIMIT=${QA_PAIRS_LIMIT:-5000}
+      - NUM_WORKERS=${NUM_WORKERS:-4}
       - CUDA_VISIBLE_DEVICES=0
     volumes:
       - ./data:/data
