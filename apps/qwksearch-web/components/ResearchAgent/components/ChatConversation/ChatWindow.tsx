@@ -6,7 +6,6 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import NextError from 'next/error';
 import type { Document } from '@langchain/core/documents';
 import Chat from './ChatConversationThread';
 import ChatHomepage from './ChatHomepage';
@@ -140,7 +139,16 @@ const ChatWindow = () => {
 
   return isReady ? (
     notFound ? (
-      <NextError statusCode={404} />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
+        <p className="text-sm text-black/70 dark:text-white/70">This chat could not be found.</p>
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          className="rounded-md border border-black/15 px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+        >
+          Go Home
+        </button>
+      </div>
     ) : (
       <div>
         {messages.length > 0 ? (
