@@ -11,7 +11,7 @@ const cloudflareWorkersStub = fileURLToPath(
   new URL("./lib/cloudflare-workers-stub.ts", import.meta.url),
 );
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   resolve: {
     alias: {
       "shadcn-app-dock": resolve(__dirname, "../../packages/shadcn-app-dock/src/index.ts"),
@@ -27,12 +27,16 @@ export default defineConfig({
   },
   plugins: [
     {
-      // Resolve `cloudflare:workers` to a harmless stub in the client build
-      // only; @cloudflare/vite-plugin provides the real module for rsc/ssr.
+      // Resolve `cloudflare:workers` to a harmless stub in the client build,
+      // and in local `vite serve` (where we intentionally skip the
+      // Cloudflare runner to avoid runtime bootstrap crashes).
       name: "stub-cloudflare-workers-client",
       enforce: "pre",
       resolveId(id) {
-        if (id === "cloudflare:workers" && this.environment?.name === "client") {
+        if (
+          id === "cloudflare:workers" &&
+          (command === "serve" || this.environment?.name === "client")
+        ) {
           return cloudflareWorkersStub;
         }
         return null;
@@ -101,9 +105,13 @@ export default defineConfig({
       },
     },
     vinext(),
-    cloudflare({
-      viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
-      configPath: "./wrangler.jsonc",
-    }),
+    ...(command === "serve"
+      ? []
+      : [
+          cloudflare({
+            viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
+            configPath: "./wrangler.jsonc",
+          }),
+        ]),
   ],
-});
+}));
