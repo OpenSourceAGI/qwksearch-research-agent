@@ -121,14 +121,6 @@
   overflow: visible;
 }
 
-@font-face {
-  font-family: "PP Editorial";
-  src: url("/fonts/pp-ed-ul.otf") format("opentype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
   select,
   textarea,

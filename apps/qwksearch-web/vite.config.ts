@@ -17,6 +17,11 @@ export default defineConfig(({ command }) => ({
       "shadcn-app-dock": resolve(__dirname, "../../packages/shadcn-app-dock/src/index.ts"),
     },
   },
+  optimizeDeps: {
+    // Work around an esbuild/runner interaction in this repo where React
+    // entry points can be treated as external during prebundle.
+    exclude: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
+  },
   build: {
     rollupOptions: {
       // `fsevents` is an optional macOS-only native module that rollup/chokidar
