@@ -6,8 +6,9 @@
  *
  * Two incompatibilities are handled:
  *
- *   1. dist/build/report.js imports `parseSync` from "vite", which no longer
- *      exists. We swap it for an equivalent @babel/parser based shim.
+ *   1. Files that import `parseSync` from "vite" (e.g. dist/build/report.js in
+ *      vinext 0.1.8, dist/init-cloudflare.js in 0.2.0). `parseSync` no longer
+ *      exists, so we swap the import for an equivalent @babel/parser shim.
  *      Fixes: "SyntaxError: The requested module vite does not provide an
  *      export named parseSync"
  *
@@ -16,32 +17,67 @@
  *      `transformWithEsbuild`.
  *      Fixes: "SyntaxError: The requested module vite does not provide an
  *      export named transformWithOxc"
+ *
+ * This repo is a bun workspace monorepo, and several workspaces depend on
+ * vinext. Depending on resolution, bun may hoist vinext to the repo-root
+ * node_modules OR keep a nested copy inside a workspace's node_modules — and
+ * which one "wins" the root slot is not deterministic across machines. The
+ * build resolves whichever copy is nearest the workspace, so patching only the
+ * root copy can silently miss the one actually used. To be robust, we discover
+ * and patch *every* installed vinext copy.
  */
 
 const fs = require('fs');
 const path = require('path');
 
-const vinextDist = path.join(__dirname, '../node_modules/vinext/dist');
+const repoRoot = path.join(__dirname, '..');
 
-function patchReportJs() {
-  const reportJsPath = path.join(vinextDist, 'build/report.js');
+// Candidate node_modules locations where vinext may be installed: the repo
+// root plus every workspace under apps/* and packages/*.
+function findVinextDists() {
+  const candidates = [path.join(repoRoot, 'node_modules/vinext/dist')];
 
-  if (!fs.existsSync(reportJsPath)) {
-    console.log('vinext report.js not found, skipping parseSync patch');
-    return;
+  for (const group of ['apps', 'packages']) {
+    const groupDir = path.join(repoRoot, group);
+    let entries = [];
+    try {
+      entries = fs.readdirSync(groupDir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      candidates.push(
+        path.join(groupDir, entry.name, 'node_modules/vinext/dist'),
+      );
+    }
   }
 
-  const content = fs.readFileSync(reportJsPath, 'utf-8');
+  return candidates.filter((dist) => fs.existsSync(dist));
+}
 
-  if (content.includes('babelParse')) {
-    console.log('vinext report.js already patched (parseSync)');
-    return;
+// Recursively collect *.js files under a directory.
+function collectJsFiles(dir) {
+  const out = [];
+  let entries = [];
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return out;
   }
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...collectJsFiles(full));
+    else if (entry.isFile() && entry.name.endsWith('.js')) out.push(full);
+  }
+  return out;
+}
 
-  if (!content.includes('import { parseSync } from "vite"')) {
-    console.log('vinext report.js does not have the expected parseSync import, skipping');
-    return;
-  }
+function patchParseSync(filePath) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+
+  if (content.includes('babelParse')) return false; // already patched
+  if (!content.includes('import { parseSync } from "vite"')) return false;
 
   const patched = content.replace(
     'import { parseSync } from "vite";',
@@ -75,46 +111,27 @@ function parseSync(filename, code, options) {
 			}]
 		};
 	}
-}`
+}`,
   );
 
-  fs.writeFileSync(reportJsPath, patched);
-  console.log('✓ patched vinext report.js to use @babel/parser');
+  fs.writeFileSync(filePath, patched);
+  return true;
 }
 
-function patchIndexJs() {
-  const indexJsPath = path.join(vinextDist, 'index.js');
+function patchTransformWithOxc(filePath) {
+  const content = fs.readFileSync(filePath, 'utf-8');
 
-  if (!fs.existsSync(indexJsPath)) {
-    console.log('vinext index.js not found, skipping transformWithOxc patch');
-    return;
-  }
+  if (content.includes('transformWithOxcShim')) return false; // already patched
+  if (!content.includes('transformWithOxc')) return false;
 
-  const content = fs.readFileSync(indexJsPath, 'utf-8');
-
-  if (content.includes('transformWithOxcShim')) {
-    console.log('vinext index.js already patched (transformWithOxc)');
-    return;
-  }
-
-  if (!content.includes('transformWithOxc')) {
-    console.log('vinext index.js does not reference transformWithOxc, skipping');
-    return;
-  }
-
-  let patched = content;
-
-  // 1. Replace the import: drop transformWithOxc, pull in transformWithEsbuild
-  //    and define a shim that mirrors the transformWithOxc(code, id, options)
-  //    signature using esbuild.
-  // Target the specific `import { ... } from "vite"` statement that pulls in
-  // transformWithOxc (there may be other vite imports we must not disturb).
+  // Replace the import: drop transformWithOxc, pull in transformWithEsbuild and
+  // define a shim that mirrors the transformWithOxc(code, id, options)
+  // signature using esbuild. Target the specific `import { ... } from "vite"`
+  // statement that pulls in transformWithOxc (there may be other vite imports
+  // we must not disturb).
   const importRe = /import\s*\{([^}]*\btransformWithOxc\b[^}]*)\}\s*from\s*"vite";/;
   const importMatch = content.match(importRe);
-  if (!importMatch) {
-    console.log('vinext index.js vite import not found in expected form, skipping');
-    return;
-  }
+  if (!importMatch) return false;
 
   const names = importMatch[1]
     .split(',')
@@ -136,19 +153,31 @@ async function transformWithOxcShim(code, id, options) {
 	return { code: result.code, map: result.map };
 }`;
 
-  patched = patched.replace(importRe, shim);
-
-  // 2. Re-point call sites at the shim.
+  let patched = content.replace(importRe, shim);
+  // Re-point call sites at the shim.
   patched = patched.replace(/\btransformWithOxc\(/g, 'transformWithOxcShim(');
 
-  fs.writeFileSync(indexJsPath, patched);
-  console.log('✓ patched vinext index.js to use transformWithEsbuild');
+  fs.writeFileSync(filePath, patched);
+  return true;
 }
 
-if (!fs.existsSync(vinextDist)) {
+const dists = findVinextDists();
+if (dists.length === 0) {
   console.log('vinext not yet installed, skipping patch');
   process.exit(0);
 }
 
-patchReportJs();
-patchIndexJs();
+let parseSyncPatched = 0;
+let oxcPatched = 0;
+
+for (const dist of dists) {
+  for (const file of collectJsFiles(dist)) {
+    if (patchParseSync(file)) parseSyncPatched++;
+    if (patchTransformWithOxc(file)) oxcPatched++;
+  }
+}
+
+console.log(
+  `✓ patched vinext in ${dists.length} location(s): ` +
+    `${parseSyncPatched} parseSync, ${oxcPatched} transformWithOxc file(s)`,
+);
