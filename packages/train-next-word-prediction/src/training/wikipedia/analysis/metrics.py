@@ -8,9 +8,9 @@ from collections import Counter
 
 import numpy as np
 
-from .dumpster_dive import DumpsterDiveIntegration
-from .tokenizer import WikipediaTokenizer
-from .trainer import WikipediaTrainer
+from ..ingestion.dumpster_dive import DumpsterDiveIntegration
+from ..data.tokenizer import WikipediaTokenizer
+from ..runtime.trainer import WikipediaTrainer
 
 
 def analyze_model_performance(trainer: WikipediaTrainer, tokenizer: WikipediaTokenizer) -> None:

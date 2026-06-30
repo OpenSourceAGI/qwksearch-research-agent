@@ -12,8 +12,8 @@ from typing import List, Tuple
 
 from tinygrad.tensor import Tensor
 
-from .config import WikipediaConfig
-from .tokenizer import WikipediaTokenizer
+from ..core.config import WikipediaConfig
+from ..data.tokenizer import WikipediaTokenizer
 
 
 class WikipediaDataset:

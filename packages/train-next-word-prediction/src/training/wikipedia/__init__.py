@@ -1,28 +1,22 @@
 """
 Wikipedia-scale GPT-style transformer training pipeline.
 
-Split into focused modules:
-- config: WikipediaConfig hyperparameters and paths
-- download: aria2c-based Wikipedia dump downloader + decompression
-- dumpster_dive: dumpster-dive/MongoDB integration for article extraction
-- tokenizer: byte-pair encoding (BPE) tokenizer
-- dataset: tokenized sequence packing and batching
-- model: decoder-only transformer architecture
-- scheduler: learning rate warmup + cosine decay
-- trainer: training loop, checkpointing, generation
-- generation: top-k / nucleus sampling utilities
+Split into focused subpackages:
+- core: WikipediaConfig hyperparameters and paths
+- ingestion: dump download and dumpster-dive/MongoDB extraction
+- data: BPE tokenization and sequence batching
+- architecture: decoder-only transformer architecture
+- runtime: scheduler and trainer
+- inference: top-k / nucleus sampling utilities
 - analysis: training and dataset statistics
-- pipeline: end-to-end orchestration and CLI entry points
+- orchestration: end-to-end CLI pipeline
 """
 
-from .config import WikipediaConfig
-from .download import WikipediaDownloader
-from .dumpster_dive import DumpsterDiveIntegration
-from .tokenizer import WikipediaTokenizer
-from .dataset import WikipediaDataset
-from .model import GPTStyleTransformer
-from .scheduler import LearningRateScheduler
-from .trainer import WikipediaTrainer
+from .architecture import GPTStyleTransformer
+from .core import WikipediaConfig
+from .data import WikipediaDataset, WikipediaTokenizer
+from .ingestion import DumpsterDiveIntegration, WikipediaDownloader
+from .runtime import LearningRateScheduler, WikipediaTrainer
 
 __all__ = [
     "WikipediaConfig",

@@ -12,8 +12,8 @@ import re
 from collections import Counter
 from typing import Dict, List, Tuple
 
-from .config import WikipediaConfig
-from .dumpster_dive import DumpsterDiveIntegration
+from ..core.config import WikipediaConfig
+from ..ingestion.dumpster_dive import DumpsterDiveIntegration
 
 
 class WikipediaTokenizer:

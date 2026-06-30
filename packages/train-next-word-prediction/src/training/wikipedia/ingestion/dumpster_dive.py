@@ -18,7 +18,7 @@ import re
 import subprocess
 from typing import Dict, List, Optional
 
-from .config import WikipediaConfig
+from ..core.config import WikipediaConfig
 
 try:
     import pymongo

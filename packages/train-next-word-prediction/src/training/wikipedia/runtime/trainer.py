@@ -10,11 +10,11 @@ import time
 from tinygrad.nn.optim import Adam
 from tinygrad.tensor import Tensor
 
-from .config import WikipediaConfig
-from .dataset import WikipediaDataset
-from .model import GPTStyleTransformer
+from ..core.config import WikipediaConfig
+from ..data.dataset import WikipediaDataset
+from ..architecture.model import GPTStyleTransformer
 from .scheduler import LearningRateScheduler
-from .tokenizer import WikipediaTokenizer
+from ..data.tokenizer import WikipediaTokenizer
 
 
 class WikipediaTrainer:

@@ -4,7 +4,7 @@
 FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
 
 LABEL maintainer="Transformer Training Demo"
-LABEL description="Transformer + micrograd language model training with GPU acceleration for AWS Fargate"
+LABEL description="Transformer language model training with GPU acceleration for AWS Fargate"
 LABEL version="2.0"
 LABEL gpu-support="true"
 

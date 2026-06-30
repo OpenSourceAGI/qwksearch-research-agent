@@ -26,13 +26,6 @@ export interface StatusResponse {
   jobs: Record<string, JobInfo>;
 }
 
-export interface MicrogradResult {
-  ok: boolean;
-  exit_code: number;
-  stdout: string;
-  stderr: string;
-}
-
 export interface SampleQA {
   id: string;
   question: string;
@@ -73,8 +66,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   health: () => request<{ status: string; service: string }>("/health"),
   status: () => request<StatusResponse>("/api/status"),
-
-  runMicrograd: () => request<MicrogradResult>("/api/micrograd/run", { method: "POST" }),
 
   sampleQA: () => request<SampleQAResponse>("/api/sample-qa"),
   improve: (body: ImproveRequest) =>

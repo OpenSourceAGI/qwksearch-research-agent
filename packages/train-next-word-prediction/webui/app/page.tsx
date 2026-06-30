@@ -1,7 +1,6 @@
 import { DownloadPanel } from "@/components/dashboard/download-panel";
 import { HealthBadge } from "@/components/dashboard/health-badge";
 import { ImprovePanel } from "@/components/dashboard/improve-panel";
-import { MicrogradPanel } from "@/components/dashboard/micrograd-panel";
 import { TrainPanel } from "@/components/dashboard/train-panel";
 
 export default function DashboardPage() {
@@ -18,7 +17,6 @@ export default function DashboardPage() {
       </header>
 
       <section className="grid gap-6 md:grid-cols-2">
-        <MicrogradPanel />
         <DownloadPanel />
         <TrainPanel />
         <ImprovePanel />

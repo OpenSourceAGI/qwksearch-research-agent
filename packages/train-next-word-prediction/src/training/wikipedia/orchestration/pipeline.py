@@ -8,15 +8,15 @@ import os
 import pickle
 from typing import List, Optional
 
-from .analysis import analyze_model_performance
-from .config import WikipediaConfig
-from .dataset import WikipediaDataset
-from .download import WikipediaDownloader
-from .dumpster_dive import DumpsterDiveIntegration
-from .generation import demo_advanced_generation
-from .model import GPTStyleTransformer
-from .tokenizer import WikipediaTokenizer
-from .trainer import WikipediaTrainer
+from ..analysis.metrics import analyze_model_performance
+from ..core.config import WikipediaConfig
+from ..data.dataset import WikipediaDataset
+from ..ingestion.download import WikipediaDownloader
+from ..ingestion.dumpster_dive import DumpsterDiveIntegration
+from ..inference.generation import demo_advanced_generation
+from ..architecture.model import GPTStyleTransformer
+from ..data.tokenizer import WikipediaTokenizer
+from ..runtime.trainer import WikipediaTrainer
 
 DEMO_TEXTS = [
     "The cat sat on the mat and looked at the dog. This is a simple sentence for testing.",

@@ -6,7 +6,7 @@ A from-scratch GPT-style transformer implementation on [Tinygrad](https://github
 
 | Mode | What it does | Where |
 |---|---|---|
-| **Demos** | micrograd autograd engine + tiny synthetic-data transformer | `src/training/micrograd_demo.py`, `src/training/train_next_word_prediction.py` |
+| **Demos** | tiny synthetic-data transformer training | `src/training/train_next_word_prediction.py` |
 | **Full Wikipedia pipeline** | aria2c download -> dumpster-dive -> MongoDB -> tokenizer -> training, at real Wikipedia scale | `src/training/wikipedia/` package, `docker/Dockerfile.wikipedia` |
 | **HTTP control API** | FastAPI server that starts/stops/monitors the jobs above over HTTP/SSE — the same process Cloudflare Containers runs | `src/services/server.py`, `Dockerfile`, `wrangler.jsonc` |
 | **Web UI** | Next.js dashboard that talks to the control API to kick off/monitor jobs, and to refine draft answers via a bring-your-own-key hosted model | `webui/` |
@@ -19,7 +19,6 @@ This package downloads the real English Wikipedia XML dump and trains a GPT-styl
 
 ```bash
 pip install -r config/requirements.txt
-python src/training/micrograd_demo.py            # ~150-line autograd engine, tiny next-word model
 python src/training/train_next_word_prediction.py # synthetic-data GPT-style transformer demo
 ```
 
@@ -41,7 +40,6 @@ USE_DEMO_MODE=false docker compose --profile wikipedia up wikipedia  # real Wiki
 # Local:
 docker compose -f docker/compose.yml up api
 curl localhost:8080/health
-curl -X POST localhost:8080/api/micrograd/run
 
 # Cloudflare Containers (requires Docker running locally for `wrangler dev`):
 bun install
@@ -95,7 +93,7 @@ npm run dev   # http://localhost:3000
 
 `Dockerfile` (package root), `wrangler.jsonc`, and `worker/index.ts` let this package run as a [Cloudflare Container](https://developers.cloudflare.com/containers/) behind a Worker. The Worker (`worker/index.ts`) just proxies HTTP requests to a `TrainingContainer` Durable Object, which Cloudflare backs with the Docker image — the container's default process is the FastAPI control API (`src/services/server.py`) on `$PORT`.
 
-**What fits**: the micrograd demo, health/status checks, and kicking off short demo-mode jobs through the control API.
+**What fits**: health/status checks and kicking off short demo-mode jobs through the control API.
 
 **What doesn't fit**: the full Wikipedia pipeline. A `dev`/`standard` Container instance has on the order of a few GB of RAM and disk — nowhere near the ~20GB compressed / ~100GB uncompressed dump, the MongoDB instance dumpster-dive needs, or the many-hours runtime a full training pass takes. Run that path with `docker compose --profile wikipedia` on a VM or bare metal instead (see SETUP.md), and only use the Cloudflare Container to expose a control surface or serve a trained, already-small model.
 
@@ -127,5 +125,4 @@ bunx wrangler deploy    # deploy to your Cloudflare account
 - [The Illustrated GPT-2](https://jalammar.github.io/illustrated-gpt2/)
 - [Hugging Face Course](https://huggingface.co/learn)
 - [Tinygrad Documentation](https://docs.tinygrad.org/)
-- [karpathy/micrograd](https://github.com/karpathy/micrograd) — the autograd engine `micrograd_demo.py` ports
 - [Cloudflare Containers docs](https://developers.cloudflare.com/containers/)

@@ -7,9 +7,9 @@ Reference: https://huggingface.co/blog/how-to-generate
 
 from tinygrad.tensor import Tensor
 
-from .config import WikipediaConfig
-from .model import GPTStyleTransformer
-from .tokenizer import WikipediaTokenizer
+from ..core.config import WikipediaConfig
+from ..architecture.model import GPTStyleTransformer
+from ..data.tokenizer import WikipediaTokenizer
 
 
 def generate_with_top_k(model: GPTStyleTransformer, tokenizer: WikipediaTokenizer, config: WikipediaConfig,

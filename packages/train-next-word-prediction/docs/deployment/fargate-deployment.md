@@ -259,6 +259,80 @@ ENABLE_EFS=true EFS_ID=fs-12345 ./scripts/launch-fargate.sh
 ./scripts/manage-fargate-service.sh cost
 ```
 
+## Cost Estimate for a Fully Working Model
+
+This section estimates the cost to train a production-usable checkpoint with the current Wikipedia transformer implementation.
+
+### Assumptions
+
+- Model config from `src/training/wikipedia/core/config.py`: 6 layers, d_model=512, 8 heads, vocab=32k, seq=1024, batch=16, grad_accum=4, epochs=3.
+- Approximate parameter count from `src/training/wikipedia/architecture/model.py`: ~52.2M parameters.
+- Full English Wikipedia corpus after filtering/tokenization: ~6B-10B tokens per epoch.
+- Training target: 3 epochs (config default), so ~18B-30B total training tokens.
+- Effective tokens per optimizer step: 16 * 4 * 1024 = 65,536 tokens.
+
+From this, expected optimizer steps are approximately:
+
+- Low corpus estimate: 18B / 65,536 ~= 275k steps
+- High corpus estimate: 30B / 65,536 ~= 458k steps
+
+### Runtime Scenarios
+
+Actual step time depends on instance class, data pipeline speed, and tinygrad kernel efficiency. Practical planning range:
+
+- Fast run: ~1.5 sec/step
+- Typical run: ~2.5 sec/step
+- Slower run: ~4.0 sec/step
+
+Estimated wall-clock time:
+
+| Scenario | Steps | Step time | Runtime |
+|---|---:|---:|---:|
+| Lower data, fast run | 275,000 | 1.5 s | ~115 hours (~4.8 days) |
+| Midpoint planning | 366,000 | 2.5 s | ~254 hours (~10.6 days) |
+| Higher data, slower run | 458,000 | 4.0 s | ~509 hours (~21.2 days) |
+
+### Cost Range
+
+Using the hourly rates documented above:
+
+- GPU Spot baseline: ~$0.30/hour
+- GPU On-Demand baseline: ~$1.00/hour
+
+Estimated compute-only training cost:
+
+| Scenario | Spot (~$0.30/hr) | On-Demand (~$1.00/hr) |
+|---|---:|---:|
+| Fast / lower data (~115h) | ~$35 | ~$115 |
+| Midpoint (~254h) | ~$76 | ~$254 |
+| Slow / higher data (~509h) | ~$153 | ~$509 |
+
+Additional non-compute costs to budget:
+
+- Storage (S3/EFS + checkpoints + processed shards)
+- Network transfer (especially repeated data movement)
+- Retries/interruption overhead for Spot runs
+
+Recommended planning budget for a successful full run with retries and storage: ~$250-$900.
+
+## Expected Quality Relative to Llama 4
+
+Short answer: this model can become functional for narrow-domain next-token generation and lightweight QA-style prompting, but it will be far below Llama 4 quality on reasoning, coding, tool use, multilingual robustness, and instruction following.
+
+### Why the gap is large
+
+- Parameter scale: ~52M here vs very large frontier-scale Llama-family models (orders of magnitude larger).
+- Training data scale: tens of billions of tokens here vs trillion-scale pretraining in frontier systems.
+- Training stack: this project is intentionally educational/minimal; Llama-class models rely on far larger optimization, alignment, and post-training pipelines.
+
+### Practical quality expectation
+
+- Good enough for: domain-constrained generation, educational experiments, simple factual completion from seen distributions.
+- Not competitive for: broad assistant behavior, complex reasoning chains, advanced coding tasks, and state-of-the-art benchmark performance.
+- Relative expectation: think small-model behavior (roughly GPT-2 class capability band), not frontier-model behavior.
+
+If your target is "Llama 4-like" quality, this codebase should be treated as a prototype/training pipeline foundation, not the final scaling recipe.
+
 ## Example Deployments
 
 ### Scenario 1: Training on Budget (Demo Mode)

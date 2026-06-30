@@ -15,7 +15,7 @@ import os
 import shutil
 import subprocess
 
-from .config import WikipediaConfig
+from ..core.config import WikipediaConfig
 
 
 class WikipediaDownloader:

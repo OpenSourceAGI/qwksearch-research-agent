@@ -3,10 +3,9 @@ FastAPI control/monitoring API for the training container.
 
 This is the process the Docker container (and the Cloudflare Workers Container)
 runs by default - see Dockerfile's CMD. It gives the webui/ Next.js dashboard a
-way to start/stop/monitor long-running jobs (Wikipedia download, training) and
-to run the micrograd demo on demand, all over plain HTTP/SSE so it works the
-same whether the container is reached locally, via docker compose, or proxied
-through a Cloudflare Worker.
+way to start/stop/monitor long-running jobs (Wikipedia download, training)
+over plain HTTP/SSE so it works the same whether the container is reached
+locally, via docker compose, or proxied through a Cloudflare Worker.
 
 Run directly:
     uvicorn src.services.server:app --host 0.0.0.0 --port 8080
@@ -41,7 +40,7 @@ app = FastAPI(
     title="train-next-word-prediction control API",
     version="1.0.0",
     description="Control/monitoring API for Wikipedia downloads, transformer training, "
-                 "and the micrograd demo. See /scalar for an interactive reference.",
+                 "and model improvement workflows. See /scalar for an interactive reference.",
     openapi_url="/openapi.json",
 )
 app.add_middleware(
@@ -155,27 +154,9 @@ def health():
 def status():
     return {
         "service": "train-next-word-prediction",
-        "reference": "https://github.com/karpathy/micrograd/tree/master",
+        "reference": "https://github.com/tinygrad/tinygrad",
         "docs": {"scalar": "/scalar", "openapi": "/openapi.json", "swagger": "/docs"},
         "jobs": {name: job.to_dict() for name, job in _jobs.items()},
-    }
-
-
-# --------------------------------------------------------------------------
-# micrograd demo - fast enough to run synchronously
-# --------------------------------------------------------------------------
-
-@app.post("/api/micrograd/run")
-def run_micrograd():
-    result = subprocess.run(
-        [sys.executable, os.path.join(ROOT_DIR, "src", "training", "micrograd_demo.py")],
-        cwd=ROOT_DIR, capture_output=True, text=True, timeout=120,
-    )
-    return {
-        "ok": result.returncode == 0,
-        "exit_code": result.returncode,
-        "stdout": result.stdout,
-        "stderr": result.stderr,
     }
 
 

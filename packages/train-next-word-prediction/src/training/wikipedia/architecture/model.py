@@ -19,7 +19,7 @@ import math
 from tinygrad.nn import Embedding, LayerNorm, Linear
 from tinygrad.tensor import Tensor
 
-from .config import WikipediaConfig
+from ..core.config import WikipediaConfig
 
 
 class LearnedPositionalEmbeddings:
