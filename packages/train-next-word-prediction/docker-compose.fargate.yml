@@ -1,0 +1,113 @@
+# AWS Fargate-compatible Docker Compose configuration
+# This file demonstrates local testing that mirrors Fargate deployment
+
+version: '3.8'
+
+services:
+  # CPU-based service (cheap option)
+  transformer-cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transformer-cpu
+    ports:
+      - "8080:8080"
+      - "8888:8888"
+    environment:
+      - COMPUTE_TYPE=cpu
+      - USE_DEMO_MODE=true
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MODEL_CHECKPOINT_PATH=/data/checkpoints
+      - DATA_PATH=/data
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_PREFIX=${S3_PREFIX:-transformer-training}
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+    depends_on:
+      - mongodb
+    networks:
+      - transformer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # GPU-based service (premium option)
+  transformer-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    container_name: transformer-gpu
+    ports:
+      - "8081:8080"
+      - "8889:8888"
+    environment:
+      - COMPUTE_TYPE=gpu
+      - USE_DEMO_MODE=true
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - MODEL_CHECKPOINT_PATH=/data/checkpoints
+      - DATA_PATH=/data
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_PREFIX=${S3_PREFIX:-transformer-training}
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+    depends_on:
+      - mongodb
+    networks:
+      - transformer-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # MongoDB for vector storage
+  mongodb:
+    image: mongo:7.0
+    container_name: transformer-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: transformer
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - transformer-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+networks:
+  transformer-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

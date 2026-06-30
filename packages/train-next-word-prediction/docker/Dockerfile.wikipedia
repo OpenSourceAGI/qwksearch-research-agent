@@ -1,0 +1,51 @@
+# Wikipedia-scale transformer training environment
+#
+# Bundles aria2c (fast parallel dump download), Node.js + dumpster-dive
+# (XML -> MongoDB parsing), and the Python/tinygrad training stack.
+# MongoDB itself runs as a separate service (see docker/compose.yml).
+#
+# Build: docker build -f docker/Dockerfile.wikipedia -t wikipedia-transformer ..
+# Run:   docker compose -f docker/compose.yml --profile wikipedia up wikipedia
+
+FROM python:3.11-slim
+
+LABEL maintainer="Wikipedia Transformer Training"
+LABEL description="aria2c download + dumpster-dive + tinygrad training pipeline for the full Wikipedia corpus"
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app/src/training
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    git \
+    curl \
+    ca-certificates \
+    # Fast, resumable, multi-connection downloads of the ~20GB dump
+    aria2 \
+    # Fast multi-threaded decompression (falls back to bzip2 if absent)
+    lbzip2 \
+    bzip2 \
+    # Node.js + npm for dumpster-dive
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g dumpster-dive
+
+WORKDIR /app
+
+COPY config/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt pymongo>=4.6.0
+
+COPY src/ ./src/
+COPY scripts/ ./scripts/
+RUN chmod +x ./scripts/*.sh
+
+# Large dump downloads, decompressed XML, and processed sequences live here
+RUN mkdir -p /app/data /app/model_checkpoints
+WORKDIR /app/data
+
+ENTRYPOINT ["/app/scripts/run_wikipedia_pipeline.sh"]
