@@ -11,7 +11,7 @@
     "build": "vinext build",
     "deploy": "vinext deploy",
     "start": "next start",
-    "dev:cf": "npx wrangler dev --local",
+    "dev:cf": "vinext build && npx wrangler dev --local",
     "preview": "NODE_OPTIONS='--max-old-space-size=4096' next build && next start",
     "deploy:staging": "NODE_OPTIONS='--max-old-space-size=4096' vinext build && vinext deploy --env staging",
     "db:generate": "drizzle-kit generate",
