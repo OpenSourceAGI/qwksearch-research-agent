@@ -85,7 +85,7 @@ export default function ChatHomepage() {
               aria-label="Chrome Web Store"
               className="download-chrome download-btn text-center justify-center"
               target="_blank"
-              href={DOWNLOAD_CHROME_URL}
+              href={config.DOWNLOAD_CHROME_URL}
             >
             </a>
 
@@ -94,8 +94,8 @@ export default function ChatHomepage() {
               className="download-windows download-btn text-center justify-center"
               target="_blank"
               href={deviceInfo.os == "Windows"
-                ? `ms-windows-store://pdp/?productid=${DOWNLOAD_WINDOWS_STORE_ID}`
-                : `https://apps.microsoft.com/detail/${DOWNLOAD_WINDOWS_STORE_ID}?rtc=1`
+                ? `ms-windows-store://pdp/?productid=${config.DOWNLOAD_WINDOWS_STORE_ID}`
+                : `https://apps.microsoft.com/detail/${config.DOWNLOAD_WINDOWS_STORE_ID}?rtc=1`
               }
             >
             </a>
