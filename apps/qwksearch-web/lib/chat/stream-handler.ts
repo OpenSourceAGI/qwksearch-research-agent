@@ -139,7 +139,13 @@ export const handleEmitterEvents = async (
             sources: parsedData.data as Document[],
             createdAt: new Date().toString(),
           })
-          .execute();
+          .execute()
+          .catch((err) => {
+            console.error(
+              "[handleEmitterEvents] failed to save source message:",
+              err,
+            );
+          });
       }
     }
   });
@@ -159,7 +165,13 @@ export const handleEmitterEvents = async (
           role: "assistant",
           createdAt: new Date().toString(),
         })
-        .execute();
+        .execute()
+        .catch((err) => {
+          console.error(
+            "[handleEmitterEvents] failed to save assistant message:",
+            err,
+          );
+        });
     }
   });
 
