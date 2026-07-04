@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "cd ../../packages/shadcn-app-dock && bun run build",
-    "build": "next build",
+    "build": "vinext build",
     "deploy": "vinext deploy",
     "start": "next start",
     "dev:cf": "npx wrangler dev --local",
