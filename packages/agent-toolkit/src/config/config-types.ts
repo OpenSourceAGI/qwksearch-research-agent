@@ -1,69 +1,65 @@
 /**
  * @module research/models/types
- * @description Research library module.
+ * @description Shared types for the config system and model registry.
  */
-type Model = {
+
+/** A chat model entry as shown in provider model lists. */
+export type Model = {
   name: string;
   key: string;
 };
 
-type ModelList = {
-  chat: Model[];
-};
-
-type ProviderMetadata = {
-  name: string;
-  key: string;
-};
-
-type MinimalProvider = {
+/** Provider shape consumed by model-selector UI components. */
+export type MinimalProvider = {
   id: string;
   name: string;
   chatModels: Model[];
 };
 
-type ModelWithProvider = {
+/** Client-side model selection: which provider and model key to use. */
+export type ModelWithProvider = {
   key?: string;
   providerId?: string;
 };
 
+/** A configured model provider (env-based or user-added). */
 export type ConfigModelProvider = {
   id: string;
   name: string;
-  apiKey?: string;
-  baseURL?: string;
-  models?: string[];
+  /** Provider type key, e.g. "openai", "anthropic", "gemini". */
+  type: string;
+  /** User-added chat models (defaults come from LANGUAGE_MODELS). */
+  chatModels: Model[];
+  /** Provider connection config, e.g. { apiKey, baseURL }. */
+  config: Record<string, any>;
+  /** Hash of the config, used as the provider id. */
+  hash: string;
+  /** True when the provider was configured from environment variables. */
+  isEnvBased?: boolean;
 };
 
 export type MCPServerConfig = {
-  command: string;
+  command?: string;
   args?: string[];
   env?: Record<string, string>;
+  [key: string]: any;
 };
 
 export type Config = {
-  modelProviders?: ConfigModelProvider[];
-  search?: {
-    searxngURL?: string;
-    tavilyApiKey?: string;
-    sourceScrapeCount?: number;
-    sourceScrapeTimeout?: number;
-  };
-  mcpServers?: Record<string, MCPServerConfig>;
+  version: number;
+  setupComplete: boolean;
+  preferences: Record<string, any>;
+  personalization: Record<string, any>;
+  modelProviders: ConfigModelProvider[];
+  mcpServers: MCPServerConfig[];
+  search: Record<string, any>;
 };
 
+/** UI field/section definitions consumed by the settings screens. */
 export type UIConfigSections = {
-  providers: boolean;
-  search: boolean;
-  mcp: boolean;
+  preferences: any[];
+  personalization: any[];
+  modelProviders: any[];
+  mcpServers: any[];
+  search: any[];
 };
-
-export type {
-  Model,
-  ModelList,
-  ProviderMetadata,
-  MinimalProvider,
-  ModelWithProvider,
-};
-
-
