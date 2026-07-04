@@ -10,9 +10,7 @@ import RecentHistoryChips from './RecentHistoryChips';
 import { useChat } from '@/components/ResearchAgent/hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import * as config from '@/lib/config/site';
-// import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
-
-import QuantumWaveOrbital from 'grab-url/icons/quantum-sphere' ///loading-animations'
+import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 
 /**
  * The homepage component for the chat interface.
