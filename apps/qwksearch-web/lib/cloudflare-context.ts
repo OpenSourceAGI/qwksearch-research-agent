@@ -17,13 +17,25 @@ export interface CloudflareContext {
 
 /**
  * Returns the current Cloudflare Worker context (bindings + execution context).
- * In Next.js, this returns process.env. In Cloudflare Workers with vinext, it would
- * use cloudflare:workers.
+ * In local dev, falls back to process.env. In production Cloudflare Workers with vinext,
+ * imports from cloudflare:workers to access D1, KV, and other bindings.
  */
 export function getCloudflareContext(): CloudflareContext {
-  return {
-    env: process.env as Record<string, any>,
-    cf: undefined,
-    ctx: null,
-  };
+  try {
+    // In production, import cloudflare:workers to get actual Worker bindings
+    // @ts-ignore - cloudflare:workers is a virtual module provided by @cloudflare/vite-plugin
+    const cfWorkers = require("cloudflare:workers");
+    return {
+      env: cfWorkers.env,
+      cf: undefined,
+      ctx: null,
+    };
+  } catch {
+    // Fallback for local dev where cloudflare:workers is stubbed
+    return {
+      env: process.env as Record<string, any>,
+      cf: undefined,
+      ctx: null,
+    };
+  }
 }

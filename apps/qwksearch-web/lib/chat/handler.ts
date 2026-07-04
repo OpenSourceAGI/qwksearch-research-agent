@@ -23,7 +23,7 @@ import { handleHistorySave } from "./history";
  * tuple to the corresponding LangChain {@link HumanMessage} or
  * {@link AIMessage} instance.
  *
- * @param {[string, string][]} history - Prior conversation turns as `[role, content]` tuples.
+ * @param {[string, string][] | undefined} history - Prior conversation turns as `[role, content]` tuples.
  * @returns {BaseMessage[]} An array of LangChain message objects preserving turn order.
  *
  * @example
@@ -36,8 +36,11 @@ import { handleHistorySave } from "./history";
  * ```
  */
 const buildLangChainHistory = (
-  history: [string, string][],
+  history: [string, string][] | undefined,
 ): BaseMessage[] => {
+  if (!history || !Array.isArray(history)) {
+    return [];
+  }
   return history.map((msg) => {
     if (msg[0] === "human") {
       return new HumanMessage({ content: msg[1] });
@@ -214,7 +217,7 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
       message.messageId ?? crypto.randomBytes(7).toString("hex");
 
     // --- Convert history tuples to LangChain messages ---
-    const history = buildLangChainHistory(body.history as [string, string][]);
+    const history = buildLangChainHistory(body.history);
 
     // --- Look up the focus mode search handler ---
     const handler = searchHandlers[body.focusMode];

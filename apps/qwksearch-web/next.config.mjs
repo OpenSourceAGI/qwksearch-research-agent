@@ -6,7 +6,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: "standalone", // Commented out for vinext compatibility
+  output: "standalone",
   images: {
     remotePatterns: [
       {
