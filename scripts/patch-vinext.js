@@ -32,25 +32,57 @@ const path = require('path');
 
 const repoRoot = path.join(__dirname, '..');
 
-// Candidate node_modules locations where vinext may be installed: the repo
-// root plus every workspace under apps/* and packages/*.
-function findVinextDists() {
-  const candidates = [path.join(repoRoot, 'node_modules/vinext/dist')];
+function getWorkspacePaths() {
+  const rootPkgPath = path.join(repoRoot, 'package.json');
+  if (!fs.existsSync(rootPkgPath)) {
+    return [];
+  }
 
-  for (const group of ['apps', 'packages']) {
-    const groupDir = path.join(repoRoot, group);
-    let entries = [];
-    try {
-      entries = fs.readdirSync(groupDir, { withFileTypes: true });
-    } catch {
+  let workspaces = [];
+  try {
+    const pkg = JSON.parse(fs.readFileSync(rootPkgPath, 'utf-8'));
+    workspaces = Array.isArray(pkg.workspaces) ? pkg.workspaces : [];
+  } catch {
+    return [];
+  }
+
+  const paths = [];
+  for (const pattern of workspaces) {
+    if (!pattern.endsWith('/*')) {
       continue;
     }
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      candidates.push(
-        path.join(groupDir, entry.name, 'node_modules/vinext/dist'),
-      );
+    const baseDir = path.join(repoRoot, pattern.slice(0, -2));
+    if (!fs.existsSync(baseDir) || !fs.statSync(baseDir).isDirectory()) {
+      continue;
     }
+
+    for (const entry of fs.readdirSync(baseDir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        paths.push(path.join(baseDir, entry.name));
+      }
+    }
+  }
+
+  return paths;
+}
+
+function getVinextDistDirs() {
+  const candidates = [
+    path.join(repoRoot, 'node_modules/vinext/dist'),
+    ...getWorkspacePaths().map((workspacePath) =>
+      path.join(workspacePath, 'node_modules/vinext/dist')
+    )
+  ];
+
+  return candidates.filter((candidatePath) => fs.existsSync(candidatePath));
+}
+
+function patchReportJs(vinextDist) {
+  const reportJsPath = path.join(vinextDist, 'build/report.js');
+
+  if (!fs.existsSync(reportJsPath)) {
+    console.log('vinext report.js not found, skipping parseSync patch');
+    return;
   }
 
   return candidates.filter((dist) => fs.existsSync(dist));
@@ -114,12 +146,12 @@ function parseSync(filename, code, options) {
 }`,
   );
 
-  fs.writeFileSync(filePath, patched);
-  return true;
+  fs.writeFileSync(reportJsPath, patched);
+  console.log(`✓ patched ${path.relative(repoRoot, reportJsPath)} to use @babel/parser`);
 }
 
-function patchTransformWithOxc(filePath) {
-  const content = fs.readFileSync(filePath, 'utf-8');
+function patchIndexJs(vinextDist) {
+  const indexJsPath = path.join(vinextDist, 'index.js');
 
   if (content.includes('transformWithOxcShim')) return false; // already patched
   if (!content.includes('transformWithOxc')) return false;
@@ -157,27 +189,18 @@ async function transformWithOxcShim(code, id, options) {
   // Re-point call sites at the shim.
   patched = patched.replace(/\btransformWithOxc\(/g, 'transformWithOxcShim(');
 
-  fs.writeFileSync(filePath, patched);
-  return true;
+  fs.writeFileSync(indexJsPath, patched);
+  console.log(`✓ patched ${path.relative(repoRoot, indexJsPath)} to use transformWithEsbuild`);
 }
 
-const dists = findVinextDists();
-if (dists.length === 0) {
-  console.log('vinext not yet installed, skipping patch');
+const vinextDistDirs = getVinextDistDirs();
+
+if (vinextDistDirs.length === 0) {
+  console.log('vinext not yet installed in known node_modules locations, skipping patch');
   process.exit(0);
 }
 
-let parseSyncPatched = 0;
-let oxcPatched = 0;
-
-for (const dist of dists) {
-  for (const file of collectJsFiles(dist)) {
-    if (patchParseSync(file)) parseSyncPatched++;
-    if (patchTransformWithOxc(file)) oxcPatched++;
-  }
+for (const vinextDist of vinextDistDirs) {
+  patchReportJs(vinextDist);
+  patchIndexJs(vinextDist);
 }
-
-console.log(
-  `✓ patched vinext in ${dists.length} location(s): ` +
-    `${parseSyncPatched} parseSync, ${oxcPatched} transformWithOxc file(s)`,
-);

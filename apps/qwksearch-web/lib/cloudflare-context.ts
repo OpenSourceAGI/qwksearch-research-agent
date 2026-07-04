@@ -8,9 +8,6 @@
  * Cloudflare runtime is unavailable (e.g. the Node dev server), so accessing
  * `env` lazily here is safe.
  */
-// @ts-expect-error - provided by @cloudflare/vite-plugin at build/runtime
-import { env as cloudflareEnv } from "cloudflare:workers";
-import { getRequestExecutionContext } from "vinext/shims/request-context";
 
 export interface CloudflareContext {
   env: Record<string, any>;
@@ -20,11 +17,25 @@ export interface CloudflareContext {
 
 /**
  * Returns the current Cloudflare Worker context (bindings + execution context).
+ * In local dev, falls back to process.env. In production Cloudflare Workers with vinext,
+ * imports from cloudflare:workers to access D1, KV, and other bindings.
  */
 export function getCloudflareContext(): CloudflareContext {
-  return {
-    env: cloudflareEnv as Record<string, any>,
-    cf: undefined,
-    ctx: getRequestExecutionContext(),
-  };
+  try {
+    // In production, import cloudflare:workers to get actual Worker bindings
+    // @ts-ignore - cloudflare:workers is a virtual module provided by @cloudflare/vite-plugin
+    const cfWorkers = require("cloudflare:workers");
+    return {
+      env: cfWorkers.env,
+      cf: undefined,
+      ctx: null,
+    };
+  } catch {
+    // Fallback for local dev where cloudflare:workers is stubbed
+    return {
+      env: process.env as Record<string, any>,
+      cf: undefined,
+      ctx: null,
+    };
+  }
 }

@@ -1,0 +1,195 @@
+# 🐳 Docker Compose for Transformer Training Environment
+#
+# This provides easy container management with different configurations
+# for development, training, and Jupyter notebook access.
+#
+# Usage:
+#   docker-compose up training          # Basic training
+#   docker-compose up jupyter           # Jupyter notebook server
+#   docker-compose up development       # Interactive development
+
+
+services:
+  # 🛰️ FastAPI control/monitoring API - the same process the Cloudflare Workers
+  # Container runs by default (see ../Dockerfile CMD). The webui/ Next.js
+  # dashboard talks to this locally on :8080 exactly like it would in prod.
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: transformer-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./output:/app/logs
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CORS_ORIGINS=http://localhost:3000
+
+  # 🖥️ Next.js control dashboard (webui/) - talks to the `api` service from
+  # the browser at NEXT_PUBLIC_API_URL. Dev-mode only; for a production
+  # build, add a webui/Dockerfile or deploy it to Cloudflare Pages/Vercel.
+  webui:
+    image: node:20-slim
+    container_name: transformer-webui
+    working_dir: /app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../webui:/app
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+    depends_on:
+      - api
+
+  # 🏃 Basic training service - runs the transformer training and exits
+  training:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: transformer-training
+    command: python src/training/train_next_word_prediction.py
+    volumes:
+      # Mount local directory to persist logs and checkpoints
+      - ./output:/app/logs
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Enable GPU support if available
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Optional: Limit memory usage
+    mem_limit: 4g
+
+  # 📊 Jupyter notebook service for interactive exploration  
+  jupyter:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: transformer-jupyter
+    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/app/notebooks
+      - ./output:/app/logs
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - JUPYTER_ENABLE_LAB=yes
+    # Enable GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # 🛠️ Development service for interactive coding and debugging
+  development:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: transformer-dev
+    command: /app/scripts/start.sh
+    stdin_open: true
+    tty: true
+    volumes:
+      # Mount source code for live editing
+      - .:/app/workspace
+      - ./output:/app/logs
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Enable GPU support
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    # Keep container running for interactive use
+    restart: unless-stopped
+
+  # 🧪 Testing service for quick environment verification
+  test:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: transformer-test
+    command: /app/scripts/test_environment.sh
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  # 🍃 MongoDB backing store for dumpster-dive article extraction.
+  # Only needed for the full-scale (non-demo) Wikipedia pipeline below.
+  mongodb:
+    image: mongo:7
+    container_name: wikipedia-mongodb
+    profiles: ["wikipedia"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  # 🌍 Full Wikipedia pipeline: aria2c download -> decompress -> dumpster-dive
+  # (XML -> MongoDB) -> tokenizer -> transformer training, all in one container.
+  #
+  # Usage:
+  #   docker compose --profile wikipedia up wikipedia
+  # Switch to the full (non-demo) corpus with:
+  #   USE_DEMO_MODE=false docker compose --profile wikipedia up wikipedia
+  wikipedia:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.wikipedia
+    container_name: wikipedia-transformer
+    profiles: ["wikipedia"]
+    depends_on:
+      - mongodb
+    volumes:
+      # Wikipedia dump (~20GB compressed, ~100GB uncompressed) and processed sequences
+      - ./data:/app/data
+      - ./model_checkpoints:/app/model_checkpoints
+    environment:
+      - PYTHONUNBUFFERED=1
+      - USE_DEMO_MODE=${USE_DEMO_MODE:-true}
+      - MONGO_HOST=mongodb
+      - MONGO_PORT=27017
+      - WIKIPEDIA_DUMP_PATH=/app/data/enwiki-latest-pages-articles.xml
+      - WIKIPEDIA_BZ2_PATH=/app/data/enwiki-latest-pages-articles.xml.bz2
+      - PROCESSED_DATA_DIR=/app/data/processed
+      - TOKENIZER_PATH=/app/data/wikipedia_tokenizer.pkl
+      - MODEL_CHECKPOINT_DIR=/app/model_checkpoints
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    mem_limit: 16g
+
+# Define named volumes for persistent data
+volumes:
+  transformer_data:
+    driver: local
+  transformer_logs:
+    driver: local
+  mongodb_data:
+    driver: local
+
+# Define network for potential multi-container setups
+networks:
+  transformer_network:
+    driver: bridge

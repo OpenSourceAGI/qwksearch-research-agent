@@ -1,0 +1,89 @@
+# AWS Fargate-compatible Docker Compose configuration
+# This file demonstrates local testing that mirrors Fargate deployment
+
+version: '3.8'
+
+services:
+  # CPU-based service (cheap option)
+  transformer-cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: transformer-cpu
+    ports:
+      - "8080:8080"
+      - "8501:8501"
+    environment:
+      - COMPUTE_TYPE=cpu
+      - MODEL_CHECKPOINT_PATH=/data/checkpoints
+      - DATA_PATH=/data
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_PREFIX=${S3_PREFIX:-qa-models}
+      - SQUAD_VERSION=${SQUAD_VERSION:-1.1}
+      - SQUAD_DIR=${SQUAD_DIR:-/data/squad}
+      - QA_PAIRS_LIMIT=${QA_PAIRS_LIMIT:-5000}
+      - NUM_WORKERS=${NUM_WORKERS:-2}
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+    networks:
+      - transformer-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+  # GPU-based service (premium option)
+  transformer-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    container_name: transformer-gpu
+    ports:
+      - "8081:8080"
+      - "8502:8501"
+    environment:
+      - COMPUTE_TYPE=gpu
+      - MODEL_CHECKPOINT_PATH=/data/checkpoints
+      - DATA_PATH=/data
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_PREFIX=${S3_PREFIX:-qa-models}
+      - SQUAD_VERSION=${SQUAD_VERSION:-1.1}
+      - SQUAD_DIR=${SQUAD_DIR:-/data/squad}
+      - QA_PAIRS_LIMIT=${QA_PAIRS_LIMIT:-5000}
+      - NUM_WORKERS=${NUM_WORKERS:-4}
+      - CUDA_VISIBLE_DEVICES=0
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+    networks:
+      - transformer-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
+networks:
+  transformer-network:
+    driver: bridge

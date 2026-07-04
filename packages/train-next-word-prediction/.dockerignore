@@ -1,0 +1,33 @@
+# Cloudflare Worker (built/deployed separately, not part of the container image)
+worker/
+.wrangler/
+
+# Next.js dashboard (separate app, not part of the training/API container image)
+webui/
+
+# Node tooling not needed inside the Python container
+node_modules/
+package.json
+package-lock.json
+bun.lock
+bun.lockb
+tsconfig.json
+
+# Large local artifacts that shouldn't be baked into the image
+data/
+output/
+logs/
+notebooks/
+model_checkpoints/
+wikipedia_processed/
+*.xml
+*.xml.bz2
+*.torrent
+
+# VCS / editor / cache
+.git/
+.gitignore
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store

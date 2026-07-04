@@ -1,27 +1,5 @@
-import {
-  Globe,
-  Clock,
-  Database,
-  Headphones,
-  SmilePlus,
-  BarChart3,
-  BarChart2,
-  Infinity,
-  Gauge,
-  Sparkles,
-  MessageCircleQuestion,
-  Brain,
-  Bot,
-  Building2,
-  HelpCircle,
-  Newspaper,
-  MessageCircle,
-  Lock,
-  Target,
-  Compass,
-  Cog,
-  type LucideIcon,
-} from "lucide-react";
+// Icon components are no longer imported - we use string names instead
+// and resolve them dynamically in client components
 
 export const /** App Name in title case */
   APP_NAME: string = "QwkSearch",
@@ -49,21 +27,21 @@ export const listFooterLinks: FooterLink[] = [
   // {
   //   url: "https://airesearch.js.org/docs/functions",
   //   text: "Docs",
-  //   icon: HelpCircle,
+  //   icon: "HelpCircle",
   // },
   {
     url: "https://www.linkedin.com/company/104158840/admin/page-posts/published/",
     text: "Blog",
-    icon: Newspaper,
+    icon: "Newspaper",
   },
   {
     url: "https://discord.gg/SJdBqBz3tV",
     text: "Support",
-    icon: MessageCircle,
+    icon: "MessageCircle",
   },
-  { url: "/legal/privacy", text: "Privacy", icon: Lock },
-  { url: "https://rights.institute/ethics", text: "Ethics", icon: Bot },
-  { url: "/enterprise", text: "Enterprise", icon: Building2 },
+  { url: "/legal/privacy", text: "Privacy", icon: "Lock" },
+  { url: "https://rights.institute/ethics", text: "Ethics", icon: "Bot" },
+  { url: "/enterprise", text: "Enterprise", icon: "Building2" },
 ];
 
 export const SubscriptionPlans: SubscriptionPlan[] = [
@@ -73,10 +51,10 @@ export const SubscriptionPlans: SubscriptionPlan[] = [
     url: "#",
     price: 0,
     features: [
-      { text: "Access to cutting-edge LLMs", icon: Brain },
-      { text: "Discover curated content feed", icon: Compass },
-      { text: "Standard response times", icon: Clock },
-      { text: "Community support forums", icon: MessageCircleQuestion },
+      { text: "Access to cutting-edge LLMs", icon: "Brain" },
+      { text: "Discover curated content feed", icon: "Compass" },
+      { text: "Standard response times", icon: "Clock" },
+      { text: "Community support forums", icon: "MessageCircleQuestion" },
     ],
   },
   {
@@ -85,16 +63,16 @@ export const SubscriptionPlans: SubscriptionPlan[] = [
     url: "https://buy.stripe.com/8wMdTmdi1asl1xe3cc",
     price: 5,
     features: [
-      // { text: '1,000 queries / 24 hours', icon: Rocket },
-      { text: "Custom dataset integration", icon: Database },
-      { text: "Custom-trained LLM agents", icon: Sparkles },
-      { text: "Priority server response times", icon: Gauge },
+      // { text: '1,000 queries / 24 hours', icon: "Rocket" },
+      { text: "Custom dataset integration", icon: "Database" },
+      { text: "Custom-trained LLM agents", icon: "Sparkles" },
+      { text: "Priority server response times", icon: "Gauge" },
 
-      { text: "Dedicated priority support", icon: Headphones },
-      { text: "In-depth history analytics ", icon: BarChart3 },
+      { text: "Dedicated priority support", icon: "Headphones" },
+      { text: "In-depth history analytics ", icon: "BarChart3" },
       {
         text: "Test new features, LLMs, and future pleasant surprises",
-        icon: SmilePlus,
+        icon: "SmilePlus",
       },
     ],
   },
@@ -107,13 +85,13 @@ export const SubscriptionPlans: SubscriptionPlan[] = [
     features: [
       {
         text: "Custom plan for API integration into your infrastructure",
-        icon: Cog,
+        icon: "Cog",
       },
-      { text: "AI-led team collaboration & content discovery ", icon: Globe },
-      { text: "LLM suggestions curated to  team dataset", icon: Target },
-      { text: "Customer metrics & search trend analysis", icon: BarChart2 },
-      { text: "Unlimited queries", icon: Infinity },
-      // { text: 'Multi-user account & dataset management', icon: UserPlus  },
+      { text: "AI-led team collaboration & content discovery ", icon: "Globe" },
+      { text: "LLM suggestions curated to  team dataset", icon: "Target" },
+      { text: "Customer metrics & search trend analysis", icon: "BarChart2" },
+      { text: "Unlimited queries", icon: "Infinity" },
+      // { text: 'Multi-user account & dataset management', icon: "UserPlus"  },
     ],
   },
 ];
@@ -167,8 +145,8 @@ export interface FooterLink {
   url: string;
   /** Label text of the url link */
   text: string;
-  /** Lucide icon name */
-  icon?: LucideIcon;
+  /** Lucide icon name as string */
+  icon?: string;
 }
 
 export interface SubscriptionPlan {
@@ -186,8 +164,8 @@ export interface SubscriptionPlan {
   features: {
     /** Description of the feature */
     text: string;
-    /** Lucide icon component to display alongside the feature */
-    icon: LucideIcon;
+    /** Lucide icon name as string */
+    icon: string;
   }[];
 }
 

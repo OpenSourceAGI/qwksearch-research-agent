@@ -41,9 +41,6 @@ export { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
  * @see [Building a Transformer with PyTorch](https://www.datacamp.com/tutorial/building-a-transformer-with-py-torch)
  * @see [LLM training example](https://github.com/vtempest/ai-research-agent/blob/master/packages/neural-net/src/train/predict-next-word.js)
  *
- * <img src="https://i.imgur.com/bailW5n.gif" />
- * <img src="https://i.imgur.com/uW6E9VJ.gif" />
-
  * @param options - Configuration for the language-model call
  * @returns Resolved response object with `content`, optional `extract`, or `error`
  * @author [Language Model Researchers](https://arc.net/folder/D0472A20-9C20-4D3F-B145-D2865C0A9FEE)

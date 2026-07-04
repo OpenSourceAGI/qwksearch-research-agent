@@ -6,7 +6,6 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import NextError from 'next/error';
 import type { Document } from '@langchain/core/documents';
 import Chat from './ChatConversationThread';
 import ChatHomepage from './ChatHomepage';
@@ -14,6 +13,7 @@ import { useChat } from '@/components/ResearchAgent/hooks/useChat';
 import { useSession } from '@/components/ResearchAgent/hooks/useSession';
 import Loader from '@/components/ui/Loader';
 import SettingsButtonMobile from '@/components/Settings/SettingsButtonMobile';
+import ConfigError from '../ConfigError';
 
 /**
  * Base interface for all chat message types.
@@ -115,18 +115,7 @@ const ChatWindow = () => {
   }, [isReady, notFound, isAuthenticated, router]);
 
   if (hasError) {
-    return (
-      <div className="relative">
-        <div className="absolute w-full flex flex-row items-center justify-end mr-5 mt-5">
-          <SettingsButtonMobile />
-        </div>
-        <div className="flex flex-col items-center justify-center min-h-screen">
-          <p className="dark:text-white/70 text-black/70 text-sm">
-            Failed to connect to the server. Please try again later.
-          </p>
-        </div>
-      </div>
-    );
+    return <ConfigError />;
   }
 
   // Show loader while redirecting guests
@@ -140,7 +129,16 @@ const ChatWindow = () => {
 
   return isReady ? (
     notFound ? (
-      <NextError statusCode={404} />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 px-4 text-center">
+        <p className="text-sm text-black/70 dark:text-white/70">This chat could not be found.</p>
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          className="rounded-md border border-black/15 px-3 py-1.5 text-sm hover:bg-black/5 dark:border-white/20 dark:hover:bg-white/10"
+        >
+          Go Home
+        </button>
+      </div>
     ) : (
       <div>
         {messages.length > 0 ? (

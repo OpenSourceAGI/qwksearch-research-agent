@@ -1,3 +1,5 @@
+'use client';
+
 import ChatWindow from '@/components/ResearchAgent/components/ChatConversation/ChatWindow';
 import Footer from '@/components/layout/Footer';
 import * as config from '@/lib/config/site';

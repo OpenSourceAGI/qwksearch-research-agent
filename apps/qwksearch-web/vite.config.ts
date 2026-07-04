@@ -11,7 +11,7 @@ const cloudflareWorkersStub = fileURLToPath(
   new URL("./lib/cloudflare-workers-stub.ts", import.meta.url),
 );
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   resolve: {
     alias: {
       "shadcn-app-dock": resolve(__dirname, "../../packages/shadcn-app-dock/src/index.ts"),
@@ -27,12 +27,16 @@ export default defineConfig({
   },
   plugins: [
     {
-      // Resolve `cloudflare:workers` to a harmless stub in the client build
-      // only; @cloudflare/vite-plugin provides the real module for rsc/ssr.
+      // Resolve `cloudflare:workers` to a harmless stub in the client build,
+      // and in local `vite serve` (where we intentionally skip the
+      // Cloudflare runner to avoid runtime bootstrap crashes).
       name: "stub-cloudflare-workers-client",
       enforce: "pre",
       resolveId(id) {
-        if (id === "cloudflare:workers" && this.environment?.name === "client") {
+        if (
+          id === "cloudflare:workers" &&
+          (command === "serve" || this.environment?.name === "client")
+        ) {
           return cloudflareWorkersStub;
         }
         return null;
@@ -101,9 +105,37 @@ export default defineConfig({
       },
     },
     vinext(),
-    cloudflare({
-      viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
-      configPath: "./wrangler.jsonc",
-    }),
+    ...(command === "serve"
+      ? []
+      : [
+          cloudflare({
+            viteEnvironment: { name: "rsc", childEnvironments: ["ssr"] },
+            configPath: "./wrangler.jsonc",
+          }),
+        ]),
+    {
+      // Different plugins (vinext, @vitejs/plugin-rsc, and our own config)
+      // disagree per-environment about whether react/react-dom should be
+      // pre-bundled (`optimizeDeps.include`) or left external
+      // (`optimizeDeps.exclude`). Vite's config merge concatenates array
+      // configs from every plugin rather than letting one override another,
+      // so a package can end up in both lists for the same environment —
+      // esbuild then crashes with "The entry point ... cannot be marked as
+      // external" because a package can't be a scan entry point and
+      // external in the same build.
+      //
+      // `configEnvironment` runs after all plugins' `config` hooks have
+      // merged into the environment, and hands us the live (mutable)
+      // resolved config object, so removing the overlap here — instead of
+      // returning a config to merge — actually sticks.
+      name: "fix-optimize-deps-include-exclude-conflict",
+      enforce: "post",
+      configEnvironment(_name, config) {
+        const include = new Set(config.optimizeDeps?.include ?? []);
+        const exclude = config.optimizeDeps?.exclude;
+        if (!exclude) return;
+        config.optimizeDeps.exclude = exclude.filter((id) => !include.has(id));
+      },
+    },
   ],
-});
+}));

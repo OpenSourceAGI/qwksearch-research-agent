@@ -1,0 +1,751 @@
+{
+  // OpenAPI 3.0.0 Specification for Q&A Training API
+  // Generated: 2026-06-29
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Q&A Training API",
+    "description": "SQuAD Q&A model training & evaluation service with REST endpoints for training control, evaluation, and monitoring",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Q&A Training Team"
+    },
+    "license": {
+      "name": "Apache 2.0"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local development server"
+    },
+    {
+      "url": "http://{host}:8080",
+      "description": "Custom host",
+      "variables": {
+        "host": {
+          "default": "localhost",
+          "description": "API host"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Root endpoint",
+        "description": "Get API information and available endpoints",
+        "operationId": "root",
+        "tags": ["Metadata"],
+        "responses": {
+          "200": {
+            "description": "API information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "service": { "type": "string", "example": "Q&A Training API" },
+                    "version": { "type": "string", "example": "1.0.0" },
+                    "status": { "type": "string", "example": "online" },
+                    "endpoints": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Check if API is healthy and get system status",
+        "operationId": "health",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "System health status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/evaluate": {
+      "post": {
+        "summary": "Evaluate single Q&A",
+        "description": "Evaluate a single question-answer pair",
+        "operationId": "evaluate_qa",
+        "tags": ["Evaluation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QARequest"
+              },
+              "example": {
+                "context": "Paris is the capital and largest city of France.",
+                "question": "What is the capital of France?",
+                "expected_answer": "Paris"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Q&A evaluation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QAResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Evaluation error"
+          }
+        }
+      }
+    },
+    "/batch-evaluate": {
+      "post": {
+        "summary": "Batch evaluate Q&A pairs",
+        "description": "Evaluate multiple question-answer pairs in a single request",
+        "operationId": "batch_evaluate",
+        "tags": ["Evaluation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchEvalRequest"
+              },
+              "example": {
+                "qa_pairs": [
+                  {
+                    "context": "Paris is the capital of France.",
+                    "question": "What is the capital of France?",
+                    "expected_answer": "Paris"
+                  }
+                ],
+                "batch_size": 32
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch evaluation results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchEvalResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Batch evaluation error"
+          }
+        }
+      }
+    },
+    "/training": {
+      "get": {
+        "summary": "Get training status",
+        "description": "Get current training status and metrics",
+        "operationId": "get_training_status",
+        "tags": ["Training"],
+        "responses": {
+          "200": {
+            "description": "Training status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/training/start": {
+      "post": {
+        "summary": "Start training loop",
+        "description": "Start a new training loop (sequential, parallel, or async)",
+        "operationId": "start_training",
+        "tags": ["Training"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingStartRequest"
+              },
+              "example": {
+                "loop_type": "parallel",
+                "num_workers": 4,
+                "batch_size": 32,
+                "max_iterations": 100,
+                "min_improvement": 0.01
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Training started successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "started" },
+                    "loop_type": { "type": "string" },
+                    "num_workers": { "type": "integer" },
+                    "max_iterations": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Training already active"
+          },
+          "500": {
+            "description": "Training error"
+          }
+        }
+      }
+    },
+    "/training/stop": {
+      "post": {
+        "summary": "Stop training loop",
+        "description": "Stop the current training loop",
+        "operationId": "stop_training",
+        "tags": ["Training"],
+        "responses": {
+          "200": {
+            "description": "Training stopped",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "stopped" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "Get training metrics",
+        "description": "Get recent training metrics (last 50 iterations)",
+        "operationId": "get_metrics",
+        "tags": ["Metrics"],
+        "responses": {
+          "200": {
+            "description": "Training metrics history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "metrics": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MetricsResponse"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics/{iteration}": {
+      "get": {
+        "summary": "Get metrics for specific iteration",
+        "description": "Get detailed metrics for a specific training iteration",
+        "operationId": "get_iteration_metrics",
+        "tags": ["Metrics"],
+        "parameters": [
+          {
+            "name": "iteration",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "example": 1
+            },
+            "description": "Iteration number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Iteration metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Iteration not found"
+          }
+        }
+      }
+    },
+    "/datasets": {
+      "get": {
+        "summary": "Get available datasets",
+        "description": "Get information about available datasets",
+        "operationId": "get_datasets",
+        "tags": ["Datasets"],
+        "responses": {
+          "200": {
+            "description": "Dataset information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "squad": {
+                      "type": "object",
+                      "properties": {
+                        "train": { "type": "boolean" },
+                        "dev": { "type": "boolean" },
+                        "counts": {
+                          "type": "object",
+                          "properties": {
+                            "train_count": { "type": "integer" },
+                            "dev_count": { "type": "integer" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/checkpoints": {
+      "get": {
+        "summary": "List checkpoints",
+        "description": "List all available model checkpoints",
+        "operationId": "list_checkpoints",
+        "tags": ["Checkpoints"],
+        "responses": {
+          "200": {
+            "description": "Checkpoint list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "checkpoints": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Checkpoint"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/checkpoints/{checkpoint_name}": {
+      "get": {
+        "summary": "Download checkpoint",
+        "description": "Download a specific checkpoint file",
+        "operationId": "download_checkpoint",
+        "tags": ["Checkpoints"],
+        "parameters": [
+          {
+            "name": "checkpoint_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "model_best.pt"
+            },
+            "description": "Checkpoint filename"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Checkpoint file",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Checkpoint not found"
+          }
+        }
+      }
+    },
+    "/logs": {
+      "get": {
+        "summary": "Get recent logs",
+        "description": "Get recent log entries from the training system",
+        "operationId": "get_logs",
+        "tags": ["Logs"],
+        "parameters": [
+          {
+            "name": "lines",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "example": 50
+            },
+            "description": "Number of log lines to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log entries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "logs": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/config": {
+      "get": {
+        "summary": "Get configuration",
+        "description": "Get current system configuration",
+        "operationId": "get_configuration",
+        "tags": ["Configuration"],
+        "responses": {
+          "200": {
+            "description": "System configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Configuration"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "QARequest": {
+        "type": "object",
+        "required": ["context", "question"],
+        "properties": {
+          "context": {
+            "type": "string",
+            "description": "Context passage for the question"
+          },
+          "question": {
+            "type": "string",
+            "description": "Question to answer"
+          },
+          "expected_answer": {
+            "type": "string",
+            "nullable": true,
+            "description": "Expected answer (optional, for evaluation)"
+          }
+        }
+      },
+      "QAResponse": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "nullable": true,
+            "format": "float"
+          },
+          "model_version": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "BatchEvalRequest": {
+        "type": "object",
+        "required": ["qa_pairs"],
+        "properties": {
+          "qa_pairs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QARequest"
+            }
+          },
+          "batch_size": {
+            "type": "integer",
+            "default": 32
+          }
+        }
+      },
+      "BatchEvalResponse": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "completed": {
+            "type": "integer"
+          },
+          "average_score": {
+            "type": "number",
+            "format": "float"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QAResponse"
+            }
+          }
+        }
+      },
+      "TrainingStartRequest": {
+        "type": "object",
+        "required": ["loop_type"],
+        "properties": {
+          "loop_type": {
+            "type": "string",
+            "enum": ["single", "parallel", "async"],
+            "description": "Training mode"
+          },
+          "num_workers": {
+            "type": "integer",
+            "default": 4,
+            "minimum": 1,
+            "maximum": 32
+          },
+          "batch_size": {
+            "type": "integer",
+            "default": 32
+          },
+          "max_iterations": {
+            "type": "integer",
+            "default": 100
+          },
+          "min_improvement": {
+            "type": "number",
+            "format": "float",
+            "default": 0.01
+          }
+        }
+      },
+      "TrainingStatus": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean"
+          },
+          "iteration": {
+            "type": "integer"
+          },
+          "best_score": {
+            "type": "number",
+            "format": "float"
+          },
+          "model_version": {
+            "type": "string"
+          }
+        }
+      },
+      "MetricsResponse": {
+        "type": "object",
+        "properties": {
+          "iteration": {
+            "type": "integer"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "batch_score": {
+            "type": "number",
+            "format": "float"
+          },
+          "best_score": {
+            "type": "number",
+            "format": "float"
+          },
+          "improvement": {
+            "type": "number",
+            "format": "float"
+          },
+          "high_score_count": {
+            "type": "integer"
+          },
+          "medium_score_count": {
+            "type": "integer"
+          },
+          "low_score_count": {
+            "type": "integer"
+          }
+        }
+      },
+      "Checkpoint": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "size_mb": {
+            "type": "number",
+            "format": "float"
+          },
+          "modified": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Configuration": {
+        "type": "object",
+        "properties": {
+          "squad_version": {
+            "type": "string",
+            "example": "1.1"
+          },
+          "squad_dir": {
+            "type": "string",
+            "example": "/data/squad"
+          },
+          "batch_size": {
+            "type": "string"
+          },
+          "compute_type": {
+            "type": "string",
+            "enum": ["cpu", "gpu"],
+            "example": "cpu"
+          },
+          "gpu_count": {
+            "type": "string"
+          },
+          "num_workers": {
+            "type": "string"
+          },
+          "loop_type": {
+            "type": "string",
+            "enum": ["sequential", "parallel", "async"]
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "degraded", "unhealthy"],
+            "example": "healthy"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "training_active": {
+            "type": "boolean"
+          },
+          "model_version": {
+            "type": "string"
+          },
+          "dataset_info": {
+            "type": "object",
+            "properties": {
+              "train_count": { "type": "integer" },
+              "dev_count": { "type": "integer" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Metadata",
+      "description": "API information"
+    },
+    {
+      "name": "System",
+      "description": "System health and status"
+    },
+    {
+      "name": "Evaluation",
+      "description": "Q&A evaluation endpoints"
+    },
+    {
+      "name": "Training",
+      "description": "Training control and status"
+    },
+    {
+      "name": "Metrics",
+      "description": "Training metrics and progress"
+    },
+    {
+      "name": "Datasets",
+      "description": "Dataset information"
+    },
+    {
+      "name": "Checkpoints",
+      "description": "Model checkpoint management"
+    },
+    {
+      "name": "Logs",
+      "description": "System logs"
+    },
+    {
+      "name": "Configuration",
+      "description": "System configuration"
+    }
+  ]
+}
