@@ -5,9 +5,7 @@
 
 import crypto from "crypto";
 import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
-import { eq } from "drizzle-orm";
 import { getDB } from "@/lib/database";
-import { user as userSchema } from "@/lib/database/schema";
 import { searchHandlers } from "ai-research-agent/search";
 import ModelRegistry from "ai-research-agent/models/registry";
 import { getUserId } from "@/lib/auth/session";
@@ -119,7 +117,10 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
   const t0 = Date.now();
   console.log("[POST /api/agent/chat] request received");
   try {
-    let userId = await getUserId();
+    // getUserId validates the session's user row against the current database
+    // (stale KV sessions are revoked and reported as guest), so a non-null
+    // userId here is always safe for FK-bound writes.
+    const userId = await getUserId();
     console.log("[POST /api/agent/chat] userId:", userId ?? "(guest)");
 
     // DB is only needed to persist history for authenticated users.
@@ -128,22 +129,6 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     let db: ReturnType<typeof getDB> | undefined;
     if (userId) {
       db = getDB();
-
-      // A session can outlive its user row (e.g. sessions cached in KV that
-      // reference a user from a previous database). The chats/messages tables
-      // enforce FOREIGN KEY (userId) REFERENCES user(id), so persisting with a
-      // stale userId aborts the insert. Downgrade such sessions to guest.
-      const userRow = await db.query.user.findFirst({
-        where: eq(userSchema.id, userId),
-        columns: { id: true },
-      });
-      if (!userRow) {
-        console.warn(
-          `[POST /api/agent/chat] session userId ${userId} has no user row; treating as guest`,
-        );
-        userId = null;
-        db = undefined;
-      }
     }
 
     /** @type {Body} Raw request body before validation. */
