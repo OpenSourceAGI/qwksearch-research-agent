@@ -17,11 +17,6 @@ export default defineConfig(({ command }) => ({
       "shadcn-app-dock": resolve(__dirname, "../../packages/shadcn-app-dock/src/index.ts"),
     },
   },
-  optimizeDeps: {
-    // Work around an esbuild/runner interaction in this repo where React
-    // entry points can be treated as external during prebundle.
-    exclude: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
-  },
   build: {
     rollupOptions: {
       // `fsevents` is an optional macOS-only native module that rollup/chokidar
@@ -118,5 +113,29 @@ export default defineConfig(({ command }) => ({
             configPath: "./wrangler.jsonc",
           }),
         ]),
+    {
+      // Different plugins (vinext, @vitejs/plugin-rsc, and our own config)
+      // disagree per-environment about whether react/react-dom should be
+      // pre-bundled (`optimizeDeps.include`) or left external
+      // (`optimizeDeps.exclude`). Vite's config merge concatenates array
+      // configs from every plugin rather than letting one override another,
+      // so a package can end up in both lists for the same environment —
+      // esbuild then crashes with "The entry point ... cannot be marked as
+      // external" because a package can't be a scan entry point and
+      // external in the same build.
+      //
+      // `configEnvironment` runs after all plugins' `config` hooks have
+      // merged into the environment, and hands us the live (mutable)
+      // resolved config object, so removing the overlap here — instead of
+      // returning a config to merge — actually sticks.
+      name: "fix-optimize-deps-include-exclude-conflict",
+      enforce: "post",
+      configEnvironment(_name, config) {
+        const include = new Set(config.optimizeDeps?.include ?? []);
+        const exclude = config.optimizeDeps?.exclude;
+        if (!exclude) return;
+        config.optimizeDeps.exclude = exclude.filter((id) => !include.has(id));
+      },
+    },
   ],
 }));

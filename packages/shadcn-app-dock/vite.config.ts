@@ -36,6 +36,7 @@ export default defineConfig({
           "lucide-react": "LucideReact",
           "shadcn-theme-menu": "ShadcnThemeMenu",
         },
+        banner: '"use client";',
       },
     },
   },
