@@ -2,15 +2,23 @@
  * @module research/search/meta-search-types
  * @description Shared types for the MetaSearchAgent.
  */
-import type { BaseMessage, BaseMessageLike } from "@langchain/core/messages";
-import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import type { LanguageModel } from "ai";
 import type EventEmitter from "events";
+
+/** A single conversation turn, matching the Vercel AI SDK message shape. */
+export interface ChatTurnMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+}
+
+/** A `[role, content]` tuple used for few-shot prompt examples. */
+export type FewShotExample = [role: "user" | "assistant", content: string];
 
 export interface MetaSearchAgentType {
   searchAndAnswer: (
     message: string,
-    history: BaseMessage[],
-    llm: BaseChatModel,
+    history: ChatTurnMessage[],
+    llm: LanguageModel,
     optimizationMode: "speed" | "balanced" | "quality",
     fileIds: string[],
     systemInstructions: string,
@@ -33,12 +41,12 @@ export interface Config {
   rerank: boolean;
   rerankThreshold: number;
   queryGeneratorPrompt: string;
-  queryGeneratorFewShots: BaseMessageLike[];
+  queryGeneratorFewShots: FewShotExample[];
   responsePrompt: string;
   activeEngines: string[];
 }
 
 export type BasicChainInput = {
-  chat_history: BaseMessage[];
+  chat_history: ChatTurnMessage[];
   query: string;
 };

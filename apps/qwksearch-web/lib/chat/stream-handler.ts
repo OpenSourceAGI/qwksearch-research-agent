@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { Document } from "@langchain/core/documents";
+import type { Document } from "ai-research-agent/search/document";
 import { EventEmitter } from "stream";
 import { getDB } from "@/lib/database";
 import { messages as messagesSchema } from "@/lib/database/schema";

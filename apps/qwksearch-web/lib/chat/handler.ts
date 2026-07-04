@@ -4,7 +4,7 @@
  */
 
 import crypto from "crypto";
-import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
+import type { ChatTurnMessage } from "ai-research-agent/search/meta-search-types";
 import { getDB } from "@/lib/database";
 import { searchHandlers } from "ai-research-agent/search";
 import ModelRegistry from "ai-research-agent/models/registry";
@@ -16,37 +16,34 @@ import { handleEmitterEvents } from "./stream-handler";
 import { handleHistorySave } from "./history";
 
 /**
- * Converts a raw conversation history array into LangChain message objects.
+ * Converts a raw conversation history array into AI SDK chat messages.
  *
  * The client sends history as an array of `[role, content]` tuples where
  * `role` is either `"human"` or `"assistant"`. This function maps each
- * tuple to the corresponding LangChain {@link HumanMessage} or
- * {@link AIMessage} instance.
+ * tuple to a `{ role, content }` message object.
  *
  * @param {[string, string][] | undefined} history - Prior conversation turns as `[role, content]` tuples.
- * @returns {BaseMessage[]} An array of LangChain message objects preserving turn order.
+ * @returns {ChatTurnMessage[]} An array of chat messages preserving turn order.
  *
  * @example
  * ```ts
- * const messages = buildLangChainHistory([
+ * const messages = buildChatHistory([
  *   ["human", "What is gravity?"],
  *   ["assistant", "Gravity is a fundamental force..."],
  * ]);
- * // => [HumanMessage("What is gravity?"), AIMessage("Gravity is a fundamental force...")]
+ * // => [{ role: "user", content: "What is gravity?" }, { role: "assistant", content: "Gravity is a fundamental force..." }]
  * ```
  */
-const buildLangChainHistory = (
-  history: [string, string][] | undefined,
-): BaseMessage[] => {
+const buildChatHistory = (
+  history: [string?, string?, ...unknown[]][] | undefined,
+): ChatTurnMessage[] => {
   if (!history || !Array.isArray(history)) {
     return [];
   }
-  return history.map((msg) => {
-    if (msg[0] === "human") {
-      return new HumanMessage({ content: msg[1] });
-    }
-    return new AIMessage({ content: msg[1] });
-  });
+  return history.map((msg) => ({
+    role: msg[0] === "human" ? ("user" as const) : ("assistant" as const),
+    content: String(msg[1] ?? ""),
+  }));
 };
 
 /**
@@ -219,8 +216,8 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     const humanMessageId =
       message.messageId ?? crypto.randomBytes(7).toString("hex");
 
-    // --- Convert history tuples to LangChain messages ---
-    const history = buildLangChainHistory(body.history);
+    // --- Convert history tuples to AI SDK chat messages ---
+    const history = buildChatHistory(body.history);
 
     // --- Look up the focus mode search handler ---
     const handler = searchHandlers[body.focusMode];

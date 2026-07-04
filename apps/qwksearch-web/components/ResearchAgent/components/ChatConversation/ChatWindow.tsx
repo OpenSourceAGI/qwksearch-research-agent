@@ -6,7 +6,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Document } from '@langchain/core/documents';
+import type { Document } from 'ai-research-agent/search/document';
 import Chat from './ChatConversationThread';
 import ChatHomepage from './ChatHomepage';
 import { useChat } from '@/components/ResearchAgent/hooks/useChat';

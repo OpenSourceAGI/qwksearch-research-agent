@@ -1,31 +1,25 @@
 /**
  * @module research/search/outputParser
- * @description Research library module.
+ * @description Parsers that extract values from XML-tagged sections of LLM
+ * output (e.g. `<links>...</links>`, `<question>...</question>`).
  */
-import { BaseOutputParser } from "@langchain/core/output_parsers";
+
+const LIST_MARKER_REGEX = /^(\s*(-|\*|\d+\.\s|\d+\)\s|•)\s*)+/;
 
 interface LineListOutputParserArgs {
   key?: string;
 }
 
-export class LineListOutputParser extends BaseOutputParser<string[]> {
+export class LineListOutputParser {
   private key = "questions";
 
   constructor(args?: LineListOutputParserArgs) {
-    super();
     this.key = args?.key ?? this.key;
   }
-
-  static lc_name() {
-    return "LineListOutputParser";
-  }
-
-  lc_namespace = ["langchain", "output_parsers", "line_list_output_parser"];
 
   async parse(text: string): Promise<string[]> {
     text = text.trim() || "";
 
-    const regex = /^(\s*(-|\*|\d+\.\s|\d+\)\s|\u2022)\s*)+/;
     const startKeyIndex = text.indexOf(`<${this.key}>`);
     const endKeyIndex = text.indexOf(`</${this.key}>`);
 
@@ -33,21 +27,15 @@ export class LineListOutputParser extends BaseOutputParser<string[]> {
       return [];
     }
 
-    const questionsStartIndex =
-      startKeyIndex === -1 ? 0 : startKeyIndex + `<${this.key}>`.length;
-    const questionsEndIndex = endKeyIndex === -1 ? text.length : endKeyIndex;
+    const questionsStartIndex = startKeyIndex + `<${this.key}>`.length;
     const lines = text
-      .slice(questionsStartIndex, questionsEndIndex)
+      .slice(questionsStartIndex, endKeyIndex)
       .trim()
       .split("\n")
       .filter((line) => line.trim() !== "")
-      .map((line) => line.replace(regex, ""));
+      .map((line) => line.replace(LIST_MARKER_REGEX, ""));
 
     return lines;
-  }
-
-  getFormatInstructions(): string {
-    throw new Error("Not implemented.");
   }
 }
 
@@ -55,24 +43,16 @@ interface LineOutputParserArgs {
   key?: string;
 }
 
-export class LineOutputParser extends BaseOutputParser<string | undefined> {
+export class LineOutputParser {
   private key = "questions";
 
   constructor(args?: LineOutputParserArgs) {
-    super();
     this.key = args?.key ?? this.key;
   }
-
-  static lc_name() {
-    return "LineOutputParser";
-  }
-
-  lc_namespace = ["langchain", "output_parsers", "line_output_parser"];
 
   async parse(text: string): Promise<string | undefined> {
     text = text.trim() || "";
 
-    const regex = /^(\s*(-|\*|\d+\.\s|\d+\)\s|\u2022)\s*)+/;
     const startKeyIndex = text.indexOf(`<${this.key}>`);
     const endKeyIndex = text.indexOf(`</${this.key}>`);
 
@@ -80,19 +60,13 @@ export class LineOutputParser extends BaseOutputParser<string | undefined> {
       return undefined;
     }
 
-    const questionsStartIndex =
-      startKeyIndex === -1 ? 0 : startKeyIndex + `<${this.key}>`.length;
-    const questionsEndIndex = endKeyIndex === -1 ? text.length : endKeyIndex;
+    const questionsStartIndex = startKeyIndex + `<${this.key}>`.length;
     const line = text
-      .slice(questionsStartIndex, questionsEndIndex)
+      .slice(questionsStartIndex, endKeyIndex)
       .trim()
-      .replace(regex, "");
+      .replace(LIST_MARKER_REGEX, "");
 
     return line;
-  }
-
-  getFormatInstructions(): string {
-    throw new Error("Not implemented.");
   }
 }
 

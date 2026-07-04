@@ -2,7 +2,7 @@
  * @module research/search/doc-utils
  * @description Document utilities: fallback docs, reranking, and formatting.
  */
-import { Document } from "@langchain/core/documents";
+import type { Document } from "./document";
 import path from "node:path";
 import fs from "node:fs";
 
@@ -12,7 +12,7 @@ export function buildFallbackDocs(query: string): Document[] {
   const fallbackUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
 
   return [
-    new Document({
+    {
       pageContent:
         "No indexed sources were returned by the configured search providers for this query.",
       metadata: {
@@ -20,7 +20,7 @@ export function buildFallbackDocs(query: string): Document[] {
         url: fallbackUrl,
         source: "Google Search",
       },
-    }),
+    },
   ];
 }
 
@@ -56,13 +56,10 @@ export async function rerankDocs(
     (doc) => doc.pageContent && doc.pageContent.length > 0,
   );
 
-  const fileDocs = filesData.map(
-    (fileData) =>
-      new Document({
-        pageContent: fileData.content,
-        metadata: { title: fileData.fileName, url: "File" },
-      }),
-  );
+  const fileDocs: Document[] = filesData.map((fileData) => ({
+    pageContent: fileData.content,
+    metadata: { title: fileData.fileName, url: "File" },
+  }));
 
   // Combine file docs with web results, cap at 15
   return [...fileDocs, ...docsWithContent].slice(0, 15);
