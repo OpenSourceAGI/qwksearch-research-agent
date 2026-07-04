@@ -77,17 +77,6 @@ function getVinextDistDirs() {
   return candidates.filter((candidatePath) => fs.existsSync(candidatePath));
 }
 
-function patchReportJs(vinextDist) {
-  const reportJsPath = path.join(vinextDist, 'build/report.js');
-
-  if (!fs.existsSync(reportJsPath)) {
-    console.log('vinext report.js not found, skipping parseSync patch');
-    return;
-  }
-
-  return candidates.filter((dist) => fs.existsSync(dist));
-}
-
 // Recursively collect *.js files under a directory.
 function collectJsFiles(dir) {
   const out = [];
@@ -146,12 +135,12 @@ function parseSync(filename, code, options) {
 }`,
   );
 
-  fs.writeFileSync(reportJsPath, patched);
-  console.log(`✓ patched ${path.relative(repoRoot, reportJsPath)} to use @babel/parser`);
+  fs.writeFileSync(filePath, patched);
+  return true;
 }
 
-function patchIndexJs(vinextDist) {
-  const indexJsPath = path.join(vinextDist, 'index.js');
+function patchTransformWithOxc(filePath) {
+  const content = fs.readFileSync(filePath, 'utf-8');
 
   if (content.includes('transformWithOxcShim')) return false; // already patched
   if (!content.includes('transformWithOxc')) return false;
@@ -189,8 +178,8 @@ async function transformWithOxcShim(code, id, options) {
   // Re-point call sites at the shim.
   patched = patched.replace(/\btransformWithOxc\(/g, 'transformWithOxcShim(');
 
-  fs.writeFileSync(indexJsPath, patched);
-  console.log(`✓ patched ${path.relative(repoRoot, indexJsPath)} to use transformWithEsbuild`);
+  fs.writeFileSync(filePath, patched);
+  return true;
 }
 
 const vinextDistDirs = getVinextDistDirs();
@@ -200,7 +189,17 @@ if (vinextDistDirs.length === 0) {
   process.exit(0);
 }
 
+let parseSyncPatched = 0;
+let oxcPatched = 0;
+
 for (const vinextDist of vinextDistDirs) {
-  patchReportJs(vinextDist);
-  patchIndexJs(vinextDist);
+  for (const file of collectJsFiles(vinextDist)) {
+    if (patchParseSync(file)) parseSyncPatched++;
+    if (patchTransformWithOxc(file)) oxcPatched++;
+  }
 }
+
+console.log(
+  `✓ patched vinext in ${vinextDistDirs.length} location(s): ` +
+    `${parseSyncPatched} parseSync, ${oxcPatched} transformWithOxc file(s)`,
+);
