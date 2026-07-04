@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { GradientBlur } from '@/components/ui/gradient-blur';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
+import Footer from '@/components/layout/Footer';
 import { useChat } from '@/components/ResearchAgent/hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import * as config from '@/lib/config/site';
@@ -105,6 +106,7 @@ export default function ChatHomepage() {
         </div>
       </div>
 
+      <Footer listFooterLinks={config.listFooterLinks} />
     </div>
   );
 }
