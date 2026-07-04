@@ -2,7 +2,7 @@
  * @fileoverview Core logic for generating AI language responses using Vercel AI SDK and various LLM providers.
  * Handles prompt interpolation, tool calling, and response formatting.
  */
-import { generateText, tool } from "ai";
+import { generateText, stepCountIs, tool } from "ai";
 import { AGENT_PROMPTS } from "./prompt-templates";
 import { AGENT_TOOLS } from "../tools/qwksearch-api-tools";
 import { LANGUAGE_MODELS, LANGUAGE_PROVIDERS } from "./language-model-registry";
@@ -136,7 +136,7 @@ export async function generateLanguageResponse(
               t.name,
               tool({
                 description: t.description as string,
-                parameters: t.schema as any,
+                inputSchema: t.schema as any,
                 execute: t.func as (args: any) => Promise<string>,
               }),
             ]),
@@ -148,7 +148,7 @@ export async function generateLanguageResponse(
       model: llm,
       prompt,
       temperature,
-      ...(tools && { tools, maxSteps: 10 }),
+      ...(tools && { tools, stopWhen: stepCountIs(10) }),
     });
 
     // \u2500\u2500 9. Format output (HTML or raw Markdown) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500

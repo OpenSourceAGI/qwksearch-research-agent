@@ -1,10 +1,10 @@
 /**
- * @fileoverview Registry for managing and loading LangChain AI model providers.
+ * @fileoverview Registry for managing and loading Vercel AI SDK model providers.
  *
  * Exposes the full API expected by the app's API routes and chat handler:
  * - `activeProviders` (sync getter) / `getActiveProviders()`
  * - `isProviderEnvBased(providerId)`
- * - `loadChatModel(providerId, modelKey)`
+ * - `loadChatModel(providerId, modelKey)` — returns an AI SDK `LanguageModel`
  * - provider/model CRUD passthroughs to {@link configManager}
  */
 import configManager from "./config-manager";
@@ -95,8 +95,10 @@ export default class ModelRegistry {
   }
 
   /**
-   * Instantiates a LangChain chat model for the given provider and model key.
-   * Falls back to the provider's first/default model when no key is given.
+   * Instantiates a Vercel AI SDK language model for the given provider and
+   * model key. Falls back to the provider's first/default model when no key
+   * is given. Temperature is a per-call setting in the AI SDK, so callers
+   * pass it to generateText/streamText rather than the model instance.
    */
   async loadChatModel(providerId?: string, modelKey?: string): Promise<any> {
     const provider = this.findProvider(providerId);
@@ -129,57 +131,41 @@ export default class ModelRegistry {
     };
 
     if (type in openAICompatibleBaseURLs) {
-      const { ChatOpenAI } = await import("@langchain/openai");
-      return new ChatOpenAI({
+      const { createOpenAI } = await import("@ai-sdk/openai");
+      return createOpenAI({
         apiKey,
-        modelName,
-        temperature: 0.7,
-        configuration: {
-          baseURL: config.baseURL || openAICompatibleBaseURLs[type],
-        },
-      });
+        baseURL: config.baseURL || openAICompatibleBaseURLs[type],
+      }).chat(modelName);
     }
 
     switch (type) {
       case "ollama": {
-        const { ChatOpenAI } = await import("@langchain/openai");
-        return new ChatOpenAI({
+        const { createOpenAI } = await import("@ai-sdk/openai");
+        return createOpenAI({
           apiKey: "ollama",
-          modelName,
-          temperature: 0.7,
-          configuration: {
-            baseURL: config.baseURL || "http://localhost:11434/v1",
-          },
-        });
+          baseURL: config.baseURL || "http://localhost:11434/v1",
+        }).chat(modelName);
       }
       case "cloudflare": {
-        const { ChatOpenAI } = await import("@langchain/openai");
+        const { createOpenAI } = await import("@ai-sdk/openai");
         const [cfApiToken, accountId] = apiKey.split(":");
-        return new ChatOpenAI({
+        return createOpenAI({
           apiKey: cfApiToken,
-          modelName,
-          temperature: 0.7,
-          configuration: {
-            baseURL: `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`,
-          },
-        });
+          baseURL: `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`,
+        }).chat(modelName);
       }
       case "groq": {
-        const { ChatGroq } = await import("@langchain/groq");
-        return new ChatGroq({ apiKey, model: modelName, temperature: 0.7 });
+        const { createGroq } = await import("@ai-sdk/groq");
+        return createGroq({ apiKey })(modelName);
       }
       case "anthropic": {
-        const { ChatAnthropic } = await import("@langchain/anthropic");
-        return new ChatAnthropic({ apiKey, model: modelName, temperature: 0.7 });
+        const { createAnthropic } = await import("@ai-sdk/anthropic");
+        return createAnthropic({ apiKey })(modelName);
       }
       case "gemini":
       case "google": {
-        const { ChatGoogleGenerativeAI } = await import("@langchain/google-genai");
-        return new ChatGoogleGenerativeAI({
-          apiKey,
-          model: modelName,
-          temperature: 0.7,
-        });
+        const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
+        return createGoogleGenerativeAI({ apiKey })(modelName);
       }
       default:
         throw new Error(`Unsupported provider type: ${type}`);

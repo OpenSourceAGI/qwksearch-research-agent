@@ -2,8 +2,8 @@
  * @module research/search/link-summarizer
  * @description Groups link documents by URL then summarizes each group with an LLM.
  */
-import { Document } from "@langchain/core/documents";
-import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
+import { generateText, type LanguageModel } from "ai";
+import type { Document } from "./document";
 import { buildFallbackDocs } from "./doc-utils";
 
 const SUMMARIZER_PROMPT = `You are a web search summarizer, tasked with summarizing a piece of text retrieved from a web search. Your job is to summarize the
@@ -70,7 +70,7 @@ Make sure to answer the query in the summary.`;
  * summarizes each group with the LLM in parallel.
  */
 export async function groupAndSummarizeDocs(
-  llm: BaseChatModel,
+  llm: LanguageModel,
   linkDocs: Document[],
   question: string,
 ): Promise<Document[]> {
@@ -99,14 +99,12 @@ export async function groupAndSummarizeDocs(
         "{content}",
         doc.pageContent,
       );
-      const res = await llm.invoke(prompt);
+      const { text } = await generateText({ model: llm, prompt });
 
-      docs.push(
-        new Document({
-          pageContent: res.content as string,
-          metadata: { title: doc.metadata.title, url: doc.metadata.url },
-        }),
-      );
+      docs.push({
+        pageContent: text,
+        metadata: { title: doc.metadata.title, url: doc.metadata.url },
+      });
     }),
   );
 

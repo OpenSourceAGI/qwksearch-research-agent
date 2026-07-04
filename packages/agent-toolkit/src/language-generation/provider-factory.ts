@@ -10,7 +10,7 @@ import { createVertex } from "@ai-sdk/google-vertex";
 import { createXai } from "@ai-sdk/xai";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import type { LanguageModelV1 } from "ai";
+import type { LanguageModel } from "ai";
 
 /**
  * Instantiates the appropriate Vercel AI SDK language model for the given provider.
@@ -19,14 +19,14 @@ import type { LanguageModelV1 } from "ai";
  * @param apiKey      - Provider API key (not required for `ollama`)
  * @param model       - Model ID to use
  * @param _temperature - Unused here; temperature is passed to generateText at call time
- * @returns A LanguageModelV1 instance, or `null` for an unrecognised provider
+ * @returns A LanguageModel instance, or `null` for an unrecognised provider
  */
 export function createLLMProvider(
   provider: string,
   apiKey: string,
   model: string,
   _temperature: number,
-): LanguageModelV1 | null {
+): LanguageModel | null {
   switch (provider) {
     case "groq":
       return createGroq({ apiKey })(model);
