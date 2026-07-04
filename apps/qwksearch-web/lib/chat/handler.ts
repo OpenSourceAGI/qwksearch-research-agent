@@ -5,7 +5,9 @@
 
 import crypto from "crypto";
 import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
+import { eq } from "drizzle-orm";
 import { getDB } from "@/lib/database";
+import { user as userSchema } from "@/lib/database/schema";
 import { searchHandlers } from "ai-research-agent/search";
 import ModelRegistry from "ai-research-agent/models/registry";
 import { getUserId } from "@/lib/auth/session";
@@ -117,7 +119,7 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
   const t0 = Date.now();
   console.log("[POST /api/agent/chat] request received");
   try {
-    const userId = await getUserId();
+    let userId = await getUserId();
     console.log("[POST /api/agent/chat] userId:", userId ?? "(guest)");
 
     // DB is only needed to persist history for authenticated users.
@@ -126,6 +128,22 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     let db: ReturnType<typeof getDB> | undefined;
     if (userId) {
       db = getDB();
+
+      // A session can outlive its user row (e.g. sessions cached in KV that
+      // reference a user from a previous database). The chats/messages tables
+      // enforce FOREIGN KEY (userId) REFERENCES user(id), so persisting with a
+      // stale userId aborts the insert. Downgrade such sessions to guest.
+      const userRow = await db.query.user.findFirst({
+        where: eq(userSchema.id, userId),
+        columns: { id: true },
+      });
+      if (!userRow) {
+        console.warn(
+          `[POST /api/agent/chat] session userId ${userId} has no user row; treating as guest`,
+        );
+        userId = null;
+        db = undefined;
+      }
     }
 
     /** @type {Body} Raw request body before validation. */
@@ -273,15 +291,24 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
       message.chatId,
     );
     if (userId && db) {
-      await handleHistorySave(
-        message,
-        humanMessageId,
-        body.focusMode,
-        body.files,
-        userId,
-        db,
-        body.thinkingTimeLimit,
-      );
+      try {
+        await handleHistorySave(
+          message,
+          humanMessageId,
+          body.focusMode,
+          body.files,
+          userId,
+          db,
+          body.thinkingTimeLimit,
+        );
+      } catch (err) {
+        // History persistence is best-effort: the answer stream is already
+        // set up, so a failed save must not turn the request into a 500.
+        console.error(
+          "[POST /api/agent/chat] handleHistorySave failed (continuing without history):",
+          err,
+        );
+      }
     }
     console.log(
       `[POST /api/agent/chat] history saved, returning stream (setup took ${Date.now() - t0}ms)`,
