@@ -1,8 +1,10 @@
 # Changelog
 
+# MVP Phase (2026)
+
 ## July 2026
 
-Major framework modernization with **Vinext 1.0.0-beta.0** and **Vite 8** (rolldown-based). Replaced **LangChain** with **Vercel AI SDK** across the chat pipeline. Enhanced session management with centralized stale-session guards. Improved error handling in model loading and database operations. Fixed Worker deployments, CommonJS/ESM compatibility, and frozen lockfile issues.
+Major framework modernization with **Vinext 1.0.0-beta.0** and **Vite 8** (rolldown-based). Replaced **LangChain** with **Vercel AI SDK** across the chat pipeline. Improved error handling in model loading and database operations. Fixed Worker deployments, CommonJS/ESM compatibility, and frozen lockfile issues.
 
 ## June 2026
 
@@ -16,29 +18,8 @@ Editor and authentication enhancements. Integrated **Google One Tap** with FedCM
 
 **Major V2 rewrite** with fundamental restructuring. Optimized project structure and removed deprecated dependencies. Reorganized scraper infrastructure with rebuilt **Next.js** configuration. Implemented **XGBoost** statistical analysis, replacing neural utilities. Overhauled documentation and README. Refactored research agent components and migrated chat/article modules. Enhanced editor with font customization and menu improvements. Improved **Cloudflare Workers** configuration.
 
-## December 2025
 
-Release stabilization with versions **0.0.2 through 0.0.12**. Refined reading view UI with improved margins and responsive media styling. Integrated **Fumadocs theme** for documentation. Standardized package configuration across monorepo. Updated README and client docs for better onboarding.
-
-## November 2025
-
-Documentation modernization with **Fumadocs theme**. Enhanced README with better structure and examples. Focused on improving developer experience.
-
-## September 2025
-
-**Docker** containerization improvements. Fixed core search functionality with better **Docker Compose** configurations. Resolved Dockerfile reliability issues. Refactored read mode UI with improved styling and responsive media rendering. Focused on production readiness.
-
-## August 2025
-
-**Turborepo** reorganization with microservices architecture. Separated scraper and search-web into individual dockerfiles. Improved monorepo management with clearer separation of concerns. Laid foundation for scalability.
-
-## May 2025
-
-**Transformer.js** integration for on-device ML capabilities. Implemented **better-auth** for improved authentication. Added **Grab API** for enhanced data extraction. Expanded local ML processing and secure authentication.
-
-## April 2025
-
-Documentation and deployment automation. Configured **GitHub Pages** deployment at **airesearch.js.org**. Optimized homepage and folder structure. Refined workflow actions for automated deployments. Streamlined build processes.
+# Prototype Research Phase (pre-2026)
 
 ## December 2024
 
