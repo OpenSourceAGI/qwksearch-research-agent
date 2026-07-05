@@ -17,9 +17,28 @@ const ArticleFollowupQuestions: React.FC<ArticleFollowupQuestionsProps> = ({
   error,
   onQuestionClick,
 }) => {
+  // Split questions that contain multiple sentences ending with ?
+  const splitQuestions = React.useMemo(() => {
+    const result: string[] = [];
+    questions.forEach(q => {
+      // Check if the question contains multiple sentences by looking for ? followed by non-whitespace
+      if (q.includes('?') && q.split('?').length > 2) {
+        // Split by ? and filter out empty strings
+        const parts = q.split('?').map(part => part.trim()).filter(Boolean);
+        parts.forEach(part => {
+          // Re-add the ? mark if it doesn't already have one
+          result.push(part.endsWith('?') ? part : `${part}?`);
+        });
+      } else {
+        result.push(q);
+      }
+    });
+    return result;
+  }, [questions]);
+
   return (
     <>
-      {questions.length > 0 && (
+      {splitQuestions.length > 0 && (
         <div className="space-y-2">
           <div
             onClick={() => onQuestionClick(DEFAULT_SUMMARIZE_PROMPT)}
@@ -27,7 +46,7 @@ const ArticleFollowupQuestions: React.FC<ArticleFollowupQuestionsProps> = ({
           >
             {DEFAULT_SUMMARIZE_PROMPT}
           </div>
-          {questions.map((question, i) => (
+          {splitQuestions.map((question, i) => (
             <div
               key={i}
               onClick={() => onQuestionClick(question)}

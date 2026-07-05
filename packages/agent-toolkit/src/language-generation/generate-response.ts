@@ -28,7 +28,7 @@ export { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
  * question and context.
  * - _Requires_: LLM provider, API key, agent name, and context variables.
  * - _Providers_: groq, togetherai, openai, anthropic, xai, google,
- *   perplexity, ollama, cloudflare, nvidia
+ *   perplexity, cloudflare, nvidia
  * - _Agent Templates_: custom local entries defined in AGENT_PROMPTS.
  * - _How it Works_: Language models predict the most likely next token given
  *   a prompt. They represent words as high-dimensional vectors, use

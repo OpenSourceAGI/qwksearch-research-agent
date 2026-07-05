@@ -19,45 +19,35 @@ export const LANGUAGE_MODELS = [
         id: "nvidia/llama-nemotron-3-super-120b-a12b",
         contextLength: 128000,
         free: true,
+        type: "text-generation",
       },
       {
         name: "Moonshot AI Kimi K2.5 (Free)",
         id: "moonshotai/kimi-k2.5",
         contextLength: 256000,
         free: true,
+        type: "text-generation",
       },
       {
         name: "DeepSeek V3 (Free - Open MoE 1M Context)",
         id: "deepseek/deepseek-v3",
         contextLength: 1000000,
         free: true,
+        type: "text-generation",
       },
       {
         name: "Gemma 4 31B IT (Free)",
         id: "google/gemma-4-31b-it",
         contextLength: 131072,
         free: true,
+        type: "text-generation",
       },
       {
         name: "GLM 4.5 Air (Free)",
         id: "z-ai/glm-4.5-air",
         contextLength: 128000,
         free: true,
-      },
-      {
-        name: "Nemotron Nano 12B v2 VL",
-        id: "nvidia/nemotron-nano-12b-v2-vl",
-        contextLength: 128000,
-      },
-      {
-        name: "Llama 4",
-        id: "meta/llama-4",
-        contextLength: 128000,
-      },
-      {
-        name: "Qwen2.5",
-        id: "qwen/qwen2.5",
-        contextLength: 128000,
+        type: "text-generation",
       },
     ],
   },
@@ -468,12 +458,12 @@ export const LANGUAGE_MODELS = [
     api_key: "https://console.groq.com/keys",
     default: "llama-3.3-70b-versatile",
     models: [
-      // Free models with daily limits (TPM × 60 min × 24 hours)
       {
         name: "Llama 3.3 70B Versatile (Free)",
         id: "llama-3.3-70b-versatile",
         contextLength: 131072,
         free: true,
+        type: "text-generation",
         rateLimit: "300K TPM / 1K RPM = ~432M tokens/day",
       },
       {
@@ -481,6 +471,7 @@ export const LANGUAGE_MODELS = [
         id: "llama-3.1-8b-instant",
         contextLength: 8192,
         free: true,
+        type: "text-generation",
         rateLimit: "250K TPM / 1K RPM = ~360M tokens/day",
       },
       {
@@ -488,6 +479,7 @@ export const LANGUAGE_MODELS = [
         id: "meta-llama/llama-4-scout-17b-16e-instruct",
         contextLength: 131072,
         free: true,
+        type: "text-generation",
         rateLimit: "300K TPM / 1K RPM = ~432M tokens/day",
       },
       {
@@ -495,6 +487,7 @@ export const LANGUAGE_MODELS = [
         id: "qwen/qwen3-32b",
         contextLength: 128000,
         free: true,
+        type: "text-generation",
         rateLimit: "300K TPM / 1K RPM = ~432M tokens/day",
       },
       {
@@ -502,6 +495,7 @@ export const LANGUAGE_MODELS = [
         id: "openai/gpt-oss-120b",
         contextLength: 32768,
         free: true,
+        type: "text-generation",
         rateLimit: "250K TPM / 1K RPM = ~360M tokens/day",
       },
       {
@@ -509,6 +503,7 @@ export const LANGUAGE_MODELS = [
         id: "openai/gpt-oss-20b",
         contextLength: 32768,
         free: true,
+        type: "text-generation",
         rateLimit: "250K TPM / 1K RPM = ~360M tokens/day",
       },
       {
@@ -516,6 +511,7 @@ export const LANGUAGE_MODELS = [
         id: "groq/compound",
         contextLength: 32768,
         free: true,
+        type: "text-generation",
         rateLimit: "200K TPM / 200 RPM = ~288M tokens/day",
       },
       {
@@ -523,6 +519,7 @@ export const LANGUAGE_MODELS = [
         id: "groq/compound-mini",
         contextLength: 32768,
         free: true,
+        type: "text-generation",
         rateLimit: "200K TPM / 200 RPM = ~288M tokens/day",
       },
       {
@@ -530,52 +527,8 @@ export const LANGUAGE_MODELS = [
         id: "openai/gpt-oss-safeguard-20b",
         contextLength: 32768,
         free: true,
+        type: "text-generation",
         rateLimit: "150K TPM / 1K RPM = ~216M tokens/day",
-      },
-      {
-        name: "DeepSeek R1 Distill Llama 70B",
-        id: "deepseek-r1-distill-llama-70b",
-        contextLength: 131072,
-      },
-      {
-        name: "Llama 4 Maverick 17B",
-        id: "meta-llama/llama-4-maverick-17b-128e-instruct",
-        contextLength: 131072,
-      },
-      {
-        name: "Llama 3.3 70B SpecDec",
-        id: "llama-3.3-70b-specdec",
-        contextLength: 131072,
-      },
-      {
-        name: "Llama 3.1 70B",
-        id: "llama-3.1-70b-versatile",
-        contextLength: 65536,
-      },
-      {
-        name: "Llama 3.2 3B",
-        id: "llama-3.2-3b-preview",
-        contextLength: 8192,
-      },
-      {
-        name: "Llama 3.2 11B Vision",
-        id: "llama-3.2-11b-vision-preview",
-        contextLength: 32768,
-      },
-      {
-        name: "Llama 3.2 90B Vision",
-        id: "llama-3.2-90b-vision-preview",
-        contextLength: 131072,
-      },
-      {
-        name: "Mixtral 8x7B",
-        id: "mixtral-8x7b-32768",
-        contextLength: 32768,
-      },
-      {
-        name: "Gemma2 9B",
-        id: "gemma2-9b-it",
-        contextLength: 16384,
       },
     ],
   },
@@ -1225,12 +1178,12 @@ export const LANGUAGE_MODELS = [
     api_key: "https://openrouter.ai/settings/keys",
     default: "openrouter/free",
     models: [
-      // Free models (prioritized) - No daily limits, $0 per 1M tokens
       {
         name: "OpenRouter Free (200K context)",
         id: "openrouter/free",
         contextLength: 200000,
         free: true,
+        type: "text-generation",
         rateLimit: "No daily limit - $0 per 1M input/output tokens",
       },
       {
@@ -1238,6 +1191,7 @@ export const LANGUAGE_MODELS = [
         id: "nvidia/nemotron-3-super-120b-a12b:free",
         contextLength: 128000,
         free: true,
+        type: "text-generation",
         rateLimit: "No daily limit - $0 per 1M tokens",
       },
       {
@@ -1245,6 +1199,7 @@ export const LANGUAGE_MODELS = [
         id: "qwen/qwen3-coder:free",
         contextLength: 32768,
         free: true,
+        type: "text-generation",
         rateLimit: "No daily limit - $0 per 1M tokens",
       },
       {
@@ -1252,6 +1207,7 @@ export const LANGUAGE_MODELS = [
         id: "deepseek/deepseek-v4-flash:free",
         contextLength: 64000,
         free: true,
+        type: "text-generation",
         rateLimit: "No daily limit - $0 per 1M tokens",
       },
       {
@@ -1259,6 +1215,7 @@ export const LANGUAGE_MODELS = [
         id: "google/gemma-4-31b-it:free",
         contextLength: 131072,
         free: true,
+        type: "text-generation",
         rateLimit: "No daily limit - $0 per 1M tokens",
       },
       {
@@ -1266,48 +1223,8 @@ export const LANGUAGE_MODELS = [
         id: "z-ai/glm-4.5-air:free",
         contextLength: 128000,
         free: true,
+        type: "text-generation",
         rateLimit: "No daily limit - $0 per 1M tokens",
-      },
-      // Premium models
-      {
-        name: "Claude 3.7 Sonnet",
-        id: "anthropic/claude-3.7-sonnet",
-        contextLength: 200000,
-      },
-      {
-        name: "Claude 3.5 Sonnet",
-        id: "anthropic/claude-3.5-sonnet",
-        contextLength: 200000,
-      },
-      {
-        name: "GPT-4o",
-        id: "openai/gpt-4o",
-        contextLength: 128000,
-      },
-      {
-        name: "GPT-4o Mini",
-        id: "openai/gpt-4o-mini",
-        contextLength: 128000,
-      },
-      {
-        name: "Gemini 2.5 Pro",
-        id: "google/gemini-2.5-pro",
-        contextLength: 1048576,
-      },
-      {
-        name: "Gemini 2.0 Flash",
-        id: "google/gemini-2.0-flash",
-        contextLength: 1048576,
-      },
-      {
-        name: "Llama 4 Scout 17B",
-        id: "meta-llama/llama-4-scout-17b-16e-instruct",
-        contextLength: 131072,
-      },
-      {
-        name: "Mistral Large 2",
-        id: "mistralai/mistral-large-2",
-        contextLength: 128000,
       },
     ],
   },

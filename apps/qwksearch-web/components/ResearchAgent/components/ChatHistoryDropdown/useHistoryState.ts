@@ -13,7 +13,6 @@ import {
   clearAllGuestChats,
 } from "@/lib/storage/guest";
 import { Chat } from "@/types/research";
-import grab from "grab-url";
 import { toast } from "sonner";
 
 const PINNED_CHATS_KEY = "qwksearch_pinned_chats";
@@ -89,7 +88,18 @@ export function useHistoryState() {
 
     try {
       if (isAuthenticated) {
-        const data = await grab(`agent/chats`);
+        const response = await fetch('/api/agent/chats', {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
         setChats(Array.isArray(data?.chats) ? data.chats : []);
       } else {
         const guestChats = getGuestChats().map((chat) => ({
@@ -124,9 +134,17 @@ export function useHistoryState() {
     setDeleting(true);
     try {
       if (isAuthenticated) {
-        await grab(`agent/chats/${chatToDelete}`, {
-          method: "DELETE",
+        const response = await fetch(`/api/agent/chats/${chatToDelete}`, {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
       } else {
         deleteGuestChat(chatToDelete);
       }
@@ -149,9 +167,17 @@ export function useHistoryState() {
     setClearingAll(true);
     try {
       if (isAuthenticated) {
-        await grab(`agent/chats`, {
-          method: "DELETE",
+        const response = await fetch('/api/agent/chats', {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
       } else {
         clearAllGuestChats();
       }
@@ -186,9 +212,21 @@ export function useHistoryState() {
       setSearching(true);
       try {
         if (isAuthenticated) {
-          const data = await grab(
-            `agent/chats/search?q=${encodeURIComponent(query)}`,
+          const response = await fetch(
+            `/api/agent/chats/search?q=${encodeURIComponent(query)}`,
+            {
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
           );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
           setSearchResults(Array.isArray(data?.chats) ? data.chats : []);
         } else {
           // For guest users, search locally

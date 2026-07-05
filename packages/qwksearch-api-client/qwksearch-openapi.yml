@@ -218,7 +218,6 @@ paths:
         | **Alibaba (Qwen)** | 🇨🇳 | Qwen3-Coder / Qwen3-235B (QwQ, Qwen-VL, Qwen-Audio) | 🥇 Codeforces Elo 2056 · 💻 SWE-bench 69.6% · 🏎️ LCB 70.7% | [Docs](https://www.alibabacloud.com/help/en/model-studio/developer-reference/use-qwen-by-calling-api) | [Keys](https://bailian.console.aliyun.com/?apiKey=1) | Public |
         | **DeepSeek** | 🇨🇳 | DeepSeek V3.2 / R1 (DeepSeek-Coder, DeepSeek-VL) | 🥇 IMO gold (open) · 📚 MMLU-Pro 81.2 · 🧮 AIME 87.5% | [Docs](https://api-docs.deepseek.com/) | [Keys](https://platform.deepseek.com/api_keys) | Bootstrapped |
         | **Cloudflare** | 🇺🇸 | (Llama, Gemma, Mistral, Phi, Qwen, DeepSeek) | 🌐 Edge inference · ⚡ Serverless CDN scale · 🔒 Privacy-first | [Docs](https://developers.cloudflare.com/workers-ai/) | [Keys](https://dash.cloudflare.com/profile/api-tokens) | Public |
-        | **Ollama** | 🇺🇸 | (Llama, Mistral, Gemma, Qwen, DeepSeek, CodeLlama, LLaVA, Phi) | 🖥️ #1 local inference · 🔒 Fully offline · 🆓 Free self-hosted | [Docs](https://ollama.com/docs) | [Keys](https://ollama.com/settings/keys) | ~$20M |
 
         ![how_transformer_works](https://i.imgur.com/l0BvtlG.jpeg)
         ![agent_arch_viz](https://i.imgur.com/bailW5n.gif)
@@ -252,8 +251,9 @@ paths:
                     summary-longtext(summaries)
                 provider:
                   type: string
-                  default: groq
+                  default: openrouter
                   enum:
+                    - openrouter
                     - groq
                     - openai
                     - anthropic
@@ -261,7 +261,6 @@ paths:
                     - xai
                     - google
                     - perplexity
-                    - ollama
                     - cloudflare
                   description: 👄 LIPs Language Intelligence Providers
                 key:
