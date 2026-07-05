@@ -6,7 +6,7 @@
   "license": "rights.institute/prosper",
   "type": "module",
   "scripts": {
-    "dev": "open-ready vinext dev",
+    "dev": "npx open-ready vinext dev",
     "prebuild": "cd ../../packages/shadcn-app-dock && bun run build",
     "build": "vinext build",
     "deploy": "vinext deploy",

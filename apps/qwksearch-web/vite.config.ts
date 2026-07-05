@@ -1,8 +1,16 @@
 import vinext from "vinext";
-import { defineConfig } from "vite";
+import { createLogger, defineConfig } from "vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
+import rsc from "@vitejs/plugin-rsc";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+
+const logger = createLogger();
+const _warn = logger.warn.bind(logger);
+logger.warn = (msg, opts) => {
+  if (msg.includes("pp-ed-ul.otf")) return;
+  _warn(msg, opts);
+};
 
 // `cloudflare:workers` is only provided by @cloudflare/vite-plugin in the
 // server (rsc/ssr) environments. A few shared modules that read env vars are
@@ -12,15 +20,11 @@ const cloudflareWorkersStub = fileURLToPath(
 );
 
 export default defineConfig(({ command }) => ({
+  customLogger: logger,
   resolve: {
     alias: {
       "shadcn-app-dock": resolve(__dirname, "../../packages/shadcn-app-dock/src/index.ts"),
     },
-  },
-  optimizeDeps: {
-    // Work around an esbuild/runner interaction in this repo where React
-    // entry points can be treated as external during prebundle.
-    exclude: ["react", "react-dom", "react/jsx-runtime", "react/jsx-dev-runtime"],
   },
   build: {
     rollupOptions: {
@@ -110,6 +114,19 @@ export default defineConfig(({ command }) => ({
       },
     },
     vinext(),
+    // Cloudflare Workers deployment with the App Router needs `@vitejs/plugin-rsc`
+    // registered explicitly (see vinext README "Custom Vite configuration") —
+    // without it, vinext's own RSC/SSR environment defaults for React are left
+    // in place instead of plugin-rsc's, and `react`/`react-dom` end up both
+    // `optimizeDeps.include`d and `resolve.external`d in the same environment,
+    // which crashes esbuild with "entry point react cannot be marked as external".
+    rsc({
+      entries: {
+        rsc: "virtual:vinext-rsc-entry",
+        ssr: "virtual:vinext-app-ssr-entry",
+        client: "virtual:vinext-app-browser-entry",
+      },
+    }),
     ...(command === "serve"
       ? []
       : [
