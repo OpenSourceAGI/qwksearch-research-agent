@@ -71,7 +71,7 @@ export default class ModelRegistry {
 
   /**
    * Finds a provider by id, falling back to free providers in order:
-   * Groq (fastest free tier), OpenRouter (largest free model selection),
+   * OpenRouter (no daily limits, best for guests), Groq (fastest, daily limits),
    * then NVIDIA, then the first configured provider.
    * Client-side provider ids are config hashes that go stale whenever
    * server env config changes, so a graceful fallback keeps existing
@@ -82,10 +82,10 @@ export default class ModelRegistry {
     let provider = providers.find((p) => p.id === providerId);
 
     if (!provider && providers.length > 0) {
-      // Prioritize free providers: Groq first for speed, OpenRouter second for variety
+      // Prioritize OpenRouter (no daily limits) over Groq (has daily limits)
       provider =
-        providers.find((p) => p.name.toLowerCase().includes("groq")) ??
         providers.find((p) => p.name.toLowerCase().includes("openrouter")) ??
+        providers.find((p) => p.name.toLowerCase().includes("groq")) ??
         providers.find((p) => p.name.toLowerCase().includes("nvidia")) ??
         providers[0];
     }

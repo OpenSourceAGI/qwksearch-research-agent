@@ -257,6 +257,20 @@ export async function extractContent(
         htmlLength: typeof html === "string" ? html.length : 0,
         sample: typeof html === "string" ? html.slice(0, 200) : null,
       });
+
+      // Check if scrapeURL returned an error object instead of HTML string
+      if (typeof html !== "string" || !html) {
+        console.log("[extractContent] scrapeURL failed or returned non-string", {
+          url,
+          html: typeof html === "object" ? html : "empty",
+        });
+        return {
+          error: typeof html === "object" && html?.error
+            ? html.error
+            : "Failed to fetch HTML content",
+        };
+      }
+
       options.url = url;
       response = extractContentAndCite(html, options);
       console.log("[extractContent] extractContentAndCite result", {
