@@ -9,7 +9,7 @@ import type {JSX} from 'react';
 
 import './index.css';
 
-import DropIndicator from '@atlaskit/drag-and-drop-indicator/box';
+import {DropIndicator} from '@atlaskit/pragmatic-drag-and-drop-react-drop-indicator/box';
 import {
   draggable,
   dropTargetForElements,

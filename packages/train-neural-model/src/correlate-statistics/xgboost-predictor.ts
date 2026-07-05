@@ -3,7 +3,7 @@
  * @description XGBoost model prediction functionality.
  */
 import xgboost from "xgboost_node";
-import { PredictOptions } from "./types";
+import type { PredictOptions } from "./types";
 
 /**
  * Predicts target variable for future data using the trained XGBoost model

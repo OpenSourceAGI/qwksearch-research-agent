@@ -33,14 +33,14 @@
     "grab-url": "^1.6.19",
     "tldts": "^7.0.11",
     "unzipper": "^0.12.3",
-    "vitest": "^1.6.0",
-    "zlib": "^1.0.5"
+    "vitest": "^4.0.18"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.9.3",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vite": "^8.1.3"
   }
 }

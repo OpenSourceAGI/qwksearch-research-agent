@@ -31,6 +31,8 @@ export interface ExtractContentOptions {
   citeFormatAuthorFull?: boolean;
   url?: string;
   useThirdPartyBackup?: boolean;
+  /** Preferred transcript languages when extracting YouTube videos. */
+  languages?: string[];
 }
 
 export interface ExtractedArticle {

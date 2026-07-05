@@ -36,16 +36,13 @@ import {
 import {useCallback, useMemo, useState} from 'react';
 
 import useModal from '../../hooks/useModal';
-import catTypingGif from '../../images/cat-typing.gif';
 import {EmbedConfigs} from '../AutoEmbedPlugin';
-import {INSERT_COLLAPSIBLE_COMMAND} from '../CollapsibleExtension';
-import {INSERT_DATETIME_COMMAND} from '../DateTimeExtension';
-import {InsertEquationDialog} from '../EquationsExtension';
-import {INSERT_EXCALIDRAW_COMMAND} from '../ExcalidrawExtension';
-import {INSERT_IMAGE_COMMAND, InsertImageDialog} from '../ImagesExtension';
-import InsertLayoutDialog from '../LayoutExtension/InsertLayoutDialog';
-import {INSERT_PAGE_BREAK} from '../PageBreakExtension';
-import {InsertPollDialog} from '../PollExtension';
+import {INSERT_COLLAPSIBLE_COMMAND} from '../CollapsiblePlugin';
+import {INSERT_DATETIME_COMMAND} from '../DateTimePlugin';
+import {InsertImageDialog} from '../ImagesPlugin';
+import InsertLayoutDialog from '../LayoutPlugin/InsertLayoutDialog';
+import {INSERT_PAGE_BREAK} from '../PageBreakPlugin';
+import {InsertPollDialog} from '../PollPlugin';
 import {InsertTableDialog} from '../TablePlugin';
 
 export class ComponentPickerOption extends MenuOption {
@@ -240,12 +237,6 @@ export function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
       keywords: ['page break', 'divider'],
       onSelect: () => editor.dispatchCommand(INSERT_PAGE_BREAK, undefined),
     }),
-    new ComponentPickerOption('Excalidraw', {
-      icon: <i className="icon diagram-2" />,
-      keywords: ['excalidraw', 'diagram', 'drawing'],
-      onSelect: () =>
-        editor.dispatchCommand(INSERT_EXCALIDRAW_COMMAND, undefined),
-    }),
     new ComponentPickerOption('Poll', {
       icon: <i className="icon poll" />,
       keywords: ['poll', 'vote'],
@@ -300,23 +291,6 @@ export function getBaseOptions(editor: LexicalEditor, showModal: ShowModal) {
         dateTime.setHours(0, 0, 0, 0); // Set time to midnight
         editor.dispatchCommand(INSERT_DATETIME_COMMAND, {dateTime});
       },
-    }),
-    new ComponentPickerOption('Equation', {
-      icon: <i className="icon equation" />,
-      keywords: ['equation', 'latex', 'math'],
-      onSelect: () =>
-        showModal('Insert Equation', onClose => (
-          <InsertEquationDialog activeEditor={editor} onClose={onClose} />
-        )),
-    }),
-    new ComponentPickerOption('GIF', {
-      icon: <i className="icon gif" />,
-      keywords: ['gif', 'animate', 'image', 'file'],
-      onSelect: () =>
-        editor.dispatchCommand(INSERT_IMAGE_COMMAND, {
-          altText: 'Cat typing on a laptop',
-          src: catTypingGif,
-        }),
     }),
     new ComponentPickerOption('Image', {
       icon: <i className="icon image" />,

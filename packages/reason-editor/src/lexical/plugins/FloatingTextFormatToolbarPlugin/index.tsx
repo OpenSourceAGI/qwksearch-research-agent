@@ -35,6 +35,11 @@ import {getSelectedNode} from '../../utils/getSelectedNode';
 import {setFloatingElemPosition} from '../../utils/setFloatingElemPosition';
 import {INSERT_INLINE_COMMAND} from '../CommentPlugin';
 
+export {
+  AutoHighlightProvider,
+  useAutoHighlight,
+} from './context/AutoHighlightContext';
+
 function TextFormatFloatingToolbar({
   editor,
   anchorElem,
