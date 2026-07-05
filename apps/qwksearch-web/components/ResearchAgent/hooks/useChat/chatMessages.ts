@@ -100,7 +100,7 @@ export const loadMessages = async (
   // ============ Authenticated User Flow ============
   // Fetch from API for authenticated users
   const { messages, chat }: { messages: Message[]; chat: any } = await grab(
-    "chats/" + chatId,
+    "agent/chats/" + chatId,
   );
 
   if (!messages || !chat) {
