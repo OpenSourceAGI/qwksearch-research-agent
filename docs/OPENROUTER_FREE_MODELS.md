@@ -1,16 +1,18 @@
-# OpenRouter Free Models Configuration
+# OpenRouter & Groq Free Models Configuration
 
 ## Summary
 
-Added comprehensive free model support from OpenRouter with **Nemotron 3 Nano 30B MoE** set as the default model for the platform.
+Added comprehensive free model support from **OpenRouter** and **Groq** with **Nemotron 70B** set as the default model for guests and new users.
 
 ## Changes Made
 
 ### 1. Default Model Update
 **File**: `packages/agent-toolkit/src/config/language-models-database.ts`
 
-- **Changed OpenRouter default** from `openrouter/free` to `nvidia/llama-nemotron-3-nano-30b-moe:free`
-- Nemotron 3 Nano 30B MoE is now the **first model** in the OpenRouter models list (ensures it's used as fallback)
+- **OpenRouter default**: `nvidia/llama-3.1-nemotron-70b-instruct:free` (Nemotron 70B)
+- **Groq default**: `llama-3.3-70b-versatile` (Llama 3.3 70B)
+- Nemotron 70B is now the **first model** in the OpenRouter models list (ensures it's used as fallback)
+- **Provider priority**: OpenRouter → Groq → NVIDIA → First available
 
 ### 2. New Free Models Added
 
@@ -45,15 +47,35 @@ All models include:
 - ✅ **Context length**: Properly specified
 - ✅ **Rate limits**: "No daily limit - $0 per 1M tokens"
 
-## Why Nemotron 3 Nano 30B MoE?
+## Why Nemotron 70B as Default?
 
-Chosen as default for these reasons:
+Chosen as the default for guests and new users for these reasons:
 
-1. **Best Balance**: 30B MoE architecture provides excellent quality-to-speed ratio
-2. **Large Context**: 128K context window handles long conversations
-3. **Efficient**: MoE (Mixture of Experts) means fast inference despite large capacity
-4. **Free**: No cost, no daily limits
-5. **NVIDIA-backed**: Professional model from a trusted provider
+1. **Excellent Quality**: 70B parameter model with strong reasoning capabilities
+2. **Large Context**: 131K context window handles long conversations
+3. **Proven Reliable**: Confirmed working on OpenRouter free tier
+4. **Efficient**: Good balance of quality and inference speed
+5. **Free**: No cost, no daily limits, perfect for guests
+6. **NVIDIA-backed**: Professional model from a trusted provider
+
+## Provider Strategy
+
+### OpenRouter (Primary - Best for Guests)
+- ✅ **No daily limits** on free models
+- ✅ Largest variety of free models (20+)
+- ✅ Default: Nemotron 70B
+- ✅ Backup models: Llama 3.1 70B, Qwen 2.5 72B, DeepSeek V3
+
+### Groq (Secondary - Fastest Inference)  
+- ✅ Ultra-fast inference (fastest in the industry)
+- ⚠️ Daily limits apply (300K-432M tokens/day)
+- ✅ Default: Llama 3.3 70B Versatile
+- ✅ Free models: Llama 4 Scout 17B, Qwen 3 32B, GPT-OSS 120B
+
+### NVIDIA (Tertiary - Direct Access)
+- ✅ Direct access to Nemotron models
+- ✅ Free tier available
+- ✅ Good for technical/coding tasks
 
 ## Testing
 

@@ -12,6 +12,12 @@
   "images": {
     "binding": "IMAGES",
   },
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "YOUR_KV_NAMESPACE_ID",
+    },
+  ],
   "d1_databases": [
     {
       "binding": "DB",
@@ -25,6 +31,12 @@
       "images": {
         "binding": "IMAGES",
       },
+      "kv_namespaces": [
+        {
+          "binding": "KV",
+          "id": "YOUR_PRODUCTION_KV_NAMESPACE_ID",
+        },
+      ],
       "d1_databases": [
         {
           "binding": "DB",

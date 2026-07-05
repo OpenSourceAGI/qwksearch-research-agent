@@ -27,3 +27,46 @@ export async function GET() {
 
   return NextResponse.json(accounts);
 }
+
+export async function DELETE(request: Request) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const { accountId } = await request.json();
+
+    if (!accountId) {
+      return NextResponse.json({ message: "Account ID is required" }, { status: 400 });
+    }
+
+    const db = getDB();
+
+    // Check if this is the only account
+    const allAccounts = await db
+      .select()
+      .from(accountTable)
+      .where(eq(accountTable.userId, session.user.id));
+
+    if (allAccounts.length <= 1) {
+      return NextResponse.json(
+        { message: "Cannot unlink your only account. Add another account first." },
+        { status: 400 }
+      );
+    }
+
+    // Delete the account
+    await db
+      .delete(accountTable)
+      .where(eq(accountTable.id, accountId));
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error unlinking account:", error);
+    return NextResponse.json(
+      { message: "Failed to unlink account" },
+      { status: 500 }
+    );
+  }
+}
