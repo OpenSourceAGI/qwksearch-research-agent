@@ -22,11 +22,6 @@ export const getModelProvidersUIConfigSection =
         fields: getOpenAIConfigFields(),
       },
       {
-        key: "ollama",
-        name: "Ollama",
-        fields: getOllamaConfigFields(),
-      },
-      {
         key: "anthropic",
         name: "Anthropic",
         fields: getAnthropicConfigFields(),
@@ -87,21 +82,6 @@ function getOpenAIConfigFields() {
   ];
 }
 
-function getOllamaConfigFields() {
-  return [
-    {
-      type: "string" as const,
-      name: "Base URL",
-      key: "baseURL",
-      description: "The base URL for Ollama. Run models 100% free locally - install from ollama.com",
-      required: true,
-      placeholder: "http://localhost:11434",
-      default: "http://localhost:11434/v1",
-      env: "OLLAMA_BASE_URL",
-      scope: "server" as const,
-    },
-  ];
-}
 
 function getAnthropicConfigFields() {
   return [

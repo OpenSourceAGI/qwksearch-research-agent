@@ -53,7 +53,6 @@ export const FREE_TIER_PROVIDERS = new Set([
   "openrouter", // Free models available
   "nvidia",     // Free NIM tier
   "groq",       // Free tier with rate limits
-  "ollama",     // 100% free (local)
 ]);
 
 /**
@@ -115,12 +114,6 @@ export function getProviderInfo(providerType: string): {
       hasFreeTier: true,
       signupUrl: "https://console.groq.com",
       docsUrl: "https://console.groq.com/docs",
-    },
-    ollama: {
-      name: "Ollama",
-      hasFreeTier: true,
-      signupUrl: "https://ollama.com",
-      docsUrl: "https://github.com/ollama/ollama",
     },
     anthropic: {
       name: "Anthropic",
@@ -195,12 +188,6 @@ export function getRecommendedFreeProviders(): Array<{
       name: "NVIDIA",
       reason: "Free access to Nemotron and other powerful models",
       signupUrl: "https://build.nvidia.com",
-    },
-    {
-      type: "ollama",
-      name: "Ollama",
-      reason: "Run models 100% free on your local machine",
-      signupUrl: "https://ollama.com",
     },
   ];
 }

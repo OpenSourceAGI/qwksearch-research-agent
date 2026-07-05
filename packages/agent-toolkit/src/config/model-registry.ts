@@ -16,7 +16,6 @@ import type { ConfigModelProvider, Model } from "./config-types";
 // LANGUAGE_MODELS database (e.g. the "gemini" UI key ↔ "Google" model list).
 const PROVIDER_KEY_TO_DB_NAME: Record<string, string> = {
   openai: "openai",
-  ollama: "ollama",
   anthropic: "anthropic",
   gemini: "google",
   groq: "groq",
@@ -138,8 +137,8 @@ export default class ModelRegistry {
       );
     }
 
-    // Validate API key is present (except for Ollama which doesn't need one)
-    if (type !== "ollama" && !apiKey) {
+    // Validate API key is present
+    if (!apiKey) {
       throw new Error(
         `No API key configured for provider "${provider.name}". Please add your API key in Settings → Model Providers.`,
       );
@@ -165,13 +164,6 @@ export default class ModelRegistry {
     }
 
     switch (type) {
-      case "ollama": {
-        const { createOpenAI } = await import("@ai-sdk/openai");
-        return createOpenAI({
-          apiKey: "ollama",
-          baseURL: config.baseURL || "http://localhost:11434/v1",
-        }).chat(modelName);
-      }
       case "cloudflare": {
         const { createOpenAI } = await import("@ai-sdk/openai");
         const [cfApiToken, accountId] = apiKey.split(":");

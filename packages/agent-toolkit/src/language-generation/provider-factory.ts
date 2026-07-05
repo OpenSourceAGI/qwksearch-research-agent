@@ -1,6 +1,6 @@
 /**
  * @fileoverview Provider factory for Vercel AI SDK v5 language model instances.
- * Supports OpenAI, Anthropic, Groq, Google, xAI, Amazon Bedrock, OpenRouter, Ollama, and OpenAI-compatible endpoints.
+ * Supports OpenAI, Anthropic, Groq, Google, xAI, Amazon Bedrock, OpenRouter, and OpenAI-compatible endpoints.
  */
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
@@ -16,7 +16,7 @@ import type { LanguageModel } from "ai";
  * Instantiates the appropriate Vercel AI SDK language model for the given provider.
  *
  * @param provider    - Normalised (lowercase) provider name
- * @param apiKey      - Provider API key (not required for `ollama`)
+ * @param apiKey      - Provider API key
  * @param model       - Model ID to use
  * @param _temperature - Unused here; temperature is passed to generateText at call time
  * @returns A LanguageModel instance, or `null` for an unrecognised provider
@@ -61,12 +61,6 @@ export function createLLMProvider(
         baseURL: `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/v1`,
       })(model);
     }
-
-    case "ollama":
-      return createOpenAI({
-        apiKey: "ollama",
-        baseURL: "http://localhost:11434/v1",
-      })(model);
 
     case "nvidia":
       return createOpenAI({

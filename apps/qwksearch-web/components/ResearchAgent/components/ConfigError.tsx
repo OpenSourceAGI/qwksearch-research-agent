@@ -49,10 +49,7 @@ OPENAI_API_KEY=sk-your_key_here
 OPENAI_BASE_URL=https://api.openai.com/v1
 
 # Or Anthropic
-ANTHROPIC_API_KEY=sk-ant-your_key_here
-
-# Or Ollama (Local)
-OLLAMA_BASE_URL=http://localhost:11434`}
+ANTHROPIC_API_KEY=sk-ant-your_key_here`}
               </pre>
             </div>
 
@@ -75,9 +72,6 @@ OLLAMA_BASE_URL=http://localhost:11434`}
               </li>
               <li>
                 <strong>Anthropic</strong>: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">console.anthropic.com</a>
-              </li>
-              <li>
-                <strong>Ollama</strong> (Local): <a href="https://ollama.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">ollama.ai</a>
               </li>
             </ul>
           </div>
