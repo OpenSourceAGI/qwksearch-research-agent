@@ -6,7 +6,7 @@
   "license": "rights.institute/prosper",
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "npx open-ready next dev",
     "prebuild": "cd ../../packages/shadcn-app-dock && bun run build",
     "build": "vinext build",
     "deploy": "vinext deploy",
@@ -121,7 +121,6 @@
     "react-textarea-autosize": "^8.5.9",
     "recharts": "^3.8.1",
     "remark-gfm": "^4.0.1",
-    "resend": "^6.12.4",
     "shadcn-theme-menu": "^1.1.13",
     "sonner": "^2.0.7",
     "streamdown": "^2.5.0",

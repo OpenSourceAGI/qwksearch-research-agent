@@ -12,12 +12,37 @@ export const LANGUAGE_MODELS = [
     provider: "NVIDIA",
     docs: "https://docs.api.nvidia.com/nim/reference/llm-apis",
     api_key: "https://build.nvidia.com/settings/api-keys",
-    default: "moonshotai/kimi-k2.5",
+    default: "nvidia/llama-nemotron-3-super-120b-a12b",
     models: [
       {
-        name: "Moonshot AI Kimi K2.5",
+        name: "Nemotron 3 Super 120B (Free)",
+        id: "nvidia/llama-nemotron-3-super-120b-a12b",
+        contextLength: 128000,
+        free: true,
+      },
+      {
+        name: "Moonshot AI Kimi K2.5 (Free)",
         id: "moonshotai/kimi-k2.5",
         contextLength: 256000,
+        free: true,
+      },
+      {
+        name: "DeepSeek V3 (Free - Open MoE 1M Context)",
+        id: "deepseek/deepseek-v3",
+        contextLength: 1000000,
+        free: true,
+      },
+      {
+        name: "Gemma 4 31B IT (Free)",
+        id: "google/gemma-4-31b-it",
+        contextLength: 131072,
+        free: true,
+      },
+      {
+        name: "GLM 4.5 Air (Free)",
+        id: "z-ai/glm-4.5-air",
+        contextLength: 128000,
+        free: true,
       },
       {
         name: "Nemotron Nano 12B v2 VL",
@@ -25,23 +50,13 @@ export const LANGUAGE_MODELS = [
         contextLength: 128000,
       },
       {
-        name: "DeepSeek V3 (Open MoE 1M Context)",
-        id: "deepseek/deepseek-v3",
-        contextLength: 1000000,
-      },
-      {
-        name: "Llama Nemotron",
-        id: "nvidia/llama-nemotron",
+        name: "Llama 4",
+        id: "meta/llama-4",
         contextLength: 128000,
       },
       {
         name: "Qwen2.5",
         id: "qwen/qwen2.5",
-        contextLength: 128000,
-      },
-      {
-        name: "Llama 4",
-        id: "meta/llama-4",
         contextLength: 128000,
       },
     ],
@@ -451,8 +466,38 @@ export const LANGUAGE_MODELS = [
     provider: "Groq",
     docs: "https://console.groq.com/docs/overview",
     api_key: "https://console.groq.com/keys",
-    default: "meta-llama/llama-4-maverick-17b-128e-instruct",
+    default: "llama-3.3-70b-versatile",
     models: [
+      {
+        name: "Llama 3.3 70B Versatile (Free)",
+        id: "llama-3.3-70b-versatile",
+        contextLength: 131072,
+        free: true,
+      },
+      {
+        name: "Llama 3.1 8B Instant (Free)",
+        id: "llama-3.1-8b-instant",
+        contextLength: 8192,
+        free: true,
+      },
+      {
+        name: "Llama 4 Scout 17B (Free)",
+        id: "meta-llama/llama-4-scout-17b-16e-instruct",
+        contextLength: 131072,
+        free: true,
+      },
+      {
+        name: "Groq Compound (Free)",
+        id: "groq/compound",
+        contextLength: 32768,
+        free: true,
+      },
+      {
+        name: "Qwen 3 32B (Free)",
+        id: "qwen/qwen3-32b",
+        contextLength: 128000,
+        free: true,
+      },
       {
         name: "DeepSeek R1 Distill Llama 70B",
         id: "deepseek-r1-distill-llama-70b",
@@ -464,21 +509,15 @@ export const LANGUAGE_MODELS = [
         contextLength: 131072,
       },
       {
-        name: "Llama 4 Scout 17B",
-        id: "meta-llama/llama-4-scout-17b-16e-instruct",
-        contextLength: 131072,
-      },
-      {
-        name: "Llama 3.3 70B Versatile",
-        id: "llama-3.3-70b-versatile",
-        contextLength: 131072,
-      },
-      {
         name: "Llama 3.3 70B SpecDec",
         id: "llama-3.3-70b-specdec",
         contextLength: 131072,
       },
-
+      {
+        name: "Llama 3.1 70B",
+        id: "llama-3.1-70b-versatile",
+        contextLength: 65536,
+      },
       {
         name: "Llama 3.2 3B",
         id: "llama-3.2-3b-preview",
@@ -493,16 +532,6 @@ export const LANGUAGE_MODELS = [
         name: "Llama 3.2 90B Vision",
         id: "llama-3.2-90b-vision-preview",
         contextLength: 131072,
-      },
-      {
-        name: "Llama 3.1 70B",
-        id: "llama-3.1-70b-versatile",
-        contextLength: 65536,
-      },
-      {
-        name: "Llama 3.1 8B",
-        id: "llama-3.1-8b-instant",
-        contextLength: 8192,
       },
       {
         name: "Mixtral 8x7B",
@@ -1160,8 +1189,82 @@ export const LANGUAGE_MODELS = [
     provider: "OpenRouter",
     docs: "https://openrouter.ai/docs",
     api_key: "https://openrouter.ai/settings/keys",
-    default: "anthropic/claude-3.7-sonnet",
+    default: "nvidia/llama-nemotron-3-super-120b-a12b:free",
     models: [
+      // Free models (prioritized)
+      {
+        name: "Nemotron 3 Super 120B (Free)",
+        id: "nvidia/llama-nemotron-3-super-120b-a12b:free",
+        contextLength: 128000,
+        free: true,
+      },
+      {
+        name: "Kimi K2.5 (Free)",
+        id: "moonshotai/kimi-k2.5:free",
+        contextLength: 256000,
+        free: true,
+      },
+      {
+        name: "DeepSeek V4 Flash (Free)",
+        id: "deepseek/deepseek-v4-flash:free",
+        contextLength: 64000,
+        free: true,
+      },
+      {
+        name: "Gemma 4 31B IT (Free)",
+        id: "google/gemma-4-31b-it:free",
+        contextLength: 131072,
+        free: true,
+      },
+      {
+        name: "GLM 4.5 Air (Free)",
+        id: "z-ai/glm-4.5-air:free",
+        contextLength: 128000,
+        free: true,
+      },
+      {
+        name: "Qwen3 Coder (Free)",
+        id: "qwen/qwen3-coder:free",
+        contextLength: 32768,
+        free: true,
+      },
+      {
+        name: "OpenRouter Free Model",
+        id: "openrouter/free",
+        contextLength: 200000,
+        free: true,
+      },
+      {
+        name: "Nemotron 70B (Free)",
+        id: "nvidia/llama-3.1-nemotron-70b-instruct:free",
+        contextLength: 131072,
+        free: true,
+      },
+      {
+        name: "Llama 3.3 70B (Free)",
+        id: "meta-llama/llama-3.3-70b-instruct:free",
+        contextLength: 131072,
+        free: true,
+      },
+      {
+        name: "Qwen 2.5 72B (Free)",
+        id: "qwen/qwen-2.5-72b-instruct:free",
+        contextLength: 32768,
+        free: true,
+      },
+      {
+        name: "DeepSeek V3 (Free)",
+        id: "deepseek/deepseek-v3:free",
+        contextLength: 64000,
+        free: true,
+      },
+      {
+        name: "DeepSeek R1 (Free)",
+        id: "deepseek/deepseek-r1:free",
+        contextLength: 64000,
+        free: true,
+      },
+      // Premium models
       {
         name: "Claude 3.7 Sonnet",
         id: "anthropic/claude-3.7-sonnet",
@@ -1193,29 +1296,9 @@ export const LANGUAGE_MODELS = [
         contextLength: 1048576,
       },
       {
-        name: "DeepSeek V3",
-        id: "deepseek/deepseek-v3",
-        contextLength: 64000,
-      },
-      {
-        name: "DeepSeek R1",
-        id: "deepseek/deepseek-r1",
-        contextLength: 64000,
-      },
-      {
         name: "Llama 4 Scout 17B",
         id: "meta-llama/llama-4-scout-17b-16e-instruct",
         contextLength: 131072,
-      },
-      {
-        name: "Llama 3.3 70B",
-        id: "meta-llama/llama-3.3-70b-instruct",
-        contextLength: 131072,
-      },
-      {
-        name: "Qwen 2.5 72B",
-        id: "qwen/qwen-2.5-72b-instruct",
-        contextLength: 32768,
       },
       {
         name: "Mistral Large 2",

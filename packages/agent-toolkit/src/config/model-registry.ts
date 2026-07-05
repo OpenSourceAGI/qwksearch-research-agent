@@ -70,19 +70,23 @@ export default class ModelRegistry {
   }
 
   /**
-   * Finds a provider by id, falling back to NVIDIA, then Groq, then the
-   * first configured provider. Client-side provider ids are config hashes
-   * that go stale whenever server env config changes, so a graceful
-   * fallback keeps existing chat sessions working after a redeploy.
+   * Finds a provider by id, falling back to free providers in order:
+   * Groq (fastest free tier), OpenRouter (largest free model selection),
+   * then NVIDIA, then the first configured provider.
+   * Client-side provider ids are config hashes that go stale whenever
+   * server env config changes, so a graceful fallback keeps existing
+   * chat sessions working after a redeploy.
    */
   private findProvider(providerId?: string): ConfigModelProvider | undefined {
     const providers = this.activeProviders;
     let provider = providers.find((p) => p.id === providerId);
 
     if (!provider && providers.length > 0) {
+      // Prioritize free providers: Groq first for speed, OpenRouter second for variety
       provider =
-        providers.find((p) => p.name.toLowerCase().includes("nvidia")) ??
         providers.find((p) => p.name.toLowerCase().includes("groq")) ??
+        providers.find((p) => p.name.toLowerCase().includes("openrouter")) ??
+        providers.find((p) => p.name.toLowerCase().includes("nvidia")) ??
         providers[0];
     }
 
@@ -112,11 +116,33 @@ export default class ModelRegistry {
     const type = provider.type.toLowerCase();
     const config = provider.config || {};
     const apiKey = config.apiKey || "";
+    const availableModels = mergeChatModels(provider);
     const modelName =
-      modelKey || mergeChatModels(provider)[0]?.key || "";
+      modelKey || availableModels[0]?.key || "";
+
+    console.log(
+      `[ModelRegistry] loadChatModel: providerId=${providerId} provider=${provider.name} type=${type} requestedModel=${modelKey ?? "(default)"} resolvedModel=${modelName}`,
+    );
 
     if (!modelName) {
       throw new Error(`No chat models available for provider "${provider.name}"`);
+    }
+
+    // Validate that the requested model exists in the provider's model list
+    if (modelKey && !availableModels.some((m) => m.key === modelKey)) {
+      console.warn(
+        `[ModelRegistry] Requested model "${modelKey}" not found in provider "${provider.name}". Available models: ${availableModels.map((m) => m.key).join(", ")}`,
+      );
+      throw new Error(
+        `Model "${modelKey}" is not available for provider "${provider.name}". Please select a different model in Settings.`,
+      );
+    }
+
+    // Validate API key is present (except for Ollama which doesn't need one)
+    if (type !== "ollama" && !apiKey) {
+      throw new Error(
+        `No API key configured for provider "${provider.name}". Please add your API key in Settings → Model Providers.`,
+      );
     }
 
     // OpenAI-compatible providers differ only by base URL.

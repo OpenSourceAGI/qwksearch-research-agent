@@ -198,14 +198,20 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     // --- Load the requested LLM ---
     let llm;
     try {
+      console.log(
+        `[POST /api/agent/chat] loading LLM: providerId=${body.chatModel.providerId} modelKey=${body.chatModel.key}`,
+      );
       llm = await registry.loadChatModel(
         body.chatModel.providerId,
         body.chatModel.key,
       );
-      console.log("[POST /api/agent/chat] LLM loaded");
+      console.log("[POST /api/agent/chat] LLM loaded successfully");
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      console.error("[POST /api/agent/chat] loadChatModel failed:", errMsg);
+      console.error(
+        `[POST /api/agent/chat] loadChatModel failed for provider=${body.chatModel.providerId} model=${body.chatModel.key}:`,
+        errMsg,
+      );
       return Response.json(
         { message: `Failed to load LLM: ${errMsg}` },
         { status: 500 },

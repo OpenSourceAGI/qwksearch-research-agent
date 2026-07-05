@@ -137,7 +137,7 @@ export const handleEmitterEvents = async (
             role: "source",
             content: "",
             sources: parsedData.data as Document[],
-            createdAt: new Date().toString(),
+            createdAt: new Date().toISOString(),
           })
           .execute()
           .catch((err) => {
@@ -163,7 +163,7 @@ export const handleEmitterEvents = async (
           userId,
           messageId: aiMessageId,
           role: "assistant",
-          createdAt: new Date().toString(),
+          createdAt: new Date().toISOString(),
         })
         .execute()
         .catch((err) => {

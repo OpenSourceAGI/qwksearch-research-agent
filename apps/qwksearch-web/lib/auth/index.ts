@@ -5,7 +5,6 @@ import { getCloudflareContext } from "../cloudflare-context";
 import { oneTap, openAPI, magicLink, anonymous } from "better-auth/plugins";
 import { getDB } from "../database";
 import * as schema from "../database/schema";
-import { Resend } from "resend";
 import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../config/site";
 import { getEnv } from "../env";
 
@@ -57,12 +56,34 @@ async function authBuilder() {
           anonymous(),
           magicLink({
             sendMagicLink: async ({ email, url }) => {
-              const resend = new Resend(getEnv("AUTH_RESEND_KEY"));
-              await resend.emails.send({
-                from: `${APP_NAME} <${APP_EMAIL}>`,
-                to: email,
-                subject: `Sign in to ${APP_NAME}`,
-                html: `<p>Click the link below to sign in to ${APP_NAME}:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 5 minutes.</p>`,
+              // Get Cloudflare context for email sending
+              const ctx = getCloudflareContext();
+              const env = ctx.env as any;
+
+              // Use Cloudflare Email Service
+              await fetch("https://api.mailchannels.net/tx/v1/send", {
+                method: "POST",
+                headers: {
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                  personalizations: [
+                    {
+                      to: [{ email }],
+                    },
+                  ],
+                  from: {
+                    email: APP_EMAIL,
+                    name: APP_NAME,
+                  },
+                  subject: `Sign in to ${APP_NAME}`,
+                  content: [
+                    {
+                      type: "text/html",
+                      value: `<p>Click the link below to sign in to ${APP_NAME}:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 5 minutes.</p>`,
+                    },
+                  ],
+                }),
               });
             },
             expiresIn: 300,
