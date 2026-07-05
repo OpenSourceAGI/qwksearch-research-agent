@@ -85,7 +85,19 @@ export async function scrapeURL(url, options = {}) {
   try {
     html = await grab(url, { ...headers, responseType: "text" });
   } catch (e) {
-    return { error: "Error in fetch", msg: e.message };
+    const err = e as Error & { cause?: unknown; status?: number };
+    console.error("[scrapeURL] fetch failed", {
+      url,
+      message: err?.message,
+      cause: err?.cause,
+      status: err?.status,
+    });
+    return {
+      error: "Error in fetch",
+      msg: err?.message,
+      status: err?.status,
+      detail: err?.cause
+    };
   }
 
   // if (contentType.includes("application/json")) {

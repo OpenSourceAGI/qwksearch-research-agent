@@ -141,6 +141,24 @@ class MetaSearchAgent implements MetaSearchAgentType {
       question = "latest information";
     }
 
+    // Validate and sanitize the query before sending to search APIs
+    // If the LLM returned a long response instead of a concise query, extract the first sentence
+    // or use the original user query as fallback
+    question = question.trim();
+    if (question.length > 500 || question.split(/[.!?]\s+/).length > 5) {
+      // Query is too long or contains too many sentences - likely the LLM returned a full response
+      console.warn(`[MetaSearchAgent] Query is too long (${question.length} chars), truncating or using fallback`);
+
+      // Try to extract first sentence as the query
+      const firstSentence = question.split(/[.!?]\s+/)[0].trim();
+      if (firstSentence.length > 0 && firstSentence.length < 200) {
+        question = firstSentence;
+      } else {
+        // Fallback to original user query
+        question = query.slice(0, 200);
+      }
+    }
+
     // Emit "searching" progress event so the client can show live status
     const categoryLabel = this.config.activeEngines.length > 0
       ? this.config.activeEngines.slice(0, 2).join(", ")

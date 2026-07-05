@@ -260,14 +260,17 @@ export async function extractContent(
 
       // Check if scrapeURL returned an error object instead of HTML string
       if (typeof html !== "string" || !html) {
-        console.log("[extractContent] scrapeURL failed or returned non-string", {
+        console.error("[extractContent] scrapeURL failed or returned non-string", {
           url,
-          html: typeof html === "object" ? html : "empty",
+          typeofHtml: typeof html,
+          isEmpty: !html,
+          errorObj: typeof html === "object" ? html : null,
         });
         return {
           error: typeof html === "object" && html?.error
             ? html.error
             : "Failed to fetch HTML content",
+          detail: typeof html === "object" ? html : undefined,
         };
       }
 
