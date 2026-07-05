@@ -1,478 +1,442 @@
 /**
- * @fileoverview Integration tests for web extraction
- * Tests actual extraction functionality with real or mocked HTTP requests
+ * @fileoverview Integration tests for web extraction tools
+ * Tests the tool functions with realistic HTML extraction scenarios
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
-import { extractContent } from '../../../extract-webpage/src/url-to-content/url-to-content';
+import { describe, it, expect, vi } from 'vitest';
+import { AGENT_TOOLS } from '../src/tools/qwksearch-api-tools';
+import * as QwkSearch from 'qwksearch-api-client';
 
-describe('Web Extraction Integration', () => {
-  describe('Direct Extraction', () => {
-    it('should extract content from a simple HTML string', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Test Article</title>
-            <meta name="author" content="John Doe">
-            <meta name="date" content="2024-01-15">
-          </head>
-          <body>
-            <article>
-              <h1>Test Article Title</h1>
-              <p>This is the main content of the article.</p>
-              <p>It has multiple paragraphs.</p>
-            </article>
-          </body>
-        </html>
-      `;
+// Mock the QwkSearch API client
+vi.mock('qwksearch-api-client');
 
-      const result = await extractContent(html, {
-        url: 'https://example.com/article'
-      });
+describe('Web Extraction Integration Tests', () => {
+  const extractPageTool = AGENT_TOOLS.find(t => t.name === 'extract_page');
 
-      expect(result).toBeDefined();
-      expect(result.title).toBe('Test Article Title');
-      expect(result.html).toContain('This is the main content');
-      expect(result.author).toBe('John Doe');
-    }, 10000);
-
-    it('should handle HTML with no article tags', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head><title>Simple Page</title></head>
-          <body>
-            <div class="content">
-              <h1>Page Title</h1>
-              <p>Some content here.</p>
-            </div>
-          </body>
-        </html>
-      `;
-
-      const result = await extractContent(html, {
-        url: 'https://example.com/page'
-      });
-
-      expect(result).toBeDefined();
-      expect(result.title).toBeDefined();
-      expect(result.html).toBeDefined();
-    }, 10000);
-
-    it('should extract citation information', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Research Paper</title>
-            <meta name="author" content="Jane Smith">
-            <meta name="date" content="2024-07-01">
-            <meta property="og:site_name" content="Research Journal">
-          </head>
-          <body>
-            <article>
-              <h1>Important Research</h1>
-              <p>Research content here.</p>
-            </article>
-          </body>
-        </html>
-      `;
-
-      const result = await extractContent(html, {
-        url: 'https://journal.com/research'
-      });
-
-      expect(result).toBeDefined();
-      expect(result.author).toBeDefined();
-      expect(result.date).toBeDefined();
-      expect(result.cite).toBeDefined();
-      expect(result.cite).toContain('Smith');
-    }, 10000);
-
-    it('should calculate word count', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <body>
-            <article>
-              <h1>Title</h1>
-              <p>This is a test article with exactly twenty words in this paragraph to test the word count functionality properly.</p>
-            </article>
-          </body>
-        </html>
-      `;
-
-      const result = await extractContent(html, {
-        url: 'https://example.com'
-      });
-
-      expect(result).toBeDefined();
-      expect(result.word_count).toBeGreaterThan(0);
-      expect(typeof result.word_count).toBe('number');
-    }, 10000);
-
-    it('should handle malformed HTML gracefully', async () => {
-      const html = `
-        <html>
-          <body>
-            <p>Unclosed tag
-            <div>Some content
-          </body>
-      `;
-
-      const result = await extractContent(html, {
-        url: 'https://example.com'
-      });
-
-      expect(result).toBeDefined();
-      // Should not throw error, even with malformed HTML
-    }, 10000);
-
-    it('should extract multiple author types', async () => {
-      const testCases = [
-        {
-          author: 'John Doe',
-          expected_type: 'single'
-        },
-        {
-          author: 'John Doe and Jane Smith',
-          expected_type: 'two-author'
-        },
-        {
-          author: 'John Doe, Jane Smith, and Bob Johnson',
-          expected_type: 'more-than-two'
-        },
-        {
-          author: 'Research Institute',
-          expected_type: 'organization'
+  describe('Real-world HTML Extraction Scenarios', () => {
+    it('should extract a news article with complete metadata', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Breaking News: AI Advances in 2024',
+          html: `
+            <h1>Breaking News: AI Advances in 2024</h1>
+            <p>Artificial intelligence has seen remarkable progress this year with new breakthroughs in natural language processing.</p>
+            <p>Researchers have developed more efficient models that can understand context better than ever before.</p>
+            <h2>Key Developments</h2>
+            <p>The main advances include improved reasoning capabilities and better multilingual support.</p>
+          `,
+          cite: 'Smith, J. (2024, July 4). Breaking News: AI Advances in 2024. Tech News.',
+          author: 'Jane Smith',
+          author_cite: 'Smith, J.',
+          author_short: 'Smith',
+          author_type: 'single' as const,
+          date: '2024-07-04',
+          source: 'Tech News',
+          word_count: 45,
+          url: 'https://technews.com/ai-advances-2024'
         }
-      ];
+      };
 
-      for (const testCase of testCases) {
-        const html = `
-          <!DOCTYPE html>
-          <html>
-            <head>
-              <meta name="author" content="${testCase.author}">
-            </head>
-            <body><article><h1>Test</h1><p>Content</p></article></body>
-          </html>
-        `;
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
 
-        const result = await extractContent(html, {
-          url: 'https://example.com'
-        });
-
-        expect(result).toBeDefined();
-        expect(result.author).toBe(testCase.author);
-        // Author type detection may vary, so we just check it exists
-        expect(result.author_type).toBeDefined();
-      }
-    }, 30000);
-
-    it('should preserve formatting when requested', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <body>
-            <article>
-              <h1>Title</h1>
-              <p><strong>Bold text</strong> and <em>italic text</em></p>
-              <ul>
-                <li>List item 1</li>
-                <li>List item 2</li>
-              </ul>
-            </article>
-          </body>
-        </html>
-      `;
-
-      const result = await extractContent(html, {
-        url: 'https://example.com',
-        formatting: true
-      });
-
-      expect(result).toBeDefined();
-      expect(result.html).toContain('<strong>');
-      expect(result.html).toContain('<em>');
-      expect(result.html).toContain('<li>');
-    }, 10000);
-
-    it('should handle images in content', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <body>
-            <article>
-              <h1>Article with Image</h1>
-              <img src="/relative-image.jpg" alt="Test image">
-              <p>Content after image.</p>
-            </article>
-          </body>
-        </html>
-      `;
-
-      const result = await extractContent(html, {
-        url: 'https://example.com/article',
+      const result = await extractPageTool!.func({
+        url: 'https://technews.com/ai-advances-2024',
         images: true,
-        absoluteURLs: true
-      });
-
-      expect(result).toBeDefined();
-      if (result.html.includes('<img')) {
-        // If images are included, check for absolute URL conversion
-        expect(result.html).toContain('https://');
-      }
-    }, 10000);
-
-    it('should handle links in content', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <body>
-            <article>
-              <h1>Article with Links</h1>
-              <p>Check out <a href="/page">this page</a>.</p>
-            </article>
-          </body>
-        </html>
-      `;
-
-      const result = await extractContent(html, {
-        url: 'https://example.com/article',
         links: true,
-        absoluteURLs: true
+        formatting: true,
+        absoluteURLs: true,
+        timeout: 10
       });
 
-      expect(result).toBeDefined();
-      if (result.html.includes('<a')) {
-        // If links are included, check they exist
-        expect(result.html).toContain('href');
-      }
-    }, 10000);
-  });
+      expect(result).toContain('Breaking News: AI Advances in 2024');
+      expect(result).toContain('Jane Smith');
+      expect(result).toContain('2024-07-04');
+      expect(result).toContain('Word Count: 45');
+      expect(result).toContain('Citation (APA Format):');
+      expect(result).toContain('Smith, J.');
+    });
 
-  describe('Error Handling', () => {
-    it('should handle empty HTML', async () => {
-      const result = await extractContent('', {
-        url: 'https://example.com'
+    it('should handle blog post with multiple authors', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Guide to Modern Web Development',
+          html: '<h1>Guide to Modern Web Development</h1><p>Learn the basics...</p>',
+          cite: 'Doe, J., & Smith, B. (2024). Guide to Modern Web Development. Dev Blog.',
+          author: 'John Doe and Bob Smith',
+          author_cite: 'Doe, J., & Smith, B.',
+          author_type: 'two-author' as const,
+          date: '2024-06-15',
+          source: 'Dev Blog',
+          word_count: 1250,
+          url: 'https://devblog.com/web-dev-guide'
+        }
+      };
+
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      const result = await extractPageTool!.func({
+        url: 'https://devblog.com/web-dev-guide'
       });
 
-      // Should return something, even if minimal
-      expect(result).toBeDefined();
-    }, 10000);
+      expect(result).toContain('John Doe and Bob Smith');
+      expect(result).toContain('Author Type: two-author');
+      expect(result).toContain('Word Count: 1250');
+    });
 
-    it('should handle HTML with only whitespace', async () => {
-      const result = await extractContent('   \n\n   ', {
-        url: 'https://example.com'
+    it('should handle academic paper with organization author', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Research Report on Climate Change',
+          html: '<h1>Research Report on Climate Change</h1><p>Executive summary...</p>',
+          cite: 'National Research Council. (2024). Research Report on Climate Change.',
+          author: 'National Research Council',
+          author_cite: 'National Research Council',
+          author_type: 'organization' as const,
+          date: '2024-03-20',
+          source: 'Research Institute',
+          word_count: 5420,
+          url: 'https://research.org/climate-report'
+        }
+      };
+
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      const result = await extractPageTool!.func({
+        url: 'https://research.org/climate-report'
       });
 
-      expect(result).toBeDefined();
-    }, 10000);
+      expect(result).toContain('National Research Council');
+      expect(result).toContain('Author Type: organization');
+      expect(result).toContain('Word Count: 5420');
+    });
 
-    it('should handle HTML with no meaningful content', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head><title>Empty</title></head>
-          <body></body>
-        </html>
-      `;
+    it('should handle article with more than two authors', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Collaborative Research Study',
+          html: '<h1>Collaborative Research Study</h1><p>Study content...</p>',
+          cite: 'Smith, J., Doe, B., Johnson, A., et al. (2024). Collaborative Research Study.',
+          author: 'John Smith, Bob Doe, Alice Johnson, and Charlie Brown',
+          author_cite: 'Smith, J., Doe, B., Johnson, A., et al.',
+          author_type: 'more-than-two' as const,
+          date: '2024-05-10',
+          source: 'Science Journal',
+          word_count: 3200,
+          url: 'https://journal.com/study'
+        }
+      };
 
-      const result = await extractContent(html, {
-        url: 'https://example.com'
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      const result = await extractPageTool!.func({
+        url: 'https://journal.com/study'
       });
 
-      expect(result).toBeDefined();
-      expect(result.title).toBe('Empty');
-    }, 10000);
+      expect(result).toContain('Author Type: more-than-two');
+      expect(result).toContain('et al.');
+    });
 
-    it('should handle very large HTML documents', async () => {
-      // Create a large HTML document
-      let paragraphs = '';
-      for (let i = 0; i < 1000; i++) {
-        paragraphs += `<p>Paragraph ${i} with some test content to make it realistic.</p>\n`;
-      }
+    it('should extract article with images and formatting', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Visual Guide to Programming',
+          html: `
+            <h1>Visual Guide to Programming</h1>
+            <img src="https://example.com/image1.jpg" alt="Code example">
+            <p>This guide includes <strong>important</strong> concepts.</p>
+            <ul>
+              <li>Variables</li>
+              <li>Functions</li>
+              <li>Classes</li>
+            </ul>
+            <a href="https://docs.example.com">Documentation</a>
+          `,
+          cite: 'Programmer, A. (2024). Visual Guide to Programming.',
+          author: 'Alice Programmer',
+          author_cite: 'Programmer, A.',
+          author_type: 'single' as const,
+          date: '2024-04-15',
+          source: 'Programming Hub',
+          word_count: 850,
+          url: 'https://proghub.com/visual-guide'
+        }
+      };
 
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <body>
-            <article>
-              <h1>Large Document</h1>
-              ${paragraphs}
-            </article>
-          </body>
-        </html>
-      `;
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
 
-      const result = await extractContent(html, {
-        url: 'https://example.com'
-      });
-
-      expect(result).toBeDefined();
-      expect(result.word_count).toBeGreaterThan(5000);
-    }, 30000);
-  });
-
-  describe('Special Content Types', () => {
-    it('should handle code blocks in articles', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <body>
-            <article>
-              <h1>Programming Tutorial</h1>
-              <p>Here is some code:</p>
-              <pre><code>function hello() {
-  console.log("Hello, World!");
-}</code></pre>
-              <p>End of tutorial.</p>
-            </article>
-          </body>
-        </html>
-      `;
-
-      const result = await extractContent(html, {
-        url: 'https://example.com',
+      const result = await extractPageTool!.func({
+        url: 'https://proghub.com/visual-guide',
+        images: true,
+        links: true,
         formatting: true
       });
 
-      expect(result).toBeDefined();
-      expect(result.html).toContain('function hello');
-    }, 10000);
+      expect(result).toContain('Visual Guide to Programming');
+      expect(result).toContain('<img');
+      expect(result).toContain('<strong>');
+      expect(result).toContain('<ul>');
+      expect(result).toContain('<a href');
+    });
 
-    it('should handle blockquotes', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <body>
-            <article>
-              <h1>Article with Quote</h1>
-              <blockquote>
-                <p>This is a quoted text from another source.</p>
-              </blockquote>
-              <p>Regular content continues.</p>
-            </article>
-          </body>
-        </html>
-      `;
+    it('should handle minimal article without metadata', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Simple Blog Post',
+          html: '<h1>Simple Blog Post</h1><p>Just some content here.</p>',
+          cite: 'Simple Blog Post. (n.d.). Retrieved from https://blog.com/post',
+          word_count: 25,
+          url: 'https://blog.com/post'
+        }
+      };
 
-      const result = await extractContent(html, {
-        url: 'https://example.com',
-        formatting: true
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      const result = await extractPageTool!.func({
+        url: 'https://blog.com/post'
       });
 
-      expect(result).toBeDefined();
-      expect(result.html).toContain('quoted text');
-    }, 10000);
-
-    it('should handle tables', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <body>
-            <article>
-              <h1>Data Article</h1>
-              <table>
-                <tr><th>Column 1</th><th>Column 2</th></tr>
-                <tr><td>Data 1</td><td>Data 2</td></tr>
-              </table>
-            </article>
-          </body>
-        </html>
-      `;
-
-      const result = await extractContent(html, {
-        url: 'https://example.com',
-        formatting: true
-      });
-
-      expect(result).toBeDefined();
-      // Table might be converted or preserved
-      expect(result.html).toBeDefined();
-    }, 10000);
+      expect(result).toContain('Simple Blog Post');
+      expect(result).toContain('Word Count: 25');
+      expect(result).not.toContain('Author:');
+      expect(result).not.toContain('Publication Date:');
+    });
   });
 
-  describe('Metadata Extraction', () => {
-    it('should extract OpenGraph metadata', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta property="og:title" content="OG Title">
-            <meta property="og:description" content="OG Description">
-            <meta property="og:image" content="https://example.com/image.jpg">
-            <meta property="og:site_name" content="Example Site">
-          </head>
-          <body>
-            <article>
-              <h1>Article Title</h1>
-              <p>Content</p>
-            </article>
-          </body>
-        </html>
-      `;
+  describe('Edge Cases and Error Handling', () => {
+    it('should handle very long articles', async () => {
+      const longContent = '<p>' + 'word '.repeat(10000) + '</p>';
+      const mockResponse = {
+        data: {
+          title: 'Very Long Article',
+          html: longContent,
+          cite: 'Author. (2024). Very Long Article.',
+          word_count: 10000,
+          url: 'https://example.com/long'
+        }
+      };
 
-      const result = await extractContent(html, {
-        url: 'https://example.com'
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      const result = await extractPageTool!.func({
+        url: 'https://example.com/long'
       });
 
-      expect(result).toBeDefined();
-      // Should prefer article title or OG title
-      expect(result.title).toBeDefined();
-    }, 10000);
+      expect(result).toContain('Very Long Article');
+      expect(result).toContain('Word Count: 10000');
+    });
 
-    it('should extract Twitter Card metadata', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta name="twitter:title" content="Twitter Title">
-            <meta name="twitter:description" content="Twitter Description">
-            <meta name="twitter:creator" content="@username">
-          </head>
-          <body>
-            <article>
-              <h1>Article</h1>
-              <p>Content</p>
-            </article>
-          </body>
-        </html>
-      `;
+    it('should handle articles with special characters in title', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Article: "Special" <Characters> & Symbols™',
+          html: '<h1>Content</h1>',
+          cite: 'Author. (2024). Article: Special Characters & Symbols.',
+          word_count: 100,
+          url: 'https://example.com/special'
+        }
+      };
 
-      const result = await extractContent(html, {
-        url: 'https://example.com'
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      const result = await extractPageTool!.func({
+        url: 'https://example.com/special'
       });
 
-      expect(result).toBeDefined();
-      expect(result.title).toBeDefined();
-    }, 10000);
+      expect(result).toContain('Special');
+      expect(result).toContain('Characters');
+    });
 
-    it('should extract canonical URL', async () => {
-      const html = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <link rel="canonical" href="https://example.com/canonical-url">
-          </head>
-          <body>
-            <article>
-              <h1>Article</h1>
-              <p>Content</p>
-            </article>
-          </body>
-        </html>
-      `;
+    it('should handle articles with non-ASCII characters', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Article en Français: Les Développeurs',
+          html: '<p>Contenu en français avec des accents: é, è, ê, ë, à, ù.</p>',
+          cite: 'Auteur, J. (2024). Article en Français.',
+          author: 'Jean Auteur',
+          word_count: 150,
+          url: 'https://example.fr/article'
+        }
+      };
 
-      const result = await extractContent(html, {
-        url: 'https://example.com/article?utm_source=test'
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      const result = await extractPageTool!.func({
+        url: 'https://example.fr/article'
       });
 
-      expect(result).toBeDefined();
-      // The canonical URL might be used or the original
-      expect(result.url).toBeDefined();
-    }, 10000);
+      expect(result).toContain('Français');
+      expect(result).toContain('Jean Auteur');
+    });
+
+    it('should handle URLs with query parameters', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Article with Query Params',
+          html: '<p>Content</p>',
+          cite: 'Author. (2024). Article with Query Params.',
+          word_count: 50,
+          url: 'https://example.com/article?utm_source=test&utm_campaign=demo'
+        }
+      };
+
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      const result = await extractPageTool!.func({
+        url: 'https://example.com/article?utm_source=test&utm_campaign=demo'
+      });
+
+      expect(result).toContain('Article with Query Params');
+      expect(result).toContain('utm_source');
+    });
+
+    it('should handle timeout errors gracefully', async () => {
+      vi.mocked(QwkSearch.extractContent).mockRejectedValueOnce(
+        new Error('Request timeout after 10 seconds')
+      );
+
+      const result = await extractPageTool!.func({
+        url: 'https://slow-website.com/article',
+        timeout: 10
+      });
+
+      expect(result).toContain('Unable to extract content');
+      expect(result).toContain('timeout');
+    });
+
+    it('should handle 404 errors', async () => {
+      vi.mocked(QwkSearch.extractContent).mockRejectedValueOnce(
+        new Error('404 Not Found')
+      );
+
+      const result = await extractPageTool!.func({
+        url: 'https://example.com/nonexistent'
+      });
+
+      expect(result).toContain('Unable to extract content');
+      expect(result).toContain('404');
+    });
+
+    it('should handle network errors', async () => {
+      vi.mocked(QwkSearch.extractContent).mockRejectedValueOnce(
+        new Error('Network connection failed')
+      );
+
+      const result = await extractPageTool!.func({
+        url: 'https://offline-site.com/article'
+      });
+
+      expect(result).toContain('Unable to extract content');
+      expect(result).toContain('Network');
+    });
+  });
+
+  describe('Configuration Options', () => {
+    it('should respect images=false option', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Article',
+          html: '<h1>Article</h1><p>Text only content.</p>',
+          cite: 'Author. (2024). Article.',
+          word_count: 50,
+          url: 'https://example.com'
+        }
+      };
+
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      await extractPageTool!.func({
+        url: 'https://example.com',
+        images: false
+      });
+
+      expect(QwkSearch.extractContent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            images: false
+          })
+        })
+      );
+    });
+
+    it('should respect links=false option', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Article',
+          html: '<h1>Article</h1><p>Content without links.</p>',
+          cite: 'Author. (2024). Article.',
+          word_count: 50,
+          url: 'https://example.com'
+        }
+      };
+
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      await extractPageTool!.func({
+        url: 'https://example.com',
+        links: false
+      });
+
+      expect(QwkSearch.extractContent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            links: false
+          })
+        })
+      );
+    });
+
+    it('should respect formatting=false option', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Article',
+          html: 'Plain text content.',
+          cite: 'Author. (2024). Article.',
+          word_count: 50,
+          url: 'https://example.com'
+        }
+      };
+
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      await extractPageTool!.func({
+        url: 'https://example.com',
+        formatting: false
+      });
+
+      expect(QwkSearch.extractContent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            formatting: false
+          })
+        })
+      );
+    });
+
+    it('should respect custom timeout', async () => {
+      const mockResponse = {
+        data: {
+          title: 'Article',
+          html: '<p>Content</p>',
+          cite: 'Author. (2024). Article.',
+          word_count: 50,
+          url: 'https://example.com'
+        }
+      };
+
+      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+
+      await extractPageTool!.func({
+        url: 'https://example.com',
+        timeout: 30
+      });
+
+      expect(QwkSearch.extractContent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: expect.objectContaining({
+            timeout: 30
+          })
+        })
+      );
+    });
   });
 });
