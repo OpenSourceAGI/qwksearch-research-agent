@@ -6,8 +6,8 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   testProviderModels,
   type ProviderTestResult,
-  LANGUAGE_MODELS,
-} from "@qwksearch/agent-toolkit/config";
+} from "ai-research-agent/config/model-tester";
+import { LANGUAGE_MODELS } from "ai-research-agent/config/language-models-database";
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // 5 minutes for testing
