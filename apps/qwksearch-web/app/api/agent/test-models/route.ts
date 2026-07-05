@@ -6,8 +6,8 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   testProviderModels,
   type ProviderTestResult,
-} from "@qwksearch/agent-toolkit/src/config/model-tester";
-import { LANGUAGE_MODELS } from "@qwksearch/agent-toolkit/src/config/language-models-database";
+  LANGUAGE_MODELS,
+} from "@qwksearch/agent-toolkit/config";
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // 5 minutes for testing
