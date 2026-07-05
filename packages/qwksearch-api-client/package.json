@@ -25,6 +25,7 @@
     "@hey-api/openapi-ts": "^0.88.0",
     "@hey-api/vite-plugin": "^0.2.0",
     "terser": "^5.44.1",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^5.0.3",
+    "vite": "^8.1.3"
   }
 }

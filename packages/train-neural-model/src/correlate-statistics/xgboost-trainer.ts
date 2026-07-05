@@ -3,7 +3,7 @@
  * @description XGBoost model training functionality.
  */
 import xgboost from "xgboost_node";
-import { TrainModelOptions, TrainTestSplit } from "./types";
+import type { TrainModelOptions, TrainTestSplit } from "./types";
 import { calculateR2 } from "./metrics";
 
 /**

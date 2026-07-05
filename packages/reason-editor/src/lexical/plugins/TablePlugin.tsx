@@ -6,7 +6,7 @@
  *
  */
 
-import type {JSX} from 'react';
+import type {JSX, ReactNode} from 'react';
 
 import {INSERT_TABLE_COMMAND} from '@lexical/table';
 import {LexicalEditor} from 'lexical';
@@ -15,6 +15,16 @@ import {useEffect, useState} from 'react';
 import Button from '../ui/Button';
 import {DialogActions} from '../ui/Dialog';
 import TextInput from '../ui/TextInput';
+
+/**
+ * Wrapper the editor mounts around its content (mirrors the Lexical
+ * playground's TableContext). The playground uses it to share a nested
+ * cell-editor config; nothing in this editor consumes that config, so it
+ * is a plain pass-through.
+ */
+export function TableContext({children}: {children: ReactNode}): JSX.Element {
+  return <>{children}</>;
+}
 
 export function InsertTableDialog({
   activeEditor,
