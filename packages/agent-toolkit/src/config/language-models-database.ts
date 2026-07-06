@@ -12,8 +12,15 @@ export const LANGUAGE_MODELS = [
   "provider": "NVIDIA",
   "docs": "https://docs.api.nvidia.com/nim/reference/llm-apis",
   "api_key": "https://build.nvidia.com/settings/api-keys",
-  "default": "nvidia/nemotron-3-super-120b-a12b",
+  "default": "nvidia/llama-3.1-nemotron-70b-instruct",
   "models": [
+    {
+      "name": "Llama 3.1 Nemotron 70B Instruct",
+      "id": "nvidia/llama-3.1-nemotron-70b-instruct",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
     {
       "name": "Nemotron 3 Super 120B",
       "id": "nvidia/nemotron-3-super-120b-a12b",

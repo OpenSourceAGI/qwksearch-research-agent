@@ -59,6 +59,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   const [isDesktop, setIsDesktop] = useState(false);
   const [panelWidth, setPanelWidth] = useState(contextPanelWidth);
   const [isResizing, setIsResizing] = useState(false);
+  const [isPanelReady, setIsPanelReady] = useState(false);
   const resizeRef = useRef<HTMLDivElement>(null);
 
   // Track window width for desktop/mobile layout
@@ -103,7 +104,10 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   // Extract URL content when panel opens
   useEffect(() => {
     if (isOpen && url) {
+      setIsPanelReady(false);
       extractURL();
+    } else if (!isOpen) {
+      setIsPanelReady(false);
     }
   }, [isOpen, url]);
 
@@ -157,6 +161,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
 
     checkIfFavorited();
     setIsLoadingExtract(false);
+    setIsPanelReady(true);
   };
 
   const checkIfFavorited = async () => {
@@ -300,12 +305,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
       <ArticlePanelHeader onClose={onClose} />
 
       <div className="flex-1 overflow-y-auto">
-        {isLoadingExtract ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <div className="p-4 space-y-6">
+        <div className="p-4 space-y-6">
             <div className="space-y-4">
               <ArticleActionButtons
                 isLoadingAI={isLoadingAI}
@@ -386,12 +386,12 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
               />
             )}
           </div>
-        )}
       </div>
     </div>
   );
 
-  if (!isOpen) return null;
+  // Don't render panel until it's open and content is ready
+  if (!isOpen || !isPanelReady) return null;
 
   // Mobile: Full-screen overlay panel
   if (!isDesktop) {
