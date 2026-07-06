@@ -4,6 +4,7 @@
 import { GET, POST } from "../route";
 import { NextRequest } from "next/server";
 import { extractContent } from "ai-research-agent/extractor/url-to-content/url-to-content";
+import { extractArticleViaScraper, extractViaTavily } from "@/lib/scraper";
 import { getDB } from "@/lib/database";
 import { articleCache, articleQA } from "@/lib/database/schema";
 
@@ -12,12 +13,31 @@ jest.mock("ai-research-agent/extractor/url-to-content/url-to-content", () => ({
   extractContent: jest.fn(),
 }));
 
+// Mock the Cloudflare Puppeteer scraper + Tavily fallback so tests never hit
+// the network. By default both "fail" (return an error) so the route falls
+// through to the in-process extractContent path exercised by most tests.
+jest.mock("@/lib/scraper", () => ({
+  extractArticleViaScraper: jest.fn(),
+  extractViaTavily: jest.fn(),
+}));
+
+// getTavilyApiKey is read by the route to pass a key into extractViaTavily.
+jest.mock("@/lib/config/serverRegistry", () => ({
+  getTavilyApiKey: jest.fn(() => ""),
+}));
+
 jest.mock("@/lib/database", () => ({
   getDB: jest.fn(),
 }));
 
 const mockExtractContent = extractContent as jest.MockedFunction<
   typeof extractContent
+>;
+const mockExtractViaScraper = extractArticleViaScraper as jest.MockedFunction<
+  typeof extractArticleViaScraper
+>;
+const mockExtractViaTavily = extractViaTavily as jest.MockedFunction<
+  typeof extractViaTavily
 >;
 const mockGetDB = getDB as jest.MockedFunction<typeof getDB>;
 
@@ -34,6 +54,16 @@ const mockDbValues = jest.fn();
 describe("GET /api/doc/article", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // By default the scraper and Tavily both "fail" so tests exercise the
+    // extractContent fallback path. Individual tests override these to test the
+    // scraper and Tavily tiers.
+    mockExtractViaScraper.mockResolvedValue({
+      error: "scraper unavailable in test",
+    });
+    mockExtractViaTavily.mockResolvedValue({
+      error: "tavily unavailable in test",
+    });
 
     // Setup default mock DB chain
     mockDbLimit.mockReturnValue([]);
@@ -158,7 +188,7 @@ describe("GET /api/doc/article", () => {
     ]);
   });
 
-  it("should extract content if not cached", async () => {
+  it("should extract content if not cached (extractContent fallback)", async () => {
     mockDbLimit.mockReturnValueOnce([]); // No cache
 
     const extractedArticle = {
@@ -191,6 +221,75 @@ describe("GET /api/doc/article", () => {
     expect(mockExtractContent).toHaveBeenCalledWith(
       "https://example.com/new-article"
     );
+    expect(mockDbInsert).toHaveBeenCalled();
+  });
+
+  it("should extract content via the Cloudflare scraper when available", async () => {
+    mockDbLimit.mockReturnValueOnce([]); // No cache
+
+    const scrapedArticle = {
+      url: "https://example.com/scraped-article",
+      title: "Scraped Article",
+      html: "<p>Rendered by puppeteer-cloudflare</p>",
+      author: "Ada Lovelace",
+      author_cite: "Lovelace, A.",
+      source: "example.com",
+      word_count: 5,
+      cite: "Lovelace, A. <b>Scraped Article</b>.",
+    };
+
+    mockExtractViaScraper.mockResolvedValueOnce(scrapedArticle);
+
+    const req = new NextRequest(
+      "http://localhost:3000/api/doc/article?url=https://example.com/scraped-article"
+    );
+    const response = await GET(req);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.cached).toBe(false);
+    expect(data.article.title).toBe("Scraped Article");
+    expect(data.article.html).toBe("<p>Rendered by puppeteer-cloudflare</p>");
+    // Scraper produced content, so the direct extractContent fallback is skipped.
+    expect(mockExtractViaScraper).toHaveBeenCalledWith(
+      "https://example.com/scraped-article"
+    );
+    expect(mockExtractContent).not.toHaveBeenCalled();
+    expect(mockDbInsert).toHaveBeenCalled();
+  });
+
+  it("should fall back to Tavily when the scraper fails", async () => {
+    mockDbLimit.mockReturnValueOnce([]); // No cache
+
+    // Scraper fails (default), Tavily succeeds.
+    const tavilyArticle = {
+      url: "https://apnews.com/article/example",
+      title: "AP Article",
+      html: "<p>Extracted by Tavily</p>",
+      source: "apnews.com",
+      word_count: 3,
+      via: "tavily",
+      cite: "apnews.com. <b>AP Article</b>.",
+    };
+    mockExtractViaTavily.mockResolvedValueOnce(tavilyArticle);
+
+    const req = new NextRequest(
+      "http://localhost:3000/api/doc/article?url=https://apnews.com/article/example"
+    );
+    const response = await GET(req);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.cached).toBe(false);
+    expect(data.article.title).toBe("AP Article");
+    expect(data.article.html).toBe("<p>Extracted by Tavily</p>");
+    expect(mockExtractViaScraper).toHaveBeenCalled();
+    expect(mockExtractViaTavily).toHaveBeenCalledWith(
+      "https://apnews.com/article/example",
+      ""
+    );
+    // Tavily produced content, so the direct extractContent fallback is skipped.
+    expect(mockExtractContent).not.toHaveBeenCalled();
     expect(mockDbInsert).toHaveBeenCalled();
   });
 
