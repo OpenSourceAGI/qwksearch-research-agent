@@ -113,7 +113,7 @@ export default defineConfig(({ command }) => ({
         return { code: shim + code, map: null };
       },
     },
-    vinext(),
+    vinext({ rsc: false }),
     // Cloudflare Workers deployment with the App Router needs `@vitejs/plugin-rsc`
     // registered explicitly (see vinext README "Custom Vite configuration") —
     // without it, vinext's own RSC/SSR environment defaults for React are left
