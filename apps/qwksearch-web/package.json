@@ -23,7 +23,8 @@
     "analyze": "ANALYZE=true next build --webpack",
     "favicon": "bun create favicon public/favicon-512.png public/ --overwrite",
     "validate:openrouter": "tsx scripts/validate-openrouter-models.ts",
-    "validate:openrouter:json": "tsx scripts/validate-openrouter-models.ts --json"
+    "validate:openrouter:json": "tsx scripts/validate-openrouter-models.ts --json",
+    "test:validation": "tsx scripts/test-validation.ts"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.19",
@@ -108,6 +109,7 @@
     "@types/node": "^25.9.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-rsc": "^1.0.0",
     "autoprefixer": "^10.5.0",
     "concurrently": "^10.0.3",
     "drizzle-kit": "^0.31.10",

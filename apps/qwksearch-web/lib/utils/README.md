@@ -162,26 +162,26 @@ async function getCachedValidation(kv: KVNamespace): Promise<string[]> {
 
 The system prioritizes these models for guests (in order):
 
-1. **nvidia/nemotron-3-super-120b-a12b:free**
+1. **openrouter/free** ⭐ DEFAULT
+   - 200K context window
+   - Auto-router that selects the best free model automatically
+   - Most reliable option for guests
+
+2. **nvidia/nemotron-3-super-120b-a12b:free**
    - 1M context window
    - Best overall performance
-   - Recommended default
 
-2. **nvidia/nemotron-3-ultra-550b-a55b:free**
+3. **nvidia/nemotron-3-ultra-550b-a55b:free**
    - 1M context window
    - Most capable model
 
-3. **qwen/qwen3-coder:free**
+4. **qwen/qwen3-coder:free**
    - 1M context window
    - Best for code generation
 
-4. **meta-llama/llama-3.3-70b-instruct:free**
+5. **meta-llama/llama-3.3-70b-instruct:free**
    - 131K context window
    - Very reliable
-
-5. **openrouter/free**
-   - 200K context window
-   - Auto-router (rotates among best free models)
 
 ## Configuration
 

@@ -105,14 +105,21 @@ export const checkConfig = async (
 
     // If no saved preference, select a default model
     if (!chatModel) {
-      // For OpenRouter, prefer Nemotron 3 Super 120B (best free model)
+      // For OpenRouter, prefer openrouter/free (auto-router for best free model)
       if (chatModelProvider.name.toLowerCase().includes("openrouter")) {
+        chatModel = chatModelProvider.chatModels.find(
+          (m) => m.key === "openrouter/free"
+        );
+      }
+
+      // If openrouter/free not found, try Nemotron 3 Super 120B as fallback
+      if (!chatModel && chatModelProvider.name.toLowerCase().includes("openrouter")) {
         chatModel = chatModelProvider.chatModels.find(
           (m) => m.key === "nvidia/nemotron-3-super-120b-a12b:free"
         );
       }
 
-      // If not OpenRouter or Nemotron not found, prefer any Nemotron 3 Super model
+      // If not OpenRouter or specific models not found, prefer any Nemotron 3 Super model
       if (!chatModel) {
         chatModel = chatModelProvider.chatModels.find(
           (m) =>

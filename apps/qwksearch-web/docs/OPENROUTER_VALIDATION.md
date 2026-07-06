@@ -136,11 +136,11 @@ curl -X POST http://localhost:3000/api/agent/validate-openrouter
 
 The system prioritizes these models for guests:
 
-1. **nvidia/nemotron-3-super-120b-a12b:free** (1M context) - Best overall
-2. **nvidia/nemotron-3-ultra-550b-a55b:free** (1M context) - Most capable
-3. **qwen/qwen3-coder:free** (1M context) - Best for code
-4. **meta-llama/llama-3.3-70b-instruct:free** (131K context) - Very reliable
-5. **openrouter/free** (200K context) - Auto-router fallback
+1. **openrouter/free** (200K context) - **DEFAULT** - Auto-router that selects best free model
+2. **nvidia/nemotron-3-super-120b-a12b:free** (1M context) - Best overall
+3. **nvidia/nemotron-3-ultra-550b-a55b:free** (1M context) - Most capable
+4. **qwen/qwen3-coder:free** (1M context) - Best for code
+5. **meta-llama/llama-3.3-70b-instruct:free** (131K context) - Very reliable
 
 ## Integration Steps
 

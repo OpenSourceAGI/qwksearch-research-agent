@@ -130,11 +130,11 @@ export function getGuestModelInfo(
  * These are the best-performing free models that should be suggested first
  */
 export const RECOMMENDED_GUEST_MODELS = [
+  "openrouter/free", // 200K context, auto-router (DEFAULT - rotates among best free models)
   "nvidia/nemotron-3-super-120b-a12b:free", // 1M context, best overall
   "nvidia/nemotron-3-ultra-550b-a55b:free", // 1M context, most capable
   "qwen/qwen3-coder:free", // 1M context, best for code
   "meta-llama/llama-3.3-70b-instruct:free", // 131K context, reliable
-  "openrouter/free", // Auto-router, good fallback
 ];
 
 /**
