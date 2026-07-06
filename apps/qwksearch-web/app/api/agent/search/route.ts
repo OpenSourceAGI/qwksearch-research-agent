@@ -45,9 +45,12 @@ export async function GET(req: NextRequest) {
 
     // Retry logic if no results (from user code)
     // Check if results is empty array or empty result object.
-    const hasResults = Array.isArray(results)
-      ? results.length > 0
-      : results.results.length > 0;
+    // Handle null/undefined results gracefully
+    const hasResults = !results
+      ? false
+      : Array.isArray(results)
+        ? results.length > 0
+        : results.results && results.results.length > 0;
 
     if (!hasResults) {
       // Retry with privateSearxng false
@@ -64,6 +67,15 @@ export async function GET(req: NextRequest) {
     }
 
     const elapsedTime = Date.now() - startTime;
+
+    // Handle null/undefined results after retry
+    if (!results) {
+      return NextResponse.json({
+        results: [],
+        suggestions: [],
+        elapsedTime,
+      });
+    }
 
     if (Array.isArray(results)) {
       return NextResponse.json({ results, elapsedTime });

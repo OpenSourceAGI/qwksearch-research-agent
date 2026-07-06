@@ -112,8 +112,11 @@ export async function scrapeURL(url, options = {}) {
           url,
           error: jinaErr,
         });
+        const errorMsg = err?.status === 403
+          ? "HTTP error: 403 Forbidden"
+          : err?.message || "Error in fetch";
         return {
-          error: "Error in fetch",
+          error: errorMsg,
           msg: err?.message,
           status: err?.status,
           detail: err?.cause

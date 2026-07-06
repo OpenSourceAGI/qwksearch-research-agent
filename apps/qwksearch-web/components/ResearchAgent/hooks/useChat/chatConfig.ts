@@ -48,9 +48,9 @@ export const checkConfig = async (
     const providers: MinimalProvider[] = response?.providers || [];
 
     if (!providers || providers.length === 0) {
-      throw new Error(
-        "No chat model providers found, please configure them in the settings page.",
-      );
+      const errorMessage = response?.error ||
+        "No AI providers configured. Please add OPENROUTER_API_KEY to your environment variables or add your own API keys in Settings.";
+      throw new Error(errorMessage);
     }
 
     // Try to find the user's previously selected provider. Require it to have
