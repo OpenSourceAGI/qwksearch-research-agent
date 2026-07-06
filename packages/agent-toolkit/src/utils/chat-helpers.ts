@@ -1,3 +1,7 @@
+/**
+ * Chat history formatting utilities
+ */
+
 type ChatHistoryMessage = {
   content?: unknown;
   role?: string;

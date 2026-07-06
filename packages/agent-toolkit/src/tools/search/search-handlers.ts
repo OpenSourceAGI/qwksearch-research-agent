@@ -3,7 +3,7 @@
  * @description Research library module.
  */
 import MetaSearchAgent from "./metaSearchAgent";
-import prompts from "./prompts";
+import prompts from "../../language-generation/prompts/search-prompts";
 
 export const searchHandlers: Record<string, MetaSearchAgent> = {
   webSearch: new MetaSearchAgent({

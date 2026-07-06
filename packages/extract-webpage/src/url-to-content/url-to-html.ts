@@ -166,11 +166,17 @@ async function scrapeCloudflare(url: string, options: { proxy?: string | null, b
 
   const scraperUrl = typeof process !== 'undefined' && process?.env?.SCRAPER_URL
     ? process.env.SCRAPER_URL
-    : 'https://scraper.qwksearch.workers.dev';
+    : undefined;
 
   const apiKey = typeof process !== 'undefined' && process?.env?.SCRAPER_API_KEY
     ? process.env.SCRAPER_API_KEY
     : undefined;
+
+  // Skip if scraper is not configured
+  if (!scraperUrl) {
+    console.log("[scrapeCloudflare] SCRAPER_URL not configured, skipping", { url });
+    throw new Error('Cloudflare scraper not configured (set SCRAPER_URL env var)');
+  }
 
   try {
     const requestBody = {
@@ -239,9 +245,22 @@ export async function scrapeJINA(url) {
 
   let articleExtract;
   try {
+    const jinaApiKey = typeof process !== 'undefined' && process?.env?.JINA_API_KEY
+      ? process.env.JINA_API_KEY
+      : undefined;
+
+    const headers: Record<string, string> = {
+      'Accept': 'text/html',
+    };
+
+    if (jinaApiKey) {
+      headers['Authorization'] = `Bearer ${jinaApiKey}`;
+    }
+
     articleExtract = await grab("https://r.jina.ai/" + url, {
       responseType: "text",
       timeout: 30,
+      headers,
     });
   } catch (jinaError) {
     const err = jinaError as Error;
@@ -258,6 +277,12 @@ export async function scrapeJINA(url) {
       type: typeof articleExtract,
     });
     throw new Error("JINA returned invalid or empty data");
+  }
+
+  // Check if JINA returned an authentication error
+  if (typeof articleExtract === "string" && articleExtract.includes("AuthenticationRequiredError")) {
+    console.error("[scrapeJINA] JINA requires authentication", { url });
+    throw new Error("JINA scraping requires API key (set JINA_API_KEY env var)");
   }
 
   //convert Title: to <title>

@@ -107,6 +107,7 @@ export default function Account() {
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [availableProviders, setAvailableProviders] = useState<string[]>([]);
 
   const [apiKey, setApiKey] = useState('');
   const [keyGenerating, setKeyGenerating] = useState(false);
@@ -134,21 +135,24 @@ export default function Account() {
     }
     const fetchData = async () => {
       try {
-        const [profileRes, accountsRes, sessionsRes] = await Promise.all([
+        const [profileRes, accountsRes, sessionsRes, providersRes] = await Promise.all([
           fetch('/api/user'),
           fetch('/api/user/accounts'),
           fetch('/api/user/sessions'),
+          fetch('/api/auth/providers'),
         ]);
-        const [profileData, accountsData, sessionsData] = await Promise.all([
+        const [profileData, accountsData, sessionsData, providersData] = await Promise.all([
           profileRes.json(),
           accountsRes.json(),
           sessionsRes.json(),
+          providersRes.json(),
         ]);
         setProfile(profileData);
         setName(profileData.name ?? '');
         setApiKey(profileData.apiKey ?? '');
         setLinkedAccounts(Array.isArray(accountsData) ? accountsData : []);
         setSessions(Array.isArray(sessionsData) ? sessionsData : []);
+        setAvailableProviders(providersData.providers || []);
       } catch (err) {
         toast.error('Failed to load account settings.');
       } finally {
@@ -278,7 +282,9 @@ export default function Account() {
         callbackURL: window.location.href,
       });
     } catch (err: any) {
-      toast.error(err.message ?? 'Failed to link account.');
+      console.error('Provider link error:', err);
+      const message = err?.message ?? 'Failed to link account. Provider may not be configured.';
+      toast.error(message);
       setLinkingProvider(null);
     }
   };
@@ -485,7 +491,7 @@ export default function Account() {
           subtitle="Connect your account with a third-party service."
         />
         <div className="space-y-2">
-          {PROVIDERS.map((provider) => {
+          {PROVIDERS.filter(p => availableProviders.includes(p.id)).map((provider) => {
             const linkedAccount = linkedAccounts.find((a) => a.providerId === provider.id);
             const isLinking = linkingProvider === provider.id;
             const isUnlinking = unlinkingAccount === linkedAccount?.id;
@@ -528,6 +534,11 @@ export default function Account() {
               </div>
             );
           })}
+          {availableProviders.length === 0 && (
+            <p className="text-xs text-black/40 dark:text-white/40">
+              No OAuth providers configured. Contact your administrator to enable social sign-in.
+            </p>
+          )}
         </div>
       </SectionCard>
 

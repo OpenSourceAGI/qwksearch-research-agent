@@ -4,12 +4,12 @@
  * LLMs through the Vercel AI SDK (generateText/streamText).
  */
 import { generateText, streamText, type LanguageModel } from "ai";
-import { LineOutputParser, LineListOutputParser } from "./outputParser";
-import { getDocumentsFromLinks } from "../utils/documents";
+import { LineOutputParser, LineListOutputParser } from "../../utils/outputParser";
+import { getDocumentsFromLinks } from "extract-webpage/utils/documents";
 import type { Document } from "./document";
-import { searchSearxng } from "./public-searxng";
-import { searchTavily, isTavilyConfigured } from "./tavily";
-import { scrapeURL } from "./url-to-html";
+import { searchSearxng } from "extract-webpage/search/public-searxng";
+import { searchTavily, isTavilyConfigured } from "extract-webpage/search/tavily";
+import { scrapeURL } from "extract-webpage/search/url-to-html";
 
 /** Strip HTML tags and decode entities — works in Cloudflare edge runtime */
 function htmlToText(html: string): string {
@@ -26,8 +26,8 @@ function htmlToText(html: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
-import { getSourceScrapeTimeout } from "../config/serverRegistry";
-import { formatChatHistoryAsString } from "../utils";
+import { getSourceScrapeTimeout } from "../../config/serverRegistry";
+import { formatChatHistoryAsString } from "../../utils";
 import EventEmitter from "events";
 import type {
   Config,

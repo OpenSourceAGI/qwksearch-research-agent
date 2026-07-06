@@ -59,6 +59,15 @@ export default function TestModelsButton({
         },
       });
 
+      // Validate response has required fields
+      if (!response || typeof response !== 'object') {
+        throw new Error('Invalid response from server');
+      }
+
+      if (!Array.isArray(response.availableModels) || !Array.isArray(response.unavailableModels)) {
+        throw new Error('Invalid model test results format');
+      }
+
       setResults(response);
       setShowResults(true);
 

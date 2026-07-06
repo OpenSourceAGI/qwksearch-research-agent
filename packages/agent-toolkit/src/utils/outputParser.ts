@@ -1,5 +1,5 @@
 /**
- * @module research/search/outputParser
+ * @module agent-toolkit/utils/outputParser
  * @description Parsers that extract values from XML-tagged sections of LLM
  * output (e.g. `<links>...</links>`, `<question>...</question>`).
  */

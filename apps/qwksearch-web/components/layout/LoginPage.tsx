@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Mail } from "lucide-react"
@@ -25,8 +25,9 @@ function GoogleSignIn() {
                 provider: "google",
                 callbackURL: "/",
             })
-        } catch (error) {
-            toast.error("Failed to sign in with Google")
+        } catch (error: any) {
+            console.error("Google sign-in error:", error)
+            toast.error(error?.message ?? "Failed to sign in with Google. Provider may not be configured.")
         } finally {
             setIsLoading(false)
         }
@@ -60,8 +61,10 @@ function OAuthSignIn({ provider }: OAuthSignInProps) {
                 provider,
                 callbackURL: "/",
             })
-        } catch (error) {
-            toast.error(`Failed to sign in with ${provider}`)
+        } catch (error: any) {
+            console.error(`${provider} sign-in error:`, error)
+            const providerName = provider.charAt(0).toUpperCase() + provider.slice(1)
+            toast.error(error?.message ?? `${providerName} sign-in is not configured. Please use magic link or contact support.`)
         } finally {
             setIsLoading(false)
         }
@@ -169,9 +172,34 @@ function MagicLinkSignIn() {
 
 // Main Login Page Component
 export default function LoginPage() {
-    // Check if OAuth providers are configured (not placeholder values)
-    const hasGoogleAuth = typeof window === 'undefined' ? true : false // Hide until we can check server-side
-    const hasOAuthProviders = hasGoogleAuth // For now, only checking Google
+    const [availableProviders, setAvailableProviders] = useState<string[]>([])
+    const [loadingProviders, setLoadingProviders] = useState(true)
+
+    useEffect(() => {
+        fetch('/api/auth/providers')
+            .then(res => res.json())
+            .then(data => {
+                setAvailableProviders(data.providers || [])
+            })
+            .catch(err => {
+                console.error('Failed to fetch providers:', err)
+                setAvailableProviders([])
+            })
+            .finally(() => setLoadingProviders(false))
+    }, [])
+
+    const hasOAuthProviders = availableProviders.length > 0
+    const hasGoogle = availableProviders.includes('google')
+    const hasDiscord = availableProviders.includes('discord')
+    const hasLinkedin = availableProviders.includes('linkedin')
+
+    if (loadingProviders) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
+                <div className="animate-pulse">Loading...</div>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
@@ -200,9 +228,9 @@ export default function LoginPage() {
                         {/* Only show OAuth buttons if configured */}
                         {hasOAuthProviders && (
                             <>
-                                <GoogleSignIn />
-                                <OAuthSignIn provider="discord" />
-                                <OAuthSignIn provider="linkedin" />
+                                {hasGoogle && <GoogleSignIn />}
+                                {hasDiscord && <OAuthSignIn provider="discord" />}
+                                {hasLinkedin && <OAuthSignIn provider="linkedin" />}
 
                                 <div className="relative">
                                     <div className="absolute inset-0 flex items-center">

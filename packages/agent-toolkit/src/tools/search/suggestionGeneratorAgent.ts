@@ -4,8 +4,8 @@
  * using the Vercel AI SDK.
  */
 import { generateText, type LanguageModel } from "ai";
-import { LineListOutputParser } from "./outputParser";
-import { formatChatHistoryAsString } from "../utils";
+import { LineListOutputParser } from "../../utils/outputParser";
+import { formatChatHistoryAsString } from "../../utils";
 import type { ChatTurnMessage } from "./meta-search-types";
 
 const suggestionGeneratorPrompt = `

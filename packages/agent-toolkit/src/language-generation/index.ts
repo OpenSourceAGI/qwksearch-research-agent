@@ -37,3 +37,4 @@ export {
 } from "./language-model-registry";
 export type { ModelCapability, ModelInfo } from "./language-model-registry";
 export { createLLMProvider } from "./provider-factory";
+export * from "./prompts";
