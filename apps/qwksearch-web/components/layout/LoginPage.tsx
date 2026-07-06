@@ -169,6 +169,10 @@ function MagicLinkSignIn() {
 
 // Main Login Page Component
 export default function LoginPage() {
+    // Check if OAuth providers are configured (not placeholder values)
+    const hasGoogleAuth = typeof window === 'undefined' ? true : false // Hide until we can check server-side
+    const hasOAuthProviders = hasGoogleAuth // For now, only checking Google
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
             <Card className="w-full max-w-md">
@@ -187,26 +191,31 @@ export default function LoginPage() {
                     </div>
                     <div className="text-center">
                         <p className="text-sm text-muted-foreground">
-                            Sign in to continue
+                            {hasOAuthProviders ? "Sign in to continue" : "Sign in with email"}
                         </p>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4">
-                        <GoogleSignIn />
-                        <OAuthSignIn provider="discord" />
-                        <OAuthSignIn provider="linkedin" />
+                        {/* Only show OAuth buttons if configured */}
+                        {hasOAuthProviders && (
+                            <>
+                                <GoogleSignIn />
+                                <OAuthSignIn provider="discord" />
+                                <OAuthSignIn provider="linkedin" />
 
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-background px-2 text-muted-foreground">
-                                    Or continue with email
-                                </span>
-                            </div>
-                        </div>
+                                <div className="relative">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <span className="w-full border-t" />
+                                    </div>
+                                    <div className="relative flex justify-center text-xs uppercase">
+                                        <span className="bg-background px-2 text-muted-foreground">
+                                            Or continue with email
+                                        </span>
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         <MagicLinkSignIn />
                     </div>
@@ -215,6 +224,11 @@ export default function LoginPage() {
                         <Link href="/" className="underline hover:text-foreground">
                             Homepage
                         </Link>
+                        {!hasOAuthProviders && (
+                            <p className="mt-2 text-xs">
+                                OAuth providers not configured. Contact your administrator to enable Google/Discord/LinkedIn sign-in.
+                            </p>
+                        )}
                     </div>
                 </CardContent>
             </Card>

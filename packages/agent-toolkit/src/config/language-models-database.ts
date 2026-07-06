@@ -1235,7 +1235,7 @@ export const LANGUAGE_MODELS = [
   "default": "openrouter/free",
   "models": [
     {
-      "name": "OpenRouter Free Router",
+      "name": "OpenRouter Free (rotating)",
       "id": "openrouter/free",
       "contextLength": 200_000,
       "free": true,
@@ -1403,7 +1403,7 @@ export const LANGUAGE_MODELS = [
       "type": "text-generation"
     },
     {
-      "name": "OpenRouter Free Router",
+      "name": "OpenRouter Free (rotating)",
       "id": "openrouter/free",
       "contextLength": 200_000,
       "free": true,

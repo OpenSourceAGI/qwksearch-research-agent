@@ -2,14 +2,14 @@
 
 ## Overview ✅
 
-QwkSearch now provides **free, unlimited AI access** to all guests and new users through OpenRouter's free tier, powered by NVIDIA Nemotron 3 Super 120B.
+QwkSearch now provides **free, unlimited AI access** to all guests and new users through OpenRouter's free tier, using the `openrouter/free` auto-router that intelligently selects the best available free model.
 
 ## Configuration Status
 
 ### ✅ Fully Configured
 - **Provider**: OpenRouter (https://openrouter.ai)
-- **Default Model**: `nvidia/nemotron-3-super-120b-a12b:free`
-- **Context Length**: 1,000,000 tokens
+- **Default Model**: `openrouter/free` (auto-selects best free model)
+- **Context Length**: 200,000 tokens (router model)
 - **Cost**: $0 per 1M input/output tokens (truly free)
 - **Daily Limits**: None (unlike Groq which has rate limits)
 - **API Key**: Host-provided via `OPENROUTER_API_KEY` environment variable
@@ -33,7 +33,7 @@ When the application starts, the config manager:
 2. Finds `OPENROUTER_API_KEY` 
 3. Automatically creates an OpenRouter provider
 4. Loads all available free models from the database
-5. Sets Nemotron as the default model
+5. Sets `openrouter/free` as the default model (auto-router)
 
 **File**: [packages/agent-toolkit/src/config/config-manager.ts:145-184](../../packages/agent-toolkit/src/config/config-manager.ts#L145-L184)
 
@@ -81,7 +81,8 @@ All of these models are available with **no cost** and **no daily limits**:
 
 | Model | Context Length | Description |
 |-------|----------------|-------------|
-| **Nemotron 3 Super 120B** (default) | 1M tokens | NVIDIA's flagship free model |
+| **OpenRouter Free** (default) | 200K tokens | Auto-router - selects best free model |
+| Nemotron 3 Super 120B | 1M tokens | NVIDIA's flagship free model |
 | Nemotron 3 Ultra 550B | 1M tokens | Ultra-large reasoning model |
 | Nemotron 3 Nano 30B | 256K tokens | Compact but powerful |
 | Nemotron Nano 12B v2 VL | 128K tokens | Vision-language model |
