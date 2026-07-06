@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { Document } from "@langchain/core/documents";
+import type { Document } from "ai-research-agent/search/document";
 import { EventEmitter } from "stream";
 import { getDB } from "@/lib/database";
 import { messages as messagesSchema } from "@/lib/database/schema";
@@ -137,9 +137,15 @@ export const handleEmitterEvents = async (
             role: "source",
             content: "",
             sources: parsedData.data as Document[],
-            createdAt: new Date().toString(),
+            createdAt: new Date().toISOString(),
           })
-          .execute();
+          .execute()
+          .catch((err) => {
+            console.error(
+              "[handleEmitterEvents] failed to save source message:",
+              err,
+            );
+          });
       }
     }
   });
@@ -157,9 +163,15 @@ export const handleEmitterEvents = async (
           userId,
           messageId: aiMessageId,
           role: "assistant",
-          createdAt: new Date().toString(),
+          createdAt: new Date().toISOString(),
         })
-        .execute();
+        .execute()
+        .catch((err) => {
+          console.error(
+            "[handleEmitterEvents] failed to save assistant message:",
+            err,
+          );
+        });
     }
   });
 

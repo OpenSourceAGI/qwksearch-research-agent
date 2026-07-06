@@ -18,10 +18,10 @@
         "linkedom": "^0.18.0"
     },
     "devDependencies": {
-        "@types/node": "^20.11.17",
-        "@vitest/coverage-v8": "^1.0.4",
+        "@types/node": "^25.9.3",
+        "@vitest/coverage-v8": "^4.0.18",
         "tsx": "^4.7.1",
-        "typescript": "^5.3.3",
-        "vitest": "^1.0.4"
+        "typescript": "^5.9.3",
+        "vitest": "^4.0.18"
     }
 }

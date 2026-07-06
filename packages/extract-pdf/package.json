@@ -31,8 +31,8 @@
   "devDependencies": {
     "terser": "^5.46.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1",
-    "vite-plugin-dts": "^4.5.4"
+    "vite": "^8.1.3",
+    "vite-plugin-dts": "^5.0.3"
   },
   "keywords": [
     "pdf",

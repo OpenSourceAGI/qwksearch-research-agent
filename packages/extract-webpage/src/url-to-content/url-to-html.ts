@@ -85,7 +85,30 @@ export async function scrapeURL(url, options = {}) {
   try {
     html = await grab(url, { ...headers, responseType: "text" });
   } catch (e) {
-    return { error: "Error in fetch", msg: e.message };
+    const err = e as Error & { cause?: unknown; status?: number };
+    console.error("[scrapeURL] initial fetch failed, trying JINA fallback", {
+      url,
+      message: err?.message,
+      cause: err?.cause,
+      status: err?.status,
+    });
+
+    // Try JINA as fallback for fetch failures
+    try {
+      html = await scrapeJINA(url);
+      console.log("[scrapeURL] JINA fallback succeeded", { url });
+    } catch (jinaErr) {
+      console.error("[scrapeURL] JINA fallback also failed", {
+        url,
+        error: jinaErr,
+      });
+      return {
+        error: "Error in fetch",
+        msg: err?.message,
+        status: err?.status,
+        detail: err?.cause
+      };
+    }
   }
 
   // if (contentType.includes("application/json")) {
@@ -94,11 +117,14 @@ export async function scrapeURL(url, options = {}) {
   // if (contentType.includes("text")) {
 
   if (checkBotDetection && checkHTMLForBotDetection(html)) {
+    console.log("[scrapeURL] bot detection found, retrying with JINA", { url });
     html = await scrapeJINA(url);
 
     //if all methods fail -- return jina
-    if (checkBotDetection && checkHTMLForBotDetection(html))
+    if (checkBotDetection && checkHTMLForBotDetection(html)) {
+      console.error("[scrapeURL] bot detected even after JINA", { url });
       return { error: "Bot detected" }; //, html: response.html };
+    }
   }
 
   return html;
@@ -110,9 +136,30 @@ export async function scrapeURL(url, options = {}) {
  * @returns {Promise<string>}
  */
 export async function scrapeJINA(url) {
-  let articleExtract = await grab("https://r.jina.ai/" + url, {
-    responseType: "text",
-  });
+  console.log("[scrapeJINA] attempting JINA fallback", { url });
+
+  let articleExtract;
+  try {
+    articleExtract = await grab("https://r.jina.ai/" + url, {
+      responseType: "text",
+      timeout: 30,
+    });
+  } catch (jinaError) {
+    const err = jinaError as Error;
+    console.error("[scrapeJINA] JINA fetch failed", {
+      url,
+      message: err?.message,
+    });
+    throw new Error(`JINA scraping failed: ${err?.message}`);
+  }
+
+  if (!articleExtract || typeof articleExtract !== "string") {
+    console.error("[scrapeJINA] JINA returned invalid data", {
+      url,
+      type: typeof articleExtract,
+    });
+    throw new Error("JINA returned invalid or empty data");
+  }
 
   //convert Title: to <title>
   var title = articleExtract.match(/Title: (.*)/)?.[1];
@@ -129,6 +176,12 @@ export async function scrapeJINA(url) {
   articleExtract = convertMarkdownToHTML(articleExtract);
 
   if (title) articleExtract = "<title>" + title + "</title>" + articleExtract;
+
+  console.log("[scrapeJINA] JINA scraping succeeded", {
+    url,
+    hasTitle: !!title,
+    htmlLength: articleExtract.length,
+  });
 
   return articleExtract;
 }

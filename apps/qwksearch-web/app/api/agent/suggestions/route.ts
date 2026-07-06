@@ -6,7 +6,7 @@
 import generateSuggestions from "ai-research-agent/search/suggestionGeneratorAgent";
 import ModelRegistry from "ai-research-agent/models/registry";
 import { ModelWithProvider } from "ai-research-agent/models/types";
-import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
+import type { ChatTurnMessage } from "ai-research-agent/search/meta-search-types";
 
 interface SuggestionsGenerationBody {
   chatHistory: any[];
@@ -18,14 +18,13 @@ export const POST = async (req: Request) => {
     const body: SuggestionsGenerationBody = await req.json();
 
     const chatHistory = body.chatHistory
-      .map((msg: any) => {
-        if (msg.role === "user") {
-          return new HumanMessage(msg.content);
-        } else if (msg.role === "assistant") {
-          return new AIMessage(msg.content);
-        }
-      })
-      .filter((msg) => msg !== undefined) as BaseMessage[];
+      .filter((msg: any) => msg.role === "user" || msg.role === "assistant")
+      .map(
+        (msg: any): ChatTurnMessage => ({
+          role: msg.role,
+          content: String(msg.content ?? ""),
+        }),
+      );
 
     const registry = new ModelRegistry();
 

@@ -22,9 +22,7 @@ import {useMemo, useState} from 'react';
 import useModal from '../../hooks/useModal';
 import Button from '../../ui/Button';
 import {DialogActions} from '../../ui/Dialog';
-import {INSERT_FIGMA_COMMAND} from '../FigmaExtension';
-import {INSERT_TWEET_COMMAND} from '../TwitterExtension';
-import {INSERT_YOUTUBE_COMMAND} from '../YouTubeExtension';
+import {INSERT_YOUTUBE_COMMAND} from '../YouTubePlugin';
 
 interface PlaygroundEmbedConfig extends EmbedConfig {
   // Human readable name of the embedded content e.g. Tweet or Google Map.
@@ -77,81 +75,9 @@ export const YoutubeEmbedConfig: PlaygroundEmbedConfig = {
   type: 'youtube-video',
 };
 
-export const TwitterEmbedConfig: PlaygroundEmbedConfig = {
-  // e.g. Tweet or Google Map.
-  contentName: 'X(Tweet)',
-
-  exampleUrl: 'https://x.com/jack/status/20',
-
-  // Icon for display.
-  icon: <i className="icon x" />,
-
-  // Create the Lexical embed node from the url data.
-  insertNode: (editor: LexicalEditor, result: EmbedMatchResult) => {
-    editor.dispatchCommand(INSERT_TWEET_COMMAND, result.id);
-  },
-
-  // For extra searching.
-  keywords: ['tweet', 'twitter', 'x'],
-
-  // Determine if a given URL is a match and return url data.
-  parseUrl: (text: string) => {
-    const match =
-      /^https:\/\/(twitter|x)\.com\/(#!\/)?(\w+)\/status(es)*\/(\d+)/.exec(
-        text,
-      );
-
-    if (match != null) {
-      return {
-        id: match[5],
-        url: match[1],
-      };
-    }
-
-    return null;
-  },
-
-  type: 'tweet',
-};
-
-export const FigmaEmbedConfig: PlaygroundEmbedConfig = {
-  contentName: 'Figma Document',
-
-  exampleUrl: 'https://www.figma.com/file/LKQ4FJ4bTnCSjedbRpk931/Sample-File',
-
-  icon: <i className="icon figma" />,
-
-  insertNode: (editor: LexicalEditor, result: EmbedMatchResult) => {
-    editor.dispatchCommand(INSERT_FIGMA_COMMAND, result.id);
-  },
-
-  keywords: ['figma', 'figma.com', 'mock-up'],
-
-  // Determine if a given URL is a match and return url data.
-  parseUrl: (text: string) => {
-    const match =
-      /https:\/\/([\w.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/.exec(
-        text,
-      );
-
-    if (match != null) {
-      return {
-        id: match[3],
-        url: match[0],
-      };
-    }
-
-    return null;
-  },
-
-  type: 'figma',
-};
-
-export const EmbedConfigs = [
-  TwitterEmbedConfig,
-  YoutubeEmbedConfig,
-  FigmaEmbedConfig,
-];
+// Twitter/X and Figma embeds were removed: this editor does not ship the
+// TweetNode/FigmaNode nodes or their plugins from the Lexical playground.
+export const EmbedConfigs = [YoutubeEmbedConfig];
 
 const debounce = (callback: (text: string) => void, delay: number) => {
   let timeoutId: number;

@@ -41,7 +41,7 @@
   },
   "peerDependencies": {
     "next": ">=15.0.0",
-    "vinext": ">=0.1.0"
+    "vinext": ">=0.1.0 || >=1.0.0-0"
   },
   "peerDependenciesMeta": {
     "next": {
@@ -56,24 +56,24 @@
     "terser": "^5.46.0",
     "typedoc-plugin-markdown": "^4.10.0",
     "typescript": "^5.9.3",
-    "vite": "^7.3.1",
-    "vite-plugin-dts": "^4.5.4",
-    "vite-plugin-node-polyfills": "^0.25.0",
+    "vite": "^8.1.3",
+    "vite-plugin-dts": "^5.0.3",
+    "vite-plugin-node-polyfills": "^0.28.0",
     "vitest": "^4.0.18"
   },
   "dependencies": {
-    "@ai-sdk/amazon-bedrock": "^1.0.11",
-    "@ai-sdk/anthropic": "^1.2.12",
-    "@ai-sdk/google": "^1.2.19",
-    "@ai-sdk/google-vertex": "^2.2.19",
-    "@ai-sdk/groq": "^1.2.9",
+    "@ai-sdk/amazon-bedrock": "^3.0.0",
+    "@ai-sdk/anthropic": "^2.0.0",
+    "@ai-sdk/google": "^2.0.0",
+    "@ai-sdk/google-vertex": "^3.0.0",
+    "@ai-sdk/groq": "^2.0.0",
     "@ai-sdk/mcp": "^1.0.0",
-    "@ai-sdk/openai": "^1.3.22",
-    "@ai-sdk/xai": "^1.2.16",
+    "@ai-sdk/openai": "^2.0.0",
+    "@ai-sdk/xai": "^2.0.0",
     "@composio/core": "^0.10.0",
     "@mastra/core": "^0.1.0",
     "@mastra/mcp": "^0.1.0",
-    "@openrouter/ai-sdk-provider": "^2.9.0",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
     "ai": "^5.0.0",
     "drizzle-orm": "^0.45.1",
     "highlight.js": "^11.11.1",

@@ -4,7 +4,7 @@
  */
 
 import crypto from "crypto";
-import { AIMessage, BaseMessage, HumanMessage } from "@langchain/core/messages";
+import type { ChatTurnMessage } from "ai-research-agent/search/meta-search-types";
 import { getDB } from "@/lib/database";
 import { searchHandlers } from "ai-research-agent/search";
 import ModelRegistry from "ai-research-agent/models/registry";
@@ -16,34 +16,34 @@ import { handleEmitterEvents } from "./stream-handler";
 import { handleHistorySave } from "./history";
 
 /**
- * Converts a raw conversation history array into LangChain message objects.
+ * Converts a raw conversation history array into AI SDK chat messages.
  *
  * The client sends history as an array of `[role, content]` tuples where
  * `role` is either `"human"` or `"assistant"`. This function maps each
- * tuple to the corresponding LangChain {@link HumanMessage} or
- * {@link AIMessage} instance.
+ * tuple to a `{ role, content }` message object.
  *
- * @param {[string, string][]} history - Prior conversation turns as `[role, content]` tuples.
- * @returns {BaseMessage[]} An array of LangChain message objects preserving turn order.
+ * @param {[string, string][] | undefined} history - Prior conversation turns as `[role, content]` tuples.
+ * @returns {ChatTurnMessage[]} An array of chat messages preserving turn order.
  *
  * @example
  * ```ts
- * const messages = buildLangChainHistory([
+ * const messages = buildChatHistory([
  *   ["human", "What is gravity?"],
  *   ["assistant", "Gravity is a fundamental force..."],
  * ]);
- * // => [HumanMessage("What is gravity?"), AIMessage("Gravity is a fundamental force...")]
+ * // => [{ role: "user", content: "What is gravity?" }, { role: "assistant", content: "Gravity is a fundamental force..." }]
  * ```
  */
-const buildLangChainHistory = (
-  history: [string, string][],
-): BaseMessage[] => {
-  return history.map((msg) => {
-    if (msg[0] === "human") {
-      return new HumanMessage({ content: msg[1] });
-    }
-    return new AIMessage({ content: msg[1] });
-  });
+const buildChatHistory = (
+  history: [string?, string?, ...unknown[]][] | undefined,
+): ChatTurnMessage[] => {
+  if (!history || !Array.isArray(history)) {
+    return [];
+  }
+  return history.map((msg) => ({
+    role: msg[0] === "human" ? ("user" as const) : ("assistant" as const),
+    content: String(msg[1] ?? ""),
+  }));
 };
 
 /**
@@ -114,6 +114,9 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
   const t0 = Date.now();
   console.log("[POST /api/agent/chat] request received");
   try {
+    // getUserId validates the session's user row against the current database
+    // (stale KV sessions are revoked and reported as guest), so a non-null
+    // userId here is always safe for FK-bound writes.
     const userId = await getUserId();
     console.log("[POST /api/agent/chat] userId:", userId ?? "(guest)");
 
@@ -195,14 +198,20 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     // --- Load the requested LLM ---
     let llm;
     try {
+      console.log(
+        `[POST /api/agent/chat] loading LLM: providerId=${body.chatModel.providerId} modelKey=${body.chatModel.key}`,
+      );
       llm = await registry.loadChatModel(
         body.chatModel.providerId,
         body.chatModel.key,
       );
-      console.log("[POST /api/agent/chat] LLM loaded");
+      console.log("[POST /api/agent/chat] LLM loaded successfully");
     } catch (err) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      console.error("[POST /api/agent/chat] loadChatModel failed:", errMsg);
+      console.error(
+        `[POST /api/agent/chat] loadChatModel failed for provider=${body.chatModel.providerId} model=${body.chatModel.key}:`,
+        errMsg,
+      );
       return Response.json(
         { message: `Failed to load LLM: ${errMsg}` },
         { status: 500 },
@@ -213,8 +222,8 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     const humanMessageId =
       message.messageId ?? crypto.randomBytes(7).toString("hex");
 
-    // --- Convert history tuples to LangChain messages ---
-    const history = buildLangChainHistory(body.history as [string, string][]);
+    // --- Convert history tuples to AI SDK chat messages ---
+    const history = buildChatHistory(body.history);
 
     // --- Look up the focus mode search handler ---
     const handler = searchHandlers[body.focusMode];
@@ -270,15 +279,24 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
       message.chatId,
     );
     if (userId && db) {
-      await handleHistorySave(
-        message,
-        humanMessageId,
-        body.focusMode,
-        body.files,
-        userId,
-        db,
-        body.thinkingTimeLimit,
-      );
+      try {
+        await handleHistorySave(
+          message,
+          humanMessageId,
+          body.focusMode,
+          body.files,
+          userId,
+          db,
+          body.thinkingTimeLimit,
+        );
+      } catch (err) {
+        // History persistence is best-effort: the answer stream is already
+        // set up, so a failed save must not turn the request into a 500.
+        console.error(
+          "[POST /api/agent/chat] handleHistorySave failed (continuing without history):",
+          err,
+        );
+      }
     }
     console.log(
       `[POST /api/agent/chat] history saved, returning stream (setup took ${Date.now() - t0}ms)`,

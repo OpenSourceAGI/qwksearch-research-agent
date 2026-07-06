@@ -81,7 +81,7 @@ import { InviteDropdown } from '../../../modals/InviteDropdown';
 import { isKeyboardInput } from '../../utils/focusUtils';
 import { getSelectedNode } from '../../utils/getSelectedNode';
 import { sanitizeUrl } from '../../utils/url';
-import { EmbedConfigs, EmojiSelectorEmbedConfig, EmojiPickerDialog } from '../AutoEmbedPlugin';
+import { EmbedConfigs } from '../AutoEmbedPlugin';
 import { INSERT_COLLAPSIBLE_COMMAND } from '../CollapsiblePlugin';
 import {
   INSERT_INLINE_COMMAND,
@@ -1045,11 +1045,8 @@ export default function ToolbarPlugin({
     }
   }, [activeEditor, setIsLinkEditMode, toolbarState.isLink]);
 
-  const openEmojiPicker = useCallback(() => {
-    showModal('Select Emoji', (onClose) => (
-      <EmojiPickerDialog embedConfig={EmojiSelectorEmbedConfig} onClose={onClose} />
-    ));
-  }, [showModal]);
+  // openEmojiPicker was removed together with the (already commented-out)
+  // emoji toolbar button below — its EmojiPickerDialog never shipped.
 
   const canViewerSeeInsertDropdown = !toolbarState.isImageCaption;
 

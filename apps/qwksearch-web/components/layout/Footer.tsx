@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
-import { LucideIcon } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 
 interface FooterLink {
     url: string;
     text: string;
-    icon?: LucideIcon;
+    icon?: string;
 }
 
 interface FooterProps {
@@ -32,7 +32,7 @@ export default function Footer({
         >
             <div className={`max-w-4xl mx-auto grid grid-cols-3 gap-2`}>
                 {listFooterLinks.map(({ url, text, icon }) => {
-                    const IconComponent = icon as LucideIcon;
+                    const IconComponent = icon ? (LucideIcons as any)[icon] : null;
 
                     const isExternal = url.startsWith("http");
                     const linkProps = isExternal

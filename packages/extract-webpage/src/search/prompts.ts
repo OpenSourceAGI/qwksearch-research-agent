@@ -2,7 +2,7 @@
  * @module research/search/prompts
  * @description Research library module.
  */
-import { BaseMessageLike } from '@langchain/core/messages';
+import type { FewShotExample } from './meta-search-types';
 
 // Web Search Prompts
 export const webSearchRetrieverPrompt = `
@@ -14,7 +14,7 @@ You must always return the rephrased question inside the \`question\` XML block,
 **Note**: All user messages are individual entities and should be treated as such do not mix conversations.
 `;
 
-export const webSearchRetrieverFewShots: BaseMessageLike[] = [
+export const webSearchRetrieverFewShots: FewShotExample[] = [
   [
     'user',
     `<conversation>

@@ -31,6 +31,8 @@ export interface ExtractContentOptions {
   citeFormatAuthorFull?: boolean;
   url?: string;
   useThirdPartyBackup?: boolean;
+  /** Preferred transcript languages when extracting YouTube videos. */
+  languages?: string[];
 }
 
 export interface ExtractedArticle {
@@ -255,6 +257,23 @@ export async function extractContent(
         htmlLength: typeof html === "string" ? html.length : 0,
         sample: typeof html === "string" ? html.slice(0, 200) : null,
       });
+
+      // Check if scrapeURL returned an error object instead of HTML string
+      if (typeof html !== "string" || !html) {
+        console.error("[extractContent] scrapeURL failed or returned non-string", {
+          url,
+          typeofHtml: typeof html,
+          isEmpty: !html,
+          errorObj: typeof html === "object" ? html : null,
+        });
+        return {
+          error: typeof html === "object" && html?.error
+            ? html.error
+            : "Failed to fetch HTML content",
+          detail: typeof html === "object" ? html : undefined,
+        };
+      }
+
       options.url = url;
       response = extractContentAndCite(html, options);
       console.log("[extractContent] extractContentAndCite result", {

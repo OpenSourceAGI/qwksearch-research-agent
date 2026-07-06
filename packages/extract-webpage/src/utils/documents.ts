@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
-import { Document } from '@langchain/core/documents';
+import { splitTextIntoChunks, type Document } from '../search/document';
 
 /** Strip HTML tags and decode entities \u2014 works in Cloudflare edge runtime */
 function htmlToText(html: string): string {
@@ -19,8 +18,6 @@ function htmlToText(html: string): string {
 }
 
 export const getDocumentsFromLinks = async ({ links }: { links: string[] }) => {
-  const splitter = new RecursiveCharacterTextSplitter();
-
   let docs: Document[] = [];
 
   await Promise.all(
@@ -40,20 +37,18 @@ export const getDocumentsFromLinks = async ({ links }: { links: string[] }) => {
           .replace(/\s+/g, ' ')
           .trim();
 
-        const splittedText = await splitter.splitText(parsedText);
+        const splittedText = splitTextIntoChunks(parsedText);
         const title = res.data
           .toString('utf8')
           .match(/<title.*>(.*?)<\/title>/)?.[1];
 
-        const linkDocs = splittedText.map((text) => {
-          return new Document({
-            pageContent: text,
-            metadata: {
-              title: title || link,
-              url: link,
-            },
-          });
-        });
+        const linkDocs: Document[] = splittedText.map((text) => ({
+          pageContent: text,
+          metadata: {
+            title: title || link,
+            url: link,
+          },
+        }));
 
         docs.push(...linkDocs);
       } catch (err) {
@@ -61,15 +56,13 @@ export const getDocumentsFromLinks = async ({ links }: { links: string[] }) => {
           'An error occurred while getting documents from links: ',
           err,
         );
-        docs.push(
-          new Document({
-            pageContent: `Failed to retrieve content from the link: ${err}`,
-            metadata: {
-              title: 'Failed to retrieve content',
-              url: link,
-            },
-          }),
-        );
+        docs.push({
+          pageContent: `Failed to retrieve content from the link: ${err}`,
+          metadata: {
+            title: 'Failed to retrieve content',
+            url: link,
+          },
+        });
       }
     }),
   );

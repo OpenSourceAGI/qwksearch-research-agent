@@ -9,7 +9,7 @@ import * as QwkSearch from 'qwksearch-api-client'; // Update this path to match 
 
 // Configuration for QwkSearch API
 const QWKSEARCH_CONFIG = {
-  baseURL: typeof process !== "undefined" && process?.env.QWKSEARCH_URL || 'https://qwksearch.com',
+  baseURL: typeof process !== "undefined" && process?.env.QWKSEARCH_URL || 'https://app.qwksearch.com/api',
   apiKey: typeof process !== "undefined" && process?.env.QWKSEARCH_API_KEY || null,
 };
 
@@ -36,10 +36,8 @@ export const AGENT_TOOLS = [
     func: async ({ query, category = "general", recency = "none", page = 1, language = "en-US", public: isPublic = false, timeout = 10, baseURL, apiKey }) => {
       try {
         // Use provided config or fall back to environment/defaults
-        const config = {
-          baseURL: baseURL || QWKSEARCH_CONFIG.baseURL,
-          apiKey: apiKey || QWKSEARCH_CONFIG.apiKey
-        };
+        const baseUrl = baseURL || QWKSEARCH_CONFIG.baseURL;
+        const headers = apiKey || QWKSEARCH_CONFIG.apiKey ? { 'x-api-key': apiKey || QWKSEARCH_CONFIG.apiKey } : undefined;
 
         const result = await QwkSearch.searchWeb({
           query: {
@@ -51,7 +49,8 @@ export const AGENT_TOOLS = [
             public: isPublic,
             timeout: timeout
           },
-          config: config
+          baseUrl: baseUrl,
+          ...(headers && { headers })
         });
 
         if (!result.data || !result.data.results || result.data.results.length === 0) {
@@ -100,10 +99,8 @@ export const AGENT_TOOLS = [
     func: async ({ url, images = true, links = true, formatting = true, absoluteURLs = true, timeout = 10, baseURL, apiKey }) => {
       try {
         // Use provided config or fall back to environment/defaults
-        const config = {
-          baseURL: baseURL || QWKSEARCH_CONFIG.baseURL,
-          apiKey: apiKey || QWKSEARCH_CONFIG.apiKey
-        };
+        const baseUrl = baseURL || QWKSEARCH_CONFIG.baseURL;
+        const headers = apiKey || QWKSEARCH_CONFIG.apiKey ? { 'x-api-key': apiKey || QWKSEARCH_CONFIG.apiKey } : undefined;
 
         const result = await QwkSearch.extractContent({
           query: {
@@ -114,7 +111,8 @@ export const AGENT_TOOLS = [
             absoluteURLs: absoluteURLs,
             timeout: timeout
           },
-          config: config
+          baseUrl: baseUrl,
+          ...(headers && { headers })
         });
 
         if (!result.data) {
@@ -172,7 +170,7 @@ export const AGENT_TOOLS = [
     description:
       "Generate AI language model responses using QwkSearch API with various agent templates. Supports multiple providers (Groq, OpenAI, Anthropic, etc.) and agent types for different tasks like summarization, question answering, and content generation.",
     schema: z.object({
-      provider: z.enum(["groq", "openai", "anthropic", "together", "xai", "google", "perplexity", "ollama", "cloudflare"]),
+      provider: z.enum(["groq", "openai", "anthropic", "together", "xai", "google", "perplexity", "cloudflare"]),
       key: z.string().optional(),
       agent: z.enum([
         "question",
@@ -196,10 +194,8 @@ export const AGENT_TOOLS = [
     func: async ({ provider, key, agent = "question", model = "meta-llama/llama-4-maverick-17b-128e-instruct", temperature = 0.7, html = true, query, chat_history, article, baseURL, apiKey }) => {
       try {
         // Use provided config or fall back to environment/defaults
-        const config = {
-          baseURL: baseURL || QWKSEARCH_CONFIG.baseURL,
-          apiKey: apiKey || QWKSEARCH_CONFIG.apiKey
-        };
+        const baseUrl = baseURL || QWKSEARCH_CONFIG.baseURL;
+        const headers = apiKey || QWKSEARCH_CONFIG.apiKey ? { 'x-api-key': apiKey || QWKSEARCH_CONFIG.apiKey } : undefined;
 
         const requestBody = {
           agent,
@@ -227,7 +223,8 @@ export const AGENT_TOOLS = [
 
         const result = await QwkSearch.writeLanguage({
           body: requestBody,
-          config: config
+          baseUrl: baseUrl,
+          ...(headers && { headers })
         });
 
         if (!result.data) {
@@ -249,6 +246,81 @@ export const AGENT_TOOLS = [
         return resultText;
       } catch (error) {
         return `Unable to generate AI response. Error: ${error.message}`;
+      }
+    },
+  },
+  {
+    name: "render_page_with_javascript",
+    description:
+      "Render a web page with JavaScript execution using Cloudflare Browser Rendering. Use this for JavaScript-heavy sites (SPAs, React apps), pages behind bot protection (Cloudflare, reCAPTCHA), or when extract_page fails. Returns fully rendered HTML with JavaScript executed. Slower but more complete than extract_page.",
+    schema: z.object({
+      url: z.string().url(),
+      blockImages: z.boolean().optional().default(true),
+      wait: z.number().min(0).max(10000).optional().default(0),
+      timeout: z.number().min(1000).max(60000).optional().default(30000),
+      waitUntil: z.enum(["domcontentloaded", "load", "networkidle0", "networkidle2"]).optional().default("networkidle2"),
+      bypassCaptcha: z.boolean().optional().default(true),
+      sessionId: z.string().optional().default("default"),
+      format: z.enum(["html", "json"]).optional().default("html"),
+      scraperUrl: z.string().optional(),
+      scraperApiKey: z.string().optional()
+    }),
+    func: async ({ url, blockImages = true, wait = 0, timeout = 30000, waitUntil = "networkidle2", bypassCaptcha = true, sessionId = "default", format = "html", scraperUrl, scraperApiKey }) => {
+      try {
+        const scraperEndpoint = scraperUrl || (typeof process !== "undefined" && process?.env?.SCRAPER_URL) || 'https://scraper.qwksearch.workers.dev';
+        const apiKey = scraperApiKey || (typeof process !== "undefined" && process?.env?.SCRAPER_API_KEY);
+
+        const requestUrl = new URL('/api/render', scraperEndpoint);
+
+        const body = {
+          url,
+          blockImages,
+          wait,
+          timeout,
+          waitUntil,
+          bypassCaptcha,
+          sessionId,
+          format
+        };
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+
+        if (apiKey) {
+          headers['Authorization'] = `Bearer ${apiKey}`;
+        }
+
+        const response = await fetch(requestUrl.toString(), {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          return `Failed to render page: ${errorText}`;
+        }
+
+        if (format === 'json') {
+          const data = await response.json();
+          let resultText = `Page rendered successfully: ${data.url}\n\n`;
+          if (data.title) {
+            resultText += `Title: ${data.title}\n`;
+          }
+          resultText += `Load Time: ${data.loadTime}ms\n`;
+          if (data.challengeBypassed) {
+            resultText += `Challenge Bypassed: Yes (${data.retryCount} retries)\n`;
+          }
+          resultText += `\nRendered HTML Content:\n${data.html}\n\n`;
+          resultText += `This is the complete rendered page content.`;
+          return resultText;
+        }
+
+        const html = await response.text();
+        return `Page rendered successfully.\n\nHTML Content:\n${html}`;
+      } catch (error) {
+        return `Unable to render page "${url}". Error: ${error.message}`;
       }
     },
   },

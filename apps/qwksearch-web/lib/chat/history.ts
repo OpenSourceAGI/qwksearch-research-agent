@@ -78,7 +78,7 @@ export const handleHistorySave = async (
       .values({
         id: message.chatId,
         title: message.content,
-        createdAt: new Date().toString(),
+        createdAt: new Date().toISOString(),
         focusMode,
         userId,
         thinkingTimeLimit,
@@ -110,7 +110,7 @@ export const handleHistorySave = async (
         userId,
         messageId: humanMessageId,
         role: "user",
-        createdAt: new Date().toString(),
+        createdAt: new Date().toISOString(),
       })
       .execute();
   } else {

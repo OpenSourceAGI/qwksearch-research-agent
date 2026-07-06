@@ -2,7 +2,7 @@
  * @fileoverview Core logic for generating AI language responses using Vercel AI SDK and various LLM providers.
  * Handles prompt interpolation, tool calling, and response formatting.
  */
-import { generateText, tool } from "ai";
+import { generateText, stepCountIs, tool } from "ai";
 import { AGENT_PROMPTS } from "./prompt-templates";
 import { AGENT_TOOLS } from "../tools/qwksearch-api-tools";
 import { LANGUAGE_MODELS, LANGUAGE_PROVIDERS } from "./language-model-registry";
@@ -28,7 +28,7 @@ export { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
  * question and context.
  * - _Requires_: LLM provider, API key, agent name, and context variables.
  * - _Providers_: groq, togetherai, openai, anthropic, xai, google,
- *   perplexity, ollama, cloudflare, nvidia
+ *   perplexity, cloudflare, nvidia
  * - _Agent Templates_: custom local entries defined in AGENT_PROMPTS.
  * - _How it Works_: Language models predict the most likely next token given
  *   a prompt. They represent words as high-dimensional vectors, use
@@ -41,9 +41,6 @@ export { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
  * @see [Building a Transformer with PyTorch](https://www.datacamp.com/tutorial/building-a-transformer-with-py-torch)
  * @see [LLM training example](https://github.com/vtempest/ai-research-agent/blob/master/packages/neural-net/src/train/predict-next-word.js)
  *
- * <img src="https://i.imgur.com/bailW5n.gif" />
- * <img src="https://i.imgur.com/uW6E9VJ.gif" />
-
  * @param options - Configuration for the language-model call
  * @returns Resolved response object with `content`, optional `extract`, or `error`
  * @author [Language Model Researchers](https://arc.net/folder/D0472A20-9C20-4D3F-B145-D2865C0A9FEE)
@@ -139,7 +136,7 @@ export async function generateLanguageResponse(
               t.name,
               tool({
                 description: t.description as string,
-                parameters: t.schema as any,
+                inputSchema: t.schema as any,
                 execute: t.func as (args: any) => Promise<string>,
               }),
             ]),
@@ -151,7 +148,7 @@ export async function generateLanguageResponse(
       model: llm,
       prompt,
       temperature,
-      ...(tools && { tools, maxSteps: 10 }),
+      ...(tools && { tools, stopWhen: stepCountIs(10) }),
     });
 
     // \u2500\u2500 9. Format output (HTML or raw Markdown) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500

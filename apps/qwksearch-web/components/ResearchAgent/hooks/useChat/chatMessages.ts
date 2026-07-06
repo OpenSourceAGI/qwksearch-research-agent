@@ -5,7 +5,6 @@
  * @module components/ResearchAgent/state/chat/chatMessages
  */
 
-import grab from "grab-url";
 import {
   ChatTurn,
   Message,
@@ -99,15 +98,30 @@ export const loadMessages = async (
 
   // ============ Authenticated User Flow ============
   // Fetch from API for authenticated users
-  const { messages, chat }: { messages: Message[]; chat: any } = await grab(
-    "chats/" + chatId,
-  );
+  try {
+    const response = await fetch(`/api/agent/chats/${chatId}`, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-  if (!messages || !chat) {
-    setNotFound(true);
-    setIsMessagesLoaded(true);
-    return;
-  }
+    if (!response.ok) {
+      if (response.status === 404 || response.status === 401) {
+        setNotFound(true);
+        setIsMessagesLoaded(true);
+        return;
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const { messages, chat } = await response.json();
+
+    if (!messages || !chat) {
+      setNotFound(true);
+      setIsMessagesLoaded(true);
+      return;
+    }
 
   setMessages(messages);
 
@@ -136,10 +150,15 @@ export const loadMessages = async (
     };
   });
 
-  setFiles(files);
-  setFileIds(files.map((file: ChatFile) => file.fileId));
+    setFiles(files);
+    setFileIds(files.map((file: ChatFile) => file.fileId));
 
-  setChatHistory(history);
-  setFocusMode(chat.focusMode);
-  setIsMessagesLoaded(true);
+    setChatHistory(history);
+    setFocusMode(chat.focusMode);
+    setIsMessagesLoaded(true);
+  } catch (error) {
+    console.error('[chatMessages] Failed to load chat:', error);
+    setNotFound(true);
+    setIsMessagesLoaded(true);
+  }
 };

@@ -7,12 +7,11 @@ import { useEffect, useState } from 'react';
 import { GradientBlur } from '@/components/ui/gradient-blur';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
+import Footer from '@/components/layout/Footer';
 import { useChat } from '@/components/ResearchAgent/hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import * as config from '@/lib/config/site';
-// import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
-
-import QuantumWaveOrbital from 'grab-url/icons/quantum-sphere' ///loading-animations'
+import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 
 /**
  * The homepage component for the chat interface.
@@ -85,7 +84,7 @@ export default function ChatHomepage() {
               aria-label="Chrome Web Store"
               className="download-chrome download-btn text-center justify-center"
               target="_blank"
-              href={DOWNLOAD_CHROME_URL}
+              href={config.DOWNLOAD_CHROME_URL}
             >
             </a>
 
@@ -94,8 +93,8 @@ export default function ChatHomepage() {
               className="download-windows download-btn text-center justify-center"
               target="_blank"
               href={deviceInfo.os == "Windows"
-                ? `ms-windows-store://pdp/?productid=${DOWNLOAD_WINDOWS_STORE_ID}`
-                : `https://apps.microsoft.com/detail/${DOWNLOAD_WINDOWS_STORE_ID}?rtc=1`
+                ? `ms-windows-store://pdp/?productid=${config.DOWNLOAD_WINDOWS_STORE_ID}`
+                : `https://apps.microsoft.com/detail/${config.DOWNLOAD_WINDOWS_STORE_ID}?rtc=1`
               }
             >
             </a>
@@ -107,6 +106,7 @@ export default function ChatHomepage() {
         </div>
       </div>
 
+      <Footer listFooterLinks={config.listFooterLinks} />
     </div>
   );
 }

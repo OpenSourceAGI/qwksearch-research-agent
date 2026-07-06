@@ -4,7 +4,8 @@
  * clarity, grammar, and style.
  */
 import { NextRequest, NextResponse } from 'next/server';
-import { ChatGroq } from '@langchain/groq';
+import { generateText } from 'ai';
+import { createGroq } from '@ai-sdk/groq';
 import { getEnv } from "@/lib/env";
 
 export async function POST(request: NextRequest) {
@@ -28,19 +29,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const model = new ChatGroq({
-      apiKey: GROQ_API_KEY,
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.7,
-    });
+    const model = createGroq({ apiKey: GROQ_API_KEY })('llama-3.3-70b-versatile');
 
     // Use custom prompt if provided, otherwise use default
     const prompt = customPrompt || `Rewrite the following text to improve clarity, grammar, and style while maintaining the original meaning and tone. Only return the rewritten text without any explanation or additional commentary:
 
 ${text}`;
 
-    const response = await model.invoke(prompt);
-    const rewrittenText = response.content.toString().trim();
+    const response = await generateText({ model, prompt, temperature: 0.7 });
+    const rewrittenText = response.text.trim();
 
     return NextResponse.json({ rewrittenText });
   } catch (error) {

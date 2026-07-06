@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import AddModel from './AddModelDialog';
 import UpdateProvider from './UpdateProviderDialog';
 import DeleteProvider from './DeleteProviderDialog';
+import TestModelsButton from './TestModelsButton';
 
 const ModelProvider = ({
   modelProvider,
@@ -82,7 +83,13 @@ const ModelProvider = ({
             )}
           </div>
         </div>
-        <div className="flex flex-row items-center gap-1">
+        <div className="flex flex-row items-center gap-2">
+          <TestModelsButton
+            providerId={modelProvider.id}
+            providerType={modelProvider.type}
+            providerName={modelProvider.name}
+            apiKey={modelProvider.config?.apiKey || ''}
+          />
           <UpdateProvider
             fields={fields}
             modelProvider={modelProvider}

@@ -1,18 +1,16 @@
 /**
  * @module research/chains/suggestionGeneratorAgent
- * @description Research library module.
+ * @description Generates follow-up question suggestions from a conversation
+ * using the Vercel AI SDK.
  */
-import { RunnableSequence, RunnableMap } from "@langchain/core/runnables";
+import { generateText, type LanguageModel } from "ai";
 import { LineListOutputParser } from "./outputParser";
-import { PromptTemplate } from "@langchain/core/prompts";
 import { formatChatHistoryAsString } from "../utils";
-import { BaseMessage } from "@langchain/core/messages";
-import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { ChatOpenAI } from "@langchain/openai";
+import type { ChatTurnMessage } from "./meta-search-types";
 
 const suggestionGeneratorPrompt = `
 You are an AI suggestion generator for an AI powered search engine. You will be given a conversation below. You need to generate 4-5 suggestions based on the conversation. The suggestion should be relevant to the conversation that can be used by the user to ask the chat model for more information.
-You need to make sure the suggestions are relevant to the conversation and are helpful to the user. Keep a note that the user might use these suggestions to ask a chat model for more information. 
+You need to make sure the suggestions are relevant to the conversation and are helpful to the user. Keep a note that the user might use these suggestions to ask a chat model for more information.
 Make sure the suggestions are medium in length and are informative and relevant to the conversation.
 
 Provide these suggestions separated by newlines between the XML tags <suggestions> and </suggestions>. For example:
@@ -28,32 +26,29 @@ Conversation:
 `;
 
 type SuggestionGeneratorInput = {
-  chat_history: BaseMessage[];
+  chat_history: ChatTurnMessage[];
 };
 
 const outputParser = new LineListOutputParser({
   key: "suggestions",
 });
 
-const createSuggestionGeneratorChain = (llm: BaseChatModel) => {
-  return RunnableSequence.from([
-    RunnableMap.from({
-      chat_history: (input: SuggestionGeneratorInput) =>
-        formatChatHistoryAsString(input.chat_history),
-    }),
-    PromptTemplate.fromTemplate(suggestionGeneratorPrompt),
-    llm,
-    outputParser,
-  ]);
-};
-
-const generateSuggestions = (
+const generateSuggestions = async (
   input: SuggestionGeneratorInput,
-  llm: BaseChatModel,
-) => {
-  (llm as unknown as ChatOpenAI).temperature = 0;
-  const suggestionGeneratorChain = createSuggestionGeneratorChain(llm);
-  return suggestionGeneratorChain.invoke(input);
+  llm: LanguageModel,
+): Promise<string[]> => {
+  const prompt = suggestionGeneratorPrompt.replace(
+    "{chat_history}",
+    formatChatHistoryAsString(input.chat_history),
+  );
+
+  const { text } = await generateText({
+    model: llm,
+    temperature: 0,
+    prompt,
+  });
+
+  return outputParser.parse(text);
 };
 
 export default generateSuggestions;

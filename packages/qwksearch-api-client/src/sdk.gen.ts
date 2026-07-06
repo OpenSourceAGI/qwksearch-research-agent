@@ -94,18 +94,25 @@ export const extractContent = <ThrowOnError extends boolean = false>(options: Op
  *
  * ### 👄  Language Intelligence Providers (LIPs)
  *
- * | 👄 Provider | 🤖 Model Families | 📚 Docs | 🔑 Keys | 💰 Valuation | 💸 Revenue (2024) | 💲 Cost (1M Output) |
- * | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
- * | **XAI** | Grok, Grok Vision | [Docs](https://docs.x.ai/docs#models) | [Keys](https://console.x.ai/) | \$80B | \$100M | \$15.00 |
- * | **Groq** | Llama, DeepSeek, Gemini, Mistral | [Docs](https://console.groq.com/docs/overview) | [Keys](https://console.groq.com/keys) | \$2.8B | - | \$0.79 |
- * | **Ollama** | llama, mistral, mixtral, vicuna, gemma, qwen, deepseek, openchat, openhermes, codelama, codegemma, llava, minicpm, wizardcoder, wizardmath, meditrion, falcon | [Docs](https://ollama.com/docs) | [Keys](https://ollama.com/settings/keys) | - | \$3.2M | \$0 |
- * | **OpenAI** | o1, o1-mini, o4, o4-mini, gpt-4, gpt-4-turbo, gpt-4-omni | [Docs](https://platform.openai.com/docs/overview) | [Keys](https://platform.openai.com/api-keys) | \$300B | \$3.7B | \$8.00 |
- * | **Anthropic** | Claude Sonnet, Claude Opus, Claude Haiku | [Docs](https://docs.anthropic.com/en/docs/welcome) | [Keys](https://console.anthropic.com/settings/keys) | \$61.5B | \$1B | \$15.00 |
- * | **TogetherAI** | Llama, Mistral, Mixtral, Qwen, Gemma, WizardLM, DBRX, DeepSeek, Hermes, SOLAR, StripedHyena | [Docs](https://docs.together.ai/docs/quickstart) | [Keys](https://api.together.xyz/settings/api-keys) | \$3.3B | \$50M | \$0.90 |
- * | **Perplexity** | Sonar, Sonar Deep Research | [Docs](https://docs.perplexity.ai/models/model-cards) | [Keys](https://www.perplexity.ai/account/api/keys) | \$18B | \$20M | \$15.00 |
- * | **Cloudflare** | Llama, Gemma, Mistral, Phi, Qwen, DeepSeek, Hermes, SQL Coder, Code Llama | [Docs](https://developers.cloudflare.com/workers-ai/) | [Keys](https://dash.cloudflare.com/profile/api-tokens) | \$62.3B | \$1.67B | \$2.25 |
- * | **Google** | Gemini | [Docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models) | [Keys](https://cloud.google.com/vertex-ai/generative-ai/docs/start/express-mode/overview#api-keys) | - | ~$400M | \$10.00 |
+ * | Provider | 🌍 | Top Model (Others) | 🏆 Benchmarks | 📄 Docs | 🔑 Keys | 💰 Funding |
+ * |---|---|---|---|---|---|---|
+ * | **Anthropic** | 🇺🇸 | Claude Mythos / Opus 4.7 (Sonnet, Haiku) | 🥇 GPQA Diamond 94.6% · 🥇 SWE-bench 93.9% · 🧬 PhD reasoning | [Docs](https://docs.anthropic.com/en/docs/welcome) | [Keys](https://console.anthropic.com/settings/keys) | ~$60B |
+ * | **OpenAI** | 🇺🇸 | GPT-5.2 / o3 / Codex (o1, o4, o4-mini, gpt-4o) | 🥇 AIME 2025 100% · 🥇 SWE-bench Pro · 📚 MMLU-Pro 90% | [Docs](https://platform.openai.com/docs/overview) | [Keys](https://platform.openai.com/api-keys) | ~$180B |
+ * | **Google Gemini** | 🇺🇸 | Gemini 3.1 Pro (Flash, Flash-Lite, Gemma) | 🥇 GPQA 94.1% · 🥇 LiveCodeBench Elo 2439 · 🌐 #1 in 6/13 Vals | [Docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models) | [Keys](https://cloud.google.com/vertex-ai/generative-ai/docs/start/express-mode/overview#api-keys) | Public |
+ * | **xAI** | 🇺🇸 | Grok-4 Heavy (Grok-3, Grok Vision) | 🥇 AIME 2025 100% · 🧮 Math competition · ⚡ X integration | [Docs](https://docs.x.ai/docs#models) | [Keys](https://console.x.ai/) | ~$45B |
+ * | **Meta** | 🇺🇸 | Llama 4 Maverick / Scout (Llama 3.x, CodeLlama) | 🥇 DocVQA 94.4% · 🥇 10M token context · 📊 ChartQA 90% | [Docs](https://www.llama.com/docs/overview/) | [Keys](https://www.llama.com/llama-downloads/) | Public |
+ * | **NVIDIA** | 🇺🇸 | Nemotron-Cascade 2 (Llama Nemotron, Minitron) | 🥇 LCB v6 87.2% · 🏅 IMO+IOI+ICPC gold · 🧮 AIME 98.6% | [Docs](https://docs.api.nvidia.com/nim/reference/llm-apis) | [Keys](https://build.nvidia.com/settings/api-keys) | Public |
+ * | **Perplexity AI** | 🇺🇸 | Sonar Reasoning Pro (Sonar, Sonar Deep Research) | 🥇 Search Arena · 🔍 #1 web-grounded QA · 🌐 Real-time retrieval | [Docs](https://docs.perplexity.ai/models/model-cards) | [Keys](https://www.perplexity.ai/account/api/keys) | ~$1B |
+ * | **Groq** | 🇺🇸 | (Llama, DeepSeek, Gemma, Mistral, Qwen) | ⚡ #1 inference speed · 🏎️ Fastest TTFT · 🔧 LPU hardware | [Docs](https://console.groq.com/docs/overview) | [Keys](https://console.groq.com/keys) | ~$640M |
+ * | **Mistral AI** | 🇫🇷 | Mistral Large 3 (Small 4, Codestral, Devstral, Pixtral) | 🥈 Arena Elo 1418 · 🌍 Multilingual MMLU 85.5% · 🚀 Fastest TTFT | [Docs](https://docs.mistral.ai/) | [Keys](https://console.mistral.ai/api-keys/) | ~$3.1B |
+ * | **Together AI** | 🇺🇸 | (Llama, Mistral, Qwen, Gemma, DeepSeek, Hermes) | 🏗️ Widest open hosting · 💸 Best open-source pricing · 🔧 Fine-tuning | [Docs](https://docs.together.ai/docs/quickstart) | [Keys](https://api.together.xyz/settings/api-keys) | ~$225M |
+ * | **Moonshot AI (Kimi)** | 🇨🇳 | Kimi K2.5 Reasoning (K2.6, K2) | 🥇 AIME open 96.1% · 🥇 MATH-500 98% · 🥇 HumanEval 99% | [Docs](https://platform.moonshot.cn/docs) | [Keys](https://platform.moonshot.cn/console/api-keys) | ~$3.9B |
+ * | **Zhipu AI (GLM)** | 🇨🇳 | GLM-5 Reasoning / GLM-4.7 (GLM-4V, CogView) | 🥇 Chatbot Arena Elo 1451 · 🥇 MMLU 96% · 🧮 AIME 95.7% | [Docs](https://bigmodel.cn/dev/api) | [Keys](https://bigmodel.cn/usercenter/apikeys) | ~$1.8B |
+ * | **Alibaba (Qwen)** | 🇨🇳 | Qwen3-Coder / Qwen3-235B (QwQ, Qwen-VL, Qwen-Audio) | 🥇 Codeforces Elo 2056 · 💻 SWE-bench 69.6% · 🏎️ LCB 70.7% | [Docs](https://www.alibabacloud.com/help/en/model-studio/developer-reference/use-qwen-by-calling-api) | [Keys](https://bailian.console.aliyun.com/?apiKey=1) | Public |
+ * | **DeepSeek** | 🇨🇳 | DeepSeek V3.2 / R1 (DeepSeek-Coder, DeepSeek-VL) | 🥇 IMO gold (open) · 📚 MMLU-Pro 81.2 · 🧮 AIME 87.5% | [Docs](https://api-docs.deepseek.com/) | [Keys](https://platform.deepseek.com/api_keys) | Bootstrapped |
+ * | **Cloudflare** | 🇺🇸 | (Llama, Gemma, Mistral, Phi, Qwen, DeepSeek) | 🌐 Edge inference · ⚡ Serverless CDN scale · 🔒 Privacy-first | [Docs](https://developers.cloudflare.com/workers-ai/) | [Keys](https://dash.cloudflare.com/profile/api-tokens) | Public |
  *
+ * ![how_transformer_works](https://i.imgur.com/l0BvtlG.jpeg)
  * ![agent_arch_viz](https://i.imgur.com/bailW5n.gif)
  * ![agent_arch_viz2](https://i.imgur.com/uW6E9VJ.gif)
  *

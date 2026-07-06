@@ -61,7 +61,7 @@ const Models = ({
             </p>
             <p className="text-xs text-black/50 dark:text-white/50 text-center max-w-sm mb-4">
               Add your first connection to start using AI models. Connect to
-              OpenAI, Anthropic, Ollama, and more.
+              OpenAI, Anthropic, and more.
             </p>
           </div>
         ) : (

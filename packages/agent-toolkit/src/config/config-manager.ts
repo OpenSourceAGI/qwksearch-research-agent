@@ -14,7 +14,6 @@ import { LANGUAGE_MODELS } from "./language-models-database";
 // cases (e.g. the "gemini" UI key corresponds to the "Google" model list).
 const PROVIDER_KEY_TO_DB_NAME: Record<string, string> = {
   openai: "openai",
-  ollama: "ollama",
   anthropic: "anthropic",
   gemini: "google",
   groq: "groq",

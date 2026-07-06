@@ -18,6 +18,7 @@ interface LinkedAccount {
   id: string;
   providerId: string;
   accountId: string;
+  createdAt?: string | number | null;
 }
 
 interface SessionInfo {
@@ -121,6 +122,7 @@ export default function Account() {
   const [deletingSession, setDeletingSession] = useState<string | null>(null);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
+  const [unlinkingAccount, setUnlinkingAccount] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -278,6 +280,30 @@ export default function Account() {
     } catch (err: any) {
       toast.error(err.message ?? 'Failed to link account.');
       setLinkingProvider(null);
+    }
+  };
+
+  const handleUnlinkAccount = async (accountId: string, providerName: string) => {
+    if (!confirm(`Are you sure you want to unlink your ${providerName} account?`)) return;
+    setUnlinkingAccount(accountId);
+    try {
+      const res = await fetch('/api/user/accounts', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message);
+      }
+
+      setLinkedAccounts((accounts) => accounts.filter((a) => a.id !== accountId));
+      toast.success(`${providerName} account unlinked successfully.`);
+    } catch (err: any) {
+      toast.error(err.message ?? 'Failed to unlink account.');
+    } finally {
+      setUnlinkingAccount(null);
     }
   };
 
@@ -460,8 +486,9 @@ export default function Account() {
         />
         <div className="space-y-2">
           {PROVIDERS.map((provider) => {
-            const linked = linkedAccounts.some((a) => a.providerId === provider.id);
+            const linkedAccount = linkedAccounts.find((a) => a.providerId === provider.id);
             const isLinking = linkingProvider === provider.id;
+            const isUnlinking = unlinkingAccount === linkedAccount?.id;
             return (
               <div
                 key={provider.id}
@@ -469,10 +496,25 @@ export default function Account() {
               >
                 <div className="flex items-center gap-2 text-sm text-black/80 dark:text-white/80">
                   <provider.icon />
-                  <span>{provider.name}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{provider.name}</span>
+                    {linkedAccount && (
+                      <span className="text-[10px] text-black/50 dark:text-white/50">
+                        {linkedAccount.accountId}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                {linked ? (
-                  <span className="text-xs text-green-500 font-medium">Connected</span>
+                {linkedAccount ? (
+                  <button
+                    onClick={() => handleUnlinkAccount(linkedAccount.id, provider.name)}
+                    disabled={isUnlinking || linkedAccounts.length <= 1}
+                    className="text-xs text-red-500 hover:underline disabled:opacity-50 flex items-center gap-1"
+                    title={linkedAccounts.length <= 1 ? "Cannot unlink your only account" : "Unlink account"}
+                  >
+                    {isUnlinking && <Loader2 className="w-3 h-3 animate-spin" />}
+                    Unlink
+                  </button>
                 ) : (
                   <button
                     onClick={() => handleLinkProvider(provider.id)}

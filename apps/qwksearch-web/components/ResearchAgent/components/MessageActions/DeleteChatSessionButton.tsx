@@ -13,7 +13,6 @@ import {
 import { toast } from 'sonner';
 import { Chat } from '@/types/research';
 import { useSession } from '@/components/ResearchAgent/hooks/useSession';
-import grab from 'grab-url';
 import { deleteGuestChat } from '@/lib/storage/guest';
 
 const DeleteChat = ({
@@ -36,9 +35,17 @@ const DeleteChat = ({
     try {
       if (isAuthenticated) {
         // Delete from API for authenticated users
-        await grab(`agent/chats/${chatId}`, {
+        const response = await fetch(`/api/agent/chats/${chatId}`, {
           method: 'DELETE',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
       } else {
         // Delete from local storage for guests
         deleteGuestChat(chatId);

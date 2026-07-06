@@ -22,11 +22,6 @@ export const getModelProvidersUIConfigSection =
         fields: getOpenAIConfigFields(),
       },
       {
-        key: "ollama",
-        name: "Ollama",
-        fields: getOllamaConfigFields(),
-      },
-      {
         key: "anthropic",
         name: "Anthropic",
         fields: getAnthropicConfigFields(),
@@ -87,20 +82,6 @@ function getOpenAIConfigFields() {
   ];
 }
 
-function getOllamaConfigFields() {
-  return [
-    {
-      type: "string" as const,
-      name: "Base URL",
-      key: "baseURL",
-      description: "The base URL for the Ollama",
-      required: true,
-      placeholder: "http://localhost:11434",
-      env: "OLLAMA_BASE_URL",
-      scope: "server" as const,
-    },
-  ];
-}
 
 function getAnthropicConfigFields() {
   return [
@@ -138,9 +119,9 @@ function getGroqConfigFields() {
       type: "password" as const,
       name: "API Key",
       key: "apiKey",
-      description: "Your Groq API key",
+      description: "Your Groq API key. Free tier includes fast inference on Llama and Mixtral models - get yours at console.groq.com",
       required: true,
-      placeholder: "Groq API Key",
+      placeholder: "gsk_...",
       env: "GROQ_API_KEY",
       scope: "server" as const,
     },
@@ -168,9 +149,9 @@ function getNvidiaConfigFields() {
       type: "password" as const,
       name: "API Key",
       key: "apiKey",
-      description: "Your NVIDIA API key",
+      description: "Your NVIDIA API key. Free tier includes access to Nemotron, Llama, and other models - get yours at build.nvidia.com",
       required: true,
-      placeholder: "NVIDIA API Key",
+      placeholder: "nvapi-...",
       env: "NVIDIA_API_KEY",
       scope: "server" as const,
     },
@@ -194,9 +175,9 @@ function getOpenRouterConfigFields() {
       type: "password" as const,
       name: "API Key",
       key: "apiKey",
-      description: "Your OpenRouter API key",
+      description: "Your OpenRouter API key. Get one free at openrouter.ai - includes free access to Llama 3.3 70B, Nemotron, and other models.",
       required: true,
-      placeholder: "OpenRouter API Key",
+      placeholder: "sk-or-v1-...",
       env: "OPENROUTER_API_KEY",
       scope: "server" as const,
     },

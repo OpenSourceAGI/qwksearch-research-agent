@@ -66,12 +66,13 @@ export default defineConfig({
       fileName: (format, entryName) => `${entryName}.${format}.js`,
     },
     rollupOptions: {
-      external: ["@langchain/langgraph"],
+      // Keep the agent toolkit out of the bundle — it's only loaded lazily
+      // for the optional LLM topic-extraction path.
+      external: [/^chat-agent-toolkit(\/|$)/],
       output: {
         inlineDynamicImports: false,
       },
     },
-    optimizeDeps: { include: ["@langchain/core"] },
     minify: "terser",
     sourcemap: true,
     emptyOutDir: false,

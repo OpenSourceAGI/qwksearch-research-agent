@@ -82,6 +82,9 @@ export const INSERT_INLINE_COMMAND: LexicalCommand<void> = createCommand(
   'INSERT_INLINE_COMMAND',
 );
 
+export const TOGGLE_COMMENTS_PANEL_COMMAND: LexicalCommand<void> =
+  createCommand('TOGGLE_COMMENTS_PANEL_COMMAND');
+
 function AddCommentBox({
   anchorKey,
   editor,
@@ -942,6 +945,14 @@ export default function CommentPlugin({
             domSelection.removeAllRanges();
           }
           setShowCommentInput(true);
+          return true;
+        },
+        COMMAND_PRIORITY_EDITOR,
+      ),
+      editor.registerCommand(
+        TOGGLE_COMMENTS_PANEL_COMMAND,
+        () => {
+          setShowComments(current => !current);
           return true;
         },
         COMMAND_PRIORITY_EDITOR,

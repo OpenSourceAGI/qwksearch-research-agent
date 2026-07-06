@@ -12,11 +12,17 @@
   "images": {
     "binding": "IMAGES",
   },
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "YOUR_KV_NAMESPACE_ID",
+    },
+  ],
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "qwksearch",
-      "database_id": "9f45c816-5b19-43e0-8e4e-9edbd6c115b0",
+      "database_name": "qwksearch-new",
+      "database_id": "b0ba9a66-e256-43dd-9083-062977c282a4",
     },
   ],
   "env": {
@@ -25,11 +31,17 @@
       "images": {
         "binding": "IMAGES",
       },
+      "kv_namespaces": [
+        {
+          "binding": "KV",
+          "id": "YOUR_PRODUCTION_KV_NAMESPACE_ID",
+        },
+      ],
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "qwksearch",
-          "database_id": "9f45c816-5b19-43e0-8e4e-9edbd6c115b0",
+          "database_name": "qwksearch-new",
+          "database_id": "b0ba9a66-e256-43dd-9083-062977c282a4",
         },
       ],
     },

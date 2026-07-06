@@ -1,4 +1,3 @@
-import commonjs from "@rollup/plugin-commonjs";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
@@ -83,11 +82,8 @@ export default defineConfig(({ mode, command }) => {
       react(),
       // ...viteCopyExcalidrawAssets(),
       // viteCopyEsm(),
-      commonjs({
-        // This is required for React 19 (at least 19.0.0-beta-26f2496093-20240514)
-        // because @rollup/plugin-commonjs does not analyze it correctly
-        strictRequires: [/\/node_modules\/(react-dom|react)\/[^/]\.js$/],
-      }),
+      // @rollup/plugin-commonjs was removed: it is incompatible with the
+      // rolldown-based Vite 8, which handles CommonJS dependencies natively.
     ],
   };
 });

@@ -151,7 +151,26 @@ export async function GET(req: NextRequest) {
 
     // If not in cache (or cached row was empty), extract in-process
     console.log("[article] cache miss — extracting in-process", { url });
-    const extracted = await extractContent(url);
+    let extracted;
+    try {
+      extracted = await extractContent(url);
+    } catch (extractError) {
+      const err = extractError as Error;
+      console.error("[article] extractContent threw exception", {
+        url,
+        message: err?.message,
+        stack: err?.stack,
+        cause: err?.cause,
+      });
+      return NextResponse.json(
+        {
+          error: "Article extraction failed",
+          url,
+          detail: err?.message || String(extractError),
+        },
+        { status: 502 },
+      );
+    }
     const article: Article = extracted as Article;
     console.log("[article] extractContent result", {
       url,
