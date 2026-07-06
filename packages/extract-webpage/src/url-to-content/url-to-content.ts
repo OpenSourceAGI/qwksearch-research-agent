@@ -248,41 +248,49 @@ export async function extractContent(
       });
     } else {
       console.log("[extractContent] scraping URL", { url, proxy });
-      const html = await scrapeURL(url, {
-        proxy,
-      });
-      console.log("[extractContent] scrapeURL returned", {
-        url,
-        hasHtml: !!html,
-        htmlLength: typeof html === "string" ? html.length : 0,
-        sample: typeof html === "string" ? html.slice(0, 200) : null,
-      });
 
-      // Check if scrapeURL returned an error object instead of HTML string
-      if (typeof html !== "string" || !html) {
-        console.error("[extractContent] scrapeURL failed or returned non-string", {
+      try {
+        const html = await scrapeURL(url, {
+          proxy,
+        });
+        console.log("[extractContent] scrapeURL returned", {
           url,
-          typeofHtml: typeof html,
-          isEmpty: !html,
-          errorObj: typeof html === "object" ? html : null,
+          hasHtml: !!html,
+          htmlLength: typeof html === "string" ? html.length : 0,
+          sample: typeof html === "string" ? html.slice(0, 200) : null,
+        });
+
+        // Check if scrapeURL returned an error object instead of HTML string
+        if (typeof html !== "string" || !html) {
+          console.error("[extractContent] scrapeURL failed or returned non-string", {
+            url,
+            typeofHtml: typeof html,
+            isEmpty: !html,
+          });
+          return {
+            error: "Failed to fetch HTML content",
+          };
+        }
+
+        options.url = url;
+        response = extractContentAndCite(html, options);
+        console.log("[extractContent] extractContentAndCite result", {
+          url,
+          hasHtml: !!response?.html,
+          htmlLength: response?.html?.length || 0,
+          title: response?.title,
+          error: response?.error,
+        });
+      } catch (scrapeError) {
+        const err = scrapeError as Error;
+        console.error("[extractContent] scrapeURL threw error", {
+          url,
+          message: err?.message,
         });
         return {
-          error: typeof html === "object" && html?.error
-            ? html.error
-            : "Failed to fetch HTML content",
-          detail: typeof html === "object" ? html : undefined,
+          error: `Failed to scrape URL: ${err?.message || String(scrapeError)}`,
         };
       }
-
-      options.url = url;
-      response = extractContentAndCite(html, options);
-      console.log("[extractContent] extractContentAndCite result", {
-        url,
-        hasHtml: !!response?.html,
-        htmlLength: response?.html?.length || 0,
-        title: response?.title,
-        error: response?.error,
-      });
     }
   } else if (typeof urlOrDoc == "object" && urlOrDoc.location) {
     //if passing in dom object document from front end

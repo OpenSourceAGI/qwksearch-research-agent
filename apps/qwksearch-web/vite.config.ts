@@ -113,20 +113,7 @@ export default defineConfig(({ command }) => ({
         return { code: shim + code, map: null };
       },
     },
-    vinext({ rsc: false }),
-    // Cloudflare Workers deployment with the App Router needs `@vitejs/plugin-rsc`
-    // registered explicitly (see vinext README "Custom Vite configuration") —
-    // without it, vinext's own RSC/SSR environment defaults for React are left
-    // in place instead of plugin-rsc's, and `react`/`react-dom` end up both
-    // `optimizeDeps.include`d and `resolve.external`d in the same environment,
-    // which crashes esbuild with "entry point react cannot be marked as external".
-    rsc({
-      entries: {
-        rsc: "virtual:vinext-rsc-entry",
-        ssr: "virtual:vinext-app-ssr-entry",
-        client: "virtual:vinext-app-browser-entry",
-      },
-    }),
+    vinext(),
     ...(command === "serve"
       ? []
       : [

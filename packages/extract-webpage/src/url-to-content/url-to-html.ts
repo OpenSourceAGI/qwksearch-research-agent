@@ -84,6 +84,11 @@ export async function scrapeURL(url, options = {}) {
   let html;
   try {
     html = await grab(url, { ...headers, responseType: "text" });
+
+    // Check if grab returned an error object instead of HTML
+    if (typeof html !== "string" || html.length === 0) {
+      throw new Error("grab-url returned invalid data");
+    }
   } catch (e) {
     const err = e as Error & { cause?: unknown; status?: number };
     console.error("[scrapeURL] initial fetch failed, trying Cloudflare Puppeteer fallback", {
@@ -112,15 +117,7 @@ export async function scrapeURL(url, options = {}) {
           url,
           error: jinaErr,
         });
-        const errorMsg = err?.status === 403
-          ? "HTTP error: 403 Forbidden"
-          : err?.message || "Error in fetch";
-        return {
-          error: errorMsg,
-          msg: err?.message,
-          status: err?.status,
-          detail: err?.cause
-        };
+        throw new Error(`All scraping methods failed: ${err?.message || String(e)}`);
       }
     }
   }
@@ -144,14 +141,14 @@ export async function scrapeURL(url, options = {}) {
         console.log("[scrapeURL] JINA fallback succeeded", { url });
       } catch (jinaErr) {
         console.error("[scrapeURL] All bot bypass methods failed", { url });
-        return { error: "Bot detected" };
+        throw new Error("Bot detected and all bypass methods failed");
       }
     }
 
     // Check again if bot detection still present
     if (checkBotDetection && checkHTMLForBotDetection(html)) {
       console.error("[scrapeURL] bot detected even after all attempts", { url });
-      return { error: "Bot detected" };
+      throw new Error("Bot detected even after all attempts");
     }
   }
 
