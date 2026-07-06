@@ -15,7 +15,7 @@
  */
 
 import { generateText } from "ai";
-import { createOpenRouter } from "@ai-sdk/openrouter";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { LANGUAGE_MODELS } from "ai-research-agent/config/language-models-database";
 
 export interface ModelValidationResult {
