@@ -6,6 +6,10 @@
 
 Major framework modernization with **Vinext** and **Vite 8** (rolldown-based). Replaced **LangChain** with **Vercel AI SDK** across the chat pipeline. Improved error handling in model loading and database operations. Fixed Worker deployments, CommonJS/ESM compatibility, and frozen lockfile issues.
 
+**Model Update**: Changed default model for OpenRouter provider from Kimi 2.5 to **Nemotron 3 Super 120B** for all users and guests. Updated chat configuration to prioritize Nemotron models across the platform.
+
+**Authentication Fix**: Resolved "Invalid Base64 character" error in Better Auth by implementing proper `BETTER_AUTH_SECRET` configuration for Cloudflare Workers. Added automated setup script (`setup-auth-secret.sh`) and comprehensive documentation for secret management.
+
 ## June 2026
 
 UI/UX overhaul with migration from **@opennextjs/cloudflare** to **Vinext**. Implemented **macOS-style category dock** with theme switching. Consolidated authentication with **better-auth 1.6.14** and **Web Crypto API**. Added responsive layouts, **dynamic island TOC** positioning, and font controls. Fixed vite-rolldown aliasing and turbopack build failures. Enhanced deployment scripts.

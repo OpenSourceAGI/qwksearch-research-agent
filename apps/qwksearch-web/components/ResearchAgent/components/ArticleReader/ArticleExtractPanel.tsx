@@ -108,6 +108,19 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   }, [isOpen, url]);
 
   const extractURL = async () => {
+    console.log('[ArticleExtractPanel] Extracting URL:', url);
+
+    // Validate URL before fetching
+    try {
+      const parsedUrl = new URL(url);
+      if (parsedUrl.pathname === "/" || parsedUrl.pathname === "") {
+        console.error('[ArticleExtractPanel] URL is domain-only, missing article path:', url);
+        toast.error('Invalid article URL - only domain provided');
+      }
+    } catch (e) {
+      console.error('[ArticleExtractPanel] Invalid URL format:', url, e);
+    }
+
     setIsLoadingExtract(true);
     const { article } = await grab(`doc/article?url=${encodeURIComponent(url)}`);
 
@@ -326,11 +339,44 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
                 onQuestionClick={handleQuestionClick}
               />
 
-              <ArticleAIResponse
-                response={aiResponse}
-                isLoading={isLoadingAI}
-                error={aiError}
-              />
+              {/* Chat History */}
+              {chatHistory.length > 0 && (
+                <div className="space-y-4">
+                  {chatHistory.map((message, index) => (
+                    <div key={index} className="space-y-2">
+                      {message.role === 'user' ? (
+                        <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+                          <div className="text-xs font-semibold text-primary mb-1">Your Question</div>
+                          <div className="text-sm text-foreground">{message.content}</div>
+                        </div>
+                      ) : (
+                        <div className="bg-muted rounded-lg shadow-md p-4">
+                          <div className="text-xs font-semibold text-muted-foreground mb-2">AI Response</div>
+                          <div
+                            className="text-sm"
+                            dangerouslySetInnerHTML={{ __html: message.content }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Current AI Response (while loading or if no chat history yet) */}
+              {(isLoadingAI || (aiResponse && chatHistory.length === 0)) && (
+                <ArticleAIResponse
+                  response={aiResponse}
+                  isLoading={isLoadingAI}
+                  error={aiError}
+                />
+              )}
+
+              {aiError && !isLoadingAI && (
+                <div className="bg-red-500 text-white p-2 rounded-md text-sm">
+                  {aiError}
+                </div>
+              )}
             </div>
 
             {extractedArticle && (

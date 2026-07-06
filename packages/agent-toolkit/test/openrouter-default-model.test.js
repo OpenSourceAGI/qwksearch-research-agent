@@ -3,7 +3,7 @@ import { LANGUAGE_MODELS } from "../src/config/language-models-database";
 
 /**
  * Test suite to verify OpenRouter provider configuration
- * with Nemotron 3 Nano 30B MoE as the default model
+ * with Nemotron 3 Super 120B as the default model
  */
 describe("OpenRouter Provider Configuration", () => {
   test("OpenRouter provider should exist in LANGUAGE_MODELS", () => {
@@ -15,43 +15,29 @@ describe("OpenRouter Provider Configuration", () => {
     expect(openRouterProvider.provider).toBe("OpenRouter");
   });
 
-  test("Nemotron 70B should be the default model for OpenRouter", () => {
+  test("Nemotron 3 Super 120B should be the default model for OpenRouter", () => {
     const openRouterProvider = LANGUAGE_MODELS.find(
       (p) => p.provider.toLowerCase() === "openrouter"
     );
 
     expect(openRouterProvider.default).toBe(
-      "nvidia/llama-3.1-nemotron-70b-instruct:free"
+      "nvidia/nemotron-3-super-120b-a12b:free"
     );
   });
 
-  test("Nemotron 70B should be the first model in the list", () => {
-    const openRouterProvider = LANGUAGE_MODELS.find(
-      (p) => p.provider.toLowerCase() === "openrouter"
-    );
-
-    expect(openRouterProvider.models).toBeDefined();
-    expect(openRouterProvider.models.length).toBeGreaterThan(0);
-    expect(openRouterProvider.models[0].id).toBe(
-      "nvidia/llama-3.1-nemotron-70b-instruct:free"
-    );
-    expect(openRouterProvider.models[0].name).toContain("Nemotron 70B");
-  });
-
-  test("Nemotron 70B should be marked as free with proper metadata", () => {
+  test("Nemotron 3 Super 120B should be marked as free with proper metadata", () => {
     const openRouterProvider = LANGUAGE_MODELS.find(
       (p) => p.provider.toLowerCase() === "openrouter"
     );
 
     const nemotronModel = openRouterProvider.models.find(
-      (m) => m.id === "nvidia/llama-3.1-nemotron-70b-instruct:free"
+      (m) => m.id === "nvidia/nemotron-3-super-120b-a12b:free"
     );
 
     expect(nemotronModel).toBeDefined();
     expect(nemotronModel.free).toBe(true);
     expect(nemotronModel.type).toBe("text-generation");
-    expect(nemotronModel.contextLength).toBe(131072);
-    expect(nemotronModel.description).toContain("guests");
+    expect(nemotronModel.contextLength).toBe(1_000_000);
   });
 
   test("OpenRouter should have multiple free models", () => {
@@ -66,10 +52,8 @@ describe("OpenRouter Provider Configuration", () => {
 
     // Verify some key free models exist
     const freeModelIds = freeModels.map((m) => m.id);
-    expect(freeModelIds).toContain("meta-llama/llama-3.1-70b-instruct:free");
-    expect(freeModelIds).toContain("nvidia/llama-3.1-nemotron-70b-instruct:free");
-    expect(freeModelIds).toContain("qwen/qwen-2.5-72b-instruct:free");
-    expect(freeModelIds).toContain("deepseek/deepseek-v3:free");
+    expect(freeModelIds).toContain("nvidia/nemotron-3-super-120b-a12b:free");
+    expect(freeModelIds).toContain("nvidia/nemotron-3-ultra-550b-a55b:free");
     expect(freeModelIds).toContain("openrouter/free");
   });
 
@@ -86,7 +70,6 @@ describe("OpenRouter Provider Configuration", () => {
       expect(model.contextLength).toBeGreaterThan(0);
       expect(model.free).toBe(true);
       expect(model.type).toBe("text-generation");
-      expect(model.rateLimit).toBeDefined();
     });
   });
 

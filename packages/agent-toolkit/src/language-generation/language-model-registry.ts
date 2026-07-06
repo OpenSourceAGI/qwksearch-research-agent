@@ -12,8 +12,13 @@ export const LANGUAGE_MODELS = [
     provider: "NVIDIA",
     docs: "https://docs.api.nvidia.com/nim/reference/llm-apis",
     api_key: "https://build.nvidia.com/settings/api-keys",
-    default: "moonshotai/kimi-k2.5",
+    default: "nvidia/nemotron-3-super-120b-a12b",
     models: [
+      {
+        name: "Nemotron 3 Super 120B",
+        id: "nvidia/nemotron-3-super-120b-a12b",
+        contextLength: 1000000,
+      },
       {
         name: "Moonshot AI Kimi K2.5",
         id: "moonshotai/kimi-k2.5",

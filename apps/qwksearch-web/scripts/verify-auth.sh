@@ -34,6 +34,13 @@ echo ""
 # Check environment variables
 echo "3️⃣ Checking environment variables..."
 if [ -f .env ]; then
+  if grep -q "BETTER_AUTH_SECRET" .env && [ "$(grep 'BETTER_AUTH_SECRET' .env | cut -d '=' -f2)" != "your-secret-key-here" ]; then
+    echo "   ✅ BETTER_AUTH_SECRET configured"
+  else
+    echo "   ❌ BETTER_AUTH_SECRET missing or is placeholder"
+    echo "      Run: ./scripts/setup-auth-secret.sh"
+  fi
+
   if grep -q "GOOGLE_CLIENT_ID" .env; then
     echo "   ✅ GOOGLE_CLIENT_ID configured"
   else
@@ -86,6 +93,22 @@ for file in "${AUTH_FILES[@]}"; do
 done
 echo ""
 
+# Check Cloudflare Workers secrets
+echo "6️⃣ Checking Cloudflare Workers secrets..."
+if command -v wrangler &> /dev/null; then
+  echo "   Checking deployed secrets..."
+  SECRET_LIST=$(wrangler secret list 2>&1)
+  if echo "$SECRET_LIST" | grep -q "BETTER_AUTH_SECRET"; then
+    echo "   ✅ BETTER_AUTH_SECRET is set in Cloudflare"
+  else
+    echo "   ❌ BETTER_AUTH_SECRET not found in Cloudflare"
+    echo "      Run: ./scripts/setup-auth-secret.sh"
+  fi
+else
+  echo "   ⚠️  wrangler CLI not found (cannot check deployed secrets)"
+fi
+echo ""
+
 # Provide next steps
 echo "📋 Next Steps:"
 echo "=============="
@@ -101,6 +124,12 @@ if [ ! -f .env ]; then
   echo "❗ REQUIRED: Create .env file"
   echo "   Run: cp .env.example .env"
   echo "   Then edit .env with your OAuth credentials"
+  echo ""
+fi
+
+if [ -f .env ] && ! grep -q "BETTER_AUTH_SECRET" .env; then
+  echo "❗ REQUIRED: Set up Better Auth secret"
+  echo "   Run: ./scripts/setup-auth-secret.sh"
   echo ""
 fi
 

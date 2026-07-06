@@ -16,8 +16,8 @@ import { ChatModelProvider } from "@/types/chat";
  * This function performs the following steps:
  * 1. Fetches available providers from the API
  * 2. Loads user preferences from localStorage (if any)
- * 3. Selects an appropriate provider (preferring Nvidia)
- * 4. Selects an appropriate model (preferring Kimi 2.5)
+ * 3. Selects an appropriate provider (preferring OpenRouter)
+ * 4. Selects an appropriate model (preferring Nemotron 3 Super 120B)
  * 5. Saves the selection to localStorage for future sessions
  *
  * @param setChatModelProvider - Callback to set the selected provider configuration
@@ -105,30 +105,28 @@ export const checkConfig = async (
 
     // If no saved preference, select a default model
     if (!chatModel) {
-      // For OpenRouter, prefer the openrouter/free model (rotates among free models)
+      // For OpenRouter, prefer Nemotron 3 Super 120B (best free model)
       if (chatModelProvider.name.toLowerCase().includes("openrouter")) {
         chatModel = chatModelProvider.chatModels.find(
-          (m) => m.key === "openrouter/free"
+          (m) => m.key === "nvidia/nemotron-3-super-120b-a12b:free"
         );
       }
 
-      // If not OpenRouter or openrouter/free not found, prefer Kimi 2.5
+      // If not OpenRouter or Nemotron not found, prefer any Nemotron 3 Super model
       if (!chatModel) {
         chatModel = chatModelProvider.chatModels.find(
           (m) =>
-            (m.key.toLowerCase().includes("kimi") ||
-              m.name.toLowerCase().includes("kimi")) &&
-            (m.key.toLowerCase().includes("2.5") ||
-              m.name.toLowerCase().includes("2.5") ||
-              m.key.toLowerCase().includes("k2") ||
-              m.name.toLowerCase().includes("k2")),
+            (m.key.toLowerCase().includes("nemotron-3-super") ||
+              m.name.toLowerCase().includes("nemotron 3 super")) &&
+            m.key.toLowerCase().includes("120b"),
         );
       }
 
-      // Fallback to any Kimi model
+      // Fallback to any Nemotron model
       if (!chatModel) {
         chatModel = chatModelProvider.chatModels.find((m) =>
-          m.key.toLowerCase().includes("kimi"),
+          m.key.toLowerCase().includes("nemotron") ||
+          m.name.toLowerCase().includes("nemotron"),
         );
       }
 
