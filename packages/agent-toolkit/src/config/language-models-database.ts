@@ -1232,8 +1232,15 @@ export const LANGUAGE_MODELS = [
   "provider": "OpenRouter",
   "docs": "https://openrouter.ai/docs",
   "api_key": "https://openrouter.ai/settings/keys",
-  "default": "nvidia/nemotron-3-super-120b-a12b:free",
+  "default": "openrouter/free",
   "models": [
+    {
+      "name": "OpenRouter Free Router",
+      "id": "openrouter/free",
+      "contextLength": 200_000,
+      "free": true,
+      "type": "text-generation"
+    },
     {
       "name": "Nemotron 3 Super 120B",
       "id": "nvidia/nemotron-3-super-120b-a12b:free",

@@ -62,20 +62,31 @@ export const checkConfig = async (
 
     // If no saved preference, select a default provider
     if (!chatModelProvider) {
-      // Prefer Nvidia provider
-      const nvidiaProvider = providers.find(
+      // Prefer OpenRouter provider (no daily limits, best for guests and new users)
+      const openRouterProvider = providers.find(
         (p) =>
-          p.name.toLowerCase().includes("nvidia") &&
+          p.name.toLowerCase().includes("openrouter") &&
           (p.chatModels?.length ?? 0) > 0,
       );
 
-      if (nvidiaProvider) {
-        chatModelProvider = nvidiaProvider;
+      if (openRouterProvider) {
+        chatModelProvider = openRouterProvider;
       } else {
-        // Fallback to any provider with available models
-        chatModelProvider = providers.find(
-          (p) => (p.chatModels?.length ?? 0) > 0,
+        // Fallback to Nvidia
+        const nvidiaProvider = providers.find(
+          (p) =>
+            p.name.toLowerCase().includes("nvidia") &&
+            (p.chatModels?.length ?? 0) > 0,
         );
+
+        if (nvidiaProvider) {
+          chatModelProvider = nvidiaProvider;
+        } else {
+          // Final fallback to any provider with available models
+          chatModelProvider = providers.find(
+            (p) => (p.chatModels?.length ?? 0) > 0,
+          );
+        }
       }
     }
 
@@ -94,16 +105,25 @@ export const checkConfig = async (
 
     // If no saved preference, select a default model
     if (!chatModel) {
-      // Prefer Kimi 2.5
-      chatModel = chatModelProvider.chatModels.find(
-        (m) =>
-          (m.key.toLowerCase().includes("kimi") ||
-            m.name.toLowerCase().includes("kimi")) &&
-          (m.key.toLowerCase().includes("2.5") ||
-            m.name.toLowerCase().includes("2.5") ||
-            m.key.toLowerCase().includes("k2") ||
-            m.name.toLowerCase().includes("k2")),
-      );
+      // For OpenRouter, prefer the openrouter/free model (rotates among free models)
+      if (chatModelProvider.name.toLowerCase().includes("openrouter")) {
+        chatModel = chatModelProvider.chatModels.find(
+          (m) => m.key === "openrouter/free"
+        );
+      }
+
+      // If not OpenRouter or openrouter/free not found, prefer Kimi 2.5
+      if (!chatModel) {
+        chatModel = chatModelProvider.chatModels.find(
+          (m) =>
+            (m.key.toLowerCase().includes("kimi") ||
+              m.name.toLowerCase().includes("kimi")) &&
+            (m.key.toLowerCase().includes("2.5") ||
+              m.name.toLowerCase().includes("2.5") ||
+              m.key.toLowerCase().includes("k2") ||
+              m.name.toLowerCase().includes("k2")),
+        );
+      }
 
       // Fallback to any Kimi model
       if (!chatModel) {

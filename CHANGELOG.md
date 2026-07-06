@@ -4,7 +4,7 @@
 
 ## July 2026
 
-Major framework modernization with **Vinext 1.0.0-beta.0** and **Vite 8** (rolldown-based). Replaced **LangChain** with **Vercel AI SDK** across the chat pipeline. Improved error handling in model loading and database operations. Fixed Worker deployments, CommonJS/ESM compatibility, and frozen lockfile issues.
+Major framework modernization with **Vinext** and **Vite 8** (rolldown-based). Replaced **LangChain** with **Vercel AI SDK** across the chat pipeline. Improved error handling in model loading and database operations. Fixed Worker deployments, CommonJS/ESM compatibility, and frozen lockfile issues.
 
 ## June 2026
 
@@ -19,7 +19,7 @@ Editor and authentication enhancements. Integrated **Google One Tap** with FedCM
 **Major V2 rewrite** with fundamental restructuring. Optimized project structure and removed deprecated dependencies. Reorganized scraper infrastructure with rebuilt **Next.js** configuration. Implemented **XGBoost** statistical analysis, replacing neural utilities. Overhauled documentation and README. Refactored research agent components and migrated chat/article modules. Enhanced editor with font customization and menu improvements. Improved **Cloudflare Workers** configuration.
 
 
-# Prototype Research Phase (pre-2026)
+# Prototype Phase (2024)
 
 ## December 2024
 
