@@ -37,6 +37,8 @@ export interface ScraperOptions {
   maxRetries?: number;
   /** 2Captcha API key for solving */
   twoCaptchaKey?: string;
+  /** Abort signal to bound the request (e.g. an 8s deadline). */
+  signal?: AbortSignal;
 }
 
 export interface ScraperJsonResponse {
@@ -68,7 +70,7 @@ export interface ScraperConfig {
 const DEFAULT_CONFIG: ScraperConfig = {
   baseURL: typeof process !== 'undefined' && process?.env?.SCRAPER_URL
     ? process.env.SCRAPER_URL
-    : 'https://scraper.qwksearch.workers.dev',
+    : 'https://proxy.qwksearch.com',
   apiKey: typeof process !== 'undefined' && process?.env?.SCRAPER_API_KEY
     ? process.env.SCRAPER_API_KEY
     : undefined,
@@ -109,9 +111,11 @@ export async function renderWithCloudflare(
   const mergedConfig = { ...DEFAULT_CONFIG, ...config };
   const apiKey = options.apiKey || mergedConfig.apiKey;
 
+  // The deployed scraper worker (proxy.qwksearch.com) accepts GET requests
+  // with query-string parameters on `/` and `/api/render`.
   const url = new URL('/api/render', mergedConfig.baseURL);
 
-  const body = {
+  const params: Record<string, string | number | boolean | undefined> = {
     url: options.url,
     wait: options.wait ?? 0,
     blockImages: options.blockImages ?? false,
@@ -119,7 +123,6 @@ export async function renderWithCloudflare(
     timeout: options.timeout ?? 30000,
     waitUntil: options.waitUntil ?? 'networkidle2',
     format: options.format ?? 'html',
-    headers: options.headers ?? {},
     proxyUrl: options.proxyUrl,
     proxyUser: options.proxyUser,
     proxyPass: options.proxyPass,
@@ -129,18 +132,22 @@ export async function renderWithCloudflare(
     twoCaptchaKey: options.twoCaptchaKey,
   };
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined) {
+      url.searchParams.set(key, String(value));
+    }
+  }
+
+  const headers: Record<string, string> = { ...(options.headers ?? {}) };
 
   if (apiKey) {
     headers['Authorization'] = `Bearer ${apiKey}`;
   }
 
   const response = await fetch(url.toString(), {
-    method: 'POST',
+    method: 'GET',
     headers,
-    body: JSON.stringify(body),
+    signal: options.signal,
   });
 
   if (!response.ok) {

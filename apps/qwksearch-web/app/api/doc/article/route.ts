@@ -1,7 +1,8 @@
 /**
- * @fileoverview Article extraction and caching API. GET fetches an article
- * by URL with database caching and hit-count tracking, falling back to
- * in-process extraction via ai-research-agent. POST stores Q&A pairs and
+ * @fileoverview Article extraction and caching API. GET fetches an article by
+ * URL with database caching and hit-count tracking. Fresh extraction uses a
+ * bounded fallback chain: Cloudflare Puppeteer scraper (8s deadline) → Tavily
+ * extract → in-process ai-research-agent extraction. POST stores Q&A pairs and
  * follow-up questions for cached articles.
  */
 import { NextRequest, NextResponse } from "next/server";
@@ -9,6 +10,8 @@ import { getDB } from "@/lib/database";
 import { articleCache, articleQA } from "@/lib/database/schema";
 import { eq, sql } from "drizzle-orm";
 import { extractContent } from "ai-research-agent/extractor/url-to-content/url-to-content";
+import { extractArticleViaScraper, extractViaTavily } from "@/lib/scraper";
+import { getTavilyApiKey } from "@/lib/config/serverRegistry";
 
 interface Article {
   html?: string;
@@ -149,27 +152,89 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // If not in cache (or cached row was empty), extract in-process
-    console.log("[article] cache miss — extracting in-process", { url });
-    let extracted;
+    // If not in cache (or cached row was empty), extract fresh via a bounded
+    // fallback chain:
+    //   1. Cloudflare Puppeteer scraper (proxy.qwksearch.com), 8s deadline —
+    //      renders JavaScript + lightly bot-protected pages, then readability.
+    //   2. Tavily extract API — used when the scraper times out or returns a
+    //      challenge page (e.g. AP News serves a Datadome/Cloudflare block).
+    //   3. Direct in-process extraction (plain fetch + readability) as a last
+    //      resort if Tavily is unavailable/unconfigured.
+    // Each helper returns `{ error }` instead of throwing so we can decide
+    // cleanly whether to advance to the next tier.
+    console.log("[article] cache miss — extracting fresh", { url });
+
+    let scraped;
     try {
-      extracted = await extractContent(url);
-    } catch (extractError) {
-      const err = extractError as Error;
-      console.error("[article] extractContent threw exception", {
+      scraped = await extractArticleViaScraper(url);
+    } catch (scraperError) {
+      const serr = scraperError as Error;
+      console.warn("[article] scraper path threw unexpectedly", {
         url,
-        message: err?.message,
-        stack: err?.stack,
-        cause: err?.cause,
+        message: serr?.message,
       });
-      return NextResponse.json(
-        {
-          error: "Article extraction failed",
-          url,
-          detail: err?.message || String(extractError),
-        },
-        { status: 502 },
+      scraped = { error: serr?.message || "Scraper threw" };
+    }
+
+    let extracted;
+    if (scraped && scraped.html && !scraped.error) {
+      console.log("[article] Cloudflare scraper extraction succeeded", {
+        url,
+        htmlLength: scraped.html.length,
+        title: scraped.title,
+      });
+      extracted = scraped;
+    } else {
+      // Tier 2: Tavily extract fallback (scraper timed out / returned no HTML).
+      console.log(
+        "[article] scraper unusable — falling back to Tavily extract",
+        { url, reason: scraped?.error },
       );
+      let tavily;
+      try {
+        tavily = await extractViaTavily(url, getTavilyApiKey());
+      } catch (tavilyError) {
+        const terr = tavilyError as Error;
+        console.warn("[article] Tavily path threw unexpectedly", {
+          url,
+          message: terr?.message,
+        });
+        tavily = { error: terr?.message || "Tavily threw" };
+      }
+
+      if (tavily && tavily.html && !tavily.error) {
+        console.log("[article] Tavily extraction succeeded", {
+          url,
+          htmlLength: tavily.html.length,
+          title: tavily.title,
+        });
+        extracted = tavily;
+      } else {
+        // Tier 3: direct in-process extraction (plain fetch + readability).
+        console.log(
+          "[article] Tavily unusable — falling back to in-process extraction",
+          { url, reason: tavily?.error },
+        );
+        try {
+          extracted = await extractContent(url);
+        } catch (extractError) {
+          const err = extractError as Error;
+          console.error("[article] extractContent threw exception", {
+            url,
+            message: err?.message,
+            stack: err?.stack,
+            cause: err?.cause,
+          });
+          return NextResponse.json(
+            {
+              error: "Article extraction failed",
+              url,
+              detail: err?.message || String(extractError),
+            },
+            { status: 502 },
+          );
+        }
+      }
     }
     const article: Article = extracted as Article;
     console.log("[article] extractContent result", {

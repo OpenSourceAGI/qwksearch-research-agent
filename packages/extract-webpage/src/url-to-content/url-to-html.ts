@@ -166,38 +166,40 @@ async function scrapeCloudflare(url: string, options: { proxy?: string | null, b
 
   const scraperUrl = typeof process !== 'undefined' && process?.env?.SCRAPER_URL
     ? process.env.SCRAPER_URL
-    : 'https://scraper.qwksearch.workers.dev';
+    : 'https://proxy.qwksearch.com';
 
   const apiKey = typeof process !== 'undefined' && process?.env?.SCRAPER_API_KEY
     ? process.env.SCRAPER_API_KEY
     : undefined;
 
   try {
-    const requestBody = {
+    // The deployed scraper worker accepts GET with query-string params.
+    const renderUrl = new URL('/api/render', scraperUrl);
+    const params: Record<string, string> = {
       url,
-      wait: 1000,
-      blockImages: false,
+      wait: '1000',
+      blockImages: 'false',
       sessionId: 'default',
-      timeout: 30000,
+      timeout: '30000',
       waitUntil: 'networkidle2',
       format: 'json',
-      bypassCaptcha: options.bypassCaptcha ?? true,
-      maxRetries: 10,
-      ...(options.proxy && { proxyUrl: options.proxy }),
+      bypassCaptcha: String(options.bypassCaptcha ?? true),
+      maxRetries: '10',
+      ...(options.proxy ? { proxyUrl: options.proxy } : {}),
     };
+    for (const [key, value] of Object.entries(params)) {
+      renderUrl.searchParams.set(key, value);
+    }
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
+    const headers: Record<string, string> = {};
 
     if (apiKey) {
       headers['Authorization'] = `Bearer ${apiKey}`;
     }
 
-    const response = await fetch(`${scraperUrl}/api/render`, {
-      method: 'POST',
+    const response = await fetch(renderUrl.toString(), {
+      method: 'GET',
       headers,
-      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
