@@ -15,7 +15,7 @@
   "kv_namespaces": [
     {
       "binding": "KV",
-      "id": "YOUR_KV_NAMESPACE_ID",
+      "id": "c53d894414bb4cfda42536c717095d40",
     },
   ],
   "d1_databases": [
@@ -34,7 +34,7 @@
       "kv_namespaces": [
         {
           "binding": "KV",
-          "id": "YOUR_PRODUCTION_KV_NAMESPACE_ID",
+          "id": "371c242bebfc4de78ed9841ce72c77b3",
         },
       ],
       "d1_databases": [
