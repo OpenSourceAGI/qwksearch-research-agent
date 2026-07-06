@@ -16,6 +16,19 @@ export const GET = async (req: Request) => {
       return !p.chatModels.some((m) => m.key === "error");
     });
 
+    // Check if no providers are available
+    if (filteredProviders.length === 0) {
+      return Response.json(
+        {
+          providers: [],
+          error: "No AI providers configured. Please add OPENROUTER_API_KEY to your environment variables or configure your own API keys in Settings.",
+        },
+        {
+          status: 200, // Return 200 so client can display the error message
+        },
+      );
+    }
+
     return Response.json(
       {
         providers: filteredProviders,

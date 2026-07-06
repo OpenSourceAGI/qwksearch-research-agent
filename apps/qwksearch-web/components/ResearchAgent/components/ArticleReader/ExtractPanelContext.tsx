@@ -42,6 +42,18 @@ export const ExtractPanelProvider: React.FC<{ children: ReactNode }> = ({
   const [panelWidth, setPanelWidth] = useState(600);
 
   const openPanel = (url: string, searchText: string = '') => {
+    console.log('[ExtractPanelContext] openPanel called with URL:', url);
+
+    // Validate URL before opening
+    try {
+      const parsedUrl = new URL(url);
+      if (parsedUrl.pathname === "/" || parsedUrl.pathname === "") {
+        console.error('[ExtractPanelContext] URL is domain-only, missing article path:', url);
+      }
+    } catch (e) {
+      console.error('[ExtractPanelContext] Invalid URL format:', url, e);
+    }
+
     setUrl(url);
     setSearchText(searchText);
     setIsOpen(true);

@@ -86,28 +86,42 @@ export async function scrapeURL(url, options = {}) {
     html = await grab(url, { ...headers, responseType: "text" });
   } catch (e) {
     const err = e as Error & { cause?: unknown; status?: number };
-    console.error("[scrapeURL] initial fetch failed, trying JINA fallback", {
+    console.error("[scrapeURL] initial fetch failed, trying Cloudflare Puppeteer fallback", {
       url,
       message: err?.message,
       cause: err?.cause,
       status: err?.status,
     });
 
-    // Try JINA as fallback for fetch failures
+    // Try Cloudflare Puppeteer scraper first (handles JS and bot detection)
     try {
-      html = await scrapeJINA(url);
-      console.log("[scrapeURL] JINA fallback succeeded", { url });
-    } catch (jinaErr) {
-      console.error("[scrapeURL] JINA fallback also failed", {
+      html = await scrapeCloudflare(url, { proxy });
+      console.log("[scrapeURL] Cloudflare scraper succeeded", { url });
+    } catch (cfErr) {
+      console.error("[scrapeURL] Cloudflare scraper failed, trying JINA fallback", {
         url,
-        error: jinaErr,
+        error: cfErr,
       });
-      return {
-        error: "Error in fetch",
-        msg: err?.message,
-        status: err?.status,
-        detail: err?.cause
-      };
+
+      // Try JINA as final fallback
+      try {
+        html = await scrapeJINA(url);
+        console.log("[scrapeURL] JINA fallback succeeded", { url });
+      } catch (jinaErr) {
+        console.error("[scrapeURL] All scraping methods failed", {
+          url,
+          error: jinaErr,
+        });
+        const errorMsg = err?.status === 403
+          ? "HTTP error: 403 Forbidden"
+          : err?.message || "Error in fetch";
+        return {
+          error: errorMsg,
+          msg: err?.message,
+          status: err?.status,
+          detail: err?.cause
+        };
+      }
     }
   }
 
@@ -117,17 +131,105 @@ export async function scrapeURL(url, options = {}) {
   // if (contentType.includes("text")) {
 
   if (checkBotDetection && checkHTMLForBotDetection(html)) {
-    console.log("[scrapeURL] bot detection found, retrying with JINA", { url });
-    html = await scrapeJINA(url);
+    console.log("[scrapeURL] bot detection found, retrying with Cloudflare scraper", { url });
 
-    //if all methods fail -- return jina
+    try {
+      html = await scrapeCloudflare(url, { proxy, bypassCaptcha: true });
+      console.log("[scrapeURL] Cloudflare scraper bypassed bot detection", { url });
+    } catch (cfErr) {
+      console.error("[scrapeURL] Cloudflare scraper failed, trying JINA", { url, error: cfErr });
+
+      try {
+        html = await scrapeJINA(url);
+        console.log("[scrapeURL] JINA fallback succeeded", { url });
+      } catch (jinaErr) {
+        console.error("[scrapeURL] All bot bypass methods failed", { url });
+        return { error: "Bot detected" };
+      }
+    }
+
+    // Check again if bot detection still present
     if (checkBotDetection && checkHTMLForBotDetection(html)) {
-      console.error("[scrapeURL] bot detected even after JINA", { url });
-      return { error: "Bot detected" }; //, html: response.html };
+      console.error("[scrapeURL] bot detected even after all attempts", { url });
+      return { error: "Bot detected" };
     }
   }
 
   return html;
+}
+
+/**
+ * Scrape with Cloudflare Puppeteer scraper - handles JS rendering and bot detection
+ * @param {string} url
+ * @param {Object} options
+ * @returns {Promise<string>}
+ */
+async function scrapeCloudflare(url: string, options: { proxy?: string | null, bypassCaptcha?: boolean } = {}): Promise<string> {
+  console.log("[scrapeCloudflare] attempting Cloudflare Puppeteer scraper", { url });
+
+  const scraperUrl = typeof process !== 'undefined' && process?.env?.SCRAPER_URL
+    ? process.env.SCRAPER_URL
+    : 'https://scraper.qwksearch.workers.dev';
+
+  const apiKey = typeof process !== 'undefined' && process?.env?.SCRAPER_API_KEY
+    ? process.env.SCRAPER_API_KEY
+    : undefined;
+
+  try {
+    const requestBody = {
+      url,
+      wait: 1000,
+      blockImages: false,
+      sessionId: 'default',
+      timeout: 30000,
+      waitUntil: 'networkidle2',
+      format: 'json',
+      bypassCaptcha: options.bypassCaptcha ?? true,
+      maxRetries: 10,
+      ...(options.proxy && { proxyUrl: options.proxy }),
+    };
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (apiKey) {
+      headers['Authorization'] = `Bearer ${apiKey}`;
+    }
+
+    const response = await fetch(`${scraperUrl}/api/render`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Cloudflare scraper failed (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.html) {
+      throw new Error('Cloudflare scraper returned no HTML');
+    }
+
+    console.log("[scrapeCloudflare] Cloudflare scraper succeeded", {
+      url,
+      htmlLength: data.html.length,
+      loadTime: data.loadTime,
+      challengeBypassed: data.challengeBypassed,
+    });
+
+    return data.html;
+  } catch (error) {
+    const err = error as Error;
+    console.error("[scrapeCloudflare] Cloudflare scraper failed", {
+      url,
+      message: err?.message,
+    });
+    throw new Error(`Cloudflare scraping failed: ${err?.message}`);
+  }
 }
 
 /**

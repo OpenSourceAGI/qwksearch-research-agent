@@ -150,16 +150,30 @@ const MessageSources = ({
 
 
     // Convert search results to Document format
-    const newSources: Document[] = results.map((result: SearchResult) => ({
-      pageContent: result.snippet || result.content || '',
-      metadata: {
-        title: result.title || '',
-        source: result.source || '',
-        thumbnail: result.thumbnail || '',
-        url: result.url || '',
-        ...(result.thumbnail && { thumbnail: result.thumbnail }),
-      },
-    }));
+    const newSources: Document[] = results.map((result: SearchResult) => {
+      // Log any domain-only URLs
+      if (result.url) {
+        try {
+          const parsedUrl = new URL(result.url);
+          if (parsedUrl.pathname === "/" || parsedUrl.pathname === "") {
+            console.warn('[MessageSources] Search result URL is domain-only:', result.url, 'Title:', result.title);
+          }
+        } catch (e) {
+          console.error('[MessageSources] Invalid URL in search result:', result.url);
+        }
+      }
+
+      return {
+        pageContent: result.snippet || result.content || '',
+        metadata: {
+          title: result.title || '',
+          source: result.source || '',
+          thumbnail: result.thumbnail || '',
+          url: result.url || '',
+          ...(result.thumbnail && { thumbnail: result.thumbnail }),
+        },
+      };
+    });
 
     setSources(prev => [...prev, ...newSources]);
     setCurrentPage(nextPage);
@@ -183,18 +197,32 @@ const MessageSources = ({
       });
 
       // Convert search results to Document format
-      const newSources: Document[] = results.map((result: SearchResult) => ({
-        pageContent: result.snippet || result.content || '',
-        metadata: {
-          title: result.title || '',
-          source: result.source || '',
-          thumbnail: result.thumbnail || '',
-          url: result.url || '',
-          ...(result.img_src && { img_src: (result as any).img_src }),
-          ...(result.thumbnail && { thumbnail: result.thumbnail }),
-          ...(result.iframe_src && { iframe_src: (result as any).iframe_src }),
-        },
-      }));
+      const newSources: Document[] = results.map((result: SearchResult) => {
+        // Log any domain-only URLs
+        if (result.url) {
+          try {
+            const parsedUrl = new URL(result.url);
+            if (parsedUrl.pathname === "/" || parsedUrl.pathname === "") {
+              console.warn('[MessageSources] Category search result URL is domain-only:', result.url, 'Title:', result.title);
+            }
+          } catch (e) {
+            console.error('[MessageSources] Invalid URL in category search result:', result.url);
+          }
+        }
+
+        return {
+          pageContent: result.snippet || result.content || '',
+          metadata: {
+            title: result.title || '',
+            source: result.source || '',
+            thumbnail: result.thumbnail || '',
+            url: result.url || '',
+            ...(result.img_src && { img_src: (result as any).img_src }),
+            ...(result.thumbnail && { thumbnail: result.thumbnail }),
+            ...(result.iframe_src && { iframe_src: (result as any).iframe_src }),
+          },
+        };
+      });
 
       setSources(newSources);
     } catch (error) {

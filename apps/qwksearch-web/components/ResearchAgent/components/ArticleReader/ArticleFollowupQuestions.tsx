@@ -39,21 +39,26 @@ const ArticleFollowupQuestions: React.FC<ArticleFollowupQuestionsProps> = ({
   return (
     <>
       {splitQuestions.length > 0 && (
-        <div className="space-y-2">
-          <div
-            onClick={() => onQuestionClick(DEFAULT_SUMMARIZE_PROMPT)}
-            className="cursor-pointer rounded-md p-2 text-sm font-semibold hover:bg-accent border border-border transition-colors"
-          >
-            {DEFAULT_SUMMARIZE_PROMPT}
-          </div>
-          {splitQuestions.map((question, i) => (
+        <div className="space-y-3 bg-accent/30 rounded-lg p-4 border border-primary/20">
+          <h3 className="text-sm font-bold text-primary mb-2">
+            💡 Suggested Follow-up Questions
+          </h3>
+          <div className="space-y-2">
             <div
-              key={i}
-              onClick={() => onQuestionClick(question)}
-              className="cursor-pointer rounded-md p-2 text-sm font-semibold hover:bg-accent border border-border transition-colors"
-              dangerouslySetInnerHTML={{ __html: question }}
-            />
-          ))}
+              onClick={() => onQuestionClick(DEFAULT_SUMMARIZE_PROMPT)}
+              className="cursor-pointer rounded-md p-3 text-sm font-semibold hover:bg-primary/10 bg-background border border-primary/30 transition-all hover:border-primary shadow-sm hover:shadow-md"
+            >
+              {DEFAULT_SUMMARIZE_PROMPT}
+            </div>
+            {splitQuestions.map((question, i) => (
+              <div
+                key={i}
+                onClick={() => onQuestionClick(question)}
+                className="cursor-pointer rounded-md p-3 text-sm font-semibold hover:bg-primary/10 bg-background border border-border transition-all hover:border-primary shadow-sm hover:shadow-md"
+                dangerouslySetInnerHTML={{ __html: question }}
+              />
+            ))}
+          </div>
         </div>
       )}
 

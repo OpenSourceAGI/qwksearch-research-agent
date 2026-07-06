@@ -16,8 +16,8 @@ import { ChatModelProvider } from "@/types/chat";
  * This function performs the following steps:
  * 1. Fetches available providers from the API
  * 2. Loads user preferences from localStorage (if any)
- * 3. Selects an appropriate provider (preferring Nvidia)
- * 4. Selects an appropriate model (preferring Kimi 2.5)
+ * 3. Selects an appropriate provider (preferring OpenRouter)
+ * 4. Selects an appropriate model (preferring Nemotron 3 Super 120B)
  * 5. Saves the selection to localStorage for future sessions
  *
  * @param setChatModelProvider - Callback to set the selected provider configuration
@@ -48,9 +48,9 @@ export const checkConfig = async (
     const providers: MinimalProvider[] = response?.providers || [];
 
     if (!providers || providers.length === 0) {
-      throw new Error(
-        "No chat model providers found, please configure them in the settings page.",
-      );
+      const errorMessage = response?.error ||
+        "No AI providers configured. Please add OPENROUTER_API_KEY to your environment variables or add your own API keys in Settings.";
+      throw new Error(errorMessage);
     }
 
     // Try to find the user's previously selected provider. Require it to have
@@ -62,20 +62,31 @@ export const checkConfig = async (
 
     // If no saved preference, select a default provider
     if (!chatModelProvider) {
-      // Prefer Nvidia provider
-      const nvidiaProvider = providers.find(
+      // Prefer OpenRouter provider (no daily limits, best for guests and new users)
+      const openRouterProvider = providers.find(
         (p) =>
-          p.name.toLowerCase().includes("nvidia") &&
+          p.name.toLowerCase().includes("openrouter") &&
           (p.chatModels?.length ?? 0) > 0,
       );
 
-      if (nvidiaProvider) {
-        chatModelProvider = nvidiaProvider;
+      if (openRouterProvider) {
+        chatModelProvider = openRouterProvider;
       } else {
-        // Fallback to any provider with available models
-        chatModelProvider = providers.find(
-          (p) => (p.chatModels?.length ?? 0) > 0,
+        // Fallback to Nvidia
+        const nvidiaProvider = providers.find(
+          (p) =>
+            p.name.toLowerCase().includes("nvidia") &&
+            (p.chatModels?.length ?? 0) > 0,
         );
+
+        if (nvidiaProvider) {
+          chatModelProvider = nvidiaProvider;
+        } else {
+          // Final fallback to any provider with available models
+          chatModelProvider = providers.find(
+            (p) => (p.chatModels?.length ?? 0) > 0,
+          );
+        }
       }
     }
 
@@ -94,21 +105,35 @@ export const checkConfig = async (
 
     // If no saved preference, select a default model
     if (!chatModel) {
-      // Prefer Kimi 2.5
-      chatModel = chatModelProvider.chatModels.find(
-        (m) =>
-          (m.key.toLowerCase().includes("kimi") ||
-            m.name.toLowerCase().includes("kimi")) &&
-          (m.key.toLowerCase().includes("2.5") ||
-            m.name.toLowerCase().includes("2.5") ||
-            m.key.toLowerCase().includes("k2") ||
-            m.name.toLowerCase().includes("k2")),
-      );
+      // For OpenRouter, prefer openrouter/free (auto-router for best free model)
+      if (chatModelProvider.name.toLowerCase().includes("openrouter")) {
+        chatModel = chatModelProvider.chatModels.find(
+          (m) => m.key === "openrouter/free"
+        );
+      }
 
-      // Fallback to any Kimi model
+      // If openrouter/free not found, try Nemotron 3 Super 120B as fallback
+      if (!chatModel && chatModelProvider.name.toLowerCase().includes("openrouter")) {
+        chatModel = chatModelProvider.chatModels.find(
+          (m) => m.key === "nvidia/nemotron-3-super-120b-a12b:free"
+        );
+      }
+
+      // If not OpenRouter or specific models not found, prefer any Nemotron 3 Super model
+      if (!chatModel) {
+        chatModel = chatModelProvider.chatModels.find(
+          (m) =>
+            (m.key.toLowerCase().includes("nemotron-3-super") ||
+              m.name.toLowerCase().includes("nemotron 3 super")) &&
+            m.key.toLowerCase().includes("120b"),
+        );
+      }
+
+      // Fallback to any Nemotron model
       if (!chatModel) {
         chatModel = chatModelProvider.chatModels.find((m) =>
-          m.key.toLowerCase().includes("kimi"),
+          m.key.toLowerCase().includes("nemotron") ||
+          m.name.toLowerCase().includes("nemotron"),
         );
       }
 

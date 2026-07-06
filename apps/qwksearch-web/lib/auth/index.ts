@@ -18,6 +18,29 @@ async function authBuilder() {
     kv = (ctx.env as any)?.KV;
   } catch {}
 
+  // Build social providers object only for configured providers
+  const socialProviders: Record<string, { clientId: string; clientSecret: string }> = {};
+
+  const googleClientId = getEnv("GOOGLE_CLIENT_ID");
+  const googleClientSecret = getEnv("GOOGLE_CLIENT_SECRET");
+  if (googleClientId && googleClientSecret &&
+      googleClientId !== 'your-google-client-id.apps.googleusercontent.com' &&
+      googleClientSecret !== 'your-google-client-secret') {
+    socialProviders.google = { clientId: googleClientId, clientSecret: googleClientSecret };
+  }
+
+  const discordClientId = getEnv("AUTH_DISCORD_ID");
+  const discordClientSecret = getEnv("AUTH_DISCORD_SECRET");
+  if (discordClientId && discordClientSecret) {
+    socialProviders.discord = { clientId: discordClientId, clientSecret: discordClientSecret };
+  }
+
+  const linkedinClientId = getEnv("AUTH_LINKEDIN_ID");
+  const linkedinClientSecret = getEnv("AUTH_LINKEDIN_SECRET");
+  if (linkedinClientId && linkedinClientSecret) {
+    socialProviders.linkedin = { clientId: linkedinClientId, clientSecret: linkedinClientSecret };
+  }
+
   return betterAuth(
     withCloudflare(
       {
@@ -32,20 +55,7 @@ async function authBuilder() {
           provider: "sqlite",
           schema,
         }),
-        socialProviders: {
-          google: {
-            clientId: getEnv("GOOGLE_CLIENT_ID")!,
-            clientSecret: getEnv("GOOGLE_CLIENT_SECRET")!,
-          },
-          discord: {
-            clientId: getEnv("AUTH_DISCORD_ID"),
-            clientSecret: getEnv("AUTH_DISCORD_SECRET"),
-          },
-          linkedin: {
-            clientId: getEnv("AUTH_LINKEDIN_ID"),
-            clientSecret: getEnv("AUTH_LINKEDIN_SECRET"),
-          },
-        },
+        socialProviders,
         emailVerification: {
           sendOnSignUp: false,
           autoSignInAfterVerification: true,

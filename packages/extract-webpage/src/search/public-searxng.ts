@@ -195,7 +195,19 @@ export async function searchWeb(
       }
 
       title = convertURLSafeHTMLToHTML(title);
-      const urlPtr = result.url.replace(/&amp;/g, "&");
+      let urlPtr = result.url.replace(/&amp;/g, "&");
+
+      // Validate URL has path component, not just domain
+      try {
+        const parsedUrl = new URL(urlPtr);
+        // If URL is just domain (path is just "/"), log warning
+        if (parsedUrl.pathname === "/" || parsedUrl.pathname === "") {
+          console.warn(`[searchWeb] Result URL is domain-only: ${urlPtr}. Full result:`, JSON.stringify(result).slice(0, 200));
+        }
+      } catch (e) {
+        console.error(`[searchWeb] Invalid URL in result: ${urlPtr}`);
+      }
+
       const snippet = result.content?.replace(/<\/?[^>]+(>|$)/g, "");
       const thumbnail = result.thumbnail;
       const score = Math.round(result.score * 100) / 100;
@@ -279,6 +291,16 @@ export async function searchWeb(
       title = convertURLSafeHTMLToHTML(title);
       snippet = convertURLSafeHTMLToHTML(snippet);
       const urlClean = convertURLSafeHTMLToHTML(titleUrlMatch[1]);
+
+      // Validate URL has path component, not just domain
+      try {
+        const parsedUrl = new URL(urlClean);
+        if (parsedUrl.pathname === "/" || parsedUrl.pathname === "") {
+          console.warn(`[searchWeb] Public scrape URL is domain-only: ${urlClean}`);
+        }
+      } catch (e) {
+        console.error(`[searchWeb] Invalid URL in public scrape: ${urlClean}`);
+      }
 
       results.push({
         title,

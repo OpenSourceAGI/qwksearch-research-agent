@@ -9,48 +9,104 @@
  */
 export const LANGUAGE_MODELS = [
   {
-    provider: "NVIDIA",
-    docs: "https://docs.api.nvidia.com/nim/reference/llm-apis",
-    api_key: "https://build.nvidia.com/settings/api-keys",
-    default: "nvidia/llama-nemotron-3-super-120b-a12b",
-    models: [
-      {
-        name: "Nemotron 3 Super 120B (Free)",
-        id: "nvidia/llama-nemotron-3-super-120b-a12b",
-        contextLength: 128000,
-        free: true,
-        type: "text-generation",
-      },
-      {
-        name: "Moonshot AI Kimi K2.5 (Free)",
-        id: "moonshotai/kimi-k2.5",
-        contextLength: 256000,
-        free: true,
-        type: "text-generation",
-      },
-      {
-        name: "DeepSeek V3 (Free - Open MoE 1M Context)",
-        id: "deepseek/deepseek-v3",
-        contextLength: 1000000,
-        free: true,
-        type: "text-generation",
-      },
-      {
-        name: "Gemma 4 31B IT (Free)",
-        id: "google/gemma-4-31b-it",
-        contextLength: 131072,
-        free: true,
-        type: "text-generation",
-      },
-      {
-        name: "GLM 4.5 Air (Free)",
-        id: "z-ai/glm-4.5-air",
-        contextLength: 128000,
-        free: true,
-        type: "text-generation",
-      },
-    ],
-  },
+  "provider": "NVIDIA",
+  "docs": "https://docs.api.nvidia.com/nim/reference/llm-apis",
+  "api_key": "https://build.nvidia.com/settings/api-keys",
+  "default": "nvidia/nemotron-3-super-120b-a12b",
+  "models": [
+    {
+      "name": "Nemotron 3 Super 120B",
+      "id": "nvidia/nemotron-3-super-120b-a12b",
+      "contextLength": 1_000_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Nemotron-4 340B",
+      "id": "nvidia/nemotron-4-340b",
+      "contextLength": 131_072,
+      "free": false,
+      "type": "text-generation"
+    },
+    {
+      "name": "Llama 3.3 70B Instruct",
+      "id": "meta/llama-3.3-70b-instruct",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Llama 3.1 405B Instruct",
+      "id": "meta/llama-3.1-405b-instruct",
+      "contextLength": 131_072,
+      "free": false,
+      "type": "text-generation"
+    },
+    {
+      "name": "Llama 3.1 8B Instruct",
+      "id": "meta/llama-3.1-8b-instruct",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Kimi K2.5",
+      "id": "moonshotai/kimi-k2.5",
+      "contextLength": 256_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "DeepSeek V3",
+      "id": "deepseek-ai/deepseek-v3",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Gemma 4 31B IT",
+      "id": "google/gemma-4-31b-it",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "GLM 4.5 Air",
+      "id": "z-ai/glm-4.5-air",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Mistral Large 2",
+      "id": "mistralai/mistral-large-2",
+      "contextLength": 131_072,
+      "free": false,
+      "type": "text-generation"
+    },
+    {
+      "name": "Mistral Nemo",
+      "id": "mistralai/mistral-nemo",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Qwen2.5 72B Instruct",
+      "id": "qwen/qwen2.5-72b-instruct",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "CodeLlama 70B Instruct",
+      "id": "meta/llama-3.1-70b-code-instruct",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    }
+  ]
+},
   {
     provider: "Cloudflare",
     docs: "https://developers.cloudflare.com/workers-ai/",
@@ -1172,185 +1228,189 @@ export const LANGUAGE_MODELS = [
       },
     ],
   },
-  {
-    provider: "OpenRouter",
-    docs: "https://openrouter.ai/docs",
-    api_key: "https://openrouter.ai/settings/keys",
-    default: "nvidia/llama-3.1-nemotron-70b-instruct:free",
-    models: [
-      {
-        name: "Nemotron 70B (Free - Default)",
-        id: "nvidia/llama-3.1-nemotron-70b-instruct:free",
-        contextLength: 131072,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Best balance for guests",
-        description: "NVIDIA's efficient model, excellent for all tasks - default for guests",
-      },
-      {
-        name: "Llama 3.1 70B (Free)",
-        id: "meta-llama/llama-3.1-70b-instruct:free",
-        contextLength: 131072,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Great alternative",
-        description: "Meta's proven model, excellent for general chat and complex queries",
-      },
-      {
-        name: "Llama 3.3 70B (Free)",
-        id: "meta-llama/llama-3.3-70b-instruct:free",
-        contextLength: 131072,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Latest model",
-        description: "Meta's latest model (may not be available on all providers yet)",
-      },
-      {
-        name: "Qwen 2.5 72B (Free)",
-        id: "qwen/qwen-2.5-72b-instruct:free",
-        contextLength: 131072,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Best for multilingual, fast responses",
-        description: "Alibaba's model, excellent for multilingual tasks and fast responses",
-      },
-      {
-        name: "DeepSeek V3 (Free)",
-        id: "deepseek/deepseek-v3:free",
-        contextLength: 64000,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Best for long-form content, analysis",
-        description: "Great for long-form content and detailed analysis",
-      },
-      {
-        name: "DeepSeek R1 (Free)",
-        id: "deepseek/deepseek-r1:free",
-        contextLength: 64000,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Best for reasoning, problem-solving",
-        description: "Optimized for reasoning tasks and problem-solving",
-      },
-      {
-        name: "Nemotron 3 Super 120B (Free)",
-        id: "nvidia/nemotron-3-super-120b-a12b:free",
-        contextLength: 128000,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Most powerful free model",
-        description: "NVIDIA's most powerful free model",
-      },
-      {
-        name: "Nemotron 3 Nano 30B MoE (Free)",
-        id: "nvidia/llama-nemotron-3-nano-30b-moe:free",
-        contextLength: 128000,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Fast & efficient",
-        description: "Efficient MoE architecture for fast inference",
-      },
-      {
-        name: "OpenRouter Free (200K context)",
-        id: "openrouter/free",
-        contextLength: 200000,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Largest context window",
-        description: "Largest context window for long documents",
-      },
-      {
-        name: "Qwen3 Coder (Free)",
-        id: "qwen/qwen3-coder:free",
-        contextLength: 32768,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Code generation specialist",
-        description: "Optimized for code generation and programming tasks",
-      },
-      {
-        name: "DeepSeek V4 Flash (Free)",
-        id: "deepseek/deepseek-v4-flash:free",
-        contextLength: 64000,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Fastest inference",
-        description: "Fast inference for quick responses",
-      },
-      {
-        name: "Gemma 4 31B IT (Free)",
-        id: "google/gemma-4-31b-it:free",
-        contextLength: 131072,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Google's efficient model",
-        description: "Google's efficient model with large context",
-      },
-      {
-        name: "GLM 4.5 Air (Free)",
-        id: "z-ai/glm-4.5-air:free",
-        contextLength: 128000,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Multilingual support",
-        description: "Strong multilingual capabilities",
-      },
-      {
-        name: "Hermes 3 70B (Free)",
-        id: "nousresearch/hermes-3-llama-3.1-70b:free",
-        contextLength: 131072,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Great for instructions",
-        description: "Fine-tuned for following complex instructions",
-      },
-      {
-        name: "Mistral 7B (Free)",
-        id: "mistralai/mistral-7b-instruct:free",
-        contextLength: 32768,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Lightweight & fast",
-        description: "Lightweight model for quick responses",
-      },
-      {
-        name: "Phi-3 Mini 128K (Free)",
-        id: "microsoft/phi-3-mini-128k-instruct:free",
-        contextLength: 128000,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Microsoft's efficient model",
-        description: "Microsoft's small but capable model with large context",
-      },
-      {
-        name: "Phi-3 Medium 128K (Free)",
-        id: "microsoft/phi-3-medium-128k-instruct:free",
-        contextLength: 128000,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Balanced quality",
-        description: "Balance of size and quality from Microsoft",
-      },
-      {
-        name: "MythoMax L2 13B (Free)",
-        id: "gryphe/mythomax-l2-13b:free",
-        contextLength: 8192,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Creative writing",
-        description: "Optimized for creative writing and storytelling",
-      },
-      {
-        name: "Toppy M 7B (Free)",
-        id: "undi95/toppy-m-7b:free",
-        contextLength: 4096,
-        free: true,
-        type: "text-generation",
-        rateLimit: "No daily limit - Very fast",
-        description: "Very fast responses for simple queries",
-      },
-    ],
-  },
+ {
+  "provider": "OpenRouter",
+  "docs": "https://openrouter.ai/docs",
+  "api_key": "https://openrouter.ai/settings/keys",
+  "default": "openrouter/free",
+  "models": [
+    {
+      "name": "OpenRouter Free (rotating)",
+      "id": "openrouter/free",
+      "contextLength": 200_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Nemotron 3 Super 120B",
+      "id": "nvidia/nemotron-3-super-120b-a12b:free",
+      "contextLength": 1_000_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Nemotron 3 Ultra 550B",
+      "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "contextLength": 1_000_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Nemotron 3 Nano 30B A3B",
+      "id": "nvidia/nemotron-3-nano-30b-a3b:free",
+      "contextLength": 256_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Nemotron 3 Nano Omni 30B A3B Reasoning",
+      "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+      "contextLength": 256_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Nemotron Nano 12B v2 VL",
+      "id": "nvidia/nemotron-nano-12b-v2-vl:free",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Nemotron Nano 9B v2",
+      "id": "nvidia/nemotron-nano-9b-v2:free",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Nemotron 3.5 Content Safety",
+      "id": "nvidia/nemotron-3.5-content-safety:free",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Gemma 4 31B IT",
+      "id": "google/gemma-4-31b-it:free",
+      "contextLength": 262_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Gemma 4 26B A4B IT",
+      "id": "google/gemma-4-26b-a4b-it:free",
+      "contextLength": 262_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "GPT-OSS 120B",
+      "id": "openai/gpt-oss-120b:free",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "GPT-OSS 20B",
+      "id": "openai/gpt-oss-20b:free",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Qwen3 Coder",
+      "id": "qwen/qwen3-coder:free",
+      "contextLength": 1_000_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Qwen3 Next 80B A3B Instruct",
+      "id": "qwen/qwen3-next-80b-a3b-instruct:free",
+      "contextLength": 262_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Llama 3.3 70B Instruct",
+      "id": "meta-llama/llama-3.3-70b-instruct:free",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Llama 3.2 3B Instruct",
+      "id": "meta-llama/llama-3.2-3b-instruct:free",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Hermes 3 Llama 3.1 405B",
+      "id": "nousresearch/hermes-3-llama-3.1-405b:free",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Laguna XS 2.1",
+      "id": "poolside/laguna-xs-2.1:free",
+      "contextLength": 262_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Laguna XS 2",
+      "id": "poolside/laguna-xs.2:free",
+      "contextLength": 262_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Laguna M 1",
+      "id": "poolside/laguna-m.1:free",
+      "contextLength": 262_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "North Mini Code",
+      "id": "cohere/north-mini-code:free",
+      "contextLength": 256_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "Dolphin Mistral 24B Venice Edition",
+      "id": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+      "contextLength": 33_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "LFM 2.5 1.2B Thinking",
+      "id": "liquid/lfm-2.5-1.2b-thinking:free",
+      "contextLength": 33_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "LFM 2.5 1.2B Instruct",
+      "id": "liquid/lfm-2.5-1.2b-instruct:free",
+      "contextLength": 33_000,
+      "free": true,
+      "type": "text-generation"
+    },
+    {
+      "name": "OpenRouter Free (rotating)",
+      "id": "openrouter/free",
+      "contextLength": 200_000,
+      "free": true,
+      "type": "text-generation"
+    }
+  ]
+}
 ];
 
 /** List of available LLM provider services */
