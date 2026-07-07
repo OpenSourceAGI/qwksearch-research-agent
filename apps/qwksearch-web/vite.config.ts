@@ -29,7 +29,7 @@ export default defineConfig(({ command }) => ({
       "extract-pdf": resolve(__dirname, "../../packages/extract-pdf/src"),
       "extract-youtube": resolve(__dirname, "../../packages/extract-youtube/src"),
       "qwksearch-api-client": resolve(__dirname, "../../packages/qwksearch-api-client/src"),
-      "grab-url": resolve(__dirname, "../../node_modules/grab-url"),
+      "grab-url": resolve(__dirname, "./lib/api/grab.ts"),
     },
   },
   build: {
@@ -37,17 +37,15 @@ export default defineConfig(({ command }) => ({
       // `fsevents` is an optional macOS-only native module that rollup/chokidar
       // require() lazily inside a try/catch; it has no place in the Worker
       // bundle and is never installed on Linux, so leave it external.
-      // `grab-url` is a Node.js HTTP client that shouldn't be bundled in client code.
       // `@mastra/core` and `@mastra/mcp` are optional dependencies with incorrect package.json exports.
       // `@composio/core` is only used in optional integration files.
-      external: ["fsevents", "grab-url", "@mastra/core", "@mastra/mcp", "@composio/core"],
+      external: ["fsevents", "@mastra/core", "@mastra/mcp", "@composio/core"],
     },
     rolldownOptions: {
       // Rolldown (Vite 8.x bundler) needs its own external list.
       // AI SDK packages are server-only and must not be bundled into client code.
       external: [
         "fsevents",
-        "grab-url",
         "@mastra/core",
         "@mastra/mcp",
         "@composio/core",
