@@ -3,7 +3,7 @@
  * and their available chat models. POST registers a new provider with its
  * type, name, and API configuration.
  */
-import ModelRegistry from "ai-research-agent/models/registry";
+import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { NextRequest } from "next/server";
 
 export const GET = async (req: Request) => {

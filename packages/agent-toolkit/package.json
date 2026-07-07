@@ -16,9 +16,15 @@
   "exports": {
     ".": {
       "types": "./dist/types.d.ts",
+      "import": "./dist/research-agent.es.js",
       "require": "./dist/research-agent.cjs.js"
     },
-    "./*": "./src/*"
+    "./*": {
+      "types": "./src/*.ts",
+      "react-server": "./src/*",
+      "import": "./src/*",
+      "require": "./src/*"
+    }
   },
   "typesVersions": {
     "*": {

@@ -16,7 +16,7 @@
 
 import { generateText } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
-import { LANGUAGE_MODELS } from "ai-research-agent/config/language-models-database";
+import { LANGUAGE_MODELS } from "chat-agent-toolkit/config/language-models-database";
 
 export interface ModelValidationResult {
   modelId: string;

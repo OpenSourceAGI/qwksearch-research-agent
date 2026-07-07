@@ -3,7 +3,7 @@
  */
 import { GET, POST } from "../route";
 import { NextRequest } from "next/server";
-import { extractContent } from "ai-research-agent/extractor/url-to-content/url-to-content";
+import { extractContent } from "chat-agent-toolkit/extractor/url-to-content/url-to-content";
 import { extractArticleViaScraper, extractViaTavily } from "@/lib/scraper";
 import { getDB } from "@/lib/database";
 import { articleCache, articleQA } from "@/lib/database/schema";

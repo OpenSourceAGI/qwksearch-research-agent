@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database";
 import { articleCache, articleQA } from "@/lib/database/schema";
 import { eq, sql } from "drizzle-orm";
-import { extractContent } from "ai-research-agent/extractor/url-to-content/url-to-content";
+import { extractContent } from "chat-agent-toolkit/extractor/url-to-content/url-to-content";
 import { extractArticleViaScraper, extractViaTavily } from "@/lib/scraper";
 import { getTavilyApiKey } from "@/lib/config/serverRegistry";
 

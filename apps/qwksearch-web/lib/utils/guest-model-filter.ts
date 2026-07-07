@@ -5,7 +5,7 @@
  * Uses cached validation results to avoid testing on every request.
  */
 
-import { LANGUAGE_MODELS } from "ai-research-agent/config/language-models-database";
+import { LANGUAGE_MODELS } from "chat-agent-toolkit/config/language-models-database";
 
 export interface GuestModelFilterOptions {
   /** Whether to enable strict filtering (only validated models) */

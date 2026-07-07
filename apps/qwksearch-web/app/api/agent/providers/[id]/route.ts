@@ -2,7 +2,7 @@
  * @fileoverview Single model provider operations. DELETE removes a provider
  * by ID. PATCH updates an existing provider's name and configuration.
  */
-import ModelRegistry from "ai-research-agent/models/registry";
+import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { NextRequest } from "next/server";
 
 export const DELETE = async (

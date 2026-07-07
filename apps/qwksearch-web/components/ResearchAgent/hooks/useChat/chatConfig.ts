@@ -7,7 +7,7 @@
 
 import { toast } from "sonner";
 import grab from "grab-url";
-import { MinimalProvider } from "ai-research-agent/models/types";
+import { MinimalProvider } from "chat-agent-toolkit/models/types";
 import { ChatModelProvider } from "@/types/chat";
 
 /**

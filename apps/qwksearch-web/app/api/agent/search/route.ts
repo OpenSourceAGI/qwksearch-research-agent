@@ -4,7 +4,7 @@
  * recency, and pagination. Falls back to public instances on empty results.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { searchWeb } from "ai-research-agent/search/public-searxng";
+import { searchWeb } from "chat-agent-toolkit/search/public-searxng";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);

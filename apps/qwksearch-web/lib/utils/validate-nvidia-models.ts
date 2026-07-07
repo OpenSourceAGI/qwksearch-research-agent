@@ -14,7 +14,7 @@
  *   const workingModels = result.availableModels;
  */
 
-import { LANGUAGE_MODELS } from "ai-research-agent/config/language-models-database";
+import { LANGUAGE_MODELS } from "chat-agent-toolkit/config/language-models-database";
 
 export interface ModelValidationResult {
   modelId: string;

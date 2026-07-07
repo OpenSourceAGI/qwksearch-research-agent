@@ -3,7 +3,7 @@
  */
 import { GET } from "../route";
 import { NextRequest } from "next/server";
-import { searchWeb } from "ai-research-agent/search/public-searxng";
+import { searchWeb } from "chat-agent-toolkit/search/public-searxng";
 
 // Mock the searchWeb function
 jest.mock("ai-research-agent/search/public-searxng", () => ({

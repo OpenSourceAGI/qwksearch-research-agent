@@ -18,7 +18,7 @@
  */
 
 import { renderUrlWithMetadata } from "./cloudflare-scraper-client";
-import { extractContent } from "ai-research-agent/extractor/url-to-content/url-to-content";
+import { extractContent } from "chat-agent-toolkit/extractor/url-to-content/url-to-content";
 
 /** Hard deadline for the Cloudflare scraper path before falling back. */
 export const SCRAPER_DEADLINE_MS = 8000;

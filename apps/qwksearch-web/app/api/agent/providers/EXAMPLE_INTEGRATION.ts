@@ -7,7 +7,7 @@
  * DO NOT use this file directly - it's a reference implementation.
  */
 
-import ModelRegistry from "ai-research-agent/models/registry";
+import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { NextRequest } from "next/server";
 import { filterModelsForGuests } from "@/lib/utils/guest-model-filter";
 

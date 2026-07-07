@@ -4,10 +4,10 @@
  */
 
 import crypto from "crypto";
-import type { ChatTurnMessage } from "ai-research-agent/search/meta-search-types";
+import type { ChatTurnMessage } from "chat-agent-toolkit/search/meta-search-types";
 import { getDB } from "@/lib/database";
-import { searchHandlers } from "ai-research-agent/search";
-import ModelRegistry from "ai-research-agent/models/registry";
+import { searchHandlers } from "chat-agent-toolkit/search";
+import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { getUserId } from "@/lib/auth/session";
 import { checkGuestRateLimit } from "@/lib/rate-limit/guestRateLimiter";
 import { safeValidateBody } from "./schemas";

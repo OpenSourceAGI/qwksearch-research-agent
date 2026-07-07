@@ -226,7 +226,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     setError('');
 
     try {
-      const data = await grab('https://app.qwksearch.com/api/agent/agents', {
+      const data = await grab('/api/agent/agents', {
         method: 'POST',
         body: JSON.stringify({
           agent,

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ModelWithProvider } from "ai-research-agent/models/types";
+import { ModelWithProvider } from "chat-agent-toolkit/models/types";
 
 /**
  * Schema for a single chat message sent by the client.

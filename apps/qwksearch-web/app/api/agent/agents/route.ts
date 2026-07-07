@@ -3,7 +3,7 @@
  * resolves the user's API key (or falls back to server-side keys), and
  * generates a language model response.
  */
-import { generateLanguageResponse } from "ai-research-agent/agents/generate-language";
+import { generateLanguageResponse } from "chat-agent-toolkit/agents/generate-language";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserId } from "@/lib/auth/session";
 import { getDB } from "@/lib/database";

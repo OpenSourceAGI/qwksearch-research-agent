@@ -3,10 +3,10 @@
  * and a model config, then uses the suggestion generator agent to produce
  * contextual follow-up question suggestions.
  */
-import generateSuggestions from "ai-research-agent/search/suggestionGeneratorAgent";
-import ModelRegistry from "ai-research-agent/models/registry";
-import { ModelWithProvider } from "ai-research-agent/models/types";
-import type { ChatTurnMessage } from "ai-research-agent/search/meta-search-types";
+import generateSuggestions from "chat-agent-toolkit/tools/search/suggestionGeneratorAgent";
+import ModelRegistry from "chat-agent-toolkit/models/registry";
+import { ModelWithProvider } from "chat-agent-toolkit/models/types";
+import type { ChatTurnMessage } from "chat-agent-toolkit/tools/search/meta-search-types";
 
 interface SuggestionsGenerationBody {
   chatHistory: any[];
