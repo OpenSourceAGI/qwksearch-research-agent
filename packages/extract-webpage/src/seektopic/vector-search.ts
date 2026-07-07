@@ -1,4 +1,4 @@
-import grab from "grab-url";
+import grab from "../utils/grab";
 
 /**
  * Text embeddings convert words or phrases into numerical vectors in a high-dimensional

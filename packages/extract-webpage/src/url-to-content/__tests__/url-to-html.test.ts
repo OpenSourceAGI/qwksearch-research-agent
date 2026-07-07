@@ -2,7 +2,7 @@
  * @fileoverview Unit tests for URL scraping functionality
  */
 import { scrapeURL, scrapeJINA } from "../url-to-html";
-import grab from "grab-url";
+import grab from "../utils/grab";
 
 // Mock grab-url
 jest.mock("grab-url");

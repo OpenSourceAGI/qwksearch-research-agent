@@ -1,4 +1,4 @@
-import grab from "grab-url";
+import grab from "../utils/grab";
 
 /**
  * ### Tardigrade the Web Crawler

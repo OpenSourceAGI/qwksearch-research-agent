@@ -5,7 +5,7 @@
 import { getDomainWithoutSuffix } from "tldts";
 import { scrapeURL } from "./url-to-html";
 import { parseDate } from "chrono-node";
-import grab from "grab-url";
+import grab from "../utils/grab";
 
 /**
  * Search Web via SearXNG metasearch of all major search engines.

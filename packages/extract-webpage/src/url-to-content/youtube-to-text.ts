@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { convertURLSafeHTMLToHTML } from "../html-to-content/html-utils";
 import { scrapeURL } from "./url-to-html";
-import grab from "grab-url";
+import grab from "../utils/grab";
 import { generate } from "youtube-po-token-generator";
 import { decode, encode } from "html-entities";
 /**

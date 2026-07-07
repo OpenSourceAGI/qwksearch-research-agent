@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { convertHTMLToBasicHTML } from "../html-to-content/html-to-basic-html";
 import { convertMarkdownToHTML } from "../html-to-content/html-utils";
-import grab from "grab-url";
+import grab from "../utils/grab";
 
 /**
  * ### Tardigrade the Web Crawler

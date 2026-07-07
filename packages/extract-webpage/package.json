@@ -71,7 +71,6 @@
     "drizzle-orm": "^0.45.1",
     "extract-pdf": "workspace:*",
     "extract-youtube": "workspace:*",
-    "grab-url": "^1.6.7",
     "highlight.js": "^11.11.1",
     "html-entities": "^2.6.0",
     "js-yaml": "^4.1.1",

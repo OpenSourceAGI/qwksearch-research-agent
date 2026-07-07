@@ -2,7 +2,7 @@
  * @fileoverview Unit tests for SearXNG search functionality
  */
 import { searchWeb, searchSearxng } from "../public-searxng";
-import grab from "grab-url";
+import grab from "../utils/grab";
 
 // Mock grab-url
 jest.mock("grab-url");
