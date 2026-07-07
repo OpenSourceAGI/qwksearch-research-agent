@@ -42,6 +42,6 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/vtempest/qwksearch-research-agent/packages/extract-pdf"
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent"
   }
 }
