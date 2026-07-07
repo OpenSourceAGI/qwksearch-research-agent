@@ -6,11 +6,11 @@
   "license": "rights.institute/PROSPER",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vtempest/ai-research-agent",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
     "directory": "packages/write-language"
   },
   "bugs": {
-    "url": "https://github.com/vtempest/ai-research-agent/issues"
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"
   },
   "main": "./dist/write-language.cjs.js",
   "types": "./dist/types.d.ts",
