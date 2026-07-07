@@ -24,6 +24,12 @@ export default defineConfig(({ command }) => ({
   resolve: {
     alias: {
       "shadcn-app-dock": resolve(__dirname, "../../packages/shadcn-app-dock/src/index.ts"),
+      "extract-webpage": resolve(__dirname, "../../packages/extract-webpage/src"),
+      "chat-agent-toolkit": resolve(__dirname, "../../packages/agent-toolkit/src"),
+      "extract-pdf": resolve(__dirname, "../../packages/extract-pdf/src"),
+      "extract-youtube": resolve(__dirname, "../../packages/extract-youtube/src"),
+      "qwksearch-api-client": resolve(__dirname, "../../packages/qwksearch-api-client/src"),
+      "grab-url": resolve(__dirname, "../../node_modules/grab-url"),
     },
   },
   build: {
@@ -31,17 +37,7 @@ export default defineConfig(({ command }) => ({
       // `fsevents` is an optional macOS-only native module that rollup/chokidar
       // require() lazily inside a try/catch; it has no place in the Worker
       // bundle and is never installed on Linux, so leave it external.
-      // Workspace packages with subpath imports must also be external since
-      // Rolldown cannot resolve them during bundling.
-      external: [
-        "fsevents",
-        /^extract-webpage/,
-        /^chat-agent-toolkit/,
-        /^extract-pdf/,
-        /^extract-youtube/,
-        /^qwksearch-api-client/,
-        /^grab-url/,
-      ],
+      external: ["fsevents"],
     },
   },
   plugins: [

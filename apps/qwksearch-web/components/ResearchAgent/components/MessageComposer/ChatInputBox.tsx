@@ -103,6 +103,7 @@ const ChatInputBox = () => {
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+    const [dropdownPosition, setDropdownPosition] = useState<'below' | 'above'>('below');
     const suppressNextFetchRef = useRef(false);
     const autocompleteAbortRef = useRef<AbortController | null>(null);
 
@@ -125,14 +126,32 @@ const ChatInputBox = () => {
             autocompleteAbortRef.current = controller;
             try {
                 const res = await fetch(
-                    `/api/agent/autocomplete?q=${encodeURIComponent(query)}`,
+                    `/api/agent/autocomplete?q=${encodeURIComponent(query)}&limit=8`,
                     { signal: controller.signal },
                 );
                 if (!res.ok) return;
                 const data = await res.json();
                 const list: string[] = Array.isArray(data?.suggestions) ? data.suggestions : [];
                 setSuggestions(list);
-                setSuggestionsOpen(list.length > 0);
+                if (list.length > 0) {
+                    // Calculate dropdown position based on viewport space
+                    if (wrapperRef.current) {
+                        const rect = wrapperRef.current.getBoundingClientRect();
+                        const spaceBelow = window.innerHeight - rect.bottom;
+                        const spaceAbove = rect.top;
+                        const dropdownHeight = Math.min(288, list.length * 48); // max-h-72 = 288px, ~48px per item
+
+                        // On mobile (or when not enough space below), show above if there's more space
+                        if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+                            setDropdownPosition('above');
+                        } else {
+                            setDropdownPosition('below');
+                        }
+                    }
+                    setSuggestionsOpen(true);
+                } else {
+                    setSuggestionsOpen(false);
+                }
                 setHighlightedIndex(-1);
             } catch (err: any) {
                 if (err?.name !== "AbortError") console.error("Autocomplete fetch failed", err);
@@ -391,11 +410,15 @@ const ChatInputBox = () => {
                                 // no-op; rendered outside wrapper, handled by mousedown stopPropagation below
                             }
                         }}
-                        initial={{ opacity: 0, y: -4 }}
+                        initial={{ opacity: 0, y: dropdownPosition === 'above' ? 4 : -4 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
+                        exit={{ opacity: 0, y: dropdownPosition === 'above' ? 4 : -4 }}
                         transition={{ duration: 0.12 }}
-                        className="absolute left-2 right-2 md:left-0 md:right-0 top-full mt-2 z-20 rounded-2xl bg-gray-50 dark:bg-[#30302E] border border-bg-300 dark:border-transparent shadow-xl overflow-hidden"
+                        className={`absolute left-2 right-2 md:left-0 md:right-0 z-20 rounded-2xl bg-gray-50 dark:bg-[#30302E] border border-bg-300 dark:border-transparent shadow-xl overflow-hidden ${
+                            dropdownPosition === 'above'
+                                ? 'bottom-full mb-2'
+                                : 'top-full mt-2'
+                        }`}
                         onMouseDown={(e) => e.preventDefault()}
                     >
                         <ul className="max-h-72 overflow-y-auto custom-scrollbar py-1">
@@ -405,10 +428,10 @@ const ChatInputBox = () => {
                                         type="button"
                                         onMouseEnter={() => setHighlightedIndex(i)}
                                         onClick={() => selectSuggestion(s)}
-                                        className={`w-full text-left px-4 py-2 text-[15px] flex items-center gap-2 transition-colors ${
+                                        className={`w-full text-left px-4 py-2.5 text-[15px] flex items-center gap-3 transition-colors ${
                                             i === highlightedIndex
                                                 ? 'bg-bg-200 text-text-100'
-                                                : 'text-text-200 hover:bg-bg-200'
+                                                : 'text-text-200 hover:bg-bg-100 dark:hover:bg-[#3A3A38]'
                                         }`}
                                     >
                                         <Search className="w-4 h-4 text-text-400 shrink-0" />
