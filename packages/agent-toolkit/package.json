@@ -6,7 +6,8 @@
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent"
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "directory": "packages/agent-toolkit"
   },
   "bugs": {
     "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"
