@@ -4,7 +4,45 @@
  */
 import { getDomainWithoutSuffix } from "tldts";
 import { parseDate } from "chrono-node";
-import grab from "grab-url";
+
+/**
+ * Fetch wrapper compatible with grab-url interface
+ */
+async function grab(url: string, params: any = {}): Promise<any> {
+  // Build query string from params
+  const queryParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== false) {
+      queryParams.append(key, String(value));
+    }
+  }
+
+  const fullUrl = queryParams.toString() ? `${url}?${queryParams}` : url;
+  const timeout = params.timeout ? params.timeout * 1000 : 10000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(fullUrl, {
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (contentType?.includes('application/json')) {
+      return { data: await response.json() };
+    }
+    return await response.text();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
 
 /**
  * Search Web via SearXNG metasearch of all major search engines.
