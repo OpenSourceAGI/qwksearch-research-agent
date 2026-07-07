@@ -1,0 +1,106 @@
+{
+  "name": "write-language",
+  "version": "0.1.1",
+  "description": "Multi-provider language generation toolkit using Vercel AI SDK - generate responses with 10+ LLM providers including OpenAI, Anthropic, Google, and more.",
+  "author": "vtempest <grokthiscontact@gmail.com>",
+  "license": "rights.institute/PROSPER",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vtempest/ai-research-agent",
+    "directory": "packages/write-language"
+  },
+  "bugs": {
+    "url": "https://github.com/vtempest/ai-research-agent/issues"
+  },
+  "main": "./dist/write-language.cjs.js",
+  "types": "./dist/types.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/write-language.es.js",
+      "require": "./dist/write-language.cjs.js"
+    },
+    "./*": {
+      "types": "./src/*.ts",
+      "react-server": "./src/*",
+      "import": "./src/*",
+      "require": "./src/*"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "src/*"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest",
+    "test-ui": "vitest --ui --watch",
+    "make": "rm -rf dist/*; NODE_OPTIONS=--max-old-space-size=15192 vite build",
+    "ship": "npx standard-version --release-as patch && npm publish --access public"
+  },
+  "peerDependencies": {
+    "next": ">=15.0.0",
+    "vinext": ">=0.1.0 || >=1.0.0-0"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    },
+    "vinext": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@vitest/ui": "^4.0.18",
+    "terser": "^5.46.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.1.3",
+    "vite-plugin-dts": "^5.0.3",
+    "vite-plugin-node-polyfills": "^0.28.0",
+    "vitest": "^4.0.18"
+  },
+  "dependencies": {
+    "@ai-sdk/amazon-bedrock": "^3.0.0",
+    "@ai-sdk/anthropic": "^2.0.0",
+    "@ai-sdk/google": "^2.0.0",
+    "@ai-sdk/google-vertex": "^3.0.0",
+    "@ai-sdk/groq": "^2.0.0",
+    "@ai-sdk/mcp": "^1.0.0",
+    "@ai-sdk/openai": "^2.0.0",
+    "@ai-sdk/xai": "^2.0.0",
+    "@openrouter/ai-sdk-provider": "^1.2.0",
+    "ai": "^5.0.0",
+    "highlight.js": "^11.11.1",
+    "html-entities": "^2.6.0",
+    "marked": "^17.0.4",
+    "workers-ai-provider": "^3.1.14",
+    "zod": "^4.3.6"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "language-generation",
+    "vercel-ai-sdk",
+    "nlp",
+    "multi-provider",
+    "groq",
+    "openai",
+    "anthropic",
+    "google",
+    "aws-bedrock",
+    "cloudflare-workers",
+    "ollama",
+    "hacktoberfest"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}
