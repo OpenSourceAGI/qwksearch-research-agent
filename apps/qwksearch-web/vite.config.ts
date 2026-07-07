@@ -29,7 +29,10 @@ export default defineConfig(({ command }) => ({
       "extract-pdf": resolve(__dirname, "../../packages/extract-pdf/src"),
       "extract-youtube": resolve(__dirname, "../../packages/extract-youtube/src"),
       "qwksearch-api-client": resolve(__dirname, "../../packages/qwksearch-api-client/src"),
-      "grab-url": resolve(__dirname, "../../node_modules/grab-url"),
+      // Force every `grab-url` import (including ones from aliased workspace
+      // package sources) to the app's own copy. bun does not hoist grab-url
+      // to the repo root, so ../../node_modules/grab-url does not exist.
+      "grab-url": resolve(__dirname, "./node_modules/grab-url"),
     },
   },
   build: {
@@ -37,30 +40,45 @@ export default defineConfig(({ command }) => ({
       // `fsevents` is an optional macOS-only native module that rollup/chokidar
       // require() lazily inside a try/catch; it has no place in the Worker
       // bundle and is never installed on Linux, so leave it external.
-      // `grab-url` is a Node.js HTTP client that shouldn't be bundled in client code.
       // `@mastra/core` and `@mastra/mcp` are optional dependencies with incorrect package.json exports.
       // `@composio/core` is only used in optional integration files.
-      external: ["fsevents", "grab-url", "@mastra/core", "@mastra/mcp", "@composio/core"],
+      //
+      // `grab-url` must NOT be external: these externals apply to the worker
+      // (rsc/ssr) bundles too, and a bare `import "grab-url"` in the deployed
+      // Worker fails Cloudflare validation with `No such module "grab-url"`
+      // (error 10021). It's an isomorphic fetch wrapper, so bundling it is
+      // safe in both client and worker code.
+      external: ["fsevents", "@mastra/core", "@mastra/mcp", "@composio/core"],
     },
     rolldownOptions: {
       // Rolldown (Vite 8.x bundler) needs its own external list.
-      // AI SDK packages are server-only and must not be bundled into client code.
-      external: [
-        "fsevents",
-        "grab-url",
-        "@mastra/core",
-        "@mastra/mcp",
-        "@composio/core",
-        "ai",
-        "@ai-sdk/openai",
-        "@ai-sdk/anthropic",
-        "@ai-sdk/groq",
-        "@ai-sdk/google",
-        "@ai-sdk/google-vertex",
-        "@ai-sdk/xai",
-        "@ai-sdk/amazon-bedrock",
-        "@openrouter/ai-sdk-provider",
-      ],
+      // Keep this list minimal: anything external here stays a bare import in
+      // the rsc/ssr Worker bundles too, and Cloudflare deploys the Vite output
+      // without re-bundling, so unresolved bare imports fail deploy validation
+      // ("No such module", error 10021) or crash at runtime.
+      external: ["fsevents", "@mastra/core", "@mastra/mcp", "@composio/core"],
+    },
+  },
+  environments: {
+    client: {
+      build: {
+        rolldownOptions: {
+          // AI SDK packages are server-only and must not be bundled into
+          // client code, but they DO have to be bundled into the Worker
+          // (rsc/ssr) output — so they are external only in the client build.
+          external: [
+            "ai",
+            "@ai-sdk/openai",
+            "@ai-sdk/anthropic",
+            "@ai-sdk/groq",
+            "@ai-sdk/google",
+            "@ai-sdk/google-vertex",
+            "@ai-sdk/xai",
+            "@ai-sdk/amazon-bedrock",
+            "@openrouter/ai-sdk-provider",
+          ],
+        },
+      },
     },
   },
   ssr: {
