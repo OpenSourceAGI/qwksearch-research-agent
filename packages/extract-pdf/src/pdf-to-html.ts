@@ -2,7 +2,7 @@
  * @fileoverview High-fidelity PDF-to-HTML conversion pipeline.
  * Extracts structural elements (headers, lists, code blocks) and handles page-level metadata.
  */
-import grab from "grab-url";
+import { grab } from "grab-url";
 
 import {
   findPageNumbers,
