@@ -5,7 +5,7 @@
  */
 /* eslint-disable @next/next/no-img-element */
 import type { Document } from 'ai-research-agent/search/document';
-import { File, Video, Loader2, ExternalLink } from 'lucide-react';
+import { File, Video, Loader2, ExternalLink, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import grab from 'grab-url'
@@ -68,6 +68,9 @@ const MessageSources = ({
   const userClosedPanelRef = useRef(false);
   const { openPanel, isOpen } = useExtractPanel();
 
+  // Track article loading/loaded states
+  const [articleStates, setArticleStates] = useState<Record<string, 'loading' | 'loaded'>>({});
+
   // Track window width for desktop/mobile layout
   useEffect(() => {
     const checkDesktop = () => {
@@ -84,7 +87,35 @@ const MessageSources = ({
     setActiveCategory('general');
     setCurrentPage(1);
     setHasMore(true);
+    setArticleStates({}); // Reset article states on new sources
+
+    // Check which articles are already cached
+    checkCachedArticles(initialSources);
   }, [initialSources]);
+
+  // Check which articles are already cached/fetched
+  const checkCachedArticles = useCallback(async (sourcesToCheck: Document[]) => {
+    const webSources = sourcesToCheck.filter(
+      s => s.metadata.url &&
+      s.metadata.url !== 'File' &&
+      !s.metadata.iframe_src // Skip video URLs
+    );
+
+    // Check cache status for each article (without triggering fetch)
+    for (const source of webSources) {
+      try {
+        const response = await fetch(`/api/doc/article?url=${encodeURIComponent(source.metadata.url)}`);
+        const data = await response.json();
+
+        // If article is cached and has content, mark as loaded
+        if (data.cached && data.article?.html) {
+          setArticleStates(prev => ({ ...prev, [source.metadata.url]: 'loaded' }));
+        }
+      } catch (error) {
+        // Silently fail - just won't show loaded icon
+      }
+    }
+  }, []);
 
   // Check for extract parameter in URL on mount
   useEffect(() => {
@@ -122,10 +153,24 @@ const MessageSources = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sources, isDesktop]);
 
-  const handleSourceClick = (e: React.MouseEvent, url: string) => {
+  const handleSourceClick = async (e: React.MouseEvent, url: string) => {
     e.preventDefault();
     userClosedPanelRef.current = false;
+
+    // Set article to loading state
+    setArticleStates(prev => ({ ...prev, [url]: 'loading' }));
+
+    // Open the panel (this will trigger article fetch in ArticleExtractPanel)
     openPanel(url, '');
+
+    // Check if article is cached or needs to be fetched
+    try {
+      await grab(`doc/article?url=${encodeURIComponent(url)}`);
+      setArticleStates(prev => ({ ...prev, [url]: 'loaded' }));
+    } catch (error) {
+      // Even on error, mark as loaded (failed) to stop spinner
+      setArticleStates(prev => ({ ...prev, [url]: 'loaded' }));
+    }
   };
 
   const loadMoreResults = useCallback(async () => {
@@ -319,6 +364,7 @@ const MessageSources = ({
     }
 
     // Default web/news/academic card
+    const articleState = articleStates[source.metadata.url];
     return (
       <div key={index} className="relative rounded-xl group h-full">
         <GlowingEffect
@@ -333,6 +379,16 @@ const MessageSources = ({
           className="relative bg-card text-card-foreground border border-border rounded-xl p-2.5 flex flex-col font-medium cursor-pointer shadow-sm hover:shadow-md transition-all duration-200 h-full"
           onClick={(e) => handleSourceClick(e, source.metadata.url)}
         >
+          {/* Article state icon (loading or loaded) - always visible when present */}
+          {articleState && (
+            <div className="absolute top-1.5 left-1.5 p-1 rounded-md bg-background/80 backdrop-blur-sm z-[5]">
+              {articleState === 'loading' ? (
+                <Loader2 size={14} className="text-primary animate-spin" />
+              ) : (
+                <FileText size={14} className="text-green-500" />
+              )}
+            </div>
+          )}
           <a
             href={source.metadata.url}
             target="_blank"

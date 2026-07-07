@@ -17,7 +17,7 @@ interface FollowUpSuggestionsProps {
 
 /**
  * Component for rendering follow-up question suggestions.
- * Only appears for the last assistant response when not loading.
+ * Always shows suggestions if they exist, regardless of loading state.
  */
 const FollowUpSuggestions = ({
     section,
@@ -25,31 +25,30 @@ const FollowUpSuggestions = ({
     loading,
     sendMessage,
 }: FollowUpSuggestionsProps) => {
-    if (!isLast || !section.suggestions || section.suggestions.length === 0 || !section.assistantMessage || loading) {
+    // Always show suggestions if they exist, regardless of loading state
+    if (!section.suggestions || section.suggestions.length === 0 || !section.assistantMessage) {
         return null;
     }
 
     return (
         <div className="mt-8 pt-6 border-t border-border/50">
-            <div className="space-y-0">
+            <div className="space-y-2">
                 {section.suggestions?.map((suggestion: string, i: number) => (
-                    <div key={i}>
-                        {i > 0 && <div className="h-px bg-border mx-3" />}
-                        <button
-                            onClick={() => sendMessage(suggestion)}
-                            className="group w-full px-3 py-4 text-left transition-colors duration-200 cursor-pointer"
-                        >
-                            <div className="flex items-center justify-between gap-3">
-                                <p className="text-sm text-muted-foreground group-hover:text-primary transition-colors duration-200 leading-relaxed">
-                                    {suggestion}
-                                </p>
-                                <Plus
-                                    size={16}
-                                    className="text-muted-foreground/60 group-hover:text-primary transition-colors duration-200 flex-shrink-0"
-                                />
-                            </div>
-                        </button>
-                    </div>
+                    <button
+                        key={i}
+                        onClick={() => sendMessage(suggestion)}
+                        className="group w-full px-4 py-4 text-left transition-all duration-200 cursor-pointer rounded-lg border border-border/50 hover:border-primary/30 hover:bg-accent/50 hover:shadow-sm"
+                    >
+                        <div className="flex items-center justify-between gap-3">
+                            <p className="text-base font-medium text-muted-foreground group-hover:text-primary transition-colors duration-200 leading-relaxed">
+                                {suggestion}
+                            </p>
+                            <Plus
+                                size={18}
+                                className="text-muted-foreground/60 group-hover:text-primary transition-colors duration-200 flex-shrink-0"
+                            />
+                        </div>
+                    </button>
                 ))}
             </div>
         </div>

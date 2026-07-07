@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Cpu, Search, Plus } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { MinimalProvider } from "ai-research-agent/models/types";
 import { Icons } from "../MessageComposer/MessageInputIconSet";
@@ -104,14 +105,19 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ chatModelProvider:
     return (
         <>
             <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                <PopoverTrigger
-                    type="button"
-                    className="inline-flex items-center justify-center relative shrink-0 transition font-base duration-300 ease-[cubic-bezier(0.165,0.85,0.45,1)] h-8 rounded-xl px-2 md:px-3 md:min-w-[4rem] active:scale-[0.98] whitespace-nowrap text-xs gap-1.5 text-text-300 hover:text-text-200 hover:bg-bg-200 dark:text-[#B4B4B4] dark:hover:text-[#ECECEC] dark:hover:bg-[#454540] data-[state=open]:bg-bg-200 data-[state=open]:text-text-100 dark:data-[state=open]:bg-[#454540] dark:data-[state=open]:text-[#ECECEC]"
-                >
-                    <Cpu size={14} className="text-sky-500" />
-                    <span className="hidden md:inline whitespace-nowrap select-none font-medium text-[13px] max-w-[60px] truncate">{currentModelName}</span>
-                    <Icons.SelectArrow className="hidden md:block shrink-0 opacity-75 w-4 h-4 transition-transform duration-200 data-[state=open]:rotate-180" />
-                </PopoverTrigger>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <PopoverTrigger
+                            type="button"
+                            className="inline-flex items-center justify-center relative shrink-0 transition font-base duration-300 ease-[cubic-bezier(0.165,0.85,0.45,1)] h-8 rounded-xl px-2 active:scale-[0.98] whitespace-nowrap text-xs gap-1.5 text-text-300 hover:text-text-200 hover:bg-bg-200 dark:text-[#B4B4B4] dark:hover:text-[#ECECEC] dark:hover:bg-[#454540] data-[state=open]:bg-bg-200 data-[state=open]:text-text-100 dark:data-[state=open]:bg-[#454540] dark:data-[state=open]:text-[#ECECEC]"
+                        >
+                            <Cpu size={14} className="text-sky-500" />
+                        </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" sideOffset={5}>
+                        {currentModelName}
+                    </TooltipContent>
+                </Tooltip>
                 <PopoverContent className="w-[280px] p-0" align="end" side="top" sideOffset={8}>
                     <div className="bg-white dark:bg-[#212121] max-h-[400px] border rounded-2xl border-[#DDDDDD] dark:border-[#30302E] w-full flex flex-col shadow-2xl overflow-hidden">
                         {/* Search Input */}

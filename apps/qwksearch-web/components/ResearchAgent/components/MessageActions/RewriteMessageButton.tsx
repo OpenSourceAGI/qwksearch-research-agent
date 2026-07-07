@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowLeftRight, Cpu, Search } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { MinimalProvider } from 'ai-research-agent/models/types';
 import { Icons } from '../MessageComposer/MessageInputIconSet';
@@ -81,20 +82,18 @@ const Rewrite = ({ messageId }: { messageId: string }) => {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button className="py-2 px-3 text-black/70 dark:text-white/70 rounded-xl hover:bg-light-secondary dark:hover:bg-dark-secondary transition duration-200 hover:text-black dark:hover:text-white flex flex-row items-center space-x-1">
-          <ArrowLeftRight size={18} />
-          <p className="text-xs font-medium whitespace-nowrap max-w-[100px] truncate">
-            {currentModelName}
-          </p>
-          <Icons.SelectArrow
-            className={cn(
-              'shrink-0 opacity-75 w-4 h-4 transition-transform duration-200',
-              open && 'rotate-180',
-            )}
-          />
-        </button>
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <button className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground">
+              <ArrowLeftRight size={18} />
+            </button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          Rewrite with {currentModelName}
+        </TooltipContent>
+      </Tooltip>
       <PopoverContent
         className="w-[280px] p-0"
         align="start"

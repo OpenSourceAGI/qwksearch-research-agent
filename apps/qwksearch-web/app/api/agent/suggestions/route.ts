@@ -33,14 +33,32 @@ export const POST = async (req: Request) => {
       body.chatModel.key,
     );
 
-    const suggestions = await generateSuggestions(
+    const rawSuggestions = await generateSuggestions(
       {
         chat_history: chatHistory,
       },
       llm,
     );
 
-    return Response.json({ suggestions }, { status: 200 });
+    // Split multi-question suggestions that have multiple question marks
+    // Example: "What is X? How does Y work?" -> ["What is X?", "How does Y work?"]
+    const splitSuggestions = rawSuggestions.flatMap((suggestion: string) => {
+      // Check if the suggestion has multiple question marks (indicating multiple questions)
+      const questionCount = (suggestion.match(/\?/g) || []).length;
+
+      if (questionCount > 1) {
+        // Split by question marks and clean up each question
+        return suggestion
+          .split(/\?/)
+          .map(q => q.trim())
+          .filter(q => q.length > 0)
+          .map(q => q + '?');
+      }
+
+      return [suggestion];
+    });
+
+    return Response.json({ suggestions: splitSuggestions }, { status: 200 });
   } catch (err) {
     console.error(`An error occurred while generating suggestions: ${err}`);
     return Response.json(

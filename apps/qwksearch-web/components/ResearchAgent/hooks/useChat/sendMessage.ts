@@ -352,6 +352,8 @@ export async function sendMessage(
         if (!suggestionsFetched) {
           suggestionsFetched = true;
           const suggestions = await getSuggestions(messagesRef.current);
+          const suggestionMessageId = generateMessageId();
+
           setMessages((prev) => [
             ...prev,
             {
@@ -359,9 +361,27 @@ export async function sendMessage(
               suggestions: suggestions,
               chatId: chatId,
               createdAt: new Date(),
-              messageId: generateMessageId(),
+              messageId: suggestionMessageId,
             },
           ]);
+
+          // Save suggestions to database for authenticated users
+          if (isAuthenticated && suggestions.length > 0) {
+            try {
+              await fetch(`/api/agent/messages`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  chatId,
+                  messageId: suggestionMessageId,
+                  role: "suggestion",
+                  suggestions,
+                }),
+              });
+            } catch (error) {
+              console.error("Failed to save suggestions:", error);
+            }
+          }
         }
       };
 

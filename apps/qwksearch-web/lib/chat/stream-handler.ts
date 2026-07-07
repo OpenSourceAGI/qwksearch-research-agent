@@ -31,12 +31,13 @@ interface StreamEvent {
  * |---------------|-----------------------|---------------|
  * | `"message"`   | AI text chunk (string)| present       |
  * | `"sources"`   | Source documents array | present       |
+ * | `"suggestions"`| Suggestions array     | present       |
  * | `"messageEnd"`| _absent_              | _absent_      |
  * | `"error"`     | Error description     | _absent_      |
  */
 interface SSEMessage {
-  type: "message" | "sources" | "searching" | "messageEnd" | "error";
-  data?: string | Document[] | { query: string; category?: string; status: string };
+  type: "message" | "sources" | "searching" | "suggestions" | "messageEnd" | "error";
+  data?: string | Document[] | string[] | { query: string; category?: string; status: string };
   messageId?: string;
 }
 

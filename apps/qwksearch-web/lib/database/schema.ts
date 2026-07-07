@@ -9,7 +9,7 @@ import {
 
 export const messages = sqliteTable("messages", {
   id: integer("id").primaryKey(),
-  role: text("type", { enum: ["assistant", "user", "source"] }).notNull(),
+  role: text("type", { enum: ["assistant", "user", "source", "suggestion"] }).notNull(),
   chatId: text("chatId").notNull(),
   userId: text("userId"),
   createdAt: text("createdAt")
@@ -23,6 +23,12 @@ export const messages = sqliteTable("messages", {
     mode: "json",
   })
     .$type<any[]>()
+    .default(sql`'[]'`),
+
+  suggestions: text("suggestions", {
+    mode: "json",
+  })
+    .$type<string[]>()
     .default(sql`'[]'`),
 });
 
