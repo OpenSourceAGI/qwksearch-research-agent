@@ -112,7 +112,9 @@ jobs:
       - name: Commit version bumps
         if: success()
         run: |
-          git add packages/*/package.json packages/*/package-lock.json
+          shopt -s nullglob
+          files=(packages/*/package.json packages/*/package-lock.json)
+          git add "${files[@]}"
           git diff --staged --quiet && echo "No version changes to commit" && exit 0
           git commit -m "chore: bump published package versions [skip ci]"
           git push
