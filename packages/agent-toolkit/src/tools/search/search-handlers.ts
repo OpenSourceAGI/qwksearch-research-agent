@@ -1,11 +1,20 @@
 /**
  * @module research/search/index
  * @description Research library module.
+ *
+ * Note: To use these search handlers, you need to provide search functions
+ * (searchSearxng, searchTavily, etc.) from extract-webpage package.
+ * See extract-webpage/src/search/index.ts for an example.
  */
 import MetaSearchAgent from "./metaSearchAgent";
 import prompts from "../../language-generation/prompts/search-prompts";
+import type { Config } from "./meta-search-types";
 
-export const searchHandlers: Record<string, MetaSearchAgent> = {
+/**
+ * Creates search handler instances with provided search functions.
+ * Pass in search functions from extract-webpage to enable web search.
+ */
+export const createSearchHandlers = (searchFunctions?: Partial<Config>) => ({
   webSearch: new MetaSearchAgent({
     activeEngines: [],
     queryGeneratorPrompt: prompts.webSearchRetrieverPrompt,
@@ -14,6 +23,7 @@ export const searchHandlers: Record<string, MetaSearchAgent> = {
     rerank: true,
     rerankThreshold: 0.3,
     searchWeb: true,
+    ...searchFunctions,
   }),
   academicSearch: new MetaSearchAgent({
     activeEngines: ["arxiv", "google scholar", "pubmed"],
@@ -23,6 +33,7 @@ export const searchHandlers: Record<string, MetaSearchAgent> = {
     rerank: true,
     rerankThreshold: 0,
     searchWeb: true,
+    ...searchFunctions,
   }),
   writingAssistant: new MetaSearchAgent({
     activeEngines: [],
@@ -32,6 +43,7 @@ export const searchHandlers: Record<string, MetaSearchAgent> = {
     rerank: true,
     rerankThreshold: 0,
     searchWeb: true,
+    ...searchFunctions,
   }),
   wolframAlphaSearch: new MetaSearchAgent({
     activeEngines: ["wolframalpha"],
@@ -41,6 +53,7 @@ export const searchHandlers: Record<string, MetaSearchAgent> = {
     rerank: false,
     rerankThreshold: 0,
     searchWeb: true,
+    ...searchFunctions,
   }),
   youtubeSearch: new MetaSearchAgent({
     activeEngines: ["youtube"],
@@ -50,6 +63,7 @@ export const searchHandlers: Record<string, MetaSearchAgent> = {
     rerank: true,
     rerankThreshold: 0.3,
     searchWeb: true,
+    ...searchFunctions,
   }),
   redditSearch: new MetaSearchAgent({
     activeEngines: ["reddit"],
@@ -59,5 +73,13 @@ export const searchHandlers: Record<string, MetaSearchAgent> = {
     rerank: true,
     rerankThreshold: 0.3,
     searchWeb: true,
+    ...searchFunctions,
   }),
-};
+});
+
+/**
+ * Default search handlers without search functions.
+ * These will not perform actual web searches unless search functions are added to the Config.
+ * @deprecated Use createSearchHandlers() with search functions instead
+ */
+export const searchHandlers = createSearchHandlers();

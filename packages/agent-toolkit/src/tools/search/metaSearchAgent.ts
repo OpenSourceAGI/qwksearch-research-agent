@@ -5,11 +5,7 @@
  */
 import { generateText, streamText, type LanguageModel } from "ai";
 import { LineOutputParser, LineListOutputParser } from "../../utils/outputParser";
-import { getDocumentsFromLinks } from "extract-webpage/utils/documents";
 import type { Document } from "./document";
-import { searchSearxng } from "extract-webpage/search/public-searxng";
-import { searchTavily, isTavilyConfigured } from "extract-webpage/search/tavily";
-import { scrapeURL } from "extract-webpage/search/url-to-html";
 
 /** Strip HTML tags and decode entities — works in Cloudflare edge runtime */
 function htmlToText(html: string): string {
@@ -26,7 +22,6 @@ function htmlToText(html: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
-import { getSourceScrapeTimeout } from "../../config/serverRegistry";
 import { formatChatHistoryAsString } from "../../utils";
 import EventEmitter from "events";
 import type {
@@ -127,10 +122,10 @@ class MetaSearchAgent implements MetaSearchAgentType {
       question = "latest information";
     }
 
-    if (links.length > 0) {
+    if (links.length > 0 && this.config.getDocumentsFromLinks) {
       if (question.length === 0) question = "summarize";
 
-      const linkDocs = await getDocumentsFromLinks({ links });
+      const linkDocs = await this.config.getDocumentsFromLinks({ links });
       const docs = await groupAndSummarizeDocs(llm, linkDocs, question);
 
       return { query: question, docs };
@@ -174,53 +169,60 @@ class MetaSearchAgent implements MetaSearchAgentType {
 
     let res: { results: any[]; suggestions: string[] };
 
-    const runSearxng = () => searchSearxng(question, {
-      language: "en",
-      engines: this.config.activeEngines,
-      categories: [category],
-    });
-
-    if (
-      isTavilyConfigured() &&
-      this.config.activeEngines.length === 0 &&
-      category === "general"
-    ) {
-      try {
-        res = await searchTavily(question, { searchDepth: "basic", maxResults: 10 });
-      } catch (error) {
-        console.error("Tavily search failed, falling back to SearXNG:", error);
-        res = await runSearxng();
-      }
+    // If no search functions provided, return empty results
+    if (!this.config.searchSearxng && !this.config.searchTavily) {
+      res = { results: [], suggestions: [] };
     } else {
-      if (isTavilyConfigured()) {
+      const runSearxng = () => this.config.searchSearxng!(question, {
+        language: "en",
+        engines: this.config.activeEngines,
+        categories: [category],
+      });
+
+      const isTavilyConfigured = this.config.isTavilyConfigured?.() ?? false;
+
+      if (
+        isTavilyConfigured &&
+        this.config.activeEngines.length === 0 &&
+        category === "general"
+      ) {
         try {
-          res = await Promise.race([
-            runSearxng(),
-            new Promise<{ results: any[]; suggestions: string[] }>((_, reject) =>
-              setTimeout(() => reject(new Error("Timeout")), 10000)
-            )
-          ]);
-        } catch (err: any) {
-          if (err.message === "Timeout") {
-            console.warn("[MetaSearchAgent] SearXNG search did not respond in 10 seconds, falling back to Tavily.");
-            try {
-              res = await searchTavily(question, { searchDepth: "basic", maxResults: 10 });
-            } catch (tavilyErr) {
-              console.error("[MetaSearchAgent] Tavily fallback also failed, awaiting SearXNG directly:", tavilyErr);
-              res = await runSearxng();
-            }
-          } else {
-            console.error("[MetaSearchAgent] SearXNG search failed, falling back to Tavily:", err);
-            try {
-              res = await searchTavily(question, { searchDepth: "basic", maxResults: 10 });
-            } catch (tavilyErr) {
-              console.error("[MetaSearchAgent] Tavily fallback also failed:", tavilyErr);
-              throw err;
-            }
-          }
+          res = await this.config.searchTavily!(question, { searchDepth: "basic", maxResults: 10 });
+        } catch (error) {
+          console.error("Tavily search failed, falling back to SearXNG:", error);
+          res = this.config.searchSearxng ? await runSearxng() : { results: [], suggestions: [] };
         }
       } else {
-        res = await runSearxng();
+        if (isTavilyConfigured && this.config.searchTavily) {
+          try {
+            res = await Promise.race([
+              runSearxng(),
+              new Promise<{ results: any[]; suggestions: string[] }>((_, reject) =>
+                setTimeout(() => reject(new Error("Timeout")), 10000)
+              )
+            ]);
+          } catch (err: any) {
+            if (err.message === "Timeout") {
+              console.warn("[MetaSearchAgent] SearXNG search did not respond in 10 seconds, falling back to Tavily.");
+              try {
+                res = await this.config.searchTavily(question, { searchDepth: "basic", maxResults: 10 });
+              } catch (tavilyErr) {
+                console.error("[MetaSearchAgent] Tavily fallback also failed, awaiting SearXNG directly:", tavilyErr);
+                res = this.config.searchSearxng ? await runSearxng() : { results: [], suggestions: [] };
+              }
+            } else {
+              console.error("[MetaSearchAgent] SearXNG search failed, falling back to Tavily:", err);
+              try {
+                res = await this.config.searchTavily(question, { searchDepth: "basic", maxResults: 10 });
+              } catch (tavilyErr) {
+                console.error("[MetaSearchAgent] Tavily fallback also failed:", tavilyErr);
+                throw err;
+              }
+            }
+          }
+        } else {
+          res = this.config.searchSearxng ? await runSearxng() : { results: [], suggestions: [] };
+        }
       }
     }
 
@@ -253,7 +255,8 @@ class MetaSearchAgent implements MetaSearchAgentType {
       perSourceTimeout = Math.max(2, Math.floor(thinkingTimeLimit / scrapeCount));
     } else if (sourceExtractionEnabled) {
       scrapeCount = 3;
-      perSourceTimeout = Math.max(1, getSourceScrapeTimeout());
+      // Default to 5 seconds if no config function available
+      perSourceTimeout = 5;
     } else {
       scrapeCount = 0;
       perSourceTimeout = 0;
@@ -263,12 +266,12 @@ class MetaSearchAgent implements MetaSearchAgentType {
       const docsToScrape = documents.slice(0, scrapeCount);
       emitSearching("running", `Extracting top ${docsToScrape.length} sources`, "extract");
 
-      const extractionTasks = docsToScrape.map(async (doc, idx) => {
+      const extractionTasks = this.config.scrapeURL ? docsToScrape.map(async (doc, idx) => {
         const url = doc.metadata?.url;
-        if (!url) return;
+        if (!url || !this.config.scrapeURL) return;
         try {
           const result = await waitWithTimeout(
-            scrapeURL(url, { timeout: perSourceTimeout }),
+            this.config.scrapeURL(url, { timeout: perSourceTimeout }),
             perSourceTimeout * 1000 + 1500,
           );
           if (typeof result === "string" && result.length > 100) {
@@ -284,7 +287,7 @@ class MetaSearchAgent implements MetaSearchAgentType {
         } catch {
           // Keep original snippet on scraping failure or timeout
         }
-      });
+      }) : [];
 
       await Promise.allSettled(extractionTasks);
       emitSearching("done", `Extracting top ${docsToScrape.length} sources`, "extract");

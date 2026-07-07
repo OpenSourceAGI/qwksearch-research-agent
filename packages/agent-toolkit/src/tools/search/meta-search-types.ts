@@ -44,6 +44,16 @@ export interface Config {
   queryGeneratorFewShots: FewShotExample[];
   responsePrompt: string;
   activeEngines: string[];
+  /** Optional: Function to fetch documents from URLs */
+  getDocumentsFromLinks?: (options: { links: string[] }) => Promise<any[]>;
+  /** Optional: Function to search via SearXNG */
+  searchSearxng?: (query: string, options: any) => Promise<{ results: any[]; suggestions: string[] }>;
+  /** Optional: Function to search via Tavily */
+  searchTavily?: (query: string, options: any) => Promise<{ results: any[]; suggestions: string[] }>;
+  /** Optional: Function to check if Tavily is configured */
+  isTavilyConfigured?: () => boolean;
+  /** Optional: Function to scrape a URL */
+  scrapeURL?: (url: string, options: any) => Promise<string>;
 }
 
 export type BasicChainInput = {

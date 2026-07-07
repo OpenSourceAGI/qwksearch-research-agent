@@ -131,7 +131,7 @@ export default function TestModelsButton({
                       Total Tested
                     </p>
                     <p className="text-2xl font-semibold text-black dark:text-white">
-                      {results.totalModels}
+                      {results.totalModels ?? 0}
                     </p>
                   </div>
                   <div className="p-4 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30">
@@ -139,7 +139,7 @@ export default function TestModelsButton({
                       Available
                     </p>
                     <p className="text-2xl font-semibold text-green-700 dark:text-green-400">
-                      {results.availableModels.length}
+                      {results.availableModels?.length ?? 0}
                     </p>
                   </div>
                   <div className="p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30">
@@ -147,13 +147,13 @@ export default function TestModelsButton({
                       Unavailable
                     </p>
                     <p className="text-2xl font-semibold text-red-700 dark:text-red-400">
-                      {results.unavailableModels.length}
+                      {results.unavailableModels?.length ?? 0}
                     </p>
                   </div>
                 </div>
 
                 {/* Available Models */}
-                {results.availableModels.length > 0 && (
+                {results.availableModels && results.availableModels.length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium mb-2 text-black dark:text-white flex items-center gap-2">
                       <Check size={16} className="text-green-600 dark:text-green-400" />
@@ -192,7 +192,7 @@ export default function TestModelsButton({
                 )}
 
                 {/* Unavailable Models */}
-                {results.unavailableModels.length > 0 && (
+                {results.unavailableModels && results.unavailableModels.length > 0 && (
                   <div>
                     <h3 className="text-sm font-medium mb-2 text-black dark:text-white flex items-center gap-2">
                       <X size={16} className="text-red-600 dark:text-red-400" />
