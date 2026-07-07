@@ -1,32 +1,25 @@
 /**
  * @fileoverview Text-to-speech endpoint. POST converts text to audio using
- * Cloudflare Workers AI Deepgram Aura voices. Supports multiple speakers
- * and enforces per-user daily rate limits (10/day for guests).
+ * Kokoro (default, faster & more natural) or Deepgram Aura.
+ * Enforces per-user daily rate limits (10/day for guests).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getCloudflareContext } from "@/lib/cloudflare-context";
 import { getUserId } from "@/lib/auth/session";
 import { checkTTSRateLimit } from "@/lib/rate-limit/guestRateLimiter";
+import { generateSpeech, type TTSProvider } from "@/lib/speech";
 
 export const runtime = "nodejs";
 
-const AURA_SPEAKERS = [
-  "angus", "asteria", "arcas", "orion", "orpheus", "athena",
-  "luna", "zeus", "perseus", "helios", "hera", "stella",
-] as const;
-
-type AuraSpeaker = (typeof AURA_SPEAKERS)[number];
-
 export async function POST(request: NextRequest) {
   let text: string;
-  let speaker: AuraSpeaker;
+  let voice: string;
+  let provider: TTSProvider;
+
   try {
     const body = await request.json();
     text = body.text;
-    const requested = body.speaker as string | undefined;
-    speaker = AURA_SPEAKERS.includes(requested as AuraSpeaker)
-      ? (requested as AuraSpeaker)
-      : "angus";
+    voice = body.voice || body.speaker || "af_heart";
+    provider = body.provider || "kokoro";
   } catch {
     return NextResponse.json(
       { error: "Invalid request body" },
@@ -54,31 +47,36 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let ai: any;
   try {
-    const ctx = getCloudflareContext();
-    ai = (ctx.env as any)?.AI;
-  } catch {
-    // CF bindings not available (local dev)
-  }
+    const result = await generateSpeech({
+      text: text.slice(0, 5000),
+      provider,
+      voice,
+    });
 
-  if (!ai) {
+    return new Response(result.audio, {
+      headers: {
+        "Content-Type": result.contentType,
+        "Cache-Control": "public, max-age=86400",
+        "Content-Disposition": `inline; filename="speech.${result.contentType.includes('wav') ? 'wav' : 'mp3'}"`,
+      },
+    });
+  } catch (error) {
+    console.error("[TTS] Error:", error);
+
+    // Handle specific errors
+    const message = error instanceof Error ? error.message : "TTS generation failed";
+
+    if (message.includes("Cloudflare AI binding")) {
+      return NextResponse.json(
+        { error: "Deepgram provider requires Cloudflare AI binding. Use 'kokoro' provider instead." },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "Cloudflare AI binding not available" },
-      { status: 503 }
+      { error: message },
+      { status: 500 }
     );
   }
-
-  const result = await ai.run("@cf/deepgram/aura-1", {
-    text: text.slice(0, 5000),
-    speaker,
-    encoding: "mp3",
-  });
-
-  return new Response(result, {
-    headers: {
-      "Content-Type": "audio/mpeg",
-      "Cache-Control": "no-store",
-    },
-  });
 }

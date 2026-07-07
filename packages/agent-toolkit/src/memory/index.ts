@@ -32,3 +32,16 @@ export {
   type MemoryOptions,
   type ExtractedFact,
 } from "./types";
+
+// Mastra integration for Cloudflare Workers
+export {
+  MastraMemoryManager,
+  MastraD1MemoryStorage,
+  MastraKVMemoryStorage,
+  createMastraMemory,
+} from "./mastra-integration";
+export type {
+  CloudflareEnv,
+  MastraStorageBackend,
+  MastraMemoryConfig,
+} from "./mastra-integration";

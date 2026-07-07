@@ -9,6 +9,7 @@ import AddModel from './AddModelDialog';
 import UpdateProvider from './UpdateProviderDialog';
 import DeleteProvider from './DeleteProviderDialog';
 import TestModelsButton from './TestModelsButton';
+import ProviderIcon from './ProviderIcon';
 
 const ModelProvider = ({
   modelProvider,
@@ -69,9 +70,7 @@ const ModelProvider = ({
     >
       <div className="px-5 py-3.5 flex flex-row justify-between w-full items-center border-b border-light-200 dark:border-dark-200 bg-light-secondary/30 dark:bg-dark-secondary/30">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 rounded-md bg-sky-500/10 dark:bg-sky-500/10">
-            <Plug2 size={14} className="text-sky-500" />
-          </div>
+          <ProviderIcon providerType={modelProvider.type} size={20} />
           <div className="flex flex-col">
             <p className="text-sm lg:text-sm text-black dark:text-white font-medium">
               {modelProvider.name}

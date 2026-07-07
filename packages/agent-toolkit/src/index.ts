@@ -18,3 +18,5 @@ export * from "./memory";
 export * from "./tools";
 export { configManager, ModelRegistry, getEnv, getModelProvidersUIConfigSection } from "./config";
 export type { Config, ConfigModelProvider, MCPServerConfig, UIConfigSections, Model, ModelWithProvider } from "./config";
+export { cropProvider, cropProviderAsBlob, cropProviderAsDataURL, getProviderImage, getProviderNames } from "./utils/provider-image-cropper";
+export type { Provider } from "./utils/provider-image-cropper";

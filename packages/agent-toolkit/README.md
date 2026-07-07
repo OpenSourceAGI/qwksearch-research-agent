@@ -209,5 +209,26 @@ Vite bundles ES + CJS targets to `dist/`, emits `.d.ts` files alongside, and app
 
 ### Transformer Architecture Visualizations
 
-<img src="https://i.imgur.com/bailW5n.gif" alt="Transformer attention mechanism visualization" />
 <img src="https://i.imgur.com/uW6E9VJ.gif" alt="Transformer architecture visualization" />
+
+
+## Alternative Agents Frameworks
+
+| # | Framework | Features | Stars | Language | Maker |
+|---:|---|---|---:|---|---|
+| 1 | [Hermes Agent](https://github.com/NousResearch/hermes-agent) | Self-improving agent with a built-in learning loop; distills reusable skills from past runs, persists experience across sessions, "grows with you" over time | 211k | Python | Nous Research |
+| 2 | [AutoGPT](https://github.com/Significant-Gravitas/AutoGPT) | One of the original autonomous agents; goal-driven loop that self-prompts to decompose and execute tasks. Now a low-code platform: visual block-based builder, deploy/run continuous agents, and an agent marketplace | 185k | Python/TypeScript | Significant Gravitas |
+| 3 | [n8n](https://github.com/n8n-io/n8n) | Workflow automation, native AI features, 400+ integrations, visual/code hybrid | 175k | TypeScript | n8n.io |
+| 4 | [LangChain / LangGraph](https://github.com/langchain-ai/langchain) | Full ecosystem: LangChain for chains/model+tool abstractions, [LangGraph](https://github.com/langchain-ai/langgraph) (36.7k) for graph-native orchestration with explicit state, branching, loops, checkpoints, human-in-the-loop, durable execution, streaming; [LangGraphJS](https://github.com/langchain-ai/langgraphjs) (3.1k) mirrors it for JS runtimes | 141k | Python + TS/JS | LangChain AI |
+| 5 | [Dify](https://github.com/langgenius/dify) | Visual workflow builder, RAG pipelines, agent apps, deployment tooling | 130k–147k+ | TypeScript | LangGenius |
+| 6 | [OpenHands](https://github.com/All-Hands-AI/OpenHands) | Autonomous dev agent — writes/edits code, runs shell commands, browses the web, executes in a sandbox; strong local secure-workflow story | 80k | Python | All-Hands-AI (formerly OpenDevin) |
+| 7 | [MetaGPT](https://github.com/FoundationAgents/MetaGPT) | Simulates a software company (PM/architect/dev/QA roles), SOP-driven pipelines, generates specs, docs, and code from one prompt | 69k | Python | Foundation Agents |
+| 8 | [Mem0](https://github.com/mem0ai/mem0) | Memory layer, not an orchestrator: extraction, consolidation, scoped retrieval, long-term user/agent memory; drops into any framework | 60k | Python/TypeScript | mem0ai |
+| 9 | [AutoGen](https://github.com/microsoft/autogen) | Dialogue-first multi-agent conversations, async event-driven messaging, distributed collaboration, observability, code execution | 60k | Python | Microsoft |
+| 10 | [CrewAI](https://github.com/crewAIInc/crewAI) | Role-based "crews," task delegation and collaboration, memory, checkpointing, async flows; lean (no LangChain dependency) | 55k | Python | CrewAI Inc. / João Moura |
+| 11 | [LlamaIndex](https://github.com/run-llama/llama_index) | Retrieval-centric agents, event-driven Workflows, RAG-first data connectors, memory, structured query planning | 51k | Python | LlamaIndex |
+| 12 | [smolagents](https://github.com/huggingface/smolagents) | Minimal code-first agents that write actions as Python code, sandboxed execution, tiny surface area, model-agnostic | 28k | Python | Hugging Face |
+| 13 | [OpenAI Agents SDK](https://github.com/openai/openai-agents-python) | Lightweight agent loop, handoffs between agents, guardrails, sessions, built-in tracing, sandboxed tool execution | 28k | Python/TypeScript | OpenAI |
+| 14 | [Mastra](https://github.com/mastra-ai/mastra) | TS-native, batteries-included: agents, graph-based workflows (`.then()`/`.branch()`/`.parallel()`), 40+ model routing, observational memory, human-in-the-loop, authored MCP servers, built-in evals + observability; deploys standalone or inside React/Next/Node | 26k | TypeScript | Mastra (mastra.ai) |
+| 15 | [Vercel AI SDK](https://github.com/vercel/ai) | Streaming, tool calling, structured outputs, agent loops, MCP support, provider-agnostic, first-class UI hooks; runs on edge/Workers | 25k | TypeScript | Vercel |
+| 16 | [Zep](https://github.com/getzep/zep) | Agent memory platform built on a temporal knowledge graph; long-term context, fact extraction, cross-session recall | 4.7k | Python/TypeScript | getzep |

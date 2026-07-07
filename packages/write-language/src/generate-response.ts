@@ -4,10 +4,10 @@
  */
 import { generateText, stepCountIs, tool } from "ai";
 import { AGENT_PROMPTS } from "./prompt-templates";
-import { AGENT_TOOLS } from "../tools/qwksearch-api-tools";
+import { AGENT_TOOLS } from "./tools/qwksearch-api-tools";
 import { LANGUAGE_MODELS, LANGUAGE_PROVIDERS } from "./language-model-registry";
 import { createLLMProvider } from "./provider-factory";
-import { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
+import { convertMarkdownToHTMLEscaped } from "./utils/markdown-to-html";
 import type {
   AgentPrompt,
   AgentTool,
@@ -20,7 +20,7 @@ export type {
   GenerateLanguageOptions,
   GenerateLanguageResult,
 } from "./generation-types";
-export { convertMarkdownToHTMLEscaped } from "../utils/markdown-to-html";
+export { convertMarkdownToHTMLEscaped } from "./utils/markdown-to-html";
 
 /**
  * ### Generate Language Response

@@ -38,3 +38,7 @@ export {
 export type { ModelCapability, ModelInfo } from "./language-model-registry";
 export { createLLMProvider } from "./provider-factory";
 export * from "./prompts";
+
+// Export tools and utilities for agent usage
+export { AGENT_TOOLS } from "./tools/qwksearch-api-tools";
+export { convertMarkdownToHTMLEscaped as markdownToHTML } from "./utils/markdown-to-html";

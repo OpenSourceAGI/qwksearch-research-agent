@@ -81,6 +81,7 @@
     "highlight.js": "^11.11.1",
     "html2canvas": "^1.4.1",
     "input-otp": "^1.4.2",
+    "kokoro-js": "^1.2.1",
     "lodash-es": "^4.18.1",
     "lucide-react": "^1.17.0",
     "manage-storage": "^0.0.13",

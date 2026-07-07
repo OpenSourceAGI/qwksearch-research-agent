@@ -38,6 +38,7 @@ export default defineConfig({
         "highlight.js",
         "html-entities",
         "marked",
+        "qwksearch-api-client",
       ],
       output: {
         inlineDynamicImports: true,
