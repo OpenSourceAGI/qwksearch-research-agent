@@ -226,11 +226,13 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     setError('');
 
     try {
+      const queryText = [searchText, userPrompt].filter(Boolean).join('\n');
+
       const data = await grab('/api/agent/agents', {
         method: 'POST',
         body: JSON.stringify({
           agent,
-          query: searchText + '\n' + userPrompt,
+          query: queryText,
           chat_history: chatHistory
             .slice(-5)
             .map((c) => `${c.role}: ${c.content}`)

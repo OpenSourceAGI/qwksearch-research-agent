@@ -4,7 +4,7 @@
  */
 
 import crypto from "crypto";
-import type { ChatTurnMessage } from "chat-agent-toolkit/search/meta-search-types";
+import type { ChatTurnMessage } from "extract-webpage/search/meta-search-types";
 import { getDB } from "@/lib/database";
 import { searchHandlers } from "chat-agent-toolkit/search";
 import ModelRegistry from "chat-agent-toolkit/models/registry";

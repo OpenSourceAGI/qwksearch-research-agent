@@ -4,7 +4,7 @@
  * the article extract panel. Auto-opens the first source on desktop.
  */
 /* eslint-disable @next/next/no-img-element */
-import type { Document } from 'chat-agent-toolkit/search/document';
+import type { Document } from 'extract-webpage/search/document';
 import { File, Video, Loader2, ExternalLink, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';

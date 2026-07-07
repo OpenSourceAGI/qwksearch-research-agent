@@ -3,7 +3,7 @@
  * category (tech, finance, art, sports, entertainment) from curated sources
  * via SearXNG news search. Supports normal and preview modes.
  */
-import { searchSearxng } from "chat-agent-toolkit/search/public-searxng";
+import { searchSearxng } from "extract-webpage/search/public-searxng";
 
 const websitesForTopic = {
   tech: {
