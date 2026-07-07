@@ -40,6 +40,18 @@ export default defineConfig(({ command }) => ({
       external: ["fsevents"],
     },
   },
+  ssr: {
+    // Bundle workspace packages into the standalone output instead of treating
+    // them as external dependencies (which vinext can't resolve at deploy time)
+    noExternal: [
+      "chat-agent-toolkit",
+      "extract-webpage",
+      "extract-pdf",
+      "extract-youtube",
+      "qwksearch-api-client",
+      "shadcn-app-dock",
+    ],
+  },
   plugins: [
     {
       // Resolve `cloudflare:workers` to a harmless stub in the client build,
