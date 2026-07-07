@@ -92,7 +92,7 @@ const Chat = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild>
-                <button className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground">
+                <button className="p-2 text-muted-foreground rounded-2xl bg-background/60 backdrop-blur-md hover:bg-secondary/80 transition duration-200 hover:text-foreground border border-border/30">
                   <Share2 size={18} />
                 </button>
               </DropdownMenuTrigger>
@@ -221,12 +221,15 @@ const Chat = () => {
           <TooltipTrigger asChild>
             <button
               onClick={newChat}
-              className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground"
+              className="p-2 text-muted-foreground rounded-2xl bg-background/60 backdrop-blur-md hover:bg-secondary/80 transition duration-200 hover:text-foreground border border-border/30"
             >
               <SquarePen size={18} />
             </button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">New chat</TooltipContent>
+          <TooltipContent side="bottom">
+            New chat
+            <div className="text-xs opacity-70 mt-0.5">⌘⇧N / Ctrl+Shift+N</div>
+          </TooltipContent>
         </Tooltip>
       </div>
 

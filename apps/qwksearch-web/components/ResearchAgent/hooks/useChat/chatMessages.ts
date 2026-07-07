@@ -1,7 +1,7 @@
 /**
  * @fileoverview Chat message loading functionality.
- * Handles loading chat messages from either localStorage (for guests)
- * or the API (for authenticated users).
+ * Handles loading chat messages from localStorage (for guest chats),
+ * the API (for authenticated users), or the API for public shared chats (for unauthenticated users).
  * @module components/ResearchAgent/state/chat/chatMessages
  */
 
@@ -15,8 +15,9 @@ import { ChatFile } from "@/types/chat";
 /**
  * Loads chat messages and metadata for an existing chat session.
  *
- * This function handles two scenarios:
- * - **Guest users**: Loads messages from localStorage via `getGuestChat()`
+ * This function handles three scenarios:
+ * - **Guest users**: Loads messages from localStorage via `getGuestChat()`, then tries API for public shared chats if not found
+ * - **Public shared chats**: Unauthenticated users can view public chats via the API without sign-in
  * - **Authenticated users**: Fetches messages from the `/api/chats/:id` endpoint
  *
  * After loading, it:
@@ -62,38 +63,99 @@ export const loadMessages = async (
   setFileIds: (fileIds: string[]) => void,
 ): Promise<void> => {
   // ============ Guest User Flow ============
-  // Load from localStorage for unauthenticated users
+  // For unauthenticated users, first check localStorage, then try API for public chats
   if (!isAuthenticated) {
     const guestChat = getGuestChat(chatId);
 
-    if (!guestChat) {
-      setNotFound(true);
+    if (guestChat) {
+      // Found in localStorage
+      setMessages(guestChat.messages);
+
+      // Extract user and assistant messages for history
+      const chatTurns = guestChat.messages.filter(
+        (msg): msg is ChatTurn => msg.role === "user" || msg.role === "assistant",
+      );
+
+      const history = chatTurns.map((msg) => {
+        return [msg.role, msg.content];
+      }) as [string, string][];
+
+      // Set document title to first message for better tab identification
+      if (chatTurns.length > 0) {
+        document.title = chatTurns[0].content;
+      }
+
+      setFiles(guestChat.files || []);
+      setFileIds((guestChat.files || []).map((file: ChatFile) => file.fileId));
+      setChatHistory(history);
+      setFocusMode(guestChat.focusMode);
       setIsMessagesLoaded(true);
       return;
     }
 
-    setMessages(guestChat.messages);
+    // Not in localStorage - try API for public shared chats
+    try {
+      const response = await fetch(`/api/agent/chats/${chatId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    // Extract user and assistant messages for history
-    const chatTurns = guestChat.messages.filter(
-      (msg): msg is ChatTurn => msg.role === "user" || msg.role === "assistant",
-    );
+      if (!response.ok) {
+        if (response.status === 404 || response.status === 403) {
+          setNotFound(true);
+          setIsMessagesLoaded(true);
+          return;
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
-    const history = chatTurns.map((msg) => {
-      return [msg.role, msg.content];
-    }) as [string, string][];
+      const { messages, chat } = await response.json();
 
-    // Set document title to first message for better tab identification
-    if (chatTurns.length > 0) {
-      document.title = chatTurns[0].content;
+      if (!messages || !chat) {
+        setNotFound(true);
+        setIsMessagesLoaded(true);
+        return;
+      }
+
+      setMessages(messages);
+
+      // Extract user and assistant messages for history
+      const chatTurns = messages.filter(
+        (msg): msg is ChatTurn => msg.role === "user" || msg.role === "assistant",
+      );
+
+      const history = chatTurns.map((msg) => {
+        return [msg.role, msg.content];
+      }) as [string, string][];
+
+      // Set document title to first message for better tab identification
+      if (chatTurns.length > 0) {
+        document.title = chatTurns[0].content;
+      }
+
+      // Transform API file format to ChatFile format
+      const files = chat.files.map((file: any) => {
+        return {
+          fileName: file.name,
+          fileExtension: file.name.split(".").pop(),
+          fileId: file.fileId,
+        };
+      });
+
+      setFiles(files);
+      setFileIds(files.map((file: ChatFile) => file.fileId));
+
+      setChatHistory(history);
+      setFocusMode(chat.focusMode);
+      setIsMessagesLoaded(true);
+      return;
+    } catch (error) {
+      console.error('[chatMessages] Failed to load public chat:', error);
+      setNotFound(true);
+      setIsMessagesLoaded(true);
+      return;
     }
-
-    setFiles(guestChat.files || []);
-    setFileIds((guestChat.files || []).map((file: ChatFile) => file.fileId));
-    setChatHistory(history);
-    setFocusMode(guestChat.focusMode);
-    setIsMessagesLoaded(true);
-    return;
   }
 
   // ============ Authenticated User Flow ============
@@ -107,7 +169,7 @@ export const loadMessages = async (
     });
 
     if (!response.ok) {
-      if (response.status === 404 || response.status === 401) {
+      if (response.status === 404 || response.status === 401 || response.status === 403) {
         setNotFound(true);
         setIsMessagesLoaded(true);
         return;

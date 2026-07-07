@@ -58,7 +58,7 @@ const HistoryDropdown = ({ showLabel = false }: HistoryDropdownProps) => {
           className={
             showLabel
               ? 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs text-muted-foreground bg-secondary hover:bg-secondary/80 hover:text-foreground transition-colors duration-150'
-              : 'p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground'
+              : 'p-2 text-muted-foreground rounded-2xl bg-background/60 backdrop-blur-md hover:bg-secondary/80 transition duration-200 hover:text-foreground border border-border/30'
           }
         >
           <History size={showLabel ? 14 : 18} />

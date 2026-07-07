@@ -226,26 +226,22 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     setError('');
 
     try {
-      const queryText = [searchText, userPrompt].filter(Boolean).join('\n');
-
-      const data = await grab('/api/agent/agents', {
-        method: 'POST',
-        body: JSON.stringify({
-          agent,
-          query: queryText,
-          chat_history: chatHistory
-            .slice(-5)
-            .map((c) => `${c.role}: ${c.content}`)
-            .join('\n'),
-          article,
-          MAX_FOLLOWUP_QUESTIONS,
-          provider: 'groq',
-        }),
-      });
-
-      if (data.error) throw new Error(data.error);
-
       if (isQuestion) {
+        // Use the new article-qa endpoint for questions
+        const queryText = [searchText, userPrompt].filter(Boolean).join('\n');
+
+        const data = await grab('/api/agent/article-qa', {
+          method: 'POST',
+          body: JSON.stringify({
+            article,
+            question: queryText,
+            chatHistory: chatHistory.slice(-5),
+            provider: 'groq',
+          }),
+        });
+
+        if (data.error) throw new Error(data.error);
+
         const aiAnswer = data.content || '';
         setAiResponse(aiAnswer);
         setChatHistory((prev) => [
@@ -263,6 +259,19 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
           console.error('Error storing Q&A in cache:', error);
         }
       } else {
+        // Use the new article-followups endpoint for follow-up questions
+        const data = await grab('/api/agent/article-followups', {
+          method: 'POST',
+          body: JSON.stringify({
+            article,
+            chatHistory: chatHistory.slice(-5),
+            maxQuestions: MAX_FOLLOWUP_QUESTIONS,
+            provider: 'groq',
+          }),
+        });
+
+        if (data.error) throw new Error(data.error);
+
         const questions = data.extract || [];
         setFollowupQuestions(questions);
 

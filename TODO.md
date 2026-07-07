@@ -8,6 +8,14 @@
 8. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings.
 9. Reasoning view zoom default at 125%.
 10. common typoes
+11. https://github.com/cloudflare/moltworker
+
+## Recent Fixes
+
+- Fixed article panel Ask and Suggest buttons by creating new endpoints:
+  - `/api/agent/article-qa` - Q&A endpoint for answering questions about articles
+  - `/api/agent/article-followups` - Generates follow-up questions based on article content
+  - Replaced deprecated `/api/agent/agents` endpoint that was returning 501 errors
 
 ## Longterm
 
