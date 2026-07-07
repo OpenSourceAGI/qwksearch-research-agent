@@ -236,7 +236,7 @@ const Chat = () => {
       >
         {/* Messages area - grows to fill available space */}
         <div
-          className={`flex-1 flex flex-col space-y-6 pb-48 ${isDesktop && !isPanelOpen ? 'px-0 max-w-[800px] mx-auto w-full' : 'px-4 lg:px-8'
+          className={`flex-1 flex flex-col space-y-3 pb-48 ${isDesktop && !isPanelOpen ? 'px-0 max-w-[800px] mx-auto w-full' : 'px-4 lg:px-8'
             }`}
         >
           {sections.map((section, i) => {

@@ -70,7 +70,7 @@ const AssistantMessageActions = ({
                                     start();
                                 }
                             }}
-                            className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground"
+                            className="p-2 text-muted-foreground rounded-full backdrop-blur-md bg-white/10 dark:bg-black/10 hover:bg-white/20 dark:hover:bg-black/20 transition duration-200 hover:text-foreground"
                         >
                             {speechStatus === 'started' ? (
                                 <StopCircle size={18} />
@@ -88,7 +88,7 @@ const AssistantMessageActions = ({
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <DropdownMenuTrigger asChild>
-                                <button className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground">
+                                <button className="p-2 text-muted-foreground rounded-full backdrop-blur-md bg-white/10 dark:bg-black/10 hover:bg-white/20 dark:hover:bg-black/20 transition duration-200 hover:text-foreground">
                                     <Download size={18} />
                                 </button>
                             </DropdownMenuTrigger>
@@ -139,7 +139,7 @@ const AssistantMessageActions = ({
                     <Tooltip>
                         <TooltipTrigger asChild>
                             <DropdownMenuTrigger asChild>
-                                <button className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground">
+                                <button className="p-2 text-muted-foreground rounded-full backdrop-blur-md bg-white/10 dark:bg-black/10 hover:bg-white/20 dark:hover:bg-black/20 transition duration-200 hover:text-foreground">
                                     <ExternalLink size={18} />
                                 </button>
                             </DropdownMenuTrigger>

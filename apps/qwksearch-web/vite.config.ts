@@ -31,12 +31,16 @@ export default defineConfig(({ command }) => ({
       // `fsevents` is an optional macOS-only native module that rollup/chokidar
       // require() lazily inside a try/catch; it has no place in the Worker
       // bundle and is never installed on Linux, so leave it external.
+      // Workspace packages with subpath imports must also be external since
+      // Rolldown cannot resolve them during bundling.
       external: [
         "fsevents",
         /^extract-webpage/,
         /^chat-agent-toolkit/,
         /^extract-pdf/,
         /^extract-youtube/,
+        /^qwksearch-api-client/,
+        /^grab-url/,
       ],
     },
   },

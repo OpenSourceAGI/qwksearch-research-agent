@@ -85,7 +85,7 @@ const Rewrite = ({ messageId }: { messageId: string }) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <button className="p-2 text-muted-foreground rounded-xl hover:bg-secondary transition duration-200 hover:text-foreground">
+            <button className="p-2 text-muted-foreground rounded-full backdrop-blur-md bg-white/10 dark:bg-black/10 hover:bg-white/20 dark:hover:bg-black/20 transition duration-200 hover:text-foreground">
               <ArrowLeftRight size={18} />
             </button>
           </PopoverTrigger>

@@ -130,7 +130,7 @@ const MessageBox = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <UserMessageHeader
         section={section}
         isExpanded={isExpanded}
@@ -146,7 +146,7 @@ const MessageBox = ({
 
       <div
         className={cn(
-          "flex flex-col space-y-6 overflow-hidden transition-all duration-300 ease-in-out",
+          "flex flex-col space-y-3 overflow-hidden transition-all duration-300 ease-in-out",
           isExpanded ? "max-h-[100000px] opacity-100" : "max-h-0 opacity-0"
         )}
       >
