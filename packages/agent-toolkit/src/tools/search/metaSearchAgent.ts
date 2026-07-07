@@ -167,17 +167,28 @@ class MetaSearchAgent implements MetaSearchAgentType {
 
     emitSearching("running", question);
 
-    let res: { results: any[]; suggestions: string[] };
+    let res: { results: any[]; suggestions: string[] } = { results: [], suggestions: [] };
 
     // If no search functions provided, return empty results
     if (!this.config.searchSearxng && !this.config.searchTavily) {
       res = { results: [], suggestions: [] };
     } else {
-      const runSearxng = () => this.config.searchSearxng!(question, {
-        language: "en",
-        engines: this.config.activeEngines,
-        categories: [category],
-      });
+      const runSearxng = async () => {
+        try {
+          const result = await this.config.searchSearxng!(question, {
+            language: "en",
+            engines: this.config.activeEngines,
+            categories: [category],
+          });
+          // Ensure result has the expected structure
+          return result && typeof result === 'object' && 'results' in result
+            ? result
+            : { results: [], suggestions: [] };
+        } catch (error) {
+          console.error("[MetaSearchAgent] SearXNG search failed:", error);
+          return { results: [], suggestions: [] };
+        }
+      };
 
       const isTavilyConfigured = this.config.isTavilyConfigured?.() ?? false;
 
@@ -187,7 +198,10 @@ class MetaSearchAgent implements MetaSearchAgentType {
         category === "general"
       ) {
         try {
-          res = await this.config.searchTavily!(question, { searchDepth: "basic", maxResults: 10 });
+          const tavilyResult = await this.config.searchTavily!(question, { searchDepth: "basic", maxResults: 10 });
+          res = tavilyResult && typeof tavilyResult === 'object' && 'results' in tavilyResult
+            ? tavilyResult
+            : { results: [], suggestions: [] };
         } catch (error) {
           console.error("Tavily search failed, falling back to SearXNG:", error);
           res = this.config.searchSearxng ? await runSearxng() : { results: [], suggestions: [] };
@@ -205,7 +219,10 @@ class MetaSearchAgent implements MetaSearchAgentType {
             if (err.message === "Timeout") {
               console.warn("[MetaSearchAgent] SearXNG search did not respond in 10 seconds, falling back to Tavily.");
               try {
-                res = await this.config.searchTavily(question, { searchDepth: "basic", maxResults: 10 });
+                const tavilyResult = await this.config.searchTavily(question, { searchDepth: "basic", maxResults: 10 });
+                res = tavilyResult && typeof tavilyResult === 'object' && 'results' in tavilyResult
+                  ? tavilyResult
+                  : { results: [], suggestions: [] };
               } catch (tavilyErr) {
                 console.error("[MetaSearchAgent] Tavily fallback also failed, awaiting SearXNG directly:", tavilyErr);
                 res = this.config.searchSearxng ? await runSearxng() : { results: [], suggestions: [] };
@@ -213,10 +230,13 @@ class MetaSearchAgent implements MetaSearchAgentType {
             } else {
               console.error("[MetaSearchAgent] SearXNG search failed, falling back to Tavily:", err);
               try {
-                res = await this.config.searchTavily(question, { searchDepth: "basic", maxResults: 10 });
+                const tavilyResult = await this.config.searchTavily(question, { searchDepth: "basic", maxResults: 10 });
+                res = tavilyResult && typeof tavilyResult === 'object' && 'results' in tavilyResult
+                  ? tavilyResult
+                  : { results: [], suggestions: [] };
               } catch (tavilyErr) {
                 console.error("[MetaSearchAgent] Tavily fallback also failed:", tavilyErr);
-                throw err;
+                res = { results: [], suggestions: [] };
               }
             }
           }
@@ -226,7 +246,7 @@ class MetaSearchAgent implements MetaSearchAgentType {
       }
     }
 
-    let documents: Document[] = res.results.map((result) => ({
+    let documents: Document[] = (res?.results ?? []).map((result) => ({
       pageContent:
         result.content ||
         (this.config.activeEngines.includes("youtube") ? result.title : ""),

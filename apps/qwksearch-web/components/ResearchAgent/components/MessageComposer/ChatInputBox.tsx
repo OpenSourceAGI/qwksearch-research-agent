@@ -19,10 +19,9 @@ import { LiveWaveform } from '@/components/ui/live-waveform';
 const PLACEHOLDERS = [
   "What are you curious to research?",
   "Search the latest news...",
-  "Analyze a document or URL...",
+  "Analyze a video, doc, or URL...",
   "Find academic research on...",
-  "Summarize this article",
-  "Compare and contrast...",
+  "Compare products to buy...",
 ];
 
 const placeholderContainerVariants = {
