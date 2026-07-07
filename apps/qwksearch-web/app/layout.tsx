@@ -3,7 +3,6 @@ export const dynamic = 'force-dynamic';
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import 'shadcn-theme-menu/themes.css';
-import '@/lib/api/init-grab';
 import { cookies } from "next/headers"
 import { cn } from '@/lib/utils';
 import { Toaster } from 'sonner';
