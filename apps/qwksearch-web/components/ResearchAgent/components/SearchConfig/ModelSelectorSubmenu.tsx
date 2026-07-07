@@ -15,7 +15,7 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { MinimalProvider } from 'ai-research-agent/models/types';
+import { MinimalProvider } from 'chat-agent-toolkit/models/types';
 import { useChat } from '@/components/ResearchAgent/hooks/useChat';
 import grab from 'grab-url';
 import { useRouter } from 'next/navigation';

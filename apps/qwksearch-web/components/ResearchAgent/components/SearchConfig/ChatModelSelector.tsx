@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '../../ui/popover';
-import { MinimalProvider } from 'ai-research-agent/models/types';
+import { MinimalProvider } from 'chat-agent-toolkit/models/types';
 import { useChat } from '../hooks/useChat';
 
 type ModelCategory = 'all' | 'capable' | 'balanced' | 'fast' | 'specialized';

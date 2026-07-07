@@ -4,12 +4,12 @@
  * the article extract panel. Auto-opens the first source on desktop.
  */
 /* eslint-disable @next/next/no-img-element */
-import type { Document } from 'ai-research-agent/search/document';
+import type { Document } from 'chat-agent-toolkit/search/document';
 import { File, Video, Loader2, ExternalLink, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import grab from 'grab-url'
-import { convertURLSafeHTMLToHTML } from 'ai-research-agent/extractor/html-to-content/html-utils';
+import { convertURLSafeHTMLToHTML } from 'chat-agent-toolkit/extractor/html-to-content/html-utils';
 import { cn } from '@/lib/utils';
 
 import { GlowingEffect } from '@/components/ui/glowing-effect';

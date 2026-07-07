@@ -9,7 +9,7 @@ import { ArrowLeftRight, Cpu, Search } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { MinimalProvider } from 'ai-research-agent/models/types';
+import { MinimalProvider } from 'chat-agent-toolkit/models/types';
 import { Icons } from '../MessageComposer/MessageInputIconSet';
 import grab from 'grab-url';
 import { useChat } from '@/components/ResearchAgent/hooks/useChat';
