@@ -42,6 +42,26 @@ export default defineConfig(({ command }) => ({
       // `@composio/core` is only used in optional integration files.
       external: ["fsevents", "grab-url", "@mastra/core", "@mastra/mcp", "@composio/core"],
     },
+    rolldownOptions: {
+      // Rolldown (Vite 8.x bundler) needs its own external list.
+      // AI SDK packages are server-only and must not be bundled into client code.
+      external: [
+        "fsevents",
+        "grab-url",
+        "@mastra/core",
+        "@mastra/mcp",
+        "@composio/core",
+        "ai",
+        "@ai-sdk/openai",
+        "@ai-sdk/anthropic",
+        "@ai-sdk/groq",
+        "@ai-sdk/google",
+        "@ai-sdk/google-vertex",
+        "@ai-sdk/xai",
+        "@ai-sdk/amazon-bedrock",
+        "@openrouter/ai-sdk-provider",
+      ],
+    },
   },
   ssr: {
     // Bundle workspace packages into the standalone output instead of treating
