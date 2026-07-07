@@ -1,8 +1,7 @@
 /**
  * @module research/search/document
- * @description Minimal document shape shared across the search pipeline,
- * replacing LangChain's Document class. A document is a chunk of page
- * content plus citation metadata (title, url, source, etc.).
+ * @description Minimal document shape shared across the search pipeline.
+ * A document is a chunk of page content plus citation metadata (title, url, source, etc.).
  */
 
 export interface Document<
@@ -14,8 +13,7 @@ export interface Document<
 
 /**
  * Splits text into overlapping chunks on whitespace boundaries.
- * Drop-in replacement for RecursiveCharacterTextSplitter's default
- * behavior (chunkSize 1000, chunkOverlap 200).
+ * Default chunkSize 1000, chunkOverlap 200.
  */
 export function splitTextIntoChunks(
   text: string,

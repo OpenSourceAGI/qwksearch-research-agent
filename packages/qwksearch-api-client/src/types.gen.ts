@@ -122,7 +122,7 @@ export type ExtractContentResponse = ExtractContentResponses[keyof ExtractConten
 export type WriteLanguageData = {
     body: {
         /**
-         * 🤖 Agent name -  [LangHub](https://smith.langchain.com/hub) template or custom:
+         * 🤖 Agent template - built-in or custom:
          * question(query, chat_history), summarize-bullets(article), summarize(article),
          * suggest-followups(chat_history, article) : string[], answer-cite-sources(context, chat_history, query),
          * query-resolution(chat_history, query), knowledge-graph-nodes(query, article),

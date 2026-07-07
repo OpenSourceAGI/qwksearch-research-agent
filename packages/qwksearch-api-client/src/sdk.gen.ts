@@ -59,7 +59,7 @@ export const extractContent = <ThrowOnError extends boolean = false>(options: Op
  *
  * - ❓ **Inputs**: 👄 Language Intelligence Provider, 🔑 API Key,  🤖 agent template name, 🧠 model name and options,
  * and 🆎 context variables for that agent
- * - 🤖 **Agent Instruction Templates**: [LangHub](https://smith.langchain.com/hub) template or custom:
+ * - 🤖 **Agent Instruction Templates**: Built-in templates or custom:
  * question(query, chat_history), summarize-bullets(article), summarize(article),
  * suggest-followups(chat_history, article), answer-cite-sources(context, chat_history, query),
  * query-resolution(chat_history, query), knowledge-graph-nodes(query, article),
@@ -86,7 +86,6 @@ export const extractContent = <ThrowOnError extends boolean = false>(options: Op
  *
  * - 📚 **Learning Resources**:
  * [LLM Training Example](https://github.com/vtempest/ai-research-agent/blob/master/packages/neural-net/src/train/predict-next-word.js),
- * [LangChain ReactAgent Tools](https://medium.com/@terrycho/how-langchain-agent-works-internally-trace-by-using-langsmith-df23766e7fb4),
  * [Hugging Face Tutorials](https://huggingface.co/learn), [OpenAI Cookbook](https://cookbook.openai.com),
  * [Transformer Overview](https://jalammar.github.io/illustrated-transformer/),
  * [Building Transformer Guide](https://www.datacamp.com/tutorial/building-a-transformer-with-py-torch),

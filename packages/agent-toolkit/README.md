@@ -142,7 +142,7 @@ The `agent` option selects a prompt template from [`AGENT_PROMPTS`](src/agents/a
 - `knowledge-graph-nodes` — builds a temporal knowledge graph from a document.
 - `results-relevance-filter` — picks the most relevant URLs from a search result list.
 
-Templates use `{variableName}` placeholders that are filled from the options object (`query`, `article`, `chat_history`, `context`, etc.). Unknown templates fall back to [LangChain Hub](https://smith.langchain.com/hub) when `LANGCHAIN_API_KEY` is provided.
+Templates use `{variableName}` placeholders that are filled from the options object (`query`, `article`, `chat_history`, `context`, etc.).
 
 ## Agent tools
 
@@ -180,7 +180,7 @@ src/
     generate-language.ts     # generateLanguageResponse — main entry point
     generate-language-types.ts
     language-model-names.ts  # LANGUAGE_MODELS, LANGUAGE_PROVIDERS
-    llm-providers.ts         # createLLMProvider — LangChain chat-model factory
+    llm-providers.ts         # createLLMProvider — chat-model factory
     index.ts                 # barrel export
   memory/                    # SimpleMemory, MemoryAgent, Drizzle storage
   providers/                 # alternate provider abstractions (model registry)

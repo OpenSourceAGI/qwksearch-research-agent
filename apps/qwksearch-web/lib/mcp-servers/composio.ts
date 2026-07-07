@@ -17,8 +17,6 @@ class ComposioMCPServer extends BaseMCPServer<ComposioConfig> {
       // Initialize connection to Composio MCP server
       const url = this.config.url || 'https://mcp.composio.dev/sse';
 
-      // In a real implementation, you would use @langchain/mcp-adapters
-      // to connect to the Composio MCP server
       // For now, we'll just mark as connected
       this.connected = true;
 
@@ -40,7 +38,6 @@ class ComposioMCPServer extends BaseMCPServer<ComposioConfig> {
     }
 
     // In a real implementation, this would fetch tools from the MCP server
-    // using @langchain/mcp-adapters
     return this.tools;
   }
 

@@ -44,9 +44,6 @@ export async function POST(request: NextRequest) {
     )?.key;
   }
 
-  // Access environment variables
-  params.LANGCHAIN_API_KEY = getEnv("LANGCHAIN_API_KEY");
-
   // Provide default API keys
   if (!params.apiKey) {
     params.apiKey =
