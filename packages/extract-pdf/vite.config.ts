@@ -17,7 +17,7 @@ export default defineConfig({
       format: { comments: false },
     },
     rollupOptions: {
-      external: ["grab-url"],
+      external: [],
     },
   },
   plugins: [

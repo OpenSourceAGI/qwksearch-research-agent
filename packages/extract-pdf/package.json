@@ -25,9 +25,7 @@
     "test": "bun test",
     "ship": "npm run build && npx standard-version --release-as patch; rm -f CHANGELOG.md; npm publish"
   },
-  "dependencies": {
-    "grab-url": "^1.6.19"
-  },
+  "dependencies": {},
   "devDependencies": {
     "terser": "^5.46.0",
     "typescript": "^5.9.3",

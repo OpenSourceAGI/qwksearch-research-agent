@@ -2,8 +2,6 @@
  * @fileoverview High-fidelity PDF-to-HTML conversion pipeline.
  * Extracts structural elements (headers, lists, code blocks) and handles page-level metadata.
  */
-import { grab } from "grab-url";
-
 import {
   findPageNumbers,
   findFirstPage,
@@ -11,6 +9,34 @@ import {
 } from "./utils/page-number-functions";
 import TextItem from "./models/text-item";
 import Page from "./models/page";
+
+/**
+ * Fetch wrapper for grabbing binary content
+ */
+async function grab(url: string, options: { responseType?: string; timeout?: number } = {}) {
+  const timeout = options.timeout ? options.timeout * 1000 : 10000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    if (options.responseType === "arraybuffer") {
+      return await response.arrayBuffer();
+    }
+    return await response.text();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
 
 import CalculateGlobalStats from "./transforms/calculate-global-stats";
 import CompactLines from "./transforms/line-item/compact-lines";
