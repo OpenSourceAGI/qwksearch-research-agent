@@ -28,6 +28,7 @@ import {
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { exportAsMarkdown, exportAsDocx, exportAsPdf, exportToGoogleDocs } from '@/lib/documents/export';
 import HistoryDropdown from '../ChatHistoryDropdown';
+import { useSession } from '../../hooks/useSession';
 
 /**
  * Main chat conversation thread component.
@@ -38,8 +39,9 @@ import HistoryDropdown from '../ChatHistoryDropdown';
  * @returns {JSX.Element} The rendered chat thread
  */
 const Chat = () => {
-  const { sections, chatTurns, loading, messageAppeared, newChat } = useChat();
+  const { sections, chatTurns, loading, messageAppeared, newChat, chatId } = useChat();
   const { isOpen: isPanelOpen, panelWidth } = useExtractPanel();
+  const { isAuthenticated } = useSession();
 
   const [isDesktop, setIsDesktop] = useState(false);
   const dividerRef = useRef<HTMLDivElement | null>(null);
@@ -101,10 +103,36 @@ const Chat = () => {
             <DropdownMenuLabel className="text-xs text-muted-foreground">Share & Export</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => {
-                const url = window.location.href;
-                navigator.clipboard.writeText(url);
-                toast.success('Link copied to clipboard');
+              onClick={async () => {
+                if (!chatId) {
+                  toast.error('No chat to share');
+                  return;
+                }
+
+                // Check if user is authenticated
+                if (!isAuthenticated) {
+                  toast.error('Please sign in to share chats');
+                  return;
+                }
+
+                try {
+                  // Make the chat public and get the shareable URL
+                  const response = await grab('agent/chats/share', {
+                    method: 'POST',
+                    body: { chatId },
+                  });
+
+                  if (response.success && response.data?.shareUrl) {
+                    await navigator.clipboard.writeText(response.data.shareUrl);
+                    toast.success('Chat is now public - link copied to clipboard');
+                  } else {
+                    throw new Error(response.error || 'Failed to share chat');
+                  }
+                } catch (err) {
+                  console.error('Error sharing chat:', err);
+                  const errorMsg = err instanceof Error ? err.message : 'Failed to share chat';
+                  toast.error(errorMsg);
+                }
               }}
             >
               <Link size={16} />

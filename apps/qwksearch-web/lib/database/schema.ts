@@ -41,6 +41,7 @@ export const chats = sqliteTable("chats", {
     .$type<File[]>()
     .default(sql`'[]'`),
   thinkingTimeLimit: integer("thinkingTimeLimit").default(0),
+  isPublic: integer("isPublic", { mode: "boolean" }).default(0),
 });
 
 export const user = sqliteTable("user", {

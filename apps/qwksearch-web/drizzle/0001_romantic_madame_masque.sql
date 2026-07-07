@@ -1,0 +1,1 @@
+ALTER TABLE `chats` ADD `isPublic` integer DEFAULT 0;

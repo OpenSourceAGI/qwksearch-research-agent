@@ -5,7 +5,7 @@
 
 export { default as MetaSearchAgent } from "./metaSearchAgent";
 export type { MetaSearchAgentType, Config, ChatTurnMessage, SearchingEvent, FewShotExample } from "./meta-search-types";
-export { searchHandlers } from "./search-handlers";
+export { searchHandlers, createSearchHandlers } from "./search-handlers";
 export { default as generateSuggestions } from "./suggestionGeneratorAgent";
 export { groupAndSummarizeDocs } from "./link-summarizer";
 export type { Document } from "./document";

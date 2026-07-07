@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { splitTextIntoChunks, type Document } from 'agent-toolkit/tools/search';
+import { splitTextIntoChunks, type Document } from 'chat-agent-toolkit';
 
 /** Strip HTML tags and decode entities \u2014 works in Cloudflare edge runtime */
 function htmlToText(html: string): string {

@@ -16,26 +16,43 @@ export const GET = async (
     const db = getDB();
     const { id } = await params;
 
-    // Require authentication
-    const userId = await requireUserId();
+    // Try to get userId, but don't require it (public chats allowed)
+    let userId: string | undefined;
+    try {
+      userId = await requireUserId();
+    } catch (err) {
+      // Not authenticated - continue without userId for public chats
+      userId = undefined;
+    }
 
-    console.log('[GET /api/chats/[id]] Looking for chatId:', id, 'userId:', userId);
+    console.log('[GET /api/chats/[id]] Looking for chatId:', id, 'userId:', userId || 'guest');
 
-    // Security: Only allow access to user's own chats
+    // First check if chat exists and is public
     const chatExists = await db.query.chats.findFirst({
-      where: and(eq(chats.id, id), eq(chats.userId, userId)),
+      where: eq(chats.id, id),
     });
 
     if (!chatExists) {
-      console.log('[GET /api/chats/[id]] Chat not found for chatId:', id, 'userId:', userId);
+      console.log('[GET /api/chats/[id]] Chat not found for chatId:', id);
       return Response.json({ message: 'Chat not found' }, { status: 404 });
     }
 
-    console.log('[GET /api/chats/[id]] Chat found:', id);
+    // Security: Allow access if (1) user owns the chat OR (2) chat is public
+    const hasAccess = chatExists.userId === userId || chatExists.isPublic;
 
-    // Get messages for this chat (already scoped by userId through chat ownership)
+    if (!hasAccess) {
+      console.log('[GET /api/chats/[id]] Unauthorized access attempt for chatId:', id);
+      return Response.json(
+        { message: 'Unauthorized - this chat is private' },
+        { status: 403 },
+      );
+    }
+
+    console.log('[GET /api/chats/[id]] Chat found:', id, 'isPublic:', chatExists.isPublic);
+
+    // Get messages for this chat
     const chatMessages = await db.query.messages.findMany({
-      where: and(eq(messages.chatId, id), eq(messages.userId, userId)),
+      where: eq(messages.chatId, id),
     });
 
     return Response.json(
@@ -46,14 +63,6 @@ export const GET = async (
       { status: 200 },
     );
   } catch (err) {
-    // Handle auth errors
-    if (err instanceof Error && err.message === 'Unauthorized') {
-      return Response.json(
-        { message: 'Authentication required' },
-        { status: 401 },
-      );
-    }
-
     console.error('Error in getting chat by id: ', err);
     return Response.json(
       { message: 'An error has occurred.' },
