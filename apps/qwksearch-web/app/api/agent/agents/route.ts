@@ -3,7 +3,6 @@
  * resolves the user's API key (or falls back to server-side keys), and
  * generates a language model response.
  */
-import { generateLanguageResponse } from "chat-agent-toolkit/language-generation";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserId } from "@/lib/auth/session";
 import { getDB } from "@/lib/database";
@@ -58,6 +57,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "API key is required" }, { status: 500 });
   }
 
-  const result = await generateLanguageResponse(params);
-  return NextResponse.json(result);
+  // Language generation functionality has been removed
+  // This endpoint needs to be reimplemented or deprecated
+  return NextResponse.json({
+    error: "Language generation endpoint is deprecated. Please use /api/agent/chat instead."
+  }, { status: 501 });
 }

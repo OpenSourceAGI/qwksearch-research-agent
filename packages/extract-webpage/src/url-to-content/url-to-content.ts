@@ -2,12 +2,46 @@
  * @fileoverview High-level orchestrator for extracting content from any URL or binary buffer.
  * Supports YouTube transcripts, PDFs, DOCX, and web articles.
  */
-import grab from "grab-url";
 import { extractContentAndCite } from "../html-to-content/html-to-content";
 import { getURLYoutubeVideo, convertYoutubeToText } from "./youtube-helpers";
-import { convertPDFToHTML } from "extract-pdf";
 import { convertDOCXToHTML, isBufferDOCX } from "./docx-to-content";
 import { scrapeURL } from "./url-to-html";
+
+/**
+ * Fetch wrapper for grabbing binary content
+ */
+async function grab(url: string, options: any = {}) {
+  const timeout = options.timeout ? options.timeout * 1000 : 10000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    if (options.responseType === "arraybuffer") {
+      return await response.arrayBuffer();
+    }
+    return await response.text();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
+
+/**
+ * Dynamic PDF converter to avoid bundling pdfjs at build time
+ */
+async function convertPDFToHTML(url: string, options: any) {
+  const { convertPDFToHTML: pdfConverter } = await import("extract-pdf/pdf-to-html");
+  return await pdfConverter(url, options);
+}
 
 async function isUrlPDF(url: string) {
   try {

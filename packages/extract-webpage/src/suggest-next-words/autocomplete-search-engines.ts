@@ -2,8 +2,50 @@
  * Provides search query autocomplete/suggestions from various search engines.
  */
 
-import grab from "grab-url";
 import { parseHTML } from "linkedom";
+
+/**
+ * Fetch wrapper compatible with grab-url interface
+ */
+async function grab(url: string, options: any = {}): Promise<any> {
+  const timeout = options.timeout ? options.timeout * 1000 : 5000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: options.headers,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    if (options.responseType === "json") {
+      return { data: await response.json() };
+    }
+    if (options.responseType === "arraybuffer") {
+      return await response.arrayBuffer();
+    }
+    if (options.responseType === "text") {
+      return await response.text();
+    }
+
+    // Default to json for backwards compatibility
+    try {
+      return { data: await response.json() };
+    } catch {
+      return await response.text();
+    }
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
 
 /**
  * Autocomplete function type
