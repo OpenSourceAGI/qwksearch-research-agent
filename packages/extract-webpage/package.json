@@ -2,7 +2,7 @@
   "name": "extract-webpage",
   "version": "1.2.5",
   "module": "index.ts",
-  "description": "Separch, extract, vectorize, outline graph, and monitor the web for a topic with AI Research Agent.",
+  "description": "Search, extract, cite, and outline the web for a topic with AI Research Agent.",
   "author": "vtempest <grokthiscontact@gmail.com>",
   "license": "rights.institute/PROSPER",
   "main": "./src/index.ts",

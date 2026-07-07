@@ -72,7 +72,22 @@ jobs:
                 version=$(node -e "const p=require('./package.json'); console.log(p.version)")
               fi
 
-              npm install --ignore-scripts --legacy-peer-deps
+              npm install --ignore-scripts --legacy-peer-deps --include=dev
+
+              # Strip workspace:* dependencies before build
+              node -e "
+                const fs = require('fs');
+                const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+                if (pkg.dependencies) {
+                  for (const [key, value] of Object.entries(pkg.dependencies)) {
+                    if (typeof value === 'string' && value.startsWith('workspace:')) {
+                      delete pkg.dependencies[key];
+                      console.log('Removed workspace dependency:', key);
+                    }
+                  }
+                }
+                fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+              "
 
               has_build=$(node -e "const p=require('./package.json'); console.log(!!(p.scripts && p.scripts.build))")
               if [ "$has_build" = "true" ]; then

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { cropProviderAsDataURL, Provider } from 'agent-toolkit';
+import { cropProviderAsDataURL, Provider } from 'chat-agent-toolkit';
 import { Plug2 } from 'lucide-react';
 
 interface ProviderIconProps {

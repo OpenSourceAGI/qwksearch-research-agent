@@ -37,7 +37,10 @@ export default defineConfig(({ command }) => ({
       // `fsevents` is an optional macOS-only native module that rollup/chokidar
       // require() lazily inside a try/catch; it has no place in the Worker
       // bundle and is never installed on Linux, so leave it external.
-      external: ["fsevents"],
+      // `grab-url` is a Node.js HTTP client that shouldn't be bundled in client code.
+      // `@mastra/core` and `@mastra/mcp` are optional dependencies with incorrect package.json exports.
+      // `@composio/core` is only used in optional integration files.
+      external: ["fsevents", "grab-url", "@mastra/core", "@mastra/mcp", "@composio/core"],
     },
   },
   ssr: {
