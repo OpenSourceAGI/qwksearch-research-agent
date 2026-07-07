@@ -89,7 +89,7 @@ jobs:
                 fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
               "
 
-              npm install --ignore-scripts --legacy-peer-deps --include=dev
+              npm install --workspaces=false --ignore-scripts --legacy-peer-deps --include=dev
 
               has_build=$(node -e "const p=require('./package.json'); console.log(!!(p.scripts && p.scripts.build))")
               if [ "$has_build" = "true" ]; then
