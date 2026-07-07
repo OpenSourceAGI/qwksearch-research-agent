@@ -3,7 +3,7 @@
  * search-engine suggest APIs and returns a deduplicated list of suggestions.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { searchAutocompleteMulti } from "chat-agent-toolkit/suggest-next-words/autocomplete-search-engines";
+import { searchAutocompleteMulti } from "extract-webpage/suggest-next-words/autocomplete-search-engines";
 
 const DEFAULT_BACKENDS = ["google", "duckduckgo", "wikipedia"];
 

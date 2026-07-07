@@ -4,7 +4,7 @@
  */
 
 import { generateText } from "ai";
-import { createLLMProvider } from "../language-generation/provider-factory";
+import { createLLMProvider } from "write-language/provider-factory";
 
 export interface ModelTestResult {
   modelId: string;

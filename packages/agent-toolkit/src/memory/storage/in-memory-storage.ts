@@ -11,7 +11,7 @@
  * - Conflict resolution
  */
 
-import { generateLanguageResponse } from "../../language-generation";
+import { generateLanguageResponse } from "write-language";
 import type { IMemoryStorage } from "./storage-interface";
 import type {
   MemoryRecord,

@@ -9,7 +9,7 @@ import { File, Video, Loader2, ExternalLink, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import grab from 'grab-url'
-import { convertURLSafeHTMLToHTML } from 'chat-agent-toolkit/extractor/html-to-content/html-utils';
+import { convertURLSafeHTMLToHTML } from 'extract-webpage/html-to-content/html-utils';
 import { cn } from '@/lib/utils';
 
 import { GlowingEffect } from '@/components/ui/glowing-effect';

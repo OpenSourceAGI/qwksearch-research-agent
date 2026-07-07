@@ -13,7 +13,7 @@
  * @see {@link https://github.com/vtempest/ai-research-agent}
  */
 
-export * from "./language-generation";
+export * from "write-language";
 export * from "./memory";
 export * from "./tools";
 export { configManager, ModelRegistry, getEnv, getModelProvidersUIConfigSection } from "./config";

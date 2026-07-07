@@ -106,7 +106,7 @@ The QwkSearch API tools were passing invalid parameters to the API client:
   - Updated `QWKSEARCH_CONFIG` default base URL
   - Corrected parameter passing to API client
 
-- `packages/agent-toolkit/src/language-generation/generate-response.ts`
+- `packages/write-language/src/generate-response.ts`
   - Removed "ollama" from provider list (consistency fix)
 
 ## Test Strategy

@@ -7,7 +7,7 @@
  * See extract-webpage/src/search/index.ts for an example.
  */
 import MetaSearchAgent from "./metaSearchAgent";
-import prompts from "../../language-generation/prompts/search-prompts";
+import prompts from "write-language/prompts/search-prompts";
 import type { Config } from "./meta-search-types";
 
 /**
