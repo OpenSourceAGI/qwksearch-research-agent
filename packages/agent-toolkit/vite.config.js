@@ -81,6 +81,21 @@ export default defineConfig({
         inlineDynamicImports: true,
       },
     },
+    rolldownOptions: {
+      external: [
+        "ai",
+        "@ai-sdk/openai",
+        "@ai-sdk/anthropic",
+        "@ai-sdk/groq",
+        "@ai-sdk/google",
+        "@ai-sdk/google-vertex",
+        "@ai-sdk/xai",
+        "@ai-sdk/amazon-bedrock",
+        "@openrouter/ai-sdk-provider",
+        "drizzle-orm",
+        "zod",
+      ],
+    },
     minify: "terser",
     terserOptions: {
       compress: {
