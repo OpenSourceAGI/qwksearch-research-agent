@@ -14,7 +14,7 @@ interface SuggestionsGenerationBody {
 }
 
 export const POST = async (req: Request) => {
-  try {
+  // try {
     const body: SuggestionsGenerationBody = await req.json();
 
     const chatHistory = body.chatHistory
@@ -59,11 +59,11 @@ export const POST = async (req: Request) => {
     });
 
     return Response.json({ suggestions: splitSuggestions }, { status: 200 });
-  } catch (err) {
-    console.error(`An error occurred while generating suggestions: ${err}`);
-    return Response.json(
-      { message: "An error occurred while generating suggestions" },
-      { status: 500 },
-    );
-  }
+  // } catch (err) {
+  //   console.error(`An error occurred while generating suggestions: ${err}`);
+  //   return Response.json(
+  //     { message: "An error occurred while generating suggestions" },
+  //     { status: 500 },
+  //   );
+  // }
 };
