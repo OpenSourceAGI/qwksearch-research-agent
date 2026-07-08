@@ -3,6 +3,11 @@
   "description": "Formatted Text Editor with toolbar for formatting, docs manager, and note outlines",
   "version": "0.4.0",
   "author": "vtempest",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "directory": "packages/reason-editor"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",

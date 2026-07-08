@@ -1,6 +1,11 @@
 {
   "name": "pdf-to-html-docling",
   "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "directory": "packages/extract-pdf-docling"
+  },
   "type": "module",
   "scripts": {
     "dev": "node --watch server.js",

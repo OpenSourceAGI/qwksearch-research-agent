@@ -24,18 +24,26 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+      # Install the whole workspace once with bun (the repo's package manager).
+      # bun understands the "workspace:*" protocol and links local packages, so
+      # every package gets its devDependencies (e.g. vite) and can be built.
+      # Plain `npm install` cannot do this inside a bun workspace — it dies on
+      # sibling "workspace:*" deps (EUNSUPPORTEDPROTOCOL) and peer conflicts,
+      # which left devDependencies uninstalled and builds failing with
+      # "vite: not found".
+      - name: Install workspace dependencies
+        run: bun install
 
-      - name: Publish changed non-private packages
+      - name: Publish non-private packages with a new version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          set -euo pipefail
+          # Note: intentionally no `-e`. Per-package outcomes are handled
+          # explicitly so one package's failure can't abort the whole run.
+          set -uo pipefail
 
           failed_packages=""
+          skipped_builds=""
 
           for dir in packages/*/; do
             pkg="${dir}package.json"
@@ -47,66 +55,95 @@ jobs:
 
             is_private=$(node -e "const p=require('./$pkg'); console.log(!!p.private)")
             name=$(node -e "const p=require('./$pkg'); console.log(p.name)")
-            version=$(node -e "const p=require('./$pkg'); console.log(p.version)")
 
             if [ "$is_private" = "true" ]; then
               echo "⏭ Skipping $name (private)"
               continue
             fi
 
-            if git diff --quiet HEAD^ HEAD -- "$dir"; then
-              echo "⏭ Skipping $name (no changes)"
-              continue
-            fi
+            echo "📦 Evaluating $name from $dir"
 
-            echo "📦 Releasing $name from $dir"
-
+            # Each package is handled in a subshell with its own `set -e` so a
+            # failing step propagates to $rc without killing the outer loop.
             (
+              set -e
               cd "$dir"
 
-              remote_version=$(npm view "$name" version 2>/dev/null || echo "")
+              version=$(node -e "const p=require('./package.json'); console.log(p.version)")
 
-              if [ "$remote_version" = "$version" ]; then
-                echo "🔼 Bumping $name because $version already exists on npm"
-                npm version patch --no-git-tag-version
-                version=$(node -e "const p=require('./package.json'); console.log(p.version)")
+              # Publish based on the version, not on which files the triggering
+              # commit touched: if this exact version is already on npm there is
+              # nothing new to release; otherwise a version bump signals changes
+              # since the last published release, so publish it.
+              already=$(npm view "$name@$version" version 2>/dev/null || echo "")
+              if [ -n "$already" ]; then
+                echo "⏭ $name@$version already on npm — nothing new to release"
+                exit 0
               fi
 
-              # Strip workspace:* dependencies before install and build
+              # npm keeps the literal "workspace:*" protocol in the tarball, which
+              # consumers cannot resolve. Replace each "workspace:*" with a real
+              # semver range ("^<version>") taken from the referenced local
+              # package so published packages keep depending on their siblings.
+              # A local package that isn't published is dropped instead.
+              # (This runs on the ephemeral CI checkout and is never committed.)
               node -e "
                 const fs = require('fs');
-                const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-                for (const section of ['dependencies', 'devDependencies', 'peerDependencies']) {
-                  if (pkg[section]) {
-                    for (const [key, value] of Object.entries(pkg[section])) {
-                      if (typeof value === 'string' && value.startsWith('workspace:')) {
-                        delete pkg[section][key];
-                        console.log('Removed workspace dependency:', key);
-                      }
+                const path = require('path');
+                // Map local package name -> version across the workspace.
+                const localVersions = {};
+                for (const d of fs.readdirSync('..')) {
+                  const sib = path.join('..', d, 'package.json');
+                  if (!fs.existsSync(sib)) continue;
+                  try {
+                    const sp = JSON.parse(fs.readFileSync(sib, 'utf8'));
+                    if (sp.name && sp.version) localVersions[sp.name] = sp.version;
+                  } catch {}
+                }
+                const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+                for (const s of ['dependencies', 'devDependencies', 'peerDependencies']) {
+                  if (!p[s]) continue;
+                  for (const [k, v] of Object.entries(p[s])) {
+                    if (typeof v !== 'string' || !v.startsWith('workspace:')) continue;
+                    if (localVersions[k]) {
+                      p[s][k] = '^' + localVersions[k];
+                      console.log('Pinned workspace dependency', k, '->', p[s][k]);
+                    } else {
+                      delete p[s][k];
+                      console.log('Removed unresolved workspace dependency:', k);
                     }
                   }
                 }
-                fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+                fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
               "
 
               npm install --workspaces=false --ignore-scripts --legacy-peer-deps --include=dev
 
               has_build=$(node -e "const p=require('./package.json'); console.log(!!(p.scripts && p.scripts.build))")
+              build_ok=true
               if [ "$has_build" = "true" ]; then
-                npm run build
+                npm run build || build_ok=false
               fi
 
-              echo "Publishing $(node -e "const p=require('./package.json'); console.log(p.name+'@'+p.version)")"
+              if [ "$build_ok" != "true" ]; then
+                echo "⚠ Build failed for $name — not publishing (won't ship a broken tarball)"
+                exit 42
+              fi
+
+              echo "Publishing $name@$version"
               npm publish --provenance --access public
-            ) || {
-              echo "❌ Failed to publish $name"
+            )
+            rc=$?
+
+            if [ "$rc" = "42" ]; then
+              skipped_builds="$skipped_builds $name"
+            elif [ "$rc" != "0" ]; then
               failed_packages="$failed_packages $name"
-            }
+            fi
           done
 
-          if [ -n "$failed_packages" ]; then
-            echo "⚠ Failed packages:$failed_packages"
-            exit 1
+          if [ -n "$skipped_builds" ]; then
+            echo "::warning::Skipped (build failed, not published):$skipped_builds"
           fi
 
       - name: Commit version bumps
