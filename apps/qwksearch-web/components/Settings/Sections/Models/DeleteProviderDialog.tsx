@@ -20,7 +20,7 @@ const DeleteProvider = ({
     e.preventDefault();
     setLoading(true);
 
-    await grab(`agent/providers/${modelProvider.id}`, {
+    await grab(`/api/agent/providers/${modelProvider.id}`, {
       delete: true,
     });
 

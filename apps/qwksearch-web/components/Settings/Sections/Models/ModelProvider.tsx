@@ -27,7 +27,7 @@ const ModelProvider = ({
     modelKey: string,
   ) => {
     try {
-      await grab(`agent/providers/${modelProvider.id}/models`, {
+      await grab(`/api/agent/providers/${modelProvider.id}/models`, {
         method: 'DELETE',
         body: { key: modelKey, type: type },
       });
