@@ -49,6 +49,11 @@
   ],
   "author": "",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "directory": "packages/extract-youtube"
+  },
   "dependencies": {
     "fast-xml-parser": "^4.2.5",
     "html-entities": "^2.3.3",

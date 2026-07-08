@@ -3,6 +3,11 @@
   "description": "Prop-driven macOS-style category dock with magnification, a custom dropdown menu, and a built-in shadcn theme switcher",
   "version": "0.1.0",
   "author": "vtempest",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "directory": "packages/shadcn-app-dock"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
