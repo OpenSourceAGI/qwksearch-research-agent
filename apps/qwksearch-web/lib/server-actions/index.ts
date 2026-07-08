@@ -4,6 +4,7 @@ import { Message } from "../../components/ResearchAgent/ChatConversation/ChatWin
 export const getSuggestions = async (chatHistory: Message[]) => {
   const chatModel = localStorage.getItem("chatModelKey");
   const chatModelProvider = localStorage.getItem("chatModelProviderId");
+  const maxQuestions = parseInt(localStorage.getItem("maxFollowupQuestions") || "4");
 
   // Only send user/assistant messages — source messages contain large Document
   // objects that bloat the payload and are not needed for suggestion generation.
@@ -22,6 +23,7 @@ export const getSuggestions = async (chatHistory: Message[]) => {
             providerId: chatModelProvider,
             key: chatModel,
           },
+          maxQuestions,
         }),
       },
     );

@@ -32,7 +32,7 @@ jobs:
       # which left devDependencies uninstalled and builds failing with
       # "vite: not found".
       - name: Install workspace dependencies
-        run: bun install
+        run: bun install --ignore-scripts
 
       - name: Publish non-private packages with a new version
         env:

@@ -44,7 +44,7 @@ export const checkConfig = async (
     let chatModelProviderId = localStorage.getItem("chatModelProviderId");
 
     // Fetch available providers from API
-    const response = await grab("api/agent/providers");
+    const response = await grab("/api/agent/providers");
     const providers: MinimalProvider[] = response?.providers || [];
 
     // If no providers are configured, just mark config as ready without error

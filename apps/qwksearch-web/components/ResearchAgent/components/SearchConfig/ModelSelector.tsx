@@ -36,7 +36,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ chatModelProvider:
         const loadProviders = async () => {
             try {
                 setIsLoading(true);
-                const data: { providers: MinimalProvider[] } = await grab('api/agent/providers');
+                const data: { providers: MinimalProvider[] } = await grab('/api/agent/providers');
                 setProviders(data.providers);
 
                 // Set default model if none selected

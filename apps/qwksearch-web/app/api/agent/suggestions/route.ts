@@ -11,6 +11,7 @@ import type { ChatTurnMessage } from "chat-agent-toolkit/tools/search/meta-searc
 interface SuggestionsGenerationBody {
   chatHistory: any[];
   chatModel: ModelWithProvider;
+  maxQuestions?: number;
 }
 
 export const POST = async (req: Request) => {
@@ -36,6 +37,7 @@ export const POST = async (req: Request) => {
     const rawSuggestions = await generateSuggestions(
       {
         chat_history: chatHistory,
+        maxQuestions: body.maxQuestions,
       },
       llm,
     );

@@ -26,7 +26,7 @@ const Rewrite = ({ messageId }: { messageId: string }) => {
     const loadProviders = async () => {
       try {
         setIsLoading(true);
-        const response = await grab('api/agent/providers');
+        const response = await grab('/api/agent/providers');
         const data = response.data || response;
         setProviders(data.providers);
       } catch (error) {
