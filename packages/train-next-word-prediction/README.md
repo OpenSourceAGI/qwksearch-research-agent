@@ -5,7 +5,7 @@
 A from-scratch GPT-style transformer implementation on [Tinygrad](https://github.com/tinygrad/tinygrad), with three ways to run it depending on scale:
 
 | Mode | What it does | Where |
-|---|---|---|
+|---|---|---| 
 | **Demos** | tiny synthetic-data transformer training | `src/training/train_next_word_prediction.py` |
 | **Full Wikipedia pipeline** | aria2c download -> dumpster-dive -> MongoDB -> tokenizer -> training, at real Wikipedia scale | `src/training/wikipedia/` package, `docker/Dockerfile.wikipedia` |
 | **HTTP control API** | FastAPI server that starts/stops/monitors the jobs above over HTTP/SSE — the same process Cloudflare Containers runs | `src/services/server.py`, `Dockerfile`, `wrangler.jsonc` |

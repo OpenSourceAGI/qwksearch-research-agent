@@ -208,7 +208,7 @@ CLOUDFLARE_API_TOKEN=...
 | 2 | ![](https://www.google.com/s2/favicons?domain=xiaomi.com&sz=64) | ![](https://flagcdn.com/w40/cn.png) | MiMo-V2.5 | Xiaomi | $0.28 | 1,048,576 | — | — | — | 2mo ago |
 | 3* | ![](https://www.google.com/s2/favicons?domain=minimax.io&sz=64) | ![](https://flagcdn.com/w40/cn.png) | MiniMax M3 | MiniMax | $1.20 | 1,048,576 | 44.4 | 58.6 | 35.4 | 1mo ago |
 | 4* | ![](https://www.google.com/s2/favicons?domain=z.ai&sz=64) | ![](https://flagcdn.com/w40/cn.png) | GLM 5.2 | Z.ai | $2.856 | 1,048,576 | 51.1 | 68.8 | 43.1 | 2w ago |
-| 5* | ![](https://www.google.com/s2/favicons?domain=tencent.com&sz=64) | ![](https://flagcdn.com/w40/cn.png) | Hy3 preview | Tencent | $0.21 | 262,144 | — | — | — | 2mo ago |
+| 5* | ![](https://www.google.com/s2/favicons?domain=tencent.com&sz=64) | ![](https://flagcdn.com/w40/cn.png) | Hy3 preview | Tencent | $0.21 | 262,144 | — | — | — | 2mo ago | 
 | 6* | ![](https://www.google.com/s2/favicons?domain=deepseek.com&sz=64) | ![](https://flagcdn.com/w40/cn.png) | DeepSeek V4 Pro | DeepSeek | $0.87 | 1,048,576 | 44.3 | 59.4 | 36.4 | 2mo ago |
 | 7 | ![](https://www.google.com/s2/favicons?domain=anthropic.com&sz=64) | ![](https://flagcdn.com/w40/us.png) | Claude Opus 4.7 | Anthropic | $25 | 1,000,000 | 53.5 | 73.6 | 44.4 | 2mo ago |
 | 8 | ![](https://www.google.com/s2/favicons?domain=anthropic.com&sz=64) | ![](https://flagcdn.com/w40/us.png) | Claude Opus 4.8 | Anthropic | $25 | 1,000,000 | 55.7 | 74.3 | 47.2 | 1mo ago |

@@ -4,7 +4,7 @@
 <p align="center">
     Being is Becoming<br />
     Whatever Research Can Be,<br /> 
-    That is What It Must Become.<br />
+    That is What It Must Become. <br /> 
     If AI is Humanity's Last Invention, <br />
     Then Vector Space is the Final Frontier.<br />
 </p>
