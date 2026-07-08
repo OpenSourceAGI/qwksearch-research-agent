@@ -86,7 +86,7 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
 
   const checkGoogleDriveConnection = async () => {
     try {
-      const data = await grab('doc/google-docs/auth/status');
+      const data = await grab('/api/doc/google-docs/auth/status');
       setIsGoogleDriveConnected(data.isConnected || false);
     } catch {
       // silently ignore

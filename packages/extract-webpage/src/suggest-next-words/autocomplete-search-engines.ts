@@ -4,6 +4,12 @@
 
 import { parseHTML } from "linkedom";
 
+// Some suggest APIs (notably Google) return 403 Forbidden for requests
+// without a browser-like User-Agent, especially from datacenter/Cloudflare
+// egress IPs. Sent by default; per-backend headers can still override it.
+const DEFAULT_USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
 /**
  * Fetch wrapper compatible with grab-url interface
  */
@@ -15,7 +21,10 @@ async function grab(url: string, options: any = {}): Promise<any> {
   try {
     const response = await fetch(url, {
       ...options,
-      headers: options.headers,
+      headers: {
+        "User-Agent": DEFAULT_USER_AGENT,
+        ...options.headers,
+      },
       signal: controller.signal,
     });
 
