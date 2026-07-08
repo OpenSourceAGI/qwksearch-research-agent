@@ -2,6 +2,11 @@
   "name": "domain-rank",
   "version": "0.1.2",
   "description": "Domain Rank Top Million domains, source names, duplicates, and favicons",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "directory": "packages/domain-rank"
+  },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
