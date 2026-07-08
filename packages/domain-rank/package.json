@@ -15,7 +15,8 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
-    }
+    },
+    "./data/*": "./data/*"
   },
   "files": [
     "dist",

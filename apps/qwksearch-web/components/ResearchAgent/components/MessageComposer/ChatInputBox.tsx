@@ -16,6 +16,12 @@ import { useFileHandling } from '../FileUpload/useFileHandling';
 import FileUploadDropdown from '../FileUpload/FileUploadDropdown';
 import { LiveWaveform } from '@/components/ui/live-waveform';
 
+interface DomainSuggestion {
+    domain: string;
+    name: string;
+    favicon: string;
+}
+
 const PLACEHOLDERS = [
   "What are you curious to research?",
   "Search the latest news...",
@@ -101,6 +107,7 @@ const ChatInputBox = () => {
     const [showPlaceholder, setShowPlaceholder] = useState(true);
     const [isActive, setIsActive] = useState(false);
     const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [domainSuggestions, setDomainSuggestions] = useState<DomainSuggestion[]>([]);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const [suggestionsOpen, setSuggestionsOpen] = useState(false);
     const [dropdownPosition, setDropdownPosition] = useState<'below' | 'above'>('below');
@@ -115,6 +122,7 @@ const ChatInputBox = () => {
         }
         if (!isActive || query.length < 2) {
             setSuggestions([]);
+            setDomainSuggestions([]);
             setSuggestionsOpen(false);
             setHighlightedIndex(-1);
             return;
@@ -132,14 +140,16 @@ const ChatInputBox = () => {
                 if (!res.ok) return;
                 const data = await res.json();
                 const list: string[] = Array.isArray(data?.suggestions) ? data.suggestions : [];
+                const domainList: DomainSuggestion[] = Array.isArray(data?.domains) ? data.domains : [];
                 setSuggestions(list);
-                if (list.length > 0) {
+                setDomainSuggestions(domainList);
+                if (list.length + domainList.length > 0) {
                     // Calculate dropdown position based on viewport space
                     if (wrapperRef.current) {
                         const rect = wrapperRef.current.getBoundingClientRect();
                         const spaceBelow = window.innerHeight - rect.bottom;
                         const spaceAbove = rect.top;
-                        const dropdownHeight = Math.min(288, list.length * 48); // max-h-72 = 288px, ~48px per item
+                        const dropdownHeight = Math.min(288, (list.length + domainList.length) * 36); // max-h-72 = 288px, ~36px per item
 
                         // On mobile (or when not enough space below), show above if there's more space
                         if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
@@ -165,9 +175,25 @@ const ChatInputBox = () => {
         suppressNextFetchRef.current = true;
         setMessage(value);
         setSuggestions([]);
+        setDomainSuggestions([]);
         setSuggestionsOpen(false);
         setHighlightedIndex(-1);
         textareaRef.current?.focus();
+    };
+
+    // Selecting a domain suggestion navigates straight to the site instead of searching
+    const goToDomain = (d: DomainSuggestion) => {
+        setSuggestionsOpen(false);
+        setHighlightedIndex(-1);
+        window.location.href = `https://${d.domain}`;
+    };
+
+    // Domain suggestions render first, followed by text suggestions;
+    // highlightedIndex spans the combined list.
+    const totalOptions = domainSuggestions.length + suggestions.length;
+    const chooseOption = (index: number) => {
+        if (index < domainSuggestions.length) goToDomain(domainSuggestions[index]);
+        else selectSuggestion(suggestions[index - domainSuggestions.length]);
     };
 
     useEffect(() => {
@@ -207,15 +233,15 @@ const ChatInputBox = () => {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (suggestionsOpen && suggestions.length > 0) {
+        if (suggestionsOpen && totalOptions > 0) {
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
-                setHighlightedIndex(i => (i + 1) % suggestions.length);
+                setHighlightedIndex(i => (i + 1) % totalOptions);
                 return;
             }
             if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                setHighlightedIndex(i => (i <= 0 ? suggestions.length - 1 : i - 1));
+                setHighlightedIndex(i => (i <= 0 ? totalOptions - 1 : i - 1));
                 return;
             }
             if (e.key === 'Escape') {
@@ -226,12 +252,12 @@ const ChatInputBox = () => {
             }
             if (e.key === 'Tab' && highlightedIndex >= 0) {
                 e.preventDefault();
-                selectSuggestion(suggestions[highlightedIndex]);
+                chooseOption(highlightedIndex);
                 return;
             }
             if (e.key === 'Enter' && !e.shiftKey && highlightedIndex >= 0) {
                 e.preventDefault();
-                selectSuggestion(suggestions[highlightedIndex]);
+                chooseOption(highlightedIndex);
                 return;
             }
         }
@@ -403,7 +429,7 @@ const ChatInputBox = () => {
 
             {/* Autocomplete Dropdown */}
             <AnimatePresence>
-                {suggestionsOpen && suggestions.length > 0 && (
+                {suggestionsOpen && totalOptions > 0 && (
                     <motion.div
                         ref={(node) => {
                             if (node && wrapperRef.current && !wrapperRef.current.contains(node)) {
@@ -416,29 +442,51 @@ const ChatInputBox = () => {
                         transition={{ duration: 0.12 }}
                         className={`absolute left-2 right-2 md:left-0 md:right-0 z-20 rounded-2xl bg-gray-50 dark:bg-[#30302E] border border-bg-300 dark:border-transparent shadow-xl overflow-hidden ${
                             dropdownPosition === 'above'
-                                ? 'bottom-full mb-2'
-                                : 'top-full mt-2'
+                                ? 'bottom-full'
+                                : 'top-full'
                         }`}
                         onMouseDown={(e) => e.preventDefault()}
                     >
                         <ul className="max-h-72 overflow-y-auto custom-scrollbar py-1">
-                            {suggestions.map((s, i) => (
-                                <li key={`${s}-${i}`}>
+                            {domainSuggestions.map((d, i) => (
+                                <li key={`domain-${d.domain}`}>
                                     <button
                                         type="button"
                                         onMouseEnter={() => setHighlightedIndex(i)}
-                                        onClick={() => selectSuggestion(s)}
-                                        className={`w-full text-left px-4 py-2.5 text-[15px] flex items-center gap-3 transition-colors ${
+                                        onClick={() => goToDomain(d)}
+                                        className={`w-full text-left px-4 py-1.5 text-[15px] flex items-center gap-3 transition-colors ${
                                             i === highlightedIndex
                                                 ? 'bg-bg-200 text-text-100'
                                                 : 'text-text-200 hover:bg-bg-100 dark:hover:bg-[#3A3A38]'
                                         }`}
                                     >
-                                        <Search className="w-4 h-4 text-text-400 shrink-0" />
-                                        <span className="truncate">{s}</span>
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img src={d.favicon} alt="" className="w-4 h-4 rounded-sm shrink-0" />
+                                        <span className="truncate font-medium">{d.name || d.domain}</span>
+                                        <span className="truncate text-[13px] text-text-400 ml-auto shrink-0">{d.domain}</span>
                                     </button>
                                 </li>
                             ))}
+                            {suggestions.map((s, i) => {
+                                const optionIndex = domainSuggestions.length + i;
+                                return (
+                                    <li key={`${s}-${i}`}>
+                                        <button
+                                            type="button"
+                                            onMouseEnter={() => setHighlightedIndex(optionIndex)}
+                                            onClick={() => selectSuggestion(s)}
+                                            className={`w-full text-left px-4 py-1.5 text-[15px] flex items-center gap-3 transition-colors ${
+                                                optionIndex === highlightedIndex
+                                                    ? 'bg-bg-200 text-text-100'
+                                                    : 'text-text-200 hover:bg-bg-100 dark:hover:bg-[#3A3A38]'
+                                            }`}
+                                        >
+                                            <Search className="w-4 h-4 text-text-400 shrink-0" />
+                                            <span className="truncate">{s}</span>
+                                        </button>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     </motion.div>
                 )}
