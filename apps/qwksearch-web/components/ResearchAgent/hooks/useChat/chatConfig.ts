@@ -47,10 +47,11 @@ export const checkConfig = async (
     const response = await grab("api/agent/providers");
     const providers: MinimalProvider[] = response?.providers || [];
 
+    // If no providers are configured, just mark config as ready without error
+    // Users can still use the chat interface and add API keys later in Settings
     if (!providers || providers.length === 0) {
-      const errorMessage = response?.error ||
-        "No AI providers configured. Please add OPENROUTER_API_KEY to your environment variables or add your own API keys in Settings.";
-      throw new Error(errorMessage);
+      setIsConfigReady(true);
+      return;
     }
 
     // Try to find the user's previously selected provider. Require it to have
@@ -91,9 +92,8 @@ export const checkConfig = async (
     }
 
     if (!chatModelProvider) {
-      throw new Error(
-        "No chat models found, please configure them in the settings page.",
-      );
+      setIsConfigReady(true);
+      return;
     }
 
     chatModelProviderId = chatModelProvider.id;
@@ -144,9 +144,8 @@ export const checkConfig = async (
     }
 
     if (!chatModel) {
-      throw new Error(
-        "No chat models found, please configure them in the settings page.",
-      );
+      setIsConfigReady(true);
+      return;
     }
 
     chatModelKey = chatModel.key;
