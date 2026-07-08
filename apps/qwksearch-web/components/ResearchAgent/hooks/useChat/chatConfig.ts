@@ -38,7 +38,7 @@ export const checkConfig = async (
   setIsConfigReady: (ready: boolean) => void,
   setHasError: (hasError: boolean) => void,
 ): Promise<void> => {
-  try {
+  // try {
     // Load user preferences from localStorage
     let chatModelKey = localStorage.getItem("chatModelKey");
     let chatModelProviderId = localStorage.getItem("chatModelProviderId");
@@ -162,10 +162,10 @@ export const checkConfig = async (
     });
 
     setIsConfigReady(true);
-  } catch (err: any) {
-    console.error("An error occurred while checking the configuration:", err);
-    toast.error(err.message);
-    setIsConfigReady(false);
-    setHasError(true);
-  }
+  // } catch (err: any) {
+  //   console.error("An error occurred while checking the configuration:", err);
+  //   toast.error(err.message);
+  //   setIsConfigReady(false);
+  //   setHasError(true);
+  // }
 };
