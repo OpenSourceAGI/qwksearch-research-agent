@@ -53,7 +53,7 @@ const UpdateProvider = ({
       }
 
       const data: ConfigModelProvider = (
-        await grab(`agent/providers/${modelProvider.id}`, {
+        await grab(`/api/agent/providers/${modelProvider.id}`, {
           method: 'PATCH',
           body: {
             config: resolvedConfig,

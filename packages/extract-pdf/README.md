@@ -2,7 +2,7 @@
 
 Converts a PDF (URL or `ArrayBuffer`) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic, and Table of Contents entries. Works in Node.js, Cloudflare Workers, and browser environments via [pdfjs-serverless](https://github.com/johannschopplich/pdfjs-serverless).
 
-## Install
+## Install 
 
 ```sh
 bun add extract-pdf

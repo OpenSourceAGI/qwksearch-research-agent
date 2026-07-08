@@ -209,7 +209,7 @@ Vite bundles ES + CJS targets to `dist/`, emits `.d.ts` files alongside, and app
 
 ### Transformer Architecture Visualizations
 
-<img src="https://i.imgur.com/uW6E9VJ.gif" alt="Transformer architecture visualization" />
+<img src="https://i.imgur.com/uW6E9VJ.gif"  alt="Transformer architecture visualization" />
 
 
 ## Alternative Agents Frameworks

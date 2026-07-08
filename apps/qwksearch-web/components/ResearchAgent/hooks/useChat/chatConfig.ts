@@ -38,19 +38,20 @@ export const checkConfig = async (
   setIsConfigReady: (ready: boolean) => void,
   setHasError: (hasError: boolean) => void,
 ): Promise<void> => {
-  try {
+  // try {
     // Load user preferences from localStorage
     let chatModelKey = localStorage.getItem("chatModelKey");
     let chatModelProviderId = localStorage.getItem("chatModelProviderId");
 
     // Fetch available providers from API
-    const response = await grab("agent/providers");
+    const response = await grab("api/agent/providers");
     const providers: MinimalProvider[] = response?.providers || [];
 
+    // If no providers are configured, just mark config as ready without error
+    // Users can still use the chat interface and add API keys later in Settings
     if (!providers || providers.length === 0) {
-      const errorMessage = response?.error ||
-        "No AI providers configured. Please add OPENROUTER_API_KEY to your environment variables or add your own API keys in Settings.";
-      throw new Error(errorMessage);
+      setIsConfigReady(true);
+      return;
     }
 
     // Try to find the user's previously selected provider. Require it to have
@@ -91,9 +92,8 @@ export const checkConfig = async (
     }
 
     if (!chatModelProvider) {
-      throw new Error(
-        "No chat models found, please configure them in the settings page.",
-      );
+      setIsConfigReady(true);
+      return;
     }
 
     chatModelProviderId = chatModelProvider.id;
@@ -144,9 +144,8 @@ export const checkConfig = async (
     }
 
     if (!chatModel) {
-      throw new Error(
-        "No chat models found, please configure them in the settings page.",
-      );
+      setIsConfigReady(true);
+      return;
     }
 
     chatModelKey = chatModel.key;
@@ -162,10 +161,10 @@ export const checkConfig = async (
     });
 
     setIsConfigReady(true);
-  } catch (err: any) {
-    console.error("An error occurred while checking the configuration:", err);
-    toast.error(err.message);
-    setIsConfigReady(false);
-    setHasError(true);
-  }
+  // } catch (err: any) {
+  //   console.error("An error occurred while checking the configuration:", err);
+  //   toast.error(err.message);
+  //   setIsConfigReady(false);
+  //   setHasError(true);
+  // }
 };

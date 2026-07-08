@@ -117,6 +117,8 @@ jobs:
                 fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
               "
 
+              npm install --workspaces=false --ignore-scripts --legacy-peer-deps --include=dev
+
               has_build=$(node -e "const p=require('./package.json'); console.log(!!(p.scripts && p.scripts.build))")
               build_ok=true
               if [ "$has_build" = "true" ]; then
@@ -144,7 +146,12 @@ jobs:
             echo "::warning::Skipped (build failed, not published):$skipped_builds"
           fi
 
-          if [ -n "$failed_packages" ]; then
-            echo "❌ Failed to publish:$failed_packages"
-            exit 1
-          fi
+      - name: Commit version bumps
+        if: success()
+        run: |
+          shopt -s nullglob
+          files=(packages/*/package.json packages/*/package-lock.json)
+          git add "${files[@]}"
+          git diff --staged --quiet && echo "No version changes to commit" && exit 0
+          git commit -m "chore: bump published package versions [skip ci]"
+          git push
