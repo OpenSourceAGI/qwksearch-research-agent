@@ -43,22 +43,15 @@ export default defineConfig(({ command }) => ({
     },
     rolldownOptions: {
       // Rolldown (Vite 8.x bundler) needs its own external list.
-      // AI SDK packages are server-only and must not be bundled into client code.
-      external: [
-        "fsevents",
-        "@mastra/core",
-        "@mastra/mcp",
-        "@composio/core",
-        "ai",
-        "@ai-sdk/openai",
-        "@ai-sdk/anthropic",
-        "@ai-sdk/groq",
-        "@ai-sdk/google",
-        "@ai-sdk/google-vertex",
-        "@ai-sdk/xai",
-        "@ai-sdk/amazon-bedrock",
-        "@openrouter/ai-sdk-provider",
-      ],
+      //
+      // Do NOT add `ai` / `@ai-sdk/*` here: this list applies to the server
+      // (rsc/ssr) environments too, and an externalized bare import in a
+      // Worker chunk fails at runtime with
+      //   No such module "_next/static/ai" imported from "_next/static/route-*.js"
+      // because workerd resolves bare specifiers relative to the chunk. The
+      // AI SDK packages never reach the final client bundle anyway (they are
+      // tree-shaken out), so they must simply be bundled server-side.
+      external: ["fsevents", "@mastra/core", "@mastra/mcp", "@composio/core"],
     },
   },
   ssr: {
