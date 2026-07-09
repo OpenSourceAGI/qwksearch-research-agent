@@ -239,8 +239,8 @@ const SettingsContent = ({
             </div>
             <div className="flex-1 overflow-y-auto">
               <selectedSection.component
-                fields={config.fields[selectedSection.dataAdd]}
-                values={config.values[selectedSection.dataAdd]}
+                fields={config?.fields?.[selectedSection.dataAdd]}
+                values={config?.values?.[selectedSection.dataAdd]}
               />
             </div>
           </div>
