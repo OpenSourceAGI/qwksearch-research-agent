@@ -23,8 +23,7 @@ import {
 } from '.';
 import {
   DEFAULT_SUMMARIZE_PROMPT,
-  MAX_ARTICLE_LENGTH,
-  MAX_FOLLOWUP_QUESTIONS
+  MAX_ARTICLE_LENGTH
 } from "@/lib/config/site"
 
 const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
@@ -260,12 +259,13 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
         }
       } else {
         // Use the new article-followups endpoint for follow-up questions
+        const maxQuestions = parseInt(localStorage.getItem('maxFollowupQuestions') || '4');
         const data = await grab('/api/agent/article-followups', {
           method: 'POST',
           body: JSON.stringify({
             article,
             chatHistory: chatHistory.slice(-5),
-            maxQuestions: MAX_FOLLOWUP_QUESTIONS,
+            maxQuestions,
             provider: 'groq',
           }),
         });

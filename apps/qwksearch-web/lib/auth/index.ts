@@ -51,6 +51,19 @@ async function authBuilder() {
       },
       {
         baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+        // better-auth rejects credentialed POSTs (e.g. /sign-in/social) with
+        // 403 INVALID_ORIGIN when the Origin header isn't in trustedOrigins,
+        // which defaults to only [baseURL]. baseURL follows the
+        // NEXT_PUBLIC_BASE_URL env var, so a stale/localhost value on the
+        // deployed Worker silently locks every user out of login. Trust the
+        // production domains and local dev origins explicitly.
+        trustedOrigins: [
+          ...(NEXT_PUBLIC_BASE_URL ? [NEXT_PUBLIC_BASE_URL] : []),
+          "https://qwksearch.com",
+          "https://www.qwksearch.com",
+          "http://localhost:3000",
+          "http://localhost:8787",
+        ],
         database: drizzleAdapter(getDB(), {
           provider: "sqlite",
           schema,

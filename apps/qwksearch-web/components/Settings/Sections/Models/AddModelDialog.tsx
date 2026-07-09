@@ -64,7 +64,7 @@ const AddModel = ({
         }
       }
 
-      await grab(`agent/providers/${providerId}/models`, {
+      await grab(`/api/agent/providers/${providerId}/models`, {
         method: 'POST',
         body: {
           name: modelName,

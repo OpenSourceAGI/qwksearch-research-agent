@@ -61,7 +61,7 @@ const AddProvider = ({
     setLoading(true);
     try {
       const data: ConfigModelProvider = (
-        await grab('agent/providers', {
+        await grab('/api/agent/providers', {
           method: 'POST',
           body: {
             type: selectedProvider,

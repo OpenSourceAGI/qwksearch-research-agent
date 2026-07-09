@@ -1,8 +1,16 @@
 /**
  * Runtime env-var accessor.
- * Uses `process.env` for Next.js. In Cloudflare Workers with vinext,
- * this would need to be adapted to use cloudflare:workers.
+ * Supports both local development (process.env) and Cloudflare Workers
+ * (cloudflare:workers virtual module) via dynamic import.
  */
 export function getEnv(key: string): string | undefined {
-  return process.env[key];
+  // Try Cloudflare Workers context first (production)
+  try {
+    // @ts-ignore - cloudflare:workers is a virtual module provided by @cloudflare/vite-plugin
+    const cfWorkers = require("cloudflare:workers");
+    return cfWorkers.env?.[key];
+  } catch {
+    // Fallback to process.env for local development
+    return process.env[key];
+  }
 }

@@ -7,6 +7,21 @@
  */
 
 /**
+ * Resolves bare relative paths against the API root. The original grab-url
+ * package resolved every path against a configured `/api/` base, and call
+ * sites throughout the app still pass paths like `"config"` or
+ * `"doc/article"` — resolving those against the current page URL would hit
+ * nonexistent routes (e.g. `/doc/article` instead of `/api/doc/article`).
+ * Absolute URLs and root-relative (`/...`) paths pass through unchanged.
+ */
+function resolveApiUrl(url: string): string {
+  if (/^[a-z][a-z0-9+.-]*:/i.test(url) || url.startsWith("/")) {
+    return url;
+  }
+  return url.startsWith("api/") ? `/${url}` : `/api/${url}`;
+}
+
+/**
  * Enhanced fetch function that includes credentials by default.
  * This ensures authentication cookies are sent with API requests.
  *
@@ -34,7 +49,7 @@ export default async function grab(
     delete (enhancedOptions as any).timeout;
     delete (enhancedOptions as any).responseType;
 
-    const response = await fetch(url, enhancedOptions);
+    const response = await fetch(resolveApiUrl(url), enhancedOptions);
     clearTimeout(timeoutId);
 
     if (!response.ok) {

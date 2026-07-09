@@ -19,10 +19,24 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           registry-url: "https://registry.npmjs.org"
 
       - uses: oven-sh/setup-bun@v2
+
+      # We don't use husky in this repo, but some dependencies ship a broken
+      # `prepare: "husky install"` in their published package.json (e.g.
+      # fuse.js). When npm reconciles bun's linked node_modules store it runs
+      # that prepare hook, which dies with "husky: not found" (exit 127) — and
+      # npm's --ignore-scripts does NOT suppress it for bun-linked packages.
+      # Put a no-op `husky` on PATH for every later step so any stray husky
+      # hook becomes a harmless no-op instead of failing the publish run.
+      - name: Neutralize unused husky hooks
+        run: |
+          mkdir -p "$RUNNER_TEMP/husky-shim"
+          printf '#!/bin/sh\nexit 0\n' > "$RUNNER_TEMP/husky-shim/husky"
+          chmod +x "$RUNNER_TEMP/husky-shim/husky"
+          echo "$RUNNER_TEMP/husky-shim" >> "$GITHUB_PATH"
 
       # Install the whole workspace once with bun (the repo's package manager).
       # bun understands the "workspace:*" protocol and links local packages, so
@@ -32,7 +46,7 @@ jobs:
       # which left devDependencies uninstalled and builds failing with
       # "vite: not found".
       - name: Install workspace dependencies
-        run: bun install
+        run: bun install --ignore-scripts
 
       - name: Configure git
         run: |

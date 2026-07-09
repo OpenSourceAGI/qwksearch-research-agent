@@ -4,7 +4,7 @@
 
 Look up top-ranked domains to get their name, human-readable source label, influence rank, and favicon.
 
-Rank data comes from the [Tranco List](https://tranco-list.eu/) (aggregates Cisco Umbrella, Majestic, Farsight, Chrome UX, and Cloudflare Radar) and [CommonCrawl](https://commoncrawl.org) backlink counts.
+Rank data comes from the [Tranco List](https://tranco-list.eu/) (aggregates Cisco Umbrella, Majestic, Farsight, Chrome UX, and Cloudflare Radar) and [CommonCrawl](https://commoncrawl.org) backlink counts. 
 
 **Use cases:** search/URL autocomplete, bookmark launchers, LLM web-app recommendations, domain reputation scoring.
 

@@ -4,7 +4,7 @@
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />
-    </a>
+    </a> 
      <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
      <img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
     <img src="https://img.shields.io/badge/Next.js-16-black" alt="Next.js" />

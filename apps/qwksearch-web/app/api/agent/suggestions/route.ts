@@ -11,10 +11,11 @@ import type { ChatTurnMessage } from "chat-agent-toolkit/tools/search/meta-searc
 interface SuggestionsGenerationBody {
   chatHistory: any[];
   chatModel: ModelWithProvider;
+  maxQuestions?: number;
 }
 
 export const POST = async (req: Request) => {
-  try {
+  // try {
     const body: SuggestionsGenerationBody = await req.json();
 
     const chatHistory = body.chatHistory
@@ -36,6 +37,7 @@ export const POST = async (req: Request) => {
     const rawSuggestions = await generateSuggestions(
       {
         chat_history: chatHistory,
+        maxQuestions: body.maxQuestions,
       },
       llm,
     );
@@ -59,11 +61,11 @@ export const POST = async (req: Request) => {
     });
 
     return Response.json({ suggestions: splitSuggestions }, { status: 200 });
-  } catch (err) {
-    console.error(`An error occurred while generating suggestions: ${err}`);
-    return Response.json(
-      { message: "An error occurred while generating suggestions" },
-      { status: 500 },
-    );
-  }
+  // } catch (err) {
+  //   console.error(`An error occurred while generating suggestions: ${err}`);
+  //   return Response.json(
+  //     { message: "An error occurred while generating suggestions" },
+  //     { status: 500 },
+  //   );
+  // }
 };
