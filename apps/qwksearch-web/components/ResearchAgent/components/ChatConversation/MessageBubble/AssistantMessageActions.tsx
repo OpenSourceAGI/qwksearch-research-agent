@@ -49,13 +49,11 @@ const AssistantMessageActions = ({
     if (!section.assistantMessage) return null;
 
     return (
-        <div className="flex flex-row items-center justify-between w-full text-foreground py-4 -mx-2">
+        <div className="flex flex-row items-center justify-end w-full text-foreground py-4 -mx-2">
             <div className="flex flex-row items-center space-x-1">
                 <Rewrite
                     messageId={section.assistantMessage.messageId}
                 />
-            </div>
-            <div className="flex flex-row items-center space-x-1">
                 <Copy
                     initialMessage={section.assistantMessage.content}
                     section={section}

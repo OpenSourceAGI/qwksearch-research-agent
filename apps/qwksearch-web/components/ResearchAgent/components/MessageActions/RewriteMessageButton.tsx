@@ -26,8 +26,7 @@ const Rewrite = ({ messageId }: { messageId: string }) => {
     const loadProviders = async () => {
       try {
         setIsLoading(true);
-        const response = await grab('/api/agent/providers');
-        const data = response.data || response;
+        const data: { providers: MinimalProvider[] } = await grab('/api/agent/providers');
         setProviders(data.providers);
       } catch (error) {
         console.error('Error loading providers:', error);
