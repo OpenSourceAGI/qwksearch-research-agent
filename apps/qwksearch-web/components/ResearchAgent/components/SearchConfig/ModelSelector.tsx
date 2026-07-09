@@ -85,6 +85,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ chatModelProvider:
         onSelect({ providerId, key: modelKey });
         localStorage.setItem('chatModelProviderId', providerId);
         localStorage.setItem('chatModelKey', modelKey);
+        setIsPopoverOpen(false);
     };
 
     // Get current model name for display
