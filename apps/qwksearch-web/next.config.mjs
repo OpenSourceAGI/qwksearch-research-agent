@@ -26,7 +26,7 @@ const nextConfig = {
     "@huggingface/transformers",
     "onnxruntime-web",
   ],
-  transpilePackages: ["quantum-sphere-loading-icon", "shadcn-theme-menu"],
+  transpilePackages: ["quantum-sphere-loading-icon", "shadcn-theme-menu", "chat-agent-toolkit"],
 
   turbopack: {},
   async headers() {

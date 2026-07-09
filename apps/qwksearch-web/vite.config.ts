@@ -43,7 +43,7 @@ export default defineConfig(({ command }) => ({
       // bundle and is never installed on Linux, so leave it external.
       // `@mastra/core` and `@mastra/mcp` are optional dependencies with incorrect package.json exports.
       // `@composio/core` is only used in optional integration files.
-      external: ["fsevents", "@mastra/core", "@mastra/mcp", "@composio/core"],
+      external: ["fsevents", /^@mastra\//, "@composio/core"],
     },
     rolldownOptions: {
       // Rolldown (Vite 8.x bundler) needs its own external list.
@@ -55,7 +55,7 @@ export default defineConfig(({ command }) => ({
       // because workerd resolves bare specifiers relative to the chunk. The
       // AI SDK packages never reach the final client bundle anyway (they are
       // tree-shaken out), so they must simply be bundled server-side.
-      external: ["fsevents", "@mastra/core", "@mastra/mcp", "@composio/core"],
+      external: ["fsevents", /^@mastra\//, "@composio/core"],
     },
   },
   ssr: {

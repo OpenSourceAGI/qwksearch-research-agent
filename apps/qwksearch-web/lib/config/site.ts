@@ -19,9 +19,7 @@ export const /** App Name in title case */
   DEFAULT_SUMMARIZE_PROMPT: string =
     "Summarize in bullet points and bold topics",
   /** Max char length for article body sent to the LLM */
-  MAX_ARTICLE_LENGTH: number = 1500,
-  /** How many follow-ups to generate for each chat */
-  MAX_FOLLOWUP_QUESTIONS: number = 4;
+  MAX_ARTICLE_LENGTH: number = 1500;
 
 export const listFooterLinks: FooterLink[] = [
   // {

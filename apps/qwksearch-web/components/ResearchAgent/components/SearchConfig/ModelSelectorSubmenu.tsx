@@ -31,8 +31,9 @@ export const ModelSelectorSubmenu: React.FC = () => {
       try {
         setIsLoading(true);
         const data: { providers: MinimalProvider[] } = await grab('/api/agent/providers');
-        setProviders(data.providers);
-        if (!chatModelProvider.key && data.providers.length > 0) {
+        const providersList = data?.providers ?? [];
+        setProviders(providersList);
+        if (!chatModelProvider.key && providersList.length > 0) {
           const savedKey = localStorage.getItem('chatModelKey');
           const savedProviderId = localStorage.getItem('chatModelProviderId');
           if (savedKey && savedProviderId) {
