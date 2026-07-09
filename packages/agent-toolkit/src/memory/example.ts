@@ -17,11 +17,11 @@ import {
 // Example 1: Basic Memory Usage with Drizzle
 // ============================================================================
 
-async function example1_basicMemory(db: any) {
+async function example1_basicMemory(db: any, userMemoriesTable: any) {
   console.log("Example 1: Basic Memory Usage");
 
   // Create storage adapter
-  const storage = new DrizzleMemoryStorage(db);
+  const storage = new DrizzleMemoryStorage(db, userMemoriesTable);
 
   // Create memory instance
   const memory = new SimpleMemory("user-123", storage, {
@@ -56,10 +56,10 @@ async function example1_basicMemory(db: any) {
 // Example 2: Using Memory Agent with LLM
 // ============================================================================
 
-async function example2_memoryAgent(db: any) {
+async function example2_memoryAgent(db: any, userMemoriesTable: any) {
   console.log("Example 2: Memory Agent with LLM");
 
-  const storage = new DrizzleMemoryStorage(db);
+  const storage = new DrizzleMemoryStorage(db, userMemoriesTable);
 
   const agent = new MemoryAgent("user-123", storage, {
     defaultProvider: "groq",
@@ -306,10 +306,10 @@ async function example4_testing() {
 // Example 5: Advanced Usage - Batch Operations
 // ============================================================================
 
-async function example5_batchOperations(db: any) {
+async function example5_batchOperations(db: any, userMemoriesTable: any) {
   console.log("Example 5: Batch Operations");
 
-  const storage = new DrizzleMemoryStorage(db);
+  const storage = new DrizzleMemoryStorage(db, userMemoriesTable);
   const memory = new SimpleMemory("user-123", storage, {
     batchSize: 5, // Process 5 facts at a time
   });

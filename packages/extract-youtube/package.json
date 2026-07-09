@@ -57,7 +57,7 @@
   "dependencies": {
     "fast-xml-parser": "^4.2.5",
     "html-entities": "^2.3.3",
-    "https-proxy-agent": "^5.0.1",
+    "https-proxy-agent": "^7.0.6",
     "grab-url": "^1.6.19",
     "youtube-transcript-api": "^3.0.6"
   },

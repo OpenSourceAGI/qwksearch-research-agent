@@ -10,7 +10,7 @@ import type {
   MemoryType,
   MemorySearchOptions,
   MemoryUpdate,
-} from "./types";
+} from "../types";
 
 /**
  * Storage interface that any database adapter must implement

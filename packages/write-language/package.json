@@ -16,10 +16,10 @@
   "types": "./dist/types.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "react-server": "./src/index.ts",
-      "import": "./src/index.ts",
-      "require": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "react-server": "./dist/write-language.es.js",
+      "import": "./dist/write-language.es.js",
+      "require": "./dist/write-language.cjs.js"
     },
     "./*": {
       "types": "./src/*.ts",

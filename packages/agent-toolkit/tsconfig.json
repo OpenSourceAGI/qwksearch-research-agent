@@ -6,8 +6,7 @@
     "node_modules",
   ],
   "compilerOptions": {
-    
-    "typeRoots": ["src/types.d.ts"],
+    "types": ["node"],
     "target": "ESNext",
     "module": "ESNext",
     "resolveJsonModule": true,

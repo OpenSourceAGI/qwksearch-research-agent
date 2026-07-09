@@ -7,8 +7,20 @@
  * See extract-webpage/src/search/index.ts for an example.
  */
 import MetaSearchAgent from "./metaSearchAgent";
-import prompts from "write-language/prompts/search-prompts";
+import {
+  webSearchRetrieverPrompt,
+  webSearchResponsePrompt,
+  webSearchRetrieverFewShots,
+  writingAssistantPrompt,
+} from "write-language";
 import type { Config } from "./meta-search-types";
+
+const prompts = {
+  webSearchRetrieverPrompt,
+  webSearchResponsePrompt,
+  webSearchRetrieverFewShots,
+  writingAssistantPrompt,
+};
 
 /**
  * Creates search handler instances with provided search functions.

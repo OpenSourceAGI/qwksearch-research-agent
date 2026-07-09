@@ -6,40 +6,13 @@ import { extractContentAndCite } from "../html-to-content/html-to-content";
 import { getURLYoutubeVideo, convertYoutubeToText } from "./youtube-helpers";
 import { convertDOCXToHTML, isBufferDOCX } from "./docx-to-content";
 import { scrapeURL } from "./url-to-html";
-
-/**
- * Fetch wrapper for grabbing binary content
- */
-async function grab(url: string, options: any = {}) {
-  const timeout = options.timeout ? options.timeout * 1000 : 10000;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    if (options.responseType === "arraybuffer") {
-      return await response.arrayBuffer();
-    }
-    return await response.text();
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
-}
+import grab from "../utils/grab";
 
 /**
  * Dynamic PDF converter to avoid bundling pdfjs at build time
  */
 async function convertPDFToHTML(url: string, options: any) {
-  const { convertPDFToHTML: pdfConverter } = await import("extract-pdf/pdf-to-html");
+  const { convertPDFToHTML: pdfConverter } = await import("extract-pdf");
   return await pdfConverter(url, options);
 }
 

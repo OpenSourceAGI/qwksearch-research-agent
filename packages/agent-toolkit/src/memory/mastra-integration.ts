@@ -15,7 +15,7 @@
  */
 
 import { Mastra } from '@mastra/core';
-import type { Agent, Memory } from '@mastra/core';
+import { Agent } from '@mastra/core/agent';
 import type { D1Database, KVNamespace } from '@cloudflare/workers-types';
 import type { IMemoryStorage } from './storage/storage-interface';
 import type { MemoryRecord, MemoryType, MemorySearchOptions, MemoryUpdate } from './types';
@@ -387,8 +387,8 @@ export class MastraKVMemoryStorage implements IMemoryStorage {
     }
 
     if (updates.access_count !== undefined) {
-      if (typeof updates.access_count === 'object' && updates.access_count.increment) {
-        memory.access_count += updates.access_count.increment;
+      if (typeof updates.access_count === 'object') {
+        memory.access_count += updates.access_count.increment ?? 0;
       } else {
         memory.access_count = updates.access_count;
       }
@@ -462,14 +462,9 @@ export class MastraMemoryManager {
   async initialize(): Promise<Mastra> {
     if (this.mastra) return this.mastra;
 
-    this.mastra = new Mastra({
-      memory: {
-        provider: 'postgres', // Mastra's interface, we adapt to D1/KV
-        config: {
-          // We'll use our custom storage adapter
-        },
-      },
-    });
+    // Memory persistence is handled by this manager's own D1/KV storage
+    // adapters rather than a Mastra memory backend.
+    this.mastra = new Mastra({});
 
     // Initialize D1 schema if needed
     if (this.config.storage === 'd1' && this.storage instanceof MastraD1MemoryStorage) {

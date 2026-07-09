@@ -14,7 +14,8 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/api-client.js"
+      "import": "./dist/api-client.js",
+      "require": "./dist/api-client.umd.cjs"
     }
   },
   "scripts": {

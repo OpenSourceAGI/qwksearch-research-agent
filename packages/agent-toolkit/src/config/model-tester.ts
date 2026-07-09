@@ -4,7 +4,7 @@
  */
 
 import { generateText } from "ai";
-import { createLLMProvider } from "write-language/provider-factory";
+import { createLLMProvider } from "write-language";
 
 export interface ModelTestResult {
   modelId: string;
@@ -74,7 +74,7 @@ export async function testModel(
     const testPromise = generateText({
       model,
       prompt: "Reply with just 'OK'",
-      maxTokens: 10,
+      maxOutputTokens: 10,
     });
 
     const result = await Promise.race([testPromise, timeoutPromise]) as any;

@@ -24,9 +24,12 @@ export default defineConfig({
       fileName: (format) => `index.${format === 'es' ? 'mjs' : 'cjs'}`,
     },
     rollupOptions: {
-      // Externalize dependencies to avoid bundling them
+      // Externalize dependencies to avoid bundling them.
+      // grab-url is deliberately bundled: its published CJS entry resolves
+      // its internal chunks relative to the consumer's cwd and fails to load
+      // under require(); bundling its ESM source avoids the broken entry.
       external: [
-        ...Object.keys(pkg.dependencies || {}),
+        ...Object.keys(pkg.dependencies || {}).filter((d) => d !== 'grab-url'),
         'node:http',
         'node:https',
         'node:url',
