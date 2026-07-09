@@ -51,6 +51,10 @@ async function authBuilder() {
       },
       {
         baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+        // Without a stable secret, each CF Worker restart generates a new random
+        // signing key — sessions become invalid immediately on the next request.
+        // Set BETTER_AUTH_SECRET in CF Workers environment variables.
+        ...(getEnv("BETTER_AUTH_SECRET") ? { secret: getEnv("BETTER_AUTH_SECRET") } : {}),
         // better-auth rejects credentialed POSTs (e.g. /sign-in/social) with
         // 403 INVALID_ORIGIN when the Origin header isn't in trustedOrigins,
         // which defaults to only [baseURL]. baseURL follows the

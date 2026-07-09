@@ -148,15 +148,7 @@ class ConfigManager {
 
     const newProviders: ConfigModelProvider[] = [];
 
-    // Check if OPENROUTER_API_KEY exists - prioritize OpenRouter for guests
-    const hasOpenRouter = !!getEnv("OPENROUTER_API_KEY");
-
     providerConfigSections.forEach((provider) => {
-      // If OpenRouter is configured, ONLY load OpenRouter for guests
-      // Skip all other providers (NVIDIA, DeepSeek, etc.)
-      if (hasOpenRouter && provider.key.toLowerCase() !== "openrouter") {
-        return;
-      }
 
       const tempConfig: Record<string, any> = {};
       const required: string[] = [];

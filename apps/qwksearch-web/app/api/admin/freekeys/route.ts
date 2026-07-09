@@ -112,10 +112,16 @@ export async function GET() {
         : { skipped: true, reason: orKey ? "no free model found" : "no API key" },
     },
     guestLogic: {
-      note: "When OPENROUTER_API_KEY is set, ConfigManager only loads OpenRouter (NVIDIA is suppressed). To show both, remove OPENROUTER_API_KEY or the exclusion logic in config-manager.ts line 157.",
+      note: "All configured providers are loaded for guests. Both NVIDIA and OpenRouter load independently when their API keys are set.",
       openrouterKeySet: !!orKey,
-      nvidiaWillBeLoaded: !orKey && !!nvidiaKey,
+      nvidiaWillBeLoaded: !!nvidiaKey,
       openrouterWillBeLoaded: !!orKey,
+    },
+    auth: {
+      betterAuthSecretSet: !!process.env.BETTER_AUTH_SECRET,
+      note: !process.env.BETTER_AUTH_SECRET
+        ? "BETTER_AUTH_SECRET is not set. CF Workers restarts generate a new random signing key each time, invalidating all sessions. Add BETTER_AUTH_SECRET to your CF Workers environment variables."
+        : "BETTER_AUTH_SECRET is set. Sessions will survive worker restarts.",
     },
   });
 }

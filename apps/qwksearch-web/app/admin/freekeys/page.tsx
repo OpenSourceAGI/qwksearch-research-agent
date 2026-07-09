@@ -36,6 +36,10 @@ interface FreeKeysData {
     nvidiaWillBeLoaded: boolean;
     openrouterWillBeLoaded: boolean;
   };
+  auth: {
+    betterAuthSecretSet: boolean;
+    note: string;
+  };
 }
 
 function StatusBadge({ ok }: { ok: boolean }) {
@@ -217,6 +221,24 @@ export default function FreeKeysPage() {
             <p className="text-yellow-700 dark:text-yellow-300 text-xs mt-2">
               {data.guestLogic.note}
             </p>
+          </div>
+
+          <div className={`border rounded-lg p-4 text-sm space-y-2 ${data.auth.betterAuthSecretSet ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950" : "border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950"}`}>
+            <div className="flex items-center justify-between">
+              <h2 className={`font-semibold ${data.auth.betterAuthSecretSet ? "text-green-800 dark:text-green-200" : "text-red-800 dark:text-red-200"}`}>
+                Auth Secret (BETTER_AUTH_SECRET)
+              </h2>
+              <StatusBadge ok={data.auth.betterAuthSecretSet} />
+            </div>
+            <p className={`text-xs mt-1 ${data.auth.betterAuthSecretSet ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300"}`}>
+              {data.auth.note}
+            </p>
+            {!data.auth.betterAuthSecretSet && (
+              <p className="text-xs text-red-600 dark:text-red-400 font-mono bg-red-100 dark:bg-red-900 p-2 rounded mt-2">
+                Fix: In CF Workers dashboard → Settings → Variables → add{" "}
+                <strong>BETTER_AUTH_SECRET</strong> = (any long random string, e.g. 32+ chars)
+              </p>
+            )}
           </div>
         </div>
       )}
