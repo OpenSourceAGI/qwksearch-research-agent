@@ -125,42 +125,52 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     }
 
     setIsLoadingExtract(true);
-    const { article } = await grab(`doc/article?url=${encodeURIComponent(url)}`);
+    try {
+      const { article } = await grab(`doc/article?url=${encodeURIComponent(url)}`);
 
-    const textContent = article?.html?.replace(/<[^>]*>/g, '').trim() || '';
+      const textContent = article?.html?.replace(/<[^>]*>/g, '').trim() || '';
 
-    if (article?.error || textContent.length < 20) {
-      // Fallback: request Chrome extension to extract the URL
-      document.dispatchEvent(
-        new CustomEvent('onInvokeChromeAPI', {
-          detail: { type: 'extractURL', url },
-        }),
-      );
+      if (article?.error || textContent.length < 20) {
+        // Fallback: request Chrome extension to extract the URL
+        document.dispatchEvent(
+          new CustomEvent('onInvokeChromeAPI', {
+            detail: { type: 'extractURL', url },
+          }),
+        );
 
-      await new Promise<void>((resolve) => {
-        const handler = async (event: Event) => {
-          window.removeEventListener('onExtractionResult', handler);
-          const { article: fallbackArticle } = await grab(`doc/article?url=${encodeURIComponent(url)}`);
-          if (fallbackArticle) {
-            setExtractedArticle(fallbackArticle);
-            if (fallbackArticle.followUpQuestions?.length > 0) {
-              setFollowupQuestions(fallbackArticle.followUpQuestions);
-            }
-          }
-          resolve();
-        };
-        window.addEventListener('onExtractionResult', handler);
-      });
-    } else {
-      setExtractedArticle(article);
-      if (article?.followUpQuestions && article.followUpQuestions.length > 0) {
-        setFollowupQuestions(article.followUpQuestions);
+        // Race against a 10s timeout so the panel always becomes ready even if no extension is present
+        await Promise.race([
+          new Promise<void>((resolve) => {
+            const handler = async (event: Event) => {
+              window.removeEventListener('onExtractionResult', handler);
+              const { article: fallbackArticle } = await grab(`doc/article?url=${encodeURIComponent(url)}`);
+              if (fallbackArticle) {
+                setExtractedArticle(fallbackArticle);
+                if (fallbackArticle.followUpQuestions?.length > 0) {
+                  setFollowupQuestions(fallbackArticle.followUpQuestions);
+                }
+              }
+              resolve();
+            };
+            window.addEventListener('onExtractionResult', handler);
+          }),
+          new Promise<void>((resolve) => setTimeout(resolve, 10000)),
+        ]);
+      } else {
+        setExtractedArticle(article);
+        if (article?.followUpQuestions && article.followUpQuestions.length > 0) {
+          setFollowupQuestions(article.followUpQuestions);
+        }
       }
-    }
 
-    checkIfFavorited();
-    setIsLoadingExtract(false);
-    setIsPanelReady(true);
+      checkIfFavorited();
+    } catch (error) {
+      console.error('[ArticleExtractPanel] Error extracting URL:', error);
+      toast.error('Failed to load article');
+    } finally {
+      setIsLoadingExtract(false);
+      setIsPanelReady(true);
+    }
   };
 
   const checkIfFavorited = async () => {
