@@ -1,6 +1,6 @@
 /**
- * @fileoverview Re-exports MetaSearchAgent from agent-toolkit
- * @deprecated Import from 'agent-toolkit' instead
+ * @fileoverview Re-exports MetaSearchAgent from chat-agent-toolkit
+ * @deprecated Import from 'chat-agent-toolkit' instead
  */
 
 export {
@@ -13,7 +13,7 @@ export {
   processDocs,
   normalizeSourcesOutput,
   splitTextIntoChunks,
-} from "agent-toolkit/tools/search";
+} from "chat-agent-toolkit";
 
 export type {
   MetaSearchAgentType,
@@ -22,17 +22,17 @@ export type {
   SearchingEvent,
   FewShotExample,
   Document,
-} from "agent-toolkit/tools/search";
+} from "chat-agent-toolkit";
 
 export {
   LineOutputParser,
   LineListOutputParser,
   formatChatHistoryAsString,
-} from "agent-toolkit/utils";
+} from "chat-agent-toolkit";
 
 export {
   webSearchResponsePrompt,
   webSearchRetrieverPrompt,
   webSearchRetrieverFewShots,
   writingAssistantPrompt,
-} from "agent-toolkit/language-generation/prompts/search-prompts";
+} from "chat-agent-toolkit";

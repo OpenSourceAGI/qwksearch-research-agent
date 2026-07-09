@@ -17,7 +17,6 @@
 import { Composio } from '@composio/core';
 import { Agent } from '@mastra/core/agent';
 import { MCPClient } from '@mastra/mcp';
-import type { Tool } from '@mastra/core';
 
 /**
  * Configuration for Composio + Mastra integration
@@ -67,17 +66,18 @@ export class ComposioMastraSession {
       return this.sessionEndpoint;
     }
 
-    // Create Composio session with specified toolkits
-    const session = await this.composio.toolsets.create({
-      userId: this.config.userId,
+    // Create Composio Tool Router session with specified toolkits.
+    // `mcp: true` surfaces the session's MCP endpoint (url + headers).
+    const session = await this.composio.toolRouter.create(this.config.userId, {
       toolkits: this.config.toolkits,
+      mcp: true,
     });
 
     this.sessionEndpoint = {
       url: session.mcp.url,
       headers: {
         'x-api-key': this.config.composioApiKey,
-        ...session.mcp.headers,
+        ...(session.mcp.headers ?? {}),
       },
     };
 
@@ -115,7 +115,7 @@ export class ComposioMastraSession {
    * Get tools from Composio MCP
    * Use for static agent setup (same tools for all requests)
    */
-  async getTools(): Promise<Record<string, Tool>> {
+  async getTools() {
     const mcp = await this.getMCPClient();
     return await mcp.listTools();
   }
@@ -163,7 +163,8 @@ export class ComposioMastraSession {
     prompt: string,
     options?: {
       maxSteps?: number;
-      context?: Record<string, any>;
+      /** Extra context messages passed to the agent (model messages) */
+      context?: any[];
     }
   ) {
     const agent = await this.getAgent();
@@ -258,10 +259,10 @@ export async function createDynamicComposioAgent(config: {
       prompt: string;
       maxSteps?: number;
     }) {
-      // Create session for this user/toolkits
-      const session = await composio.toolsets.create({
-        userId: params.userId,
+      // Create Tool Router session for this user/toolkits
+      const session = await composio.toolRouter.create(params.userId, {
         toolkits: params.toolkits,
+        mcp: true,
       });
 
       // Connect MCP client
@@ -273,7 +274,7 @@ export async function createDynamicComposioAgent(config: {
             requestInit: {
               headers: {
                 'x-api-key': config.composioApiKey,
-                ...session.mcp.headers,
+                ...(session.mcp.headers ?? {}),
               },
             },
           },
@@ -284,18 +285,18 @@ export async function createDynamicComposioAgent(config: {
         // Get toolsets for this request
         const toolsets = await mcp.listToolsets();
 
-        // Create agent with dynamic toolsets
+        // Create agent; toolsets are provided per-request at generate time
         const agent = new Agent({
           id: config.agent.id,
           name: config.agent.name,
           instructions: config.agent.instructions,
           model: config.agent.model,
-          toolsets,
         });
 
-        // Execute
+        // Execute with dynamic toolsets
         return await agent.generate(params.prompt, {
           maxSteps: params.maxSteps || config.agent.maxSteps || 5,
+          toolsets,
         });
       } finally {
         await mcp.disconnect();

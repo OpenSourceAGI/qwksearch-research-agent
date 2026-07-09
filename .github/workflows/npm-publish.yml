@@ -34,7 +34,12 @@ jobs:
       - name: Install workspace dependencies
         run: bun install
 
-      - name: Publish non-private packages with a new version
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Publish non-private packages with new content
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
@@ -69,24 +74,12 @@ jobs:
               set -e
               cd "$dir"
 
-              version=$(node -e "const p=require('./package.json'); console.log(p.version)")
-
-              # Publish based on the version, not on which files the triggering
-              # commit touched: if this exact version is already on npm there is
-              # nothing new to release; otherwise a version bump signals changes
-              # since the last published release, so publish it.
-              already=$(npm view "$name@$version" version 2>/dev/null || echo "")
-              if [ -n "$already" ]; then
-                echo "⏭ $name@$version already on npm — nothing new to release"
-                exit 0
-              fi
-
               # npm keeps the literal "workspace:*" protocol in the tarball, which
               # consumers cannot resolve. Replace each "workspace:*" with a real
               # semver range ("^<version>") taken from the referenced local
               # package so published packages keep depending on their siblings.
               # A local package that isn't published is dropped instead.
-              # (This runs on the ephemeral CI checkout and is never committed.)
+              # (This edit is only committed back if the version gets bumped.)
               node -e "
                 const fs = require('fs');
                 const path = require('path');
@@ -117,19 +110,51 @@ jobs:
                 fs.writeFileSync('package.json', JSON.stringify(p, null, 2));
               "
 
+              # Build before deciding anything: the tarball content comparison
+              # below needs the real dist output, and we never publish a
+              # package whose build fails.
               has_build=$(node -e "const p=require('./package.json'); console.log(!!(p.scripts && p.scripts.build))")
-              build_ok=true
               if [ "$has_build" = "true" ]; then
-                npm run build || build_ok=false
+                if ! npm run build; then
+                  echo "⚠ Build failed for $name — not publishing (won't ship a broken tarball)"
+                  exit 42
+                fi
               fi
 
-              if [ "$build_ok" != "true" ]; then
-                echo "⚠ Build failed for $name — not publishing (won't ship a broken tarball)"
-                exit 42
+              version=$(node -e "const p=require('./package.json'); console.log(p.version)")
+              latest=$(npm view "$name" version 2>/dev/null || echo "")
+              already=$(npm view "$name@$version" version 2>/dev/null || echo "")
+
+              if [ -n "$already" ]; then
+                # This exact version is on npm. Publish anyway if the content
+                # changed since that release: npm tarballs are reproducible
+                # (normalized mtimes), so compare pack integrity against the
+                # registry. Identical content ⇒ nothing new to release.
+                local_integrity=$(npm pack --dry-run --ignore-scripts --json 2>/dev/null | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s)[0].integrity))")
+                remote_integrity=$(npm view "$name@$version" dist.integrity 2>/dev/null || echo "")
+
+                if [ "$local_integrity" = "$remote_integrity" ]; then
+                  echo "⏭ $name@$version already on npm with identical content — nothing new to release"
+                  exit 0
+                fi
+
+                # Content changed since the last release: bump a patch above
+                # whichever is higher — the local version or the latest on npm —
+                # so the new version is guaranteed to be free.
+                next=$(node -e "
+                  const bump = v => { const a = v.split('.').map(Number); a[2] += 1; return a.join('.'); };
+                  const cmp = (x, y) => { const a = x.split('.').map(Number), b = y.split('.').map(Number); for (let i = 0; i < 3; i++) { if ((a[i]||0) !== (b[i]||0)) return (a[i]||0) - (b[i]||0); } return 0; };
+                  const local = '$version', latest = '$latest' || local;
+                  console.log(bump(cmp(local, latest) >= 0 ? local : latest));
+                ")
+                echo "🔼 $name content changed since $version — bumping to $next"
+                npm version "$next" --no-git-tag-version
+                version="$next"
               fi
 
               echo "Publishing $name@$version"
-              npm publish --provenance --access public
+              # Already built above; skip prepare/prepublish hooks re-running it.
+              npm publish --provenance --access public --ignore-scripts
             )
             rc=$?
 
@@ -148,3 +173,38 @@ jobs:
             echo "❌ Failed to publish:$failed_packages"
             exit 1
           fi
+
+      - name: Commit version bumps
+        if: success()
+        run: |
+          # Version bumps made during publish (content changed while the version
+          # was already taken) must land back in the repo so the next run sees
+          # them. Restore the workspace:* pinning done for the tarballs first —
+          # only the "version" field should be committed.
+          node -e "
+            const fs = require('fs');
+            const cp = require('child_process');
+            for (const d of fs.readdirSync('packages')) {
+              const f = 'packages/' + d + '/package.json';
+              if (!fs.existsSync(f)) continue;
+              const now = JSON.parse(fs.readFileSync(f, 'utf8'));
+              let raw;
+              try {
+                raw = cp.execSync('git show HEAD:' + f, { encoding: 'utf8' });
+              } catch { continue; }
+              const orig = JSON.parse(raw);
+              if (orig.version !== now.version) {
+                // Patch only the version string so the file keeps its formatting.
+                raw = raw.replace(
+                  '\"version\": \"' + orig.version + '\"',
+                  '\"version\": \"' + now.version + '\"'
+                );
+                console.log('Keeping version bump for', now.name, '->', now.version);
+              }
+              fs.writeFileSync(f, raw);
+            }
+          "
+          git add packages/*/package.json
+          git diff --staged --quiet && echo "No version changes to commit" && exit 0
+          git commit -m "chore: bump published package versions [skip ci]"
+          git push

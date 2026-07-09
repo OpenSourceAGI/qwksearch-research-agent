@@ -14,15 +14,40 @@ import type {
 } from "../types";
 
 /**
- * Drizzle-based storage adapter
+ * The Drizzle table passed to {@link DrizzleMemoryStorage} must expose these
+ * columns (see {@link createMemorySchema} for the expected shape).
+ */
+export interface MemoryTable {
+  id: any;
+  user_id: any;
+  memory_type: any;
+  content: any;
+  importance: any;
+  access_count: any;
+  metadata: any;
+  created_at: any;
+  updated_at: any;
+}
+
+/**
+ * Drizzle-based storage adapter.
+ *
+ * Pass the Drizzle database instance and the memory table object defined in
+ * your schema (not a table-name string) so queries reference real columns:
+ *
+ * ```ts
+ * import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+ * const userMemories = sqliteTable("user_memories", { ... });
+ * const storage = new DrizzleMemoryStorage(db, userMemories);
+ * ```
  */
 export class DrizzleMemoryStorage implements IMemoryStorage {
   private db: any;
-  private tableName: string;
+  private table: MemoryTable & Record<string, any>;
 
-  constructor(db: any, tableName: string = "user_memories") {
+  constructor(db: any, table: MemoryTable & Record<string, any>) {
     this.db = db;
-    this.tableName = tableName;
+    this.table = table;
   }
 
   /**
@@ -36,7 +61,7 @@ export class DrizzleMemoryStorage implements IMemoryStorage {
     metadata?: Record<string, any>,
   ): Promise<string> {
     const result = await this.db
-      .insert(this.tableName)
+      .insert(this.table)
       .values({
         user_id: userId,
         memory_type: memoryType,
@@ -47,7 +72,7 @@ export class DrizzleMemoryStorage implements IMemoryStorage {
         created_at: new Date(),
         updated_at: new Date(),
       })
-      .returning({ id: "id" });
+      .returning({ id: this.table.id });
 
     return result[0]?.id;
   }
@@ -61,31 +86,35 @@ export class DrizzleMemoryStorage implements IMemoryStorage {
     limit: number = 10,
     options: MemorySearchOptions = {},
   ): Promise<MemoryRecord[]> {
-    const conditions = [eq("user_id", userId)];
+    const conditions = [eq(this.table.user_id, userId)];
 
     if (query && query.trim()) {
-      conditions.push(like("content", `%${query}%`));
+      conditions.push(like(this.table.content, `%${query}%`));
     }
 
     if (options.memoryType) {
-      conditions.push(eq("memory_type", options.memoryType));
+      conditions.push(eq(this.table.memory_type, options.memoryType));
     }
 
     const results = await this.db
       .select({
-        id: "id",
-        user_id: "user_id",
-        memory_type: "memory_type",
-        content: "content",
-        importance: "importance",
-        access_count: "access_count",
-        metadata: "metadata",
-        created_at: "created_at",
-        updated_at: "updated_at",
+        id: this.table.id,
+        user_id: this.table.user_id,
+        memory_type: this.table.memory_type,
+        content: this.table.content,
+        importance: this.table.importance,
+        access_count: this.table.access_count,
+        metadata: this.table.metadata,
+        created_at: this.table.created_at,
+        updated_at: this.table.updated_at,
       })
-      .from(this.tableName)
+      .from(this.table)
       .where(and(...conditions))
-      .orderBy(desc("importance"), desc("access_count"), desc("updated_at"))
+      .orderBy(
+        desc(this.table.importance),
+        desc(this.table.access_count),
+        desc(this.table.updated_at),
+      )
       .limit(Math.min(limit, 50)); // Cap at 50 for performance
 
     return results as MemoryRecord[];
@@ -110,13 +139,15 @@ export class DrizzleMemoryStorage implements IMemoryStorage {
       return [];
     }
 
-    const conditions = searchTerms.map((term) => like("content", `%${term}%`));
+    const conditions = searchTerms.map((term) =>
+      like(this.table.content, `%${term}%`),
+    );
 
     const results = await this.db
       .select()
-      .from(this.tableName)
-      .where(and(eq("user_id", userId), or(...conditions)))
-      .orderBy(desc("importance"), desc("updated_at"))
+      .from(this.table)
+      .where(and(eq(this.table.user_id, userId), or(...conditions)))
+      .orderBy(desc(this.table.importance), desc(this.table.updated_at))
       .limit(limit);
 
     return results as MemoryRecord[];
@@ -134,7 +165,7 @@ export class DrizzleMemoryStorage implements IMemoryStorage {
 
     if (updates.access_count !== undefined) {
       if (typeof updates.access_count === "object" && updates.access_count.increment) {
-        updateData.access_count = sql`access_count + ${updates.access_count.increment}`;
+        updateData.access_count = sql`${this.table.access_count} + ${updates.access_count.increment}`;
       } else {
         updateData.access_count = updates.access_count;
       }
@@ -148,14 +179,14 @@ export class DrizzleMemoryStorage implements IMemoryStorage {
       updateData.metadata = updates.metadata;
     }
 
-    await this.db.update(this.tableName).set(updateData).where(eq("id", id));
+    await this.db.update(this.table).set(updateData).where(eq(this.table.id, id));
   }
 
   /**
    * Delete a memory record
    */
   async deleteMemory(id: string): Promise<void> {
-    await this.db.delete(this.tableName).where(eq("id", id));
+    await this.db.delete(this.table).where(eq(this.table.id, id));
   }
 
   /**
@@ -164,8 +195,8 @@ export class DrizzleMemoryStorage implements IMemoryStorage {
   async getMemoryById(id: string): Promise<MemoryRecord | null> {
     const results = await this.db
       .select()
-      .from(this.tableName)
-      .where(eq("id", id))
+      .from(this.table)
+      .where(eq(this.table.id, id))
       .limit(1);
 
     return (results[0] as MemoryRecord) || null;

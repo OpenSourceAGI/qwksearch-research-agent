@@ -1,13 +1,15 @@
 {
   "include": [
-    "src/**/*.ts", 
+    "src/**/*.ts",
    ],
   "exclude": [
     "node_modules",
+    "src/**/__tests__/**",
+    "src/**/*.test.ts",
+    "src/**/*.spec.ts",
   ],
   "compilerOptions": {
-    
-    "typeRoots": ["src/types.d.ts"],
+    "types": ["node"],
     "target": "ESNext",
     "module": "ESNext",
     "resolveJsonModule": true,

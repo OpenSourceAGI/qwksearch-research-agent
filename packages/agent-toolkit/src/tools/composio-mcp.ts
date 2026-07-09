@@ -18,6 +18,7 @@
 import { Composio } from '@composio/core';
 import { createMCPClient } from '@ai-sdk/mcp';
 import type { MCPClient } from '@ai-sdk/mcp';
+import type { ToolSet } from 'ai';
 
 /**
  * Configuration for Composio MCP session
@@ -57,17 +58,18 @@ export class ComposioMCPSession {
       return this.mcpEndpoint;
     }
 
-    // Create dynamic Composio session with specified toolkits
-    const session = await this.composio.toolkits.authorize({
-      userId: this.config.userId,
+    // Create dynamic Composio Tool Router session with specified toolkits.
+    // `mcp: true` surfaces the session's MCP endpoint (url + headers).
+    const session = await this.composio.toolRouter.create(this.config.userId, {
       toolkits: this.config.toolkits,
+      mcp: true,
     });
 
     // Extract MCP endpoint info
     this.mcpEndpoint = {
       url: session.mcp.url,
       headers: {
-        ...session.mcp.headers,
+        ...(session.mcp.headers ?? {}),
         ...this.config.additionalHeaders,
       },
     };
@@ -105,9 +107,9 @@ export class ComposioMCPSession {
    *
    * @returns Tools object compatible with AI SDK
    */
-  async getTools() {
+  async getTools(): Promise<ToolSet> {
     const client = await this.getClient();
-    return await client.tools();
+    return (await client.tools()) as ToolSet;
   }
 
   /**
@@ -127,7 +129,7 @@ export class ComposioMCPSession {
    */
   static async listAvailableToolkits(apiKey: string): Promise<string[]> {
     const composio = new Composio({ apiKey });
-    const toolkits = await composio.toolkits.list();
+    const toolkits = await composio.toolkits.get();
     return toolkits.map((t) => t.name);
   }
 
@@ -137,10 +139,12 @@ export class ComposioMCPSession {
    */
   async isToolkitAuthenticated(toolkit: string): Promise<boolean> {
     try {
-      const integrations = await this.composio.integrations.list({
-        appName: toolkit,
+      const accounts = await this.composio.connectedAccounts.list({
+        userIds: [this.config.userId],
+        toolkitSlugs: [toolkit],
+        statuses: ['ACTIVE'],
       });
-      return integrations.length > 0;
+      return accounts.items.length > 0;
     } catch {
       return false;
     }
@@ -166,7 +170,7 @@ export class ComposioMCPSession {
  * });
  * ```
  */
-export async function getComposioTools(config: ComposioMCPConfig) {
+export async function getComposioTools(config: ComposioMCPConfig): Promise<ToolSet> {
   const session = new ComposioMCPSession(config);
   try {
     return await session.getTools();
