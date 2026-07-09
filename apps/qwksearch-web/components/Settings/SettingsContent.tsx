@@ -115,18 +115,25 @@ const SettingsContent = ({
     setSelectedSection(sections.find((s) => s.key === activeSection)!);
   }, [activeSection]);
 
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const data = await grab('config');
-        setConfig(data);
-      } catch (error) {
-        console.error('Error fetching config:', error);
-        toast.error('Failed to load configuration.');
-      } finally {
-        setIsLoading(false);
+  const fetchConfig = async () => {
+    setIsLoading(true);
+    try {
+      const data = await grab('config');
+      // grab resolves with the response body even on HTTP errors, so an
+      // error payload ({ message }) would otherwise be stored as the config
+      if (!data?.fields || !data?.values) {
+        throw new Error(data?.message ?? 'Invalid configuration response.');
       }
-    };
+      setConfig(data);
+    } catch (error) {
+      console.error('Error fetching config:', error);
+      toast.error('Failed to load configuration.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchConfig();
   }, []);
 
@@ -134,6 +141,22 @@ const SettingsContent = ({
     return (
       <div className="flex items-center justify-center h-full w-full">
         <Loader />
+      </div>
+    );
+  }
+
+  if (!config) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full w-full space-y-3">
+        <p className="text-sm text-black/70 dark:text-white/70">
+          Failed to load settings.
+        </p>
+        <button
+          onClick={fetchConfig}
+          className="px-3 py-1.5 rounded-lg text-sm bg-light-200 dark:bg-dark-200 text-black/90 dark:text-white/90 hover:bg-light-300 hover:dark:bg-dark-300 transition duration-200 active:scale-95"
+        >
+          Try again
+        </button>
       </div>
     );
   }
