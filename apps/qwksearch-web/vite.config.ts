@@ -33,6 +33,9 @@ export default defineConfig(({ command }) => ({
     },
   },
   build: {
+
+    minify: false,
+    sourcemap: true,
     rollupOptions: {
       // `fsevents` is an optional macOS-only native module that rollup/chokidar
       // require() lazily inside a try/catch; it has no place in the Worker

@@ -47,7 +47,7 @@ function getDomainIndex(): Fuse<DomainEntry> {
         { name: "name", weight: 0.6 },
         { name: "domain", weight: 0.4 },
       ],
-      threshold: 0.3,
+      threshold: 0.1,
       ignoreLocation: true,
       includeScore: true,
       minMatchCharLength: 3,
