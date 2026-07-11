@@ -53,7 +53,7 @@ const Rewrite = ({ messageId }: { messageId: string }) => {
   const filteredProviders = orderedProviders
     .map((provider) => ({
       ...provider,
-      chatModels: provider.chatModels.filter(
+      chatModels: (provider.chatModels ?? []).filter(
         (model) =>
           model.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           provider.name.toLowerCase().includes(searchQuery.toLowerCase()),

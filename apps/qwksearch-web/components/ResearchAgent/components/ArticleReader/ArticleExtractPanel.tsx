@@ -116,6 +116,17 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     // Validate URL before fetching
     try {
       const parsedUrl = new URL(url);
+      const searchEnginePatterns = [
+        /^https?:\/\/(www\.)?google\.[^/]+\/search/i,
+        /^https?:\/\/(www\.)?bing\.com\/search/i,
+        /^https?:\/\/(www\.)?duckduckgo\.com\/\?/i,
+      ];
+      if (searchEnginePatterns.some((p) => p.test(url))) {
+        toast.error('Cannot extract articles from search result pages');
+        setIsLoadingExtract(false);
+        setIsPanelReady(true);
+        return;
+      }
       if (parsedUrl.pathname === "/" || parsedUrl.pathname === "") {
         console.error('[ArticleExtractPanel] URL is domain-only, missing article path:', url);
         toast.error('Invalid article URL - only domain provided');
