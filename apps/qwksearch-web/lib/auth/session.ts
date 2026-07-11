@@ -23,19 +23,28 @@ export interface AuthSession {
  * Returns null if not authenticated
  */
 export async function getSession(): Promise<AuthSession | null> {
+  let session;
   try {
     const auth = await initAuth();
     const requestHeaders = await headers();
-    const session = await auth.api.getSession({
+    session = await auth.api.getSession({
       headers: requestHeaders,
     });
     if (!session) return null;
+  } catch (error) {
+    console.error("Session retrieval error:", error);
+    return null;
+  }
 
-    // Sessions are stored in KV (better-auth-cloudflare secondaryStorage) and
-    // can outlive their user row when the D1 database is recreated. Every
-    // userId column with FOREIGN KEY REFERENCES user(id) rejects writes for
-    // such stale sessions, so verify the user row exists before trusting the
-    // session anywhere.
+  // Sessions are stored in KV (better-auth-cloudflare secondaryStorage) and
+  // can outlive their user row when the D1 database is recreated. Every
+  // userId column with FOREIGN KEY REFERENCES user(id) rejects writes for
+  // such stale sessions, so verify the user row exists before trusting the
+  // session anywhere. This check is best-effort: if the lookup itself fails
+  // (e.g. a transient D1 error), trust the session rather than revoking it —
+  // a query failure is not proof the user row is missing, and a fresh
+  // Google/One-Tap sign-in's D1 write may not yet be visible to this read.
+  try {
     const db = getDB();
     const userRow = await db.query.user.findFirst({
       where: eq(userSchema.id, session.user.id),
@@ -48,18 +57,19 @@ export async function getSession(): Promise<AuthSession | null> {
       try {
         // Delete the orphaned session from KV so the client's own
         // better-auth get-session calls stop reporting it as signed in.
+        const auth = await initAuth();
+        const requestHeaders = await headers();
         await auth.api.signOut({ headers: requestHeaders });
       } catch (signOutError) {
         console.error("[auth] failed to revoke stale session:", signOutError);
       }
       return null;
     }
-
-    return session;
   } catch (error) {
-    console.error("Session retrieval error:", error);
-    return null;
+    console.error("[auth] user row lookup failed; trusting session:", error);
   }
+
+  return session;
 }
 
 /**
