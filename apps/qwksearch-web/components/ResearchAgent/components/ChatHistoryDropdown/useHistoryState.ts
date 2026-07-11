@@ -95,6 +95,17 @@ export function useHistoryState() {
           },
         });
 
+        if (response.status === 401) {
+          // Stale session — fall back to guest chats silently
+          const guestChats = getGuestChats().map((chat) => ({
+            ...chat,
+            messageCount:
+              chat.messages?.filter((m) => m.role === "user").length ?? 0,
+          }));
+          setChats(guestChats);
+          return;
+        }
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }

@@ -168,35 +168,30 @@ Create a provider instance.
 - `getTextOnlyModels()`: Get text-only models
 - `getMultimodalModels()`: Get multimodal models
 
-## Supported Providers
+Multi-provider AI agent toolkit for generating language responses, searching the web, extracting page content, and managing long-term memory across 10+ LLM providers.
 
-| Provider | Models | Capabilities |
-|----------|--------|--------------|
-| OpenAI | GPT-4, GPT-3.5, o1, o3 | Text, Multimodal, Functions |
-| Anthropic | Claude 3.5, Claude 3 | Text, Multimodal, Functions |
-| Google | Gemini 2.0, Gemini 1.5 | Text, Multimodal |
-| AWS Bedrock | Claude, Llama, Mistral | Text, Multimodal |
-| Groq | Llama 3, Mixtral | Text, Fast Inference |
-| xAI | Grok | Text |
-| Cloudflare | Various | Text, Edge Deployment |
-| Ollama | Local Models | Text, Privacy |
-| OpenRouter | 100+ Models | Text, Aggregator |
+Built on top of the [Vercel AI SDK](https://sdk.vercel.ai), with a small registry of pre-tuned agent prompts (research, summarization, citation answering, query resolution, knowledge-graph extraction, etc.) and tool wrappers around the [QwkSearch](https://qwksearch.com) API.
 
-## Environment Variables
+## Language Intelligence Providers
 
-Set API keys for the providers you want to use:
-
-```bash
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-GOOGLE_API_KEY=...
-GROQ_API_KEY=gsk_...
-XAI_API_KEY=xai-...
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-CLOUDFLARE_ACCOUNT_ID=...
-CLOUDFLARE_API_TOKEN=...
-```
+| Provider               | 🌍  | Top Model (Others)                            | 🏆 Benchmarks                                                         | 📄 Docs                                                                                               | 🔑 Keys                                                                                            | 💰 Funding   |
+| ---------------------- | --- | --------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------ |
+| **Anthropic**          | 🇺🇸  | Claude Mythos / Opus  (Sonnet, Haiku)         | 🥇 GPQA Diamond 94.6% · 🥇 SWE-bench 93.9% · 🧬 PhD reasoning         | [Docs](https://docs.anthropic.com/en/docs/welcome)                                                    | [Keys](https://console.anthropic.com/settings/keys)                                                | ~$60B        |
+| **OpenAI**             | 🇺🇸  | GPT / o3 / Codex (o1, o4, o4-mini, gpt-4o)    | 🥇 AIME 2025 100% · 🥇 SWE-bench Pro · 📚 MMLU-Pro 90%                | [Docs](https://platform.openai.com/docs/overview)                                                     | [Keys](https://platform.openai.com/api-keys)                                                       | ~$180B       |
+| **Google**      | 🇺🇸  | Gemini Pro (Flash, Flash-Lite, Gemma)         | 🥇 GPQA 94.1% · 🥇 LiveCodeBench Elo 2439 · 🌐 #1 in 6/13 Vals        | [Docs](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/models)                            | [Keys](https://cloud.google.com/vertex-ai/generative-ai/docs/start/express-mode/overview#api-keys) | Public       |
+| **xAI**                | 🇺🇸  | Grok Heavy (Grok-3, Grok Vision)              | 🥇 AIME 2025 100% · 🧮 Math competition · ⚡ X integration            | [Docs](https://docs.x.ai/docs#models)                                                                 | [Keys](https://console.x.ai/)                                                                      | ~$45B        |
+| **Meta**               | 🇺🇸  | Llama Maverick / Scout (Llama 3.x, CodeLlama) | 🥇 DocVQA 94.4% · 🥇 10M token context · 📊 ChartQA 90%               | [Docs](https://www.llama.com/docs/overview/)                                                          | [Keys](https://www.llama.com/llama-downloads/)                                                     | Public       |
+| **NVIDIA**             | 🇺🇸  | Nemotron-Cascade  (Llama Nemotron, Kimi)      | 🥇 LCB v6 87.2% · 🏅 IMO+IOI+ICPC gold · 🧮 AIME 98.6%                | [Docs](https://docs.api.nvidia.com/nim/reference/llm-apis)                                            | [Keys](https://build.nvidia.com/settings/api-keys)                                                 | Public       |
+| **Perplexity**      | 🇺🇸  | Sonar Reasoning Pro (Sonar Deep Research)     | 🥇 Search Arena · 🔍 #1 web-grounded QA · 🌐 Real-time retrieval      | [Docs](https://docs.perplexity.ai/models/model-cards)                                                 | [Keys](https://www.perplexity.ai/account/api/keys)                                                 | ~$1B         |
+| **Groq**               | 🇺🇸  | (Llama, DeepSeek, Gemma, Mistral, Qwen)       | ⚡ #1 inference speed · 🏎️ Fastest TTFT · 🔧 LPU hardware             | [Docs](https://console.groq.com/docs/overview)                                                        | [Keys](https://console.groq.com/keys)                                                              | ~$640M       |
+| **Mistral**         | 🇫🇷  | Mistral Large  (Small 4, Codestral, Devstral) | 🥈 Arena Elo 1418 · 🌍 Multilingual MMLU 85.5% · 🚀 Fastest TTFT      | [Docs](https://docs.mistral.ai/)                                                                      | [Keys](https://console.mistral.ai/api-keys/)                                                       | ~$3.1B       |
+| **Together**        | 🇺🇸  | (Llama, Mistral, Gemma, Qwen, DeepSeek)       | 🏗️ Widest open hosting · 💸 Best open-source pricing · 🔧 Fine-tuning | [Docs](https://docs.together.ai/docs/quickstart)                                                      | [Keys](https://api.together.xyz/settings/api-keys)                                                 | ~$225M       |
+| **Moonshot** | 🇨🇳  | Kimi Reasoning (K2.6, K2)                     | 🥇 AIME open 96.1% · 🥇 MATH-500 98% · 🥇 HumanEval 99%               | [Docs](https://platform.moonshot.cn/docs)                                                             | [Keys](https://platform.moonshot.cn/console/api-keys)                                              | ~$3.9B       |
+| **Zhipu**     | 🇨🇳  | GLM Reasoning / GLM-4.7 (GLM-4V, CogView)     | 🥇 Chatbot Arena Elo 1451 · 🥇 MMLU 96% · 🧮 AIME 95.7%               | [Docs](https://bigmodel.cn/dev/api)                                                                   | [Keys](https://bigmodel.cn/usercenter/apikeys)                                                     | ~$1.8B       |
+| **Alibaba**     | 🇨🇳  | Qwen-Coder / Qwen  (Qwen-VL, Qwen-Audio)      | 🥇 Codeforces Elo 2056 · 💻 SWE-bench 69.6% · 🏎️ LCB 70.7%            | [Docs](https://www.alibabacloud.com/help/en/model-studio/developer-reference/use-qwen-by-calling-api) | [Keys](https://bailian.console.aliyun.com/?apiKey=1)                                               | Public       |
+| **DeepSeek**           | 🇨🇳  | DeepSeek (DeepSeek-Coder, DeepSeek-VL)        | 🥇 IMO gold (open) · 📚 MMLU-Pro 81.2 · 🧮 AIME 87.5%                 | [Docs](https://api-docs.deepseek.com/)                                                                | [Keys](https://platform.deepseek.com/api_keys)                                                     | Bootstrapped |
+| **Cloudflare**         | 🇺🇸  | (Llama, Mistral, Gemma, Qwen, DeepSeek)       | 🌐 Edge inference · ⚡ Serverless CDN scale · 🔒 Privacy-first        | [Docs](https://developers.cloudflare.com/workers-ai/)                                                 | [Keys](https://dash.cloudflare.com/profile/api-tokens)                                             | Public       |
+| **Ollama**             | 🇺🇸  | (Llama, Mistral, Gemma, Qwen, DeepSeek)       | 🖥️ #1 local inference · 🔒 Fully offline · 🆓 Free self-hosted        | [Docs](https://ollama.com/docs)                                                                       | [Keys](https://ollama.com/settings/keys)                                                           | ~$20M        |
 
 
 ## Model Rank

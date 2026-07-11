@@ -57,30 +57,9 @@ export const LANGUAGE_MODELS = [
       "type": "text-generation"
     },
     {
-      "name": "Kimi K2.5",
-      "id": "moonshotai/kimi-k2.5",
-      "contextLength": 256_000,
-      "free": true,
-      "type": "text-generation"
-    },
-    {
-      "name": "DeepSeek V3",
-      "id": "deepseek-ai/deepseek-v3",
-      "contextLength": 128_000,
-      "free": true,
-      "type": "text-generation"
-    },
-    {
       "name": "Gemma 4 31B IT",
       "id": "google/gemma-4-31b-it",
       "contextLength": 131_072,
-      "free": true,
-      "type": "text-generation"
-    },
-    {
-      "name": "GLM 4.5 Air",
-      "id": "z-ai/glm-4.5-air",
-      "contextLength": 128_000,
       "free": true,
       "type": "text-generation"
     },
@@ -89,27 +68,6 @@ export const LANGUAGE_MODELS = [
       "id": "mistralai/mistral-large-2",
       "contextLength": 131_072,
       "free": false,
-      "type": "text-generation"
-    },
-    {
-      "name": "Mistral Nemo",
-      "id": "mistralai/mistral-nemo",
-      "contextLength": 131_072,
-      "free": true,
-      "type": "text-generation"
-    },
-    {
-      "name": "Qwen2.5 72B Instruct",
-      "id": "qwen/qwen2.5-72b-instruct",
-      "contextLength": 131_072,
-      "free": true,
-      "type": "text-generation"
-    },
-    {
-      "name": "CodeLlama 70B Instruct",
-      "id": "meta/llama-3.1-70b-code-instruct",
-      "contextLength": 131_072,
-      "free": true,
       "type": "text-generation"
     }
   ]
