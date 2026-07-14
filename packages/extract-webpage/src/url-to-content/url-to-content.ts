@@ -18,7 +18,7 @@ async function convertPDFToHTML(url: string, options: any) {
 
 async function isUrlPDF(url: string) {
   try {
-    const buffer = await grab(url, { responseType: "arraybuffer", timeout: 10 });
+    const buffer = await grab(url, { responseType: "arraybuffer", timeout: 5 });
     if (!buffer || buffer.byteLength < 5) return false;
     const chunk = new Uint8Array(buffer);
     return chunk[0] === 0x25 && chunk[1] === 0x50 && chunk[2] === 0x44 && chunk[3] === 0x46 && chunk[4] === 0x2d;
@@ -169,7 +169,7 @@ export async function extractContent(
     links = true,
     formatting = true,
     absoluteURLs = true,
-    timeout = 10,
+    timeout = 5,
     proxy = null,
     citeFormatMonthFull = false,
     citeFormatAuthorFull = true,

@@ -4,9 +4,9 @@
  */
 
 import crypto from "crypto";
-import type { ChatTurnMessage } from "extract-webpage/search/meta-search-types";
+import type { ChatTurnMessage } from "extract-webpage/search";
 import { getDB } from "@/lib/database";
-import { searchHandlers } from "chat-agent-toolkit/search";
+import { searchHandlers } from "extract-webpage/search";
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { getUserId } from "@/lib/auth/session";
 import { checkGuestRateLimit } from "@/lib/rate-limit/guestRateLimiter";

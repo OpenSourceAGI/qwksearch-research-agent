@@ -45,7 +45,7 @@ import grab from "../utils/grab";
 export async function scrapeURL(url, options = {} as any) {
   // try {
   let {
-    timeout = 15,
+    timeout = 5,
     checkBotDetection = true,
     maxRedirects = 3,
     changeReferer = 0,
