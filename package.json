@@ -16,5 +16,8 @@
   },
   "devDependencies": {
     "turbo": "^2.10.3"
+  },
+  "dependencies": {
+    "mammoth": "^1.12.0"
   }
 }

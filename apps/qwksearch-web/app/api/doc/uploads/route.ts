@@ -7,41 +7,46 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-import { uploadFile, downloadFile, deleteFile } from '@/lib/integrations/cloudStorageService';
-import { R2Credentials } from '@/types/fileSource';
-import { getEnv } from "@/lib/env";
+import { uploadToR2, downloadFromR2, deleteFromR2 } from '@/lib/storage/r2-service';
+import { convertPDFToHTML } from '../../../../packages/extract-pdf/src/pdf-to-html';
+import { checkUserStorageQuota, incrementUserStorageUsage, decrementUserStorageUsage } from '@/lib/storage/quota';
+import { getUserId } from '@/lib/auth/session';
 
 interface FileRes {
   fileName: string;
   fileExtension: string;
   fileId: string;
-}
-
-function getR2Credentials(): R2Credentials {
-  const accountId = getEnv("R2_ACCOUNT_ID");
-  const accessKeyId = getEnv("R2_ACCESS_KEY_ID");
-  const secretAccessKey = getEnv("R2_SECRET_ACCESS_KEY");
-  const bucket = getEnv("R2_UPLOADS_BUCKET") || 'qwksearch-uploads';
-
-  if (!accountId || !accessKeyId || !secretAccessKey) {
-    throw new Error('R2 credentials not configured');
-  }
-
-  return { accountId, accessKeyId, secretAccessKey, bucket };
+  sizeBytes: number;
 }
 
 export async function POST(req: Request) {
   try {
+    const userId = await getUserId();
+
+    // Only check quota for authenticated users
+    if (userId) {
+      const formData = await req.formData();
+      const files = formData.getAll('files') as File[];
+      const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+
+      const quota = await checkUserStorageQuota(userId, totalSize);
+      if (!quota.allowed) {
+        return NextResponse.json(
+          { message: `Storage quota exceeded. Used: ${Math.round(quota.used / 1024 / 1024)}MB / ${Math.round(quota.quota / 1024 / 1024)}MB` },
+          { status: 413 },
+        );
+      }
+    }
+
     const formData = await req.formData();
     const files = formData.getAll('files') as File[];
-    const credentials = getR2Credentials();
 
     const processedFiles: FileRes[] = [];
 
     await Promise.all(
       files.map(async (file: File) => {
         const fileExtension = file.name.split('.').pop()?.toLowerCase();
-        if (!fileExtension || !['pdf', 'txt', 'html', 'htm'].includes(fileExtension)) {
+        if (!fileExtension || !['pdf', 'docx', 'txt', 'html', 'htm'].includes(fileExtension)) {
           return NextResponse.json(
             { message: 'File type not supported' },
             { status: 400 },
@@ -53,16 +58,26 @@ export async function POST(req: Request) {
         const buffer = Buffer.from(await file.arrayBuffer());
 
         // Upload original file to R2
-        await uploadFile(
-          { provider: 'r2', credentials },
-          uniqueFileName,
-          buffer
-        );
+        await uploadToR2(uniqueFileName, buffer);
 
         // Extract text content based on file type
         let fullText = '';
-        if (fileExtension === 'txt' || fileExtension === 'html' || fileExtension === 'htm') {
-          fullText = buffer.toString('utf-8');
+        try {
+          if (fileExtension === 'pdf') {
+            const pdfResult = await convertPDFToHTML(buffer, { addCitation: true });
+            if (!pdfResult.error) {
+              fullText = pdfResult.html || pdfResult.text || '';
+            }
+          } else if (fileExtension === 'docx') {
+            const mammoth = await import('mammoth');
+            const result = await mammoth.convertToHtml({ buffer });
+            fullText = result.value || '';
+          } else if (fileExtension === 'txt' || fileExtension === 'html' || fileExtension === 'htm') {
+            fullText = buffer.toString('utf-8');
+          }
+        } catch (extractError) {
+          console.error(`[POST /api/doc/uploads] Content extraction failed for ${file.name}:`, extractError);
+          // Continue without extraction - store empty content gracefully
         }
 
         // Upload extracted data as JSON to R2
@@ -70,19 +85,22 @@ export async function POST(req: Request) {
           title: file.name,
           content: fullText,
         });
-        await uploadFile(
-          { provider: 'r2', credentials },
-          `${fileId}-extracted.json`,
-          extractedData
-        );
+        await uploadToR2(`${fileId}-extracted.json`, extractedData);
 
         processedFiles.push({
           fileName: file.name,
           fileExtension: fileExtension,
           fileId: fileId,
+          sizeBytes: file.size,
         });
       }),
     );
+
+    // Track storage usage for authenticated users
+    if (userId && processedFiles.length > 0) {
+      const totalSize = processedFiles.reduce((sum, f) => sum + f.sizeBytes, 0);
+      await incrementUserStorageUsage(userId, totalSize);
+    }
 
     return NextResponse.json({
       files: processedFiles,
@@ -108,13 +126,8 @@ export async function GET(req: Request) {
       );
     }
 
-    const credentials = getR2Credentials();
     const extractedKey = `${fileId}-extracted.json`;
-
-    const content = await downloadFile(
-      { provider: 'r2', credentials },
-      extractedKey
-    );
+    const content = await downloadFromR2(extractedKey);
 
     return NextResponse.json(JSON.parse(content));
   } catch (error) {
@@ -128,9 +141,11 @@ export async function GET(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
+    const userId = await getUserId();
     const { searchParams } = new URL(req.url);
     const fileId = searchParams.get('fileId');
     const fileExtension = searchParams.get('ext');
+    const sizeBytes = searchParams.get('sizeBytes') ? parseInt(searchParams.get('sizeBytes')!) : 0;
 
     if (!fileId) {
       return NextResponse.json(
@@ -139,16 +154,12 @@ export async function DELETE(req: Request) {
       );
     }
 
-    const credentials = getR2Credentials();
     const results: { key: string; success: boolean }[] = [];
 
     // Delete extracted JSON
     try {
-      const extractedResult = await deleteFile(
-        { provider: 'r2', credentials },
-        `${fileId}-extracted.json`
-      );
-      results.push({ key: `${fileId}-extracted.json`, success: extractedResult.success });
+      await deleteFromR2(`${fileId}-extracted.json`);
+      results.push({ key: `${fileId}-extracted.json`, success: true });
     } catch (error) {
       results.push({ key: `${fileId}-extracted.json`, success: false });
     }
@@ -156,29 +167,28 @@ export async function DELETE(req: Request) {
     // Delete original file if extension provided
     if (fileExtension) {
       try {
-        const originalResult = await deleteFile(
-          { provider: 'r2', credentials },
-          `${fileId}.${fileExtension}`
-        );
-        results.push({ key: `${fileId}.${fileExtension}`, success: originalResult.success });
+        await deleteFromR2(`${fileId}.${fileExtension}`);
+        results.push({ key: `${fileId}.${fileExtension}`, success: true });
       } catch (error) {
         results.push({ key: `${fileId}.${fileExtension}`, success: false });
       }
     } else {
       // Try common extensions if not provided
-      const extensions = ['pdf', 'txt', 'html', 'htm'];
+      const extensions = ['pdf', 'docx', 'txt', 'html', 'htm'];
       for (const ext of extensions) {
         try {
-          await deleteFile(
-            { provider: 'r2', credentials },
-            `${fileId}.${ext}`
-          );
+          await deleteFromR2(`${fileId}.${ext}`);
           results.push({ key: `${fileId}.${ext}`, success: true });
           break;
         } catch {
           // File with this extension doesn't exist, continue
         }
       }
+    }
+
+    // Decrement storage usage for authenticated users
+    if (userId && sizeBytes > 0) {
+      await decrementUserStorageUsage(userId, sizeBytes);
     }
 
     return NextResponse.json({

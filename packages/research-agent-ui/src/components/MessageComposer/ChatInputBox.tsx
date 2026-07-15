@@ -60,8 +60,12 @@ const letterVariants = {
   },
 };
 
-const ChatInputBox = () => {
-    const { loading, sendMessage, stopStreaming, files: contextFiles, fileIds: contextFileIds, setFiles: setContextFiles, setFileIds: setContextFileIds } = useChat();
+interface ChatInputBoxProps {
+    onNewChat?: () => void;
+}
+
+const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
+    const { loading, sendMessage, stopStreaming, files: contextFiles, fileIds: contextFileIds, setFiles: setContextFiles, setFileIds: setContextFileIds, newChat } = useChat();
     const [message, setMessage] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -398,6 +402,21 @@ const ChatInputBox = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* New Chat */}
+                    <div className="relative flex shrink !shrink-0 group">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); newChat(); }}
+                            disabled={loading}
+                            className="transition-all duration-200 h-8 w-8 flex items-center justify-center rounded-full active:scale-95 text-text-400 hover:text-text-200 hover:bg-bg-200"
+                            aria-label="New chat"
+                        >
+                            <Icons.SquarePen className="w-5 h-5" />
+                        </button>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#1F1E1D] dark:bg-[#EEEEEC] text-[11px] font-medium rounded-[6px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-sm tracking-wide">
+                            <span className="text-[#ECECEC] dark:text-[#1F1E1D]">New chat</span>
+                        </div>
+                    </div>
 
                     {/* Send / Stop */}
                     <div className="relative flex shrink !shrink-0 group">

@@ -35,6 +35,7 @@ export const messages = sqliteTable("messages", {
 interface File {
   name: string;
   fileId: string;
+  sizeBytes?: number;
 }
 
 export const chats = sqliteTable("chats", {
@@ -60,6 +61,8 @@ export const user = sqliteTable("user", {
   image: text("image"),
   trialAllowed: integer("trial_allowed").notNull().default(6),
   apiKey: text("api_key"),
+  storageUsedBytes: integer("storage_used_bytes").default(0),
+  storageQuotaBytes: integer("storage_quota_bytes").default(1073741824),
   createdAt: integer("created_at", {
     mode: "timestamp",
   }).notNull(),

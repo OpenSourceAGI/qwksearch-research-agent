@@ -30,6 +30,12 @@
       "database_id": "b0ba9a66-e256-43dd-9083-062977c282a4",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "qwksearch-uploads",
+    },
+  ],
   "env": {
     "production": {
       "keep_vars": true,
