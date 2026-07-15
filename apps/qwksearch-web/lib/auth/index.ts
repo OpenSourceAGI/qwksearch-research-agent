@@ -1,13 +1,13 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { oneTap, openAPI, magicLink, anonymous } from "better-auth/plugins";
-import { db } from "../db";
-import * as schema from "../db/schema";
+import { getDB } from "../database";
+import * as schema from "../database/schema";
 import { Resend } from "resend";
-import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../constants";
-import { env } from "../../env";
+import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../config/site";
 
 async function authBuilder() {
+  const db = getDB();
   return betterAuth({
     baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
     database: drizzleAdapter(db, {
@@ -16,8 +16,8 @@ async function authBuilder() {
     }),
     socialProviders: {
       google: {
-        clientId: env.GOOGLE_CLIENT_ID || "",
-        clientSecret: env.GOOGLE_CLIENT_SECRET || "",
+        clientId: process.env.GOOGLE_CLIENT_ID || "",
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       },
     },
     emailVerification: {
