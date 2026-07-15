@@ -993,9 +993,7 @@ export function extractDate(
 
   let search_tree, discarded;
   try {
-    [search_tree, discarded] = discard_unwanted(
-      (tree.cloneNode(true), CLEANING_LIST)
-    );
+    [search_tree, discarded] = discard_unwanted(tree.cloneNode(true));
   } catch (error) {
     search_tree = tree;
     LOGGER.error("DOM cleaner error");

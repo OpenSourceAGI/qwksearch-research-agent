@@ -6,6 +6,13 @@ import type { Document } from "./document";
 import path from "node:path";
 import fs from "node:fs";
 
+export interface R2CredentialsInput {
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucket: string;
+}
+
 /**
  * Resolves uploaded file ids to their extracted text content. Hosts that
  * store uploads remotely (e.g. Cloudflare R2) register a loader via
@@ -82,17 +89,54 @@ export function normalizeSourcesOutput(output: unknown, query: string): Document
   return buildFallbackDocs(query);
 }
 
+async function downloadExtractedContent(
+  fileId: string,
+  r2Credentials: R2CredentialsInput,
+): Promise<{ title: string; content: string } | null> {
+  try {
+    const { manageStorage } = await import("manage-storage");
+    const config = {
+      provider: "cloudflare" as const,
+      BUCKET_NAME: r2Credentials.bucket,
+      ACCESS_KEY_ID: r2Credentials.accessKeyId,
+      SECRET_ACCESS_KEY: r2Credentials.secretAccessKey,
+      BUCKET_URL: `https://${r2Credentials.accountId}.r2.cloudflarestorage.com`,
+    };
+    const extractedKey = `${fileId}-extracted.json`;
+    const data = await manageStorage("download", { ...config, key: extractedKey });
+    const parsed = JSON.parse(data);
+    return { title: parsed.title || "Uploaded Document", content: parsed.content || "" };
+  } catch (error) {
+    console.error(
+      `[rerankDocs] Failed to download extracted content for fileId ${fileId}:`,
+      error,
+    );
+    return null;
+  }
+}
+
 export async function rerankDocs(
   query: string,
   docs: Document[],
   fileIds: string[],
   optimizationMode: "speed" | "balanced" | "quality",
+  r2Credentials?: R2CredentialsInput,
 ): Promise<Document[]> {
   if (docs.length === 0 && fileIds.length === 0) {
     return docs;
   }
 
-  const filesData = await loadUploadedFiles(fileIds);
+  let filesData: { fileName: string; content: string }[] = [];
+  if (fileIds.length > 0 && r2Credentials) {
+    const results = await Promise.all(
+      fileIds.map((fileId) => downloadExtractedContent(fileId, r2Credentials)),
+    );
+    filesData = results
+      .filter((r): r is { title: string; content: string } => r !== null)
+      .map((r) => ({ fileName: r.title, content: r.content }));
+  } else {
+    filesData = await loadUploadedFiles(fileIds);
+  }
 
   if (query.toLocaleLowerCase() === "summarize") {
     return docs.slice(0, 15);

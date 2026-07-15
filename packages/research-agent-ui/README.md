@@ -5,6 +5,8 @@ file uploads, and chat history for QwkSearch-style apps. Includes the shadcn
 primitives and icons the components depend on, so it can be dropped into a
 Next.js app with a single dependency.
 
+![img1](https://i.imgur.com/UxNJOKy.png)
+
 ## Usage
 
 ```tsx

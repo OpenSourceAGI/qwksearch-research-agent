@@ -6,8 +6,6 @@
 'use client';
 
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { Share2, Link, FileText, FileType, FileDown, FileSpreadsheet, SquarePen, BookMarked } from 'lucide-react';
-import { toast } from 'sonner';
 import MessageBox from './ChatMessageBubble';
 import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 
@@ -17,16 +15,6 @@ import ChatInputBox from '../MessageComposer/ChatInputBox';
 import ArticleExtractPanel from '../ArticleReader/ArticleExtractPanel';
 import grab from 'grab-url';
 import { researchAgentUIConfig } from '../../config';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from '../../ui/dropdown-menu';
-import { Tooltip, TooltipTrigger, TooltipContent } from '../../ui/tooltip';
-import { exportAsMarkdown, exportAsDocx, exportAsPdf, exportToGoogleDocs } from '../../lib/export';
 import HistoryDropdown from '../ChatHistoryDropdown';
 import { useSession } from '../../hooks/useSession';
 
@@ -88,149 +76,7 @@ const Chat = () => {
         className="fixed top-0 z-50 flex items-center gap-1 px-4 py-3 transition-all duration-300"
         style={{ right: isDesktop && isPanelOpen ? `${panelWidth}px` : '0' }}
       >
-        <DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <button className="p-2 text-muted-foreground rounded-2xl bg-background/60 backdrop-blur-md hover:bg-secondary/80 transition duration-200 hover:text-foreground border border-border/30">
-                  <Share2 size={18} />
-                </button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Share</TooltipContent>
-          </Tooltip>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel className="text-xs text-muted-foreground">Share & Export</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={async () => {
-                if (!chatId) {
-                  toast.error('No chat to share');
-                  return;
-                }
-
-                // Check if user is authenticated
-                if (!isAuthenticated) {
-                  toast.error('Please sign in to share chats');
-                  return;
-                }
-
-                try {
-                  // Make the chat public and get the shareable URL
-                  const response = await grab('agent/chats/share', {
-                    method: 'POST',
-                    body: { chatId },
-                  });
-
-                  if (response.success && response.data?.shareUrl) {
-                    await navigator.clipboard.writeText(response.data.shareUrl);
-                    toast.success('Chat is now public - link copied to clipboard');
-                  } else {
-                    throw new Error(response.error || 'Failed to share chat');
-                  }
-                } catch (err) {
-                  console.error('Error sharing chat:', err);
-                  const errorMsg = err instanceof Error ? err.message : 'Failed to share chat';
-                  toast.error(errorMsg);
-                }
-              }}
-            >
-              <Link size={16} />
-              Copy link
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={async () => {
-                const title = sections[0]?.userMessage?.content || 'Chat';
-                const content = sections.map(s =>
-                  `## ${s.userMessage.content}\n\n${s.assistantMessage?.content || ''}`
-                ).join('\n\n---\n\n');
-                try {
-                  await grab('doc/documents', {
-                    method: 'POST',
-                    body: {
-                      title,
-                      name: title,
-                      content,
-                      metadata: { source: 'chat', chatId: window.location.pathname },
-                    },
-                  });
-                  toast.success('Saved to QwkDocs');
-                } catch {
-                  toast.error('Failed to save to QwkDocs');
-                }
-              }}
-            >
-              <BookMarked size={16} />
-              Save to QwkDocs
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                const title = sections[0]?.userMessage?.content || 'Chat';
-                const html = sections.map(s =>
-                  `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
-                ).join('\n');
-                exportAsMarkdown(title, html);
-              }}
-            >
-              <FileText size={16} />
-              Export as Markdown
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                const title = sections[0]?.userMessage?.content || 'Chat';
-                const html = sections.map(s =>
-                  `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
-                ).join('\n');
-                exportAsPdf(title, html);
-              }}
-            >
-              <FileType size={16} />
-              Export as PDF
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                const title = sections[0]?.userMessage?.content || 'Chat';
-                const html = sections.map(s =>
-                  `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
-                ).join('\n');
-                exportAsDocx(title, html);
-              }}
-            >
-              <FileDown size={16} />
-              Export as DOCX
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                const title = sections[0]?.userMessage?.content || 'Chat';
-                const html = sections.map(s =>
-                  `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
-                ).join('\n');
-                exportToGoogleDocs(title, html);
-              }}
-            >
-              <FileSpreadsheet size={16} />
-              Export to Google Docs
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
         <HistoryDropdown />
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={newChat}
-              className="p-2 text-muted-foreground rounded-2xl bg-background/60 backdrop-blur-md hover:bg-secondary/80 transition duration-200 hover:text-foreground border border-border/30"
-            >
-              <SquarePen size={18} />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">
-            New chat
-            <div className="text-xs opacity-70 mt-0.5">⌘⇧N / Ctrl+Shift+N</div>
-          </TooltipContent>
-        </Tooltip>
       </div>
 
       <div

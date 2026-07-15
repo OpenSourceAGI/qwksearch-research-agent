@@ -1,9 +1,9 @@
 /**
  * Follow-up message input bar in the active chat thread; auto-expands from single-line to multi-line,
- * supports file attachment, category picker, and a stop-streaming button while the AI is responding.
+ * supports file attachment, category picker, search options, export menu, and a stop-streaming button while the AI is responding.
  */
 import { cn } from '../../lib/utils';
-import { ArrowUp, Square } from 'lucide-react';
+import { ArrowUp, Square, Share, FileText, FileDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import Attach from '../FileUpload/FileAttachmentButton';
@@ -11,7 +11,9 @@ import { File } from './ChatWindow';
 import AttachSmall from '../FileUpload/CompactFileAttachmentButton';
 import Category from '../SearchConfig/CategoriesMenu';
 import Focus from '../SearchConfig/ResearchFocusToggleButton';
-import { useChat } from '../../hooks/useChat';
+import { useChat, Section } from '../../hooks/useChat';
+import { Popover, PopoverTrigger, PopoverContent } from '../../ui/popover';
+import { exportAsMarkdown, exportAsPdf } from '../../lib/export';
 
 /**
  * Input bar component for sending chat messages.
@@ -22,12 +24,13 @@ import { useChat } from '../../hooks/useChat';
  * @returns {JSX.Element} The rendered message input bar
  */
 const MessageInput = () => {
-  const { loading, sendMessage, stopStreaming } = useChat();
+  const { loading, sendMessage, stopStreaming, sections } = useChat();
 
   const [copilotEnabled, setCopilotEnabled] = useState(false);
   const [message, setMessage] = useState('');
   const [textareaRows, setTextareaRows] = useState(1);
   const [mode, setMode] = useState<'multi' | 'single'>('single');
+  const [title, setTitle] = useState<string>('');
 
   useEffect(() => {
     if (textareaRows >= 2 && message && mode === 'single') {
@@ -36,6 +39,16 @@ const MessageInput = () => {
       setMode('single');
     }
   }, [textareaRows, mode, message]);
+
+  useEffect(() => {
+    if (sections.length > 0 && sections[0].userMessage) {
+      const newTitle =
+        sections[0].userMessage.content.length > 20
+          ? `${sections[0].userMessage.content.substring(0, 20).trim()}...`
+          : sections[0].userMessage.content;
+      setTitle(newTitle);
+    }
+  }, [sections]);
 
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -99,6 +112,42 @@ const MessageInput = () => {
           <div className="flex flex-row items-center space-x-1">
             <Category />
           </div>
+          <Popover>
+            <PopoverTrigger className="p-2 rounded-lg hover:bg-secondary transition-colors duration-200">
+              <Share size={16} className="text-muted-foreground" />
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-56 rounded-xl bg-popover border border-border shadow-xl z-50">
+              <div className="p-2 space-y-1">
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm rounded-lg hover:bg-secondary transition-colors duration-200"
+                  onClick={() => {
+                    const htmlContent = document.body.innerHTML;
+                    exportAsMarkdown(title || 'chat', htmlContent);
+                  }}
+                >
+                  <FileText size={14} className="text-primary" />
+                  <span className="font-medium text-popover-foreground">Markdown</span>
+                </button>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm rounded-lg hover:bg-secondary transition-colors duration-200"
+                  onClick={() => {
+                    const htmlContent = document.body.innerHTML;
+                    exportAsPdf(title || 'chat', htmlContent);
+                  }}
+                >
+                  <FileDown size={14} className="text-primary" />
+                  <span className="font-medium text-popover-foreground">PDF</span>
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <a
+            href="/"
+            className="p-2 rounded-lg hover:bg-secondary transition-colors duration-200"
+            title="New chat"
+          >
+            <Square size={16} className="text-muted-foreground" />
+          </a>
           {loading ? (
             <button
               type="button"
@@ -123,16 +172,45 @@ const MessageInput = () => {
             <AttachSmall />
           </div>
           <div className="flex flex-row items-center gap-1">
-            <AttachSmall />
+            <Category />
+            <Popover>
+              <PopoverTrigger className="p-2 rounded-lg hover:bg-secondary transition-colors duration-200">
+                <Share size={16} className="text-muted-foreground" />
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-56 rounded-xl bg-popover border border-border shadow-xl z-50">
+                <div className="p-2 space-y-1">
+                  <button
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm rounded-lg hover:bg-secondary transition-colors duration-200"
+                    onClick={() => {
+                      const htmlContent = document.body.innerHTML;
+                      exportAsMarkdown(title || 'chat', htmlContent);
+                    }}
+                  >
+                    <FileText size={14} className="text-primary" />
+                    <span className="font-medium text-popover-foreground">Markdown</span>
+                  </button>
+                  <button
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm rounded-lg hover:bg-secondary transition-colors duration-200"
+                    onClick={() => {
+                      const htmlContent = document.body.innerHTML;
+                      exportAsPdf(title || 'chat', htmlContent);
+                    }}
+                  >
+                    <FileDown size={14} className="text-primary" />
+                    <span className="font-medium text-popover-foreground">PDF</span>
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <a
+              href="/"
+              className="p-2 rounded-lg hover:bg-secondary transition-colors duration-200"
+              title="New chat"
+            >
+              <Square size={16} className="text-muted-foreground" />
+            </a>
           </div>
           <div className="flex flex-row items-center space-x-2">
-            <div className="flex flex-row items-center space-x-1">
-              <Category />
-            </div>
-            {/* <CopilotToggle
-              copilotEnabled={copilotEnabled}
-              setCopilotEnabled={setCopilotEnabled}
-            /> */}
             {loading ? (
               <button
                 type="button"

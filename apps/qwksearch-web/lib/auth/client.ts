@@ -4,7 +4,6 @@ import {
   magicLinkClient,
   anonymousClient,
 } from "better-auth/client/plugins";
-import { cloudflareClient } from "better-auth-cloudflare/client";
 import {
   NEXT_PUBLIC_BASE_URL,
   NEXT_PUBLIC_GOOGLE_CLIENT_ID,
@@ -20,7 +19,6 @@ export const authClient = createAuthClient({
       },
     }),
     magicLinkClient(),
-    cloudflareClient(),
     anonymousClient(),
   ],
 });

@@ -6,9 +6,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Upload, CloudIcon, FolderOpen, Loader2, Clock, SlidersHorizontal, Paperclip, History, Settings, EyeOff } from 'lucide-react';
+import { Upload, CloudIcon, FolderOpen, Loader2, Clock, SlidersHorizontal, Paperclip, History, Settings, EyeOff, Share2, Link, FileText, FileType, FileDown, FileSpreadsheet, BookMarked } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import grab from 'grab-url';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,8 @@ import { useGooglePicker } from './GoogleDrivePicker';
 import { useChat } from '../../hooks/useChat';
 import { categories } from '../SearchConfig/categories';
 import { ModelSelectorSubmenu } from '../SearchConfig/ModelSelectorSubmenu';
+import { exportAsMarkdown, exportAsDocx, exportAsPdf, exportToGoogleDocs } from '../../lib/export';
+import { useSession } from '../../hooks/useSession';
 
 interface FileUploadDropdownProps {
   onFileSelect: (files: FileList | File[]) => void;
@@ -55,7 +58,8 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
   disabled = false,
 }) => {
   const router = useRouter();
-  const { category, setCategory, incognito, setIncognito } = useChat();
+  const { category, setCategory, incognito, setIncognito, sections, chatId } = useChat();
+  const { isAuthenticated } = useSession();
   const selectedCodes = category ? category.split(',').filter(Boolean) : ['general'];
   const primaryCategory = categories.find((cat) => cat.code === selectedCodes[0]) || categories[0];
 
@@ -379,6 +383,132 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
               <EyeOff className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
               <span>Private</span>
             </DropdownMenuCheckboxItem>
+
+            <DropdownMenuSeparator />
+
+            {/* Share & Export submenu */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="gap-2">
+                <Share2 className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+                <span>Share & Export</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="w-48">
+                <DropdownMenuItem
+                  onSelect={async () => {
+                    if (!chatId) {
+                      toast.error('No chat to share');
+                      return;
+                    }
+
+                    if (!isAuthenticated) {
+                      toast.error('Please sign in to share chats');
+                      return;
+                    }
+
+                    try {
+                      const response = await grab('agent/chats/share', {
+                        method: 'POST',
+                        body: { chatId },
+                      });
+
+                      if (response.success && response.data?.shareUrl) {
+                        await navigator.clipboard.writeText(response.data.shareUrl);
+                        toast.success('Chat is now public - link copied to clipboard');
+                      } else {
+                        throw new Error(response.error || 'Failed to share chat');
+                      }
+                    } catch (err) {
+                      console.error('Error sharing chat:', err);
+                      const errorMsg = err instanceof Error ? err.message : 'Failed to share chat';
+                      toast.error(errorMsg);
+                    }
+                  }}
+                  className="gap-2"
+                >
+                  <Link className="w-4 h-4 flex-shrink-0" />
+                  <span>Copy link</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={async () => {
+                    const title = sections[0]?.userMessage?.content || 'Chat';
+                    const content = sections.map(s =>
+                      `## ${s.userMessage.content}\n\n${s.assistantMessage?.content || ''}`
+                    ).join('\n\n---\n\n');
+                    try {
+                      await grab('doc/documents', {
+                        method: 'POST',
+                        body: {
+                          title,
+                          name: title,
+                          content,
+                          metadata: { source: 'chat', chatId: window.location.pathname },
+                        },
+                      });
+                      toast.success('Saved to QwkDocs');
+                    } catch {
+                      toast.error('Failed to save to QwkDocs');
+                    }
+                  }}
+                  className="gap-2"
+                >
+                  <BookMarked className="w-4 h-4 flex-shrink-0" />
+                  <span>Save to QwkDocs</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => {
+                    const title = sections[0]?.userMessage?.content || 'Chat';
+                    const html = sections.map(s =>
+                      `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
+                    ).join('\n');
+                    exportAsMarkdown(title, html);
+                  }}
+                  className="gap-2"
+                >
+                  <FileText className="w-4 h-4 flex-shrink-0" />
+                  <span>Export as Markdown</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    const title = sections[0]?.userMessage?.content || 'Chat';
+                    const html = sections.map(s =>
+                      `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
+                    ).join('\n');
+                    exportAsPdf(title, html);
+                  }}
+                  className="gap-2"
+                >
+                  <FileType className="w-4 h-4 flex-shrink-0" />
+                  <span>Export as PDF</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    const title = sections[0]?.userMessage?.content || 'Chat';
+                    const html = sections.map(s =>
+                      `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
+                    ).join('\n');
+                    exportAsDocx(title, html);
+                  }}
+                  className="gap-2"
+                >
+                  <FileDown className="w-4 h-4 flex-shrink-0" />
+                  <span>Export as DOCX</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() => {
+                    const title = sections[0]?.userMessage?.content || 'Chat';
+                    const html = sections.map(s =>
+                      `<h2>${s.userMessage.content}</h2>${s.assistantMessage?.content || ''}`
+                    ).join('\n');
+                    exportToGoogleDocs(title, html);
+                  }}
+                  className="gap-2"
+                >
+                  <FileSpreadsheet className="w-4 h-4 flex-shrink-0" />
+                  <span>Export to Google Docs</span>
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
 
             <DropdownMenuSeparator />
 

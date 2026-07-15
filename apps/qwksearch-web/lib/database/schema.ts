@@ -37,6 +37,8 @@ interface File {
   fileId: string;
   /** Size in bytes of the uploaded file, shown in chat history. */
   size?: number;
+  /** Legacy size field name used by older clients. */
+  sizeBytes?: number;
 }
 
 export const chats = sqliteTable("chats", {
