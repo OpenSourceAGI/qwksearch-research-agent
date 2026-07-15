@@ -324,7 +324,7 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="gap-2">
                 <Upload className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-                <span>Upload from</span>
+                <span>Upload</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-44">
                 <DropdownMenuItem onSelect={handleLocalFileUpload} className="gap-2">
@@ -390,7 +390,7 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="gap-2">
                 <Share2 className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-                <span>Share & Export</span>
+                <span>Share</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-48">
                 <DropdownMenuItem

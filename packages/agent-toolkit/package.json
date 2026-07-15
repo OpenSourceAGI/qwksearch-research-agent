@@ -81,7 +81,6 @@
     "@mastra/memory": "^1.22.2",
     "ai": "^5.0.0",
     "drizzle-orm": "^0.45.1",
-    "extract-webpage": "workspace:*",
     "highlight.js": "^11.11.1",
     "html-entities": "^2.6.0",
     "marked": "^17.0.4",

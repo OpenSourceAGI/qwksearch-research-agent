@@ -2,44 +2,44 @@
  * Static array of search category metadata (code, SVG icon, display name) shared across CategoriesMenu,
  * FileUploadDropdown, and SearchSpotlight components.
  */
-import iconSearchWeb from '../../icons/icon-search-web.svg';
-import iconSearchNews from '../../icons/icon-search-news.svg';
-import iconSearchVideos from '../../icons/icon-search-videos.svg';
-import iconSearchImages from '../../icons/icon-search-images.svg';
-import iconSearchAcademic from '../../icons/icon-search-academic.svg';
-import iconSearchFiles from '../../icons/icon-search-files.svg';
-import iconSearchTech from '../../icons/icon-search-tech.svg';
+import IconSearchWeb from '../../icons/IconSearchWeb';
+import IconSearchNews from '../../icons/IconSearchNews';
+import IconSearchVideos from '../../icons/IconSearchVideos';
+import IconSearchImages from '../../icons/IconSearchImages';
+import IconSearchAcademic from '../../icons/IconSearchAcademic';
+import IconSearchFiles from '../../icons/IconSearchFiles';
+import IconSearchTech from '../../icons/IconSearchTech';
 
 export const categories = [
   {
     code: "general",
-    icon: iconSearchWeb,
+    icon: IconSearchWeb,
     name: "Web",
   },
   {
     code: "news",
-    icon: iconSearchNews,
+    icon: IconSearchNews,
     name: "News",
   },
   {
     code: "videos",
-    icon: iconSearchVideos,
+    icon: IconSearchVideos,
     name: "Videos",
   },
   {
     code: "images",
-    icon: iconSearchImages,
+    icon: IconSearchImages,
     name: "Images",
   },
   {
     code: "science",
-    icon: iconSearchAcademic,
+    icon: IconSearchAcademic,
     name: "Academic",
   },
   {
     code: "files",
-    icon: iconSearchFiles,
+    icon: IconSearchFiles,
     name: "Files",
   },
-  { code: "it", icon: iconSearchTech, name: "Tech" },
+  { code: "it", icon: IconSearchTech, name: "Tech" },
 ];
