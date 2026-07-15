@@ -32,8 +32,14 @@
   ],
   "r2_buckets": [
     {
-      "binding": "UPLOADS",
+      "binding": "R2",
       "bucket_name": "qwksearch-uploads",
+    },
+  ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "destination_address": "noreply@qwksearch.com",
     },
   ],
   "env": {
@@ -57,8 +63,14 @@
       ],
       "r2_buckets": [
         {
-          "binding": "UPLOADS",
+          "binding": "R2",
           "bucket_name": "qwksearch-uploads",
+        },
+      ],
+      "send_email": [
+        {
+          "name": "EMAIL",
+          "destination_address": "noreply@qwksearch.com",
         },
       ],
     },

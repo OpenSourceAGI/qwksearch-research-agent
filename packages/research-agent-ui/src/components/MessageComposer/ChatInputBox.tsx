@@ -60,8 +60,12 @@ const letterVariants = {
   },
 };
 
-const ChatInputBox = () => {
-    const { loading, sendMessage, stopStreaming, files: contextFiles, fileIds: contextFileIds, setFiles: setContextFiles, setFileIds: setContextFileIds } = useChat();
+interface ChatInputBoxProps {
+    onNewChat?: () => void;
+}
+
+const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
+    const { loading, sendMessage, stopStreaming, files: contextFiles, fileIds: contextFileIds, setFiles: setContextFiles, setFileIds: setContextFileIds, newChat } = useChat();
     const [message, setMessage] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -172,9 +176,19 @@ const ChatInputBox = () => {
         return () => clearTimeout(timeout);
     }, [message, isActive]);
 
+    const getSearchTerm = (msg: string): { before: string; searchTerm: string; after: string } => {
+        const trimmed = msg.trimEnd();
+        const lastSpace = trimmed.lastIndexOf(' ');
+        const before = lastSpace === -1 ? '' : trimmed.substring(0, lastSpace + 1);
+        const searchTerm = lastSpace === -1 ? trimmed : trimmed.substring(lastSpace + 1);
+        const after = msg.substring(trimmed.length);
+        return { before, searchTerm, after };
+    };
+
     const selectSuggestion = (value: string) => {
         suppressNextFetchRef.current = true;
-        setMessage(value);
+        const { before, after } = getSearchTerm(message);
+        setMessage(before + value + after);
         setSuggestions([]);
         setDomainSuggestions([]);
         setSuggestionsOpen(false);
@@ -408,6 +422,21 @@ const ChatInputBox = () => {
                         </div>
                     )}
 
+                    {/* New Chat */}
+                    <div className="relative flex shrink !shrink-0 group">
+                        <button
+                            onClick={(e) => { e.stopPropagation(); newChat(); }}
+                            disabled={loading}
+                            className="transition-all duration-200 h-8 w-8 flex items-center justify-center rounded-full active:scale-95 text-text-400 hover:text-text-200 hover:bg-bg-200"
+                            aria-label="New chat"
+                        >
+                            <Icons.SquarePen className="w-5 h-5" />
+                        </button>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[#1F1E1D] dark:bg-[#EEEEEC] text-[11px] font-medium rounded-[6px] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50 shadow-sm tracking-wide">
+                            <span className="text-[#ECECEC] dark:text-[#1F1E1D]">New chat</span>
+                        </div>
+                    </div>
+
                     {/* Send / Stop */}
                     <div className="relative flex shrink !shrink-0 group">
                         {loading ? (
@@ -485,6 +514,7 @@ const ChatInputBox = () => {
                             ))}
                             {suggestions.map((s, i) => {
                                 const optionIndex = domainSuggestions.length + i;
+                                const { searchTerm } = getSearchTerm(message);
                                 return (
                                     <li key={`${s}-${i}`}>
                                         <button
@@ -499,7 +529,7 @@ const ChatInputBox = () => {
                                         >
                                             <span className="w-5 h-5 flex items-center justify-center rounded bg-bg-200 dark:bg-[#3A3A38] text-[11px] font-semibold text-text-400 shrink-0">{optionIndex + 1}</span>
                                             <Search className="w-4 h-4 text-text-400 shrink-0" />
-                                            <span className="truncate">{s}</span>
+                                            <span className="truncate">{searchTerm}</span>
                                         </button>
                                     </li>
                                 );

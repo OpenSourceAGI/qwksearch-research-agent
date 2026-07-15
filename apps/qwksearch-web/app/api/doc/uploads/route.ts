@@ -25,6 +25,7 @@ import {
   MAX_FILE_SIZE_BYTES,
   MAX_FILES_PER_UPLOAD,
   USER_QUOTA_BYTES,
+  getUserQuotaBytes,
   SUPPORTED_UPLOAD_EXTS,
   generateFileId,
   originalKey,
@@ -90,12 +91,13 @@ export async function POST(req: Request) {
       const size = new TextEncoder().encode(extractedJson).length;
 
       const usage = await getUserUsageBytes(db, userId);
-      if (usage + size > USER_QUOTA_BYTES) {
+      const quota = await getUserQuotaBytes(db, userId);
+      if (usage + size > quota) {
         return NextResponse.json(
           {
-            message: `Storage limit reached: ${(usage / 1024 / 1024).toFixed(1)} MB of ${USER_QUOTA_BYTES / 1024 / 1024} MB used. Delete uploads in Settings to free space.`,
+            message: `Storage limit reached: ${(usage / 1024 / 1024).toFixed(1)} MB of ${Math.round(quota / 1024 / 1024)} MB used. Delete uploads in Settings to free space.`,
             usageBytes: usage,
-            quotaBytes: USER_QUOTA_BYTES,
+            quotaBytes: quota,
           },
           { status: 413 },
         );
@@ -160,13 +162,14 @@ export async function POST(req: Request) {
 
     // Enforce the 1 GB per-user quota including this batch
     const usage = await getUserUsageBytes(db, userId);
+    const quota = await getUserQuotaBytes(db, userId);
     const batchBytes = files.reduce((sum, file) => sum + file.size, 0);
-    if (usage + batchBytes > USER_QUOTA_BYTES) {
+    if (usage + batchBytes > quota) {
       return NextResponse.json(
         {
-          message: `Storage limit reached: ${(usage / 1024 / 1024).toFixed(1)} MB of ${USER_QUOTA_BYTES / 1024 / 1024} MB used. Delete uploads in Settings to free space.`,
+          message: `Storage limit reached: ${(usage / 1024 / 1024).toFixed(1)} MB of ${Math.round(quota / 1024 / 1024)} MB used. Delete uploads in Settings to free space.`,
           usageBytes: usage,
-          quotaBytes: USER_QUOTA_BYTES,
+          quotaBytes: quota,
         },
         { status: 413 },
       );
@@ -255,7 +258,7 @@ export async function GET(req: Request) {
       return NextResponse.json({
         files,
         usageBytes,
-        quotaBytes: USER_QUOTA_BYTES,
+        quotaBytes: await getUserQuotaBytes(db, userId),
       });
     } catch (error) {
       console.error("Error listing uploads:", error);

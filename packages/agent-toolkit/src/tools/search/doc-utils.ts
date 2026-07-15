@@ -3,14 +3,20 @@
  * @description Document utilities: fallback docs, reranking, and formatting.
  */
 import type { Document } from "./document";
-import path from "node:path";
-import fs from "node:fs";
+
+export interface R2CredentialsInput {
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucket: string;
+}
 
 /**
  * Resolves uploaded file ids to their extracted text content. Hosts that
- * store uploads remotely (e.g. Cloudflare R2) register a loader via
- * {@link setUploadedFileLoader}; without one, rerankDocs falls back to
- * reading `uploads/{fileId}-extracted.json` from the local filesystem.
+ * store uploads remotely (e.g. Cloudflare R2 keyed per user) register a
+ * loader via {@link setUploadedFileLoader}; without one, rerankDocs falls
+ * back to downloading `{fileId}-extracted.json` directly from R2 using the
+ * S3-compatible credentials passed by the caller.
  */
 export type UploadedFileLoader = (
   fileIds: string[],
@@ -26,6 +32,7 @@ export function setUploadedFileLoader(loader: UploadedFileLoader) {
 
 async function loadUploadedFiles(
   fileIds: string[],
+  r2Credentials?: R2CredentialsInput,
 ): Promise<{ fileName: string; content: string }[]> {
   if (fileIds.length === 0) return [];
 
@@ -42,19 +49,17 @@ async function loadUploadedFiles(
     }
   }
 
-  // Local filesystem fallback for self-hosted setups
-  const filesData: { fileName: string; content: string }[] = [];
-  for (const file of fileIds) {
-    try {
-      const contentPath =
-        path.join(process.cwd(), "uploads", file) + "-extracted.json";
-      const content = JSON.parse(fs.readFileSync(contentPath, "utf8"));
-      filesData.push({ fileName: content.title, content: content.content });
-    } catch {
-      // Skip files that are missing or unreadable
-    }
+  // Fallback: fetch extracted JSON straight from R2 with the given credentials
+  if (r2Credentials) {
+    const results = await Promise.all(
+      fileIds.map((fileId) => downloadExtractedContent(fileId, r2Credentials)),
+    );
+    return results.filter(
+      (r): r is { fileName: string; content: string } => r !== null,
+    );
   }
-  return filesData;
+
+  return [];
 }
 
 export function buildFallbackDocs(query: string): Document[] {
@@ -82,17 +87,38 @@ export function normalizeSourcesOutput(output: unknown, query: string): Document
   return buildFallbackDocs(query);
 }
 
+async function downloadExtractedContent(fileId: string, r2Credentials: R2CredentialsInput): Promise<{ fileName: string; content: string } | null> {
+  try {
+    const { manageStorage } = await import("manage-storage");
+    const config = {
+      provider: "cloudflare" as const,
+      BUCKET_NAME: r2Credentials.bucket,
+      ACCESS_KEY_ID: r2Credentials.accessKeyId,
+      SECRET_ACCESS_KEY: r2Credentials.secretAccessKey,
+      BUCKET_URL: `https://${r2Credentials.accountId}.r2.cloudflarestorage.com`,
+    };
+    const extractedKey = `${fileId}-extracted.json`;
+    const data = await manageStorage("download", { ...config, key: extractedKey });
+    const parsed = JSON.parse(data);
+    return { fileName: parsed.title || "Uploaded Document", content: parsed.content || "" };
+  } catch (error) {
+    console.error(`[rerankDocs] Failed to download extracted content for fileId ${fileId}:`, error);
+    return null;
+  }
+}
+
 export async function rerankDocs(
   query: string,
   docs: Document[],
   fileIds: string[],
   optimizationMode: "speed" | "balanced" | "quality",
+  r2Credentials?: R2CredentialsInput,
 ): Promise<Document[]> {
   if (docs.length === 0 && fileIds.length === 0) {
     return docs;
   }
 
-  const filesData = await loadUploadedFiles(fileIds);
+  const filesData = await loadUploadedFiles(fileIds, r2Credentials);
 
   if (query.toLocaleLowerCase() === "summarize") {
     return docs.slice(0, 15);

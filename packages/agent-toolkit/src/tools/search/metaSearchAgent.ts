@@ -35,6 +35,7 @@ import {
   rerankDocs,
   processDocs,
   normalizeSourcesOutput,
+  type R2CredentialsInput,
 } from "./doc-utils";
 import { groupAndSummarizeDocs } from "./link-summarizer";
 
@@ -350,11 +351,21 @@ class MetaSearchAgent implements MetaSearchAgentType {
         docs = result.docs;
       }
 
+      const r2Credentials: R2CredentialsInput | undefined = process.env.R2_ACCOUNT_ID
+        ? {
+            accountId: process.env.R2_ACCOUNT_ID,
+            accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
+            secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
+            bucket: process.env.R2_UPLOADS_BUCKET || "qwksearch-uploads",
+          }
+        : undefined;
+
       const sortedDocs = await rerankDocs(
         query,
         docs ?? [],
         fileIds,
         optimizationMode,
+        r2Credentials,
       );
 
       const sources = normalizeSourcesOutput(sortedDocs, message);

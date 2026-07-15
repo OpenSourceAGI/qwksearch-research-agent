@@ -2,6 +2,8 @@ declare global {
   interface CloudflareEnv {
     DB: D1Database;
     /** R2 bucket binding for user file uploads (see wrangler.jsonc). */
+    R2?: R2BucketLike;
+    /** @deprecated older name for the uploads bucket binding */
     UPLOADS?: R2BucketLike;
   }
 }

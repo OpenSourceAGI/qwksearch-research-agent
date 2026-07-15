@@ -11,14 +11,15 @@ import { and, eq, inArray } from "drizzle-orm";
 import { getCloudflareContext } from "@/lib/cloudflare-context";
 import { getEnv } from "@/lib/env";
 import { getDB } from "@/lib/database";
-import { uploads } from "@/lib/database/schema";
+import { uploads, user as userTable } from "@/lib/database/schema";
 import type { R2Credentials } from "@/types/fileSource";
 
 /** Max size of a single uploaded file (bytes). */
 export const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 /** Max number of files accepted in one upload request (form field limit). */
 export const MAX_FILES_PER_UPLOAD = 10;
-/** Total storage allowed per user across all uploads (bytes). */
+/** Default total storage allowed per user across all uploads (bytes).
+ * Can be raised per user via the `user.storage_quota_bytes` column. */
 export const USER_QUOTA_BYTES = 1024 * 1024 * 1024; // 1 GB
 /** File extensions that can be uploaded and extracted. */
 export const SUPPORTED_UPLOAD_EXTS = [
@@ -67,8 +68,11 @@ export function generateFileId() {
 function getR2Binding(): any | null {
   try {
     const { env } = getCloudflareContext();
-    if (env.UPLOADS && typeof env.UPLOADS.put === "function") {
-      return env.UPLOADS;
+    // Bucket binding is named R2 in wrangler.jsonc; UPLOADS kept for
+    // backwards compatibility with older configs
+    const bucket = env.R2 ?? env.UPLOADS;
+    if (bucket && typeof bucket.put === "function") {
+      return bucket;
     }
   } catch {
     // not running on Workers
@@ -84,7 +88,7 @@ function getR2Credentials(): R2Credentials {
 
   if (!accountId || !accessKeyId || !secretAccessKey) {
     throw new Error(
-      "Uploads storage is not configured: add an UPLOADS R2 bucket binding or R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY env vars",
+      "Uploads storage is not configured: add an R2 bucket binding or R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY env vars",
     );
   }
 
@@ -262,6 +266,25 @@ export async function getUserUsageBytes(
     columns: { size: true },
   });
   return rows.reduce((sum, row) => sum + (row.size ?? 0), 0);
+}
+
+/**
+ * Returns the user's storage quota in bytes: the per-user
+ * `storage_quota_bytes` override when set, otherwise the 1 GB default.
+ */
+export async function getUserQuotaBytes(
+  db: ReturnType<typeof getDB>,
+  userId: string,
+): Promise<number> {
+  try {
+    const row = await db.query.user.findFirst({
+      where: eq(userTable.id, userId),
+      columns: { storageQuotaBytes: true },
+    });
+    return row?.storageQuotaBytes || USER_QUOTA_BYTES;
+  } catch {
+    return USER_QUOTA_BYTES;
+  }
 }
 
 export async function listUserUploads(

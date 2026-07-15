@@ -162,7 +162,11 @@ jobs:
                   console.log(bump(cmp(local, latest) >= 0 ? local : latest));
                 ")
                 echo "🔼 $name content changed since $version — bumping to $next"
-                npm version "$next" --no-git-tag-version
+                # --no-workspaces prevents npm from doing workspace-aware processing
+                # when bun's workspace symlinks are present in node_modules (e.g.
+                # write-language -> ../../write-language), which would otherwise
+                # trigger EUNSUPPORTEDPROTOCOL workspace:* errors.
+                npm version "$next" --no-git-tag-version --no-workspaces
                 version="$next"
               fi
 

@@ -29,6 +29,13 @@
       "when": 1783420000000,
       "tag": "0003_uploads",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1783420100000,
+      "tag": "0004_user_storage_columns",
+      "breakpoints": true
     }
   ]
 }
