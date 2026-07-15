@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import composioData from '../../../../../../packages/agent-toolkit/src/connectors/composio.json';
+import openConnectorData from '../../../../../../packages/agent-toolkit/src/connectors/open-connector.json';
 
 type Connector = {
   name: string;
-  composio_id: string | null;
+  connector_id: string | null;
   domain: string | null;
   description: string;
 };
 
-const connectors: Connector[] = (composioData.connectors as Connector[]).filter(
-  (c) => c.composio_id !== null,
+const connectors: Connector[] = (openConnectorData.connectors as Connector[]).filter(
+  (c) => c.connector_id !== null,
 );
 
 const ConnectorLogo = ({ connector }: { connector: Connector }) => {
@@ -35,13 +35,15 @@ const ConnectorLogo = ({ connector }: { connector: Connector }) => {
   );
 };
 
-const ComposioConnectors = () => {
+const OpenConnectorConnectors = () => {
   const handleLink = (connector: Connector) => {
-    window.open(
-      `https://app.composio.dev/apps/${connector.composio_id}`,
-      '_blank',
-      'noopener,noreferrer',
-    );
+    if (connector.domain) {
+      window.open(
+        `https://${connector.domain}`,
+        '_blank',
+        'noopener,noreferrer',
+      );
+    }
   };
 
   return (
@@ -49,34 +51,21 @@ const ComposioConnectors = () => {
       <div className="flex flex-row justify-between items-center">
         <div className="flex flex-col gap-y-1">
           <p className="text-sm font-medium text-black dark:text-white">
-            Composio Connectors
+            OpenConnector Apps
           </p>
           <p className="text-xs text-black/70 dark:text-white/70">
-            Link third-party services via{' '}
-            <a
-              href="https://composio.dev"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-black dark:hover:text-white transition-colors"
-            >
-              Composio
-            </a>{' '}
-            to give the agent OAuth-authenticated access
+            Link third-party services via OpenConnector to give the agent OAuth-authenticated access
           </p>
         </div>
-        <img
-          src="https://www.google.com/s2/favicons?domain=composio.dev&sz=64"
-          alt="Composio"
-          width={24}
-          height={24}
-          className="w-6 h-6 rounded opacity-80"
-        />
+        <div className="w-6 h-6 rounded opacity-80 bg-blue-500/15 dark:bg-blue-500/15 flex items-center justify-center text-blue-600 dark:text-blue-400 text-lg">
+          🔗
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {connectors.map((connector) => (
           <div
-            key={connector.composio_id}
+            key={connector.connector_id}
             className="flex flex-col justify-between gap-y-3 p-3.5 rounded-lg border border-light-200 dark:border-dark-200 bg-light-primary dark:bg-dark-primary hover:border-light-300 hover:dark:border-dark-300 transition-colors"
           >
             <div className="flex flex-row items-start gap-x-2.5">
@@ -103,4 +92,4 @@ const ComposioConnectors = () => {
   );
 };
 
-export default ComposioConnectors;
+export default OpenConnectorConnectors;

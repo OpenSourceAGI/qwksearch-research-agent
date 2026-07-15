@@ -76,7 +76,6 @@
     "@ai-sdk/groq": "^2.0.0",
     "@ai-sdk/mcp": "^2.0.9",
     "@ai-sdk/openai": "^2.0.0",
-    "@composio/core": "^0.13.1",
     "@mastra/core": "^1.50.1",
     "@mastra/mcp": "^1.13.1",
     "@mastra/memory": "^1.22.2",

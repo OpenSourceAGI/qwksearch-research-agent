@@ -1,33 +1,34 @@
 /**
- * @fileoverview Composio + Mastra Integration
+ * @fileoverview OpenConnector + Mastra Integration
  *
- * Connects Composio's MCP endpoint to Mastra agents.
- * Composio provides the tools, Mastra provides the agent framework.
+ * Connects OpenConnector's MCP endpoint to Mastra agents.
+ * OpenConnector provides the tools, Mastra provides the agent framework.
  *
  * Architecture:
- * 1. Create Composio Tool Router session → Get MCP URL + headers
- * 2. Configure Mastra MCPClient with URL + headers
+ * 1. Connect to OpenConnector Worker URL at /mcp/sse
+ * 2. Configure Mastra MCPClient with URL + auth headers
  * 3. Get tools with mcp.listTools() or mcp.listToolsets()
  * 4. Create Mastra Agent with tools
  * 5. Execute agent.generate() with multi-step tool calling
  *
- * @see https://composio.dev/toolkits/composio/framework/mastra-ai
+ * @see https://github.com/OpenSourceAGI/open-connector
  */
 
-import { Composio } from '@composio/core';
 import { Agent } from '@mastra/core/agent';
 import { MCPClient } from '@mastra/mcp';
 
 /**
- * Configuration for Composio + Mastra integration
+ * Configuration for OpenConnector + Mastra integration
  */
-export interface ComposioMastraConfig {
-  /** Composio API key */
-  composioApiKey: string;
+export interface OpenConnectorMastraConfig {
+  /** OpenConnector admin token */
+  adminToken: string;
+  /** Base URL of the deployed OpenConnector Worker */
+  baseUrl: string;
   /** User ID for scoping the session */
   userId: string;
-  /** Toolkits to enable */
-  toolkits: string[];
+  /** Apps to enable */
+  apps: string[];
   /** Agent configuration */
   agent: {
     id: string;
@@ -41,68 +42,36 @@ export interface ComposioMastraConfig {
 }
 
 /**
- * Composio + Mastra session manager
+ * OpenConnector + Mastra session manager
  * Handles MCP connection lifecycle and agent creation
  */
-export class ComposioMastraSession {
-  private composio: Composio;
+export class OpenConnectorMastraSession {
   private mcpClient: MCPClient | null = null;
   private agent: Agent | null = null;
-  private sessionEndpoint: { url: string; headers: Record<string, string> } | null =
-    null;
 
-  constructor(private config: ComposioMastraConfig) {
-    this.composio = new Composio({
-      apiKey: config.composioApiKey,
-    });
-  }
-
-  /**
-   * Create Composio Tool Router session
-   * Returns MCP endpoint URL + auth headers
-   */
-  private async createSession() {
-    if (this.sessionEndpoint) {
-      return this.sessionEndpoint;
-    }
-
-    // Create Composio Tool Router session with specified toolkits.
-    // `mcp: true` surfaces the session's MCP endpoint (url + headers).
-    const session = await this.composio.toolRouter.create(this.config.userId, {
-      toolkits: this.config.toolkits,
-      mcp: true,
-    });
-
-    this.sessionEndpoint = {
-      url: session.mcp.url,
-      headers: {
-        'x-api-key': this.config.composioApiKey,
-        ...(session.mcp.headers ?? {}),
-      },
-    };
-
-    return this.sessionEndpoint;
-  }
+  constructor(private config: OpenConnectorMastraConfig) {}
 
   /**
    * Get or create Mastra MCP client
-   * Connects to Composio's MCP endpoint via HTTP
+   * Connects to OpenConnector's MCP endpoint via HTTP
    */
   async getMCPClient(): Promise<MCPClient> {
     if (this.mcpClient) {
       return this.mcpClient;
     }
 
-    const endpoint = await this.createSession();
+    const mcpUrl = `${this.config.baseUrl}/mcp/sse`;
 
     // Create Mastra MCP client
     this.mcpClient = new MCPClient({
-      id: `composio-${this.config.userId}`,
+      id: `open-connector-${this.config.userId}`,
       servers: {
-        composio: {
-          url: new URL(endpoint.url),
+        openconnector: {
+          url: new URL(mcpUrl),
           requestInit: {
-            headers: endpoint.headers,
+            headers: {
+              Authorization: `Bearer ${this.config.adminToken}`,
+            },
           },
         },
       },
@@ -112,7 +81,7 @@ export class ComposioMastraSession {
   }
 
   /**
-   * Get tools from Composio MCP
+   * Get tools from OpenConnector MCP
    * Use for static agent setup (same tools for all requests)
    */
   async getTools() {
@@ -121,7 +90,7 @@ export class ComposioMastraSession {
   }
 
   /**
-   * Get toolsets from Composio MCP
+   * Get toolsets from OpenConnector MCP
    * Use for dynamic per-request tool configuration
    */
   async getToolsets() {
@@ -130,7 +99,7 @@ export class ComposioMastraSession {
   }
 
   /**
-   * Create or get Mastra agent with Composio tools
+   * Create or get Mastra agent with OpenConnector tools
    * Agent is cached and reused across generate() calls
    */
   async getAgent(): Promise<Agent> {
@@ -185,20 +154,20 @@ export class ComposioMastraSession {
       this.mcpClient = null;
     }
     this.agent = null;
-    this.sessionEndpoint = null;
   }
 }
 
 /**
- * Quick helper to create a Composio + Mastra agent
+ * Quick helper to create an OpenConnector + Mastra agent
  * For one-off usage without session management
  *
  * @example
  * ```ts
- * const result = await createComposioMastraAgent({
- *   composioApiKey: process.env.COMPOSIO_API_KEY!,
+ * const result = await createOpenConnectorMastraAgent({
+ *   adminToken: process.env.OPEN_CONNECTOR_ADMIN_TOKEN!,
+ *   baseUrl: 'https://open-connector.example.workers.dev',
  *   userId: 'user-123',
- *   toolkits: ['GMAIL', 'SLACK'],
+ *   apps: ['gmail', 'slack'],
  *   agent: {
  *     id: 'email-agent',
  *     name: 'Email Assistant',
@@ -208,20 +177,23 @@ export class ComposioMastraSession {
  * }).generate('Check my unread emails');
  * ```
  */
-export async function createComposioMastraAgent(config: ComposioMastraConfig) {
-  const session = new ComposioMastraSession(config);
+export async function createOpenConnectorMastraAgent(
+  config: OpenConnectorMastraConfig
+) {
+  const session = new OpenConnectorMastraSession(config);
   await session.getAgent(); // Initialize
   return session;
 }
 
 /**
- * Create Mastra agent with dynamic per-request toolsets
+ * Create Mastra agent with dynamic per-request apps
  * Better for multi-user scenarios where tools vary per request
  *
  * @example
  * ```ts
- * const agent = await createDynamicComposioAgent({
- *   composioApiKey: process.env.COMPOSIO_API_KEY!,
+ * const agent = await createDynamicOpenConnectorAgent({
+ *   adminToken: process.env.OPEN_CONNECTOR_ADMIN_TOKEN!,
+ *   baseUrl: 'https://open-connector.example.workers.dev',
  *   agent: {
  *     id: 'dynamic-agent',
  *     name: 'Dynamic Assistant',
@@ -230,16 +202,17 @@ export async function createComposioMastraAgent(config: ComposioMastraConfig) {
  *   },
  * });
  *
- * // Each request can have different userId/toolkits
+ * // Each request can have different userId/apps
  * const result = await agent.generate({
  *   userId: 'user-123',
- *   toolkits: ['GMAIL'],
+ *   apps: ['gmail'],
  *   prompt: 'Check emails',
  * });
  * ```
  */
-export async function createDynamicComposioAgent(config: {
-  composioApiKey: string;
+export async function createDynamicOpenConnectorAgent(config: {
+  adminToken: string;
+  baseUrl: string;
   agent: {
     id: string;
     name: string;
@@ -248,33 +221,24 @@ export async function createDynamicComposioAgent(config: {
     maxSteps?: number;
   };
 }) {
-  const composio = new Composio({
-    apiKey: config.composioApiKey,
-  });
-
   return {
     async generate(params: {
       userId: string;
-      toolkits: string[];
+      apps: string[];
       prompt: string;
       maxSteps?: number;
     }) {
-      // Create Tool Router session for this user/toolkits
-      const session = await composio.toolRouter.create(params.userId, {
-        toolkits: params.toolkits,
-        mcp: true,
-      });
+      const mcpUrl = `${config.baseUrl}/mcp/sse`;
 
       // Connect MCP client
       const mcp = new MCPClient({
-        id: `composio-${params.userId}`,
+        id: `open-connector-${params.userId}`,
         servers: {
-          composio: {
-            url: new URL(session.mcp.url),
+          openconnector: {
+            url: new URL(mcpUrl),
             requestInit: {
               headers: {
-                'x-api-key': config.composioApiKey,
-                ...(session.mcp.headers ?? {}),
+                Authorization: `Bearer ${config.adminToken}`,
               },
             },
           },

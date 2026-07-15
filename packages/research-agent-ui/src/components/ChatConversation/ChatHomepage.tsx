@@ -21,12 +21,30 @@ import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 export default function ChatHomepage() {
   const { sendMessage } = useChat();
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
+  const [nextBackgroundUrl, setNextBackgroundUrl] = useState<string | null>(null);
+  const [fading, setFading] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState({ os: '' });
   useEffect(() => {
     const showBg = localStorage.getItem('showBackgroundArt');
-    if (showBg !== 'false') {
-      setBackgroundUrl(getBackgroundArtwork());
-    }
+    if (showBg === 'false') return;
+
+    setBackgroundUrl(getBackgroundArtwork());
+
+    const interval = setInterval(() => {
+      const next = getBackgroundArtwork();
+      setNextBackgroundUrl(next);
+      setFading(true);
+      setTimeout(() => {
+        setBackgroundUrl(next);
+        setFading(false);
+        setNextBackgroundUrl(null);
+      }, 1000);
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const userAgent = window.navigator.userAgent.toLowerCase();
       if (userAgent.includes('win')) {
@@ -39,29 +57,33 @@ export default function ChatHomepage() {
     }
   }, []);
 
-  const isVideo = backgroundUrl && (backgroundUrl.endsWith('.webm') || backgroundUrl.endsWith('.mp4'));
+  const isVideo = (url: string) => url.endsWith('.webm') || url.endsWith('.mp4');
+
+  const renderBackground = (url: string, opacity: string) =>
+    isVideo(url) ? (
+      <video
+        key={url}
+        src={url}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${opacity}`}
+      />
+    ) : (
+      <img
+        key={url}
+        src={url}
+        alt=""
+        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${opacity}`}
+      />
+    );
 
   return (
     <div className="relative min-h-screen w-full">
       <div className="fixed inset-0 z-0">
-        {backgroundUrl && (
-          isVideo ? (
-            <video
-              src={backgroundUrl}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full h-full object-cover opacity-30"
-            />
-          ) : (
-            <img
-              src={backgroundUrl}
-              alt=""
-              className="w-full h-full object-cover opacity-30"
-            />
-          )
-        )}
+        {backgroundUrl && renderBackground(backgroundUrl, fading ? 'opacity-0' : 'opacity-30')}
+        {nextBackgroundUrl && renderBackground(nextBackgroundUrl, fading ? 'opacity-30' : 'opacity-0')}
         <GradientBlur />
       </div>
 

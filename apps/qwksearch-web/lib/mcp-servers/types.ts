@@ -6,6 +6,6 @@ export type MCPTool = {
   inputSchema?: any;
 };
 
-export type MCPServerType = 'composio' | 'custom';
+export type MCPServerType = 'open-connector' | 'custom';
 
 export type { MCPServerMetadata };

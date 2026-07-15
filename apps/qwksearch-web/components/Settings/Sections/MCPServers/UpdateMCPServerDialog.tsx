@@ -102,7 +102,7 @@ const UpdateMCPServer = ({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="w-full rounded-lg border border-light-200 dark:border-dark-200 bg-light-primary dark:bg-dark-primary px-4 py-3 pr-10 text-sm text-black/80 dark:text-white/80 placeholder:text-black/40 dark:placeholder:text-white/40 focus-visible:outline-none focus-visible:border-light-300 dark:focus-visible:border-dark-300 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                    placeholder={'e.g., My Composio Server'}
+                    placeholder={'e.g., My OpenConnector Server'}
                     type="text"
                     required={true}
                   />

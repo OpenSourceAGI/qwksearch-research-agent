@@ -110,5 +110,8 @@
     "@types/vscode": "^1.85.0",
     "esbuild": "^0.28.1",
     "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "vite": "^8.1.4"
   }
 }

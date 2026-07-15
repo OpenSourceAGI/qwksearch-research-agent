@@ -6,7 +6,7 @@ import {
   UIConfigField,
 } from '../../../../lib/config/types';
 import MCPServerCard from './MCPServerCard';
-import ComposioConnectors from './ComposioConnectors';
+import OpenConnectorApps from './OpenConnectorApps';
 
 const MCPServers = ({
   fields,
@@ -54,7 +54,7 @@ const MCPServers = ({
               No MCP servers configured
             </p>
             <p className="text-xs text-black/50 dark:text-white/50 text-center max-w-sm mb-4">
-              Add an MCP server to access tools like Composio, filesystem access, and more.
+              Add an MCP server to access tools like OpenConnector, filesystem access, and more.
             </p>
           </div>
         ) : (
@@ -72,7 +72,7 @@ const MCPServers = ({
         )}
       </div>
       <div className="border-t border-light-200 dark:border-dark-200 mx-6" />
-      <ComposioConnectors />
+      <OpenConnectorApps />
     </div>
   );
 };

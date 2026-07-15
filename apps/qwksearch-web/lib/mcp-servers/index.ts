@@ -1,9 +1,9 @@
 import { MCPServerUISection } from '../config/types';
-import ComposioMCPServer from './composio';
+import OpenConnectorMCPServer from './open-connector';
 import BaseMCPServer, { MCPServerConstructor } from './baseMCPServer';
 
 const mcpServers: Record<string, MCPServerConstructor<any>> = {
-  composio: ComposioMCPServer,
+  'open-connector': OpenConnectorMCPServer,
 };
 
 export const getMCPServersUIConfigSection = (): MCPServerUISection[] => {
@@ -23,5 +23,5 @@ export const getMCPServerByKey = (
   return mcpServers[key];
 };
 
-export { mcpServers, BaseMCPServer, ComposioMCPServer };
+export { mcpServers, BaseMCPServer, OpenConnectorMCPServer };
 export default mcpServers;

@@ -21,13 +21,20 @@ function resolveApiUrl(url: string): string {
   return url.startsWith("api/") ? `/${url}` : `/api/${url}`;
 }
 
+const FETCH_INIT_KEYS = new Set([
+  "method", "headers", "body", "mode", "credentials", "cache",
+  "redirect", "referrer", "referrerPolicy", "integrity", "keepalive",
+  "signal", "priority", "duplex",
+]);
+
 /**
  * Enhanced fetch function that includes credentials by default.
- * This ensures authentication cookies are sent with API requests.
+ * Supports passing extra object properties as URL query parameters (GET)
+ * or as JSON body (POST/PUT/PATCH when no body is provided).
  *
  * @param url - The API endpoint URL
- * @param options - Fetch options (credentials: 'include' is added by default)
- * @returns Promise with the response data
+ * @param options - Fetch options plus extra params to be sent as query/body
+ * @returns Promise with the parsed response data (JSON returned directly)
  */
 export default async function grab(
   url: string,
@@ -38,29 +45,67 @@ export default async function grab(
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   try {
-    // Merge default credentials option with provided options
-    const enhancedOptions: RequestInit = {
+    const fetchOptions: RequestInit = {
       credentials: 'include' as RequestCredentials,
-      ...options,
       signal: controller.signal,
     };
 
-    // Remove non-standard fetch options
-    delete (enhancedOptions as any).timeout;
-    delete (enhancedOptions as any).responseType;
+    const params: Record<string, string> = {};
 
-    const response = await fetch(resolveApiUrl(url), enhancedOptions);
+    if (options) {
+      for (const [key, value] of Object.entries(options)) {
+        if (key === "timeout" || key === "responseType") continue;
+        if (FETCH_INIT_KEYS.has(key)) {
+          (fetchOptions as any)[key] = value;
+        } else {
+          if (value !== undefined && value !== null) {
+            params[key] = String(value);
+          }
+        }
+      }
+    }
+
+    // Auto-stringify plain object bodies and set JSON content-type
+    if (
+      fetchOptions.body &&
+      typeof fetchOptions.body === "object" &&
+      !(fetchOptions.body instanceof FormData) &&
+      !(fetchOptions.body instanceof Blob) &&
+      !(fetchOptions.body instanceof ArrayBuffer) &&
+      !(fetchOptions.body instanceof URLSearchParams) &&
+      !(fetchOptions.body instanceof ReadableStream)
+    ) {
+      fetchOptions.body = JSON.stringify(fetchOptions.body);
+      fetchOptions.headers = {
+        "Content-Type": "application/json",
+        ...(fetchOptions.headers as Record<string, string> || {}),
+      };
+    }
+
+    const method = (fetchOptions.method || "GET").toUpperCase();
+    let resolvedUrl = resolveApiUrl(url);
+
+    if (Object.keys(params).length > 0) {
+      if (method === "GET" || method === "HEAD") {
+        const sep = resolvedUrl.includes("?") ? "&" : "?";
+        resolvedUrl += sep + new URLSearchParams(params).toString();
+      } else if (!fetchOptions.body) {
+        fetchOptions.body = JSON.stringify(params);
+        fetchOptions.headers = {
+          "Content-Type": "application/json",
+          ...(fetchOptions.headers as Record<string, string> || {}),
+        };
+      }
+    }
+
+    const response = await fetch(resolvedUrl, fetchOptions);
     clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    // Handle different response types based on responseType option
     const responseType = options?.responseType;
-    if (responseType === 'json' || (!responseType && response.headers.get('content-type')?.includes('application/json'))) {
-      return { data: await response.json() };
-    }
     if (responseType === 'text') {
       return await response.text();
     }
@@ -71,9 +116,13 @@ export default async function grab(
       return await response.blob();
     }
 
-    // Default to json for backwards compatibility
+    const contentType = response.headers.get('content-type') ?? '';
+    if (contentType.includes('application/json')) {
+      return await response.json();
+    }
+
     try {
-      return { data: await response.json() };
+      return await response.json();
     } catch {
       return await response.text();
     }

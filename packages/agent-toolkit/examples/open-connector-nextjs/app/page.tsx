@@ -1,32 +1,32 @@
 'use client';
 
 /**
- * Composio MCP chat interface
- * Shows real-time tool calling with Composio integrations
+ * OpenConnector MCP chat interface
+ * Shows real-time tool calling with OpenConnector integrations
  */
 
 import { useChat } from '@ai-sdk/react';
 import { useState, useEffect } from 'react';
 
-const AVAILABLE_TOOLKITS = [
-  'GMAIL',
-  'SLACK',
-  'NOTION',
-  'GITHUB',
-  'CALENDAR',
-  'DRIVE',
-  'JIRA',
-  'LINEAR',
+const AVAILABLE_APPS = [
+  'gmail',
+  'slack',
+  'notion',
+  'github',
+  'googlecalendar',
+  'googledrive',
+  'jira',
+  'linear',
 ];
 
-export default function ComposioChat() {
+export default function OpenConnectorChat() {
   const [userId, setUserId] = useState('demo-user');
-  const [selectedToolkits, setSelectedToolkits] = useState([
-    'GMAIL',
-    'SLACK',
-    'NOTION',
+  const [selectedApps, setSelectedApps] = useState([
+    'gmail',
+    'slack',
+    'notion',
   ]);
-  const [authenticatedToolkits, setAuthenticatedToolkits] = useState<string[]>(
+  const [authenticatedApps, setAuthenticatedApps] = useState<string[]>(
     []
   );
 
@@ -35,23 +35,23 @@ export default function ComposioChat() {
       api: '/api/chat',
       body: {
         userId,
-        toolkits: selectedToolkits,
+        apps: selectedApps,
       },
     });
 
-  // Fetch authenticated toolkits on mount
+  // Fetch authenticated apps on mount
   useEffect(() => {
     fetch(`/api/chat?userId=${userId}`)
       .then((res) => res.json())
-      .then((data) => setAuthenticatedToolkits(data.authenticatedToolkits))
+      .then((data) => setAuthenticatedApps(data.authenticatedApps))
       .catch(console.error);
   }, [userId]);
 
-  const toggleToolkit = (toolkit: string) => {
-    setSelectedToolkits((prev) =>
-      prev.includes(toolkit)
-        ? prev.filter((t) => t !== toolkit)
-        : [...prev, toolkit]
+  const toggleApp = (app: string) => {
+    setSelectedApps((prev) =>
+      prev.includes(app)
+        ? prev.filter((t) => t !== app)
+        : [...prev, app]
     );
   };
 
@@ -59,7 +59,7 @@ export default function ComposioChat() {
     <div className="flex h-screen">
       {/* Sidebar */}
       <div className="w-80 border-r p-4 overflow-y-auto bg-gray-50">
-        <h2 className="text-xl font-bold mb-4">Composio MCP Chat</h2>
+        <h2 className="text-xl font-bold mb-4">OpenConnector MCP Chat</h2>
 
         {/* User ID */}
         <div className="mb-6">
@@ -73,20 +73,20 @@ export default function ComposioChat() {
           />
         </div>
 
-        {/* Toolkit Selection */}
+        {/* App Selection */}
         <div className="mb-6">
           <h3 className="text-sm font-medium mb-2">
-            Select Toolkits ({selectedToolkits.length})
+            Select Apps ({selectedApps.length})
           </h3>
           <div className="space-y-2">
-            {AVAILABLE_TOOLKITS.map((toolkit) => {
+            {AVAILABLE_APPS.map((app) => {
               const isAuthenticated =
-                authenticatedToolkits.includes(toolkit);
-              const isSelected = selectedToolkits.includes(toolkit);
+                authenticatedApps.includes(app);
+              const isSelected = selectedApps.includes(app);
 
               return (
                 <label
-                  key={toolkit}
+                  key={app}
                   className={`flex items-center gap-2 p-2 rounded cursor-pointer ${
                     isSelected ? 'bg-blue-50 border-blue-300' : 'bg-white'
                   } border`}
@@ -94,10 +94,10 @@ export default function ComposioChat() {
                   <input
                     type="checkbox"
                     checked={isSelected}
-                    onChange={() => toggleToolkit(toolkit)}
+                    onChange={() => toggleApp(app)}
                     className="w-4 h-4"
                   />
-                  <span className="flex-1">{toolkit}</span>
+                  <span className="flex-1 capitalize">{app}</span>
                   {isAuthenticated ? (
                     <span className="text-green-600 text-xs">✓ Auth</span>
                   ) : (
@@ -114,17 +114,9 @@ export default function ComposioChat() {
           <p className="font-medium mb-1">Instructions:</p>
           <ol className="list-decimal ml-4 space-y-1">
             <li>Set your user ID</li>
-            <li>Select toolkits to enable</li>
+            <li>Select apps to enable</li>
             <li>
-              Authenticate toolkits at:{' '}
-              <a
-                href="https://app.composio.dev/apps"
-                target="_blank"
-                rel="noopener"
-                className="text-blue-600"
-              >
-                Composio Dashboard
-              </a>
+              Authenticate apps at your OpenConnector Web Console
             </li>
             <li>Start chatting!</li>
           </ol>
@@ -152,8 +144,8 @@ export default function ComposioChat() {
                 Start a conversation
               </h3>
               <p className="text-sm">
-                I have access to {selectedToolkits.length} toolkits via
-                Composio MCP
+                I have access to {selectedApps.length} apps via
+                OpenConnector MCP
               </p>
             </div>
           )}
@@ -208,15 +200,7 @@ export default function ComposioChat() {
               <strong>Error:</strong> {error.message}
               {error.message.includes('authentication') && (
                 <div className="mt-2 text-sm">
-                  Please authenticate your toolkits at{' '}
-                  <a
-                    href="https://app.composio.dev/apps"
-                    target="_blank"
-                    rel="noopener"
-                    className="underline"
-                  >
-                    Composio Dashboard
-                  </a>
+                  Please authenticate your apps at your OpenConnector Web Console
                 </div>
               )}
             </div>
