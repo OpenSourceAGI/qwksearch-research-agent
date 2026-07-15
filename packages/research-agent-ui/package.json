@@ -17,6 +17,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.mjs",
+      "require": "./dist/config.cjs"
     }
   },
   "files": [

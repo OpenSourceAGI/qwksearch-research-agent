@@ -12,10 +12,14 @@ export default defineConfig({
     // no separate static files the consuming app needs to serve.
     assetsInlineLimit: Number.MAX_SAFE_INTEGER,
     lib: {
-      entry: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
+      entry: {
+        index: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
+        config: fileURLToPath(new URL("./src/config.ts", import.meta.url)),
+      },
       name: "ResearchAgentUI",
       formats: ["es", "cjs"],
-      fileName: (format) => `index.${format === "es" ? "mjs" : "cjs"}`,
+      fileName: (format, entryName) =>
+        `${entryName}.${format === "es" ? "mjs" : "cjs"}`,
     },
     rollupOptions: {
       // Every bare (non-relative, non-absolute) import is a runtime dependency
@@ -24,7 +28,8 @@ export default defineConfig({
       // research agent UI depends on (radix, lucide-react, grab-url, etc.).
       external: (id) => !id.startsWith(".") && !id.startsWith("/"),
       output: {
-        banner: '"use client";',
+        banner: (chunk) =>
+          chunk.name === "index" ? '"use client";' : "",
       },
     },
   },

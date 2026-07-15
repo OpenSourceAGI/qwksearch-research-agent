@@ -10,8 +10,8 @@ import {
   ChatProvider,
   SessionProvider,
   ExtractPanelProvider,
-  configureResearchAgentUI,
 } from 'research-agent-ui';
+import { configureResearchAgentUI } from 'research-agent-ui/config';
 import { ThemeProvider } from "shadcn-theme-menu";
 import {
   APP_NAME,
