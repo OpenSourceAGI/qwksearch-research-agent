@@ -29,6 +29,9 @@
       "@/*": [
         "./*"
       ],
+      "extract-pdf": [
+        "../../packages/extract-pdf/src/pdf-to-html.ts"
+      ],
       "ai-research-agent/agents/generate-language": [
         "../../packages/agent-toolkit/src/language-generation/generate-response.ts"
       ],
