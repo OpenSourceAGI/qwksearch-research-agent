@@ -3,11 +3,24 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { oneTap, openAPI, magicLink, anonymous } from "better-auth/plugins";
 import { getDB } from "../database";
 import * as schema from "../database/schema";
-import { Resend } from "resend";
+import { getCloudflareContext } from "../cloudflare-context";
 import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../config/site";
+
+export interface Env {
+  EMAIL: {
+    send: (message: {
+      from: string;
+      to: string | string[];
+      subject: string;
+      text?: string;
+      html?: string;
+    }) => Promise<{ id: string }>;
+  };
+}
 
 async function authBuilder() {
   const db = getDB();
+
   return betterAuth({
     baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
     database: drizzleAdapter(db, {
@@ -30,13 +43,24 @@ async function authBuilder() {
       anonymous(),
       magicLink({
         sendMagicLink: async ({ email, url }) => {
-          const resend = new Resend(process.env.AUTH_RESEND_KEY);
-          await resend.emails.send({
-            from: `${APP_NAME} <${APP_EMAIL || "noreply@example.com"}>`,
-            to: email,
-            subject: `Sign in to ${APP_NAME}`,
-            html: `<p>Click the link below to sign in to ${APP_NAME}:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 5 minutes.</p>`,
-          });
+          try {
+            const ctx = getCloudflareContext();
+            const env = ctx.env as Env;
+
+            if (!env.EMAIL) {
+              throw new Error("EMAIL binding not configured");
+            }
+
+            await env.EMAIL.send({
+              from: APP_EMAIL || "noreply@example.com",
+              to: email,
+              subject: `Sign in to ${APP_NAME}`,
+              html: `<p>Click the link below to sign in to ${APP_NAME}:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 5 minutes.</p>`,
+            });
+          } catch (error) {
+            console.error("[auth] Magic link send failed:", error);
+            throw error;
+          }
         },
         expiresIn: 300,
         disableSignUp: false,

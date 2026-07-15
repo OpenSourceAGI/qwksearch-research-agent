@@ -36,6 +36,12 @@
       "bucket_name": "qwksearch-uploads",
     },
   ],
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "destination_address": "noreply@qwksearch.com",
+    },
+  ],
   "env": {
     "production": {
       "keep_vars": true,
