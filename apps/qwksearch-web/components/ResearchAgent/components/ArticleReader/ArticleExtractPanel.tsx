@@ -25,6 +25,7 @@ import {
   DEFAULT_SUMMARIZE_PROMPT,
   MAX_ARTICLE_LENGTH
 } from "@/lib/config/site"
+import { useSession } from '@/components/ResearchAgent/hooks/useSession';
 
 const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   const {
@@ -35,6 +36,8 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     setPanelWidth: contextSetPanelWidth,
     closePanel,
   } = useExtractPanel();
+
+  const { isAuthenticated } = useSession();
 
   const isOpen = props.isOpen !== undefined ? props.isOpen : contextIsOpen;
   const onClose = props.onClose || closePanel;
@@ -174,7 +177,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
         }
       }
 
-      checkIfFavorited();
+      if (isAuthenticated) checkIfFavorited();
     } catch (error) {
       console.error('[ArticleExtractPanel] Error extracting URL:', error);
       toast.error('Failed to load article');

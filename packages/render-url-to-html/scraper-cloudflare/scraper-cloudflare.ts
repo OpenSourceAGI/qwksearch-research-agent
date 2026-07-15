@@ -12,6 +12,7 @@
 import { parseRequestParams, authenticateRequest } from "./scraper-utils.js";
 import type { Env } from "./scraper-utils.js";
 import { serveSwagger, serveOpenAPI } from "./scraper-openapi.js";
+import { handleLogin, handleFetchAsSession } from "./scraper-login.js";
 export { BrowserDurableObject } from "./browser-durable-object.js";
 
 /** Cloudflare Worker `fetch` handler with auth + routing logic. */
@@ -40,6 +41,22 @@ export default {
 
     if (url.pathname === "/api/openapi.json") {
       return serveOpenAPI();
+    }
+
+    if (url.pathname === "/api/login" && request.method === "POST") {
+      const authResult = await authenticateRequest(request, env, await parseRequestParams(request.clone()));
+      if (!authResult.success) {
+        return new Response(authResult.error, { status: 401 });
+      }
+      return handleLogin(request, env);
+    }
+
+    if (url.pathname === "/api/fetch" && request.method === "POST") {
+      const authResult = await authenticateRequest(request, env, await parseRequestParams(request.clone()));
+      if (!authResult.success) {
+        return new Response(authResult.error, { status: 401 });
+      }
+      return handleFetchAsSession(request, env);
     }
 
     if (url.pathname !== "/api/render" && url.pathname !== "/") {

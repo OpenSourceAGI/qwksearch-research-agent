@@ -19,6 +19,7 @@ import {
   solveRecaptchaWith2Captcha,
   solveTurnstileWith2Captcha,
 } from "./scraper-captcha.js";
+import { executeGoogleLogin } from "./scraper-login.js";
 import puppeteer from "@cloudflare/puppeteer";
 import type { Browser, Page, Cookie } from "@cloudflare/puppeteer";
 import { parseRequestParams } from "./scraper-utils.js";
@@ -100,6 +101,19 @@ export class BrowserDurableObject {
    * @returns HTML or JSON response with load-time and session metadata headers.
    */
   async fetch(request: Request): Promise<Response> {
+    // Handle login action requests from the NotebookLM integration
+    if (request.method === "POST") {
+      try {
+        const clonedReq = request.clone();
+        const body = await clonedReq.json() as Record<string, unknown>;
+        if (body._action === "login") {
+          return this.handleLoginAction(body);
+        }
+      } catch {
+        // Not a login request, continue with normal flow
+      }
+    }
+
     const params = await parseRequestParams(request);
 
     try {
@@ -326,6 +340,71 @@ export class BrowserDurableObject {
         JSON.stringify({
           error: `Failed to render page: ${(error as Error).message}`,
           timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+  }
+
+  /**
+   * Handles automated Google login via the persistent browser session.
+   * Navigates to Google login, enters credentials, and returns cookies.
+   */
+  private async handleLoginAction(
+    body: Record<string, unknown>,
+  ): Promise<Response> {
+    const { email, password, targetUrl } = body as {
+      email: string;
+      password: string;
+      targetUrl: string;
+    };
+
+    try {
+      await this.ensureBrowser();
+      const page: Page = await this.browser!.newPage();
+      await applyStealthEvasions(page);
+
+      await page.setUserAgent(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      );
+
+      await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
+
+      await page.setExtraHTTPHeaders({
+        "Accept-Language": "en-US,en;q=0.9",
+        "sec-ch-ua": '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+      });
+
+      const result = await executeGoogleLogin(page, email, password, targetUrl);
+
+      if (result.success && result.cookies) {
+        const sessionId = (body.sessionId as string) || "login";
+        await this.saveCookies(sessionId, result.cookies);
+      }
+
+      await page.close();
+      this.lastUsed = Date.now();
+      await this.scheduleCleanup();
+
+      return new Response(JSON.stringify(result), {
+        status: result.success ? 200 : 422,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+    } catch (err) {
+      console.error("Login action error:", err);
+      await this.closeBrowser();
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: `Login error: ${(err as Error).message}`,
         }),
         {
           status: 500,
