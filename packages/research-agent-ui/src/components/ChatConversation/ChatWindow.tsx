@@ -6,7 +6,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Document } from 'extract-webpage/search/document';
+import type { Document } from 'extract-webpage/search';
 import Chat from './ChatConversationThread';
 import ChatHomepage from './ChatHomepage';
 import { useChat } from '../../hooks/useChat';

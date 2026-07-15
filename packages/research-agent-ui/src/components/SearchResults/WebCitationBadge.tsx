@@ -5,7 +5,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Document } from 'extract-webpage/search/document';
+import type { Document } from 'extract-webpage/search';
 import { useExtractPanel } from '../ArticleReader/ExtractPanelContext';
 import {
   Tooltip,

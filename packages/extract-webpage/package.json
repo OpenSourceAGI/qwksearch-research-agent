@@ -18,6 +18,12 @@
       "import": "./dist/extract-webpage.es.js",
       "require": "./dist/extract-webpage.cjs.js"
     },
+    "./search": {
+      "types": "./src/search/index.ts",
+      "react-server": "./src/search/index.ts",
+      "import": "./src/search/index.ts",
+      "require": "./src/search/index.ts"
+    },
     "./*": {
       "types": "./src/*.ts",
       "react-server": "./src/*",
