@@ -5,6 +5,7 @@
    so their responsive utilities (e.g. md:hidden on the mobile dock) must be
    registered explicitly. */
 @source "../../../packages/shadcn-app-dock/src";
+@source "../../../packages/research-agent-ui/src";
 
 @custom-variant dark (&:is(.dark *));
 /* @plugin "@tailwindcss/typography"; */

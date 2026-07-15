@@ -11,7 +11,7 @@ import { ScrollArea } from "./scroll-area";
 import { Textarea } from "./textarea";
 import { cn } from "../../lib/utils";
 import { Edit2, Expand, Save, X } from "lucide-react";
-import { UnifiedMarkdown } from "@/components/ResearchAgent/components/ArticleReader/unified-markdown";
+import { UnifiedMarkdown } from "research-agent-ui";
 interface ExpandableMarkdownEditorProps {
   value: string;
   onSave: (value: string) => void;
