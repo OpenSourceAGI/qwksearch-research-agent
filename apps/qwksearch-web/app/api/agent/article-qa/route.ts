@@ -4,6 +4,7 @@
  */
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { ModelWithProvider } from "chat-agent-toolkit/models/types";
+import { createGroq } from "@ai-sdk/groq";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserId } from "@/lib/auth/session";
 import { getDB } from "@/lib/database";

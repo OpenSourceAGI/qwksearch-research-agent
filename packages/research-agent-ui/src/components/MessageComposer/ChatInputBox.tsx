@@ -260,6 +260,12 @@ const ChatInputBox = () => {
                 chooseOption(highlightedIndex);
                 return;
             }
+            const numKey = parseInt(e.key, 10);
+            if (numKey >= 1 && numKey <= totalOptions && numKey <= 9) {
+                e.preventDefault();
+                chooseOption(numKey - 1);
+                return;
+            }
         }
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -460,10 +466,11 @@ const ChatInputBox = () => {
                                                 : 'text-text-200 hover:bg-bg-100 dark:hover:bg-[#3A3A38]'
                                         }`}
                                     >
+                                        <span className="w-5 h-5 flex items-center justify-center rounded bg-bg-200 dark:bg-[#3A3A38] text-[11px] font-semibold text-text-400 shrink-0">{i + 1}</span>
                                         {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src={d.favicon} alt="" className="w-4 h-4 rounded-sm shrink-0" />
                                         <span className="truncate font-medium">{d.name || d.domain}</span>
-                                        <span className="truncate text-[13px] text-text-400 ml-auto shrink-0">{d.domain}</span>
+                                        <span className="truncate text-[13px] text-text-400 shrink-0">{d.domain}</span>
                                     </button>
                                 </li>
                             ))}
@@ -481,6 +488,7 @@ const ChatInputBox = () => {
                                                     : 'text-text-200 hover:bg-bg-100 dark:hover:bg-[#3A3A38]'
                                             }`}
                                         >
+                                            <span className="w-5 h-5 flex items-center justify-center rounded bg-bg-200 dark:bg-[#3A3A38] text-[11px] font-semibold text-text-400 shrink-0">{optionIndex + 1}</span>
                                             <Search className="w-4 h-4 text-text-400 shrink-0" />
                                             <span className="truncate">{s}</span>
                                         </button>
