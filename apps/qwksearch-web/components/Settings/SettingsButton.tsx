@@ -7,7 +7,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '../ui/avatar';
-import { useSession } from '@/components/ResearchAgent/hooks/useSession';
+import { useSession } from 'research-agent-ui';
 
 const SettingsButton = () => {
   const router = useRouter();

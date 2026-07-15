@@ -6,10 +6,8 @@ import {
   Sun, Clock, CalendarDays, Archive, Pin, Trash, Search, X,
   Trash2, Lock, Library, MessageSquare,
 } from 'lucide-react';
-import { useHistoryState } from '@/components/ResearchAgent/components/ChatHistoryDropdown/useHistoryState';
-import { HistoryDialogs } from '@/components/ResearchAgent/components/ChatHistoryDropdown/HistoryDialogs';
-import { Chat } from '@/types/research';
-import { formatTimeDifference } from '@/lib/utils';
+import { useHistoryState, HistoryDialogs, formatTimeDifference } from 'research-agent-ui';
+import type { Chat } from 'research-agent-ui';
 
 type CategoryKey = 'Today' | 'Yesterday' | 'This Week' | 'Older';
 

@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "shadcn-app-dock"
-import { useSession } from "@/components/ResearchAgent/hooks/useSession"
+import { useSession } from "research-agent-ui"
 
 const NAV_ITEMS = [
   { href: "/", label: "Research", icon: "/apple-touch-icon.png" },

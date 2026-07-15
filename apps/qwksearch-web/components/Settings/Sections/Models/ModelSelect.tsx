@@ -1,6 +1,6 @@
 import { Select } from '../../../ui/select';
 import { ConfigModelProvider } from '../../../../lib/config/types';
-import { useChat } from '../../../ResearchAgent/hooks/useChat';
+import { useChat } from 'research-agent-ui';
 import { useState } from 'react';
 import { toast } from 'sonner';
 

@@ -6,13 +6,36 @@ import 'shadcn-theme-menu/themes.css';
 import { cookies } from "next/headers"
 import { cn } from '@/lib/utils';
 import { Toaster } from 'sonner';
-import { ChatProvider } from '@/components/ResearchAgent/hooks/useChat';
-import { SessionProvider } from '@/components/ResearchAgent/hooks/useSession';
+import {
+  ChatProvider,
+  SessionProvider,
+  ExtractPanelProvider,
+  configureResearchAgentUI,
+} from 'research-agent-ui';
 import { ThemeProvider } from "shadcn-theme-menu";
-import { ExtractPanelProvider } from '@/components/ResearchAgent/components/ArticleReader/ExtractPanelContext';
-import { APP_NAME } from '@/lib/config/site';
+import {
+  APP_NAME,
+  DEFAULT_SUMMARIZE_PROMPT,
+  MAX_ARTICLE_LENGTH,
+  DOWNLOAD_CHROME_URL,
+  DOWNLOAD_WINDOWS_STORE_ID,
+  listFooterLinks,
+} from '@/lib/config/site';
+import { getAutoMediaSearch } from '@/lib/config/serverRegistry';
+import { authClient } from '@/lib/auth/client';
 import { CategoryDock } from '@/components/layout/CategoryDock';
 import { CategoryDockProvider } from 'shadcn-app-dock';
+
+configureResearchAgentUI({
+  appName: APP_NAME,
+  defaultSummarizePrompt: DEFAULT_SUMMARIZE_PROMPT,
+  maxArticleLength: MAX_ARTICLE_LENGTH,
+  downloadChromeUrl: DOWNLOAD_CHROME_URL,
+  downloadWindowsStoreId: DOWNLOAD_WINDOWS_STORE_ID,
+  footerLinks: listFooterLinks,
+  googleApiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '',
+  getAutoMediaSearch,
+});
 
 export const metadata: Metadata = {
   title: APP_NAME + ' - Reimagine the Web as a Self-Organizing Mind Map',
@@ -55,7 +78,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SessionProvider>
+          <SessionProvider authClient={authClient}>
             <ExtractPanelProvider>
               <ChatProvider>
                 <CategoryDockProvider>

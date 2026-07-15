@@ -1,0 +1,117 @@
+/**
+ * SessionProvider and `useSession` hook wrapping better-auth to expose the current user, authentication
+ * status, and Google OAuth sign-in/sign-out actions throughout the application.
+ */
+'use client';
+
+import { createContext, useContext, useEffect, useState } from 'react';
+import type { ResearchAgentAuthClient } from '../config';
+
+interface User {
+  id: string;
+  name: string;
+  email?: string;
+  image?: string;
+}
+
+interface SessionContextType {
+  user: User | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  signIn: () => void;
+  signOut: () => Promise<void>;
+}
+
+const SessionContext = createContext<SessionContextType>({
+  user: null,
+  isLoading: true,
+  isAuthenticated: false,
+  signIn: () => { },
+  signOut: async () => { },
+});
+
+export function SessionProvider({
+  children,
+  authClient,
+}: {
+  children: React.ReactNode;
+  /** Configured better-auth (or compatible) client used to manage the session. */
+  authClient: ResearchAgentAuthClient;
+}) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch session on mount
+    const fetchSession = async () => {
+      try {
+        const { data } = await authClient.getSession();
+        setUser(data?.user ?? null);
+      } catch (error) {
+        console.error('Failed to fetch session:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSession();
+  }, []);
+
+  // Prompt Google One Tap sign-in once we know the user is unauthenticated.
+  useEffect(() => {
+    if (isLoading || user) return;
+    authClient.oneTap({
+      fetchOptions: {
+        onSuccess: async () => {
+          const { data } = await authClient.getSession();
+          setUser(data?.user ?? null);
+        },
+      },
+    });
+  }, [isLoading, user]);
+
+  const signIn = () => {
+    authClient.signIn.social({
+      provider: 'google',
+      callbackURL: '/',
+    });
+  };
+
+  const signOut = async () => {
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            setUser(null);
+            window.location.href = '/';
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
+  };
+
+  return (
+    <SessionContext.Provider
+      value={{
+        user,
+        isLoading,
+        isAuthenticated: !!user,
+        signIn,
+        signOut,
+      }}
+    >
+      {children}
+    </SessionContext.Provider>
+  );
+}
+
+export function useSession() {
+  const context = useContext(SessionContext);
+  if (!context) {
+    throw new Error('useSession must be used within SessionProvider');
+  }
+  return context;
+}
