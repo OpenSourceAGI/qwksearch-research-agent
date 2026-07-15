@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 import { uploadToR2, downloadFromR2, deleteFromR2 } from '@/lib/storage/r2-service';
-import { convertPDFToHTML } from '../../../../packages/extract-pdf/src/pdf-to-html';
+import { convertPDFToHTML } from 'extract-pdf';
 import { checkUserStorageQuota, incrementUserStorageUsage, decrementUserStorageUsage } from '@/lib/storage/quota';
 import { getUserId } from '@/lib/auth/session';
 

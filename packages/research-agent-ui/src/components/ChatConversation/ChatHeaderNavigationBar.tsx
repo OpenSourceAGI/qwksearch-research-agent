@@ -4,6 +4,7 @@
  * Share/export options moved to the message input bar.
  */
 import { useEffect, useState } from 'react';
+import { Edit } from 'lucide-react';
 import DeleteChat from '../MessageActions/DeleteChatSessionButton';
 import { useChat } from '../../hooks/useChat';
 import { useExtractPanel } from '../ArticleReader/ExtractPanelContext';

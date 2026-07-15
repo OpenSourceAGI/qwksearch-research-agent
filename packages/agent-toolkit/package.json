@@ -84,6 +84,7 @@
     "extract-webpage": "workspace:*",
     "highlight.js": "^11.11.1",
     "html-entities": "^2.6.0",
+    "manage-storage": "^0.0.13",
     "marked": "^17.0.4",
     "qwksearch-api-client": "^0.0.12",
     "write-language": "workspace:*",
