@@ -274,50 +274,6 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-1 min-w-0">
-            <Popover>
-              <PopoverTrigger className="p-2 rounded-lg hover:bg-secondary transition-colors duration-200">
-                <Share size={16} className="text-muted-foreground" />
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-64 rounded-2xl bg-popover border border-border shadow-xl z-50">
-                <div className="p-3">
-                  <div className="mb-2">
-                    <p className="text-xs font-medium text-muted-foreground/80 uppercase tracking-wide">
-                      Export Chat
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <button
-                      className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-xl hover:bg-secondary transition-colors duration-200"
-                      onClick={() => exportAsMarkdown(sections, title || '')}
-                    >
-                      <FileText size={16} className="text-primary" />
-                      <div>
-                        <p className="text-sm font-medium text-popover-foreground">
-                          Markdown
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          .md format
-                        </p>
-                      </div>
-                    </button>
-                    <button
-                      className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-xl hover:bg-secondary transition-colors duration-200"
-                      onClick={() => exportAsPDF(sections, title || '')}
-                    >
-                      <FileDown size={16} className="text-primary" />
-                      <div>
-                        <p className="text-sm font-medium text-popover-foreground">
-                          PDF
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Document format
-                        </p>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
             <DeleteChat
               redirect
               chatId={chatId!}

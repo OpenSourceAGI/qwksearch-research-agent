@@ -8,7 +8,7 @@
  * - provider/model CRUD passthroughs to {@link configManager}
  */
 import configManager from "./config-manager";
-import { LANGUAGE_MODELS } from "./language-models-database";
+import { LANGUAGE_MODELS, getGuestSafeProviders } from "./language-models-database";
 import { getModelProvidersUIConfigSection } from "./provider-ui-config";
 import type { ConfigModelProvider, Model } from "./config-types";
 
@@ -59,13 +59,28 @@ export default class ModelRegistry {
    * Providers with their full chat model lists (defaults merged with
    * user-added models), shaped for the settings/providers UI.
    */
-  async getActiveProviders() {
-    return this.activeProviders.map((p) => ({
+  async getActiveProviders(guestMode: boolean = false) {
+    const providers = this.activeProviders;
+    const dbModels = guestMode ? getGuestSafeProviders() : LANGUAGE_MODELS;
+
+    return providers.map((p) => ({
       id: p.id,
       name: p.name,
       type: p.type,
-      chatModels: mergeChatModels(p),
-    }));
+      chatModels: guestMode ? this.getGuestChatModels(p, dbModels) : mergeChatModels(p),
+    })).filter((p) => p.chatModels.length > 0);
+  }
+
+  /**
+   * Get guest-safe chat models for a provider (only tested working models).
+   */
+  private getGuestChatModels(provider: ConfigModelProvider, guestProviders: typeof LANGUAGE_MODELS): Model[] {
+    const dbName = PROVIDER_KEY_TO_DB_NAME[provider.type.toLowerCase()];
+    const dbEntry = guestProviders.find(
+      (p) => p.provider.toLowerCase() === (dbName?.toLowerCase() || provider.type.toLowerCase()),
+    );
+    if (!dbEntry?.models) return [];
+    return dbEntry.models.map((m: any) => ({ name: m.name, key: m.id }));
   }
 
   /**

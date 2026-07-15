@@ -1382,3 +1382,53 @@ export const LANGUAGE_MODELS = [
 export const LANGUAGE_PROVIDERS = LANGUAGE_MODELS.map((p) =>
   p.provider.toLocaleLowerCase(),
 );
+
+/**
+ * Guest-safe models that are known to work reliably.
+ * Based on test results: only models with HTTP 200 status.
+ */
+export const GUEST_SAFE_MODELS = {
+  openrouter: [
+    "openrouter/free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    "nvidia/nemotron-3-nano-30b-a3b:free",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "nvidia/nemotron-nano-9b-v2:free",
+    "nvidia/nemotron-3.5-content-safety:free",
+    "google/gemma-4-31b-it:free",
+    "google/gemma-4-26b-a4b-it:free",
+    "openai/gpt-oss-20b:free",
+    "poolside/laguna-xs-2.1:free",
+    "poolside/laguna-m.1:free",
+    "cohere/north-mini-code:free",
+  ],
+  nvidia: [
+    "nvidia/nemotron-3-super-120b-a12b",
+    "meta/llama-3.1-8b-instruct",
+  ],
+};
+
+/**
+ * Filter models to only those in the guest-safe list.
+ * Returns models with `free: true` property.
+ */
+export function filterModelsForGuests(models: any[]): any[] {
+  return models.filter((m) => m.free === true);
+}
+
+/**
+ * Get guest-safe provider list (only tested working models).
+ * Uses GUEST_SAFE_MODELS whitelist to ensure reliability.
+ */
+export function getGuestSafeProviders(): typeof LANGUAGE_MODELS {
+  return LANGUAGE_MODELS.map((provider) => ({
+    ...provider,
+    models: provider.models.filter(
+      (model: any) =>
+        GUEST_SAFE_MODELS[provider.provider.toLowerCase() as keyof typeof GUEST_SAFE_MODELS]?.includes(
+          model.id,
+        ) || false,
+    ),
+  })).filter((p) => p.models.length > 0);
+}

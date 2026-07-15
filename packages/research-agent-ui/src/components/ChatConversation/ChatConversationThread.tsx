@@ -6,8 +6,6 @@
 'use client';
 
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { Share2, Link, FileText, FileType, FileDown, FileSpreadsheet, BookMarked } from 'lucide-react';
-import { toast } from 'sonner';
 import MessageBox from './ChatMessageBubble';
 import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 
@@ -17,16 +15,6 @@ import ChatInputBox from '../MessageComposer/ChatInputBox';
 import ArticleExtractPanel from '../ArticleReader/ArticleExtractPanel';
 import grab from 'grab-url';
 import { researchAgentUIConfig } from '../../config';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from '../../ui/dropdown-menu';
-import { Tooltip, TooltipTrigger, TooltipContent } from '../../ui/tooltip';
-import { exportAsMarkdown, exportAsDocx, exportAsPdf, exportToGoogleDocs } from '../../lib/export';
 import HistoryDropdown from '../ChatHistoryDropdown';
 import { useSession } from '../../hooks/useSession';
 

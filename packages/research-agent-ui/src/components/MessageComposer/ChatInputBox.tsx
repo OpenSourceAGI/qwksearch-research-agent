@@ -175,9 +175,19 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
         return () => clearTimeout(timeout);
     }, [message, isActive]);
 
+    const getSearchTerm = (msg: string): { before: string; searchTerm: string; after: string } => {
+        const trimmed = msg.trimEnd();
+        const lastSpace = trimmed.lastIndexOf(' ');
+        const before = lastSpace === -1 ? '' : trimmed.substring(0, lastSpace + 1);
+        const searchTerm = lastSpace === -1 ? trimmed : trimmed.substring(lastSpace + 1);
+        const after = msg.substring(trimmed.length);
+        return { before, searchTerm, after };
+    };
+
     const selectSuggestion = (value: string) => {
         suppressNextFetchRef.current = true;
-        setMessage(value);
+        const { before, after } = getSearchTerm(message);
+        setMessage(before + value + after);
         setSuggestions([]);
         setDomainSuggestions([]);
         setSuggestionsOpen(false);
