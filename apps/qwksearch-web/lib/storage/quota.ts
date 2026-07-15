@@ -1,10 +1,21 @@
 /**
- * User storage quota management utilities
+ * User storage quota management utilities.
+ *
+ * Usage is computed from the `uploads` D1 table (the source of truth kept
+ * by /api/doc/uploads); the per-user quota comes from the
+ * `user.storage_quota_bytes` column with a 1 GB default. The
+ * `user.storage_used_bytes` counter is maintained best-effort for
+ * informational purposes only and is never used for enforcement.
  */
 
 import { getDB } from "@/lib/database";
 import { user as userTable } from "@/lib/database/schema";
 import { eq } from "drizzle-orm";
+import {
+  getUserUsageBytes,
+  getUserQuotaBytes,
+  USER_QUOTA_BYTES,
+} from "@/lib/uploads";
 
 export interface StorageQuota {
   allowed: boolean;
@@ -13,7 +24,7 @@ export interface StorageQuota {
   remaining: number;
 }
 
-export const DEFAULT_STORAGE_QUOTA_BYTES = 1073741824; // 1GB
+export const DEFAULT_STORAGE_QUOTA_BYTES = USER_QUOTA_BYTES; // 1GB
 
 export async function checkUserStorageQuota(
   userId: string,
@@ -21,24 +32,8 @@ export async function checkUserStorageQuota(
 ): Promise<StorageQuota> {
   try {
     const db = getDB();
-    const userRecord = await db
-      .select()
-      .from(userTable)
-      .where(eq(userTable.id, userId))
-      .limit(1);
-
-    if (!userRecord || userRecord.length === 0) {
-      return {
-        allowed: additionalBytes <= DEFAULT_STORAGE_QUOTA_BYTES,
-        used: 0,
-        quota: DEFAULT_STORAGE_QUOTA_BYTES,
-        remaining: DEFAULT_STORAGE_QUOTA_BYTES - additionalBytes,
-      };
-    }
-
-    const user = userRecord[0];
-    const used = user.storageUsedBytes || 0;
-    const quota = user.storageQuotaBytes || DEFAULT_STORAGE_QUOTA_BYTES;
+    const used = await getUserUsageBytes(db, userId);
+    const quota = await getUserQuotaBytes(db, userId);
     const remaining = quota - used;
 
     return {
@@ -64,11 +59,15 @@ export async function incrementUserStorageUsage(
 ): Promise<boolean> {
   try {
     const db = getDB();
+    const userRecord = await db.query.user.findFirst({
+      where: eq(userTable.id, userId),
+      columns: { storageUsedBytes: true },
+    });
+    if (!userRecord) return false;
+
     await db
       .update(userTable)
-      .set({
-        storageUsedBytes: (prevValue) => (prevValue || 0) + bytes,
-      })
+      .set({ storageUsedBytes: (userRecord.storageUsedBytes || 0) + bytes })
       .where(eq(userTable.id, userId));
     return true;
   } catch (error) {
@@ -83,18 +82,13 @@ export async function decrementUserStorageUsage(
 ): Promise<boolean> {
   try {
     const db = getDB();
-    const userRecord = await db
-      .select()
-      .from(userTable)
-      .where(eq(userTable.id, userId))
-      .limit(1);
+    const userRecord = await db.query.user.findFirst({
+      where: eq(userTable.id, userId),
+      columns: { storageUsedBytes: true },
+    });
+    if (!userRecord) return false;
 
-    if (!userRecord || userRecord.length === 0) {
-      return false;
-    }
-
-    const currentUsage = userRecord[0].storageUsedBytes || 0;
-    const newUsage = Math.max(0, currentUsage - bytes);
+    const newUsage = Math.max(0, (userRecord.storageUsedBytes || 0) - bytes);
 
     await db
       .update(userTable)
@@ -113,30 +107,14 @@ export async function getUserStorageStats(
 ): Promise<StorageQuota> {
   try {
     const db = getDB();
-    const userRecord = await db
-      .select()
-      .from(userTable)
-      .where(eq(userTable.id, userId))
-      .limit(1);
-
-    if (!userRecord || userRecord.length === 0) {
-      return {
-        allowed: true,
-        used: 0,
-        quota: DEFAULT_STORAGE_QUOTA_BYTES,
-        remaining: DEFAULT_STORAGE_QUOTA_BYTES,
-      };
-    }
-
-    const user = userRecord[0];
-    const used = user.storageUsedBytes || 0;
-    const quota = user.storageQuotaBytes || DEFAULT_STORAGE_QUOTA_BYTES;
+    const used = await getUserUsageBytes(db, userId);
+    const quota = await getUserQuotaBytes(db, userId);
 
     return {
       allowed: used < quota,
       used,
       quota,
-      remaining: quota - used,
+      remaining: Math.max(0, quota - used),
     };
   } catch (error) {
     console.error("[getUserStorageStats] Error:", error);
