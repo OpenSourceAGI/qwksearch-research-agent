@@ -1,0 +1,83 @@
+{
+  "name": "research-agent-ui",
+  "description": "Chat research agent UI: conversation window, article reader, search config, file uploads, and chat history",
+  "version": "0.1.0",
+  "author": "vtempest",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "directory": "packages/research-agent-ui"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "vite build && (tsc --project tsconfig.build.json || true)",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "chat",
+    "research-agent",
+    "search",
+    "article-reader",
+    "shadcn",
+    "react"
+  ],
+  "peerDependencies": {
+    "next": ">=14",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@radix-ui/react-dialog": "^1.1.16",
+    "@radix-ui/react-dropdown-menu": "^2.1.17",
+    "@radix-ui/react-popover": "^1.1.16",
+    "@radix-ui/react-slot": "^1.2.5",
+    "@radix-ui/react-tooltip": "^1.2.9",
+    "@ricky0123/vad-web": "^0.0.30",
+    "chat-agent-toolkit": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "dompurify": "^3.4.9",
+    "extract-webpage": "workspace:*",
+    "framer-motion": "^12.40.0",
+    "grab-url": "^1.6.22",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^1.17.0",
+    "markdown-to-jsx": "^9.8.2",
+    "motion": "^12.40.0",
+    "quantum-sphere-loading-icon": "^1.0.3",
+    "react-icons": "^5.6.0",
+    "react-textarea-autosize": "^8.5.9",
+    "sonner": "^2.0.7",
+    "streamdown": "^2.5.0",
+    "tailwind-merge": "^3.6.0",
+    "turndown": "^7.2.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/turndown": "^5.0.5",
+    "@vitejs/plugin-react": "^6.0.3",
+    "next": "^16.2.10",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "typescript": "^5.7.2",
+    "vite": "^8.1.3"
+  }
+}

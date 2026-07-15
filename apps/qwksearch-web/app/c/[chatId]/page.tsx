@@ -1,6 +1,6 @@
 'use client';
 
-import ChatWindow from '@/components/ResearchAgent/components/ChatConversation/ChatWindow';
+import { ChatWindow } from 'research-agent-ui';
 
 const Page = () => {
   return <ChatWindow />;

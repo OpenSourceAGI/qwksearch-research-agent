@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx open-ready next dev",
-    "prebuild": "cd ../../packages/extract-pdf && bun run build && cd ../shadcn-app-dock && bun run build",
+    "prebuild": "cd ../../packages/extract-pdf && bun run build && cd ../shadcn-app-dock && bun run build && cd ../research-agent-ui && bun run build",
     "build": "vinext build",
     "deploy": "vinext deploy",
     "start": "next start",
@@ -112,6 +112,7 @@
     "react-textarea-autosize": "^8.5.9",
     "recharts": "^3.8.1",
     "remark-gfm": "^4.0.1",
+    "research-agent-ui": "workspace:*",
     "shadcn-app-dock": "workspace:*",
     "shadcn-theme-menu": "^1.1.13",
     "sonner": "^2.0.7",

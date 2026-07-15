@@ -160,6 +160,8 @@ bun i qwksearch-api-client
 
 - **render-url-to-html** — A collection of URL-to-HTML rendering strategies using Cloudflare Browser Rendering, Puppeteer with stealth plugins, and JSDOM. Fetches URLs and returns fully-rendered DOM as HTML, capable of bypassing bot-detection on JavaScript-rendered pages.
 
+- **research-agent-ui** — The chat research agent UI: conversation window, article reader, search config, file uploads, and chat history, along with the shadcn primitives and icons it depends on. Drops into a Next.js app behind a small config/injection surface for auth, branding, and media-search preferences.
+
 - **search-web-api** — Provides access to 70+ search engines across 10 categories (web, academic, news, images, etc.) plus a scrape/extract API served via a Hono HTTP server. Includes Hugging Face Transformers integration for AI-powered processing.
 
 - **searxng-search-cloudflare** — A deployment configuration for running a private SearXNG metasearch engine proxy in Docker. Aggregates results from multiple search engines without tracking the user, providing a privacy-respecting search backend.
