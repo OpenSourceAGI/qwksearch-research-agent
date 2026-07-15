@@ -120,6 +120,10 @@ bun i qwksearch-api-client
 
 **QwkSearch Tab Manager AI** — AI-powered tab manager that organizes, searches, and manages browser tabs intelligently.
 
+## 🧠 VS Code Extension
+
+**[QwkSearch for VS Code](apps/qwk-vscode-ext)** — Ask cited research questions from a sidebar in your editor, backed by the same QwkSearch API. Sign in with your account's API key, or use it signed-out as a guest.
+
 ## Further Research
 
 - [ThoughtSource Reasoning Datasets](https://github.com/OpenBioLink/ThoughtSource)
