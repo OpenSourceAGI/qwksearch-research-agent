@@ -1,6 +1,7 @@
-import { initAuth, getSession as getAuthSession, requireSession as requireAuthSession, getUserId as getAuthUserId, requireUserId as requireAuthUserId, AuthSession } from "./index";
+import { getSession as getAuthSession, requireSession as requireAuthSession, getUserId as getAuthUserId, requireUserId as requireAuthUserId } from "./index";
+import type { AuthSession } from "./index";
 
-export { AuthSession };
+export type { AuthSession };
 
 /**
  * Get current session from request headers
