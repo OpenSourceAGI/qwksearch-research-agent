@@ -12,6 +12,7 @@ import {
   UserCircle,
   HardDrive,
   Wand2,
+  FileUp,
 } from 'lucide-react';
 import Preferences from './Sections/Preferences';
 import Account from './Sections/Account';
@@ -34,6 +35,7 @@ import Storage from './Sections/Storage';
 import RewritePrompts from './Sections/RewritePrompts';
 import FileSources from './Sections/FileSources';
 import AIRewriteModes from './Sections/AIRewriteModes';
+import Uploads from './Sections/Uploads';
 
 const sections = [
   {
@@ -75,6 +77,14 @@ const sections = [
     icon: Search,
     component: SearchSection,
     dataAdd: 'search',
+  },
+  {
+    key: 'uploads',
+    name: 'Uploads',
+    description: 'View storage usage and delete uploaded files (1 GB limit).',
+    icon: FileUp,
+    component: Uploads,
+    dataAdd: 'uploads',
   },
   {
     key: 'fileSources',

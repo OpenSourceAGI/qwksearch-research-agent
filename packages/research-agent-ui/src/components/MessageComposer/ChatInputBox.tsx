@@ -12,7 +12,7 @@ import { FilePreviewCard } from "../FileUpload/FilePreviewCard";
 import { PastedContentCard } from "./PastedContentCard";
 import { useChat } from '../../hooks/useChat';
 import { useSpeechInput } from '../../hooks/voice/useSpeechToTranscript';
-import { useFileHandling } from '../FileUpload/useFileHandling';
+import { useFileHandling, isLoneUrl } from '../FileUpload/useFileHandling';
 import FileUploadDropdown from '../FileUpload/FileUploadDropdown';
 import { LiveWaveform } from '../../ui/live-waveform';
 
@@ -71,6 +71,7 @@ const ChatInputBox = () => {
         pastedContent, setPastedContent,
         isDragging,
         handleFiles,
+        attachUrl,
         onDragOver, onDragLeave, onDrop,
         handlePaste,
         resetAttachments,
@@ -228,6 +229,14 @@ const ChatInputBox = () => {
     const handleSend = () => {
         if (loading) return;
         if (!message.trim() && files.length === 0 && pastedContent.length === 0) return;
+        // A typed-in URL is extracted with extract-webpage and attached as a
+        // context file card instead of being sent as a plain search query
+        if (isLoneUrl(message) && files.length === 0 && pastedContent.length === 0) {
+            attachUrl(message);
+            setMessage("");
+            if (textareaRef.current) textareaRef.current.style.height = "auto";
+            return;
+        }
         sendMessage(message);
         resetInput();
     };

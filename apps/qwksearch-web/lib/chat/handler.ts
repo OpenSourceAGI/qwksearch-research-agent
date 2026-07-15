@@ -14,6 +14,10 @@ import { safeValidateBody } from "./schemas";
 import type { Body } from "./schemas";
 import { handleEmitterEvents } from "./stream-handler";
 import { handleHistorySave } from "./history";
+import { registerUploadFileLoader } from "./upload-file-loader";
+
+// Attached fileIds are resolved from R2 (not local disk) during rerankDocs
+registerUploadFileLoader();
 
 /**
  * Converts a raw conversation history array into AI SDK chat messages.

@@ -3,7 +3,7 @@
  * used across MessageComposer and related components.
  */
 import React from "react";
-import { Plus, Paperclip, ChevronDown, ArrowUp, X, FileText, Loader2, Check, Archive, Cloud, Upload, File, Mic, Square } from "lucide-react";
+import { Plus, Paperclip, ChevronDown, ArrowUp, X, FileText, Loader2, Check, Archive, Cloud, Upload, File, Mic, Square, Globe } from "lucide-react";
 
 export const Icons = {
     Plus: Plus,
@@ -20,6 +20,7 @@ export const Icons = {
     ArrowUp: ArrowUp,
     X: X,
     FileText: FileText,
+    Globe: Globe,
     Loader2: Loader2,
     Check: Check,
     Archive: Archive,

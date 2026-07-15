@@ -6,6 +6,57 @@ import type { Document } from "./document";
 import path from "node:path";
 import fs from "node:fs";
 
+/**
+ * Resolves uploaded file ids to their extracted text content. Hosts that
+ * store uploads remotely (e.g. Cloudflare R2) register a loader via
+ * {@link setUploadedFileLoader}; without one, rerankDocs falls back to
+ * reading `uploads/{fileId}-extracted.json` from the local filesystem.
+ */
+export type UploadedFileLoader = (
+  fileIds: string[],
+) => Promise<{ fileName: string; content: string }[]>;
+
+// Stored on globalThis so registration survives duplicate module instances
+// (e.g. one bundled copy and one transpiled source copy of this package)
+const LOADER_KEY = "__qwkUploadedFileLoader";
+
+export function setUploadedFileLoader(loader: UploadedFileLoader) {
+  (globalThis as any)[LOADER_KEY] = loader;
+}
+
+async function loadUploadedFiles(
+  fileIds: string[],
+): Promise<{ fileName: string; content: string }[]> {
+  if (fileIds.length === 0) return [];
+
+  const uploadedFileLoader: UploadedFileLoader | undefined = (
+    globalThis as any
+  )[LOADER_KEY];
+
+  if (uploadedFileLoader) {
+    try {
+      return await uploadedFileLoader(fileIds);
+    } catch (err) {
+      console.error("[rerankDocs] uploaded file loader failed:", err);
+      return [];
+    }
+  }
+
+  // Local filesystem fallback for self-hosted setups
+  const filesData: { fileName: string; content: string }[] = [];
+  for (const file of fileIds) {
+    try {
+      const contentPath =
+        path.join(process.cwd(), "uploads", file) + "-extracted.json";
+      const content = JSON.parse(fs.readFileSync(contentPath, "utf8"));
+      filesData.push({ fileName: content.title, content: content.content });
+    } catch {
+      // Skip files that are missing or unreadable
+    }
+  }
+  return filesData;
+}
+
 export function buildFallbackDocs(query: string): Document[] {
   const trimmedQuery = (query || "").trim();
   const searchQuery = trimmedQuery.length > 0 ? trimmedQuery : "web search";
@@ -41,12 +92,7 @@ export async function rerankDocs(
     return docs;
   }
 
-  const filesData = fileIds.map((file) => {
-    const filePath = path.join(process.cwd(), "uploads", file);
-    const contentPath = filePath + "-extracted.json";
-    const content = JSON.parse(fs.readFileSync(contentPath, "utf8"));
-    return { fileName: content.title, content: content.content };
-  });
+  const filesData = await loadUploadedFiles(fileIds);
 
   if (query.toLocaleLowerCase() === "summarize") {
     return docs.slice(0, 15);

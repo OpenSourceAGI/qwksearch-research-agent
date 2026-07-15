@@ -35,6 +35,8 @@ export const messages = sqliteTable("messages", {
 interface File {
   name: string;
   fileId: string;
+  /** Size in bytes of the uploaded file, shown in chat history. */
+  size?: number;
 }
 
 export const chats = sqliteTable("chats", {
@@ -49,6 +51,31 @@ export const chats = sqliteTable("chats", {
   thinkingTimeLimit: integer("thinkingTimeLimit").default(0),
   isPublic: integer("isPublic", { mode: "boolean" }).default(0),
 });
+
+export const uploads = sqliteTable(
+  "uploads",
+  {
+    /** Random hex id also used as the R2 object key prefix. */
+    fileId: text("fileId").primaryKey(),
+    userId: text("userId").notNull(),
+    fileName: text("fileName").notNull(),
+    fileExtension: text("fileExtension").notNull(),
+    /** Size in bytes of the original upload (or extracted JSON for URLs). */
+    size: integer("size").notNull().default(0),
+    createdAt: integer("createdAt", {
+      mode: "timestamp",
+    })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => {
+    return {
+      userIdIdx: index("idx_uploads_userId").on(table.userId),
+    };
+  },
+);
+
+export type Upload = typeof uploads.$inferSelect;
 
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),

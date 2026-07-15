@@ -102,7 +102,18 @@ export default async function grab(
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      // Surface the API's JSON error message (e.g. quota or file-size limit
+      // errors from /api/doc/uploads) instead of a bare status line
+      let serverMessage: string | undefined;
+      try {
+        const errBody = await response.clone().json();
+        if (typeof errBody?.message === "string") serverMessage = errBody.message;
+      } catch {
+        // non-JSON error body
+      }
+      throw new Error(
+        serverMessage || `HTTP ${response.status}: ${response.statusText}`,
+      );
     }
 
     const responseType = options?.responseType;

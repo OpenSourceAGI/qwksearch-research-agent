@@ -29,20 +29,30 @@ const AttachSmall = () => {
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoading(true);
-    const data = new FormData();
+    try {
+      const data = new FormData();
 
-    for (let i = 0; i < e.target.files!.length; i++) {
-      data.append('files', e.target.files![i]);
+      for (let i = 0; i < e.target.files!.length; i++) {
+        data.append('files', e.target.files![i]);
+      }
+
+      const resData = await grab(`doc/uploads`, {
+        method: 'POST',
+        body: data,
+      });
+
+      if (!resData?.files?.length) {
+        throw new Error(resData?.message || 'Upload failed');
+      }
+
+      setFiles([...files, ...resData.files]);
+      setFileIds([...fileIds, ...resData.files.map((file: any) => file.fileId)]);
+    } catch (err) {
+      console.error('[Attach] upload failed:', err);
+      alert(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setLoading(false);
     }
-
-    const resData = await grab(`doc/uploads`, {
-      method: 'POST',
-      body: data,
-    });
-
-    setFiles([...files, ...resData.files]);
-    setFileIds([...fileIds, ...resData.files.map((file: any) => file.fileId)]);
-    setLoading(false);
   };
 
   return loading ? (
@@ -73,7 +83,7 @@ const AttachSmall = () => {
                   type="file"
                   onChange={handleChange}
                   ref={fileInputRef}
-                  accept=".pdf,.docx,.txt"
+                  accept=".pdf,.docx,.txt,.md,.html,.htm"
                   multiple
                   hidden
                 />
@@ -105,13 +115,22 @@ const AttachSmall = () => {
                     className="text-muted-foreground"
                   />
                 </div>
-                <p className="text-popover-foreground/70 text-sm">
-                  {file.fileName.length > 25
-                    ? file.fileName.replace(/\.\w+$/, '').substring(0, 25) +
-                    '...' +
-                    file.fileExtension
-                    : file.fileName}
-                </p>
+                <div className="flex flex-col min-w-0">
+                  <p className="text-popover-foreground/70 text-sm truncate">
+                    {file.fileName.length > 25
+                      ? file.fileName.replace(/\.\w+$/, '').substring(0, 25) +
+                      '...' +
+                      file.fileExtension
+                      : file.fileName}
+                  </p>
+                  {(file.size ?? 0) > 0 && (
+                    <p className="text-muted-foreground text-xs">
+                      {((file.size ?? 0) / (1024 * 1024)) >= 1
+                        ? `${((file.size ?? 0) / (1024 * 1024)).toFixed(1)} MB`
+                        : `${((file.size ?? 0) / 1024).toFixed(1)} KB`}
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -128,7 +147,7 @@ const AttachSmall = () => {
         type="file"
         onChange={handleChange}
         ref={fileInputRef}
-        accept=".pdf,.docx,.txt"
+        accept=".pdf,.docx,.txt,.md,.html,.htm"
         multiple
         hidden
       />

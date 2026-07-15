@@ -77,6 +77,10 @@ export interface AttachedFile {
   preview: string | null;
   uploadStatus: string;
   content?: string;
+  /** Human-readable reason when uploadStatus is "error" */
+  errorMessage?: string;
+  /** For URL attachments: the extracted page's size in bytes */
+  remoteSize?: number;
 }
 
 export interface PastedContent {

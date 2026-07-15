@@ -1,7 +1,19 @@
 declare global {
   interface CloudflareEnv {
     DB: D1Database;
+    /** R2 bucket binding for user file uploads (see wrangler.jsonc). */
+    UPLOADS?: R2BucketLike;
   }
+}
+
+// Minimal R2 bucket type so upload storage compiles without @cloudflare/workers-types
+interface R2BucketLike {
+  put(
+    key: string,
+    value: string | ArrayBuffer | ArrayBufferView | Blob | ReadableStream,
+  ): Promise<unknown>;
+  get(key: string): Promise<{ text(): Promise<string> } | null>;
+  delete(keys: string | string[]): Promise<void>;
 }
 
 // Minimal D1Database type so drizzle-orm/d1 binding compiles without @cloudflare/workers-types

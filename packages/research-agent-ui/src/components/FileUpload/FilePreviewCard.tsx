@@ -23,6 +23,8 @@ export const formatFileSize = (bytes: number): string => {
 
 export const FilePreviewCard: React.FC<FilePreviewCardProps> = ({ file, onRemove }) => {
     const isImage = file.type.startsWith("image/") && file.preview;
+    const isUrl = file.type === "text/uri-list";
+    const sizeBytes = file.remoteSize ?? file.file.size;
 
     return (
         <div className="relative group flex-shrink-0 w-24 h-24 rounded-xl overflow-hidden border border-bg-300 bg-bg-200 animate-fade-in transition-all hover:border-text-400">
@@ -35,10 +37,12 @@ export const FilePreviewCard: React.FC<FilePreviewCardProps> = ({ file, onRemove
                 <div className="w-full h-full p-3 flex flex-col justify-between">
                     <div className="flex items-center gap-2">
                         <div className="p-1.5 bg-bg-300 rounded">
-                            <Icons.FileText className="w-4 h-4 text-text-300" />
+                            {isUrl
+                                ? <Icons.Globe className="w-4 h-4 text-text-300" />
+                                : <Icons.FileText className="w-4 h-4 text-text-300" />}
                         </div>
                         <span className="text-[10px] font-medium text-text-400 uppercase tracking-wider truncate">
-                            {file.file.name.split('.').pop()}
+                            {isUrl ? "link" : file.file.name.split('.').pop()}
                         </span>
                     </div>
                     <div className="space-y-0.5">
@@ -46,7 +50,7 @@ export const FilePreviewCard: React.FC<FilePreviewCardProps> = ({ file, onRemove
                             {file.file.name}
                         </p>
                         <p className="text-[10px] text-text-500">
-                            {formatFileSize(file.file.size)}
+                            {sizeBytes > 0 ? formatFileSize(sizeBytes) : (isUrl ? "webpage" : formatFileSize(sizeBytes))}
                         </p>
                     </div>
                 </div>
@@ -67,8 +71,16 @@ export const FilePreviewCard: React.FC<FilePreviewCardProps> = ({ file, onRemove
                 </div>
             )}
             {file.uploadStatus === 'error' && (
-                <div className="absolute inset-0 bg-red-900/60 flex items-center justify-center">
+                <div
+                    className="absolute inset-0 bg-red-900/60 flex flex-col items-center justify-center px-1"
+                    title={file.errorMessage || 'Upload failed'}
+                >
                     <Icons.X className="w-5 h-5 text-red-300" />
+                    {file.errorMessage && (
+                        <p className="text-[9px] text-red-200 text-center leading-tight line-clamp-2">
+                            {file.errorMessage}
+                        </p>
+                    )}
                 </div>
             )}
         </div>

@@ -43,10 +43,12 @@ export type Section = {
 export interface ChatFile {
   /** The original name of the file */
   fileName: string;
-  /** The file extension (e.g., 'pdf', 'txt') */
+  /** The file extension (e.g., 'pdf', 'txt'), or 'url' for extracted links */
   fileExtension: string;
   /** Unique identifier for the uploaded file */
   fileId: string;
+  /** Size of the uploaded file in bytes, shown in chat history */
+  size?: number;
 }
 
 /**

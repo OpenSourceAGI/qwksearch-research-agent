@@ -140,6 +140,7 @@ export const loadMessages = async (
           fileName: file.name,
           fileExtension: file.name.split(".").pop(),
           fileId: file.fileId,
+          size: file.size,
         };
       });
 
@@ -209,6 +210,7 @@ export const loadMessages = async (
       fileName: file.name,
       fileExtension: file.name.split(".").pop(),
       fileId: file.fileId,
+      size: file.size,
     };
   });
 

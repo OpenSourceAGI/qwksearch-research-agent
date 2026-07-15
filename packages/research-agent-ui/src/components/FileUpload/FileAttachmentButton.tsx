@@ -29,20 +29,37 @@ const Attach = () => {
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoading(true);
-    const data = new FormData();
+    try {
+      const data = new FormData();
 
-    for (let i = 0; i < e.target.files!.length; i++) {
-      data.append('files', e.target.files![i]);
+      for (let i = 0; i < e.target.files!.length; i++) {
+        data.append('files', e.target.files![i]);
+      }
+
+      const resData = await grab(`doc/uploads`, {
+        method: 'POST',
+        body: data,
+      });
+
+      if (!resData?.files?.length) {
+        throw new Error(resData?.message || 'Upload failed');
+      }
+
+      setFiles([...files, ...resData.files]);
+      setFileIds([...fileIds, ...resData.files.map((file: any) => file.fileId)]);
+    } catch (err) {
+      console.error('[Attach] upload failed:', err);
+      alert(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const resData = await grab(`doc/uploads`, {
-      method: 'POST',
-      body: data,
-    });
-
-    setFiles([...files, ...resData.files]);
-    setFileIds([...fileIds, ...resData.files.map((file: any) => file.fileId)]);
-    setLoading(false);
+  const formatFileSize = (bytes: number): string => {
+    if (!bytes || bytes <= 0) return '';
+    const mb = bytes / (1024 * 1024);
+    if (mb >= 1) return `${mb.toFixed(1)} MB`;
+    return `${(bytes / 1024).toFixed(1)} KB`;
   };
 
   return loading ? (
@@ -73,7 +90,7 @@ const Attach = () => {
                   type="file"
                   onChange={handleChange}
                   ref={fileInputRef}
-                  accept=".pdf,.docx,.txt"
+                  accept=".pdf,.docx,.txt,.md,.html,.htm"
                   multiple
                   hidden
                 />
@@ -100,18 +117,26 @@ const Attach = () => {
                 className="flex flex-row items-center justify-start w-full space-x-3 p-3"
               >
                 <div className="bg-secondary flex items-center justify-center w-10 h-10 rounded-md">
-                  <File
-                    size={16}
-                    className="text-muted-foreground"
-                  />
+                  {file.fileExtension === 'url' ? (
+                    <Link size={16} className="text-muted-foreground" />
+                  ) : (
+                    <File size={16} className="text-muted-foreground" />
+                  )}
                 </div>
-                <p className="text-popover-foreground/70 text-sm">
-                  {file.fileName.length > 25
-                    ? file.fileName.replace(/\.\w+$/, '').substring(0, 25) +
-                    '...' +
-                    file.fileExtension
-                    : file.fileName}
-                </p>
+                <div className="flex flex-col min-w-0">
+                  <p className="text-popover-foreground/70 text-sm truncate">
+                    {file.fileName.length > 25
+                      ? file.fileName.replace(/\.\w+$/, '').substring(0, 25) +
+                      '...' +
+                      file.fileExtension
+                      : file.fileName}
+                  </p>
+                  {formatFileSize(file.size ?? 0) && (
+                    <p className="text-muted-foreground text-xs">
+                      {formatFileSize(file.size ?? 0)}
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -130,7 +155,7 @@ const Attach = () => {
         type="file"
         onChange={handleChange}
         ref={fileInputRef}
-        accept=".pdf,.docx,.txt"
+        accept=".pdf,.docx,.txt,.md,.html,.htm"
         multiple
         hidden
       />
