@@ -19,10 +19,49 @@ export interface AuthSession {
 }
 
 /**
+ * Resolves a session from a personal API key (`Authorization: Bearer qwk_...`).
+ * Lets non-browser clients that can't hold a cookie session (e.g. the VS Code
+ * extension) authenticate with the API key already shown in Settings > Account.
+ * Returns null if the header is absent or doesn't match a user.
+ */
+async function getSessionFromApiKey(): Promise<AuthSession | null> {
+  const requestHeaders = await headers();
+  const authHeader = requestHeaders.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+
+  const apiKey = authHeader.slice("Bearer ".length).trim();
+  if (!apiKey.startsWith("qwk_")) return null;
+
+  const db = getDB();
+  const userRow = await db.query.user.findFirst({
+    where: eq(userSchema.apiKey, apiKey),
+  });
+  if (!userRow) return null;
+
+  return {
+    session: {
+      id: `apikey:${userRow.id}`,
+      userId: userRow.id,
+      // API keys don't expire on their own schedule; treat as long-lived.
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    },
+    user: {
+      id: userRow.id,
+      name: userRow.name,
+      email: userRow.email,
+      image: userRow.image ?? undefined,
+    },
+  };
+}
+
+/**
  * Get current session from request headers
  * Returns null if not authenticated
  */
 export async function getSession(): Promise<AuthSession | null> {
+  const apiKeySession = await getSessionFromApiKey();
+  if (apiKeySession) return apiKeySession;
+
   let session;
   try {
     const auth = await initAuth();

@@ -1,0 +1,114 @@
+{
+  "name": "qwksearch-vscode",
+  "displayName": "QwkSearch Research Agent",
+  "description": "Search, ask, and research the web from inside VS Code, powered by the QwkSearch API.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "opensourceagi",
+  "author": "vtempest",
+  "license": "rights.institute/prosper",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "directory": "apps/qwk-vscode-ext"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "search",
+    "research",
+    "ai",
+    "chat",
+    "qwksearch"
+  ],
+  "icon": "media/icon.png",
+  "main": "./dist/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "qwksearch",
+          "title": "QwkSearch",
+          "icon": "media/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "qwksearch": [
+        {
+          "type": "webview",
+          "id": "qwksearch.chatView",
+          "name": "Research Agent"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "qwksearch.login",
+        "title": "QwkSearch: Sign In",
+        "category": "QwkSearch"
+      },
+      {
+        "command": "qwksearch.logout",
+        "title": "QwkSearch: Sign Out",
+        "category": "QwkSearch"
+      },
+      {
+        "command": "qwksearch.focus",
+        "title": "QwkSearch: Open Research Agent",
+        "category": "QwkSearch"
+      },
+      {
+        "command": "qwksearch.askSelection",
+        "title": "QwkSearch: Ask About Selection",
+        "category": "QwkSearch"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "qwksearch.askSelection",
+          "when": "editorHasSelection",
+          "group": "9_qwksearch"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "QwkSearch",
+      "properties": {
+        "qwksearch.apiBaseUrl": {
+          "type": "string",
+          "default": "https://app.qwksearch.com",
+          "description": "Base URL of the QwkSearch deployment the extension talks to. Point this at a self-hosted qwksearch-web instance if you run your own."
+        },
+        "qwksearch.focusMode": {
+          "type": "string",
+          "default": "webSearch",
+          "enum": ["webSearch", "writingAssistant"],
+          "description": "Default research focus used for new questions: web search with cited sources, or writing assistant (no search)."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build:webview": "cd webview-ui && bun run build",
+    "build": "bun run compile",
+    "compile": "bun run build:webview && node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "package": "bun run build:webview && node esbuild.mjs --production",
+    "vscode:prepublish": "bun run package",
+    "type-check": "tsc --noEmit -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.28.1",
+    "typescript": "^6.0.3"
+  }
+}
