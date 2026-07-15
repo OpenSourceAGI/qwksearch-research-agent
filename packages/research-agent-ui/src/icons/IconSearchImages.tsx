@@ -1,0 +1,15 @@
+export default function IconSearchImages(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg width="800px" height="800px" viewBox="0 0 73 73" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" {...props}>
+      <g id="fundamentals/css/images" stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+        <g id="container" transform="translate(2.000000, 2.000000)" fillRule="nonzero">
+          <rect id="mask" stroke="#000000" strokeWidth="2" fill="#424A60" x="-1" y="-1" width="71" height="71" rx="14"/>
+          <circle id="Oval" fill="#EFCE4A" cx="21.069" cy="23.069" r="9.069"/>
+          <polygon id="Shape" fill="#1A9172" points="69.5 56.7492553 68.1170213 55.212766 51.5212766 40 37 55.9042553 44.5828723 63.4871277 50.1382979 69.0425532 60.7455406 69.0425532 69.5 60.1780353"/>
+          <polygon id="Shape" fill="#25AE88" points="47.8532188 64.0501875 33.8030313 50 12 69.1969687 53 69.1969687"/>
+          <rect id="mask" stroke="#000000" strokeWidth="2" x="-1" y="-1" width="71" height="71" rx="14"/>
+        </g>
+      </g>
+    </svg>
+  );
+}

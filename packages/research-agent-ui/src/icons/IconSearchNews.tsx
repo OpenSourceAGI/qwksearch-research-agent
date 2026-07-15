@@ -1,6 +1,6 @@
 export default function IconSearchNews(props: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 508 508" {...props}>
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 508 508" {...props}>
       <g>
         <path style={{fill:'#FFFFFF'}} d="M316.1,353.2H191.9c13.2,60.9,37.8,102.2,62.1,102.2C278.3,455.4,302.9,414.1,316.1,353.2z"/>
         <path style={{fill:'#FFFFFF'}} d="M78.2,353.2c26.2,46.5,69.8,80.1,120.6,94.5c-15.4-22.5-27.7-54.7-35.7-94.5H78.2z"/>
