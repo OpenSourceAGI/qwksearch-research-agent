@@ -1,133 +1,148 @@
 import { betterAuth } from "better-auth";
-import { withCloudflare } from "better-auth-cloudflare";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { getCloudflareContext } from "../cloudflare-context";
 import { oneTap, openAPI, magicLink, anonymous } from "better-auth/plugins";
-import { getDB } from "../database";
-import * as schema from "../database/schema";
-import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../config/site";
-import { getEnv } from "../env";
+import { db } from "../db";
+import * as schema from "../db/schema";
+import { Resend } from "resend";
+import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../constants";
+import { env } from "../../env";
 
 async function authBuilder() {
-  // CF context is only available inside a Worker/edge request — fall back gracefully in dev
-  let cf: Record<string, unknown> = {};
-  let kv: any | undefined;
-  try {
-    const ctx = getCloudflareContext();
-    cf = (ctx.cf as Record<string, unknown>) ?? {};
-    kv = (ctx.env as any)?.KV;
-  } catch {}
-
-  // Build social providers object only for configured providers
-  const socialProviders: Record<string, { clientId: string; clientSecret: string }> = {};
-
-  const googleClientId = getEnv("GOOGLE_CLIENT_ID");
-  const googleClientSecret = getEnv("GOOGLE_CLIENT_SECRET");
-  if (googleClientId && googleClientSecret &&
-      googleClientId !== 'your-google-client-id.apps.googleusercontent.com' &&
-      googleClientSecret !== 'your-google-client-secret') {
-    socialProviders.google = { clientId: googleClientId, clientSecret: googleClientSecret };
-  }
-
-  const discordClientId = getEnv("AUTH_DISCORD_ID");
-  const discordClientSecret = getEnv("AUTH_DISCORD_SECRET");
-  if (discordClientId && discordClientSecret) {
-    socialProviders.discord = { clientId: discordClientId, clientSecret: discordClientSecret };
-  }
-
-  const linkedinClientId = getEnv("AUTH_LINKEDIN_ID");
-  const linkedinClientSecret = getEnv("AUTH_LINKEDIN_SECRET");
-  if (linkedinClientId && linkedinClientSecret) {
-    socialProviders.linkedin = { clientId: linkedinClientId, clientSecret: linkedinClientSecret };
-  }
-
-  return betterAuth(
-    withCloudflare(
-      {
-        autoDetectIpAddress: true,
-        geolocationTracking: true,
-        cf,
-        ...(kv && { kv }),
+  return betterAuth({
+    baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    database: drizzleAdapter(db, {
+      provider: "sqlite",
+      schema,
+    }),
+    socialProviders: {
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID || "",
+        clientSecret: env.GOOGLE_CLIENT_SECRET || "",
       },
-      {
-        baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
-        // Without a stable secret, each CF Worker restart generates a new random
-        // signing key — sessions become invalid immediately on the next request.
-        // Set BETTER_AUTH_SECRET in CF Workers environment variables.
-        ...(getEnv("BETTER_AUTH_SECRET") ? { secret: getEnv("BETTER_AUTH_SECRET") } : {}),
-        // better-auth rejects credentialed POSTs (e.g. /sign-in/social) with
-        // 403 INVALID_ORIGIN when the Origin header isn't in trustedOrigins,
-        // which defaults to only [baseURL]. baseURL follows the
-        // NEXT_PUBLIC_BASE_URL env var, so a stale/localhost value on the
-        // deployed Worker silently locks every user out of login. Trust the
-        // production domains and local dev origins explicitly.
-        trustedOrigins: [
-          ...(NEXT_PUBLIC_BASE_URL ? [NEXT_PUBLIC_BASE_URL] : []),
-          "https://qwksearch.com",
-          "https://www.qwksearch.com",
-          "http://localhost:3000",
-          "http://localhost:8787",
-        ],
-        database: drizzleAdapter(getDB(), {
-          provider: "sqlite",
-          schema,
-        }),
-        socialProviders,
-        emailVerification: {
-          sendOnSignUp: false,
-          autoSignInAfterVerification: true,
+    },
+    emailVerification: {
+      sendOnSignUp: false,
+      autoSignInAfterVerification: true,
+    },
+    plugins: [
+      oneTap(),
+      openAPI(),
+      anonymous(),
+      magicLink({
+        sendMagicLink: async ({ email, url }) => {
+          const resend = new Resend(process.env.AUTH_RESEND_KEY);
+          await resend.emails.send({
+            from: `${APP_NAME} <${APP_EMAIL || "noreply@example.com"}>`,
+            to: email,
+            subject: `Sign in to ${APP_NAME}`,
+            html: `<p>Click the link below to sign in to ${APP_NAME}:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 5 minutes.</p>`,
+          });
         },
-        plugins: [
-          oneTap(),
-          openAPI(),
-          anonymous(),
-          magicLink({
-            sendMagicLink: async ({ email, url }) => {
-              // Get Cloudflare context for email sending
-              const ctx = getCloudflareContext();
-              const env = ctx.env as any;
-
-              // Use Cloudflare Email Service
-              await fetch("https://api.mailchannels.net/tx/v1/send", {
-                method: "POST",
-                headers: {
-                  "content-type": "application/json",
-                },
-                body: JSON.stringify({
-                  personalizations: [
-                    {
-                      to: [{ email }],
-                    },
-                  ],
-                  from: {
-                    email: APP_EMAIL,
-                    name: APP_NAME,
-                  },
-                  subject: `Sign in to ${APP_NAME}`,
-                  content: [
-                    {
-                      type: "text/html",
-                      value: `<p>Click the link below to sign in to ${APP_NAME}:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 5 minutes.</p>`,
-                    },
-                  ],
-                }),
-              });
-            },
-            expiresIn: 300,
-            disableSignUp: false,
-          }),
-        ],
-      },
-    ),
-  );
+        expiresIn: 300,
+        disableSignUp: false,
+      }),
+    ],
+  });
 }
 
-// Singleton — created on first request so CF context is available
-let authInstance: Awaited<ReturnType<typeof authBuilder>> | null = null;
+type AuthInstance = Awaited<ReturnType<typeof authBuilder>>;
 
-export async function initAuth() {
+let authInstance: AuthInstance | null = null;
+
+export async function initAuth(): Promise<AuthInstance> {
   if (!authInstance) {
     authInstance = await authBuilder();
   }
-  return authInstance!;
+  return authInstance;
+}
+
+// Lazy proxy — auth is not initialized at module load (safe for CF Workers).
+// Supports auth.handler(req) and auth.api.method(...) call patterns.
+export const auth: AuthInstance = new Proxy({} as AuthInstance, {
+  has() { return true; },
+  get(_, prop) {
+    const key = prop as string;
+    return new Proxy(
+      async (...args: unknown[]) => {
+        const instance = await initAuth();
+        return (instance as any)[key](...args);
+      },
+      {
+        has() { return true; },
+        get(_, subProp) {
+          const sub = subProp as string;
+          if (sub === "then" || sub === "catch" || sub === "finally") return undefined;
+          return async (...args: unknown[]) => {
+            const instance = await initAuth();
+            return (instance as any)[key][sub](...args);
+          };
+        },
+      },
+    );
+  },
+});
+
+import { headers } from "next/headers";
+
+export interface AuthSession {
+  session: {
+    id: string;
+    userId: string;
+    expiresAt: Date;
+  };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image?: string;
+  };
+}
+
+/**
+ * Get current session from request headers
+ * Returns null if not authenticated
+ */
+export async function getSession(): Promise<AuthSession | null> {
+  try {
+    const authInstance = await initAuth();
+    const session = await authInstance.api.getSession({
+      headers: await headers(),
+    });
+
+    return session;
+  } catch (error) {
+    console.error("Session retrieval error:", error);
+    return null;
+  }
+}
+
+/**
+ * Get session or throw 401 error
+ * Use this in protected API routes
+ */
+export async function requireSession(): Promise<AuthSession> {
+  const session = await getSession();
+
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
+
+  return session;
+}
+
+/**
+ * Get user ID from session
+ * Returns null if not authenticated
+ */
+export async function getUserId(): Promise<string | null> {
+  const session = await getSession();
+  return session?.user?.id ?? null;
+}
+
+/**
+ * Require user ID or throw
+ */
+export async function requireUserId(): Promise<string> {
+  const session = await requireSession();
+  return session.user.id;
 }

@@ -505,6 +505,7 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
                             ))}
                             {suggestions.map((s, i) => {
                                 const optionIndex = domainSuggestions.length + i;
+                                const { searchTerm } = getSearchTerm(message);
                                 return (
                                     <li key={`${s}-${i}`}>
                                         <button
@@ -519,7 +520,7 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
                                         >
                                             <span className="w-5 h-5 flex items-center justify-center rounded bg-bg-200 dark:bg-[#3A3A38] text-[11px] font-semibold text-text-400 shrink-0">{optionIndex + 1}</span>
                                             <Search className="w-4 h-4 text-text-400 shrink-0" />
-                                            <span className="truncate">{s}</span>
+                                            <span className="truncate">{searchTerm}</span>
                                         </button>
                                     </li>
                                 );
