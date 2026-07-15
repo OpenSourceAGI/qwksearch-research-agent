@@ -79,9 +79,9 @@ npm install ai-research-agent
 ## Quick start
 
 ```ts
-import { generateLanguageResponse } from "ai-research-agent";
+import { writeLanguageResponse } from "ai-research-agent";
 
-const response = await generateLanguageResponse({
+const response = await writeLanguageResponse({
   provider: "groq",
   apiKey: process.env.GROQ_API_KEY,
   agent: "question",
@@ -96,9 +96,9 @@ console.log(response.content);
 ### Using Amazon Bedrock
 
 ```ts
-import { generateLanguageResponse } from "ai-research-agent";
+import { writeLanguageResponse } from "ai-research-agent";
 
-const response = await generateLanguageResponse({
+const response = await writeLanguageResponse({
   provider: "amazon",
   apiKey: process.env.AWS_BEARER_TOKEN_BEDROCK, // or "region:accessKeyId:secretAccessKey"
   model: "anthropic.claude-3-5-sonnet-20241022-v2:0",
@@ -177,7 +177,7 @@ src/
   agents/                    # prompt + tool registry, generate function, model list
     agent-prompts.ts         # AGENT_PROMPTS, extractJSONFromLanguageReply
     agent-tools.ts           # AGENT_TOOLS (web_search, extract_page, ...)
-    generate-language.ts     # generateLanguageResponse — main entry point
+    generate-language.ts     # writeLanguageResponse — main entry point
     generate-language-types.ts
     language-model-names.ts  # LANGUAGE_MODELS, LANGUAGE_PROVIDERS
     llm-providers.ts         # createLLMProvider — chat-model factory

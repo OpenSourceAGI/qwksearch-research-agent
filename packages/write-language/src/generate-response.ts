@@ -45,14 +45,14 @@ export { convertMarkdownToHTMLEscaped } from "./utils/markdown-to-html";
  * @returns Resolved response object with `content`, optional `extract`, or `error`
  * @author [Language Model Researchers](https://arc.net/folder/D0472A20-9C20-4D3F-B145-D2865C0A9FEE)
  * @example
- * const response = await generateLanguageResponse({
+ * const response = await writeLanguageResponse({
  *   query: "Explain neural networks",
  *   agent: "question",
  *   provider: "groq",
  *   apiKey: "your-api-key",
  * });
  */
-export async function generateLanguageResponse(
+export async function writeLanguageResponse(
   options: GenerateLanguageOptions = {} as GenerateLanguageOptions,
 ): Promise<GenerateLanguageResult> {
   const {

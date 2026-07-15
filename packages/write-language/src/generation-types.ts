@@ -21,7 +21,7 @@ export type LLMProviderName =
   | (string & {}); // preserve autocomplete while allowing arbitrary strings
 
 /**
- * Configuration options for {@link generateLanguageResponse}.
+ * Configuration options for {@link writeLanguageResponse}.
  */
 export interface GenerateLanguageOptions {
   /** LLM provider to use */
@@ -55,7 +55,7 @@ export interface GenerateLanguageOptions {
   [key: string]: unknown;
 }
 
-/** Return value of {@link generateLanguageResponse} */
+/** Return value of {@link writeLanguageResponse} */
 export interface GenerateLanguageResult {
   /** Generated response in HTML or Markdown format */
   content?: string;

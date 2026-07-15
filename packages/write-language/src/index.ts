@@ -10,7 +10,7 @@
  */
 
 export {
-  generateLanguageResponse,
+  writeLanguageResponse,
   convertMarkdownToHTMLEscaped,
 } from "./generate-response";
 

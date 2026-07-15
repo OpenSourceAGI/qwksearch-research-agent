@@ -11,7 +11,7 @@
  * - Conflict resolution
  */
 
-import { generateLanguageResponse } from "write-language";
+import { writeLanguageResponse } from "write-language";
 import type { IMemoryStorage } from "./storage-interface";
 import type {
   MemoryRecord,
@@ -422,7 +422,7 @@ export class SimpleMemory {
     conversationText: string,
   ): Promise<ExtractedFact[]> {
     try {
-      const { extract: factsResponse } = await generateLanguageResponse({
+      const { extract: factsResponse } = await writeLanguageResponse({
         agent: "remember-facts",
         chat_history: conversationText,
         provider: "groq",

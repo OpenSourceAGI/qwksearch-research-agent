@@ -34,9 +34,9 @@ npm install write-language
 ### Basic Response Generation
 
 ```typescript
-import { generateLanguageResponse } from 'write-language';
+import { writeLanguageResponse } from 'write-language';
 
-const result = await generateLanguageResponse({
+const result = await writeLanguageResponse({
   provider: 'openai',
   model: 'gpt-4-turbo',
   prompt: 'Explain quantum computing in simple terms',
@@ -49,7 +49,7 @@ console.log(result.text);
 ### Streaming Responses
 
 ```typescript
-const result = await generateLanguageResponse({
+const result = await writeLanguageResponse({
   provider: 'anthropic',
   model: 'claude-3-5-sonnet-20241022',
   prompt: 'Write a short story about AI',
@@ -107,7 +107,7 @@ const model = provider('llama-3.3-70b-versatile');
 ```typescript
 import { AGENT_PROMPTS } from 'write-language';
 
-const result = await generateLanguageResponse({
+const result = await writeLanguageResponse({
   provider: 'openai',
   model: 'gpt-4',
   prompt: AGENT_PROMPTS.researchAgent.systemPrompt,
@@ -132,7 +132,7 @@ const html = convertMarkdownToHTMLEscaped(markdown);
 
 ## API Reference
 
-### `generateLanguageResponse(options)`
+### `writeLanguageResponse(options)`
 
 Generate an AI language response.
 

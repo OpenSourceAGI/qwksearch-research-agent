@@ -1,0 +1,27 @@
+{
+  "name": "notebooklm-api",
+  "version": "0.1.0",
+  "description": "NotebookLM API via Cloudflare Containers — on-demand Python sandbox that sleeps when idle",
+  "author": "vtempest <grokthiscontact@gmail.com>",
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "directory": "packages/notebooklm-api"
+  },
+  "type": "module",
+  "main": "./src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "types": "wrangler types"
+  },
+  "dependencies": {
+    "@cloudflare/puppeteer": "^1.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241127.0",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.0.0"
+  }
+}

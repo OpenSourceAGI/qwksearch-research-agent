@@ -91,7 +91,7 @@ The memory system has been refactored from a single monolithic file into a modul
 ### 4. **simple-memory.ts**
 - **Purpose**: Core memory management logic
 - **Exports**: `SimpleMemory` class
-- **Dependencies**: `storage-interface.ts`, `types.ts`, `generateLanguageResponse`
+- **Dependencies**: `storage-interface.ts`, `types.ts`, `writeLanguageResponse`
 - **Features**:
   - Message deduplication
   - Auto-summarization

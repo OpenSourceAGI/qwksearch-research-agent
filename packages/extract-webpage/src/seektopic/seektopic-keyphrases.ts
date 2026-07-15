@@ -110,8 +110,8 @@ export async function extractSEEKTOPIC(
     // `generate-language` moved into the chat-agent-toolkit workspace package.
     // Load it lazily (and tolerate absence) since the LLM path is an optional
     // enhancement — the n-gram fallback below covers extraction without it.
-    const { generateLanguageResponse } = await import("chat-agent-toolkit");
-    const aiResponse = await generateLanguageResponse({
+    const { writeLanguageResponse } = await import("chat-agent-toolkit");
+    const aiResponse = await writeLanguageResponse({
       query: llmPrompt,
       provider: getEnv("LLM_PROVIDER") || "openai",
       apiKey: getEnv("LLM_API_KEY") || getEnv("OPENAI_API_KEY") || "dummy",

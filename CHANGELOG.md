@@ -8,7 +8,6 @@ Major framework modernization with **Vinext** and **Vite 8** (rolldown-based). R
 
 **Model Update**: Changed default model for OpenRouter provider from Kimi 2.5 to **Nemotron 3 Super 120B** for all users and guests. Updated chat configuration to prioritize Nemotron models across the platform.
 
-**Authentication Fix**: Resolved "Invalid Base64 character" error in Better Auth by implementing proper `BETTER_AUTH_SECRET` configuration for Cloudflare Workers. Added automated setup script (`setup-auth-secret.sh`) and comprehensive documentation for secret management.
 
 ## June 2026
 
@@ -20,7 +19,7 @@ Editor and authentication enhancements. Integrated **Google One Tap** with FedCM
 
 ## April 2026
 
-**Major V2 rewrite** with fundamental restructuring. Optimized project structure and removed deprecated dependencies. Reorganized scraper infrastructure with rebuilt **Next.js** configuration. Implemented **XGBoost** statistical analysis, replacing neural utilities. Overhauled documentation and README. Refactored research agent components and migrated chat/article modules. Enhanced editor with font customization and menu improvements. Improved **Cloudflare Workers** configuration.
+**Major V2 rewrite** with fundamental restructuring. Optimized project structure and removed deprecated dependencies. Reorganized scraper infrastructure with rebuilt **Next.js** configuration. Overhauled documentation and README. Refactored research agent components and migrated chat/article modules. Enhanced editor with font customization and menu improvements. Improved **Cloudflare Workers** configuration.
 
 
 # Prototype Phase (2024)
