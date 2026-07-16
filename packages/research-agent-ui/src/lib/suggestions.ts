@@ -14,7 +14,7 @@ export const getSuggestions = async (chatHistory: Message[]) => {
 
   try {
     const data = await grab<{ suggestions: string[] }>(
-      `agent/suggestions`,
+  `agent/suggestions`,
       {
         method: "POST",
         body: JSON.stringify({
