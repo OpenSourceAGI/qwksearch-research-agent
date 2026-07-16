@@ -46,3 +46,6 @@ export const getAutoMediaSearch = () =>
 export const getFontFamily = () =>
   configManager.getConfig("preferences.fontFamily", "");
 
+export const getEnabledSearchEngines = (): string[] =>
+  configManager.getConfig("search.enabledEngines", []);
+

@@ -23,6 +23,7 @@ import { cn } from '../../lib/utils';
 import Models from './Sections/Models/Section';
 import MCPServers from './Sections/MCPServers/Section';
 import SearchSection from './Sections/Search';
+import SearchEngines from './Sections/SearchEngines';
 import {
   Select,
   SelectContent,
@@ -70,11 +71,19 @@ const sections = [
   },
   {
     key: 'search',
-    name: 'Search',
-    description: 'Manage search settings.',
+    name: 'Search Settings',
+    description: 'Configure search parameters.',
     icon: Search,
     component: SearchSection,
     dataAdd: 'search',
+  },
+  {
+    key: 'searchEngines',
+    name: 'Search Sources',
+    description: 'Manage search engine sources by category.',
+    icon: Search,
+    component: SearchEngines,
+    dataAdd: 'searchEngines',
   },
   {
     key: 'fileSources',

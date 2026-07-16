@@ -269,7 +269,7 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
             {/* Categories flyout submenu */}
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="gap-2">
-                <primaryCategory.icon className="w-4 h-4 flex-shrink-0" />
+                {primaryCategory && <primaryCategory.icon className="w-4 h-4 flex-shrink-0" />}
                 <span>Category</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-44">
@@ -291,7 +291,7 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
                     onSelect={(e) => e.preventDefault()}
                     className="gap-2"
                   >
-                    <cat.icon className="w-3.5 h-3.5 flex-shrink-0" />
+                    {cat.icon && <cat.icon className="w-3.5 h-3.5 flex-shrink-0" />}
                     <span>{cat.name}</span>
                   </DropdownMenuCheckboxItem>
                 ))}

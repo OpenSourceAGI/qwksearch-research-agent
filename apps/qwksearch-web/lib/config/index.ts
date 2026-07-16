@@ -7,6 +7,7 @@ import {
 import { getModelProvidersUIConfigSection } from "chat-agent-toolkit/models/providers";
 import { getMCPServersUIConfigSection } from "../mcp-servers";
 import { getEnv } from "../env";
+import { ALL_ENGINES } from "search-web-api";
 
 // Simple browser-compatible deterministic hash
 const hashObj = (obj: { [key: string]: any }) => {
@@ -32,6 +33,7 @@ class ConfigManager {
       tavilyApiKey: "",
       sourceScrapeCount: 3,
       sourceScrapeTimeout: 5,
+      enabledEngines: ALL_ENGINES.map(e => e.name),
     },
   };
   uiConfigSections: UIConfigSections = {
