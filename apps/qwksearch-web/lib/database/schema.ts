@@ -299,5 +299,28 @@ export const shareTokens = sqliteTable(
   },
 );
 
+export const uploads = sqliteTable(
+  "uploads",
+  {
+    fileId: text("fileId").primaryKey(),
+    userId: text("userId"),
+    fileName: text("fileName").notNull(),
+    fileExtension: text("fileExtension").notNull(),
+    size: integer("size").notNull().default(0),
+    createdAt: integer("createdAt", {
+      mode: "timestamp",
+    })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => {
+    return {
+      userIdIdx: index("idx_uploads_userId").on(table.userId),
+    };
+  },
+);
+
+export type Upload = typeof uploads.$inferSelect;
+
 // Export Document type from documents table
 export type Document = typeof documents.$inferSelect;

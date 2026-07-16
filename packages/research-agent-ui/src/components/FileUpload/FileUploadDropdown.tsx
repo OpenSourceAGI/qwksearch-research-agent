@@ -43,9 +43,9 @@ const THINKING_OPTIONS = [
   { label: 'Unlimited', value: 0 },
 ];
 
-const SUPPORTED_EXTS = ['pdf', 'docx', 'txt', 'html', 'htm'];
+const SUPPORTED_EXTS = ['pdf', 'docx', 'txt', 'md', 'html', 'htm'];
 const TEXT_EXTS = [
-  'md', 'markdown', 'js', 'jsx', 'ts', 'tsx', 'py', 'rb', 'go', 'rs',
+  'markdown', 'js', 'jsx', 'ts', 'tsx', 'py', 'rb', 'go', 'rs',
   'java', 'c', 'cpp', 'h', 'hpp', 'cs', 'swift', 'kt', 'sh', 'bash',
   'zsh', 'json', 'yaml', 'yml', 'toml', 'ini', 'cfg', 'conf', 'xml',
   'csv', 'tsv', 'log', 'env', 'sql', 'graphql', 'vue', 'svelte', 'astro',
@@ -113,6 +113,7 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
                 'application/pdf': ['.pdf'],
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
                 'text/plain': ['.txt'],
+                'text/markdown': ['.md'],
                 'text/html': ['.html', '.htm'],
                 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'],
               },

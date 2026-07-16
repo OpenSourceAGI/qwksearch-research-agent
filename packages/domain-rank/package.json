@@ -4,7 +4,7 @@
   "description": "Domain Rank Top Million domains, source names, duplicates, and favicons",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
     "directory": "packages/domain-rank"
   },
   "main": "./dist/index.cjs",

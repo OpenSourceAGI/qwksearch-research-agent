@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
     "directory": "packages/extract-pdf-docling"
   },
   "type": "module",
