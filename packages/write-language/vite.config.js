@@ -40,7 +40,7 @@ export default defineConfig({
         "qwksearch-api-client",
       ],
       output: {
-        inlineDynamicImports: true,
+        codeSplitting: false,
       },
     },
     minify: "terser",
