@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ALL_ENGINES, CATEGORIES } from "search-web-api";
+import { ALL_ENGINES } from "search-extract-web-api/dist/search/search-engines-registry-list.js";
+import { CATEGORIES } from "search-extract-web-api/dist/registry/search-engine-category-registry.js";
 
 export const GET = async () => {
   try {

@@ -7,7 +7,7 @@ import {
 import { getModelProvidersUIConfigSection } from "chat-agent-toolkit/models/providers";
 import { getMCPServersUIConfigSection } from "../mcp-servers";
 import { getEnv } from "../env";
-import { ALL_ENGINES } from "search-web-api";
+import { ALL_ENGINES } from "search-extract-web-api/dist/search/search-engines-registry-list.js";
 
 // Simple browser-compatible deterministic hash
 const hashObj = (obj: { [key: string]: any }) => {

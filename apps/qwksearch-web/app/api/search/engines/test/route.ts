@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { search } from "search-web-api";
+import { Search } from "search-extract-web-api/dist/search/search-query-executor.js";
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -15,10 +15,11 @@ export const POST = async (req: NextRequest) => {
 
     const results: Record<string, { working: boolean; error?: string }> = {};
     const testQuery = "test";
+    const search = new Search();
 
     for (const engineName of engines) {
       try {
-        const result = await search(testQuery, {
+        const result = await search.query(testQuery, {
           engines: [engineName],
           count: 1,
           timeout: 5000,
