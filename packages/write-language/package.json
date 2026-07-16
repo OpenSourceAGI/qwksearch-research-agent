@@ -16,7 +16,7 @@
   "types": "./dist/types.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./src/index.ts",
       "react-server": "./dist/write-language.es.js",
       "import": "./dist/write-language.es.js",
       "require": "./dist/write-language.cjs.js"
