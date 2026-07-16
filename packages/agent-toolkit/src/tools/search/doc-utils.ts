@@ -36,6 +36,26 @@ export function normalizeSourcesOutput(output: unknown, query: string): Document
   return buildFallbackDocs(query);
 }
 
+/**
+ * Resolves an uploaded fileId to its extracted `{ title, content }` payload.
+ * Hosts register a loader (e.g. reading the native R2 binding) so the search
+ * pipeline does not depend on filesystem or credential-based access.
+ */
+export type UploadFileLoader = (
+  fileId: string,
+) => Promise<{ title: string; content: string } | null>;
+
+let uploadFileLoader: UploadFileLoader | null = null;
+
+/**
+ * Registers the loader used by {@link rerankDocs} to resolve uploaded
+ * fileIds to extracted content. The registered loader takes precedence over
+ * the S3-credentials fallback.
+ */
+export function registerUploadFileLoader(loader: UploadFileLoader): void {
+  uploadFileLoader = loader;
+}
+
 async function downloadExtractedContent(fileId: string, r2Credentials: R2CredentialsInput): Promise<{ title: string; content: string } | null> {
   try {
     const { manageStorage } = await import("manage-storage");
@@ -69,9 +89,25 @@ export async function rerankDocs(
 
   let filesData: { title: string; content: string }[] = [];
 
-  if (fileIds.length > 0 && r2Credentials) {
+  if (fileIds.length > 0) {
     const results = await Promise.all(
-      fileIds.map((fileId) => downloadExtractedContent(fileId, r2Credentials))
+      fileIds.map(async (fileId) => {
+        if (uploadFileLoader) {
+          try {
+            const loaded = await uploadFileLoader(fileId);
+            if (loaded) return loaded;
+          } catch (error) {
+            console.error(
+              `[rerankDocs] Registered upload loader failed for fileId ${fileId}:`,
+              error,
+            );
+          }
+        }
+        if (r2Credentials) {
+          return downloadExtractedContent(fileId, r2Credentials);
+        }
+        return null;
+      }),
     );
     filesData = results.filter((r) => r !== null);
   }

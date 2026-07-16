@@ -14,6 +14,7 @@ import { safeValidateBody } from "./schemas";
 import type { Body } from "./schemas";
 import { handleEmitterEvents } from "./stream-handler";
 import { handleHistorySave } from "./history";
+import { ensureUploadFileLoaderRegistered } from "./upload-file-loader";
 
 /**
  * Converts a raw conversation history array into AI SDK chat messages.
@@ -114,6 +115,10 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
   const t0 = Date.now();
   console.log("[POST /api/agent/chat] request received");
   try {
+    // Let the search pipeline resolve uploaded fileIds to extracted content
+    // stored in R2 (instead of the local filesystem).
+    ensureUploadFileLoaderRegistered();
+
     // getUserId validates the session's user row against the current database
     // (stale KV sessions are revoked and reported as guest), so a non-null
     // userId here is always safe for FK-bound writes.
