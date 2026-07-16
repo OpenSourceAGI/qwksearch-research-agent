@@ -67,13 +67,13 @@ export async function rerankDocs(
     return docs;
   }
 
-  let filesData: { fileName: string; content: string }[] = [];
+  let filesData: { title: string; content: string }[] = [];
 
   if (fileIds.length > 0 && r2Credentials) {
     const results = await Promise.all(
       fileIds.map((fileId) => downloadExtractedContent(fileId, r2Credentials))
     );
-    filesData = results.filter((r) => r !== null) as { fileName: string; content: string }[];
+    filesData = results.filter((r) => r !== null);
   }
 
   if (query.toLocaleLowerCase() === "summarize") {
@@ -86,7 +86,7 @@ export async function rerankDocs(
 
   const fileDocs: Document[] = filesData.map((fileData) => ({
     pageContent: fileData.content,
-    metadata: { title: fileData.fileName, url: "File" },
+    metadata: { title: fileData.title, url: "File" },
   }));
 
   // Combine file docs with web results, cap at 15
