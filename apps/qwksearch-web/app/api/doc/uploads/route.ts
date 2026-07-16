@@ -9,6 +9,7 @@ import crypto from 'crypto';
 
 import { uploadToR2, downloadFromR2, deleteFromR2 } from '@/lib/storage/r2-service';
 import { convertPDFToHTML } from 'extract-pdf';
+import { convertDOCXToHTML } from 'extract-webpage';
 import { checkUserStorageQuota, incrementUserStorageUsage, decrementUserStorageUsage } from '@/lib/storage/quota';
 import { getUserId } from '@/lib/auth/session';
 
@@ -69,9 +70,7 @@ export async function POST(req: Request) {
               fullText = pdfResult.html || pdfResult.text || '';
             }
           } else if (fileExtension === 'docx') {
-            const mammoth = await import('mammoth');
-            const result = await mammoth.convertToHtml({ buffer });
-            fullText = result.value || '';
+            fullText = await convertDOCXToHTML(buffer);
           } else if (fileExtension === 'txt' || fileExtension === 'html' || fileExtension === 'htm') {
             fullText = buffer.toString('utf-8');
           }

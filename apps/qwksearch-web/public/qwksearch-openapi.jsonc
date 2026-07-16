@@ -1,0 +1,2860 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "QwkSearch Research Agent API",
+    "version": "1.0.0",
+    "description": "API for QwkSearch — AI-powered research with search, document management, and multi-provider LLM support."
+  },
+  "servers": [
+    { "url": "https://qwksearch.com/api", "description": "Production" }
+  ],
+  "tags": [
+    { "name": "Admin", "description": "Diagnostics and admin utilities" },
+    { "name": "AI Agent", "description": "AI chat, search, voice, and content tools" },
+    { "name": "Auth", "description": "Authentication via better-auth" },
+    { "name": "Config", "description": "Application configuration" },
+    { "name": "Documents", "description": "Document management" },
+    { "name": "Favorites", "description": "Saved articles" },
+    { "name": "Google Docs", "description": "Google Drive / Docs integration" },
+    { "name": "MCP Servers", "description": "Model Context Protocol server management" },
+    { "name": "NotebookLM", "description": "Google NotebookLM integration" },
+    { "name": "Providers", "description": "LLM provider management" },
+    { "name": "Quotes", "description": "Quote and citation management" },
+    { "name": "Scraper", "description": "Web scraping" },
+    { "name": "Search Engines", "description": "Search engine sources and status" },
+    { "name": "Uploads", "description": "File upload to Cloudflare R2" },
+    { "name": "User", "description": "User profile, sessions, and account management" }
+  ],
+  "paths": {
+    "/admin/freekeys": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Debug free API key availability",
+        "operationId": "getAdminFreekeys",
+        "parameters": [
+          {
+            "name": "testAll",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["nvidia", "openrouter", "all"] }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Diagnostic info",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/agent/article-followups": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Generate follow-up questions for an article",
+        "operationId": "articleFollowups",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["article"],
+                "properties": {
+                  "article": { "type": "string" },
+                  "chatHistory": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": { "type": "string" },
+                        "content": { "type": "string" }
+                      }
+                    }
+                  },
+                  "maxQuestions": { "type": "integer", "default": 5 },
+                  "provider": { "type": "string" },
+                  "chatModel": { "$ref": "#/components/schemas/ModelWithProvider" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Follow-up questions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "extract": { "type": "array", "items": { "type": "string" } },
+                    "success": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/agent/article-qa": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Answer a question grounded in an article",
+        "operationId": "articleQA",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["article", "question"],
+                "properties": {
+                  "article": { "type": "string" },
+                  "question": { "type": "string" },
+                  "chatHistory": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "role": { "type": "string" },
+                        "content": { "type": "string" }
+                      }
+                    }
+                  },
+                  "provider": { "type": "string" },
+                  "chatModel": { "$ref": "#/components/schemas/ModelWithProvider" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": { "type": "string" },
+                    "success": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/agent/autocomplete": {
+      "get": {
+        "tags": ["AI Agent"],
+        "summary": "Query autocomplete suggestions",
+        "operationId": "autocomplete",
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "locale", "in": "query", "schema": { "type": "string", "default": "en-US" } },
+          { "name": "backends", "in": "query", "description": "Comma-separated: google, ddg, wikipedia", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Autocomplete results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "suggestions": { "type": "array", "items": { "type": "string" } },
+                    "domains": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/DomainSuggestion" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/chat": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Streaming research chat",
+        "operationId": "agentChat",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["message", "optimizationMode", "focusMode", "chatModel"],
+                "properties": {
+                  "message": {
+                    "type": "object",
+                    "required": ["messageId", "chatId", "content"],
+                    "properties": {
+                      "messageId": { "type": "string" },
+                      "chatId": { "type": "string" },
+                      "content": { "type": "string" }
+                    }
+                  },
+                  "optimizationMode": { "type": "string", "enum": ["speed", "balanced", "quality"] },
+                  "focusMode": { "type": "string", "example": "webSearch" },
+                  "history": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  },
+                  "files": { "type": "array", "items": { "type": "string" } },
+                  "chatModel": { "$ref": "#/components/schemas/ModelWithProvider" },
+                  "systemInstructions": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server-sent events stream",
+            "content": { "text/event-stream": { "schema": { "type": "string" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/agent/chats": {
+      "get": {
+        "tags": ["AI Agent"],
+        "summary": "List user's chats",
+        "operationId": "listChats",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Chat list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "chats": { "type": "array", "items": { "$ref": "#/components/schemas/Chat" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "delete": {
+        "tags": ["AI Agent"],
+        "summary": "Delete all user chats",
+        "operationId": "deleteAllChats",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "All chats deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "message": { "type": "string" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/agent/chats/search": {
+      "get": {
+        "tags": ["AI Agent"],
+        "summary": "Search chats by title",
+        "operationId": "searchChats",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching chats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "chats": { "type": "array", "items": { "$ref": "#/components/schemas/Chat" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/agent/chats/share": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Share a chat",
+        "operationId": "shareChat",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["chatId"],
+                "properties": { "chatId": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "chatId": { "type": "string" },
+                        "shareUrl": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/agent/chats/{id}": {
+      "get": {
+        "tags": ["AI Agent"],
+        "summary": "Get a chat with messages",
+        "operationId": "getChatById",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chat and messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "chat": { "$ref": "#/components/schemas/Chat" },
+                    "messages": { "type": "array", "items": { "type": "object" } }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["AI Agent"],
+        "summary": "Delete a chat",
+        "operationId": "deleteChatById",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/agent/discover": {
+      "get": {
+        "tags": ["AI Agent"],
+        "summary": "Discover curated content by topic",
+        "operationId": "discoverContent",
+        "parameters": [
+          {
+            "name": "topic",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["tech", "finance", "art", "sports", "entertainment"], "default": "tech" }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["normal", "preview"], "default": "normal" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Discovered content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "blogs": { "type": "array", "items": { "$ref": "#/components/schemas/SearchResult" } }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/agent/messages": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Save a chat message",
+        "operationId": "saveMessage",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["chatId", "messageId", "role"],
+                "properties": {
+                  "chatId": { "type": "string" },
+                  "messageId": { "type": "string" },
+                  "role": { "type": "string", "enum": ["user", "assistant"] },
+                  "content": { "type": "string" },
+                  "suggestions": { "type": "array", "items": { "type": "string" } },
+                  "sources": { "type": "array", "items": { "type": "object" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/agent/rewrite": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Rewrite text with AI (Groq)",
+        "operationId": "rewriteText",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "prompt": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rewritten text",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "rewrittenText": { "type": "string" } } }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/agent/search": {
+      "get": {
+        "tags": ["AI Agent"],
+        "summary": "Meta-search via SearXNG",
+        "operationId": "agentSearch",
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "cat", "in": "query", "schema": { "type": "string", "enum": ["general", "news", "images", "videos", "it", "science"], "default": "general" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "lang", "in": "query", "schema": { "type": "string", "default": "en-US" } },
+          { "name": "safesearch", "in": "query", "schema": { "type": "boolean", "default": false } },
+          { "name": "recency", "in": "query", "schema": { "type": "string", "enum": ["day", "week", "month", "year"] } },
+          { "name": "publicInstances", "in": "query", "schema": { "type": "boolean", "default": false } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": { "type": "array", "items": { "$ref": "#/components/schemas/SearchResult" } },
+                    "suggestions": { "type": "array", "items": { "type": "string" } },
+                    "elapsedTime": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/agent/suggestions": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Generate follow-up suggestions for a chat",
+        "operationId": "generateSuggestions",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["chatHistory", "chatModel"],
+                "properties": {
+                  "chatHistory": { "type": "array", "items": { "type": "object" } },
+                  "chatModel": { "$ref": "#/components/schemas/ModelWithProvider" },
+                  "maxQuestions": { "type": "integer", "default": 3 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Suggestions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "suggestions": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      }
+    },
+    "/agent/test-models": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Test which models are available for a provider",
+        "operationId": "testModels",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["providerType", "apiKey"],
+                "properties": {
+                  "providerType": { "type": "string" },
+                  "apiKey": { "type": "string" },
+                  "onlyFree": { "type": "boolean", "default": false }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test results",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/agent/transcript": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Transcribe audio via Whisper (Cloudflare Workers AI)",
+        "operationId": "transcribeAudio",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": { "type": "string", "format": "binary" },
+                  "model": { "type": "string", "enum": ["small", "fast", "medium", "turbo", "large"], "default": "turbo" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transcript",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "text": { "type": "string" },
+                    "model": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/validate-openrouter": {
+      "get": {
+        "tags": ["AI Agent"],
+        "summary": "Get cached OpenRouter free model validation (24h TTL)",
+        "operationId": "getOpenRouterValidation",
+        "responses": {
+          "200": {
+            "description": "Cached validation results",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      },
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Run fresh OpenRouter free model validation",
+        "operationId": "runOpenRouterValidation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "concurrency": { "type": "integer", "default": 5 },
+                  "timeout": { "type": "integer", "default": 10000 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Fresh validation results",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/agent/voice": {
+      "post": {
+        "tags": ["AI Agent"],
+        "summary": "Text-to-speech via Kokoro or Deepgram (10/day guest limit)",
+        "operationId": "textToSpeech",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "voice": { "type": "string" },
+                  "provider": { "type": "string", "enum": ["kokoro", "deepgram"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audio binary",
+            "content": {
+              "audio/wav": { "schema": { "type": "string", "format": "binary" } },
+              "audio/mpeg": { "schema": { "type": "string", "format": "binary" } }
+            }
+          },
+          "429": { "$ref": "#/components/responses/RateLimited" }
+        }
+      }
+    },
+    "/auth/providers": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "List configured OAuth providers",
+        "operationId": "listAuthProviders",
+        "responses": {
+          "200": {
+            "description": "Provider list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": { "type": "array", "items": { "type": "string" }, "example": ["google", "discord"] }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/config": {
+      "get": {
+        "tags": ["Config"],
+        "summary": "Get application configuration",
+        "operationId": "getConfig",
+        "responses": {
+          "200": {
+            "description": "Config values and UI field definitions",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Config"],
+        "summary": "Save a config value",
+        "operationId": "saveConfig",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["key", "value"],
+                "properties": {
+                  "key": { "type": "string" },
+                  "value": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/article": {
+      "get": {
+        "tags": ["Documents"],
+        "summary": "Fetch and cache article from URL",
+        "operationId": "getArticle",
+        "parameters": [
+          { "name": "url", "in": "query", "required": true, "schema": { "type": "string", "format": "uri" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Article content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cached": { "type": "boolean" },
+                    "article": { "$ref": "#/components/schemas/Article" },
+                    "isVideo": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "500": { "$ref": "#/components/responses/ServerError" }
+        }
+      },
+      "post": {
+        "tags": ["Documents"],
+        "summary": "Store article Q&A or follow-up questions",
+        "operationId": "updateArticle",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url"],
+                "properties": {
+                  "url": { "type": "string", "format": "uri" },
+                  "question": { "type": "string" },
+                  "answer": { "type": "string" },
+                  "followUpQuestions": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stored",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/doc/documents": {
+      "get": {
+        "tags": ["Documents"],
+        "summary": "List documents",
+        "operationId": "listDocuments",
+        "responses": {
+          "200": {
+            "description": "Document list",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Document" } }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Documents"],
+        "summary": "Create a document",
+        "operationId": "createDocument",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "title": { "type": "string" },
+                  "content": { "type": "string" },
+                  "parentId": { "type": "integer" },
+                  "isFolder": { "type": "boolean" },
+                  "metadata": { "type": "object" },
+                  "tags": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created document",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Document" } }
+            }
+          }
+        }
+      }
+    },
+    "/doc/documents/{id}": {
+      "get": {
+        "tags": ["Documents"],
+        "summary": "Get a document by ID",
+        "operationId": "getDocumentById",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Document" } } }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Documents"],
+        "summary": "Update a document",
+        "operationId": "updateDocument",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "content": { "type": "string" },
+                  "parentId": { "type": "integer" },
+                  "isExpanded": { "type": "boolean" },
+                  "metadata": { "type": "object" },
+                  "name": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated document",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Document" } } }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Documents"],
+        "summary": "Delete a document",
+        "operationId": "deleteDocument",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/doc/favorites": {
+      "get": {
+        "tags": ["Favorites"],
+        "summary": "List favorites",
+        "operationId": "listFavorites",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Favorites",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "favorites": { "type": "array", "items": { "$ref": "#/components/schemas/Favorite" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["Favorites"],
+        "summary": "Add a favorite",
+        "operationId": "addFavorite",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url"],
+                "properties": {
+                  "url": { "type": "string", "format": "uri" },
+                  "title": { "type": "string" },
+                  "cite": { "type": "string" },
+                  "author": { "type": "string" },
+                  "author_cite": { "type": "string" },
+                  "date": { "type": "string" },
+                  "source": { "type": "string" },
+                  "word_count": { "type": "integer" },
+                  "html": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Already favorited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "favorite": { "$ref": "#/components/schemas/Favorite" }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "favorite": { "$ref": "#/components/schemas/Favorite" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "delete": {
+        "tags": ["Favorites"],
+        "summary": "Remove a favorite",
+        "operationId": "removeFavorite",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "url", "in": "query", "required": true, "schema": { "type": "string", "format": "uri" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removed",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/doc/google-docs/auth": {
+      "get": {
+        "tags": ["Google Docs"],
+        "summary": "Get Google OAuth consent URL",
+        "operationId": "googleDocsAuth",
+        "responses": {
+          "200": {
+            "description": "Auth URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": { "authUrl": { "type": "string" } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/google-docs/auth/status": {
+      "get": {
+        "tags": ["Google Docs"],
+        "summary": "Check Google Drive connection status",
+        "operationId": "googleDocsAuthStatus",
+        "responses": {
+          "200": {
+            "description": "Connection status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "isConnected": { "type": "boolean" },
+                    "hasAccessToken": { "type": "boolean" },
+                    "hasRefreshToken": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/google-docs/callback": {
+      "get": {
+        "tags": ["Google Docs"],
+        "summary": "OAuth callback — exchanges code for tokens",
+        "operationId": "googleDocsCallback",
+        "parameters": [
+          { "name": "code", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "HTML popup-close page",
+            "content": { "text/html": { "schema": { "type": "string" } } }
+          }
+        }
+      }
+    },
+    "/doc/google-docs/export": {
+      "post": {
+        "tags": ["Google Docs"],
+        "summary": "Export document to Google Docs",
+        "operationId": "exportToGoogleDocs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["documentId", "accessToken"],
+                "properties": {
+                  "documentId": { "type": "string" },
+                  "accessToken": { "type": "string" },
+                  "refreshToken": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Export result",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/doc/google-docs/files": {
+      "get": {
+        "tags": ["Google Docs"],
+        "summary": "Download a Google Drive file by ID",
+        "operationId": "getGoogleDriveFile",
+        "parameters": [
+          { "name": "fileId", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "File content (base64)",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/doc/google-docs/import": {
+      "post": {
+        "tags": ["Google Docs"],
+        "summary": "Import a Google Docs document",
+        "operationId": "importFromGoogleDocs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["googleDocId", "accessToken"],
+                "properties": {
+                  "googleDocId": { "type": "string" },
+                  "accessToken": { "type": "string" },
+                  "refreshToken": { "type": "string" },
+                  "parentId": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Imported",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/google-docs/refresh-token": {
+      "post": {
+        "tags": ["Google Docs"],
+        "summary": "Refresh Google access token using stored refresh token",
+        "operationId": "refreshGoogleToken",
+        "responses": {
+          "200": {
+            "description": "Refresh result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" },
+                    "expiresAt": { "type": "string", "format": "date-time" },
+                    "error": { "type": "string" },
+                    "needsReauth": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/google-docs/share": {
+      "post": {
+        "tags": ["Google Docs"],
+        "summary": "Share a Google Doc",
+        "operationId": "shareGoogleDoc",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["googleDocId", "accessToken"],
+                "properties": {
+                  "googleDocId": { "type": "string" },
+                  "accessToken": { "type": "string" },
+                  "refreshToken": { "type": "string" },
+                  "emailAddress": { "type": "string", "format": "email" },
+                  "role": { "type": "string", "enum": ["reader", "commenter", "writer"] },
+                  "publicLink": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share result",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/doc/google-docs/token": {
+      "get": {
+        "tags": ["Google Docs"],
+        "summary": "Get Google access token from cookies",
+        "operationId": "getGoogleToken",
+        "responses": {
+          "200": {
+            "description": "Access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "accessToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/quotes": {
+      "get": {
+        "tags": ["Quotes"],
+        "summary": "List quotes for a document",
+        "operationId": "listQuotes",
+        "parameters": [
+          { "name": "documentId", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quotes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "type": "array", "items": { "$ref": "#/components/schemas/Quote" } }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      },
+      "post": {
+        "tags": ["Quotes"],
+        "summary": "Create a quote",
+        "operationId": "createQuote",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["documentId", "text"],
+                "properties": {
+                  "documentId": { "type": "string" },
+                  "text": { "type": "string" },
+                  "source": { "type": "string" },
+                  "author": { "type": "string" },
+                  "url": { "type": "string" },
+                  "pageNumber": { "type": "integer" },
+                  "tags": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "$ref": "#/components/schemas/Quote" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/quotes/{id}": {
+      "put": {
+        "tags": ["Quotes"],
+        "summary": "Update a quote",
+        "operationId": "updateQuote",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string" },
+                  "source": { "type": "string" },
+                  "author": { "type": "string" },
+                  "url": { "type": "string" },
+                  "pageNumber": { "type": "integer" },
+                  "tags": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "$ref": "#/components/schemas/Quote" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Quotes"],
+        "summary": "Delete a quote",
+        "operationId": "deleteQuote",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "type": "object", "properties": { "id": { "type": "string" } } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/share": {
+      "post": {
+        "tags": ["Documents"],
+        "summary": "Create or retrieve a share token for a document",
+        "operationId": "shareDocument",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["documentId"],
+                "properties": { "documentId": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Share info",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "shareId": { "type": "string" },
+                        "shareUrl": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/doc/share/{id}": {
+      "get": {
+        "tags": ["Documents"],
+        "summary": "Resolve a share token to a document",
+        "operationId": "getSharedDocument",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "description": "Share token", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shared document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": { "$ref": "#/components/schemas/Document" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "410": {
+            "description": "Share link expired",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          }
+        }
+      }
+    },
+    "/doc/uploads": {
+      "post": {
+        "tags": ["Uploads"],
+        "summary": "Upload files to Cloudflare R2 (PDF, DOCX, TXT, HTML)",
+        "operationId": "uploadFiles",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["files"],
+                "properties": {
+                  "files": { "type": "array", "items": { "type": "string", "format": "binary" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Uploaded files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "files": { "type": "array", "items": { "$ref": "#/components/schemas/UploadedFile" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Uploads"],
+        "summary": "Get extracted content for an uploaded file",
+        "operationId": "getUploadedFile",
+        "parameters": [
+          { "name": "fileId", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "File content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "title": { "type": "string" },
+                    "content": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Uploads"],
+        "summary": "Delete an uploaded file from R2",
+        "operationId": "deleteUploadedFile",
+        "parameters": [
+          { "name": "fileId", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "ext", "in": "query", "schema": { "type": "string" } },
+          { "name": "sizeBytes", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "fileId": { "type": "string" },
+                    "deleted": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": { "type": "string" },
+                          "success": { "type": "boolean" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/mcpservers": {
+      "get": {
+        "tags": ["MCP Servers"],
+        "summary": "List MCP servers",
+        "operationId": "listMCPServers",
+        "responses": {
+          "200": {
+            "description": "MCP server list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "servers": { "type": "array", "items": { "$ref": "#/components/schemas/MCPServer" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["MCP Servers"],
+        "summary": "Add an MCP server",
+        "operationId": "addMCPServer",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "name", "config"],
+                "properties": {
+                  "type": { "type": "string" },
+                  "name": { "type": "string" },
+                  "config": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created server",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "server": { "$ref": "#/components/schemas/MCPServer" } }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/mcpservers/{id}": {
+      "delete": {
+        "tags": ["MCP Servers"],
+        "summary": "Delete an MCP server",
+        "operationId": "deleteMCPServer",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["MCP Servers"],
+        "summary": "Update an MCP server",
+        "operationId": "updateMCPServer",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "config": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated server",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "server": { "$ref": "#/components/schemas/MCPServer" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/mcpservers/{id}/toggle": {
+      "post": {
+        "tags": ["MCP Servers"],
+        "summary": "Enable or disable an MCP server",
+        "operationId": "toggleMCPServer",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["enabled"],
+                "properties": { "enabled": { "type": "boolean" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated server",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "server": { "$ref": "#/components/schemas/MCPServer" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notebooklm/login": {
+      "post": {
+        "tags": ["NotebookLM"],
+        "summary": "Connect NotebookLM with Google credentials",
+        "operationId": "notebooklmLogin",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "googleEmail": { "type": "string" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/notebooklm/status": {
+      "get": {
+        "tags": ["NotebookLM"],
+        "summary": "Get NotebookLM connection status",
+        "operationId": "getNotebooklmStatus",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Connection status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "connected": { "type": "boolean" },
+                    "googleEmail": { "type": "string" },
+                    "createdAt": { "type": "string", "format": "date-time" },
+                    "expiresAt": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "delete": {
+        "tags": ["NotebookLM"],
+        "summary": "Disconnect NotebookLM",
+        "operationId": "disconnectNotebooklm",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Disconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/notebooklm/notebooks": {
+      "get": {
+        "tags": ["NotebookLM"],
+        "summary": "List notebooks",
+        "operationId": "listNotebooks",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Notebooks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "notebooks": { "type": "array", "items": { "$ref": "#/components/schemas/Notebook" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["NotebookLM"],
+        "summary": "Create a notebook",
+        "operationId": "createNotebook",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title"],
+                "properties": { "title": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created notebook",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "notebook": { "$ref": "#/components/schemas/Notebook" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/notebooklm/notebooks/{id}": {
+      "delete": {
+        "tags": ["NotebookLM"],
+        "summary": "Delete a notebook",
+        "operationId": "deleteNotebook",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/notebooklm/notebooks/{id}/ask": {
+      "post": {
+        "tags": ["NotebookLM"],
+        "summary": "Ask a question against a notebook",
+        "operationId": "askNotebook",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["query"],
+                "properties": { "query": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answer",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/notebooklm/notebooks/{id}/audio": {
+      "post": {
+        "tags": ["NotebookLM"],
+        "summary": "Generate audio overview for a notebook",
+        "operationId": "generateNotebookAudio",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "instructions": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audio result",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/notebooklm/notebooks/{id}/sources": {
+      "get": {
+        "tags": ["NotebookLM"],
+        "summary": "List notebook sources",
+        "operationId": "listNotebookSources",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sources",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sources": { "type": "array", "items": { "$ref": "#/components/schemas/NotebookSource" } }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "post": {
+        "tags": ["NotebookLM"],
+        "summary": "Add a source to a notebook",
+        "operationId": "addNotebookSource",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string", "format": "uri" },
+                  "text": { "type": "string" },
+                  "title": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Source added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "source": { "$ref": "#/components/schemas/NotebookSource" } }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/agent/providers": {
+      "get": {
+        "tags": ["Providers"],
+        "summary": "List LLM providers",
+        "operationId": "listProviders",
+        "parameters": [
+          { "name": "guest", "in": "query", "schema": { "type": "string", "enum": ["true"] } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Provider list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": { "type": "array", "items": { "$ref": "#/components/schemas/Provider" } },
+                    "isGuest": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Providers"],
+        "summary": "Add a provider",
+        "operationId": "addProvider",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "config"],
+                "properties": {
+                  "type": { "type": "string" },
+                  "config": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created provider",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "provider": { "$ref": "#/components/schemas/Provider" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/providers/{id}": {
+      "delete": {
+        "tags": ["Providers"],
+        "summary": "Delete a provider",
+        "operationId": "deleteProvider",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Providers"],
+        "summary": "Update a provider",
+        "operationId": "updateProvider",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": { "config": { "type": "object" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated provider",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "provider": { "$ref": "#/components/schemas/Provider" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/providers/{id}/models": {
+      "post": {
+        "tags": ["Providers"],
+        "summary": "Add a model to a provider",
+        "operationId": "addProviderModel",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["key", "type"],
+                "properties": {
+                  "key": { "type": "string" },
+                  "name": { "type": "string" },
+                  "type": { "type": "string", "enum": ["chat"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Model added",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Providers"],
+        "summary": "Remove a model from a provider",
+        "operationId": "deleteProviderModel",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["key", "type"],
+                "properties": {
+                  "key": { "type": "string" },
+                  "type": { "type": "string", "enum": ["chat"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Model removed",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scraper": {
+      "get": {
+        "tags": ["Scraper"],
+        "summary": "Scrape a URL (GET)",
+        "operationId": "scrapeGet",
+        "parameters": [
+          { "name": "url", "in": "query", "required": true, "schema": { "type": "string", "format": "uri" } },
+          { "name": "blockImages", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "bypassCaptcha", "in": "query", "schema": { "type": "boolean" } },
+          { "name": "timeout", "in": "query", "schema": { "type": "integer" } },
+          { "name": "format", "in": "query", "schema": { "type": "string", "enum": ["html", "json"] } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scraped content",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Scraper"],
+        "summary": "Scrape a URL (POST)",
+        "operationId": "scrapePost",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url"],
+                "properties": {
+                  "url": { "type": "string", "format": "uri" },
+                  "blockImages": { "type": "boolean" },
+                  "bypassCaptcha": { "type": "boolean" },
+                  "timeout": { "type": "integer" },
+                  "format": { "type": "string", "enum": ["html", "json"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Scraped content",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/search/engines": {
+      "get": {
+        "tags": ["Search Engines"],
+        "summary": "List all available search engines by category",
+        "operationId": "listSearchEngines",
+        "responses": {
+          "200": {
+            "description": "Engines grouped by category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "engines": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": { "type": "string" },
+                            "categories": { "type": "array", "items": { "type": "string" } }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search/engines/status": {
+      "get": {
+        "tags": ["Search Engines"],
+        "summary": "Get enabled search engines",
+        "operationId": "getEngineStatus",
+        "responses": {
+          "200": {
+            "description": "Enabled engines",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "enabledEngines": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Search Engines"],
+        "summary": "Update enabled search engines",
+        "operationId": "updateEngineStatus",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["enabledEngines"],
+                "properties": {
+                  "enabledEngines": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search/engines/test": {
+      "post": {
+        "tags": ["Search Engines"],
+        "summary": "Test whether search engines are working",
+        "operationId": "testSearchEngines",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["engines"],
+                "properties": {
+                  "engines": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test results per engine",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "working": { "type": "boolean" },
+                          "error": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get current user profile",
+        "operationId": "getUser",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "User profile",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/UserProfile" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "patch": {
+        "tags": ["User"],
+        "summary": "Update user profile",
+        "operationId": "updateUser",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "image": { "type": "string", "format": "uri" },
+                  "regenerateApiKey": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Delete account",
+        "operationId": "deleteUser",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/user/accounts": {
+      "get": {
+        "tags": ["User"],
+        "summary": "List linked OAuth accounts",
+        "operationId": "listUserAccounts",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "providerId": { "type": "string" },
+                      "accountId": { "type": "string" },
+                      "createdAt": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Unlink an OAuth account",
+        "operationId": "deleteUserAccount",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["accountId"],
+                "properties": { "accountId": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unlinked",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "success": { "type": "boolean" } } }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/user/password": {
+      "post": {
+        "tags": ["User"],
+        "summary": "Change password",
+        "operationId": "changePassword",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["currentPassword", "newPassword"],
+                "properties": {
+                  "currentPassword": { "type": "string" },
+                  "newPassword": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Changed",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/user/sessions": {
+      "get": {
+        "tags": ["User"],
+        "summary": "List active sessions",
+        "operationId": "listSessions",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Sessions",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/UserSession" } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      },
+      "delete": {
+        "tags": ["User"],
+        "summary": "Revoke all other sessions",
+        "operationId": "revokeOtherSessions",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Revoked",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/user/sessions/{id}": {
+      "delete": {
+        "tags": ["User"],
+        "summary": "Revoke a specific session",
+        "operationId": "revokeSession",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked",
+            "content": {
+              "application/json": {
+                "schema": { "type": "object", "properties": { "message": { "type": "string" } } }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/user/storage": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get storage usage",
+        "operationId": "getUserStorage",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Storage info",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/StorageInfo" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Bad request",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+      },
+      "Unauthorized": {
+        "description": "Authentication required",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+      },
+      "NotFound": {
+        "description": "Not found",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "rateLimited": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Internal server error",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      },
+      "ModelWithProvider": {
+        "type": "object",
+        "required": ["providerId", "key"],
+        "properties": {
+          "providerId": { "type": "string", "example": "openai" },
+          "key": { "type": "string", "example": "gpt-4o" }
+        }
+      },
+      "SearchResult": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "content": { "type": "string" },
+          "img_src": { "type": "string", "format": "uri" },
+          "engine": { "type": "string" },
+          "parsed_url": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "DomainSuggestion": {
+        "type": "object",
+        "properties": {
+          "domain": { "type": "string" },
+          "name": { "type": "string" },
+          "favicon": { "type": "string" }
+        }
+      },
+      "Article": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string", "format": "uri" },
+          "title": { "type": "string" },
+          "cite": { "type": "string" },
+          "author": { "type": "string" },
+          "author_cite": { "type": "string" },
+          "author_short": { "type": "string" },
+          "author_type": { "type": "string" },
+          "date": { "type": "string" },
+          "source": { "type": "string" },
+          "word_count": { "type": "integer" },
+          "html": { "type": "string" },
+          "followUpQuestions": { "type": "array", "items": { "type": "string" } },
+          "qaHistory": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question": { "type": "string" },
+                "answer": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "Chat": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "focusMode": { "type": "string" },
+          "userId": { "type": "string" },
+          "files": { "type": "array", "items": { "type": "string" } },
+          "messageCount": { "type": "integer" }
+        }
+      },
+      "Favorite": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "userId": { "type": "string" },
+          "url": { "type": "string", "format": "uri" },
+          "title": { "type": "string" },
+          "cite": { "type": "string" },
+          "author": { "type": "string" },
+          "author_cite": { "type": "string" },
+          "date": { "type": "string" },
+          "source": { "type": "string" },
+          "word_count": { "type": "integer" },
+          "html": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "title": { "type": "string" },
+          "name": { "type": "string" },
+          "content": { "type": "string" },
+          "parentId": { "type": "integer" },
+          "isFolder": { "type": "boolean" },
+          "isExpanded": { "type": "boolean" },
+          "metadata": { "type": "object" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "userId": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Quote": {
+        "type": "object",
+        "required": ["id", "documentId", "text"],
+        "properties": {
+          "id": { "type": "string" },
+          "documentId": { "type": "string" },
+          "text": { "type": "string" },
+          "source": { "type": "string" },
+          "author": { "type": "string" },
+          "url": { "type": "string" },
+          "pageNumber": { "type": "integer" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Provider": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "name": { "type": "string" },
+          "config": { "type": "object" },
+          "models": { "type": "array", "items": { "type": "object" } }
+        }
+      },
+      "MCPServer": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "name": { "type": "string" },
+          "config": { "type": "object" },
+          "enabled": { "type": "boolean" }
+        }
+      },
+      "Notebook": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "NotebookSource": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "url": { "type": "string", "format": "uri" }
+        }
+      },
+      "UploadedFile": {
+        "type": "object",
+        "properties": {
+          "fileName": { "type": "string" },
+          "fileExtension": { "type": "string" },
+          "fileId": { "type": "string" },
+          "sizeBytes": { "type": "integer" }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "image": { "type": "string", "format": "uri" },
+          "apiKey": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "UserSession": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "token": { "type": "string" },
+          "ipAddress": { "type": "string" },
+          "userAgent": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "expiresAt": { "type": "string", "format": "date-time" },
+          "isCurrent": { "type": "boolean" }
+        }
+      },
+      "StorageInfo": {
+        "type": "object",
+        "properties": {
+          "used": { "type": "integer" },
+          "quota": { "type": "integer" },
+          "remaining": { "type": "integer" },
+          "allowed": { "type": "boolean" },
+          "usedMB": { "type": "number" },
+          "quotaMB": { "type": "number" },
+          "remainingMB": { "type": "number" },
+          "percentage": { "type": "number" }
+        }
+      }
+    }
+  }
+}
