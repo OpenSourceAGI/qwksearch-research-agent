@@ -5,7 +5,7 @@ describe('QwkSearch API Client', () => {
 
   describe('writeLanguage', () => {
     it('generates language model reply', async () => {
-      const result = await QwkSearch.writeLanguage({
+      const result = await QwkSearch..writeLanguage({
         body: {
           agent: 'summarize-bullets',
           article: `

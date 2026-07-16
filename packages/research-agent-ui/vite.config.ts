@@ -15,6 +15,7 @@ export default defineConfig({
       entry: {
         index: fileURLToPath(new URL("./src/index.ts", import.meta.url)),
         config: fileURLToPath(new URL("./src/config.ts", import.meta.url)),
+        api: fileURLToPath(new URL("./src/api/index.ts", import.meta.url)),
       },
       name: "ResearchAgentUI",
       formats: ["es", "cjs"],

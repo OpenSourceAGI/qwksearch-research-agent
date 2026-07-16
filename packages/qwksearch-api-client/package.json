@@ -20,7 +20,7 @@
   },
   "scripts": {
     "ship": "npx standard-version --release-as patch; npm publish",
-    "build:api": "API_URL=https://app.qwksearch.com/api openapi-ts && vite build",
+    "build:api": " openapi-ts && vite build",
     "test:api": "vitest"
   },
   "files": [

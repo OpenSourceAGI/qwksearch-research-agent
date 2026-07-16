@@ -14,4 +14,4 @@ import { createClientConfig } from '../baseurl.ts';
  */
 export type CreateClientConfig<T extends ClientOptions = ClientOptions2> = (override?: Config<ClientOptions & T>) => Config<Required<ClientOptions> & T>;
 
-export const client = createClient(createClientConfig(createConfig<ClientOptions2>({ baseUrl: 'https://app.qwksearch.com/api' })));
+export const client = createClient(createClientConfig(createConfig<ClientOptions2>({ baseUrl: 'https://qwksearch.com/api' })));

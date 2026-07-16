@@ -10,7 +10,6 @@
     "strict": false,
     "isolatedModules": false,
     "skipLibCheck": true,
-    "moduleResolution": "node",
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "allowSyntheticDefaultImports": true

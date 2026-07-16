@@ -22,6 +22,11 @@
       "types": "./dist/config.d.ts",
       "import": "./dist/config.mjs",
       "require": "./dist/config.cjs"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts",
+      "import": "./dist/api.mjs",
+      "require": "./dist/api.cjs"
     }
   },
   "files": [
@@ -56,6 +61,9 @@
     "@radix-ui/react-tooltip": "^1.2.9",
     "@ricky0123/vad-web": "^0.0.30",
     "chat-agent-toolkit": "workspace:*",
+    "domain-rank": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "fuse.js": "^7.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dompurify": "^3.4.9",
