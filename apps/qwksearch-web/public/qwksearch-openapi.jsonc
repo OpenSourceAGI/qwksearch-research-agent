@@ -26,26 +26,6 @@
     { "name": "User", "description": "User profile, sessions, and account management" }
   ],
   "paths": {
-    "/admin/freekeys": {
-      "get": {
-        "tags": ["Admin"],
-        "summary": "Debug free API key availability",
-        "operationId": "getAdminFreekeys",
-        "parameters": [
-          {
-            "name": "testAll",
-            "in": "query",
-            "schema": { "type": "string", "enum": ["nvidia", "openrouter", "all"] }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Diagnostic info",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
-        }
-      }
-    },
     "/agent/article-followups": {
       "post": {
         "tags": ["AI Agent"],
@@ -639,43 +619,6 @@
         }
       }
     },
-    "/agent/validate-openrouter": {
-      "get": {
-        "tags": ["AI Agent"],
-        "summary": "Get cached OpenRouter free model validation (24h TTL)",
-        "operationId": "getOpenRouterValidation",
-        "responses": {
-          "200": {
-            "description": "Cached validation results",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
-        }
-      },
-      "post": {
-        "tags": ["AI Agent"],
-        "summary": "Run fresh OpenRouter free model validation",
-        "operationId": "runOpenRouterValidation",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "concurrency": { "type": "integer", "default": 5 },
-                  "timeout": { "type": "integer", "default": 10000 }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Fresh validation results",
-            "content": { "application/json": { "schema": { "type": "object" } } }
-          }
-        }
-      }
-    },
     "/agent/voice": {
       "post": {
         "tags": ["AI Agent"],
@@ -706,28 +649,6 @@
             }
           },
           "429": { "$ref": "#/components/responses/RateLimited" }
-        }
-      }
-    },
-    "/auth/providers": {
-      "get": {
-        "tags": ["Auth"],
-        "summary": "List configured OAuth providers",
-        "operationId": "listAuthProviders",
-        "responses": {
-          "200": {
-            "description": "Provider list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "providers": { "type": "array", "items": { "type": "string" }, "example": ["google", "discord"] }
-                  }
-                }
-              }
-            }
-          }
         }
       }
     },
