@@ -5,7 +5,7 @@ import { resolve } from "path";
 export async function GET() {
   const specPath = resolve(
     process.cwd(),
-    "../../packages/qwksearch-api-client/qwksearch-openapi.jsonc"
+    "../../packages/qwksearch-api-client/qwksearch-openapi.json"
   );
   const spec = readFileSync(specPath, "utf-8");
   return new NextResponse(spec, {

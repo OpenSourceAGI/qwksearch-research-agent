@@ -119,12 +119,12 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
     const autocompleteAbortRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
-        const query = message.trim();
         if (suppressNextFetchRef.current) {
             suppressNextFetchRef.current = false;
             return;
         }
-        if (!isActive || query.length < 2) {
+        const { query: searchQuery } = getLastWords(message);
+        if (!isActive || searchQuery.length < 2) {
             setSuggestions([]);
             setDomainSuggestions([]);
             setSuggestionsOpen(false);
@@ -138,7 +138,7 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
             autocompleteAbortRef.current = controller;
             try {
                 const res = await fetch(
-                    `/api/agent/autocomplete?q=${encodeURIComponent(query)}&limit=8`,
+                    `/api/agent/autocomplete?q=${encodeURIComponent(searchQuery)}&limit=8`,
                     { signal: controller.signal },
                 );
                 if (!res.ok) return;
@@ -175,19 +175,20 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
         return () => clearTimeout(timeout);
     }, [message, isActive]);
 
-    const getSearchTerm = (msg: string): { before: string; searchTerm: string; after: string } => {
+    const getLastWords = (msg: string): { prefix: string; query: string } => {
         const trimmed = msg.trimEnd();
-        const lastSpace = trimmed.lastIndexOf(' ');
-        const before = lastSpace === -1 ? '' : trimmed.substring(0, lastSpace + 1);
-        const searchTerm = lastSpace === -1 ? trimmed : trimmed.substring(lastSpace + 1);
-        const after = msg.substring(trimmed.length);
-        return { before, searchTerm, after };
+        if (!trimmed) return { prefix: '', query: '' };
+        const words = trimmed.split(/\s+/);
+        const take = Math.min(4, words.length);
+        const query = words.slice(-take).join(' ');
+        const prefix = words.length > take ? words.slice(0, -take).join(' ') + ' ' : '';
+        return { prefix, query };
     };
 
     const selectSuggestion = (value: string) => {
         suppressNextFetchRef.current = true;
-        const { before, after } = getSearchTerm(message);
-        setMessage(before + value + after);
+        const { prefix } = getLastWords(message);
+        setMessage(prefix + value);
         setSuggestions([]);
         setDomainSuggestions([]);
         setSuggestionsOpen(false);
@@ -507,7 +508,6 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
                             ))}
                             {suggestions.map((s, i) => {
                                 const optionIndex = domainSuggestions.length + i;
-                                const { searchTerm } = getSearchTerm(message);
                                 return (
                                     <li key={`${s}-${i}`}>
                                         <button
@@ -522,7 +522,7 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
                                         >
                                             <span className="w-5 h-5 flex items-center justify-center rounded bg-bg-200 dark:bg-[#3A3A38] text-[11px] font-semibold text-text-400 shrink-0">{optionIndex + 1}</span>
                                             <Search className="w-4 h-4 text-text-400 shrink-0" />
-                                            <span className="truncate">{searchTerm}</span>
+                                            <span className="truncate">{s}</span>
                                         </button>
                                     </li>
                                 );

@@ -50,16 +50,9 @@ bun x git0 vtempest/qwksearch-research-agent
 ```
 
 ```bash
-# Import Self-Hosted API
-bun i ai-research-agent
-```
-
-```bash
 # Import API Client
 bun i qwksearch-api-client
 ```
-
-![image](https://i.imgur.com/R2ARMyq.png)
 
 <img src="https://github.com/TutteInstitute/datamapplot/raw/main/examples/ArXiv_example.gif" width="800px"/>
 
