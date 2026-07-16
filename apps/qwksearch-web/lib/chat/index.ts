@@ -32,6 +32,8 @@ export {
 
 export { handleEmitterEvents } from "./stream-handler";
 
+export { ensureUploadFileLoaderRegistered } from "./upload-file-loader";
+
 export { handleHistorySave } from "./history";
 
 export { handleChatRequest } from "./handler";

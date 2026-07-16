@@ -1,14 +1,20 @@
 /**
- * Hook managing file attachment state: uploads supported document types (PDF, DOCX, TXT, HTML) to the server,
- * handles drag-and-drop events, and converts large clipboard pastes into PastedContent cards.
+ * Hook managing file attachment state: uploads supported document types (PDF, DOCX, TXT, MD, HTML) to the server,
+ * extracts typed-in URLs as attachable context, handles drag-and-drop events, validates file count/size limits,
+ * and converts large clipboard pastes into PastedContent cards.
  */
 import { useState, useCallback } from "react";
 import React from "react";
+import { toast } from "sonner";
 import { AttachedFile, PastedContent } from "../../types/research";
 import type { ChatFile } from "../../types/chat";
 import grab from "grab-url";
 
-const SUPPORTED_EXTS = ["pdf", "docx", "txt", "html", "htm"];
+const SUPPORTED_EXTS = ["pdf", "docx", "txt", "md", "html", "htm"];
+
+/** Server-enforced limits, mirrored client-side for immediate feedback. */
+const MAX_FILES_PER_REQUEST = 10;
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
 
 interface UseFileHandlingOptions {
   setMessage: React.Dispatch<React.SetStateAction<string>>;
@@ -17,6 +23,17 @@ interface UseFileHandlingOptions {
   setContextFiles: (files: ChatFile[]) => void;
   setContextFileIds: (ids: string[]) => void;
 }
+
+/** Extracts a human-readable message from a failed upload response. */
+const getErrorMessage = (error: unknown, fallback: string): string => {
+  if (error && typeof error === "object") {
+    const message =
+      (error as any).message ?? (error as any).error ?? (error as any).data?.message;
+    if (typeof message === "string" && message.length > 0) return message;
+  }
+  if (typeof error === "string" && error.length > 0) return error;
+  return fallback;
+};
 
 export function useFileHandling({
   setMessage,
@@ -28,10 +45,29 @@ export function useFileHandling({
   const [files, setFiles] = useState<AttachedFile[]>([]);
   const [pastedContent, setPastedContent] = useState<PastedContent[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isExtractingUrl, setIsExtractingUrl] = useState(false);
 
   const handleFiles = useCallback(
     async (newFilesList: FileList | File[]) => {
-      const newFiles = Array.from(newFilesList).map((file) => {
+      let incoming = Array.from(newFilesList);
+
+      // Client-side validation mirroring the server's limits.
+      if (incoming.length > MAX_FILES_PER_REQUEST) {
+        toast.error(
+          `You can attach up to ${MAX_FILES_PER_REQUEST} files at a time.`,
+        );
+        incoming = incoming.slice(0, MAX_FILES_PER_REQUEST);
+      }
+      const oversized = incoming.filter((f) => f.size > MAX_FILE_SIZE_BYTES);
+      if (oversized.length > 0) {
+        toast.error(
+          `${oversized.map((f) => f.name).join(", ")} exceed${oversized.length === 1 ? "s" : ""} the 50 MB per-file limit.`,
+        );
+        incoming = incoming.filter((f) => f.size <= MAX_FILE_SIZE_BYTES);
+      }
+      if (incoming.length === 0) return;
+
+      const newFiles = incoming.map((file) => {
         const isImage =
           file.type.startsWith("image/") ||
           /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name);
@@ -78,10 +114,17 @@ export function useFileHandling({
         const formData = new FormData();
         uploadable.forEach((f) => formData.append("files", f.file));
 
-        const data: { files: ChatFile[] } = await grab("/api/doc/uploads", {
-          method: "POST",
-          body: formData,
-        });
+        const data: { files?: ChatFile[]; message?: string } = await grab(
+          "/api/doc/uploads",
+          {
+            method: "POST",
+            body: formData,
+          },
+        );
+
+        if (!data?.files) {
+          throw new Error(getErrorMessage(data, "Upload failed."));
+        }
 
         setFiles((prev) =>
           prev.map((p) =>
@@ -96,7 +139,8 @@ export function useFileHandling({
           ...contextFileIds,
           ...data.files.map((f) => f.fileId),
         ]);
-      } catch {
+      } catch (error) {
+        toast.error(getErrorMessage(error, "Failed to upload files."));
         setFiles((prev) =>
           prev.map((p) =>
             uploadable.some((u) => u.id === p.id)
@@ -113,6 +157,52 @@ export function useFileHandling({
       setContextFiles,
       setContextFileIds,
     ],
+  );
+
+  /**
+   * Extracts a typed-in URL server-side (via extract-webpage) and attaches
+   * the resulting content as a context file.
+   */
+  const extractUrl = useCallback(
+    async (url: string): Promise<boolean> => {
+      const trimmed = url.trim();
+      if (!/^https?:\/\//i.test(trimmed)) {
+        toast.error("Enter a valid http(s) URL.");
+        return false;
+      }
+
+      setIsExtractingUrl(true);
+      try {
+        const data: { files?: ChatFile[]; message?: string } = await grab(
+          "/api/doc/uploads",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: trimmed }),
+          },
+        );
+
+        if (!data?.files || data.files.length === 0) {
+          throw new Error(
+            getErrorMessage(data, `Could not extract content from ${trimmed}`),
+          );
+        }
+
+        setContextFiles([...contextFiles, ...data.files]);
+        setContextFileIds([
+          ...contextFileIds,
+          ...data.files.map((f) => f.fileId),
+        ]);
+        toast.success(`Added "${data.files[0].fileName}" as context.`);
+        return true;
+      } catch (error) {
+        toast.error(getErrorMessage(error, "Failed to extract URL."));
+        return false;
+      } finally {
+        setIsExtractingUrl(false);
+      }
+    },
+    [contextFiles, contextFileIds, setContextFiles, setContextFileIds],
   );
 
   const onDragOver = (e: React.DragEvent) => {
@@ -170,7 +260,9 @@ export function useFileHandling({
     pastedContent,
     setPastedContent,
     isDragging,
+    isExtractingUrl,
     handleFiles,
+    extractUrl,
     onDragOver,
     onDragLeave,
     onDrop,
