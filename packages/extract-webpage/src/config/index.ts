@@ -61,22 +61,6 @@ class ConfigManager {
         env: "TAVILY_API_KEY",
       },
       {
-        name: "Source pages to scrape",
-        key: "sourceScrapeCount",
-        type: "select",
-        options: [
-          { name: "Disabled (snippet only)", value: "0" },
-          { name: "1 page", value: "1" },
-          { name: "2 pages", value: "2" },
-          { name: "3 pages (default)", value: "3" },
-          { name: "5 pages", value: "5" },
-        ],
-        required: false,
-        description: "Number of top search result URLs to fully scrape.",
-        default: "3",
-        scope: "server",
-      },
-      {
         name: "Scrape timeout (seconds)",
         key: "sourceScrapeTimeout",
         type: "select",

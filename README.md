@@ -80,11 +80,11 @@ bun i qwksearch-api-client
 
 ## REASON Writing Agent
 
-#### Research Editor for Annotated Summaries in Outline Notation
-
 <p align="center">
     <img width="400px" src="https://i.imgur.com/pDvMC1Q.png" />
 </p>
+
+#### Research Editor for Annotated Summaries in Outline Notation
 
 - 📝 **Complex Rich Text Editor**: full featured alternative to Google Docs based on Meta's Lexical with easy minimalist UI
 - 📂 **Nested Document Tree**: organize research notes with a nested document organizer with drag-and-drop, tabs, and custom storage sources

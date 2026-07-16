@@ -17,7 +17,7 @@ export async function GET() {
 <body>
   <script
     id="api-reference"
-    data-url="/qwksearch-openapi.jsonc"
+    data-url="/api/openapi"
   ></script>
   <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
 </body>

@@ -2,9 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, Upload, Copy, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Upload, Copy, RefreshCw, Eye, EyeOff, ChevronDown, Moon, Sun } from 'lucide-react';
 import { authClient } from '@/lib/auth/client';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 interface UserProfile {
   id: string;
@@ -27,9 +36,50 @@ interface SessionInfo {
   ipAddress?: string | null;
   userAgent?: string | null;
   createdAt: string | number | null;
+  updatedAt: string | number | null;
   expiresAt: string | number | null;
   isCurrent: boolean;
 }
+
+const themeNames = [
+  "modern-minimal", "elegant-luxury", "cyberpunk", "twitter",
+  "mocha-mousse", "amethyst-haze", "notebook", "doom-64",
+  "catppuccin", "graphite", "perpetuity", "kodama-grove",
+  "cosmic-night", "tangerine", "nature", "bold-tech",
+  "amber-minimal", "supabase", "neo-brutalism", "quantum-rose",
+  "solar-dusk", "bubblegum", "pink-lemonade", "claymorphism",
+  "pastel-dreams",
+];
+
+const fontOptions = [
+  { name: "System Default", value: "system-default" },
+  { name: "Arial", value: "Arial" },
+  { name: "Courier New", value: "Courier New" },
+  { name: "Georgia", value: "Georgia" },
+  { name: "Inter", value: "Inter" },
+  { name: "Lato", value: "Lato" },
+  { name: "Merriweather", value: "Merriweather" },
+  { name: "Montserrat", value: "Montserrat" },
+  { name: "Nunito", value: "Nunito" },
+  { name: "Open Sans", value: "Open Sans" },
+  { name: "Oswald", value: "Oswald" },
+  { name: "Playfair Display", value: "Playfair Display" },
+  { name: "Poppins", value: "Poppins" },
+  { name: "PT Sans", value: "PT Sans" },
+  { name: "Raleway", value: "Raleway" },
+  { name: "Roboto", value: "Roboto" },
+  { name: "Roboto Mono", value: "Roboto Mono" },
+  { name: "Roboto Slab", value: "Roboto Slab" },
+  { name: "Source Code Pro", value: "Source Code Pro" },
+  { name: "Source Sans 3", value: "Source Sans 3" },
+  { name: "Times New Roman", value: "Times New Roman" },
+  { name: "Trebuchet MS", value: "Trebuchet MS" },
+  { name: "Ubuntu", value: "Ubuntu" },
+  { name: "Verdana", value: "Verdana" },
+];
+
+const formatThemeName = (name: string) =>
+  name.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
 const PROVIDERS = [
   { id: 'google', name: 'Google', icon: () => (
@@ -57,19 +107,38 @@ const PROVIDERS = [
   ) },
 ];
 
-function formatUA(ua: string | null | undefined): string {
-  if (!ua) return 'Unknown device';
-  if (ua.includes('Chrome')) return 'Chrome';
-  if (ua.includes('Firefox')) return 'Firefox';
-  if (ua.includes('Safari')) return 'Safari';
-  if (ua.includes('Edge')) return 'Edge';
-  return ua.slice(0, 40);
+function formatUA(ua: string | null | undefined): { browser: string; os: string } {
+  if (!ua) return { browser: 'Unknown browser', os: 'Unknown OS' };
+
+  let browser = 'Unknown browser';
+  if (ua.includes('Edg/') || ua.includes('Edge/')) browser = 'Edge';
+  else if (ua.includes('OPR/') || ua.includes('Opera')) browser = 'Opera';
+  else if (ua.includes('Chrome')) browser = 'Chrome';
+  else if (ua.includes('Firefox')) browser = 'Firefox';
+  else if (ua.includes('Safari')) browser = 'Safari';
+
+  let os = 'Unknown OS';
+  if (ua.includes('Windows NT 10')) os = 'Windows 10/11';
+  else if (ua.includes('Windows NT 6')) os = 'Windows';
+  else if (ua.includes('Mac OS X')) os = 'macOS';
+  else if (ua.includes('Android')) os = 'Android';
+  else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+  else if (ua.includes('Linux')) os = 'Linux';
+
+  return { browser, os };
 }
 
-function formatDate(ts: string | number | null): string {
+function timeAgo(ts: string | number | null): string {
   if (!ts) return '';
-  const d = new Date(typeof ts === 'number' ? ts * 1000 : ts);
-  return d.toLocaleDateString();
+  const ms = typeof ts === 'number' ? ts * 1000 : new Date(ts).getTime();
+  const diff = Date.now() - ms;
+  const mins = Math.floor(diff / 60_000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
 }
 
 const SectionCard = ({ children, className }: { children: React.ReactNode; className?: string }) => (
@@ -102,12 +171,14 @@ const SaveButton = ({ onClick, loading, disabled }: { onClick: () => void; loadi
 export default function Account() {
   const { data: authSession, isPending: isSessionLoading } = authClient.useSession();
   const isAuthenticated = !!authSession?.user;
+  const { theme, setTheme } = useTheme();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>([]);
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [availableProviders, setAvailableProviders] = useState<string[]>([]);
+  const [hasPasswordAccount, setHasPasswordAccount] = useState(false);
 
   const [apiKey, setApiKey] = useState('');
   const [keyGenerating, setKeyGenerating] = useState(false);
@@ -116,6 +187,7 @@ export default function Account() {
   const [name, setName] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
 
   const [nameSaving, setNameSaving] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
@@ -125,7 +197,19 @@ export default function Account() {
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null);
   const [unlinkingAccount, setUnlinkingAccount] = useState<string | null>(null);
 
+  const [colorTheme, setColorTheme] = useState('modern-minimal');
+  const [fontFamily, setFontFamily] = useState('');
+  const [themeMounted, setThemeMounted] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setThemeMounted(true);
+    const saved = localStorage.getItem('color-theme');
+    if (saved && themeNames.includes(saved)) setColorTheme(saved);
+    const savedFont = localStorage.getItem('fontFamily');
+    if (savedFont) setFontFamily(savedFont);
+  }, []);
 
   useEffect(() => {
     if (isSessionLoading) return;
@@ -150,7 +234,9 @@ export default function Account() {
         setProfile(profileData);
         setName(profileData.name ?? '');
         setApiKey(profileData.apiKey ?? '');
-        setLinkedAccounts(Array.isArray(accountsData) ? accountsData : []);
+        const accounts = Array.isArray(accountsData) ? accountsData : [];
+        setLinkedAccounts(accounts);
+        setHasPasswordAccount(accounts.some((a: LinkedAccount) => a.providerId === 'credential'));
         setSessions(Array.isArray(sessionsData) ? sessionsData : []);
         setAvailableProviders(providersData.providers || []);
       } catch (err) {
@@ -313,6 +399,20 @@ export default function Account() {
     }
   };
 
+  const handleColorThemeChange = (newTheme: string) => {
+    setColorTheme(newTheme);
+    localStorage.setItem('color-theme', newTheme);
+    document.cookie = `color-theme=${newTheme}; path=/; max-age=31536000`;
+    themeNames.forEach((t) => document.documentElement.classList.remove(`theme-${t}`));
+    document.documentElement.classList.add(`theme-${newTheme}`);
+  };
+
+  const handleFontFamilyChange = (value: string) => {
+    setFontFamily(value);
+    localStorage.setItem('fontFamily', value);
+    window.dispatchEvent(new Event('client-config-changed'));
+  };
+
   const handleDeleteAccount = async () => {
     if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
     setDeletingAccount(true);
@@ -350,6 +450,36 @@ export default function Account() {
       </div>
     );
   }
+
+  const themeColors: Record<string, { primary: string; secondary: string }> = {
+    "modern-minimal": { primary: "#3b82f6", secondary: "#f3f4f6" },
+    "elegant-luxury": { primary: "#9b2c2c", secondary: "#fdf2d6" },
+    "cyberpunk": { primary: "#ff00c8", secondary: "#f0f0ff" },
+    "twitter": { primary: "#1e9df1", secondary: "#0f1419" },
+    "mocha-mousse": { primary: "#A37764", secondary: "#BAAB92" },
+    "bubblegum": { primary: "#d04f99", secondary: "#8acfd1" },
+    "amethyst-haze": { primary: "#8a79ab", secondary: "#dfd9ec" },
+    "pink-lemonade": { primary: "#a84370", secondary: "#f1c4e6" },
+    "notebook": { primary: "#606060", secondary: "#dedede" },
+    "doom-64": { primary: "#b71c1c", secondary: "#556b2f" },
+    "catppuccin": { primary: "#8839ef", secondary: "#ccd0da" },
+    "graphite": { primary: "#606060", secondary: "#e0e0e0" },
+    "perpetuity": { primary: "#06858e", secondary: "#d9eaea" },
+    "kodama-grove": { primary: "#8d9d4f", secondary: "#decea0" },
+    "cosmic-night": { primary: "#6e56cf", secondary: "#e4dfff" },
+    "tangerine": { primary: "#e05d38", secondary: "#f3f4f6" },
+    "quantum-rose": { primary: "#e6067a", secondary: "#ffd6ff" },
+    "nature": { primary: "#2e7d32", secondary: "#e8f5e9" },
+    "bold-tech": { primary: "#8b5cf6", secondary: "#f3f0ff" },
+    "amber-minimal": { primary: "#f59e0b", secondary: "#f3f4f6" },
+    "supabase": { primary: "#72e3ad", secondary: "#fdfdfd" },
+    "neo-brutalism": { primary: "#ff3333", secondary: "#ffff00" },
+    "solar-dusk": { primary: "#B45309", secondary: "#E4C090" },
+    "claymorphism": { primary: "#6366f1", secondary: "#d6d3d1" },
+    "pastel-dreams": { primary: "#a78bfa", secondary: "#e9d8fd" },
+  };
+
+  const colors = themeColors[colorTheme];
 
   return (
     <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
@@ -412,36 +542,72 @@ export default function Account() {
         <SaveButton onClick={handleSaveName} loading={nameSaving} />
       </SectionCard>
 
-      {/* Change Password */}
+      {/* Theme */}
+      {themeMounted && (
+        <SectionCard>
+          <div className="flex items-center justify-between mb-4">
+            <SectionTitle
+              title="Theme"
+              subtitle="Choose a color theme and light/dark mode for the app."
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 flex-shrink-0"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              title="Toggle light/dark"
+            >
+              {theme === 'dark' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </Button>
+          </div>
+          <Select value={colorTheme} onValueChange={handleColorThemeChange}>
+            <SelectTrigger className="w-full bg-light-primary dark:bg-dark-primary border-light-200 dark:border-dark-200 text-black dark:text-white">
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  <div className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: colors?.primary }} />
+                  <div className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: colors?.secondary }} />
+                </div>
+                <span>{formatThemeName(colorTheme)}</span>
+              </div>
+            </SelectTrigger>
+            <SelectContent className="bg-light-primary dark:bg-dark-primary border-light-200 dark:border-dark-200 max-h-72 overflow-y-auto">
+              {themeNames.map((name) => {
+                const c = themeColors[name];
+                return (
+                  <SelectItem key={name} value={name} className="text-black dark:text-white focus:bg-light-200 dark:focus:bg-dark-200">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        <div className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: c.primary }} />
+                        <div className="w-3 h-3 rounded-full border border-black/10" style={{ backgroundColor: c.secondary }} />
+                      </div>
+                      <span>{formatThemeName(name)}</span>
+                    </div>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </SectionCard>
+      )}
+
+      {/* Font Family */}
       <SectionCard>
         <SectionTitle
-          title="Change Password"
-          subtitle="Enter your current password and a new password."
+          title="Font Family"
+          subtitle="Choose the font used for chat messages and UI text."
         />
-        <div className="space-y-2">
-          <input
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="Current Password"
-            type="password"
-            className={inputClass}
-          />
-          <input
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="New Password"
-            type="password"
-            className={inputClass}
-          />
-        </div>
-        <p className="mt-1 text-[10px] text-black/40 dark:text-white/40">
-          Please use 8 characters at minimum.
-        </p>
-        <SaveButton
-          onClick={handleChangePassword}
-          loading={passwordSaving}
-          disabled={!newPassword}
-        />
+        <Select value={fontFamily || 'system-default'} onValueChange={handleFontFamilyChange}>
+          <SelectTrigger className="w-full bg-light-primary dark:bg-dark-primary border-light-200 dark:border-dark-200 text-black dark:text-white">
+            <SelectValue placeholder="Select a font" />
+          </SelectTrigger>
+          <SelectContent className="bg-light-primary dark:bg-dark-primary border-light-200 dark:border-dark-200 max-h-72 overflow-y-auto">
+            {fontOptions.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value} className="text-black dark:text-white focus:bg-light-200 dark:focus:bg-dark-200">
+                {opt.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </SectionCard>
 
       {/* API Key */}
@@ -540,6 +706,45 @@ export default function Account() {
             </p>
           )}
         </div>
+
+        {/* Change Password — collapsible, shown below providers */}
+        <div className="mt-4 pt-4 border-t border-light-200/60 dark:border-dark-200/60">
+          <button
+            onClick={() => setShowPasswordForm((v) => !v)}
+            className="flex items-center gap-2 text-xs text-black/70 dark:text-white/70 hover:text-black dark:hover:text-white transition-colors"
+          >
+            <ChevronDown className={cn('w-3.5 h-3.5 transition-transform', showPasswordForm && 'rotate-180')} />
+            Change Password
+          </button>
+          {showPasswordForm && (
+            <div className="mt-3 space-y-2">
+              {hasPasswordAccount && (
+                <input
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Current Password"
+                  type="password"
+                  className={inputClass}
+                />
+              )}
+              <input
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New Password"
+                type="password"
+                className={inputClass}
+              />
+              <p className="text-[10px] text-black/40 dark:text-white/40">
+                Please use 8 characters at minimum.
+              </p>
+              <SaveButton
+                onClick={handleChangePassword}
+                loading={passwordSaving}
+                disabled={!newPassword}
+              />
+            </div>
+          )}
+        </div>
       </SectionCard>
 
       {/* Sessions */}
@@ -549,50 +754,59 @@ export default function Account() {
           subtitle="Manage your active sessions and revoke access."
         />
         <div className="space-y-2">
-          {sessions.map((s) => (
-            <div
-              key={s.id}
-              className="flex items-center justify-between py-2 border-b border-light-200/60 dark:border-dark-200/60 last:border-0"
-            >
-              <div>
-                <p className="text-xs text-black/80 dark:text-white/80">
-                  {formatUA(s.userAgent)}
-                  {s.isCurrent && (
-                    <span className="ml-2 text-[10px] bg-[#24A0ED]/20 text-[#24A0ED] px-1.5 py-0.5 rounded-full font-medium">
-                      Current
-                    </span>
-                  )}
-                </p>
-                <p className="text-[10px] text-black/40 dark:text-white/40">
-                  {s.ipAddress && `${s.ipAddress} · `}
-                  {formatDate(s.createdAt)}
-                </p>
-              </div>
-              <button
-                onClick={() => handleRevokeSession(s.id, s.isCurrent)}
-                disabled={deletingSession === s.id}
-                className="text-xs text-red-500 hover:underline disabled:opacity-50 flex items-center gap-1"
+          {sessions.map((s) => {
+            const { browser, os } = formatUA(s.userAgent);
+            return (
+              <div
+                key={s.id}
+                className="flex items-center justify-between py-2.5 border-b border-light-200/60 dark:border-dark-200/60 last:border-0"
               >
-                {deletingSession === s.id && <Loader2 className="w-3 h-3 animate-spin" />}
-                {s.isCurrent ? 'Sign Out' : 'Revoke'}
-              </button>
-            </div>
-          ))}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-black/80 dark:text-white/80 flex items-center gap-1.5 flex-wrap">
+                    <span className="font-medium">{browser}</span>
+                    <span className="text-black/30 dark:text-white/30">·</span>
+                    <span>{os}</span>
+                    {s.isCurrent && (
+                      <span className="text-[10px] bg-[#24A0ED]/20 text-[#24A0ED] px-1.5 py-0.5 rounded-full font-medium">
+                        Current
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-[10px] text-black/40 dark:text-white/40 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    {s.ipAddress && (
+                      <>
+                        <span>{s.ipAddress}</span>
+                        <span className="text-black/20 dark:text-white/20">·</span>
+                      </>
+                    )}
+                    <span>Last active {timeAgo(s.updatedAt)}</span>
+                  </p>
+                </div>
+                {!s.isCurrent && (
+                  <button
+                    onClick={() => handleRevokeSession(s.id, false)}
+                    disabled={deletingSession === s.id}
+                    className="ml-3 text-xs text-red-500 hover:underline disabled:opacity-50 flex items-center gap-1 flex-shrink-0"
+                  >
+                    {deletingSession === s.id && <Loader2 className="w-3 h-3 animate-spin" />}
+                    Revoke
+                  </button>
+                )}
+              </div>
+            );
+          })}
           {sessions.length === 0 && (
             <p className="text-xs text-black/40 dark:text-white/40">No active sessions found.</p>
           )}
         </div>
-      </SectionCard>
-
-      {/* Sign Out */}
-      <SectionCard>
-        <SectionTitle title="Sign Out" subtitle="Sign out of your account on this device." />
-        <button
-          onClick={() => authClient.signOut()}
-          className="px-4 py-2 rounded-lg border border-black/20 dark:border-dark-200 text-black/80 dark:text-white/80 hover:bg-light-200 dark:hover:bg-dark-200 text-xs font-medium transition-colors"
-        >
-          Sign Out
-        </button>
+        <div className="mt-4 pt-4 border-t border-light-200/60 dark:border-dark-200/60">
+          <button
+            onClick={() => authClient.signOut()}
+            className="text-xs text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white transition-colors"
+          >
+            Sign out of your account on this device
+          </button>
+        </div>
       </SectionCard>
 
       {/* Delete Account */}

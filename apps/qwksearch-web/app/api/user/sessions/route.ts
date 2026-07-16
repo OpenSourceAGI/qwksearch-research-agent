@@ -24,6 +24,7 @@ export async function GET() {
       ipAddress: sessionTable.ipAddress,
       userAgent: sessionTable.userAgent,
       createdAt: sessionTable.createdAt,
+      updatedAt: sessionTable.updatedAt,
       expiresAt: sessionTable.expiresAt,
     })
     .from(sessionTable)
