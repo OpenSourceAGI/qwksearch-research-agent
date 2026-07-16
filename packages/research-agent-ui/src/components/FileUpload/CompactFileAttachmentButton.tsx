@@ -20,6 +20,7 @@ import { useRef, useState } from 'react';
 import { File as FileType } from '../ChatConversation/ChatWindow';
 import { useChat } from '../../hooks/useChat';
 import grab from 'grab-url';
+import { toast } from 'sonner';
 
 const AttachSmall = () => {
   const { files, setFiles, setFileIds, fileIds } = useChat();
@@ -35,14 +36,30 @@ const AttachSmall = () => {
       data.append('files', e.target.files![i]);
     }
 
-    const resData = await grab(`doc/uploads`, {
-      method: 'POST',
-      body: data,
-    });
+    try {
+      const resData = await grab(`doc/uploads`, {
+        method: 'POST',
+        body: data,
+      });
 
-    setFiles([...files, ...resData.files]);
-    setFileIds([...fileIds, ...resData.files.map((file: any) => file.fileId)]);
-    setLoading(false);
+      if (!resData?.files) {
+        throw new Error(resData?.message ?? 'Upload failed.');
+      }
+
+      setFiles([...files, ...resData.files]);
+      setFileIds([
+        ...fileIds,
+        ...resData.files.map((file: any) => file.fileId),
+      ]);
+    } catch (error) {
+      toast.error(
+        error instanceof Error && error.message
+          ? error.message
+          : 'Failed to upload files. Please try again.',
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return loading ? (
@@ -73,7 +90,7 @@ const AttachSmall = () => {
                   type="file"
                   onChange={handleChange}
                   ref={fileInputRef}
-                  accept=".pdf,.docx,.txt"
+                  accept=".pdf,.docx,.txt,.md,.html,.htm"
                   multiple
                   hidden
                 />
@@ -128,7 +145,7 @@ const AttachSmall = () => {
         type="file"
         onChange={handleChange}
         ref={fileInputRef}
-        accept=".pdf,.docx,.txt"
+        accept=".pdf,.docx,.txt,.md,.html,.htm"
         multiple
         hidden
       />

@@ -27,6 +27,7 @@ export {
   rerankDocs,
   processDocs,
   normalizeSourcesOutput,
+  registerUploadFileLoader,
   splitTextIntoChunks,
   LineOutputParser,
   LineListOutputParser,
@@ -34,6 +35,7 @@ export {
 } from "chat-agent-toolkit";
 
 export type {
+  UploadFileLoader,
   MetaSearchAgentType,
   Config,
   ChatTurnMessage,
