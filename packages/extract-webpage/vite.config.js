@@ -26,7 +26,7 @@ export default defineConfig({
       // that then needed browser polyfills and a missing fs-mock alias.
       external: (id) => !id.startsWith(".") && !id.startsWith("/") && !id.startsWith("\0"),
       output: {
-        inlineDynamicImports: true,
+        codeSplitting: false,
       },
     },
     minify: "terser",

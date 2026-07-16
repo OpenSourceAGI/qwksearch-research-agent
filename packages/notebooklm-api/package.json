@@ -6,7 +6,7 @@
   "license": "AGPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
     "directory": "packages/notebooklm-api"
   },
   "type": "module",

@@ -5,7 +5,7 @@
   "author": "vtempest",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
     "directory": "packages/shadcn-app-dock"
   },
   "type": "module",

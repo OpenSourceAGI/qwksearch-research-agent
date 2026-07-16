@@ -25,7 +25,7 @@ export default defineConfig({
       // transitive deps such as @prisma/client and breaks the build).
       external: (id) => !id.startsWith(".") && !id.startsWith("/") && !id.startsWith("\0"),
       output: {
-        inlineDynamicImports: true,
+        codeSplitting: false,
       },
     },
     minify: "terser",

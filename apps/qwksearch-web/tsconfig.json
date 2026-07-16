@@ -35,6 +35,9 @@
       "extract-webpage": [
         "../../packages/extract-webpage/src/index.ts"
       ],
+      "extract-webpage/*": [
+        "../../packages/extract-webpage/src/*"
+      ],
       "ai-research-agent/agents/generate-language": [
         "../../packages/agent-toolkit/src/language-generation/generate-response.ts"
       ],

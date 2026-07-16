@@ -6,7 +6,7 @@
   "license": "rights.institute/PROSPER",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
     "directory": "packages/write-language"
   },
   "bugs": {

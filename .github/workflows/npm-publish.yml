@@ -24,6 +24,16 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
+      # setup-node writes "always-auth=false" into the .npmrc it generates,
+      # but npm 10+ no longer knows that option and prints
+      # `npm warn Unknown user config "always-auth"` on every npm command.
+      # Strip the line so the logs stay clean.
+      - name: Remove deprecated always-auth npm config
+        run: |
+          if [ -n "${NPM_CONFIG_USERCONFIG:-}" ] && [ -f "$NPM_CONFIG_USERCONFIG" ]; then
+            sed -i '/^always-auth[ =]/d' "$NPM_CONFIG_USERCONFIG"
+          fi
+
       # We don't use husky in this repo, but some dependencies ship a broken
       # `prepare: "husky install"` in their published package.json (e.g.
       # fuse.js). When npm reconciles bun's linked node_modules store it runs
@@ -138,6 +148,24 @@ jobs:
               version=$(node -e "const p=require('./package.json'); console.log(p.version)")
               latest=$(npm view "$name" version 2>/dev/null || echo "")
               already=$(npm view "$name@$version" version 2>/dev/null || echo "")
+
+              # If the local version has fallen behind the registry's latest
+              # (e.g. a bump commit never landed back in the repo), publishing
+              # would fail with "Cannot implicitly apply the latest tag".
+              # Sync to the registry's latest first, then let the content
+              # comparison below decide whether anything new needs releasing.
+              if [ -z "$already" ] && [ -n "$latest" ]; then
+                behind=$(node -e "
+                  const cmp = (x, y) => { const a = x.split('.').map(Number), b = y.split('.').map(Number); for (let i = 0; i < 3; i++) { if ((a[i]||0) !== (b[i]||0)) return (a[i]||0) - (b[i]||0); } return 0; };
+                  console.log(cmp('$version', '$latest') < 0);
+                ")
+                if [ "$behind" = "true" ]; then
+                  echo "⏫ $name local version $version is behind npm latest $latest — syncing"
+                  npm version "$latest" --no-git-tag-version --no-workspaces
+                  version="$latest"
+                  already="$latest"
+                fi
+              fi
 
               if [ -n "$already" ]; then
                 # This exact version is on npm. Publish anyway if the content
