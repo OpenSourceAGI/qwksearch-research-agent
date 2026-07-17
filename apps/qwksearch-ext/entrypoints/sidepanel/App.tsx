@@ -4,6 +4,7 @@ import { Layers, AppWindow, Settings, BrainCircuit } from "lucide-react"
 import TabSearch from "@/components/TabSearch"
 import TabList from "@/components/TabList"
 import ResearchTab from "@/components/ResearchTab"
+import SearchSettings from "@/components/SearchSettings"
 import { searchEngines } from "../../content/shortcut-search-web";
 
 interface TabResult {
@@ -78,10 +79,7 @@ export default function SidePanel() {
         </TabsContent>
 
         <TabsContent value="apps">
-          <div className="p-4 text-sm text-gray-600">
-            {/* Web search - to be implemented */}
-            Web search coming soon...
-          </div>
+          <SearchSettings />
         </TabsContent>
 
         <TabsContent value="settings">

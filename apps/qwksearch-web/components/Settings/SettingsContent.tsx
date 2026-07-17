@@ -12,7 +12,6 @@ import {
   UserCircle,
   HardDrive,
   Wand2,
-  FileUp,
 } from 'lucide-react';
 import Preferences from './Sections/Preferences';
 import Account from './Sections/Account';
@@ -33,7 +32,6 @@ import {
   SelectValue,
 } from '../ui/select';
 import Storage from './Sections/Storage';
-import Uploads from './Sections/Uploads';
 import RewritePrompts from './Sections/RewritePrompts';
 import FileSources from './Sections/FileSources';
 import AIRewriteModes from './Sections/AIRewriteModes';
@@ -86,14 +84,6 @@ const sections = [
     icon: Search,
     component: SearchEngines,
     dataAdd: 'searchEngines',
-  },
-  {
-    key: 'uploads',
-    name: 'Uploads',
-    description: 'Manage uploaded files and storage usage.',
-    icon: FileUp,
-    component: Uploads,
-    dataAdd: 'uploads',
   },
   {
     key: 'fileSources',
