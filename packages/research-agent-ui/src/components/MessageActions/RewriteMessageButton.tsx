@@ -11,7 +11,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '../../ui/tooltip';
 import { cn } from '../../lib/utils';
 import { MinimalProvider } from 'chat-agent-toolkit/models/types';
 import { Icons } from '../MessageComposer/MessageInputIconSet';
-import grab from 'grab-url';
+import { listProviders } from 'qwksearch-api-client';
 import { useChat } from '../../hooks/useChat';
 
 const Rewrite = ({ messageId }: { messageId: string }) => {
@@ -26,8 +26,8 @@ const Rewrite = ({ messageId }: { messageId: string }) => {
     const loadProviders = async () => {
       try {
         setIsLoading(true);
-        const data: { providers: MinimalProvider[] } = await grab('/api/agent/providers');
-        setProviders(data.providers);
+        const { data } = await listProviders();
+        setProviders((data?.providers as unknown as MinimalProvider[]) ?? []);
       } catch (error) {
         console.error('Error loading providers:', error);
       } finally {

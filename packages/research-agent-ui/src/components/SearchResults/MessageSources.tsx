@@ -8,7 +8,7 @@ import type { Document } from 'extract-webpage/search';
 import { File, Video, Loader2, ExternalLink, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
-import grab from 'grab-url'
+import { getArticle, agentSearch } from 'qwksearch-api-client';
 import { convertURLSafeHTMLToHTML } from 'extract-webpage/html-to-content/html-utils';
 import { cn } from '../../lib/utils';
 
@@ -165,7 +165,7 @@ const MessageSources = ({
 
     // Check if article is cached or needs to be fetched
     try {
-      await grab(`doc/article?url=${encodeURIComponent(url)}`);
+      await getArticle({ query: { url } });
       setArticleStates(prev => ({ ...prev, [url]: 'loaded' }));
     } catch (error) {
       // Even on error, mark as loaded (failed) to stop spinner
@@ -179,12 +179,8 @@ const MessageSources = ({
     setIsLoadingMore(true);
     const nextPage = currentPage + 1;
 
-    const { results } = await grab<{ results: SearchResult[] }, SearchParams>('agent/search', {
-      q: query,
-      cat: activeCategory,
-      page: nextPage
-    });
-
+    const { data: searchData } = await agentSearch({ query: { q: query, cat: activeCategory as any, page: nextPage } });
+    const results = searchData?.results ?? [];
 
     // If no results, we've reached the end
     if (results.length === 0) {
@@ -235,11 +231,8 @@ const MessageSources = ({
     setHasMore(true);
 
     try {
-      const { results } = await grab<{ results: SearchResult[] }, SearchParams>('agent/search', {
-        q: query,
-        cat: category,
-        page: 1
-      });
+      const { data: searchData } = await agentSearch({ query: { q: query, cat: category as any, page: 1 } });
+      const results = searchData?.results ?? [];
 
       // Convert search results to Document format
       const newSources: Document[] = results.map((result: SearchResult) => {

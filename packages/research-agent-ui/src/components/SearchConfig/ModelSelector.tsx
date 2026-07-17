@@ -13,7 +13,7 @@ import { MinimalProvider } from "chat-agent-toolkit/models/types";
 import { Icons } from "../MessageComposer/MessageInputIconSet";
 import { ChatModelProvider } from "../../types/chat";
 import { useChat } from "../../hooks/useChat";
-import grab from "grab-url";
+import { listProviders } from "qwksearch-api-client";
 import { useRouter } from "next/navigation";
 
 interface ModelSelectorProps {
@@ -36,8 +36,8 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ chatModelProvider:
         const loadProviders = async () => {
             try {
                 setIsLoading(true);
-                const data: { providers: MinimalProvider[] } = await grab('/api/agent/providers');
-                setProviders(data.providers);
+                const { data } = await listProviders();
+                setProviders((data?.providers as unknown as MinimalProvider[]) ?? []);
 
                 // Set default model if none selected
                 if (!chatModelProvider.key && data.providers.length > 0) {

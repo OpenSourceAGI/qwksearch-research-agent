@@ -17,7 +17,7 @@ import {
 import { cn } from '../../lib/utils';
 import { MinimalProvider } from 'chat-agent-toolkit/models/types';
 import { useChat } from '../../hooks/useChat';
-import grab from 'grab-url';
+import { listProviders } from 'qwksearch-api-client';
 import { useRouter } from 'next/navigation';
 
 export const ModelSelectorSubmenu: React.FC = () => {
@@ -30,8 +30,8 @@ export const ModelSelectorSubmenu: React.FC = () => {
     const loadProviders = async () => {
       try {
         setIsLoading(true);
-        const data: { providers: MinimalProvider[] } = await grab('/api/agent/providers');
-        const providersList = data?.providers ?? [];
+        const { data } = await listProviders();
+        const providersList = (data?.providers as unknown as MinimalProvider[]) ?? [];
         setProviders(providersList);
         if (!chatModelProvider.key && providersList.length > 0) {
           const savedKey = localStorage.getItem('chatModelKey');
@@ -39,7 +39,7 @@ export const ModelSelectorSubmenu: React.FC = () => {
           if (savedKey && savedProviderId) {
             setChatModelProvider({ key: savedKey, providerId: savedProviderId });
           } else {
-            const firstProvider = data.providers.find(p => p.chatModels.length > 0);
+            const firstProvider = providersList.find(p => p.chatModels.length > 0);
             if (firstProvider) {
               setChatModelProvider({ key: firstProvider.chatModels[0].key, providerId: firstProvider.id });
             }

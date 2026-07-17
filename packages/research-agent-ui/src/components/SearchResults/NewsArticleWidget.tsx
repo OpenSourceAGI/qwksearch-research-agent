@@ -3,7 +3,7 @@
  * chat summary of it; shows a skeleton loader while fetching.
  */
 import { useEffect, useState } from 'react';
-import grab from 'grab-url';
+import { discoverContent } from 'qwksearch-api-client';
 
 interface Article {
   title: string;
@@ -18,9 +18,9 @@ const NewsArticleWidget = () => {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    grab('agent/discover?mode=preview')
-      .then((data) => {
-        const articles = (data.blogs || []).filter((a: Article) => a.thumbnail);
+    discoverContent({ query: { mode: 'preview' } })
+      .then(({ data }) => {
+        const articles = ((data?.blogs || []) as Article[]).filter((a) => a.thumbnail);
         setArticle(articles[Math.floor(Math.random() * articles.length)]);
         setLoading(false);
       })

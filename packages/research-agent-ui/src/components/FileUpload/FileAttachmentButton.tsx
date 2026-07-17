@@ -19,7 +19,7 @@ import {
   Trash,
 } from 'lucide-react';
 import { useChat } from '../../hooks/useChat';
-import grab from 'grab-url';
+import { uploadFiles } from 'qwksearch-api-client';
 import { toast } from 'sonner';
 
 const Attach = () => {
@@ -30,26 +30,20 @@ const Attach = () => {
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoading(true);
-    const data = new FormData();
-
-    for (let i = 0; i < e.target.files!.length; i++) {
-      data.append('files', e.target.files![i]);
-    }
-
     try {
-      const resData = await grab(`doc/uploads`, {
-        method: 'POST',
-        body: data,
+      const files_list = Array.from(e.target.files!);
+      const { data: resData, error } = await uploadFiles({
+        body: { files: files_list },
       });
 
-      if (!resData?.files) {
-        throw new Error(resData?.message ?? 'Upload failed.');
+      if (error || !resData?.files) {
+        throw new Error((error as any)?.message ?? 'Upload failed.');
       }
 
-      setFiles([...files, ...resData.files]);
+      setFiles([...files, ...(resData.files as any[])]);
       setFileIds([
         ...fileIds,
-        ...resData.files.map((file: any) => file.fileId),
+        ...resData.files.map((file) => file.fileId!),
       ]);
     } catch (error) {
       toast.error(

@@ -7,7 +7,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Cpu, Loader2, Search } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import grab from 'grab-url';
+import { listProviders } from 'qwksearch-api-client';
 import {
   Popover,
   PopoverTrigger,
@@ -66,8 +66,8 @@ const ModelSelector = () => {
     const loadProviders = async () => {
       try {
         setIsLoading(true);
-        const data: { providers: MinimalProvider[] } = await grab('/api/agent/providers');
-        setProviders(data.providers);
+        const { data } = await listProviders();
+        setProviders((data?.providers as unknown as MinimalProvider[]) ?? []);
       } catch (error) {
         console.error('Error loading providers:', error);
       } finally {

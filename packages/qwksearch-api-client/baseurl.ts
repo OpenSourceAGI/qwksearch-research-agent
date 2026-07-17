@@ -1,6 +1,9 @@
 import type { CreateClientConfig } from './src/client.gen';
 
-export const baseUrl = 'https://app.qwksearch.com/api';
+export const baseUrl =
+  typeof window !== 'undefined'
+    ? '/api'
+    : 'https://app.qwksearch.com/api';
 
 export const createClientConfig: CreateClientConfig = (config) => ({
   ...config,

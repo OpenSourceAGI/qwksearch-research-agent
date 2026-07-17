@@ -13,7 +13,6 @@ import { useChat } from '../../hooks/useChat';
 import { useExtractPanel } from '../ArticleReader/ExtractPanelContext';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
 import ArticleExtractPanel from '../ArticleReader/ArticleExtractPanel';
-import grab from 'grab-url';
 import { researchAgentUIConfig } from '../../config';
 import HistoryDropdown from '../ChatHistoryDropdown';
 import { useSession } from '../../hooks/useSession';

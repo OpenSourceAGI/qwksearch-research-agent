@@ -8,7 +8,7 @@ import React from "react";
 import { toast } from "sonner";
 import { AttachedFile, PastedContent } from "../../types/research";
 import type { ChatFile } from "../../types/chat";
-import grab from "grab-url";
+import { uploadFiles } from "qwksearch-api-client";
 
 const SUPPORTED_EXTS = ["pdf", "docx", "txt", "md", "html", "htm"];
 
@@ -111,19 +111,12 @@ export function useFileHandling({
       if (uploadable.length === 0) return;
 
       try {
-        const formData = new FormData();
-        uploadable.forEach((f) => formData.append("files", f.file));
+        const { data, error } = await uploadFiles({
+          body: { files: uploadable.map((f) => f.file) },
+        });
 
-        const data: { files?: ChatFile[]; message?: string } = await grab(
-          "/api/doc/uploads",
-          {
-            method: "POST",
-            body: formData,
-          },
-        );
-
-        if (!data?.files) {
-          throw new Error(getErrorMessage(data, "Upload failed."));
+        if (error || !data?.files) {
+          throw new Error(getErrorMessage(error ?? data, "Upload failed."));
         }
 
         setFiles((prev) =>
@@ -134,10 +127,10 @@ export function useFileHandling({
           ),
         );
 
-        setContextFiles([...contextFiles, ...data.files]);
+        setContextFiles([...contextFiles, ...(data.files as unknown as ChatFile[])]);
         setContextFileIds([
           ...contextFileIds,
-          ...data.files.map((f) => f.fileId),
+          ...data.files.map((f) => f.fileId!),
         ]);
       } catch (error) {
         toast.error(getErrorMessage(error, "Failed to upload files."));
@@ -173,14 +166,12 @@ export function useFileHandling({
 
       setIsExtractingUrl(true);
       try {
-        const data: { files?: ChatFile[]; message?: string } = await grab(
-          "/api/doc/uploads",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: trimmed }),
-          },
-        );
+        const res = await fetch("/api/doc/uploads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: trimmed }),
+        });
+        const data: { files?: ChatFile[]; message?: string } = await res.json();
 
         if (!data?.files || data.files.length === 0) {
           throw new Error(

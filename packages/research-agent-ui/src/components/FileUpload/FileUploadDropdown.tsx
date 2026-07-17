@@ -7,7 +7,14 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, CloudIcon, FolderOpen, Loader2, Clock, SlidersHorizontal, Paperclip, History, Settings, EyeOff, Share2, Link, FileText, FileType, FileDown, FileSpreadsheet, BookMarked } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import grab from 'grab-url';
+import {
+  googleDocsAuthStatus,
+  googleDocsAuth,
+  getGoogleToken,
+  getGoogleDriveFile,
+  shareChat,
+  createDocument,
+} from 'qwksearch-api-client';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -89,8 +96,8 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
 
   const checkGoogleDriveConnection = async () => {
     try {
-      const data = await grab('/api/doc/google-docs/auth/status');
-      setIsGoogleDriveConnected(data.isConnected || false);
+      const { data } = await googleDocsAuthStatus();
+      setIsGoogleDriveConnected(data?.isConnected || false);
     } catch {
       // silently ignore
     }
@@ -189,12 +196,13 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
   const handleGoogleDriveConnect = async () => {
     setIsConnecting(true);
     try {
-      const data = await grab('doc/google-docs/auth');
-      if (data.success && data.data?.authUrl) {
+      const { data } = await googleDocsAuth();
+      if (data?.success && (data as any)?.data?.authUrl) {
+        const authUrl = (data as any).data.authUrl;
         const width = 600, height = 700;
         const left = window.screenX + (window.outerWidth - width) / 2;
         const top = window.screenY + (window.outerHeight - height) / 2;
-        const popup = window.open(data.data.authUrl, 'Google Drive Authorization', `width=${width},height=${height},left=${left},top=${top}`);
+        const popup = window.open(authUrl, 'Google Drive Authorization', `width=${width},height=${height},left=${left},top=${top}`);
         const handleMessage = (event: MessageEvent) => {
           if (event.data.type === 'google-drive-connected') {
             setIsGoogleDriveConnected(true);
@@ -213,8 +221,8 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
 
   const handleGoogleDriveUpload = async () => {
     try {
-      const tokenData = await grab('doc/google-docs/token');
-      if (!tokenData.success || !tokenData.accessToken) throw new Error('Failed to get access token');
+      const { data: tokenData } = await getGoogleToken();
+      if (!tokenData?.success || !tokenData.accessToken) throw new Error('Failed to get access token');
       await openPicker(
         tokenData.accessToken,
         async (files) => {
@@ -222,12 +230,12 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
           try {
             const fileObjects: File[] = [];
             for (const file of files) {
-              const data = await grab(`/api/doc/google-docs/files?fileId=${file.id}`);
-              if (data.success && data.file) {
-                const content = atob(data.file.content);
+              const { data } = await getGoogleDriveFile({ query: { fileId: file.id } });
+              if ((data as any)?.success && (data as any)?.file) {
+                const content = atob((data as any).file.content);
                 const bytes = new Uint8Array(content.length);
                 for (let i = 0; i < content.length; i++) bytes[i] = content.charCodeAt(i);
-                fileObjects.push(new File([new Blob([bytes], { type: data.file.mimeType })], data.file.name, { type: data.file.mimeType }));
+                fileObjects.push(new File([new Blob([bytes], { type: (data as any).file.mimeType })], (data as any).file.name, { type: (data as any).file.mimeType }));
               }
             }
             if (fileObjects.length > 0) onFileSelect(fileObjects);
@@ -418,16 +426,13 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
                         }
 
                         try {
-                          const response = await grab('agent/chats/share', {
-                            method: 'POST',
-                            body: { chatId },
-                          });
+                          const { data: response, error } = await shareChat({ body: { chatId } });
 
-                          if (response.success && response.data?.shareUrl) {
+                          if (!error && response?.success && response?.data?.shareUrl) {
                             await navigator.clipboard.writeText(response.data.shareUrl);
                             toast.success('Chat is now public - link copied to clipboard');
                           } else {
-                            throw new Error(response.error || 'Failed to share chat');
+                            throw new Error((error as any)?.error || 'Failed to share chat');
                           }
                         } catch (err) {
                           console.error('Error sharing chat:', err);
@@ -447,8 +452,7 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
                           `## ${s.userMessage.content}\n\n${s.assistantMessage?.content || ''}`
                         ).join('\n\n---\n\n');
                         try {
-                          await grab('doc/documents', {
-                            method: 'POST',
+                          await createDocument({
                             body: {
                               title,
                               name: title,

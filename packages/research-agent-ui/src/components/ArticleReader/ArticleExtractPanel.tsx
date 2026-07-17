@@ -5,7 +5,15 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import grab from 'grab-url';
+import {
+  getArticle,
+  updateArticle,
+  listFavorites,
+  addFavorite,
+  removeFavorite,
+  articleQa,
+  articleFollowups,
+} from 'qwksearch-api-client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogTitle } from '../../ui/dialog';
 import { VisuallyHidden } from '../../ui/visually-hidden';
@@ -137,11 +145,12 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
 
     setIsLoadingExtract(true);
     try {
-      const { article } = await grab(`doc/article?url=${encodeURIComponent(url)}`);
+      const { data: articleData } = await getArticle({ query: { url } });
+      const article = articleData?.article;
 
       const textContent = article?.html?.replace(/<[^>]*>/g, '').trim() || '';
 
-      if (article?.error || textContent.length < 20) {
+      if ((article as any)?.error || textContent.length < 20) {
         // Fallback: request Chrome extension to extract the URL
         document.dispatchEvent(
           new CustomEvent('onInvokeChromeAPI', {
@@ -154,7 +163,8 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
           new Promise<void>((resolve) => {
             const handler = async (event: Event) => {
               window.removeEventListener('onExtractionResult', handler);
-              const { article: fallbackArticle } = await grab(`doc/article?url=${encodeURIComponent(url)}`);
+              const { data: fallbackData } = await getArticle({ query: { url } });
+              const fallbackArticle = fallbackData?.article;
               if (fallbackArticle) {
                 setExtractedArticle(fallbackArticle);
                 if (fallbackArticle.followUpQuestions?.length > 0) {
@@ -186,9 +196,9 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
 
   const checkIfFavorited = async () => {
     try {
-      const data = await grab('doc/favorites');
-      const isFav = data.favorites.some((fav: any) => fav.url === url);
-      setIsFavorited(isFav);
+      const { data } = await listFavorites();
+      const isFav = data?.favorites?.some((fav: any) => fav.url === url);
+      setIsFavorited(!!isFav);
     } catch (error) {
       console.error('Error checking favorite status:', error);
     }
@@ -200,15 +210,12 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     setIsLoadingFavorite(true);
     try {
       if (isFavorited) {
-        await grab(`doc/favorites?url=${encodeURIComponent(url)}`, {
-          method: 'DELETE',
-        });
+        await removeFavorite({ query: { url } });
         setIsFavorited(false);
         toast.info('Removed from favorites');
       } else {
-        await grab('doc/favorites', {
-          method: 'POST',
-          body: JSON.stringify({
+        await addFavorite({
+          body: {
             url: extractedArticle.url || url,
             title: extractedArticle.title,
             cite: extractedArticle.cite,
@@ -218,7 +225,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
             source: extractedArticle.source,
             word_count: extractedArticle.word_count,
             html: extractedArticle.html,
-          }),
+          },
         });
         setIsFavorited(true);
         toast.success('Added to favorites');
@@ -250,19 +257,18 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
         // Use the new article-qa endpoint for questions
         const queryText = [searchText, userPrompt].filter(Boolean).join('\n');
 
-        const data = await grab('/api/agent/article-qa', {
-          method: 'POST',
-          body: JSON.stringify({
+        const { data, error } = await articleQa({
+          body: {
             article,
             question: queryText,
             chatHistory: chatHistory.slice(-5),
             provider: 'groq',
-          }),
+          },
         });
 
-        if (data.error) throw new Error(data.error);
+        if (error) throw new Error((error as any).error || 'Article QA failed');
 
-        const aiAnswer = data.content || '';
+        const aiAnswer = data?.content || '';
         setAiResponse(aiAnswer);
         setChatHistory((prev) => [
           ...prev,
@@ -271,36 +277,29 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
         ]);
 
         try {
-          await grab('doc/article', {
-            method: 'POST',
-            body: JSON.stringify({ url, question: userPrompt, answer: aiAnswer }),
-          });
+          await updateArticle({ body: { url, question: userPrompt, answer: aiAnswer } });
         } catch (error) {
           console.error('Error storing Q&A in cache:', error);
         }
       } else {
         // Use the new article-followups endpoint for follow-up questions
         const maxQuestions = parseInt(localStorage.getItem('maxFollowupQuestions') || '4');
-        const data = await grab('/api/agent/article-followups', {
-          method: 'POST',
-          body: JSON.stringify({
+        const { data, error } = await articleFollowups({
+          body: {
             article,
             chatHistory: chatHistory.slice(-5),
             maxQuestions,
             provider: 'groq',
-          }),
+          },
         });
 
-        if (data.error) throw new Error(data.error);
+        if (error) throw new Error((error as any).error || 'Article followups failed');
 
-        const questions = data.extract || [];
+        const questions = data?.extract || [];
         setFollowupQuestions(questions);
 
         try {
-          await grab('doc/article', {
-            method: 'POST',
-            body: JSON.stringify({ url, followUpQuestions: questions }),
-          });
+          await updateArticle({ body: { url, followUpQuestions: questions } });
         } catch (error) {
           console.error('Error storing follow-up questions in cache:', error);
         }
