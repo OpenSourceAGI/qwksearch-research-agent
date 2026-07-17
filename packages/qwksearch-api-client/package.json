@@ -16,7 +16,8 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/api-client.js",
       "require": "./dist/api-client.umd.cjs"
-    }
+    },
+    "./openapi.json": "./qwksearch-openapi.json"
   },
   "scripts": {
     "ship": "npx standard-version --release-as patch; npm publish",
@@ -24,7 +25,8 @@
     "test:api": "vitest"
   },
   "files": [
-    "dist"
+    "dist",
+    "qwksearch-openapi.json"
   ],
   "devDependencies": {
     "@hey-api/client-fetch": "^0.13.1",
