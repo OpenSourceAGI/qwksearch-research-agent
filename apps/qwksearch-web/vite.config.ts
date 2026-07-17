@@ -28,6 +28,7 @@ export default defineConfig(({ command }) => ({
       "chat-agent-toolkit": resolve(__dirname, "../../packages/agent-toolkit/src"),
       "extract-pdf": resolve(__dirname, "../../packages/extract-pdf/src/pdf-to-html.ts"),
       "extract-youtube": resolve(__dirname, "../../packages/extract-youtube/src"),
+      "qwksearch-api-client/openapi.json": resolve(__dirname, "../../packages/qwksearch-api-client/qwksearch-openapi.json"),
       "qwksearch-api-client": resolve(__dirname, "../../packages/qwksearch-api-client/src"),
       "write-language": resolve(__dirname, "../../packages/write-language/src"),
       "grab-url": resolve(__dirname, "./lib/api/grab.ts"),
