@@ -27,7 +27,12 @@ export default defineConfig({
       // of the consuming app rather than something we should bundle — this
       // covers react/next as well as the long tail of npm packages the
       // research agent UI depends on (radix, lucide-react, grab-url, etc.).
-      external: (id) => !id.startsWith(".") && !id.startsWith("/"),
+      // On Windows, rolldown may pass absolute paths (C:\...) for internal modules,
+      // so we also check for drive-letter patterns to avoid externalising them.
+      external: (id) =>
+        !id.startsWith(".") &&
+        !id.startsWith("/") &&
+        !/^[A-Za-z]:[/\\]/.test(id),
       output: {
         banner: (chunk) =>
           chunk.name === "index" ? '"use client";' : "",

@@ -4,7 +4,6 @@
  */
 'use client';
 
-import Image from 'next/image';
 import { cn } from '../../lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Cpu, Search } from 'lucide-react';
@@ -280,7 +279,7 @@ const SearchSpotlight = () => {
                 className="rounded-full cursor-pointer"
               >
                 <ShortcutButton
-                  icon={<Image src={cat.icon} alt={cat.name} width={32} height={32} className="size-8" />}
+                  icon={<cat.icon className="size-8" />}
                   label={cat.name}
                   isActive={category === cat.code}
                   onClick={() => handleCategoryClick(cat.code)}
