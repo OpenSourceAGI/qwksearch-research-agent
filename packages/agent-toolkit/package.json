@@ -1,6 +1,6 @@
 {
   "name": "chat-agent-toolkit",
-  "version": "1.2.26",
+  "version": "1.2.27",
   "description": "Multi-provider AI agent toolkit: generate language responses, search the web, extract content, and manage memory across 10+ LLM providers.",
   "author": "vtempest <grokthiscontact@gmail.com>",
   "license": "AGPL-3.0",
