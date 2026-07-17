@@ -70,13 +70,6 @@ const Chat = () => {
 
   return (
     <>
-      {/* Floating toolbar - always visible, outside the panel-shifted container */}
-      <div
-        className="fixed top-0 z-50 flex items-center gap-1 px-4 py-3 transition-all duration-300"
-        style={{ right: isDesktop && isPanelOpen ? `${panelWidth}px` : '0' }}
-      >
-        <HistoryDropdown />
-      </div>
 
       <div
         className="flex flex-col min-h-full transition-all duration-300"

@@ -37,7 +37,10 @@ class ConfigManager {
     },
   };
   uiConfigSections: UIConfigSections = {
-    preferences: [
+    preferences: [],
+    modelProviders: [],
+    mcpServers: [],
+    search: [
       {
         name: "Background Art",
         key: "showBackgroundArt",
@@ -96,10 +99,6 @@ class ConfigManager {
         default: "4",
         scope: "client",
       },
-    ],
-    modelProviders: [],
-    mcpServers: [],
-    search: [
       {
         name: "SearXNG URL",
         key: "searxngURL",

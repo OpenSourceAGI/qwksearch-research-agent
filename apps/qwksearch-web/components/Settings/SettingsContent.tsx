@@ -6,14 +6,10 @@ import {
   ChevronLeft,
   Search,
   Server,
-  Sliders,
-  Database,
-  MessageSquareText,
   UserCircle,
   HardDrive,
   Wand2,
 } from 'lucide-react';
-import Preferences from './Sections/Preferences';
 import Account from './Sections/Account';
 import { useEffect, useState } from 'react';
 import grab from 'grab-url';
@@ -44,14 +40,6 @@ const sections = [
     icon: UserCircle,
     component: Account,
     dataAdd: 'account',
-  },
-  {
-    key: 'preferences',
-    name: 'Personalization',
-    description: 'Customize your application preferences.',
-    icon: Sliders,
-    component: Preferences,
-    dataAdd: 'preferences',
   },
   {
     key: 'models',

@@ -34,6 +34,8 @@ export default function SearchProgressIndicator({ queries, loading }: SearchProg
   const totalCount = queries.length;
   const isRunning = loading && queries.some((q) => q.status === 'running');
 
+  if (!loading) return null;
+
   return (
     <div className="rounded-xl border border-border bg-secondary/20 overflow-hidden text-sm">
       {/* Header row */}
