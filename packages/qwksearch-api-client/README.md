@@ -1,7 +1,5 @@
-# QwkSearch API Client
-
 <p align="center">
-  <img src="https://qwksearch.com/icons/qwksearch-logo.png" alt="QwkSearch Logo" width="200"/>
+  <img src="https://i.imgur.com/DqnjYfC.png" alt="QwkSearch Logo" width="200"/>
 </p>
 
 <p align="center">

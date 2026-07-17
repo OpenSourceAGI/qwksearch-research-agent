@@ -1,16 +1,9 @@
 import { NextResponse } from "next/server";
-import { readFileSync } from "fs";
-import { resolve } from "path";
+import spec from "qwksearch-api-client/openapi.json";
 
 export async function GET() {
-  const specPath = resolve(
-    process.cwd(),
-    "../../packages/qwksearch-api-client/qwksearch-openapi.json"
-  );
-  const spec = readFileSync(specPath, "utf-8");
-  return new NextResponse(spec, {
+  return NextResponse.json(spec, {
     headers: {
-      "Content-Type": "application/json",
       "Cache-Control": "public, max-age=3600",
     },
   });
