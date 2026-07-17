@@ -1,5 +1,6 @@
 import { defineConfig } from 'wxt';
 import type { Plugin } from 'vite';
+import path from 'path';
 
 // Chrome rejects content scripts with non-ASCII bytes.
 // Vite's minifier converts \uXXXX escapes back to literal chars,
@@ -25,6 +26,14 @@ export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   vite: () => ({
     plugins: [escapeNonAsciiPlugin()],
+    resolve: {
+      alias: {
+        // Shim next/navigation so research-agent-ui compiles outside Next.js
+        'next/navigation': path.resolve(__dirname, 'lib/next-navigation-shim.tsx'),
+        // Shim grab-url to rewrite relative /api/* paths to the production host
+        'grab-url': path.resolve(__dirname, 'lib/grab-url-shim.ts'),
+      },
+    },
   }),
   manifest: {
     name: 'QwkSearch Tab Manager AI',

@@ -5,6 +5,7 @@ export default {
     "./entrypoints/**/*.{tsx,ts,html}",
     "./components/**/*.{tsx,ts}",
     "./lib/**/*.{tsx,ts}",
+    "../../packages/research-agent-ui/src/**/*.{tsx,ts}",
   ],
   darkMode: "class",
   theme: {

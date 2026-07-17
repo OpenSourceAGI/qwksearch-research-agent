@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Layers, AppWindow, Settings } from "lucide-react"
+import { Layers, AppWindow, Settings, BrainCircuit } from "lucide-react"
 import TabSearch from "@/components/TabSearch"
 import TabList from "@/components/TabList"
+import ResearchTab from "@/components/ResearchTab"
 import { searchEngines } from "../../content/shortcut-search-web";
 
 interface TabResult {
@@ -56,6 +57,10 @@ export default function SidePanel() {
             <Settings size={16} />
             <span>AI</span>
           </TabsTrigger>
+          <TabsTrigger value="research" className="flex items-center gap-2">
+            <BrainCircuit size={16} />
+            <span>Research</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tabs">
@@ -84,6 +89,10 @@ export default function SidePanel() {
             {/* AI settings - to be implemented */}
             AI settings coming soon...
           </div>
+        </TabsContent>
+
+        <TabsContent value="research">
+          <ResearchTab />
         </TabsContent>
       </Tabs>
     </div>
