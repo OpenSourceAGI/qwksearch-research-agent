@@ -1,6 +1,6 @@
 {
   "name": "extract-webpage",
-  "version": "1.2.21",
+  "version": "1.2.22",
   "module": "./dist/extract-webpage.es.js",
   "description": "Search, extract, cite, and outline the web for a topic with AI Research Agent.",
   "author": "vtempest <grokthiscontact@gmail.com>",
