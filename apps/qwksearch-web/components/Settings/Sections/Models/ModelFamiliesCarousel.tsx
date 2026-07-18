@@ -13,6 +13,7 @@ interface ModelFamily {
   open: boolean;
   providerKey?: string;
   apiKeyUrl?: string;
+  modelKeywords: string[];
 }
 
 const MODEL_FAMILIES: ModelFamily[] = [
@@ -25,6 +26,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: false,
     providerKey: 'anthropic',
     apiKeyUrl: 'https://console.anthropic.com/settings/keys',
+    modelKeywords: ['claude'],
   },
   {
     model_family: 'ChatGPT',
@@ -35,6 +37,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: false,
     providerKey: 'openai',
     apiKeyUrl: 'https://platform.openai.com/api-keys',
+    modelKeywords: ['gpt', 'o1', 'o3', 'o4'],
   },
   {
     model_family: 'Gemini',
@@ -45,6 +48,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: false,
     providerKey: 'gemini',
     apiKeyUrl: 'https://aistudio.google.com/app/apikey',
+    modelKeywords: ['gemini'],
   },
   {
     model_family: 'DeepSeek',
@@ -55,6 +59,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: true,
     providerKey: 'deepseek',
     apiKeyUrl: 'https://platform.deepseek.com/api_keys',
+    modelKeywords: ['deepseek'],
   },
   {
     model_family: 'Llama',
@@ -65,6 +70,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: true,
     providerKey: 'groq',
     apiKeyUrl: 'https://console.groq.com/keys',
+    modelKeywords: ['llama', 'meta-llama'],
   },
   {
     model_family: 'Grok',
@@ -75,6 +81,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: false,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['grok', 'x-ai/'],
   },
   {
     model_family: 'Mistral',
@@ -85,6 +92,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: true,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['mistral', 'mixtral'],
   },
   {
     model_family: 'Qwen',
@@ -95,6 +103,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: true,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['qwen'],
   },
   {
     model_family: 'Nemotron',
@@ -105,6 +114,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: true,
     providerKey: 'nvidia',
     apiKeyUrl: 'https://build.nvidia.com/settings',
+    modelKeywords: ['nemotron'],
   },
   {
     model_family: 'Perplexity',
@@ -115,6 +125,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: false,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://www.perplexity.ai/settings/api',
+    modelKeywords: ['perplexity', 'sonar'],
   },
   {
     model_family: 'Kimi',
@@ -125,6 +136,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: false,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['kimi', 'moonshot'],
   },
   {
     model_family: 'GLM',
@@ -135,6 +147,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: false,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['glm', 'zhipuai/'],
   },
   {
     model_family: 'Hunyuan',
@@ -145,6 +158,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: false,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['hunyuan', 'tencent/'],
   },
   {
     model_family: 'MiMo',
@@ -155,6 +169,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: true,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['mimo', 'xiaomi/'],
   },
   {
     model_family: 'StepFun',
@@ -165,6 +180,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: false,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['step-', 'stepfun/'],
   },
   {
     model_family: 'MiniMax',
@@ -175,6 +191,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     open: true,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['minimax', 'abab'],
   },
 ];
 
@@ -233,6 +250,18 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
 
   const hasSomeConnected = family?.providers.some(isProviderConnected);
 
+  const matchesFamily = (modelKey: string) =>
+    family?.modelKeywords.some(kw => modelKey.toLowerCase().includes(kw.toLowerCase()));
+
+  // Connected providers that have at least one model matching this family
+  const variantsByProvider: { provider: ConfigModelProvider; models: { name: string; key: string }[] }[] =
+    connectedProviders
+      .map(p => ({
+        provider: p,
+        models: p.chatModels.filter(m => m.key !== 'error' && matchesFamily(m.key)),
+      }))
+      .filter(g => g.models.length > 0);
+
   return (
     <div className="flex flex-col gap-4 px-6">
       <p className="text-xs text-black/70 dark:text-white/70">Browse AI model families</p>
@@ -266,14 +295,15 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                 style={{ width: 72 }}
               >
                 {anyConnected && (
-                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 z-10" />
                 )}
                 <img
                   src={`https://i.imgur.com/${f.imgur}.png`}
                   alt={f.model_family}
-                  width={40}
-                  height={40}
-                  className="w-10 h-10 object-contain rounded"
+                  width={56}
+                  height={140}
+                  className="w-14 object-contain rounded"
+                  style={{ height: 140 }}
                   onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                 />
                 <span className="text-[10px] text-black/70 dark:text-white/70 truncate w-full text-center">
@@ -297,17 +327,18 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
       {family && (
         <div className="flex flex-col gap-3 p-4 rounded-lg border border-light-200 dark:border-dark-200 bg-light-secondary/20 dark:bg-dark-secondary/20">
           {/* Header row: logo + name + meta + action */}
-          <div className="flex flex-row items-center gap-4">
+          <div className="flex flex-row items-start gap-4">
             <img
               src={`https://i.imgur.com/${family.imgur}.png`}
               alt={family.model_family}
-              width={52}
-              height={52}
-              className="w-13 h-13 object-contain rounded-lg flex-none"
+              width={100}
+              height={250}
+              className="w-24 rounded-xl flex-none object-contain"
+              style={{ height: 240 }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
 
-            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+            <div className="flex flex-col gap-0.5 flex-1 min-w-0 pt-1">
               <div className="flex items-center gap-2">
                 <p className="text-sm font-medium text-black dark:text-white">{family.model_family}</p>
                 {family.open && (
@@ -340,36 +371,60 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
           <div className="flex flex-wrap gap-1.5">
             {family.providers.map((providerName) => {
               const connected = isProviderConnected(providerName);
-              const providerKey = PROVIDER_NAME_TO_KEY[providerName];
-              const availableSection = modelProviders.find(p => p.key === providerKey);
               return (
-                <div
+                <span
                   key={providerName}
-                  className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium border transition-colors ${
+                  className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium border ${
                     connected
                       ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                      : 'border-light-200 dark:border-dark-200 bg-light-secondary/50 dark:bg-dark-secondary/50 text-black/50 dark:text-white/50'
+                      : 'border-light-200 dark:border-dark-200 bg-light-secondary/50 dark:bg-dark-secondary/50 text-black/40 dark:text-white/40'
                   }`}
                 >
                   {connected && <CheckCircle2 size={9} className="flex-none" />}
                   {providerName}
-                  {!connected && availableSection && (
-                    <AddProvider
-                      modelProviders={modelProviders}
-                      setProviders={setProviders}
-                      defaultProviderKey={providerKey}
-                      compact
-                    />
-                  )}
-                </div>
+                </span>
               );
             })}
           </div>
 
-          {!hasSomeConnected && (
-            <p className="text-[10px] text-black/40 dark:text-white/40">
-              Enable a provider above to use {family.model_family} models.
-            </p>
+          {/* Connect button for this family's primary provider if not yet connected */}
+          {!hasSomeConnected && family.providerKey && modelProviders.some(p => p.key === family.providerKey) && (
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] text-black/40 dark:text-white/40 flex-1">
+                Enable a provider to use {family.model_family} models
+              </p>
+              <AddProvider
+                modelProviders={modelProviders}
+                setProviders={setProviders}
+                defaultProviderKey={family.providerKey}
+                compact
+              />
+            </div>
+          )}
+
+          {/* Available variants from connected providers */}
+          {variantsByProvider.length > 0 && (
+            <div className="flex flex-col gap-2 border-t border-light-200 dark:border-dark-200 pt-3 mt-1">
+              <p className="text-[10px] font-medium text-black/50 dark:text-white/50 uppercase tracking-wide">
+                Available from your connections
+              </p>
+              {variantsByProvider.map(({ provider, models }) => (
+                <div key={provider.id} className="flex flex-col gap-1">
+                  <p className="text-[10px] text-black/40 dark:text-white/40">{provider.name}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {models.map(m => (
+                      <span
+                        key={m.key}
+                        className="px-2 py-0.5 rounded-md text-[10px] bg-light-secondary/60 dark:bg-dark-secondary/60 border border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70 font-mono"
+                        title={m.key}
+                      >
+                        {m.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       )}

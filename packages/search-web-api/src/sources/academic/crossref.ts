@@ -1,73 +1,75 @@
-import grab from "grab-url";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const crossref: EngineFunction = async (
   query: string,
   page: number | undefined
-) =>
-  (
-    await grab("https://api.crossref.org/works", {
-      query: query,
-      offset: 20 * ((page || 1) - 1),
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
-        onResponse(path: string, response: any) {
-          if (!response || !response.message || !response.message.items) {
-            return [path, { data: [] }];
-          }
+) => {
+  const params = new URLSearchParams({
+    query: query,
+    offset: String(20 * ((page || 1) - 1)),
+  });
 
-          return [path, { data: response.message.items
-            .filter((record: any) => record.type !== "component")
-            .map((record: any) => {
-              let title = "";
-              let journal = "";
+  const response = await fetch(
+    `https://api.crossref.org/works?${params}`,
+    {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      },
+    }
+  );
 
-              if (record.type === "book-chapter") {
-                title = record["container-title"]?.[0] || "";
-                if (
-                  record.title?.[0] &&
-                  record.title[0].toLowerCase().trim() !==
-                    title.toLowerCase().trim()
-                ) {
-                  title += ` (${record.title[0]})`;
-                }
-              } else {
-                title =
-                  record.title?.[0] || record["container-title"]?.[0] || "";
-                journal =
-                  record["container-title"]?.[0] && record.title?.[0]
-                    ? record["container-title"][0]
-                    : "";
-              }
+  if (!response.ok) return [];
 
-              const authors = (record.author || [])
-                .map(
-                  (a: any) => `${a.given || ""} ${a.family || ""}`.trim()
-                )
-                .filter((a: string) => a)
-                .join(", ");
+  const data = await response.json();
 
-              const content = [
-                record.abstract || "",
-                journal ? `Journal: ${journal}` : "",
-                authors ? `Authors: ${authors}` : "",
-                record.publisher ? `Publisher: ${record.publisher}` : "",
-                record.DOI ? `DOI: ${record.DOI}` : "",
-              ]
-                .filter(Boolean)
-                .join("\n");
+  if (!data || !data.message || !data.message.items) return [];
 
-              return {
-                url: record.URL || `https://doi.org/${record.DOI}` || "",
-                title,
-                content,
-                engine: "crossref",
-              };
-            })
-            .filter((r: any) => r.url && r.title) }];
-        },
+  return data.message.items
+    .filter((record: any) => record.type !== "component")
+    .map((record: any) => {
+      let title = "";
+      let journal = "";
+
+      if (record.type === "book-chapter") {
+        title = record["container-title"]?.[0] || "";
+        if (
+          record.title?.[0] &&
+          record.title[0].toLowerCase().trim() !==
+            title.toLowerCase().trim()
+        ) {
+          title += ` (${record.title[0]})`;
+        }
+      } else {
+        title =
+          record.title?.[0] || record["container-title"]?.[0] || "";
+        journal =
+          record["container-title"]?.[0] && record.title?.[0]
+            ? record["container-title"][0]
+            : "";
       }
-    )
-  )?.data;
+
+      const authors = (record.author || [])
+        .map((a: any) => `${a.given || ""} ${a.family || ""}`.trim())
+        .filter((a: string) => a)
+        .join(", ");
+
+      const content = [
+        record.abstract || "",
+        journal ? `Journal: ${journal}` : "",
+        authors ? `Authors: ${authors}` : "",
+        record.publisher ? `Publisher: ${record.publisher}` : "",
+        record.DOI ? `DOI: ${record.DOI}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      return {
+        url: record.URL || `https://doi.org/${record.DOI}` || "",
+        title,
+        content,
+        engine: "crossref",
+      };
+    })
+    .filter((r: any) => r.url && r.title);
+};
