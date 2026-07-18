@@ -1,8 +1,9 @@
 'use client';
 import { useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, CheckCircle2, KeyRound } from 'lucide-react';
 import { ModelProviderUISection, ConfigModelProvider } from '../../../../lib/config/types';
 import AddProvider from './AddProviderDialog';
+import ProviderIcon from './ProviderIcon';
 
 interface ModelFamily {
   model_family: string;
@@ -195,6 +196,31 @@ const MODEL_FAMILIES: ModelFamily[] = [
   },
 ];
 
+const PROVIDER_API_KEY_URLS: Record<string, string> = {
+  Anthropic: 'https://console.anthropic.com/settings/keys',
+  OpenAI: 'https://platform.openai.com/api-keys',
+  'Azure OpenAI': 'https://portal.azure.com/',
+  Google: 'https://aistudio.google.com/app/apikey',
+  'Google AI Studio': 'https://aistudio.google.com/app/apikey',
+  'Vertex AI': 'https://console.cloud.google.com/apis/credentials',
+  OpenRouter: 'https://openrouter.ai/settings/keys',
+  Groq: 'https://console.groq.com/keys',
+  Together: 'https://api.together.xyz/settings/api-keys',
+  Cloudflare: 'https://dash.cloudflare.com/profile/api-tokens',
+  NVIDIA: 'https://build.nvidia.com/settings',
+  DeepSeek: 'https://platform.deepseek.com/api_keys',
+  xAI: 'https://console.x.ai/',
+  Mistral: 'https://console.mistral.ai/api-keys/',
+  Alibaba: 'https://dashscope.console.aliyun.com/',
+  MoonshotAI: 'https://platform.moonshot.cn/console/api-keys',
+  'Z.ai': 'https://open.bigmodel.cn/usercenter/apikeys',
+  Tencent: 'https://console.cloud.tencent.com/',
+  Xiaomi: 'https://openrouter.ai/settings/keys',
+  StepFun: 'https://platform.stepfun.com/account-info',
+  MiniMax: 'https://www.minimaxi.com/user-center/basic-information/interface-key',
+  Perplexity: 'https://www.perplexity.ai/settings/api',
+};
+
 // Maps a provider display name (from MODEL_FAMILIES.providers[]) to the provider key used in modelProviders
 const PROVIDER_NAME_TO_KEY: Record<string, string> = {
   Anthropic: 'anthropic',
@@ -331,10 +357,10 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
             <img
               src={`https://i.imgur.com/${family.imgur}.png`}
               alt={family.model_family}
-              width={100}
-              height={250}
-              className="w-24 rounded-xl flex-none object-contain"
-              style={{ height: 240 }}
+              width={200}
+              height={500}
+              className="rounded-xl flex-none object-contain"
+              style={{ width: 200, height: 500 }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
 
@@ -368,21 +394,40 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
           </div>
 
           {/* Provider chips */}
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {family.providers.map((providerName) => {
               const connected = isProviderConnected(providerName);
+              const providerKey = PROVIDER_NAME_TO_KEY[providerName];
+              const keyUrl = PROVIDER_API_KEY_URLS[providerName];
               return (
-                <span
+                <div
                   key={providerName}
-                  className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium border ${
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-colors ${
                     connected
-                      ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                      : 'border-light-200 dark:border-dark-200 bg-light-secondary/50 dark:bg-dark-secondary/50 text-black/40 dark:text-white/40'
+                      ? 'border-emerald-500/40 bg-emerald-500/10'
+                      : 'border-light-200 dark:border-dark-200 bg-light-secondary/50 dark:bg-dark-secondary/50'
                   }`}
+                  title={providerName}
                 >
-                  {connected && <CheckCircle2 size={9} className="flex-none" />}
-                  {providerName}
-                </span>
+                  {providerKey ? (
+                    <ProviderIcon providerType={providerKey} size={12} className="!p-0 !bg-transparent !dark:bg-transparent" />
+                  ) : (
+                    <span className="text-[10px] text-black/50 dark:text-white/50">{providerName}</span>
+                  )}
+                  {connected && <CheckCircle2 size={9} className="flex-none text-emerald-500" />}
+                  {keyUrl && (
+                    <a
+                      href={keyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-none text-black/30 dark:text-white/30 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+                      title={`Get ${providerName} API key`}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <KeyRound size={10} />
+                    </a>
+                  )}
+                </div>
               );
             })}
           </div>

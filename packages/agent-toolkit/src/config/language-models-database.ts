@@ -19,56 +19,56 @@ export const LANGUAGE_MODELS = [
       "id": "nvidia/llama-3.1-nemotron-70b-instruct",
       "contextLength": 131_072,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Nemotron 3 Super 120B",
       "id": "nvidia/nemotron-3-super-120b-a12b",
       "contextLength": 1_000_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Nemotron-4 340B",
       "id": "nvidia/nemotron-4-340b",
       "contextLength": 131_072,
       "free": false,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Llama 3.3 70B Instruct",
       "id": "meta/llama-3.3-70b-instruct",
       "contextLength": 131_072,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Llama 3.1 405B Instruct",
       "id": "meta/llama-3.1-405b-instruct",
       "contextLength": 131_072,
       "free": false,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Llama 3.1 8B Instruct",
       "id": "meta/llama-3.1-8b-instruct",
       "contextLength": 131_072,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Gemma 4 31B IT",
       "id": "google/gemma-4-31b-it",
       "contextLength": 131_072,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Mistral Large 2",
       "id": "mistralai/mistral-large-2",
       "contextLength": 131_072,
       "free": false,
-      "type": "text-generation"
+      "type": "text"
     }
   ]
 },
@@ -1204,175 +1204,175 @@ export const LANGUAGE_MODELS = [
       "id": "openrouter/free",
       "contextLength": 200_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Nemotron 3 Super 120B",
       "id": "nvidia/nemotron-3-super-120b-a12b:free",
       "contextLength": 1_000_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Nemotron 3 Ultra 550B",
       "id": "nvidia/nemotron-3-ultra-550b-a55b:free",
       "contextLength": 1_000_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Nemotron 3 Nano 30B A3B",
       "id": "nvidia/nemotron-3-nano-30b-a3b:free",
       "contextLength": 256_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Nemotron 3 Nano Omni 30B A3B Reasoning",
       "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
       "contextLength": 256_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Nemotron Nano 12B v2 VL",
       "id": "nvidia/nemotron-nano-12b-v2-vl:free",
       "contextLength": 128_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Nemotron Nano 9B v2",
       "id": "nvidia/nemotron-nano-9b-v2:free",
       "contextLength": 128_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Nemotron 3.5 Content Safety",
       "id": "nvidia/nemotron-3.5-content-safety:free",
       "contextLength": 128_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Gemma 4 31B IT",
       "id": "google/gemma-4-31b-it:free",
       "contextLength": 262_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Gemma 4 26B A4B IT",
       "id": "google/gemma-4-26b-a4b-it:free",
       "contextLength": 262_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "GPT-OSS 120B",
       "id": "openai/gpt-oss-120b:free",
       "contextLength": 131_072,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "GPT-OSS 20B",
       "id": "openai/gpt-oss-20b:free",
       "contextLength": 131_072,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Qwen3 Coder",
       "id": "qwen/qwen3-coder:free",
       "contextLength": 1_000_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Qwen3 Next 80B A3B Instruct",
       "id": "qwen/qwen3-next-80b-a3b-instruct:free",
       "contextLength": 262_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Llama 3.3 70B Instruct",
       "id": "meta-llama/llama-3.3-70b-instruct:free",
       "contextLength": 131_072,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Llama 3.2 3B Instruct",
       "id": "meta-llama/llama-3.2-3b-instruct:free",
       "contextLength": 131_072,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Hermes 3 Llama 3.1 405B",
       "id": "nousresearch/hermes-3-llama-3.1-405b:free",
       "contextLength": 131_072,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Laguna XS 2.1",
       "id": "poolside/laguna-xs-2.1:free",
       "contextLength": 262_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Laguna XS 2",
       "id": "poolside/laguna-xs.2:free",
       "contextLength": 262_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Laguna M 1",
       "id": "poolside/laguna-m.1:free",
       "contextLength": 262_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "North Mini Code",
       "id": "cohere/north-mini-code:free",
       "contextLength": 256_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "Dolphin Mistral 24B Venice Edition",
       "id": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
       "contextLength": 33_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "LFM 2.5 1.2B Thinking",
       "id": "liquid/lfm-2.5-1.2b-thinking:free",
       "contextLength": 33_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "LFM 2.5 1.2B Instruct",
       "id": "liquid/lfm-2.5-1.2b-instruct:free",
       "contextLength": 33_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     },
     {
       "name": "OpenRouter Free (rotating)",
       "id": "openrouter/free",
       "contextLength": 200_000,
       "free": true,
-      "type": "text-generation"
+      "type": "text"
     }
   ]
 }
