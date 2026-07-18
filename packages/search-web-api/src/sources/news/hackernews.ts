@@ -1,4 +1,3 @@
-import grab from "grab-url";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const hackernews: EngineFunction = async (
@@ -42,58 +41,54 @@ export const hackernews: EngineFunction = async (
     searchParams.append(key, String(value));
   });
 
-  return (
-    await grab(
-      `https://hn.algolia.com/api/v1/${searchType}?${searchParams.toString()}`,
-      {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        },
-        onResponse(path: string, jsonData: any) {
-          const results: any[] = [];
+  const response = await fetch(
+    `https://hn.algolia.com/api/v1/${searchType}?${searchParams.toString()}`,
+    {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (X1; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    }
+  );
+  if (!response.ok) return [];
+  const jsonData = await response.json();
+  const results: any[] = [];
 
-          if (!jsonData?.hits) {
-            const data = results;
-            return [path, { data }];
-          }
+  if (!jsonData?.hits) {
+    return results;
+  }
 
-          for (const hit of jsonData.hits) {
-            const objectId = hit.objectID;
-            const points = hit.points || 0;
-            const numComments = hit.num_comments || 0;
+  for (const hit of jsonData.hits) {
+    const objectId = hit.objectID;
+    const points = hit.points || 0;
+    const numComments = hit.num_comments || 0;
 
-            // Extract content from various possible fields
-            let content = hit.url || hit.comment_text || hit.story_text || "";
+    // Extract content from various possible fields
+    let content = hit.url || hit.comment_text || hit.story_text || "";
 
-            // Strip HTML tags from content if present
-            if (content) {
-              content = content.replace(/<[^>]*>/g, "").trim();
-            }
+    // Strip HTML tags from content if present
+    if (content) {
+      content = content.replace(/<[^>]*>/g, "").trim();
+    }
 
-            // Build metadata string
-            let metadata = "";
-            if (points !== 0 || numComments !== 0) {
-              metadata = `points: ${points} | comments: ${numComments}`;
-            }
+    // Build metadata string
+    let metadata = "";
+    if (points !== 0 || numComments !== 0) {
+      metadata = `points: ${points} | comments: ${numComments}`;
+    }
 
-            // Combine content and metadata
-            const fullContent = metadata ? `${metadata}\n${content}` : content;
+    // Combine content and metadata
+    const fullContent = metadata ? `${metadata}\n${content}` : content;
 
-            results.push({
-              title: hit.title || `author: ${hit.author}`,
-              url: `https://news.ycombinator.com/item?id=${objectId}`,
-              content: fullContent,
-              points,
-              numComments,
-              engine: "hackernews",
-            });
-          }
+    results.push({
+      title: hit.title || `author: ${hit.author}`,
+      url: `https://news.ycombinator.com/item?id=${objectId}`,
+      content: fullContent,
+      points,
+      numComments,
+      engine: "hackernews",
+    });
+  }
 
-          const data = results;
-          return [path, { data }];
-        },
-      }
-    )
-  )?.data;
+  return results;
 };

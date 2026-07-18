@@ -1,4 +1,3 @@
-import grab from "grab-url";
 import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 
 // Weather condition mapping
@@ -24,76 +23,76 @@ const WWO_TO_CONDITION: Record<string, string> = {
 export const wttr: EngineFunction = async (
   query: string,
   page: number | undefined
-) =>
-  (
-    await grab(`https://wttr.in/${query}`, {
-      format: "j1",
-      lang: "en",
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        },
-        onResponse(path: string, response: any) {
-          const results: EngineResult[] = [];
+) => {
+  const params = new URLSearchParams({
+    format: "j1",
+    lang: "en",
+  });
+  const response = await fetch(`https://wttr.in/${query}?${params}`, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    },
+  });
+  if (!response.ok) return [];
+  const data = await response.json();
+  const results: EngineResult[] = [];
 
-          if (!response || !response.current_condition) {
-            return [path, { data: results }];
-          }
+  if (!data || !data.current_condition) {
+    return results;
+  }
 
-          const current = response.current_condition[0];
-          const weatherCode = current.weatherCode || "";
-          const condition = WWO_TO_CONDITION[weatherCode] || "unknown";
+  const current = data.current_condition[0];
+  const weatherCode = current.weatherCode || "";
+  const condition = WWO_TO_CONDITION[weatherCode] || "unknown";
 
-          const content = [
-            `Temperature: ${current.temp_C || current.tempC}°C (Feels like: ${current.FeelsLikeC}°C)`,
-            `Condition: ${condition}`,
-            `Humidity: ${current.humidity}%`,
-            `Wind: ${current.windspeedKmph} km/h from ${current.winddirDegree}°`,
-            `Pressure: ${current.pressure} hPa`,
-            `Cloud cover: ${current.cloudcover}%`,
-          ]
-            .filter(Boolean)
-            .join("\n");
+  const content = [
+    `Temperature: ${current.temp_C || current.tempC}°C (Feels like: ${current.FeelsLikeC}°C)`,
+    `Condition: ${condition}`,
+    `Humidity: ${current.humidity}%`,
+    `Wind: ${current.windspeedKmph} km/h from ${current.winddirDegree}°`,
+    `Pressure: ${current.pressure} hPa`,
+    `Cloud cover: ${current.cloudcover}%`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
-          // Add current weather
-          results.push({
-            url: `https://wttr.in/${response.nearest_area?.[0]?.areaName?.[0]?.value || "weather"}`,
-            title: `Weather in ${response.nearest_area?.[0]?.areaName?.[0]?.value || "Unknown Location"}`,
-            content,
-            engine: "wttr",
-          });
+  // Add current weather
+  results.push({
+    url: `https://wttr.in/${data.nearest_area?.[0]?.areaName?.[0]?.value || "weather"}`,
+    title: `Weather in ${data.nearest_area?.[0]?.areaName?.[0]?.value || "Unknown Location"}`,
+    content,
+    engine: "wttr",
+  });
 
-          // Add forecast
-          if (response.weather && Array.isArray(response.weather)) {
-            for (const day of response.weather.slice(0, 3)) {
-              // Only next 3 days
-              const date = day.date;
-              const hourly = day.hourly || [];
+  // Add forecast
+  if (data.weather && Array.isArray(data.weather)) {
+    for (const day of data.weather.slice(0, 3)) {
+      // Only next 3 days
+      const date = day.date;
+      const hourly = day.hourly || [];
 
-              if (hourly.length > 0) {
-                const forecast = hourly[Math.floor(hourly.length / 2)]; // Middle of day
-                const forecastCondition =
-                  WWO_TO_CONDITION[forecast.weatherCode] || "unknown";
+      if (hourly.length > 0) {
+        const forecast = hourly[Math.floor(hourly.length / 2)]; // Middle of day
+        const forecastCondition =
+          WWO_TO_CONDITION[forecast.weatherCode] || "unknown";
 
-                const forecastContent = [
-                  `Temperature: ${forecast.tempC}°C`,
-                  `Condition: ${forecastCondition}`,
-                  `Humidity: ${forecast.humidity}%`,
-                  `Wind: ${forecast.windspeedKmph} km/h`,
-                ].join(" | ");
+        const forecastContent = [
+          `Temperature: ${forecast.tempC}°C`,
+          `Condition: ${forecastCondition}`,
+          `Humidity: ${forecast.humidity}%`,
+          `Wind: ${forecast.windspeedKmph} km/h`,
+        ].join(" | ");
 
-                results.push({
-                  url: `https://wttr.in/${response.nearest_area?.[0]?.areaName?.[0]?.value || "weather"}`,
-                  title: `Forecast for ${date}`,
-                  content: forecastContent,
-                  engine: "wttr",
-                });
-              }
-            }
-          }
-
-          return [path, { data: results }];
-        },
+        results.push({
+          url: `https://wttr.in/${data.nearest_area?.[0]?.areaName?.[0]?.value || "weather"}`,
+          title: `Forecast for ${date}`,
+          content: forecastContent,
+          engine: "wttr",
+        });
       }
-    )
-  )?.data;
+    }
+  }
+
+  return results;
+};

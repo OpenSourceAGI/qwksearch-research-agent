@@ -1,35 +1,34 @@
-import grab from "grab-url";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const openstreetmap: EngineFunction = async (
   query: string,
   page: number | undefined
-) =>
-  (
-    await grab("https://nominatim.openstreetmap.org/search", {
-      q: query,
-      format: "json",
-      addressdetails: 1,
-      limit: 10,
-        headers: {
-          "User-Agent": "HonoxSearX/1.0",
-        },
-        onResponse(path: string, response: any) {
-          const json = response;
+) => {
+  const params = new URLSearchParams({
+    q: query,
+    format: "json",
+    addressdetails: "1",
+    limit: "10",
+  });
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/search?${params}`,
+    {
+      headers: {
+        "User-Agent": "HonoxSearX/1.0",
+      },
+    }
+  );
+  if (!response.ok) return [];
+  const json = await response.json();
 
-          response.data = [];
+  if (!Array.isArray(json)) {
+    return [];
+  }
 
-          if (Array.isArray(json)) {
-            response.data = json.map((item: any) => ({
-              url: `https://www.openstreetmap.org/${item.osm_type}/${item.osm_id}`,
-              title: item.display_name,
-              content: `Type: ${item.type}, Class: ${item.class}`,
-              engine: "openstreetmap",
-            }));
-          }
-
-          return [path, response];
-        },
-      }
-    )
-  )?.data;
+  return json.map((item: any) => ({
+    url: `https://www.openstreetmap.org/${item.osm_type}/${item.osm_id}`,
+    title: item.display_name,
+    content: `Type: ${item.type}, Class: ${item.class}`,
+    engine: "openstreetmap",
+  }));
+};

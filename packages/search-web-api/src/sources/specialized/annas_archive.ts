@@ -1,6 +1,5 @@
-import grab from "grab-url";
-import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 import { parseHTML } from "linkedom";
+import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 
 const baseDomains = [
   "annas-archive.gl",
@@ -12,76 +11,87 @@ export const annas_archive: EngineFunction = async (
   query: string,
   page: number | undefined,
   baseDomain: number = 0,
-) =>
-  (
-    await grab("https://" + baseDomains[baseDomain] + "/search", {
-      responseType: "text",
-      q: query,
-      page: page || 1,
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-      },
-      timeout: 10,
-      onError: async (error: any) => {
-        if (baseDomain + 1 < baseDomains.length) {
-          return await annas_archive(query, page, baseDomain + 1);
-        }
-        throw error;
-      },
-      onResponse(path: string, response: any) {
-        const results: EngineResult[] = [];
+) => {
+  const params = new URLSearchParams({
+    q: query,
+    page: String(page || 1),
+  });
 
-        if (!response || typeof response !== "string") {
-          (response as any).data = results;
-          return [path, response];
-        }
+  let response: Response;
+  try {
+    response = await fetch(
+      `https://${baseDomains[baseDomain]}/search?${params}`,
+      {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        },
+        signal: AbortSignal.timeout(10000),
+      }
+    );
+  } catch (error) {
+    if (baseDomain + 1 < baseDomains.length) {
+      return await annas_archive(query, page, baseDomain + 1);
+    }
+    throw error;
+  }
 
-        const { document } = parseHTML(response);
+  if (!response.ok) {
+    if (baseDomain + 1 < baseDomains.length) {
+      return await annas_archive(query, page, baseDomain + 1);
+    }
+    return [];
+  }
 
-        document
-          .querySelectorAll("main div.js-aarecord-list-outer > div")
-          .forEach((element) => {
-            const elElem = element;
+  const html = await response.text();
+  const results: EngineResult[] = [];
 
-            const href = elElem.querySelector("a")?.getAttribute("href");
-            if (!href) return;
+  if (!html || typeof html !== "string") {
+    return results;
+  }
 
-            const url = "https://" + baseDomains[baseDomain] + href;
-            const title =
-              elElem.querySelector('a[href^="/md5"]')?.textContent?.trim() ||
-              "";
-            const author =
-              elElem.querySelector('a[href^="/search"]')?.textContent?.trim() ||
-              "";
-            const publisher =
-              elElem
-                .querySelectorAll('a[href^="/search"]')[1]
-                ?.textContent?.trim() || "";
-            const description =
-              elElem.querySelector("div.relative")?.textContent?.trim() || "";
-            const thumbnail =
-              elElem.querySelector("img")?.getAttribute("src") || undefined;
+  const { document } = parseHTML(html);
 
-            const content = [
-              description,
-              author ? `Author: ${author}` : "",
-              publisher ? `Publisher: ${publisher}` : "",
-            ]
-              .filter(Boolean)
-              .join("\n");
+  document
+    .querySelectorAll("main div.js-aarecord-list-outer > div")
+    .forEach((element) => {
+      const elElem = element;
 
-            results.push({
-              url,
-              title,
-              content,
-              engine: "annas_archive",
-              thumbnail,
-            });
-          });
+      const href = elElem.querySelector("a")?.getAttribute("href");
+      if (!href) return;
 
-        (response as any).data = results;
-        return [path, response];
-      },
-    })
-  )?.data;
+      const url = "https://" + baseDomains[baseDomain] + href;
+      const title =
+        elElem.querySelector('a[href^="/md5"]')?.textContent?.trim() ||
+        "";
+      const author =
+        elElem.querySelector('a[href^="/search"]')?.textContent?.trim() ||
+        "";
+      const publisher =
+        elElem
+          .querySelectorAll('a[href^="/search"]')[1]
+          ?.textContent?.trim() || "";
+      const description =
+        elElem.querySelector("div.relative")?.textContent?.trim() || "";
+      const thumbnail =
+        elElem.querySelector("img")?.getAttribute("src") || undefined;
+
+      const content = [
+        description,
+        author ? `Author: ${author}` : "",
+        publisher ? `Publisher: ${publisher}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      results.push({
+        url,
+        title,
+        content,
+        engine: "annas_archive",
+        thumbnail,
+      });
+    });
+
+  return results;
+};

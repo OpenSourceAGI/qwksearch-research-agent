@@ -1,4 +1,3 @@
-import grab from "grab-url";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 // Token management for Apple Maps API
@@ -51,57 +50,56 @@ export const apple_maps: EngineFunction = async (
     throw new Error("Failed to obtain Apple Maps API token");
   }
 
-  return (
-    await grab("https://api.apple-mapkit.com/v1/search", {
-      q: query,
-      lang: "en",
-      mkjsVersion: "5.72.53",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        },
-        onResponse(path: string, response: any) {
-          const json = response;
+  const params = new URLSearchParams({
+    q: query,
+    lang: "en",
+    mkjsVersion: "5.72.53",
+  });
+  const response = await fetch(
+    `https://api.apple-mapkit.com/v1/search?${params}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      },
+    }
+  );
+  if (!response.ok) return [];
+  const json = await response.json();
 
-          if (!json || !json.results) {
-            const data: any[] = [];
-            return [path, { data }];
-          }
+  if (!json || !json.results) {
+    return [];
+  }
 
-          const data = json.results.map((result: any) => {
-            const lat = result.center?.lat;
-            const lng = result.center?.lng;
+  return json.results.map((result: any) => {
+    const lat = result.center?.lat;
+    const lng = result.center?.lng;
 
-            const addressParts = [
-              result.subThoroughfare,
-              result.thoroughfare,
-              result.locality,
-              result.postCode,
-              result.country,
-            ].filter(Boolean);
+    const addressParts = [
+      result.subThoroughfare,
+      result.thoroughfare,
+      result.locality,
+      result.postCode,
+      result.country,
+    ].filter(Boolean);
 
-            const content = [
-              addressParts.join(", "),
-              result.poiCategory ? `Type: ${result.poiCategory}` : "",
-              lat && lng ? `Coordinates: ${lat}, ${lng}` : "",
-              result.telephone ? `Phone: ${result.telephone}` : "",
-            ]
-              .filter(Boolean)
-              .join("\n");
+    const content = [
+      addressParts.join(", "),
+      result.poiCategory ? `Type: ${result.poiCategory}` : "",
+      lat && lng ? `Coordinates: ${lat}, ${lng}` : "",
+      result.telephone ? `Phone: ${result.telephone}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
 
-            return {
-              url: result.placecardUrl || result.urls?.[0] || "",
-              title: result.name,
-              content,
-              engine: "apple_maps",
-              latitude: lat,
-              longitude: lng,
-            };
-          });
-          return [path, { data }];
-        },
-      }
-    )
-  )?.data;
+    return {
+      url: result.placecardUrl || result.urls?.[0] || "",
+      title: result.name,
+      content,
+      engine: "apple_maps",
+      latitude: lat,
+      longitude: lng,
+    };
+  });
 };

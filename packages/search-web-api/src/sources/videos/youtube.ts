@@ -1,4 +1,3 @@
-import grab from "grab-url";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 // Multiple Invidious instances for fallback
@@ -16,51 +15,50 @@ async function tryInvidiousInstances(
 ): Promise<any> {
   for (const instance of INVIDIOUS_INSTANCES) {
     try {
-      const result = await grab(`${instance}/api/v1/search`, {
+      const params = new URLSearchParams({
         q: query,
-        page: page || 1,
+        page: String(page || 1),
         type: "video",
+      });
+      const response = await fetch(`${instance}/api/v1/search?${params}`, {
         headers: {
           "User-Agent": "HonoxSearX/1.0",
         },
-        timeout: 5000,
-        onResponse(path: string, jsonData: any) {
-          const results = [] as any[];
-          const json = jsonData;
-
-          if (Array.isArray(json)) {
-            json.forEach((item: any) => {
-              if (item.type === "video") {
-                const duration = item.lengthSeconds
-                  ? `${Math.floor(item.lengthSeconds / 60)}:${String(item.lengthSeconds % 60).padStart(2, "0")}`
-                  : "";
-                const views = item.viewCount
-                  ? item.viewCount.toLocaleString()
-                  : "";
-                const published = item.publishedText || "";
-
-                results.push({
-                  url: `https://www.youtube.com/watch?v=${item.videoId}`,
-                  title: item.title,
-                  content: `${item.description || ""} | ${duration} | ${views} views | ${published}`.trim(),
-                  thumbnail:
-                    item.videoThumbnails && item.videoThumbnails.length > 0
-                      ? item.videoThumbnails[0].url
-                      : undefined,
-                  engine: "youtube",
-                });
-              }
-            });
-          }
-
-          const data = results;
-          return [path, { data }];
-        },
+        signal: AbortSignal.timeout(5000),
       });
 
+      if (!response.ok) continue;
+      const json = await response.json();
+      const results = [] as any[];
+
+      if (Array.isArray(json)) {
+        json.forEach((item: any) => {
+          if (item.type === "video") {
+            const duration = item.lengthSeconds
+              ? `${Math.floor(item.lengthSeconds / 60)}:${String(item.lengthSeconds % 60).padStart(2, "0")}`
+              : "";
+            const views = item.viewCount
+              ? item.viewCount.toLocaleString()
+              : "";
+            const published = item.publishedText || "";
+
+            results.push({
+              url: `https://www.youtube.com/watch?v=${item.videoId}`,
+              title: item.title,
+              content: `${item.description || ""} | ${duration} | ${views} views | ${published}`.trim(),
+              thumbnail:
+                item.videoThumbnails && item.videoThumbnails.length > 0
+                  ? item.videoThumbnails[0].url
+                  : undefined,
+              engine: "youtube",
+            });
+          }
+        });
+      }
+
       // If successful, return the result
-      if (result?.data) {
-        return result.data;
+      if (results.length > 0) {
+        return results;
       }
     } catch (error) {
       // Try next instance

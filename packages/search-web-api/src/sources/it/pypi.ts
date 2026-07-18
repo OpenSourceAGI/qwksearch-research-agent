@@ -1,34 +1,30 @@
-import grab from "grab-url";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const pypi: EngineFunction = async (
   query: string,
   page: number | undefined
-) =>
-  (
-    await grab(`https://pypi.org/search/`, {
-      q: query,
-      onResponse(path: string, response: any) {
-        const html = response.data || response;
-        const results = [];
+) => {
+  const params = new URLSearchParams({ q: query });
+  const response = await fetch(`https://pypi.org/search/?${params}`);
+  if (!response.ok) return [];
+  const html = await response.text();
+  const results = [];
 
-        // PyPI search uses a simple structure
-        const packageRegex =
-          /<a class="package-snippet"[^>]*href="([^"]+)"[^>]*>[\s\S]*?<span class="package-snippet__name">([^<]+)<\/span>[\s\S]*?<span class="package-snippet__version">([^<]+)<\/span>[\s\S]*?<p class="package-snippet__description">([^<]*)<\/p>/g;
+  // PyPI search uses a simple structure
+  const packageRegex =
+    /<a class="package-snippet"[^>]*href="([^"]+)"[^>]*>[\s\S]*?<span class="package-snippet__name">([^<]+)<\/span>[\s\S]*?<span class="package-snippet__version">([^<]+)<\/span>[\s\S]*?<p class="package-snippet__description">([^<]*)<\/p>/g;
 
-        let match;
-        while ((match = packageRegex.exec(html)) !== null) {
-          const [, url, name, version, description] = match;
+  let match;
+  while ((match = packageRegex.exec(html)) !== null) {
+    const [, url, name, version, description] = match;
 
-          results.push({
-            url: `https://pypi.org${url}`,
-            title: `${name.trim()} ${version.trim()}`,
-            content: description.trim() || "No description available",
-            engine: "pypi",
-          });
-        }
+    results.push({
+      url: `https://pypi.org${url}`,
+      title: `${name.trim()} ${version.trim()}`,
+      content: description.trim() || "No description available",
+      engine: "pypi",
+    });
+  }
 
-        return [path, { data: results }];
-      },
-    })
-  )?.data;
+  return results;
+};

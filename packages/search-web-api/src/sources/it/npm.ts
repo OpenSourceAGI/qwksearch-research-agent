@@ -1,34 +1,36 @@
-import grab from "grab-url";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const npm: EngineFunction = async (
   query: string,
   page: number | undefined
-) =>
-  (
-    await grab("https://registry.npmjs.org/-/v1/search", {
-      text: query,
-      size: 10,
-      from: ((page || 1) - 1) * 10,
-        headers: {
-          "User-Agent": "HonoxSearX/1.0",
-        },
-        onResponse(path: string, response: any) {
-          const results: any[] = [];
+) => {
+  const params = new URLSearchParams({
+    text: query,
+    size: "10",
+    from: String(((page || 1) - 1) * 10),
+  });
+  const response = await fetch(
+    `https://registry.npmjs.org/-/v1/search?${params}`,
+    {
+      headers: {
+        "User-Agent": "HonoxSearX/1.0",
+      },
+    }
+  );
+  if (!response.ok) return [];
+  const data = await response.json();
+  const results: any[] = [];
 
-          if (response.data && response.data.objects) {
-            response.data.objects.forEach((item: any) => {
-              results.push({
-                url: item.package.links.npm,
-                title: item.package.name,
-                content: item.package.description || "",
-                engine: "npm",
-              });
-            });
-          }
+  if (data && data.objects) {
+    data.objects.forEach((item: any) => {
+      results.push({
+        url: item.package.links.npm,
+        title: item.package.name,
+        content: item.package.description || "",
+        engine: "npm",
+      });
+    });
+  }
 
-          return [path, { data: results }];
-        },
-      }
-    )
-  )?.data;
+  return results;
+};
