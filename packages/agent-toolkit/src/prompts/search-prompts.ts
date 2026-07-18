@@ -1,10 +1,9 @@
 /**
- * @module research/search/prompts
- * @description Research library module.
+ * @module agent-toolkit/prompts/search-prompts
+ * @description Prompt templates for web search and writing assistant agents.
  */
 import type { FewShotExample } from './meta-search-types';
 
-// Web Search Prompts
 export const webSearchRetrieverPrompt = `
 You are an AI question rephraser. You will be given a conversation and a follow-up question,  you will have to rephrase the follow up question so it is a standalone question and can be used by another LLM to search the web for information to answer it.
 If it is a simple writing task or a greeting (unless the greeting contains a question after it) like Hi, Hello, How are you, etc. than a question then you need to return \`not_needed\` as the response (This is because the LLM won't need to search the web for finding information on this topic).
@@ -141,7 +140,6 @@ export const webSearchResponsePrompt = `
     Current date & time in ISO format (UTC timezone) is: {date}.
 `;
 
-// Writing Assistant Prompt
 export const writingAssistantPrompt = `
 You are QwkSearch, an AI model who is expert at searching the web and answering user's queries. You are currently set on focus mode 'Writing Assistant', this means you will be helping the user write a response to a given query.
 You should still use retrieved web context and cite it while helping the user write a strong response.

@@ -30,6 +30,7 @@ class ConfigManager {
     mcpServers: [],
     search: {
       searxngURL: "",
+      proxyURL: "",
       tavilyApiKey: "",
       sourceScrapeCount: 3,
       sourceScrapeTimeout: 5,
@@ -109,6 +110,23 @@ class ConfigManager {
         default: "",
         scope: "server",
         env: "SEARXNG_API_URL",
+      },
+      {
+        name: "Proxy URL",
+        key: "proxyURL",
+        type: "string",
+        required: false,
+        description: "Optional HTTP/HTTPS/SOCKS5 proxy for outbound search and scrape requests. Format: http://user:pass@host:port or socks5://host:port",
+        placeholder: "http://user:pass@proxy.example.com:8080",
+        default: "",
+        scope: "server",
+        env: "PROXY_URL",
+        links: [
+          { name: "Webshare", url: "https://www.webshare.io/?referral_code=proxy" },
+          { name: "Bright Data", url: "https://brightdata.com" },
+          { name: "ProxyMesh", url: "https://proxymesh.com" },
+          { name: "Free Proxy List", url: "https://free-proxy-list.net" },
+        ],
       },
       {
         name: "Tavily API Key",

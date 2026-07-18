@@ -12,7 +12,7 @@ import {
   webSearchResponsePrompt,
   webSearchRetrieverFewShots,
   writingAssistantPrompt,
-} from "write-language";
+} from "../../prompts";
 import type { Config } from "./meta-search-types";
 
 const prompts = {

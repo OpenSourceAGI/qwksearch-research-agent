@@ -98,7 +98,7 @@ export const handleEmitterEvents = async (
    * @param {SSEMessage} message - The SSE message payload to serialize and send.
    */
   const writeSSE = (message: SSEMessage): Promise<void> => {
-    return writer.write(encoder.encode(JSON.stringify(message) + "\n"));
+    return writer.write(encoder.encode("data: " + JSON.stringify(message) + "\n\n"));
   };
 
   stream.on("data", (data: string) => {

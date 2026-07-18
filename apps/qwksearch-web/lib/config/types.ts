@@ -7,6 +7,7 @@ type BaseUIConfigField = {
   description: string;
   scope: "client" | "server";
   env?: string;
+  links?: { name: string; url: string }[];
 };
 
 type StringUIConfigField = BaseUIConfigField & {

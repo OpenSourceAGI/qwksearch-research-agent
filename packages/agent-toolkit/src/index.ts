@@ -14,6 +14,7 @@
  */
 
 export * from "write-language";
+export * from "./prompts";
 export * from "./memory";
 export * from "./tools";
 // Both write-language and ./tools export AGENT_TOOLS; this package's own wins.

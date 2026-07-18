@@ -7,47 +7,18 @@
 import type { Document } from 'extract-webpage/search';
 import { File, Video, Loader2, ExternalLink, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import Image from 'next/image';
 import { getArticle, agentSearch } from 'qwksearch-api-client';
 import { convertURLSafeHTMLToHTML } from 'extract-webpage/html-to-content/html-utils';
 import { cn } from '../../lib/utils';
 
 import { GlowingEffect } from '../../ui/glowing-effect';
 import { useExtractPanel } from '../ArticleReader/ExtractPanelContext';
-import type { CategoryTab, SearchCategory, SearchParams, SearchResult } from '../../types/research';
+import type { SearchCategory, SearchResult } from '../../types/research';
+import { categories } from '../SearchConfig/categories';
 
-const CATEGORY_TABS: CategoryTab[] = [
-  {
-    code: 'general',
-    icon: '/icons/categories/icon-search-web.svg',
-    name: 'Web',
-  },
-  {
-    code: 'news',
-    icon: '/icons/categories/icon-search-news.svg',
-    name: 'News',
-  },
-  {
-    code: 'videos',
-    icon: '/icons/categories/icon-search-videos.svg',
-    name: 'Videos',
-  },
-  {
-    code: 'images',
-    icon: '/icons/categories/icon-search-images.svg',
-    name: 'Images',
-  },
-  {
-    code: 'science',
-    icon: '/icons/categories/icon-search-academic.svg',
-    name: 'Academic',
-  },
-  {
-    code: 'files',
-    icon: '/icons/categories/icon-search-files.svg',
-    name: 'Files',
-  },
-];
+const CATEGORY_TABS = categories.filter(c =>
+  ['general', 'news', 'videos', 'images', 'science', 'files'].includes(c.code)
+);
 
 const MessageSources = ({
   sources: initialSources,
@@ -433,13 +404,7 @@ const MessageSources = ({
                   : "bg-secondary/50 text-muted-foreground hover:bg-secondary hover:text-foreground"
               )}
             >
-              <Image
-                src={tab.icon}
-                alt={tab.name}
-                width={16}
-                height={16}
-                className="w-4 h-4"
-              />
+              <tab.icon className="w-4 h-4 flex-shrink-0" />
               <span>{tab.name}</span>
             </button>
           ))}

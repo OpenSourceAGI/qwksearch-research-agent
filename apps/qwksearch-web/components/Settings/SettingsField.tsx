@@ -63,6 +63,25 @@ const themeColors: Record<string, { primary: string; secondary: string }> = {
 const formatThemeName = (name: string) =>
   name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
+const FieldLinks = ({ links }: { links?: { name: string; url: string }[] }) => {
+  if (!links?.length) return null;
+  return (
+    <div className="flex flex-wrap gap-2 mt-1">
+      {links.map((link) => (
+        <a
+          key={link.url}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[11px] lg:text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 underline"
+        >
+          {link.name}
+        </a>
+      ))}
+    </div>
+  );
+};
+
 const emitClientConfigChanged = () => {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('client-config-changed'));
@@ -123,6 +142,7 @@ const SettingsSelect = ({
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
           </p>
+          <FieldLinks links={field.links} />
         </div>
         <Select
           value={value}
@@ -201,6 +221,7 @@ const SettingsInput = ({
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
           </p>
+          <FieldLinks links={field.links} />
         </div>
         <div className="relative">
           <input
@@ -269,6 +290,7 @@ const SettingsPasswordInput = ({
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
           </p>
+          <FieldLinks links={field.links} />
         </div>
         <div className="relative">
           <input
@@ -349,6 +371,7 @@ const SettingsTextarea = ({
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
           </p>
+          <FieldLinks links={field.links} />
         </div>
         <div className="relative">
           <textarea
@@ -423,6 +446,7 @@ const SettingsSwitch = ({
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
           </p>
+          <FieldLinks links={field.links} />
         </div>
         <Switch
           checked={isChecked}

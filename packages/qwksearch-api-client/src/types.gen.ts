@@ -283,12 +283,15 @@ export type AgentChatData = {
         };
         optimizationMode: 'speed' | 'balanced' | 'quality';
         focusMode: string;
+        category?: string;
         history?: Array<[
             string,
             string
         ]>;
         files?: Array<string>;
         chatModel: ModelWithProvider;
+        sourceExtractionEnabled?: boolean;
+        thinkingTimeLimit?: number;
         systemInstructions?: string;
     };
     path?: never;

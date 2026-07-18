@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 export const messages = sqliteTable("messages", {
-  id: integer("id").primaryKey(),
+  id: integer("id").primaryKey({ autoIncrement: true }),
   role: text("type", { enum: ["assistant", "user", "source", "suggestion"] }).notNull(),
   chatId: text("chatId").notNull(),
   userId: text("userId"),

@@ -184,6 +184,7 @@
                   },
                   "optimizationMode": { "type": "string", "enum": ["speed", "balanced", "quality"] },
                   "focusMode": { "type": "string", "example": "webSearch" },
+                  "category": { "type": "string", "example": "general" },
                   "history": {
                     "type": "array",
                     "items": {
@@ -195,6 +196,8 @@
                   },
                   "files": { "type": "array", "items": { "type": "string" } },
                   "chatModel": { "$ref": "#/components/schemas/ModelWithProvider" },
+                  "sourceExtractionEnabled": { "type": "boolean" },
+                  "thinkingTimeLimit": { "type": "integer", "minimum": 0 },
                   "systemInstructions": { "type": "string" }
                 }
               }

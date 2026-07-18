@@ -19,14 +19,10 @@ export const POST = async (req: NextRequest) => {
 
     for (const engineName of engines) {
       try {
-        const result = await search.query(testQuery, {
-          engines: [engineName],
-          count: 1,
-          timeout: 5000,
-        });
+        const result = await search.search(testQuery, 1, [engineName]);
 
         results[engineName] = {
-          working: result.results && result.results.length > 0,
+          working: Array.isArray(result) && result.length > 0,
         };
       } catch (error) {
         results[engineName] = {

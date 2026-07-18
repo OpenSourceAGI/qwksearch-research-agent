@@ -58,20 +58,20 @@ const sections = [
     dataAdd: 'mcpServers',
   },
   {
-    key: 'search',
-    name: 'Search Settings',
-    description: 'Configure search parameters.',
-    icon: Search,
-    component: SearchSection,
-    dataAdd: 'search',
-  },
-  {
     key: 'searchEngines',
     name: 'Search Sources',
     description: 'Manage search engine sources by category.',
     icon: Search,
     component: SearchEngines,
     dataAdd: 'searchEngines',
+  },
+  {
+    key: 'search',
+    name: 'Search Settings',
+    description: 'Configure search parameters.',
+    icon: Search,
+    component: SearchSection,
+    dataAdd: 'search',
   },
   {
     key: 'fileSources',

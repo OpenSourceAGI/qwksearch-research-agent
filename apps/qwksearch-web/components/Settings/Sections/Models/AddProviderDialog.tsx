@@ -1,6 +1,6 @@
 import { Loader2, Plus } from 'lucide-react';
 import grab from 'grab-url';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,16 +18,26 @@ import { toast } from 'sonner';
 const AddProvider = ({
   modelProviders,
   setProviders,
+  defaultProviderKey,
+  compact,
 }: {
   modelProviders: ModelProviderUISection[];
   setProviders: React.Dispatch<React.SetStateAction<ConfigModelProvider[]>>;
+  defaultProviderKey?: string;
+  compact?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<null | string>(
-    modelProviders[0]?.key || null,
+    defaultProviderKey || modelProviders[0]?.key || null,
   );
   const [config, setConfig] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open && defaultProviderKey) {
+      setSelectedProvider(defaultProviderKey);
+    }
+  }, [defaultProviderKey, open]);
 
   const providerConfigMap = useMemo(() => {
     const map: Record<string, { name: string; fields: UIConfigField[] }> = {};
@@ -84,13 +94,23 @@ const AddProvider = ({
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs sm:text-xs border border-light-200 dark:border-dark-200 text-black dark:text-white bg-light-secondary/50 dark:bg-dark-secondary/50 hover:bg-light-secondary hover:dark:bg-dark-secondary hover:border-light-300 hover:dark:border-dark-300 flex flex-row items-center space-x-1 active:scale-95 transition duration-200"
-      >
-        <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
-        <span>Add Connection</span>
-      </button>
+      {compact ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[11px] font-medium bg-sky-500 text-white hover:opacity-85 active:scale-95 transition"
+        >
+          <Plus className="w-3 h-3" />
+          <span>Add provider</span>
+        </button>
+      ) : (
+        <button
+          onClick={() => setOpen(true)}
+          className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs sm:text-xs border border-light-200 dark:border-dark-200 text-black dark:text-white bg-light-secondary/50 dark:bg-dark-secondary/50 hover:bg-light-secondary hover:dark:bg-dark-secondary hover:border-light-300 hover:dark:border-dark-300 flex flex-row items-center space-x-1 active:scale-95 transition duration-200"
+        >
+          <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          <span>Add Connection</span>
+        </button>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="w-full max-w-[600px] max-h-[85vh] flex flex-col border bg-light-primary dark:bg-dark-primary border-light-secondary dark:border-dark-secondary p-0" hideCloseButton>
           <form onSubmit={handleSubmit} className="flex flex-col flex-1">

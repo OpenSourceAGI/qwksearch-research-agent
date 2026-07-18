@@ -14,6 +14,7 @@ import {
 import { getSuggestions } from "../../lib/suggestions";
 import { researchAgentUIConfig } from "../../config";
 import { ChatModelProvider } from "../../types/chat";
+import { agentChat } from "qwksearch-api-client";
 
 const ARTICLE_PREFETCH_COUNT = 3;
 
@@ -401,90 +402,48 @@ export async function sendMessage(
   const messageIndex = messages.findIndex((m) => m.messageId === messageId);
 
   try {
-    // Send the chat request
-    const res = await fetch("/api/agent/chat", {
-      method: "POST",
+    // Send the chat request via the API client (streaming SSE)
+    const { stream } = await agentChat({
       signal: abortController.signal,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: message,
+      body: {
         message: {
           messageId: messageId,
           chatId: chatId,
           content: message,
         },
-        chatId: chatId,
-        files: fileIds,
+        optimizationMode: optimizationMode as "speed" | "balanced" | "quality",
         focusMode: focusMode,
         category: category,
-        optimizationMode: optimizationMode,
-        history: rewrite
+        history: (rewrite
           ? chatHistory.slice(0, messageIndex === -1 ? undefined : messageIndex)
-          : chatHistory,
+          : chatHistory) as Array<[string, string]>,
+        files: fileIds,
         chatModel: {
           key: chatModelProvider.key,
           providerId: chatModelProvider.providerId,
         },
         sourceExtractionEnabled,
         thinkingTimeLimit,
-        systemInstructions: localStorage.getItem("systemInstructions"),
-      }),
+        systemInstructions: localStorage.getItem("systemInstructions") ?? undefined,
+      },
+      onSseError: (error: unknown) => {
+        const errMsg =
+          error instanceof Error ? error.message : String(error);
+        // Handle 401 from SSE connection failures
+        if (errMsg.includes("401") && isAuthenticated) {
+          toast.error("Your session has expired. Please sign in again.");
+          setLoading(false);
+          window.location.href = "/";
+          return;
+        }
+        toast.error("Failed to send message. Please try again.");
+        setLoading(false);
+      },
     });
 
-    // Handle non-OK responses — parse the message body when possible
-    if (!res.ok) {
-      let errMessage = "Failed to send message. Please try again.";
-      try {
-        const errBody = await res.clone().json();
-        if (errBody?.message) errMessage = errBody.message;
-      } catch {
-        // body not JSON — use default
-      }
-
-      if (res.status === 401 && isAuthenticated) {
-        toast.error("Your session has expired. Please sign in again.");
-        setLoading(false);
-        window.location.href = "/";
-        return;
-      }
-
-      toast.error(errMessage);
-      setLoading(false);
-      return;
-    }
-
-    if (!res.body) throw new Error("No response body");
-
-    // Process the streaming response
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let partialChunk = "";
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-
-      partialChunk += decoder.decode(value, { stream: true });
-
-      try {
-        // Parse newline-delimited JSON
-        const lines = partialChunk.split("\n");
-        // Keep the last segment as it may be an incomplete JSON chunk
-        partialChunk = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          try {
-            const json = JSON.parse(line);
-            messageHandler(json);
-          } catch {
-            // Malformed line - skip it
-          }
-        }
-      } catch {
-        // Incomplete JSON - wait for next chunk
-      }
+    // Process the SSE stream
+    for await (const event of stream) {
+      await messageHandler(event as any);
     }
   } catch (err: any) {
     // Handle abort (user clicked stop)

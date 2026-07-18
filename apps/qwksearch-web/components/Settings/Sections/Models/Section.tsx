@@ -7,6 +7,7 @@ import {
 } from '../../../../lib/config/types';
 import ModelProvider from './ModelProvider';
 import ModelSelect from './ModelSelect';
+import ModelFamiliesCarousel from './ModelFamiliesCarousel';
 
 const Models = ({
   fields,
@@ -30,6 +31,8 @@ const Models = ({
           type="chat"
         />
       </div>
+      <div className="border-t border-light-200 dark:border-dark-200" />
+      <ModelFamiliesCarousel modelProviders={fields} connectedProviders={providers} setProviders={setProviders} />
       <div className="border-t border-light-200 dark:border-dark-200" />
       <div className="flex flex-row justify-between items-center px-6 ">
         <p className="text-xs lg:text-xs text-black/70 dark:text-white/70">
