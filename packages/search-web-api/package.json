@@ -2,7 +2,7 @@
     "name": "search-extract-web-api",
     "description": "70+ search engines across 10 categories and Scrape Extract API",
     "type": "module",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "author": "vtempest",
     "license": "MIT",
     "repository": {
