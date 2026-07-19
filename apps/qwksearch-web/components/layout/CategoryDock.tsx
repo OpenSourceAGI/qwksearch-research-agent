@@ -11,10 +11,16 @@ import {
   DropdownMenuSeparator,
 } from "shadcn-app-dock"
 import { useSession } from "research-agent-ui"
+import iconRead from "../icons/icon-read.svg"
+import iconConfigure from "../icons/icon-configure.svg"
 
 const NAV_ITEMS = [
   { href: "/", label: "Research", icon: "/apple-touch-icon.png" },
-  { href: "/docs", label: "Docs", icon: "/icons/icon-read.svg" },
+  {
+    href: "/docs",
+    label: "Docs",
+    icon: <Image src={iconRead} alt="Docs" width={24} height={24} className="w-full h-full" />,
+  },
 ]
 
 export function CategoryDock() {
@@ -36,7 +42,7 @@ export function CategoryDock() {
     {
       key: "settings",
       label: "Settings",
-      icon: "/icons/icon-configure.svg",
+      icon: <Image src={iconConfigure} alt="Settings" width={24} height={24} className="w-full h-full" />,
       menu: {
         renderContent: () => (
           <>
