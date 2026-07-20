@@ -1,126 +1,71 @@
-/**
- * Web Worker for TTS model loading and audio generation
- * Runs in a separate thread to avoid blocking the main UI
- */
+import { KokoroTTS } from "./kokoro.js";
+import { splitTextSmart } from "./semantic-split.js";
 
-import { KokoroTTS } from './KokoroTTS.js';
-
-let ttsInstance = null;
-let modelLoading = false;
-
-/**
- * Initialize and load the TTS model
- */
-async function initializeModel() {
-  if (ttsInstance) {
-    return;
-  }
-
-  if (modelLoading) {
-    // Wait for the model to finish loading
-    while (modelLoading) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    return;
-  }
-
-  modelLoading = true;
-
-  try {
-    // Determine backend based on available resources
-    let device = 'wasm';
-    let dtype = 'q8';
-
-    // Check if WebGPU is available
-    if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
-      try {
+async function detectWebGPU() {
+    try {
         const adapter = await navigator.gpu.requestAdapter();
-        if (adapter) {
-          device = 'webgpu';
-          dtype = 'fp32';
-        }
-      } catch (err) {
-        console.warn('WebGPU not available, falling back to WASM');
-      }
+        return !!adapter;
+    } catch (e) {
+        return false;
     }
-
-    self.postMessage({
-      status: 'device',
-      device: device,
-      dtype: dtype
-    });
-
-    // Load the model
-    ttsInstance = await KokoroTTS.from_pretrained(
-      'hexgrad/Kokoro-82M',
-      {
-        device: device,
-        dtype: dtype,
-        progress_callback: (progress) => {
-          self.postMessage({
-            status: 'progress',
-            progress: progress
-          });
-        }
-      }
-    );
-
-    // Signal that the model is ready
-    self.postMessage({
-      status: 'ready'
-    });
-
-  } catch (error) {
-    console.error('Failed to initialize TTS model:', error);
-    self.postMessage({
-      status: 'error',
-      error: error.message
-    });
-  } finally {
-    modelLoading = false;
-  }
 }
 
-/**
- * Handle messages from the main thread
- */
-self.onmessage = async (e) => {
-  const { type, text, voice } = e.data;
+const device = (await detectWebGPU()) ? "webgpu" : "wasm";
+self.postMessage({ status: "device", device });
 
-  if (type === 'generate') {
+let model_id = "onnx-community/Kokoro-82M-v1.0-ONNX";
+
+const chunkQueue = [];
+let isProcessing = false;
+
+async function processQueue() {
+    if (isProcessing || chunkQueue.length === 0) return;
+    
+    isProcessing = true;
+    const { chunk, voice } = chunkQueue.shift();
+    
     try {
-      // Ensure model is loaded
-      if (!ttsInstance) {
-        await initializeModel();
-      }
-
-      if (!ttsInstance) {
-        throw new Error('TTS model failed to initialize');
-      }
-
-      // Generate audio
-      const audio = await ttsInstance.generate(text, {
-        voice: voice || 'af',
-        speed: 1.0
-      });
-
-      // Send audio back to main thread
-      self.postMessage({
-        status: 'stream',
-        audio: audio.data
-      });
-
+        console.log("Processing chunk", chunk);
+        const audio = await tts.generate(chunk, { voice });
+        let ab = audio.audio.buffer;
+        console.log("generate done");
+        self.postMessage({ status: "stream", audio: ab, text: chunk }, [ab]);
     } catch (error) {
-      console.error('Error generating audio:', error);
-      self.postMessage({
-        status: 'error',
-        error: error.message
-      });
+        console.error("Error processing chunk:", error);
+        self.postMessage({ status: "error", error: error.message });
     }
-  }
-};
+    
+    isProcessing = false;
+    
+    if (chunkQueue.length > 0) {
+        processQueue();
+    } else {
+        self.postMessage({ status: "complete" });
+    }
+}
 
-// Initialize model when worker starts
-initializeModel().catch(error => {
-  console.error('Failed to initialize model on worker startup:', error);
+const tts = await KokoroTTS.from_pretrained(model_id, {
+    dtype: device === "wasm" ? "q8" : "fp32",
+    device,
+    progress_callback: (progress) => {
+        // Report progress to main thread
+        self.postMessage({ status: "progress", progress });
+    }
+}).catch((e) => {
+    self.postMessage({ status: "error", error: e.message });
+    throw e;
 });
+
+self.postMessage({ status: "ready", voices: tts.voices, device });
+
+self.addEventListener("message", async (e) => {
+    const { text, voice } = e.data;
+    let chunks = splitTextSmart(text, 600);
+
+    for (const chunk of chunks) {
+        chunkQueue.push({ chunk, voice });
+    }
+    
+    processQueue();
+});
+
