@@ -1,5 +1,5 @@
 {
-    "name": "search-extract-web-api",
+    "name": "search-web-api",
     "description": "70+ search engines across 10 categories and Scrape Extract API",
     "type": "module",
     "version": "1.0.13",
