@@ -1,15 +1,48 @@
 import { useState } from 'react';
 import openConnectorData from 'agent-toolkit/connectors/openconnector-providers-index.json';
 
+type OpenConnectorProvider = {
+  service: string;
+  displayName: string;
+  categories: string[];
+  authTypes: string[];
+  homepageUrl: string | null;
+  actionCount: number;
+  actions: string[];
+};
+
 type Connector = {
   name: string;
-  connector_id: string | null;
+  connector_id: string;
   domain: string | null;
   description: string;
 };
 
-const connectors: Connector[] = (openConnectorData.connectors as Connector[]).filter(
-  (c) => c.connector_id !== null,
+const domainFromUrl = (url: string | null): string | null => {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return null;
+  }
+};
+
+const providers = openConnectorData as OpenConnectorProvider[];
+
+const connectors: Connector[] = (Array.isArray(providers) ? providers : []).map(
+  (p) => {
+    const categories = Array.isArray(p.categories) ? p.categories : [];
+    const description =
+      categories.length > 0
+        ? `${categories.join(', ')} · ${p.actionCount} action${p.actionCount === 1 ? '' : 's'}`
+        : `${p.actionCount} action${p.actionCount === 1 ? '' : 's'}`;
+    return {
+      name: p.displayName || p.service,
+      connector_id: p.service,
+      domain: domainFromUrl(p.homepageUrl),
+      description,
+    };
+  },
 );
 
 const ConnectorLogo = ({ connector }: { connector: Connector }) => {
