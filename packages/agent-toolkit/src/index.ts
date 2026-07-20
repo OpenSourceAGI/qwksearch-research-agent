@@ -25,3 +25,7 @@ export { configManager, ModelRegistry, getEnv, getModelProvidersUIConfigSection 
 export type { Config, ConfigModelProvider, MCPServerConfig, UIConfigSections, Model, ModelWithProvider } from "./config";
 export { cropProvider, cropProviderAsBlob, cropProviderAsDataURL, getProviderImage, getProviderNames } from "./utils/provider-image-cropper";
 export type { Provider } from "./utils/provider-image-cropper";
+
+// OpenConnector integration: multi-tenant OAuth & credential management
+export * from "./connectors";
+export * as connectors from "./connectors";

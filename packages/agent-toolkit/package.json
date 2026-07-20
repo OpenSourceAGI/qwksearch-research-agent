@@ -20,6 +20,11 @@
       "import": "./dist/research-agent.es.js",
       "require": "./dist/research-agent.cjs.js"
     },
+    "./connectors": {
+      "types": "./src/connectors/index.ts",
+      "import": "./src/connectors/index.ts",
+      "require": "./src/connectors/index.ts"
+    },
     "./*": {
       "types": "./src/*.ts",
       "react-server": "./src/*",
@@ -36,7 +41,9 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "src/connectors/*.json",
+    "src/connectors/server.ts"
   ],
   "sideEffects": false,
   "scripts": {
@@ -69,6 +76,10 @@
     "vite-plugin-dts": "^5.0.3",
     "vite-plugin-node-polyfills": "^0.28.0",
     "vitest": "^4.0.18"
+  },
+  "optionalDependencies": {
+    "@oomol-lab/connector": "^1.0.0",
+    "express": "^5.2.1"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.0",
