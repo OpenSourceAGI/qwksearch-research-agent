@@ -39,6 +39,8 @@ interface SessionInfo {
   updatedAt: string | number | null;
   expiresAt: string | number | null;
   isCurrent: boolean;
+  city?: string | null;
+  isVpn?: boolean;
 }
 
 const themeNames = [
@@ -770,6 +772,20 @@ export default function Account() {
                     <span className="font-medium">{browser}</span>
                     <span className="text-black/30 dark:text-white/30">·</span>
                     <span>{os}</span>
+                    {s.city && (
+                      <>
+                        <span className="text-black/30 dark:text-white/30">·</span>
+                        <span>{s.city}</span>
+                      </>
+                    )}
+                    {s.isVpn && (
+                      <>
+                        <span className="text-black/30 dark:text-white/30">·</span>
+                        <span className="text-[10px] bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 px-1.5 py-0.5 rounded-full font-medium">
+                          VPN
+                        </span>
+                      </>
+                    )}
                     {s.isCurrent && (
                       <span className="text-[10px] bg-[#24A0ED]/20 text-[#24A0ED] px-1.5 py-0.5 rounded-full font-medium">
                         Current

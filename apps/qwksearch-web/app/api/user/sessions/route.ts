@@ -9,6 +9,7 @@ import { session as sessionTable } from "@/lib/database/schema";
 import { eq } from "drizzle-orm";
 import { initAuth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { detectVpnAndLocation } from "@/lib/ip-geolocation";
 
 export async function GET() {
   const currentSession = await getSession();
@@ -26,17 +27,45 @@ export async function GET() {
       createdAt: sessionTable.createdAt,
       updatedAt: sessionTable.updatedAt,
       expiresAt: sessionTable.expiresAt,
+      city: sessionTable.city,
+      isVpn: sessionTable.isVpn,
     })
     .from(sessionTable)
     .where(eq(sessionTable.userId, currentSession.user.id));
 
-  // Mark which session is current
-  const result = sessions.map((s) => ({
-    ...s,
-    isCurrent: s.id === currentSession.session.id,
-  }));
+  // Enrich sessions with VPN/location data if missing
+  const enrichedSessions = await Promise.all(
+    sessions.map(async (s) => {
+      let city = s.city;
+      let isVpn = s.isVpn;
 
-  return NextResponse.json(result);
+      if (!city || isVpn === null) {
+        const geoData = await detectVpnAndLocation(s.ipAddress);
+        city = city || geoData.city;
+        isVpn = isVpn !== null ? isVpn : geoData.isVpn;
+
+        // Update DB for next time
+        if (!s.city || s.isVpn === null) {
+          await db
+            .update(sessionTable)
+            .set({
+              city: city || null,
+              isVpn: isVpn ? 1 : 0,
+            })
+            .where(eq(sessionTable.id, s.id));
+        }
+      }
+
+      return {
+        ...s,
+        city,
+        isVpn: Boolean(isVpn),
+        isCurrent: s.id === currentSession.session.id,
+      };
+    })
+  );
+
+  return NextResponse.json(enrichedSessions);
 }
 
 export async function DELETE() {

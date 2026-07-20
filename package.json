@@ -18,6 +18,7 @@
     "turbo": "^2.10.3"
   },
   "dependencies": {
+    "is-vpn": "^1.0.2",
     "mammoth": "^1.12.0"
   }
 }
