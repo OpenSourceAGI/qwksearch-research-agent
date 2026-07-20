@@ -11,6 +11,8 @@
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors" alt="Activity"><img src="https://img.shields.io/github/commit-activity/m/vtempest/qwksearch-research-agent" /></a>
      <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/vtempest/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
      <br />
+     <a href="https://github.com/OWNER/REPO/actions/workflows/test-qwksearch-web.yml"><img    src="https://github.com/OWNER/REPO/actions/workflows/test-qwksearch-web.yml/badge.svg?branch=main"
+    alt="Test qwksearch-web status for main" /></a>
     <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/v/qwksearch-api-client.svg" alt="npm version"></a>
     <a href="https://discord.gg/SJdBqBz3tV"><img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat" alt="Join Discord" /></a>
     <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"

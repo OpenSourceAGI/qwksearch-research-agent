@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import openConnectorData from '../../../../../../packages/agent-toolkit/src/connectors/open-connector.json';
+import openConnectorData from 'agent-toolkit/connectors/openconnector-providers-index.json';
 
 type Connector = {
   name: string;

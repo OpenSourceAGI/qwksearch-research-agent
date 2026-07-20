@@ -34,6 +34,24 @@ const MODEL_FAMILY_KEYWORDS: Record<string, string[]> = {
   'StepFun': ['step-', 'stepfun/'],
 };
 
+const OPEN_SOURCE_KEYWORDS = ['llama', 'mistral', 'mixtral', 'deepseek', 'qwen', 'gemma', 'phi', 'yi', 'neural-chat', 'code-llama', 'neural-tale'];
+const CLOSED_SOURCE_KEYWORDS = ['claude', 'gpt', 'gemini', 'grok', 'perplexity', 'sonar', 'kimi', 'moonshot', 'nemotron', 'minimax', 'abab', 'glm', 'zhipuai', 'hunyuan', 'tencent', 'step-', 'stepfun'];
+
+const isOpenSource = (modelKey: string): boolean => {
+  const lowercaseKey = modelKey.toLowerCase();
+  for (const keyword of OPEN_SOURCE_KEYWORDS) {
+    if (lowercaseKey.includes(keyword.toLowerCase())) {
+      return true;
+    }
+  }
+  for (const keyword of CLOSED_SOURCE_KEYWORDS) {
+    if (lowercaseKey.includes(keyword.toLowerCase())) {
+      return false;
+    }
+  }
+  return false;
+};
+
 const getFamilyForModel = (modelKey: string): string => {
   const lowercaseKey = modelKey.toLowerCase();
   for (const [family, keywords] of Object.entries(MODEL_FAMILY_KEYWORDS)) {
@@ -86,6 +104,13 @@ const ConnectedModelsModal = ({
     })
     .map(([family, models]) => ({ family, models }));
 
+  const openSourceModels = sortedFamilies.filter(({ models }) =>
+    models.some(m => isOpenSource(m.key))
+  );
+  const closedSourceModels = sortedFamilies.filter(({ models }) =>
+    models.some(m => !isOpenSource(m.key))
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-2xl max-h-[85vh] flex flex-col border bg-light-primary dark:bg-dark-primary border-light-secondary dark:border-dark-secondary p-0" hideCloseButton>
@@ -109,43 +134,98 @@ const ConnectedModelsModal = ({
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-6">
-              {sortedFamilies.map(({ family, models }) => (
-                <div key={family} className="flex flex-col gap-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-wide text-black/70 dark:text-white/70">
-                    {family}
-                  </h3>
-                  <div className="flex flex-col gap-2">
-                    {models.map((model) => (
-                      <div
-                        key={`${model.providerId}-${model.key}`}
-                        className="flex items-center justify-between gap-3 p-3 rounded-lg bg-light-secondary/30 dark:bg-dark-secondary/30 border border-light-200 dark:border-dark-200 hover:border-light-300 dark:hover:border-dark-300 transition-colors"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-medium text-black/80 dark:text-white/80">
-                              {model.name}
-                            </p>
-                            <code className="text-[11px] text-black/50 dark:text-white/50 bg-light-secondary dark:bg-dark-secondary px-2 py-1 rounded font-mono">
-                              {model.key}
-                            </code>
-                          </div>
-                          <p className="text-xs text-black/50 dark:text-white/50">
-                            {model.providerName}
-                          </p>
+            <div className="flex flex-col gap-8">
+              {openSourceModels.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-black/90 dark:text-white/90 border-l-4 border-green-500 pl-3">
+                    Open Source
+                  </h2>
+                  <div className="flex flex-col gap-3">
+                    {openSourceModels.map(({ family, models }) => (
+                      <div key={family} className="flex flex-col gap-3">
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-black/70 dark:text-white/70">
+                          {family}
+                        </h3>
+                        <div className="flex flex-col gap-2">
+                          {models.filter(m => isOpenSource(m.key)).map((model) => (
+                            <div
+                              key={`${model.providerId}-${model.key}`}
+                              className="flex items-center justify-between gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 hover:border-green-300 dark:hover:border-green-800/50 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-black/80 dark:text-white/80">
+                                    {model.name}
+                                  </p>
+                                  <code className="text-[11px] text-black/50 dark:text-white/50 bg-light-secondary dark:bg-dark-secondary px-2 py-1 rounded font-mono">
+                                    {model.key}
+                                  </code>
+                                </div>
+                                <p className="text-xs text-black/50 dark:text-white/50">
+                                  {model.providerName}
+                                </p>
+                              </div>
+                              <TestModelsButton
+                                providerId={model.providerId}
+                                providerType={model.providerType}
+                                providerName={model.providerName}
+                                apiKey={model.apiKey}
+                                compact
+                              />
+                            </div>
+                          ))}
                         </div>
-                        <TestModelsButton
-                          providerId={model.providerId}
-                          providerType={model.providerType}
-                          providerName={model.providerName}
-                          apiKey={model.apiKey}
-                          compact
-                        />
                       </div>
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {closedSourceModels.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  <h2 className="text-sm font-semibold uppercase tracking-wide text-black/90 dark:text-white/90 border-l-4 border-blue-500 pl-3">
+                    Closed Source
+                  </h2>
+                  <div className="flex flex-col gap-3">
+                    {closedSourceModels.map(({ family, models }) => (
+                      <div key={family} className="flex flex-col gap-3">
+                        <h3 className="text-xs font-semibold uppercase tracking-wide text-black/70 dark:text-white/70">
+                          {family}
+                        </h3>
+                        <div className="flex flex-col gap-2">
+                          {models.filter(m => !isOpenSource(m.key)).map((model) => (
+                            <div
+                              key={`${model.providerId}-${model.key}`}
+                              className="flex items-center justify-between gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/30 hover:border-blue-300 dark:hover:border-blue-800/50 transition-colors"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-black/80 dark:text-white/80">
+                                    {model.name}
+                                  </p>
+                                  <code className="text-[11px] text-black/50 dark:text-white/50 bg-light-secondary dark:bg-dark-secondary px-2 py-1 rounded font-mono">
+                                    {model.key}
+                                  </code>
+                                </div>
+                                <p className="text-xs text-black/50 dark:text-white/50">
+                                  {model.providerName}
+                                </p>
+                              </div>
+                              <TestModelsButton
+                                providerId={model.providerId}
+                                providerType={model.providerType}
+                                providerName={model.providerName}
+                                apiKey={model.apiKey}
+                                compact
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
