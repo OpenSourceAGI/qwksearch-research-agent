@@ -64,15 +64,30 @@ export const handleHistorySave = async (
   );
 
   /**
-   * Check whether the parent chat session already exists for this user.
-   * If not, create it using the first message's content as the title.
+   * Check whether the parent chat session already exists. The lookup is by
+   * id alone (not id + userId): chat ids are client-generated and travel in
+   * URLs, so the same id can be replayed by a different account. Filtering
+   * by userId here made that case invisible and the insert below then died
+   * on a `chats.id` primary-key conflict.
    */
   const chat = await db.query.chats.findFirst({
-    where: and(eq(chats.id, message.chatId), eq(chats.userId, userId)),
+    where: eq(chats.id, message.chatId),
   });
+
+  if (chat && chat.userId !== userId) {
+    // The chat id belongs to another account. Don't insert (PK conflict)
+    // and don't attach this user's messages to someone else's chat.
+    console.warn(
+      "[handleHistorySave] chatId belongs to another user; skipping history save:",
+      message.chatId,
+    );
+    return;
+  }
 
   if (!chat) {
     console.log("[handleHistorySave] Creating new chat:", message.chatId);
+    // onConflictDoNothing: concurrent requests for the same new chat can
+    // both pass the existence check; the second insert must not throw.
     await db
       .insert(chats)
       .values({
@@ -83,6 +98,7 @@ export const handleHistorySave = async (
         userId,
         thinkingTimeLimit,
       })
+      .onConflictDoNothing()
       .execute();
     console.log(
       "[handleHistorySave] Chat created successfully:",
