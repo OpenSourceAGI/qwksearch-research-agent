@@ -6,7 +6,7 @@
   "private": true,
   "publisher": "opensourceagi",
   "author": "vtempest",
-  "license": "rights.institute/prosper",
+  "license": "rights.institute/PROSPER",
   "repository": {
     "type": "git",
     "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent",
@@ -90,7 +90,10 @@
         "qwksearch.focusMode": {
           "type": "string",
           "default": "webSearch",
-          "enum": ["webSearch", "writingAssistant"],
+          "enum": [
+            "webSearch",
+            "writingAssistant"
+          ],
           "description": "Default research focus used for new questions: web search with cited sources, or writing assistant (no search)."
         }
       }

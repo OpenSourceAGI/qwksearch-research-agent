@@ -15,6 +15,7 @@ import { useSpeechInput } from '../../hooks/voice/useSpeechToTranscript';
 import { useFileHandling } from '../FileUpload/useFileHandling';
 import FileUploadDropdown from '../FileUpload/FileUploadDropdown';
 import { LiveWaveform } from '../../ui/live-waveform';
+import { autocomplete } from 'qwksearch-api-client';
 
 interface DomainSuggestion {
     domain: string;
@@ -137,12 +138,11 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
             const controller = new AbortController();
             autocompleteAbortRef.current = controller;
             try {
-                const res = await fetch(
-                    `/api/agent/autocomplete?q=${encodeURIComponent(searchQuery)}&limit=8`,
-                    { signal: controller.signal },
-                );
-                if (!res.ok) return;
-                const data = await res.json();
+                const { data, error } = await autocomplete({
+                    query: { q: searchQuery, limit: 8 },
+                    signal: controller.signal,
+                });
+                if (error) return;
                 const list: string[] = Array.isArray(data?.suggestions) ? data.suggestions : [];
                 const domainList: DomainSuggestion[] = Array.isArray(data?.domains) ? data.domains : [];
                 setSuggestions(list);

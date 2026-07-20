@@ -11,6 +11,7 @@ import {
 } from "../../components/ChatConversation/ChatWindow";
 import { getGuestChat } from "../../lib/guest";
 import { ChatFile } from "../../types/chat";
+import { getChatById } from "qwksearch-api-client";
 
 /**
  * Loads chat messages and metadata for an existing chat session.
@@ -95,22 +96,19 @@ export const loadMessages = async (
 
     // Not in localStorage - try API for public shared chats
     try {
-      const response = await fetch(`/api/agent/chats/${chatId}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const { data, error } = await getChatById({ path: { id: chatId } });
 
-      if (!response.ok) {
-        if (response.status === 404 || response.status === 403) {
+      if (error) {
+        const errStatus = (error as any).status;
+        if (errStatus === 404 || errStatus === 403) {
           setNotFound(true);
           setIsMessagesLoaded(true);
           return;
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`Failed to load chat: ${(error as any).message}`);
       }
 
-      const { messages, chat } = await response.json();
+      const { messages, chat } = data || {};
 
       if (!messages || !chat) {
         setNotFound(true);
@@ -161,23 +159,19 @@ export const loadMessages = async (
   // ============ Authenticated User Flow ============
   // Fetch from API for authenticated users
   try {
-    const response = await fetch(`/api/agent/chats/${chatId}`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const { data, error } = await getChatById({ path: { id: chatId } });
 
-    if (!response.ok) {
-      if (response.status === 404 || response.status === 401 || response.status === 403) {
+    if (error) {
+      const errStatus = (error as any).status;
+      if (errStatus === 404 || errStatus === 401 || errStatus === 403) {
         setNotFound(true);
         setIsMessagesLoaded(true);
         return;
       }
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(`Failed to load chat: ${(error as any).message}`);
     }
 
-    const { messages, chat } = await response.json();
+    const { messages, chat } = data || {};
 
     if (!messages || !chat) {
       setNotFound(true);

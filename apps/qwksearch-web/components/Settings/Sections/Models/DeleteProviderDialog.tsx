@@ -1,5 +1,5 @@
 import { Loader2, Trash2 } from 'lucide-react';
-import grab from 'grab-url';
+import { deleteProvider } from 'qwksearch-api-client';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ConfigModelProvider } from '../../../../lib/config/types';
@@ -20,16 +20,23 @@ const DeleteProvider = ({
     e.preventDefault();
     setLoading(true);
 
-    await grab(`/api/agent/providers/${modelProvider.id}`, {
-      delete: true,
-    });
+    try {
+      await deleteProvider({
+        path: { id: modelProvider.id },
+      });
 
-    setProviders((prev) => {
-      return prev.filter((p) => p.id !== modelProvider.id);
-    });
+      setProviders((prev) => {
+        return prev.filter((p) => p.id !== modelProvider.id);
+      });
 
-    toast.success('Connection deleted successfully.');
-
+      toast.success('Connection deleted successfully.');
+    } catch (error) {
+      console.error('Error deleting provider:', error);
+      toast.error('Failed to delete connection.');
+    } finally {
+      setLoading(false);
+      setOpen(false);
+    }
   };
 
   return (

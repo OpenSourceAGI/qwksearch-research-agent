@@ -140,7 +140,11 @@ export async function parseRequestParams(
         bodyParams = await request.json();
       } else if (contentType.includes("application/x-www-form-urlencoded")) {
         const formData = await request.formData();
-        bodyParams = Object.fromEntries(formData) as typeof bodyParams;
+        const entries: Array<[string, unknown]> = [];
+        formData.forEach((value, key) => {
+          entries.push([key, value]);
+        });
+        bodyParams = Object.fromEntries(entries);
       }
     } catch {
       // Ignore body parsing errors; fall back to query params only.

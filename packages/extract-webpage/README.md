@@ -1,4 +1,33 @@
 <p align="center">
+<br /> 
+    <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/dm/extract-webpage.svg" alt="NPM Monthly Downloads"></a>
+    <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/v/extract-webpage.svg" alt="npm version"></a>
+    <a href="https://discord.gg/SJdBqBz3tV">
+        <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
+            alt="Join Discord" />
+    </a>  
+     <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
+     <img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
+<br />
+    <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
+    <img alt="GitHub Discussions"
+        src="https://img.shields.io/github/discussions/vtempest/qwksearch-research-agent" />
+    </a>
+    <a href="https://github.com/vtempest/qwksearch-research-agent/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/vtempest/qwksearch-research-agent" />
+    </a>
+    <img src="https://img.shields.io/github/last-commit/vtempest/qwksearch-research-agent.svg" alt="GitHub last commit" />
+<br />
+    <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request">
+        <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"
+            alt="PRs Welcome" />
+    </a>
+    <a href="https://codespaces.new/vtempest/qwksearch-research-agent">
+    <img src="https://github.com/codespaces/badge.svg" width="150" height="20" />
+    </a>
+</p>
+
+<p align="center">
     <img width="350px" src="https://i.imgur.com/8JvNmxU.jpeg" />
 </p>
 <p align="center">
@@ -18,7 +47,6 @@
         <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
     </a>
 </p>
-<h3 align="center"><a href="https://airesearch.js.org/">📑 Docs (airesearch.js.org)</a>  <a href="https://qwksearch.com/">🚀 Demo</a></h3>
 
 ## extract-webpage
 

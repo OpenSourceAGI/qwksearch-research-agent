@@ -1,0 +1,45 @@
+{
+  "name": "train-next-word-prediction-webui",
+  "type": "javascript",
+  "main": "dist/index.js",
+  "site": {
+    "bucket": "dist/public"
+  },
+  "env": {
+    "production": {
+      "name": "train-next-word-prediction-webui-prod",
+      "routes": [
+        {
+          "pattern": "example.com/*",
+          "zone_name": "example.com"
+        }
+      ]
+    },
+    "staging": {
+      "name": "train-next-word-prediction-webui-staging",
+      "routes": [
+        {
+          "pattern": "staging.example.com/*",
+          "zone_name": "example.com"
+        }
+      ]
+    }
+  },
+  "vars": {
+    "API_URL": "http://localhost:8000"
+  },
+  "env": {
+    "production": {
+      "vars": {
+        "API_URL": "https://api.example.com"
+      }
+    }
+  },
+  "build": {
+    "command": "npm run build",
+    "cwd": "./",
+    "watch_paths": ["src/**/*.{ts,tsx,js,jsx}"]
+  },
+  "compatibility_date": "2024-12-16",
+  "compatibility_flags": ["nodejs_compat"]
+}

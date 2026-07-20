@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { Chat } from '../../types/research';
 import { useSession } from '../../hooks/useSession';
 import { deleteGuestChat } from '../../lib/guest';
+import { deleteChatById } from 'qwksearch-api-client';
 
 const DeleteChat = ({
   chatId,
@@ -34,20 +35,12 @@ const DeleteChat = ({
     setLoading(true);
     try {
       if (isAuthenticated) {
-        // Delete from API for authenticated users
-        const response = await fetch(`/api/agent/chats/${chatId}`, {
-          method: 'DELETE',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const { error } = await deleteChatById({ path: { id: chatId } });
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (error) {
+          throw new Error(`Failed to delete chat: ${(error as any).message}`);
         }
       } else {
-        // Delete from local storage for guests
         deleteGuestChat(chatId);
       }
 

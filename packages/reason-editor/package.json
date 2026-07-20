@@ -1,7 +1,7 @@
 {
   "name": "reason-editor",
   "description": "Formatted Text Editor with toolbar for formatting, docs manager, and note outlines",
-  "version": "0.39.33",
+  "version": "0.39.42",
   "author": "vtempest",
   "repository": {
     "type": "git",
@@ -121,5 +121,6 @@
   "peerDependencies": {
     "react": ">=19.0.0",
     "react-dom": ">=19.0.0"
-  }
+  },
+  "license": "rights.institute/PROSPER"
 }

@@ -1,6 +1,6 @@
 {
   "name": "extract-youtube",
-  "version": "1.0.40",
+  "version": "1.0.49",
   "description": "Fast, no-browser serverless-optimized YouTube transcript extractor",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -48,7 +48,7 @@
     "optimized"
   ],
   "author": "",
-  "license": "MIT",
+  "license": "rights.institute/PROSPER",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",

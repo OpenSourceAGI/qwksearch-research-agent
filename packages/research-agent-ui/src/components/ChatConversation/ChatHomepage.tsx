@@ -89,7 +89,7 @@ export default function ChatHomepage() {
 
       <div className="relative z-10">
         {/* Centered content with input in the middle of the page */}
-        <div className="flex flex-col items-center justify-center min-h-screen max-w-screen-sm mx-auto p-2">
+        <div className="flex flex-col items-center justify-center min-h-screen max-w-screen-sm mx-auto p-2 pb-20 md:pb-2">
           <div style={{ height: '200px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <QuantumWaveOrbital
               autoRandomize={true}

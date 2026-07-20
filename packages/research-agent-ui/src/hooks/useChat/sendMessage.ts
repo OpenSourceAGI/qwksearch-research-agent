@@ -14,7 +14,7 @@ import {
 import { getSuggestions } from "../../lib/suggestions";
 import { researchAgentUIConfig } from "../../config";
 import { ChatModelProvider } from "../../types/chat";
-import { agentChat } from "qwksearch-api-client";
+import { agentChat, saveMessage } from "qwksearch-api-client";
 
 const ARTICLE_PREFETCH_COUNT = 3;
 
@@ -369,15 +369,13 @@ export async function sendMessage(
           // Save suggestions to database for authenticated users
           if (isAuthenticated && suggestions.length > 0) {
             try {
-              await fetch(`/api/agent/messages`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+              await saveMessage({
+                body: {
                   chatId,
                   messageId: suggestionMessageId,
                   role: "suggestion",
                   suggestions,
-                }),
+                },
               });
             } catch (error) {
               console.error("Failed to save suggestions:", error);

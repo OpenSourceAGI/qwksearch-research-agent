@@ -14,6 +14,7 @@ import {
 } from "../../lib/guest";
 import { Chat } from "../../types/research";
 import { toast } from "sonner";
+import { listChats, deleteChatById, deleteAllChats, searchChats } from "qwksearch-api-client";
 
 const PINNED_CHATS_KEY = "qwksearch_pinned_chats";
 
@@ -88,14 +89,9 @@ export function useHistoryState() {
 
     try {
       if (isAuthenticated) {
-        const response = await fetch('/api/agent/chats', {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const { data, error } = await listChats();
 
-        if (response.status === 401) {
+        if (error && (error as any).status === 401) {
           // Stale session — fall back to guest chats silently
           const guestChats = getGuestChats().map((chat) => ({
             ...chat,
@@ -106,11 +102,10 @@ export function useHistoryState() {
           return;
         }
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (error) {
+          throw new Error(`Failed to fetch chats: ${(error as any).message}`);
         }
 
-        const data = await response.json();
         setChats(Array.isArray(data?.chats) ? data.chats : []);
       } else {
         const guestChats = getGuestChats().map((chat) => ({
@@ -145,16 +140,10 @@ export function useHistoryState() {
     setDeleting(true);
     try {
       if (isAuthenticated) {
-        const response = await fetch(`/api/agent/chats/${chatToDelete}`, {
-          method: 'DELETE',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const { error } = await deleteChatById({ path: { id: chatToDelete } });
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (error) {
+          throw new Error(`Failed to delete chat: ${(error as any).message}`);
         }
       } else {
         deleteGuestChat(chatToDelete);
@@ -178,16 +167,10 @@ export function useHistoryState() {
     setClearingAll(true);
     try {
       if (isAuthenticated) {
-        const response = await fetch('/api/agent/chats', {
-          method: 'DELETE',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const { error } = await deleteAllChats();
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (error) {
+          throw new Error(`Failed to clear history: ${(error as any).message}`);
         }
       } else {
         clearAllGuestChats();
@@ -223,21 +206,12 @@ export function useHistoryState() {
       setSearching(true);
       try {
         if (isAuthenticated) {
-          const response = await fetch(
-            `/api/agent/chats/search?q=${encodeURIComponent(query)}`,
-            {
-              credentials: 'include',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
-          );
+          const { data, error } = await searchChats({ query: { q: query } });
 
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          if (error) {
+            throw new Error(`Failed to search chats: ${(error as any).message}`);
           }
 
-          const data = await response.json();
           setSearchResults(Array.isArray(data?.chats) ? data.chats : []);
         } else {
           // For guest users, search locally

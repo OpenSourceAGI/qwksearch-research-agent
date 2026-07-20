@@ -1,6 +1,6 @@
 import { Loader2, Plus } from 'lucide-react';
-import grab from 'grab-url';
 import { useMemo, useState, useEffect } from 'react';
+import { listProviders, addProvider } from 'qwksearch-api-client';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import {
   StringUIConfigField,
   UIConfigField,
 } from '../../../../lib/config/types';
+import ConnectedModelsModal from './ConnectedModelsModal';
 
 import { toast } from 'sonner';
 
@@ -27,11 +28,28 @@ const AddProvider = ({
   compact?: boolean;
 }) => {
   const [open, setOpen] = useState(false);
+  const [showModelsModal, setShowModelsModal] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<null | string>(
     defaultProviderKey || modelProviders[0]?.key || null,
   );
   const [config, setConfig] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const [providers, setProvidersState] = useState<ConfigModelProvider[]>([]);
+
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const data = await listProviders();
+        setProvidersState(data.data?.providers || data.providers || []);
+      } catch (error) {
+        console.error('Failed to fetch providers:', error);
+      }
+    };
+
+    if (showModelsModal) {
+      fetchProviders();
+    }
+  }, [showModelsModal]);
 
   useEffect(() => {
     if (!open && defaultProviderKey) {
@@ -70,25 +88,26 @@ const AddProvider = ({
     e.preventDefault();
     setLoading(true);
     try {
-      const data: ConfigModelProvider = (
-        await grab('/api/agent/providers', {
-          method: 'POST',
-          body: {
-            type: selectedProvider,
-            config: config,
-          },
-        })
-      ).provider;
+      const response = await addProvider({
+        body: {
+          type: selectedProvider,
+          config: config,
+        },
+      });
+
+      const data: ConfigModelProvider = response.data?.provider || response.provider;
 
       setProviders((prev) => [...prev, data]);
+      setProvidersState((prev) => [...prev, data]);
 
       toast.success('Connection added successfully.');
+      setOpen(false);
+      setShowModelsModal(true);
     } catch (error) {
       console.error('Error adding provider:', error);
       toast.error('Failed to add connection.');
     } finally {
       setLoading(false);
-      setOpen(false);
     }
   };
 
@@ -104,13 +123,24 @@ const AddProvider = ({
         </button>
       ) : (
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => setShowModelsModal(true)}
           className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs sm:text-xs border border-light-200 dark:border-dark-200 text-black dark:text-white bg-light-secondary/50 dark:bg-dark-secondary/50 hover:bg-light-secondary hover:dark:bg-dark-secondary hover:border-light-300 hover:dark:border-dark-300 flex flex-row items-center space-x-1 active:scale-95 transition duration-200"
         >
           <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
-          <span>Add Connection</span>
+          <span>Add Provider</span>
         </button>
       )}
+
+      <ConnectedModelsModal
+        open={showModelsModal}
+        onOpenChange={setShowModelsModal}
+        providers={providers}
+        onAddConnection={() => {
+          setShowModelsModal(false);
+          setOpen(true);
+        }}
+      />
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="w-full max-w-[600px] max-h-[85vh] flex flex-col border bg-light-primary dark:bg-dark-primary border-light-secondary dark:border-dark-secondary p-0" hideCloseButton>
           <form onSubmit={handleSubmit} className="flex flex-col flex-1">

@@ -113,13 +113,20 @@ export const handleEmitterEvents = async (
         messageId: aiMessageId,
       });
     } else if (parsedData.type === "response") {
-      writeSSE({
-        type: "message",
-        data: parsedData.data,
-        messageId: aiMessageId,
-      });
+      const text = parsedData.data as string;
+      receivedMessage += text;
 
-      receivedMessage += parsedData.data;
+      // Split response into words and stream each word separately
+      const words = text.split(/(\s+)/);
+      words.forEach((word) => {
+        if (word) {
+          writeSSE({
+            type: "message",
+            data: word,
+            messageId: aiMessageId,
+          });
+        }
+      });
     } else if (parsedData.type === "sources") {
       writeSSE({
         type: "sources",

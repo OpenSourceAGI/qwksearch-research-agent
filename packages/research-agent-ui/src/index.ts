@@ -76,5 +76,11 @@ export { useHistoryState } from './components/ChatHistoryDropdown/useHistoryStat
 // ============ Types ============
 export * from './types/chat';
 
+// ============ Voice & TTS ============
+export { useKokoroTTS } from './hooks/voice/useKokoroTTS';
+export { useTextToSpeech } from './hooks/voice/useTextToVoice';
+export { default as VoiceSettingsPanel } from './components/VoiceSettings/VoiceSettingsPanel';
+export { default as KokoroVoiceSelector } from './components/VoiceSettings/KokoroVoiceSelector';
+
 // ============ Utilities ============
 export { cn, formatTimeDifference } from './lib/utils';

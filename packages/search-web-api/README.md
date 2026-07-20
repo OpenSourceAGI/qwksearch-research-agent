@@ -1,15 +1,14 @@
 <p align="center">
     <img width="300px" src="https://i.imgur.com/BmaDQeR.png" />
-<br />
+<br /> 
     <a href="https://www.npmjs.com/package/search-web-api"><img src="https://img.shields.io/npm/dm/search-web-api.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/search-web-api"><img src="https://img.shields.io/npm/v/search-web-api.svg" alt="npm version"></a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />
-    </a> 
+    </a>  
      <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
      <img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
-    <img src="https://img.shields.io/badge/Next.js-16-black" alt="Next.js" />
 <br />
     <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
     <img alt="GitHub Discussions"
@@ -28,6 +27,7 @@
     <img src="https://github.com/codespaces/badge.svg" width="150" height="20" />
     </a>
 </p>
+
     
 # Meta-Search Web Sources API
 

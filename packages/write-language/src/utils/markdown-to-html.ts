@@ -3,24 +3,7 @@
  * @description Converts Markdown to HTML with Prism.js syntax highlighting.
  */
 import { marked } from "marked";
-import Prism from "prismjs";
-import "prismjs/components/prism-markup";
-import "prismjs/components/prism-css";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-tsx";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-markdown";
-import "prismjs/components/prism-sql";
-import "prismjs/components/prism-rust";
-import "prismjs/components/prism-go";
-import "prismjs/components/prism-java";
-import "prismjs/components/prism-c";
-import "prismjs/components/prism-cpp";
+import { highlightCode } from "./prism";
 import { encode, decode } from "html-entities";
 
 // Inline onclick: self-contained per button, works in dangerouslySetInnerHTML contexts
@@ -45,11 +28,8 @@ marked.use({
       let highlighted: string;
 
       try {
-        if (language && Prism.languages[language]) {
-          highlighted = Prism.highlight(text, Prism.languages[language], language);
-        } else {
-          highlighted = encode(text);
-        }
+        const result = highlightCode(text, language);
+        highlighted = result ?? encode(text);
       } catch (e) {
         highlighted = encode(text);
       }

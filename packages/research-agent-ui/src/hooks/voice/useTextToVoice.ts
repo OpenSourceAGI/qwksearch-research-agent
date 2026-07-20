@@ -1,6 +1,6 @@
 /**
- * Hook that plays AI-generated speech via the Cloudflare Workers AI TTS endpoint with browser
- * speechSynthesis as a fallback. Exposes `speechStatus`, `start`, and `stop`.
+ * Hook that plays AI-generated speech via Kokoro.js (local client-side TTS) with Cloudflare
+ * Workers AI TTS and browser speechSynthesis as fallbacks. Exposes `speechStatus`, `start`, and `stop`.
  * VAD-based live interruption is commented out pending a switch to @huggingface/transformers.
  */
 "use client";
@@ -9,6 +9,7 @@ import { useState, useCallback, useRef } from "react";
 // VAD import commented out — switching to @huggingface/transformers
 // import type { MicVAD } from "@ricky0123/vad-web";
 import grab from "grab-url";
+import { getKokoro, preloadKokoro, getVoiceList } from "../../lib/kokoro";
 
 type SpeechStatus = "started" | "stopped";
 
@@ -138,6 +139,38 @@ export function useTextToSpeech(text: string, options?: TextToSpeechOptions) {
     abortRef.current = controller;
 
     try {
+      // Try Kokoro.js first (client-side, no latency)
+      const useKokoro = localStorage.getItem("useTTSKokoro") !== "false";
+      if (useKokoro) {
+        try {
+          const tts = await getKokoro();
+          const voice = localStorage.getItem("kokoroVoice") || "af_heart";
+          const audio = await tts.generate(text.slice(0, 5000), { voice });
+          const wavBytes = audio.toWav();
+          const blob = new Blob([wavBytes], { type: "audio/wav" });
+          const url = URL.createObjectURL(blob);
+          const audioEl = new Audio(url);
+          audioRef.current = audioEl;
+
+          audioEl.onended = () => {
+            setStatus("stopped");
+            URL.revokeObjectURL(url);
+            audioRef.current = null;
+          };
+          audioEl.onerror = () => {
+            URL.revokeObjectURL(url);
+            audioRef.current = null;
+            if (!fallbackStart()) setStatus("stopped");
+          };
+
+          await audioEl.play();
+          return;
+        } catch (err) {
+          console.warn("Kokoro TTS failed, falling back to Cloudflare:", err);
+        }
+      }
+
+      // Fallback to Cloudflare Workers AI TTS
       const res = await grab("/api/agent/tts", {
         method: "POST",
         body: {

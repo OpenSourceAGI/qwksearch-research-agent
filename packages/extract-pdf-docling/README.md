@@ -1,9 +1,36 @@
+<p align="center">
+    <img  src="https://i.imgur.com/ir3twBm.png" />
+
+<br /> 
+    <a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/dm/pdf-to-html-docling.svg" alt="NPM Monthly Downloads"></a>
+    <a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/v/pdf-to-html-docling.svg" alt="npm version"></a>
+    <a href="https://discord.gg/SJdBqBz3tV">
+        <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
+            alt="Join Discord" />
+    </a>  
+     <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
+     <img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
+<br />
+    <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
+    <img alt="GitHub Discussions"
+        src="https://img.shields.io/github/discussions/vtempest/qwksearch-research-agent" />
+    </a>
+    <a href="https://github.com/vtempest/qwksearch-research-agent/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/vtempest/qwksearch-research-agent" />
+    </a>
+    <img src="https://img.shields.io/github/last-commit/vtempest/qwksearch-research-agent.svg" alt="GitHub last commit" />
+<br />
+    <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request">
+        <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"
+            alt="PRs Welcome" />
+    </a>
+    <a href="https://codespaces.new/vtempest/qwksearch-research-agent">
+    <img src="https://github.com/codespaces/badge.svg" width="150" height="20" />
+    </a>
+</p>
+
 # PDF To HTML with Docling OCR Model
 
-<a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/dm/pdf-to-html-docling.svg" alt="NPM Monthly Downloads"></a>
-<a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/v/pdf-to-html-docling.svg" alt="npm version"></a>
-
-![docling_pdf_logo](https://i.imgur.com/ir3twBm.png "Docling")
 
 Convert PDF documents to HTML using the [`ibm-granite/granite-docling-258M`](https://huggingface.co/ibm-granite/granite-docling-258M) AI model from Hugging Face.
 

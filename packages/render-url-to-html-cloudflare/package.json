@@ -1,0 +1,19 @@
+{
+  "name": "html-renderer-api",
+  "version": "1.0.0",
+  "description": "Server API renders DOM with puppeteer to get HTML & Bypass Cloudflare bot check.",
+  "main": "src/scrapers/scraper-cloudflare.js",
+  "type": "module",
+  "license": "rights.institute/PROSPER",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent"
+  },
+  "scripts": {
+    "start": "bun src/scrapers/scraper-cloudflare.js",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/puppeteer": "*"
+  }
+}

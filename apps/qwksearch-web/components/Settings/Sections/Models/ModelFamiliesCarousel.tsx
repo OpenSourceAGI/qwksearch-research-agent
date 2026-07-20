@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, CheckCircle2, KeyRound, Blocks } from 'lucide-react';
 import { ModelProviderUISection, ConfigModelProvider } from '../../../../lib/config/types';
 import AddProvider from './AddProviderDialog';
+import ConfigureKeyModal from './ConfigureKeyModal';
 import { useChat } from 'research-agent-ui';
 import { toast } from 'sonner';
 
@@ -130,12 +131,23 @@ const MODEL_FAMILIES: ModelFamily[] = [
     modelKeywords: ['perplexity', 'sonar'],
   },
   {
+    model_family: 'StepFun',
+    imgur: 'FGEMMDy',
+    flagship: 'Step 3.7 Flash',
+    maker: 'StepFun',
+    providers: ['StepFun', 'OpenRouter'],
+    open: false,
+    providerKey: 'openrouter',
+    apiKeyUrl: 'https://openrouter.ai/settings/keys',
+    modelKeywords: ['step-', 'stepfun/'],
+  },
+  {
     model_family: 'Kimi',
     imgur: 'muaMPRZ',
     flagship: 'Kimi K2.7 Code',
     maker: 'MoonshotAI',
     providers: ['MoonshotAI', 'OpenRouter'],
-    open: false,
+    open: true,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
     modelKeywords: ['kimi', 'moonshot'],
@@ -146,7 +158,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     flagship: 'GLM 5.2',
     maker: 'Z.ai',
     providers: ['Z.ai', 'OpenRouter'],
-    open: false,
+    open: true,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
     modelKeywords: ['glm', 'zhipuai/'],
@@ -157,7 +169,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     flagship: 'Hunyuan-Large-Vision',
     maker: 'Tencent',
     providers: ['Tencent', 'OpenRouter'],
-    open: false,
+    open: true,
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
     modelKeywords: ['hunyuan', 'tencent/'],
@@ -172,17 +184,6 @@ const MODEL_FAMILIES: ModelFamily[] = [
     providerKey: 'openrouter',
     apiKeyUrl: 'https://openrouter.ai/settings/keys',
     modelKeywords: ['mimo', 'xiaomi/'],
-  },
-  {
-    model_family: 'StepFun',
-    imgur: 'FGEMMDy',
-    flagship: 'Step 3.7 Flash',
-    maker: 'StepFun',
-    providers: ['StepFun', 'OpenRouter'],
-    open: false,
-    providerKey: 'openrouter',
-    apiKeyUrl: 'https://openrouter.ai/settings/keys',
-    modelKeywords: ['step-', 'stepfun/'],
   },
   {
     model_family: 'MiniMax',
@@ -295,6 +296,8 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
   const [activeModel, setActiveModel] = useState<string>(
     `${localStorage.getItem('chatModelProviderId')}/${localStorage.getItem('chatModelKey')}`,
   );
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<{ name: string; keyUrl: string }>({ name: '', keyUrl: '' });
 
   const selectModel = (providerId: string, modelKey: string, modelName: string) => {
     localStorage.setItem('chatModelProviderId', providerId);
@@ -343,9 +346,22 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
       }))
       .filter(g => g.models.length > 0);
 
+  const getActiveModelName = () => {
+    for (const provider of variantsByProvider) {
+      const model = provider.models.find(m => `${provider.provider.id}/${m.key}` === activeModel);
+      if (model) return `${model.name} (${provider.provider.name})`;
+    }
+    return 'Not selected';
+  };
+
   return (
     <div className="flex flex-col gap-4 px-6">
-      <p className="text-xs text-black/70 dark:text-white/70">Browse AI model families</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-black/70 dark:text-white/70">
+        
+          Active: <span className="font-medium text-sky-600 dark:text-sky-400">{getActiveModelName()}</span>
+        </p>
+      </div>
 
       {/* Scrollable thumbnail strip */}
       <div className="relative">
@@ -380,8 +396,7 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                 )}
                 {isOther ? (
                   <div
-                    className="w-14 flex items-center justify-center rounded bg-light-secondary/50 dark:bg-dark-secondary/50"
-                    style={{ height: 140 }}
+                    className="w-14 h-14 flex items-center justify-center rounded-full bg-light-secondary/50 dark:bg-dark-secondary/50"
                   >
                     <Blocks size={28} className="text-black/40 dark:text-white/40" />
                   </div>
@@ -390,9 +405,9 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                     src={`https://i.imgur.com/${f.imgur}.png`}
                     alt={f.model_family}
                     width={56}
-                    height={140}
-                    className="w-14 object-contain rounded-lg shadow-md"
-                    style={{ height: 140 }}
+                    height={56}
+                    className="w-14 h-14 rounded-full object-cover shadow-md"
+                    style={{ objectPosition: 'center 20%' }}
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 )}
@@ -418,8 +433,8 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
         <div className="flex flex-row items-start gap-4 p-4 rounded-lg border border-light-200 dark:border-dark-200 bg-light-secondary/20 dark:bg-dark-secondary/20">
           {isOtherSelected ? (
             <div
-              className="rounded-xl flex-none flex items-center justify-center bg-light-secondary/50 dark:bg-dark-secondary/50"
-              style={{ width: 200, height: 500 }}
+              className="rounded-full flex-none flex items-center justify-center bg-light-secondary/50 dark:bg-dark-secondary/50"
+              style={{ width: 200, height: 200 }}
             >
               <Blocks size={64} className="text-black/30 dark:text-white/30" />
             </div>
@@ -428,9 +443,9 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
               src={`https://i.imgur.com/${family.imgur}.png`}
               alt={family.model_family}
               width={200}
-              height={500}
-              className="rounded-xl flex-none object-contain shadow-lg"
-              style={{ width: 200, height: 500 }}
+              height={200}
+              className="rounded-full flex-none object-cover shadow-lg"
+              style={{ width: 200, height: 200, objectPosition: 'center 20%' }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}
@@ -477,23 +492,24 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                       <img
                         src={`/images/provider-logos/${logo}`}
                         alt={`${providerName} logo`}
-                        width={300}
-                        height={80}
+                        width={150}
+                        height={40}
                         className="flex-none object-contain rounded-sm"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                     )}
                     {keyUrl && (
-                      <a
-                        href={keyUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProvider({ name: providerName, keyUrl });
+                          setKeyModalOpen(true);
+                        }}
                         className="flex-none text-black/30 dark:text-white/30 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
-                        title={`Get ${providerName} API key`}
-                        onClick={e => e.stopPropagation()}
+                        title={`Configure ${providerName} API key`}
                       >
                         <KeyRound size={12} />
-                      </a>
+                      </button>
                     )}
                   </div>
                 );
@@ -552,6 +568,13 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
           </div>
         </div>
       )}
+
+      <ConfigureKeyModal
+        open={keyModalOpen}
+        onOpenChange={setKeyModalOpen}
+        providerName={selectedProvider.name}
+        keyUrl={selectedProvider.keyUrl}
+      />
     </div>
   );
 };

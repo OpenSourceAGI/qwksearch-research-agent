@@ -1,7 +1,7 @@
 {
   "name": "research-agent-ui",
   "description": "Chat research agent UI: conversation window, article reader, search config, file uploads, and chat history",
-  "version": "0.1.32",
+  "version": "0.1.39",
   "author": "vtempest",
   "repository": {
     "type": "git",
@@ -71,6 +71,7 @@
     "search-web-api": "workspace:*",
     "framer-motion": "^12.40.0",
     "grab-url": "^1.6.22",
+    "kokoro-js": "^1.2.1",
     "qwksearch-api-client": "workspace:*",
     "html2canvas": "^1.4.1",
     "lucide-react": "^1.17.0",
@@ -94,5 +95,6 @@
     "react-dom": "^19.2.7",
     "typescript": "^5.7.2",
     "vite": "^8.1.3"
-  }
+  },
+  "license": "rights.institute/PROSPER"
 }

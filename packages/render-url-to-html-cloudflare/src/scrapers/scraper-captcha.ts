@@ -339,7 +339,7 @@ export async function solveRecaptchaWith2Captcha(
               ta.innerHTML = t;
             });
 
-          const w = window as Record<string, unknown>;
+          const w = window as unknown as Record<string, unknown>;
           if (typeof w.captchaCallback === "function")
             (w.captchaCallback as (t: string) => void)(t);
           if (typeof w.onCaptchaSuccess === "function")
@@ -349,7 +349,7 @@ export async function solveRecaptchaWith2Captcha(
             type GrecaptchaClient = {
               U?: { callback?: (t: string) => void };
             };
-            const cfg = (window as Record<string, unknown>)
+            const cfg = (window as unknown as Record<string, unknown>)
               .___grecaptcha_cfg as
               | { clients?: Record<string, GrecaptchaClient> }
               | undefined;
@@ -457,7 +457,7 @@ export async function solveTurnstileWith2Captcha(
             );
           if (responseField) responseField.value = t;
 
-          const w = window as Record<string, unknown>;
+          const w = window as unknown as Record<string, unknown>;
           if (typeof w.turnstileCallback === "function")
             (w.turnstileCallback as (t: string) => void)(t);
         }, token);

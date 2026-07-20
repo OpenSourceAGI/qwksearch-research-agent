@@ -2,7 +2,7 @@ import { UIConfigField, ConfigModelProvider } from '../../../../lib/config/types
 import { cn } from '../../../../lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, Plug2, Plus, Pencil, Trash2, X } from 'lucide-react';
-import grab from 'grab-url';
+import { deleteProviderModel } from 'qwksearch-api-client';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import AddModel from './AddModelDialog';
@@ -27,8 +27,8 @@ const ModelProvider = ({
     modelKey: string,
   ) => {
     try {
-      await grab(`/api/agent/providers/${modelProvider.id}/models`, {
-        method: 'DELETE',
+      await deleteProviderModel({
+        path: { id: modelProvider.id },
         body: { key: modelKey, type: type },
       });
 
@@ -69,8 +69,8 @@ const ModelProvider = ({
       className="border border-light-200 dark:border-dark-200 rounded-lg overflow-hidden bg-light-primary dark:bg-dark-primary"
     >
       <div className="px-5 py-3.5 flex flex-row justify-between w-full items-center border-b border-light-200 dark:border-dark-200 bg-light-secondary/30 dark:bg-dark-secondary/30">
-        <div className="flex items-center gap-2.5">
-          <ProviderIcon providerType={modelProvider.type} size={20} />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5">
+          <ProviderIcon providerType={modelProvider.type} size={10} />
           <div className="flex flex-col">
             <p className="text-sm lg:text-sm text-black dark:text-white font-medium">
               {modelProvider.name}

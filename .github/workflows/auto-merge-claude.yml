@@ -21,34 +21,20 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Wait for checks & Merge
+      - name: Enable auto-merge (or merge directly)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
         run: |
-          PR_NUMBER="${{ github.event.pull_request.number }}"
-          echo "Waiting for checks on PR #$PR_NUMBER"
-          
-          # Poll status checks (adjust required checks)
-          while true; do
-            STATUS=$(gh pr status $PR_NUMBER --json statusCheckRollup)
-            if [[ "$STATUS" == *"ALL_SUCCESS"* || "$STATUS" == *"QUEUED"* ]]; then
-              break
-            fi
-            sleep 30
-          done
-          
-          gh pr merge $PR_NUMBER --squash --auto --delete-branch
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  delete-branch:
-    runs-on: ubuntu-latest
-    if: >
-      github.event.action == 'closed' &&
-      github.event.pull_request.merged == true
-    steps:
-      - name: Delete head branch
-        run: gh api repos/${{ github.repository }}/git/refs/heads/${{ github.event.pull_request.head.ref }} -X DELETE
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Preferred path: let GitHub merge once required checks pass.
+          # Requires "Allow auto-merge" in repo settings + branch protection
+          # with at least one required status check.
+          if gh pr merge "$PR" --repo "$REPO" --squash --auto --delete-branch; then
+            echo "Auto-merge enabled for PR #$PR"
+          else
+            # Fallback for unprotected branches (no required checks):
+            # merge immediately if the PR is mergeable.
+            echo "Auto-merge unavailable, attempting direct merge"
+            gh pr merge "$PR" --repo "$REPO" --squash --delete-branch
+          fi

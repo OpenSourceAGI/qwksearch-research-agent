@@ -1,6 +1,6 @@
 {
   "name": "domain-rank",
-  "version": "0.1.40",
+  "version": "0.1.50",
   "description": "Domain Rank Top Million domains, source names, duplicates, and favicons",
   "repository": {
     "type": "git",
@@ -48,5 +48,6 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vite": "^8.1.3"
-  }
+  },
+  "license": "rights.institute/PROSPER"
 }

@@ -1,44 +1,44 @@
 {
-    "name": "search-web-api",
-    "description": "70+ search engines across 10 categories and Scrape Extract API",
-    "type": "module",
-    "version": "1.0.15",
-    "author": "vtempest",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
-        "directory": "packages/search-web-api"
+  "name": "search-web-api",
+  "description": "70+ search engines across 10 categories and Scrape Extract API",
+  "type": "module",
+  "version": "1.0.22",
+  "author": "vtempest",
+  "license": "rights.institute/PROSPER",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/search-web-api"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/search.ts",
+      "require": "./src/search.ts"
     },
-    "exports": {
-        ".": {
-            "import": "./src/search.ts",
-            "require": "./src/search.ts"
-        },
-        "./*": {
-            "import": "./src/*",
-            "require": "./src/*"
-        }
-    },
-    "scripts": {
-        "dev": "bun --watch demo/index.ts",
-        "start": "bun demo/index.ts",
-        "test": "vitest run"
-    },
-    "dependencies": {
-        "@huggingface/transformers": "^3.8.1",
-        "@scalar/hono-api-reference": "^0.9.26",
-        "chrono-node": "^2.9.0",
-        "grab-url": "^1.0.8",
-        "hono": "^4.6.12",
-        "linkedom": "^0.18.0",
-        "tldts": "^7.0.25"
-    },
-    "devDependencies": {
-        "@types/node": "^25.9.3",
-        "@vitest/coverage-v8": "^4.0.18",
-        "tsx": "^4.7.1",
-        "typescript": "^5.9.3",
-        "vitest": "^4.0.18"
+    "./*": {
+      "import": "./src/*",
+      "require": "./src/*"
     }
+  },
+  "scripts": {
+    "dev": "bun --watch demo/index.ts",
+    "start": "bun demo/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
+    "@scalar/hono-api-reference": "^0.9.26",
+    "chrono-node": "^2.9.0",
+    "grab-url": "^1.0.8",
+    "hono": "^4.6.12",
+    "linkedom": "^0.18.0",
+    "tldts": "^7.0.25"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "@vitest/coverage-v8": "^4.0.18",
+    "tsx": "^4.7.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
 }
