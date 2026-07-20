@@ -9,7 +9,6 @@ vi.mock('next/server', () => ({
         headers: { 'Content-Type': 'application/json' },
         ...opts,
       })
-      response.status = status
       return response
     },
   },
@@ -36,12 +35,14 @@ vi.mock('@/lib/env', () => ({
 
 import configManager from '@/lib/config'
 import { getEnv } from '@/lib/env'
+import ModelRegistry from 'chat-agent-toolkit/models/registry'
 import { GET, POST } from '../route'
 
 const mockGetCurrentConfig = configManager.getCurrentConfig as ReturnType<typeof vi.fn>
 const mockGetUIConfigSections = configManager.getUIConfigSections as ReturnType<typeof vi.fn>
 const mockUpdateConfig = configManager.updateConfig as ReturnType<typeof vi.fn>
 const mockGetEnv = getEnv as ReturnType<typeof vi.fn>
+const mockModelRegistry = ModelRegistry as unknown as ReturnType<typeof vi.fn>
 
 const baseConfig = () => ({
   modelProviders: [],
@@ -53,6 +54,11 @@ beforeEach(() => {
   mockGetCurrentConfig.mockReturnValue(baseConfig())
   mockGetUIConfigSections.mockReturnValue([])
   mockGetEnv.mockReturnValue(undefined)
+  // restoreMocks (vitest config) wipes the factory implementation before each
+  // test, so re-establish the default ModelRegistry behavior here.
+  mockModelRegistry.mockImplementation(() => ({
+    getActiveProviders: vi.fn().mockResolvedValue([]),
+  }))
 })
 
 function makeRequest(method = 'GET', body?: unknown) {
@@ -77,8 +83,7 @@ describe('GET /api/config', () => {
       modelProviders: [{ id: 'openai', chatModels: [] }],
       search: { tavilyApiKey: '' },
     })
-    const { default: ModelRegistry } = await import('chat-agent-toolkit/models/registry')
-    ;(ModelRegistry as any).mockImplementation(() => ({
+    mockModelRegistry.mockImplementation(() => ({
       getActiveProviders: vi.fn().mockResolvedValue([
         { id: 'openai', chatModels: [{ key: 'gpt-4o' }] },
       ]),

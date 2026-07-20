@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { Loader2, Plus, ExternalLink, Copy, Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { addProvider, getProviderModels } from 'qwksearch-api-client';
+import { addProvider } from 'qwksearch-api-client';
 import { ConfigModelProvider, ModelProviderUISection } from '../../../../lib/config/types';
 import TestModelsButton from './TestModelsButton';
 import ProviderIcon from './ProviderIcon';
+import grab from 'grab-url';
 
 interface ProviderSetupModalProps {
   open: boolean;

@@ -126,7 +126,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     maker: 'Perplexity',
     providers: ['Perplexity'],
     open: false,
-    providerKey: 'openrouter',
+    providerKey: 'perplexity',
     apiKeyUrl: 'https://www.perplexity.ai/settings/api',
     modelKeywords: ['perplexity', 'sonar'],
   },

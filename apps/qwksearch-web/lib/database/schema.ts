@@ -85,6 +85,8 @@ export const session = sqliteTable("session", {
   }).notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
+  city: text("city"),
+  isVpn: integer("is_vpn", { mode: "boolean" }).default(false),
   userId: text("user_id")
     .notNull()
     .references(() => user.id),

@@ -26,6 +26,7 @@ export default defineConfig(({ command }) => ({
       "shadcn-app-dock": resolve(__dirname, "../../packages/shadcn-app-dock/src/index.ts"),
       "extract-webpage": resolve(__dirname, "../../packages/extract-webpage/src"),
       "chat-agent-toolkit": resolve(__dirname, "../../packages/agent-toolkit/src"),
+      "agent-toolkit": resolve(__dirname, "../../packages/agent-toolkit/src"),
       "extract-pdf": resolve(__dirname, "../../packages/extract-pdf/src/pdf-to-html.ts"),
       "extract-youtube": resolve(__dirname, "../../packages/extract-youtube/src"),
       "qwksearch-api-client/openapi.json": resolve(__dirname, "../../packages/qwksearch-api-client/qwksearch-openapi.json"),
@@ -56,7 +57,7 @@ export default defineConfig(({ command }) => ({
       // because workerd resolves bare specifiers relative to the chunk. The
       // AI SDK packages never reach the final client bundle anyway (they are
       // tree-shaken out), so they must simply be bundled server-side.
-      external: ["fsevents", /^@mastra\//],
+      external: ["fsevents", "kokoro-js", /^@mastra\//],
     },
   },
   ssr: {
