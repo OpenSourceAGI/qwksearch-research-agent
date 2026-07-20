@@ -384,141 +384,144 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
 
       {/* Detail card for selected family */}
       {family && (
-        <div className="flex flex-col gap-3 p-4 rounded-lg border border-light-200 dark:border-dark-200 bg-light-secondary/20 dark:bg-dark-secondary/20">
-          {/* Header row: logo + name + meta + action */}
-          <div className="flex flex-row items-start gap-4">
-            <img
-              src={`https://i.imgur.com/${family.imgur}.png`}
-              alt={family.model_family}
-              width={200}
-              height={500}
-              className="rounded-xl flex-none object-contain"
-              style={{ width: 200, height: 500 }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-            />
+        <div className="flex flex-row items-start gap-4 p-4 rounded-lg border border-light-200 dark:border-dark-200 bg-light-secondary/20 dark:bg-dark-secondary/20">
+          <img
+            src={`https://i.imgur.com/${family.imgur}.png`}
+            alt={family.model_family}
+            width={200}
+            height={500}
+            className="rounded-xl flex-none object-contain"
+            style={{ width: 200, height: 500 }}
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
 
-            <div className="flex flex-col gap-0.5 flex-1 min-w-0 pt-1">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-medium text-black dark:text-white">{family.model_family}</p>
-                {family.open && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-medium uppercase tracking-wide">
-                    Open
-                  </span>
+          {/* Right column: name + meta + providers + variants */}
+          <div className="flex flex-col gap-3 flex-1 min-w-0">
+            {/* Header row: name + meta + action */}
+            <div className="flex flex-row items-start gap-4">
+              <div className="flex flex-col gap-0.5 flex-1 min-w-0 pt-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-black dark:text-white">{family.model_family}</p>
+                  {family.open && (
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-medium uppercase tracking-wide">
+                      Open
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-black/50 dark:text-white/50">
+                  by {family.maker} · {family.flagship}
+                </p>
+              </div>
+
+              <div className="flex flex-col items-end gap-2 flex-none">
+                {family.apiKeyUrl && (
+                  <a
+                    href={family.apiKeyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-[11px] text-sky-500 hover:text-sky-400 transition-colors whitespace-nowrap"
+                  >
+                    <ExternalLink size={11} />
+                    Get API key
+                  </a>
                 )}
               </div>
-              <p className="text-[11px] text-black/50 dark:text-white/50">
-                by {family.maker} · {family.flagship}
-              </p>
             </div>
 
-            <div className="flex flex-col items-end gap-2 flex-none">
-              {family.apiKeyUrl && (
-                <a
-                  href={family.apiKeyUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[11px] text-sky-500 hover:text-sky-400 transition-colors whitespace-nowrap"
-                >
-                  <ExternalLink size={11} />
-                  Get API key
-                </a>
-              )}
-            </div>
-          </div>
-
-          {/* Provider chips */}
-          <div className="flex flex-wrap gap-2">
-            {family.providers.map((providerName) => {
-              const connected = isProviderConnected(providerName);
-              const logo = PROVIDER_LOGOS[providerName];
-              const keyUrl = PROVIDER_API_KEY_URLS[providerName];
-              return (
-                <div
-                  key={providerName}
-                  className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-colors ${
-                    connected
-                      ? 'border-emerald-500/40 bg-emerald-500/10'
-                      : 'border-light-200 dark:border-dark-200 bg-light-secondary/50 dark:bg-dark-secondary/50'
-                  }`}
-                  title={providerName}
-                >
-                  {logo && (
-                    <img
-                      src={`/images/provider-logos/${logo}`}
-                      alt={`${providerName} logo`}
-                      width={14}
-                      height={14}
-                      className="flex-none w-3.5 h-3.5 object-contain rounded-sm"
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                    />
-                  )}
-                  <span className="text-[10px] text-black/60 dark:text-white/60">{providerName}</span>
-                  {connected && <CheckCircle2 size={9} className="flex-none text-emerald-500" />}
-                  {keyUrl && (
-                    <a
-                      href={keyUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-none text-black/30 dark:text-white/30 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
-                      title={`Get ${providerName} API key`}
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <KeyRound size={10} />
-                    </a>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Connect button for this family's primary provider if not yet connected */}
-          {!hasSomeConnected && family.providerKey && modelProviders.some(p => p.key === family.providerKey) && (
-            <div className="flex items-center gap-2">
-              <p className="text-[10px] text-black/40 dark:text-white/40 flex-1">
-                Enable a provider to use {family.model_family} models
-              </p>
-              <AddProvider
-                modelProviders={modelProviders}
-                setProviders={setProviders}
-                defaultProviderKey={family.providerKey}
-                compact
-              />
-            </div>
-          )}
-
-          {/* Available variants from connected providers */}
-          {variantsByProvider.length > 0 && (
-            <div className="flex flex-col gap-2 border-t border-light-200 dark:border-dark-200 pt-3 mt-1">
-              <p className="text-[10px] font-medium text-black/50 dark:text-white/50 uppercase tracking-wide">
-                Available from your connections
-              </p>
-              {variantsByProvider.map(({ provider, models }) => (
-                <div key={provider.id} className="flex flex-col gap-1">
-                  <p className="text-[10px] text-black/40 dark:text-white/40">{provider.name}</p>
-                  <div className="flex flex-wrap gap-1">
-                    {models.map(m => {
-                      const isActive = activeModel === `${provider.id}/${m.key}`;
-                      return (
-                        <button
-                          key={m.key}
-                          type="button"
-                          onClick={() => selectModel(provider.id, m.key, m.name)}
-                          className={`px-2 py-0.5 rounded-md text-[10px] border font-mono transition-colors cursor-pointer ${
-                            isActive
-                              ? 'border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400'
-                              : 'bg-light-secondary/60 dark:bg-dark-secondary/60 border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70 hover:border-sky-500/50 hover:text-sky-600 dark:hover:text-sky-400'
-                          }`}
-                          title={isActive ? `${m.key} (active)` : `Set ${m.key} as active model`}
-                        >
-                          {m.name}
-                        </button>
-                      );
-                    })}
+            {/* Provider chips */}
+            <div className="flex flex-wrap gap-2">
+              {family.providers.map((providerName) => {
+                const connected = isProviderConnected(providerName);
+                const logo = PROVIDER_LOGOS[providerName];
+                const keyUrl = PROVIDER_API_KEY_URLS[providerName];
+                return (
+                  <div
+                    key={providerName}
+                    className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-colors ${
+                      connected
+                        ? 'border-emerald-500/40 bg-emerald-500/10'
+                        : 'border-light-200 dark:border-dark-200 bg-light-secondary/50 dark:bg-dark-secondary/50'
+                    }`}
+                    title={providerName}
+                  >
+                    {logo && (
+                      <img
+                        src={`/images/provider-logos/${logo}`}
+                        alt={`${providerName} logo`}
+                        width={14}
+                        height={14}
+                        className="flex-none w-3.5 h-3.5 object-contain rounded-sm"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                    )}
+                    <span className="text-[10px] text-black/60 dark:text-white/60">{providerName}</span>
+                    {connected && <CheckCircle2 size={9} className="flex-none text-emerald-500" />}
+                    {keyUrl && (
+                      <a
+                        href={keyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-none text-black/30 dark:text-white/30 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+                        title={`Get ${providerName} API key`}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <KeyRound size={10} />
+                      </a>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          )}
+
+            {/* Connect button for this family's primary provider if not yet connected */}
+            {!hasSomeConnected && family.providerKey && modelProviders.some(p => p.key === family.providerKey) && (
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] text-black/40 dark:text-white/40 flex-1">
+                  Enable a provider to use {family.model_family} models
+                </p>
+                <AddProvider
+                  modelProviders={modelProviders}
+                  setProviders={setProviders}
+                  defaultProviderKey={family.providerKey}
+                  compact
+                />
+              </div>
+            )}
+
+            {/* Available variants from connected providers */}
+            {variantsByProvider.length > 0 && (
+              <div className="flex flex-col gap-2 border-t border-light-200 dark:border-dark-200 pt-3 mt-1">
+                <p className="text-[10px] font-medium text-black/50 dark:text-white/50 uppercase tracking-wide">
+                  Available from your connections
+                </p>
+                {variantsByProvider.map(({ provider, models }) => (
+                  <div key={provider.id} className="flex flex-col gap-1">
+                    <p className="text-[10px] text-black/40 dark:text-white/40">{provider.name}</p>
+                    <div className="flex flex-wrap gap-1">
+                      {models.map(m => {
+                        const isActive = activeModel === `${provider.id}/${m.key}`;
+                        return (
+                          <button
+                            key={m.key}
+                            type="button"
+                            onClick={() => selectModel(provider.id, m.key, m.name)}
+                            className={`px-2 py-0.5 rounded-md text-[10px] border font-mono transition-colors cursor-pointer ${
+                              isActive
+                                ? 'border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400'
+                                : 'bg-light-secondary/60 dark:bg-dark-secondary/60 border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70 hover:border-sky-500/50 hover:text-sky-600 dark:hover:text-sky-400'
+                            }`}
+                            title={isActive ? `${m.key} (active)` : `Set ${m.key} as active model`}
+                          >
+                            {m.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
