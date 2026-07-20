@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Search } from "search-extract-web-api/search/search-query-executor.js";
+import { Search } from "search-web-api/search/search-query-executor.js";
 
 export const POST = async (req: NextRequest) => {
   try {

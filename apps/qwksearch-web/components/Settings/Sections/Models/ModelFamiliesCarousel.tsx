@@ -398,7 +398,7 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                     alt={f.model_family}
                     width={56}
                     height={140}
-                    className="w-14 object-contain rounded"
+                    className="w-14 object-contain rounded-lg shadow-md"
                     style={{ height: 140 }}
                     onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
@@ -436,7 +436,7 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
               alt={family.model_family}
               width={200}
               height={500}
-              className="rounded-xl flex-none object-contain"
+              className="rounded-xl flex-none object-contain shadow-lg"
               style={{ width: 200, height: 500 }}
               onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
@@ -506,6 +506,7 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                 );
               })}
             </div>
+            )}
 
             {/* Connect button for this family's primary provider if not yet connected */}
             {!hasSomeConnected && family.providerKey && modelProviders.some(p => p.key === family.providerKey) && (

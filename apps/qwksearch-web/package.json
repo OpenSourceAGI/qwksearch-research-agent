@@ -90,7 +90,7 @@
     "research-agent-ui": "workspace:*",
     "shadcn-app-dock": "workspace:*",
     "shadcn-theme-menu": "^1.1.13",
-    "search-extract-web-api": "workspace:*",
+    "search-web-api": "workspace:*",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ALL_ENGINES, engineDescriptions } from "search-extract-web-api/search/search-engines-registry-list.js";
-import { CATEGORIES } from "search-extract-web-api/registry/search-engine-category-registry.js";
+import { ALL_ENGINES, engineDescriptions } from "search-web-api/search/search-engines-registry-list.js";
+import { CATEGORIES } from "search-web-api/registry/search-engine-category-registry.js";
 
 /** Map engine name to a best-guess domain for favicon lookup. */
 const ENGINE_DOMAINS: Record<string, string> = {

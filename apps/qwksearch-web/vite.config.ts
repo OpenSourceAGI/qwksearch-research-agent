@@ -32,7 +32,7 @@ export default defineConfig(({ command }) => ({
       "qwksearch-api-client": resolve(__dirname, "../../packages/qwksearch-api-client/src"),
       "write-language": resolve(__dirname, "../../packages/write-language/src"),
       "grab-url": resolve(__dirname, "./lib/api/grab.ts"),
-      "search-extract-web-api": resolve(__dirname, "../../packages/search-web-api/src"),
+      "search-web-api": resolve(__dirname, "../../packages/search-web-api/src"),
     },
   },
   build: {
@@ -70,7 +70,7 @@ export default defineConfig(({ command }) => ({
       "qwksearch-api-client",
       "write-language",
       "shadcn-app-dock",
-      "search-extract-web-api",
+      "search-web-api",
     ],
   },
   plugins: [
