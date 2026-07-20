@@ -484,3 +484,19 @@ figure.code-block .hljs {
   background-color: var(--focus-border);
   transition-delay: 0.1s;
 }
+
+.settings-anchor-highlight {
+  animation: settings-anchor-flash 2.4s ease-out;
+}
+
+@keyframes settings-anchor-flash {
+  0%,
+  40% {
+    box-shadow: 0 0 0 2px rgb(59 130 246 / 0.7);
+    background-color: rgb(59 130 246 / 0.08);
+  }
+  100% {
+    box-shadow: 0 0 0 2px transparent;
+    background-color: transparent;
+  }
+}

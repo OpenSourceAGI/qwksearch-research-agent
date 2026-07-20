@@ -1,7 +1,7 @@
 import { Select } from '../../../ui/select';
 import { ConfigModelProvider } from '../../../../lib/config/types';
 import { useChat } from 'research-agent-ui';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 const ModelSelect = ({
@@ -17,6 +17,17 @@ const ModelSelect = ({
   const [loading, setLoading] = useState(false);
   const [isImageExpanded, setIsImageExpanded] = useState(false);
   const { setChatModelProvider } = useChat();
+
+  // Stay in sync when the model is changed elsewhere (e.g. the families carousel)
+  useEffect(() => {
+    const syncFromStorage = () =>
+      setSelectedModel(
+        `${localStorage.getItem('chatModelProviderId')}/${localStorage.getItem('chatModelKey')}`,
+      );
+    window.addEventListener('chat-model-changed', syncFromStorage);
+    return () =>
+      window.removeEventListener('chat-model-changed', syncFromStorage);
+  }, []);
 
   const handleSave = async (newValue: string) => {
     setLoading(true);

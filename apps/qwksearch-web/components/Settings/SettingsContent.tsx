@@ -11,7 +11,8 @@ import {
   Wand2,
 } from 'lucide-react';
 import Account from './Sections/Account';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AnchorTitle, highlightAnchor } from './anchors';
 import grab from 'grab-url';
 import { toast } from 'sonner';
 import Loader from '../ui/Loader';
@@ -108,9 +109,39 @@ const SettingsContent = ({
     sections.find((s) => s.key === initialKey)!,
   );
 
+  const isFirstUrlSync = useRef(true);
+
   useEffect(() => {
     setSelectedSection(sections.find((s) => s.key === activeSection)!);
   }, [activeSection]);
+
+  // Keep the URL in sync with the active tab (/settings/<tab>) without
+  // triggering a Next.js navigation/remount
+  useEffect(() => {
+    if (!window.location.pathname.startsWith('/settings')) return;
+    const url = new URL(window.location.href);
+    url.pathname = `/settings/${activeSection}`;
+    url.searchParams.delete('section');
+    // preserve the hash from the initial deep link; clear it on tab switches
+    if (!isFirstUrlSync.current) url.hash = '';
+    isFirstUrlSync.current = false;
+    window.history.replaceState(null, '', url);
+  }, [activeSection]);
+
+  // Scroll to and highlight the section targeted by the URL hash, both on
+  // deep links and on later hash changes
+  useEffect(() => {
+    if (isLoading || !config) return;
+    const highlightFromHash = () => {
+      const hash = window.location.hash.slice(1);
+      if (!hash) return;
+      // let the section's fields render before looking up the element
+      requestAnimationFrame(() => highlightAnchor(hash));
+    };
+    highlightFromHash();
+    window.addEventListener('hashchange', highlightFromHash);
+    return () => window.removeEventListener('hashchange', highlightFromHash);
+  }, [isLoading, config, activeSection]);
 
   const fetchConfig = async () => {
     setIsLoading(true);
@@ -227,7 +258,7 @@ const SettingsContent = ({
             <div className="border-b border-light-200/60 px-6 pb-6 lg:pt-6 dark:border-dark-200/60 flex-shrink-0">
               <div className="flex flex-col">
                 <h4 className="font-medium text-black dark:text-white text-sm lg:text-sm">
-                  {selectedSection.name}
+                  <AnchorTitle>{selectedSection.name}</AnchorTitle>
                 </h4>
                 <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
                   {selectedSection.description}
