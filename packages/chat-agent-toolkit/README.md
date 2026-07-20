@@ -30,7 +30,7 @@
 
 Multi-provider AI agent toolkit for generating language responses, searching the web, extracting page content, and managing long-term memory across 10+ LLM providers.
 
-Built on top of the [Vercel AI SDK](https://sdk.vercel.ai), with a small registry of pre-tuned agent prompts (research, summarization, citation answering, query resolution, knowledge-graph extraction, etc.) and tool wrappers around the [QwkSearch](https://qwksearch.com) API.
+Built on top of the [Vercel AI SDK](https://sdk.vercel.ai) and [Mastra](https://mastra.ai) framework, with a small registry of pre-tuned agent prompts (research, summarization, citation answering, query resolution, knowledge-graph extraction, etc.) and tool wrappers around the [QwkSearch](https://qwksearch.com) API.
 
 ## Install
 
@@ -119,6 +119,29 @@ import {
 - `MemoryAgent` — high-level wrapper that uses the `remember-user` agent to extract facts from chat turns and writes them to a storage backend.
 
 See [src/memory/README.md](src/memory/README.md) and [src/memory/ARCHITECTURE.md](src/memory/ARCHITECTURE.md) for details.
+
+## Mastra Framework Integration
+
+The toolkit integrates with [Mastra](https://mastra.ai) for advanced agent orchestration:
+
+```ts
+import { createMastraInstance } from "chat-agent-toolkit/mastra";
+
+const mastra = createMastraInstance({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  model: "claude-3-5-sonnet-20241022"
+});
+```
+
+Key features:
+- **Agents** — define agents with tools and memory integration
+- **Workflows** — graph-based task orchestration with `.then()`, `.branch()`, `.parallel()` combinators
+- **40+ model routing** — seamless provider switching (OpenAI, Anthropic, Groq, etc.)
+- **Observational memory** — built-in tracing and context management
+- **MCP servers** — register and author Model Context Protocol servers
+- **Standalone or embedded** — deploy as a service or inside React/Next/Node apps
+
+See [src/mastra/](src/mastra/) for integration examples and API reference.
 
 ## Package layout
 

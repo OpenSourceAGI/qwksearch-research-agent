@@ -1,7 +1,7 @@
 {
   "name": "use-voice-control",
   "version": "0.1.0",
-  "description": "React hooks and components for voice control and speech I/O (STT/TTS)",
+  "description": "React voice control with speech transcription, vocalization, and interruption (STT/TTS/VAD) support.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "lucide-react": "^0.344.0",
-    "@moonshine-ai/moonshine-js": "^0.8.2",
+    "@moonshine-ai/moonshine-js": "^0.1.29",
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },

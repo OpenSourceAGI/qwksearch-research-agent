@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import openConnectorData from 'agent-toolkit/connectors/openconnector-providers-index.json';
+import openConnectorData from 'chat-agent-toolkit/connectors/openconnector-providers-index.json';
 
 type OpenConnectorProvider = {
   service: string;

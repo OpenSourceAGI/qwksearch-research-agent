@@ -25,8 +25,7 @@ export default defineConfig(({ command }) => ({
     alias: {
       "shadcn-app-dock": resolve(__dirname, "../../packages/shadcn-app-dock/src/index.ts"),
       "extract-webpage": resolve(__dirname, "../../packages/extract-webpage/src"),
-      "chat-agent-toolkit": resolve(__dirname, "../../packages/agent-toolkit/src"),
-      "agent-toolkit": resolve(__dirname, "../../packages/agent-toolkit/src"),
+      "chat-agent-toolkit": resolve(__dirname, "../../packages/chat-agent-toolkit/src"),
       "extract-pdf": resolve(__dirname, "../../packages/extract-pdf/src/pdf-to-html.ts"),
       "extract-youtube": resolve(__dirname, "../../packages/extract-youtube/src"),
       "qwksearch-api-client/openapi.json": resolve(__dirname, "../../packages/qwksearch-api-client/qwksearch-openapi.json"),

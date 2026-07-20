@@ -16,7 +16,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, '.'),
-      'chat-agent-toolkit': resolve(__dirname, '../../packages/agent-toolkit/src'),
+      'chat-agent-toolkit': resolve(__dirname, '../../packages/chat-agent-toolkit/src'),
       'extract-webpage': resolve(__dirname, '../../packages/extract-webpage/src'),
       'research-agent-ui/api': resolve(__dirname, '../../packages/research-agent-ui/src/api/index.ts'),
       'research-agent-ui': resolve(__dirname, '../../packages/research-agent-ui/src/index.ts'),
@@ -24,7 +24,7 @@ export default defineConfig({
       'domain-rank': resolve(__dirname, '../../packages/domain-rank'),
       'search-web-api': resolve(__dirname, '../../packages/search-web-api/src'),
       'write-language': resolve(__dirname, '../../packages/write-language/src'),
-      'chat-agent-toolkit/models/registry': resolve(__dirname, '../../packages/agent-toolkit/src/models/registry.ts'),
+      'chat-agent-toolkit/models/registry': resolve(__dirname, '../../packages/chat-agent-toolkit/src/models/registry.ts'),
     },
   },
 })
