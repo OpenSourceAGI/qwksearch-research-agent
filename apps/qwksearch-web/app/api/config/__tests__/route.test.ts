@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+vi.mock('next/server', () => ({
+  NextResponse: {
+    json: (data, opts = {}) => new Response(JSON.stringify(data), {
+      headers: { 'Content-Type': 'application/json' },
+      ...opts,
+    }),
+  },
+}))
+
 // Mock heavy dependencies before importing the route
 vi.mock('@/lib/config', () => ({
   default: {

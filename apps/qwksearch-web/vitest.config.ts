@@ -18,7 +18,12 @@ export default defineConfig({
       '@': resolve(__dirname, '.'),
       'chat-agent-toolkit': resolve(__dirname, '../../packages/agent-toolkit/src'),
       'extract-webpage': resolve(__dirname, '../../packages/extract-webpage/src'),
+      'research-agent-ui/api': resolve(__dirname, '../../packages/research-agent-ui/src/api/index.ts'),
+      'research-agent-ui': resolve(__dirname, '../../packages/research-agent-ui/src/index.ts'),
       'grab-url': resolve(__dirname, './lib/api/grab.ts'),
+      'domain-rank': resolve(__dirname, '../../packages/domain-rank/src'),
+      'search-web-api': resolve(__dirname, '../../packages/search-web-api/src'),
+      'chat-agent-toolkit/models/registry': resolve(__dirname, '../../packages/agent-toolkit/src/models/registry.ts'),
     },
   },
 })

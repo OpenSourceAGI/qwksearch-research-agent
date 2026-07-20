@@ -1,5 +1,5 @@
 {
-  "name": "tardigrade-crawler-cloudflare",
+  "name": "render-url-to-html-cloudflare",
   "version": "1.0.0",
   "description": "Server API renders DOM with puppeteer to get HTML & Bypass Cloudflare bot check.",
   "main": "scraper-cloudflare.js",
