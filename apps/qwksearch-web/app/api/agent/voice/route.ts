@@ -1,7 +1,7 @@
 import { createVoiceHandler } from "research-agent-ui/api";
 import { getUserId } from "@/lib/auth/session";
 import { checkTTSRateLimit } from "@/lib/rate-limit/guestRateLimiter";
-import { generateSpeech } from "@/lib/speech";
+import { generateSpeech } from "../../../../../../packages/use-voice-control/speech";
 
 export const runtime = "nodejs";
 

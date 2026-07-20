@@ -4,11 +4,11 @@
  * Kokoro: Faster, more natural, runs on Node CPU
  * Deepgram: Requires Cloudflare AI binding, MP3 output
  */
-import type { TTSOptions, TTSResult } from "./types";
-import { generateKokoroSpeech } from "./kokoro";
-import { generateDeepgramSpeech } from "./deepgram";
+import type { TTSOptions, TTSResult } from "./types/types";
+import { generateKokoroSpeech } from "./core/kokoro";
+import { generateDeepgramSpeech } from "./core/deepgram";
 
-export * from "./types";
+export * from "./types/types";
 
 /**
  * Generate speech from text using the specified provider

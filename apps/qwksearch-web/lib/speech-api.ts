@@ -2,7 +2,7 @@
  * @fileoverview Client-side utilities for speech API endpoints
  * Provides high-level functions to call TTS and STT APIs
  */
-import type { TTSOptions } from "./speech/types";
+import type { TTSOptions } from "../../../packages/use-voice-control/speech/types";
 
 /**
  * Generate speech from text using the TTS API

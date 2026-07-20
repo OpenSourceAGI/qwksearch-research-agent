@@ -2,7 +2,7 @@
  * @fileoverview TTS (Text-to-Speech) API endpoint
  * Generates audio from text using Kokoro or Deepgram
  */
-import { generateSpeech, type TTSOptions } from "@/lib/speech";
+import { generateSpeech, type TTSOptions } from "../../../../../../packages/use-voice-control/speech";
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
