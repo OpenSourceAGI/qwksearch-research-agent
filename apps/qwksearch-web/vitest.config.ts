@@ -23,6 +23,7 @@ export default defineConfig({
       'grab-url': resolve(__dirname, './lib/api/grab.ts'),
       'domain-rank': resolve(__dirname, '../../packages/domain-rank'),
       'search-web-api': resolve(__dirname, '../../packages/search-web-api/src'),
+      'write-language': resolve(__dirname, '../../packages/write-language/src'),
       'chat-agent-toolkit/models/registry': resolve(__dirname, '../../packages/agent-toolkit/src/models/registry.ts'),
     },
   },
