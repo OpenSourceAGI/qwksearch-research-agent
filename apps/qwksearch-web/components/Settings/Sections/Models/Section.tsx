@@ -48,7 +48,7 @@ const Models = ({
       />
 
       <div className="border-t border-light-200 dark:border-dark-200" />
-      {/* <div className="flex flex-col px-6 gap-y-4">
+      <div className="flex flex-col px-6 gap-y-4">
         <h3 className="text-xs lg:text-xs text-black/70 dark:text-white/70">
           Select model
         </h3>
@@ -58,13 +58,16 @@ const Models = ({
           )}
           type="chat"
         />
-      </div> */}
-      <div className="flex flex-row justify-between items-center px-6 ">
-        <AddProvider modelProviders={fields} setProviders={setProviders} />
       </div>
       <div className="border-t border-light-200 dark:border-dark-200" />
       <ModelFamiliesCarousel modelProviders={fields} connectedProviders={providers} setProviders={setProviders} />
       <div className="border-t border-light-200 dark:border-dark-200" />
+      <div className="flex flex-row justify-between items-center px-6 ">
+        <p className="text-xs lg:text-xs text-black/70 dark:text-white/70">
+          Manage connections
+        </p>
+        <AddProvider modelProviders={fields} setProviders={setProviders} />
+      </div>
     </div>
   );
 };

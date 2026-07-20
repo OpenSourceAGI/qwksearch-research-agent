@@ -25,7 +25,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     imgur: '0il7JUg',
     flagship: 'Claude Fable 5',
     maker: 'Anthropic',
-    providers: ['Anthropic', 'OpenRouter'],
+    providers: ['Anthropic', 'AWS Bedrock', 'OpenRouter'],
     open: false,
     providerKey: 'anthropic',
     apiKeyUrl: 'https://console.anthropic.com/settings/keys',
@@ -47,7 +47,7 @@ const MODEL_FAMILIES: ModelFamily[] = [
     imgur: 'Wo5TVoB',
     flagship: 'Gemini 3.5 Flash',
     maker: 'Google',
-    providers: ['Google', 'Google AI Studio', 'Vertex AI', 'OpenRouter'],
+    providers: ['Google', 'OpenRouter'],
     open: false,
     providerKey: 'gemini',
     apiKeyUrl: 'https://aistudio.google.com/app/apikey',
@@ -358,7 +358,7 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
     <div className="flex flex-col gap-4 px-6">
       <div className="flex items-center justify-between">
         <p className="text-xs text-black/70 dark:text-white/70">
-        
+
           Active: <span className="font-medium text-sky-600 dark:text-sky-400">{getActiveModelName()}</span>
         </p>
       </div>

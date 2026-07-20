@@ -146,7 +146,7 @@ function getFreeModels(providerName: "nvidia" | "openrouter") {
     (p) => p.provider.toLowerCase() === providerName
   );
   return (
-    entry?.models.filter((m: any) => m.free && m.type === "text-generation") ?? []
+    entry?.models.filter((m: any) => m.free && (m.type === "text-generation" || m.type === "text")) ?? []
   );
 }
 

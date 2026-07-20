@@ -38,7 +38,7 @@ export async function testModel(
 
   try {
     // Only test text-generation models
-    if (modelType !== "text-generation") {
+    if (modelType !== "text-generation" && modelType !== "text") {
       return {
         modelId,
         modelName,

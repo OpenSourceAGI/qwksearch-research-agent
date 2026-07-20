@@ -56,10 +56,7 @@ export default defineConfig(({ command }) => ({
       // because workerd resolves bare specifiers relative to the chunk. The
       // AI SDK packages never reach the final client bundle anyway (they are
       // tree-shaken out), so they must simply be bundled server-side.
-      //
-      // kokoro-js is client-only and uses dynamic imports, so mark it external
-      // to avoid SSR bundling errors.
-      external: ["fsevents", /^@mastra\//, "kokoro-js"],
+      external: ["fsevents", /^@mastra\//],
     },
   },
   ssr: {

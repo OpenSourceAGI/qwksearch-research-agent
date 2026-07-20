@@ -170,12 +170,12 @@ export function useTextToSpeech(text: string, options?: TextToSpeechOptions) {
         }
       }
 
-      // Fallback to Cloudflare Workers AI TTS
-      const res = await grab("/api/agent/tts", {
+      // Fallback to server-side TTS
+      const res = await grab("/api/agent/voice", {
         method: "POST",
         body: {
           text: text.slice(0, 5000),
-          speaker: localStorage.getItem("ttsSpeaker") || "angus",
+          voice: localStorage.getItem("kokoroVoice") || "af_heart",
         },
         signal: controller.signal,
       });
