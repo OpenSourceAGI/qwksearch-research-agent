@@ -51,6 +51,11 @@ export const getModelProvidersUIConfigSection =
         name: "OpenRouter",
         fields: getOpenRouterConfigFields(),
       },
+      {
+        key: "perplexity",
+        name: "Perplexity",
+        fields: getPerplexityConfigFields(),
+      },
     ];
   };
 
@@ -191,6 +196,27 @@ function getOpenRouterConfigFields() {
       default: "https://openrouter.ai/api/v1",
       env: "OPENROUTER_BASE_URL",
       scope: "server" as const,
+    },
+  ];
+}
+
+function getPerplexityConfigFields() {
+  return [
+    {
+      type: "password" as const,
+      name: "API Key",
+      key: "apiKey",
+      description: "Your Perplexity API key",
+      required: true,
+      placeholder: "pplx-...",
+      env: "PERPLEXITY_API_KEY",
+      scope: "server" as const,
+      links: [
+        {
+          name: "Get API Key",
+          url: "https://www.perplexity.ai/settings/api",
+        },
+      ],
     },
   ];
 }
