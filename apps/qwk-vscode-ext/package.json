@@ -84,7 +84,7 @@
       "properties": {
         "qwksearch.apiBaseUrl": {
           "type": "string",
-          "default": "https://app.qwksearch.com",
+          "default": "https://qwksearch.com",
           "description": "Base URL of the QwkSearch deployment the extension talks to. Point this at a self-hosted qwksearch-web instance if you run your own."
         },
         "qwksearch.focusMode": {

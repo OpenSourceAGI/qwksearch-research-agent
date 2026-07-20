@@ -83,7 +83,7 @@ export class QwkSearchViewProvider implements vscode.WebviewViewProvider {
         const requestId = message.requestId;
         const apiBaseUrl = vscode.workspace
           .getConfiguration("qwksearch")
-          .get<string>("apiBaseUrl", "https://app.qwksearch.com");
+          .get<string>("apiBaseUrl", "https://qwksearch.com");
         const apiKey = await this.auth.getApiKey();
 
         const controller = new AbortController();

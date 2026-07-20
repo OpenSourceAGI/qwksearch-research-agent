@@ -1,7 +1,7 @@
 # QwkSearch for VS Code
 
 Search, ask, and research the web from a sidebar in VS Code — the same
-research agent that powers [qwksearch.com](https://app.qwksearch.com), packaged
+research agent that powers [qwksearch.com](https://qwksearch.com), packaged
 as a VS Code extension and talking to the live QwkSearch API.
 
 <p align="center">
@@ -54,7 +54,7 @@ pragmatic boundary.
 ```
 ┌─────────────────────────────┐        HTTPS        ┌──────────────────────┐
 │ Webview (webview-ui/)       │  postMessage/JSON    │ Extension Host       │
-│ React + Vite, sandboxed,    │◄────────────────────►│ src/*.ts, Node       │──► https://app.qwksearch.com/api/*
+│ React + Vite, sandboxed,    │◄────────────────────►│ src/*.ts, Node       │──► https://qwksearch.com/api/*
 │ no direct network access    │                       │ holds the API key    │
 └─────────────────────────────┘                       └──────────────────────┘
 ```
@@ -134,7 +134,7 @@ bunx @vscode/vsce package   # produces a .vsix you can install or publish
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `qwksearch.apiBaseUrl` | `https://app.qwksearch.com` | Base URL of the QwkSearch deployment to use. Point at a self-hosted `qwksearch-web` instance to use your own. |
+| `qwksearch.apiBaseUrl` | `https://qwksearch.com` | Base URL of the QwkSearch deployment to use. Point at a self-hosted `qwksearch-web` instance to use your own. |
 | `qwksearch.focusMode` | `webSearch` | Default research focus for new questions: `webSearch` (cited web search) or `writingAssistant` (no search). |
 
 ## Commands

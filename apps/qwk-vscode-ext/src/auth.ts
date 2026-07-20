@@ -32,7 +32,7 @@ export class AuthManager {
   private apiBaseUrl(): string {
     return vscode.workspace
       .getConfiguration("qwksearch")
-      .get<string>("apiBaseUrl", "https://app.qwksearch.com");
+      .get<string>("apiBaseUrl", "https://qwksearch.com");
   }
 
   /**

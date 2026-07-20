@@ -4,7 +4,7 @@
  * The extension has no local server, so we rewrite those to the production API.
  */
 
-const API_BASE = 'https://app.qwksearch.com';
+const API_BASE = 'https://qwksearch.com';
 
 async function grab(url: string, options?: RequestInit): Promise<any> {
   const resolved = url.startsWith('/') ? `${API_BASE}${url}` : url;

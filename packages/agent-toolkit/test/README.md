@@ -98,7 +98,7 @@ The QwkSearch API tools were passing invalid parameters to the API client:
 
 3. Updated default base URL:
    - From: `https://qwksearch.com`
-   - To: `https://app.qwksearch.com/api`
+   - To: `https://qwksearch.com/api`
 
 ### Files Modified
 - `packages/agent-toolkit/src/tools/qwksearch-api-tools.ts`

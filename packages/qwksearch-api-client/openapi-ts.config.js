@@ -1,6 +1,6 @@
 import { defineConfig } from '@hey-api/openapi-ts';
 
-export const baseUrl = process.env.API_URL || 'https://app.qwksearch.com/api';
+export const baseUrl = process.env.API_URL || 'https://qwksearch.com/api';
 
 export const config = {
   input: './qwksearch-openapi.json',

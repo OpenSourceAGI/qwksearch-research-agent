@@ -26,6 +26,9 @@ export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   vite: () => ({
     plugins: [escapeNonAsciiPlugin()],
+    build: {
+      minify: false,
+    },
     resolve: {
       alias: {
         // Shim next/navigation so research-agent-ui compiles outside Next.js
