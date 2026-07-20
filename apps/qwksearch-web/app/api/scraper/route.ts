@@ -88,7 +88,8 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const url = request.nextUrl.searchParams.get('url');
+    const { searchParams } = new URL(request.url);
+    const url = searchParams.get('url');
 
     if (!url) {
       return NextResponse.json(
@@ -109,10 +110,10 @@ export async function GET(request: NextRequest) {
 
     const options: ScraperOptions = {
       url,
-      blockImages: request.nextUrl.searchParams.get('blockImages') === 'true',
-      bypassCaptcha: request.nextUrl.searchParams.get('bypassCaptcha') !== 'false',
-      timeout: parseInt(request.nextUrl.searchParams.get('timeout') || '30000'),
-      format: (request.nextUrl.searchParams.get('format') as 'html' | 'json') || 'json'
+      blockImages: searchParams.get('blockImages') === 'true',
+      bypassCaptcha: searchParams.get('bypassCaptcha') !== 'false',
+      timeout: parseInt(searchParams.get('timeout') || '30000'),
+      format: (searchParams.get('format') as 'html' | 'json') || 'json'
     };
 
     const result = await renderWithCloudflare(options);

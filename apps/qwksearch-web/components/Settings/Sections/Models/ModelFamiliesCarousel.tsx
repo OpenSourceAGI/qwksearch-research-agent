@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, CheckCircle2, KeyRound } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, KeyRound, Blocks } from 'lucide-react';
 import { ModelProviderUISection, ConfigModelProvider } from '../../../../lib/config/types';
 import AddProvider from './AddProviderDialog';
 import { useChat } from 'research-agent-ui';
@@ -197,6 +197,19 @@ const MODEL_FAMILIES: ModelFamily[] = [
   },
 ];
 
+// Fallback bucket for connected models that don't match any curated family above
+const OTHER_FAMILY: ModelFamily = {
+  model_family: 'Other',
+  imgur: '',
+  flagship: '',
+  maker: '',
+  providers: [],
+  open: false,
+  modelKeywords: [],
+};
+
+const ALL_FAMILIES: ModelFamily[] = [...MODEL_FAMILIES, OTHER_FAMILY];
+
 const PROVIDER_API_KEY_URLS: Record<string, string> = {
   Anthropic: 'https://console.anthropic.com/settings/keys',
   OpenAI: 'https://platform.openai.com/api-keys',
@@ -298,7 +311,8 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
     el.scrollBy({ left: dir === 'left' ? -260 : 260, behavior: 'smooth' });
   };
 
-  const family = MODEL_FAMILIES[selectedIndex];
+  const family = ALL_FAMILIES[selectedIndex];
+  const isOtherSelected = family?.model_family === 'Other';
 
   const connectedKeys = new Set(connectedProviders.map(p => p.type));
 
@@ -309,8 +323,22 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
 
   const hasSomeConnected = family?.providers.some(isProviderConnected);
 
+  const matchesAnyFamily = (modelKey: string) =>
+    MODEL_FAMILIES.some(f =>
+      f.modelKeywords.some(kw => modelKey.toLowerCase().includes(kw.toLowerCase())),
+    );
+
   const matchesFamily = (modelKey: string) =>
-    family?.modelKeywords.some(kw => modelKey.toLowerCase().includes(kw.toLowerCase()));
+    isOtherSelected
+      ? !matchesAnyFamily(modelKey)
+      : family?.modelKeywords.some(kw => modelKey.toLowerCase().includes(kw.toLowerCase()));
+
+  const familyHasConnection = (f: ModelFamily) =>
+    f.model_family === 'Other'
+      ? connectedProviders.some(p =>
+          p.chatModels.some(m => m.key !== 'error' && !matchesAnyFamily(m.key)),
+        )
+      : f.providers.some(isProviderConnected);
 
   // Connected providers that have at least one model matching this family
   const variantsByProvider: { provider: ConfigModelProvider; models: { name: string; key: string }[] }[] =
@@ -340,8 +368,9 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
           className="flex gap-2 overflow-x-auto px-7"
           style={{ scrollbarWidth: 'none' }}
         >
-          {MODEL_FAMILIES.map((f, i) => {
-            const anyConnected = f.providers.some(isProviderConnected);
+          {ALL_FAMILIES.map((f, i) => {
+            const anyConnected = familyHasConnection(f);
+            const isOther = f.model_family === 'Other';
             return (
               <button
                 key={f.model_family}
@@ -356,15 +385,24 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                 {anyConnected && (
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 z-10" />
                 )}
-                <img
-                  src={`https://i.imgur.com/${f.imgur}.png`}
-                  alt={f.model_family}
-                  width={56}
-                  height={140}
-                  className="w-14 object-contain rounded"
-                  style={{ height: 140 }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                />
+                {isOther ? (
+                  <div
+                    className="w-14 flex items-center justify-center rounded bg-light-secondary/50 dark:bg-dark-secondary/50"
+                    style={{ height: 140 }}
+                  >
+                    <Blocks size={28} className="text-black/40 dark:text-white/40" />
+                  </div>
+                ) : (
+                  <img
+                    src={`https://i.imgur.com/${f.imgur}.png`}
+                    alt={f.model_family}
+                    width={56}
+                    height={140}
+                    className="w-14 object-contain rounded"
+                    style={{ height: 140 }}
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
+                )}
                 <span className="text-[10px] text-black/70 dark:text-white/70 truncate w-full text-center">
                   {f.model_family}
                 </span>
@@ -385,15 +423,24 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
       {/* Detail card for selected family */}
       {family && (
         <div className="flex flex-row items-start gap-4 p-4 rounded-lg border border-light-200 dark:border-dark-200 bg-light-secondary/20 dark:bg-dark-secondary/20">
-          <img
-            src={`https://i.imgur.com/${family.imgur}.png`}
-            alt={family.model_family}
-            width={200}
-            height={500}
-            className="rounded-xl flex-none object-contain"
-            style={{ width: 200, height: 500 }}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-          />
+          {isOtherSelected ? (
+            <div
+              className="rounded-xl flex-none flex items-center justify-center bg-light-secondary/50 dark:bg-dark-secondary/50"
+              style={{ width: 200, height: 500 }}
+            >
+              <Blocks size={64} className="text-black/30 dark:text-white/30" />
+            </div>
+          ) : (
+            <img
+              src={`https://i.imgur.com/${family.imgur}.png`}
+              alt={family.model_family}
+              width={200}
+              height={500}
+              className="rounded-xl flex-none object-contain"
+              style={{ width: 200, height: 500 }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          )}
 
           {/* Right column: name + meta + providers + variants */}
           <div className="flex flex-col gap-3 flex-1 min-w-0">
@@ -409,12 +456,15 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                   )}
                 </div>
                 <p className="text-[11px] text-black/50 dark:text-white/50">
-                  by {family.maker} · {family.flagship}
+                  {isOtherSelected
+                    ? 'Models that don\'t match any of the families above'
+                    : `by ${family.maker} · ${family.flagship}`}
                 </p>
               </div>
             </div>
 
             {/* Provider chips */}
+            {family.providers.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {family.providers.map((providerName) => {
                 const connected = isProviderConnected(providerName);
@@ -440,8 +490,6 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                     )}
-                    <span className="text-xs text-black/60 dark:text-white/60">{providerName}</span>
-                    {connected && <CheckCircle2 size={12} className="flex-none text-emerald-500" />}
                     {keyUrl && (
                       <a
                         href={keyUrl}
