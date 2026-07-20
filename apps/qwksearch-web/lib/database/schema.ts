@@ -326,3 +326,24 @@ export type Upload = typeof uploads.$inferSelect;
 
 // Export Document type from documents table
 export type Document = typeof documents.$inferSelect;
+
+export const userAgentSkills = sqliteTable("user_agent_skills", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  skillId: text("skill_id").notNull(),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  createdAt: integer("created_at", {
+    mode: "timestamp",
+  })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer("updated_at", {
+    mode: "timestamp",
+  })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export type UserAgentSkill = typeof userAgentSkills.$inferSelect;

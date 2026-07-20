@@ -10,6 +10,7 @@ import {
   HardDrive,
   Wand2,
   Volume2,
+  Sparkles,
 } from 'lucide-react';
 import Account from './Sections/Account';
 import { useEffect, useRef, useState } from 'react';
@@ -34,6 +35,7 @@ import RewritePrompts from './Sections/RewritePrompts';
 import FileSources from './Sections/FileSources';
 import AIRewriteModes from './Sections/AIRewriteModes';
 import VoiceSection from './Sections/Voice';
+import AgentSkills from './Sections/AgentSkills';
 
 const sections = [
   {
@@ -43,6 +45,14 @@ const sections = [
     icon: UserCircle,
     component: Account,
     dataAdd: 'account',
+  },
+  {
+    key: 'agent-skills',
+    name: 'Agent Skills',
+    description: 'Manage which capabilities your research agent can use.',
+    icon: Sparkles,
+    component: AgentSkills,
+    dataAdd: 'agentSkills',
   },
   {
     key: 'models',

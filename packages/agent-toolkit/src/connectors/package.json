@@ -1,0 +1,19 @@
+{
+  "name": "oomol-saas-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "build": "node --check server.js && node smoke-test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@oomol-lab/connector": "^1.0.0",
+    "express": "^5.2.1"
+  }
+}
