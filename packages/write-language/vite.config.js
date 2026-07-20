@@ -33,7 +33,6 @@ export default defineConfig({
         "@ai-sdk/amazon-bedrock",
         "@ai-sdk/mcp",
         "@openrouter/ai-sdk-provider",
-        "zod",
         "highlight.js",
         "html-entities",
         "marked",

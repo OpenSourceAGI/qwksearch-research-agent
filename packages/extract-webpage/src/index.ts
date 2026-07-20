@@ -17,7 +17,7 @@ export * from "./tokenize/text-to-chunks";
 export * from "./url-to-content/url-to-content";
 export * from "./url-to-content/url-to-html";
 export * from "./html-to-cite/url-to-domain";
-export * from "./url-to-content/youtube-to-text";
+export * from "./url-to-content/youtube-helpers";
 // PDF export removed from main index to prevent pdfjs-serverless from being evaluated at build time
 // Import directly from "./pdf-to-html/pdfToHtml" when needed
 export * from "./url-to-content/docx-to-content";
