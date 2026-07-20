@@ -1,6 +1,16 @@
 import { useState } from 'react';
 import openConnectorData from 'agent-toolkit/connectors/openconnector-providers-index.json';
 
+type OpenConnectorData = {
+  service: string;
+  displayName: string;
+  categories: string[];
+  authTypes: string[];
+  homepageUrl: string;
+  actionCount: number;
+  actions: string[];
+};
+
 type Connector = {
   name: string;
   connector_id: string | null;
@@ -11,6 +21,11 @@ type Connector = {
 const connectors: Connector[] = (openConnectorData.connectors as Connector[]).filter(
   (c) => c.connector_id !== null,
 );
+
+const openConnectorDataTyped = openConnectorData as { connectors: OpenConnectorData[] };
+const connectorCategories = Array.from(
+  new Set(openConnectorDataTyped.connectors.flatMap((c) => c.categories)),
+).sort();
 
 const ConnectorLogo = ({ connector }: { connector: Connector }) => {
   const [imgError, setImgError] = useState(false);
@@ -36,6 +51,8 @@ const ConnectorLogo = ({ connector }: { connector: Connector }) => {
 };
 
 const OpenConnectorConnectors = () => {
+  const [activeCategory, setActiveCategory] = useState<string>(connectorCategories[0] || 'All');
+
   const handleLink = (connector: Connector) => {
     if (connector.domain) {
       window.open(
@@ -45,6 +62,18 @@ const OpenConnectorConnectors = () => {
       );
     }
   };
+
+  const getCategoryForConnector = (connectorName: string): string[] => {
+    const data = openConnectorDataTyped.connectors.find(
+      (c) => c.displayName.toLowerCase() === connectorName.toLowerCase(),
+    );
+    return data?.categories || [];
+  };
+
+  const filteredConnectors = connectors.filter((connector) => {
+    const categories = getCategoryForConnector(connector.name);
+    return categories.includes(activeCategory);
+  });
 
   return (
     <div className="flex flex-col gap-y-4 px-6 pb-6">
@@ -62,8 +91,24 @@ const OpenConnectorConnectors = () => {
         </div>
       </div>
 
+      <div className="flex gap-2 overflow-x-auto pb-2 -mx-6 px-6">
+        {connectorCategories.map((category) => (
+          <button
+            key={category}
+            onClick={() => setActiveCategory(category)}
+            className={`whitespace-nowrap px-3 py-1.5 rounded-md text-[12px] font-medium transition-colors ${
+              activeCategory === category
+                ? 'bg-blue-500 dark:bg-blue-500 text-white'
+                : 'border border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70 bg-light-secondary/40 dark:bg-dark-secondary/40 hover:border-light-300 hover:dark:border-dark-300'
+            }`}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {connectors.map((connector) => (
+        {filteredConnectors.map((connector) => (
           <div
             key={connector.connector_id}
             className="flex flex-col justify-between gap-y-3 p-3.5 rounded-lg border border-light-200 dark:border-dark-200 bg-light-primary dark:bg-dark-primary hover:border-light-300 hover:dark:border-dark-300 transition-colors"
