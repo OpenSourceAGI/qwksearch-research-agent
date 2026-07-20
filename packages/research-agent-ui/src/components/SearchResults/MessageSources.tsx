@@ -395,7 +395,7 @@ const MessageSources = ({
           {CATEGORY_TABS.map((tab) => (
             <button
               key={tab.code}
-              onClick={() => handleCategoryChange(tab.code)}
+              onClick={() => handleCategoryChange(tab.code as SearchCategory)}
               disabled={isSearching}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap",
