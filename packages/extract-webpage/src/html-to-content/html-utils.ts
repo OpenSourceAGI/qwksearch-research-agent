@@ -158,11 +158,24 @@ import "prismjs/components/prism-java";
 import "prismjs/components/prism-c";
 import "prismjs/components/prism-cpp";
 
-function highlightCode(code, lang) {
-  const language = Prism.languages[lang] ? lang : "plaintext";
-  if (language === "plaintext") return code;
-  return Prism.highlight(code, Prism.languages[language], language);
-}
+// Configure marked once at module load with Prism.js syntax highlighting.
+// marked v17 removed the `highlight` option from setOptions, so highlighting
+// is wired via a custom `code` renderer instead.
+marked.use({
+  renderer: {
+    code({ text, lang }) {
+      const language = lang && Prism.languages[lang] ? lang : null;
+      const highlighted = language
+        ? Prism.highlight(text, Prism.languages[language], language)
+        : text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+      const cls = language ? ` class="language-${language}"` : "";
+      return `<pre><code${cls}>${highlighted}</code></pre>\n`;
+    },
+  },
+});
 
 /**
  * Converts Markdown text to HTML. It handles the following Markdown elements:
@@ -191,14 +204,6 @@ function highlightCode(code, lang) {
  */
 export function convertMarkdownToHTML(content, toHtml = true) {
   if (!toHtml) return convertHTMLToMarkdown(content);
-
-
-  marked.setOptions({
-    highlight: function (code, lang) {
-      return highlightCode(code, lang) ?? code;
-    },
-    langPrefix: "language-",
-  });
 
   return content?.length ? marked.parse(content) : "";
 
