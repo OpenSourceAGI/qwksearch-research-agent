@@ -47,9 +47,8 @@ const connectors: Connector[] = (Array.isArray(providers) ? providers : []).map(
   },
 );
 
-const openConnectorDataTyped = openConnectorData as { connectors: OpenConnectorProvider[] };
 const connectorCategories = Array.from(
-  new Set(openConnectorDataTyped.connectors.flatMap((c) => c.categories)),
+  new Set((Array.isArray(providers) ? providers : []).flatMap((c) => c.categories)),
 ).sort();
 
 const ConnectorLogo = ({ connector }: { connector: Connector }) => {
