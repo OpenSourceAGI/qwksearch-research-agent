@@ -1,6 +1,6 @@
 {
   "name": "extract-youtube",
-  "version": "1.0.47",
+  "version": "1.0.48",
   "description": "Fast, no-browser serverless-optimized YouTube transcript extractor",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
