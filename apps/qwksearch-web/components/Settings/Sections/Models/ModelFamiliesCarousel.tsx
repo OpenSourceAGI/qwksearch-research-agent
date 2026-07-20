@@ -357,8 +357,8 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
   return (
     <div className="flex flex-col gap-4 px-6">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-black/70 dark:text-white/70">Browse AI model families</p>
-        <p className="text-xs text-black/60 dark:text-white/60">
+        <p className="text-xs text-black/70 dark:text-white/70">
+        
           Active: <span className="font-medium text-sky-600 dark:text-sky-400">{getActiveModelName()}</span>
         </p>
       </div>
