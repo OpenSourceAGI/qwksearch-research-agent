@@ -69,8 +69,8 @@ const ModelProvider = ({
       className="border border-light-200 dark:border-dark-200 rounded-lg overflow-hidden bg-light-primary dark:bg-dark-primary"
     >
       <div className="px-5 py-3.5 flex flex-row justify-between w-full items-center border-b border-light-200 dark:border-dark-200 bg-light-secondary/30 dark:bg-dark-secondary/30">
-        <div className="flex items-center gap-2.5">
-          <ProviderIcon providerType={modelProvider.type} size={20} />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5">
+          <ProviderIcon providerType={modelProvider.type} size={10} />
           <div className="flex flex-col">
             <p className="text-sm lg:text-sm text-black dark:text-white font-medium">
               {modelProvider.name}

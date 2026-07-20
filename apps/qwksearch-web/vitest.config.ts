@@ -21,7 +21,7 @@ export default defineConfig({
       'research-agent-ui/api': resolve(__dirname, '../../packages/research-agent-ui/src/api/index.ts'),
       'research-agent-ui': resolve(__dirname, '../../packages/research-agent-ui/src/index.ts'),
       'grab-url': resolve(__dirname, './lib/api/grab.ts'),
-      'domain-rank': resolve(__dirname, '../../packages/domain-rank/src'),
+      'domain-rank': resolve(__dirname, '../../packages/domain-rank'),
       'search-web-api': resolve(__dirname, '../../packages/search-web-api/src'),
       'chat-agent-toolkit/models/registry': resolve(__dirname, '../../packages/agent-toolkit/src/models/registry.ts'),
     },
