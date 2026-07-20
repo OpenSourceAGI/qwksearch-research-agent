@@ -21,6 +21,75 @@ This system processes documents by extracting text with OCR while preserving lay
 - 📄 Full-Page Conversion – Processes entire pages for comprehensive document conversion including all page elements (code, equations, tables, charts etc.)
 - 🔲 OCR with Bounding Boxes – OCR regions using a bounding box.
 
+## Installation
+
+This package lives inside the [`qwksearch-research-agent`](https://github.com/OpenSourceAGI/qwksearch-research-agent) monorepo at `packages/extract-pdf-docling`. There are two implementations included: a Node.js/Hono HTTP API (default, runs the ONNX model via Transformers.js — no GPU or Python required) and a Python/FastAPI service (uses PyTorch + the full `docling-core` pipeline).
+
+### Prerequisites
+
+- [Bun](https://bun.sh) `>=1.3` (the monorepo's package manager) — or Node.js `>=18` with npm if you only want this package
+- ~1 GB free disk space for the ONNX model, which downloads automatically on first run
+
+### Clone the repository
+
+```bash
+git clone https://github.com/OpenSourceAGI/qwksearch-research-agent.git
+cd qwksearch-research-agent/packages/extract-pdf-docling
+```
+
+### Option 1 — Node.js / Hono API (recommended)
+
+```bash
+# From the monorepo root, install all workspace dependencies
+cd qwksearch-research-agent
+bun install
+
+# Then run this package specifically
+cd packages/extract-pdf-docling
+bun run dev     # starts with --watch on http://localhost:3000
+# or
+bun run start   # production start
+```
+
+Using npm instead of Bun works the same way (`npm install` then `npm run dev`).
+
+The first request triggers a download of the [`onnx-community/granite-docling-258M-ONNX`](https://huggingface.co/onnx-community/granite-docling-258M-ONNX) model (cached locally afterward). Once running:
+
+- API docs (Swagger UI): `http://localhost:3000/docs`
+- OpenAPI spec: `http://localhost:3000/openapi.json`
+- Health check: `http://localhost:3000/health`
+- Convert endpoint: `POST http://localhost:3000/api/v1/convert`
+
+See `test/pdf.test.js` for example client requests (URL, base64, and streaming conversion).
+
+#### Deploying to Cloudflare Workers
+
+A `wrangler.jsonc` config is included for deploying the API as a Cloudflare Worker:
+
+```bash
+npx wrangler dev      # local Workers runtime
+npx wrangler deploy   # deploy to Cloudflare
+```
+
+### Option 2 — Python / Docker (full Docling pipeline)
+
+The `pdf-to-html-docling-python/` subfolder contains a standalone FastAPI service using the actual `ibm-granite/granite-docling-258M` model via `transformers` + `docling-core`.
+
+```bash
+cd pdf-to-html-docling-python
+docker compose up --build
+```
+
+This builds the image, installs PyTorch (CPU by default) and Docling dependencies, and starts the API on `http://localhost:8000` (health check at `/health`).
+
+To run it without Docker, using [`uv`](https://github.com/astral-sh/uv):
+
+```bash
+cd pdf-to-html-docling-python
+uv sync
+uv run python src/pdf-granite-docling.py --help
+```
+
 ## Configuration Options
 
 The converter accepts several options when used programmatically:

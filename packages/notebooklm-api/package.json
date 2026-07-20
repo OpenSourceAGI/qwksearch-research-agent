@@ -1,10 +1,9 @@
 {
-  "name": "notebooklm-api",
+  "name": "notebooklm-api-client",
   "version": "0.1.0",
   "description": "NotebookLM API via Cloudflare Containers — on-demand Python sandbox that sleeps when idle",
   "author": "vtempest <grokthiscontact@gmail.com>",
   "license": "AGPL-3.0",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",

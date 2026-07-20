@@ -8,8 +8,8 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "node --watch server.js",
-    "start": "node server.js"
+    "dev": "node --watch src/pdf2html.js",
+    "start": "node src/pdf2html.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.8.2",
