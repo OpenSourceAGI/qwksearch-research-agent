@@ -4,10 +4,24 @@
  */
 import { marked } from "marked";
 import Prism from "prismjs";
-import loadLanguages from "prismjs/components/index.js";
+import "prismjs/components/prism-markup";
+import "prismjs/components/prism-css";
+import "prismjs/components/prism-javascript";
+import "prismjs/components/prism-typescript";
+import "prismjs/components/prism-jsx";
+import "prismjs/components/prism-tsx";
+import "prismjs/components/prism-python";
+import "prismjs/components/prism-bash";
+import "prismjs/components/prism-json";
+import "prismjs/components/prism-yaml";
+import "prismjs/components/prism-markdown";
+import "prismjs/components/prism-sql";
+import "prismjs/components/prism-rust";
+import "prismjs/components/prism-go";
+import "prismjs/components/prism-java";
+import "prismjs/components/prism-c";
+import "prismjs/components/prism-cpp";
 import { encode, decode } from "html-entities";
-
-loadLanguages();
 
 // Inline onclihttps://claude.com/cai/oauth/authorize?code=true&client_id=9d1c250a-e61b-44d9-88ed-5944d1962f5e&response_type=code&redirect_uri=https%3A%2F%2Fplatform.claude.com%2Foauth%2Fcode%2Fcallback&scope=org%3Acreate_api_key+user%3Aprofile+user%3Ainference+user%3Asessions%3Aclaude_code+user%3Amcp_servers+user%3Afile_upload&code_challenge=JsLfmO6Cp0S_Fj1HNLczEOzmJxqfR-u3FIM0FPBnIiI&code_challenge_method=S256&state=CGnY-CI-nZZ9HncJj4QLdYXu_LC_bnxUHhIDTD7QL6Yck: self-contained per button, works in dangerouslySetInnerHTML contexts
 const COPY_ONCLICK = [
