@@ -1,0 +1,9 @@
+# Wrangler local config (contains real resource IDs)
+wrangler.local.jsonc
+
+# Cloudflare local environment
+.wrangler/
+.env
+
+# Vite
+dist/
