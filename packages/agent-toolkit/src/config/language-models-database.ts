@@ -1347,13 +1347,6 @@ export const LANGUAGE_MODELS = [
       "type": "text"
     },
     {
-      "name": "Dolphin Mistral 24B Venice Edition",
-      "id": "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
-      "contextLength": 33_000,
-      "free": true,
-      "type": "text"
-    },
-    {
       "name": "LFM 2.5 1.2B Thinking",
       "id": "liquid/lfm-2.5-1.2b-thinking:free",
       "contextLength": 33_000,
