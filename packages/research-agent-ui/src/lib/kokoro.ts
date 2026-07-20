@@ -2,6 +2,7 @@
 
 // Dynamic import to avoid SSR bundling issues
 let KokoroTTS: any = null;
+let kokoroAvailable = false;
 
 const MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX';
 
@@ -47,8 +48,10 @@ async function loadModel(): Promise<any> {
     try {
       const mod = await import('kokoro-js');
       KokoroTTS = mod.KokoroTTS;
+      kokoroAvailable = true;
     } catch (err) {
-      console.error('Failed to import kokoro-js:', err);
+      kokoroAvailable = false;
+      console.warn('Kokoro.js not available, will use server-side TTS:', err instanceof Error ? err.message : String(err));
       throw new Error('Kokoro.js library not available');
     }
   }
@@ -107,4 +110,8 @@ export async function getVoiceList(): Promise<string[]> {
 
 export function getLoadedBackend() {
   return chosenDevice;
+}
+
+export function isKokoroAvailable() {
+  return kokoroAvailable;
 }

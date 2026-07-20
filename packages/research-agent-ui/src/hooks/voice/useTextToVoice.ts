@@ -166,7 +166,7 @@ export function useTextToSpeech(text: string, options?: TextToSpeechOptions) {
           await audioEl.play();
           return;
         } catch (err) {
-          console.warn("Kokoro TTS failed, falling back to Cloudflare:", err);
+          console.debug("Kokoro TTS unavailable, using server-side TTS:", err instanceof Error ? err.message : String(err));
         }
       }
 
