@@ -35,6 +35,14 @@ async function authBuilder() {
         clientId: process.env.GOOGLE_CLIENT_ID || "",
         clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       },
+      discord: {
+        clientId: process.env.AUTH_DISCORD_ID || "",
+        clientSecret: process.env.AUTH_DISCORD_SECRET || "",
+      },
+      linkedin: {
+        clientId: process.env.AUTH_LINKEDIN_ID || "",
+        clientSecret: process.env.AUTH_LINKEDIN_SECRET || "",
+      },
     },
     emailVerification: {
       sendOnSignUp: false,

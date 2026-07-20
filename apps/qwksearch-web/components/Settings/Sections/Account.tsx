@@ -754,7 +754,11 @@ export default function Account() {
           subtitle="Manage your active sessions and revoke access."
         />
         <div className="space-y-2">
-          {sessions.map((s) => {
+          {sessions.sort((a, b) => {
+            const aTime = typeof a.updatedAt === 'number' ? a.updatedAt * 1000 : new Date(a.updatedAt || 0).getTime();
+            const bTime = typeof b.updatedAt === 'number' ? b.updatedAt * 1000 : new Date(b.updatedAt || 0).getTime();
+            return bTime - aTime;
+          }).map((s) => {
             const { browser, os } = formatUA(s.userAgent);
             return (
               <div
