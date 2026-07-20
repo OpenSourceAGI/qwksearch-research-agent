@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import type { Document } from "extract-webpage/search/document";
 import { EventEmitter } from "stream";
+import { describeError } from "research-agent-ui/api";
 import { getDB } from "@/lib/database";
 import { messages as messagesSchema } from "@/lib/database/schema";
 
@@ -144,7 +145,7 @@ export const handleEmitterEvents = async (
           .catch((err) => {
             console.error(
               "[handleEmitterEvents] failed to save source message:",
-              err,
+              describeError(err),
             );
           });
       }
@@ -170,7 +171,7 @@ export const handleEmitterEvents = async (
         .catch((err) => {
           console.error(
             "[handleEmitterEvents] failed to save assistant message:",
-            err,
+            describeError(err),
           );
         });
     }
