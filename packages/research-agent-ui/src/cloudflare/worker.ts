@@ -1,5 +1,8 @@
 import { Router, IRequest } from 'itty-router';
-import { json, text, missing, error as httpError } from 'itty-router';
+import { json, text, error as httpError } from 'itty-router';
+
+// itty-router v5 removed the `missing` helper; provide a 404 shim via `error`.
+const missing = (message?: string) => httpError(404, message ?? 'Not Found');
 
 // Cloudflare Workers runtime for research-agent-ui
 // Provides metadata endpoints, OAuth flows, connection management, and transit file handling
