@@ -21,6 +21,29 @@ export interface Env {
 async function authBuilder() {
   const db = getDB();
 
+  const socialProviders: Record<string, { clientId: string; clientSecret: string }> = {};
+
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    socialProviders.google = {
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    };
+  }
+
+  if (process.env.AUTH_DISCORD_ID && process.env.AUTH_DISCORD_SECRET) {
+    socialProviders.discord = {
+      clientId: process.env.AUTH_DISCORD_ID,
+      clientSecret: process.env.AUTH_DISCORD_SECRET,
+    };
+  }
+
+  if (process.env.AUTH_LINKEDIN_ID && process.env.AUTH_LINKEDIN_SECRET) {
+    socialProviders.linkedin = {
+      clientId: process.env.AUTH_LINKEDIN_ID,
+      clientSecret: process.env.AUTH_LINKEDIN_SECRET,
+    };
+  }
+
   return betterAuth({
     baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
     database: drizzleAdapter(db, {
@@ -30,20 +53,7 @@ async function authBuilder() {
     emailAndPassword: {
       enabled: true,
     },
-    socialProviders: {
-      google: {
-        clientId: process.env.GOOGLE_CLIENT_ID || "",
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      },
-      discord: {
-        clientId: process.env.AUTH_DISCORD_ID || "",
-        clientSecret: process.env.AUTH_DISCORD_SECRET || "",
-      },
-      linkedin: {
-        clientId: process.env.AUTH_LINKEDIN_ID || "",
-        clientSecret: process.env.AUTH_LINKEDIN_SECRET || "",
-      },
-    },
+    socialProviders,
     emailVerification: {
       sendOnSignUp: false,
       autoSignInAfterVerification: true,
