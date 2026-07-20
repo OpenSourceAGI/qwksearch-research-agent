@@ -1,6 +1,6 @@
 import { Loader2, Plus } from 'lucide-react';
-import grab from 'grab-url';
 import { useMemo, useState, useEffect } from 'react';
+import { listProviders, addProvider } from 'qwksearch-api-client';
 import {
   Dialog,
   DialogContent,
@@ -39,8 +39,8 @@ const AddProvider = ({
   useEffect(() => {
     const fetchProviders = async () => {
       try {
-        const data = await grab('/api/agent/providers');
-        setProvidersState(data.providers || []);
+        const data = await listProviders();
+        setProvidersState(data.data?.providers || data.providers || []);
       } catch (error) {
         console.error('Failed to fetch providers:', error);
       }
@@ -88,15 +88,14 @@ const AddProvider = ({
     e.preventDefault();
     setLoading(true);
     try {
-      const data: ConfigModelProvider = (
-        await grab('/api/agent/providers', {
-          method: 'POST',
-          body: {
-            type: selectedProvider,
-            config: config,
-          },
-        })
-      ).provider;
+      const response = await addProvider({
+        body: {
+          type: selectedProvider,
+          config: config,
+        },
+      });
+
+      const data: ConfigModelProvider = response.data?.provider || response.provider;
 
       setProviders((prev) => [...prev, data]);
       setProvidersState((prev) => [...prev, data]);

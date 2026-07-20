@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, CheckCircle2, KeyRound, Blocks } from 'lucide-react';
 import { ModelProviderUISection, ConfigModelProvider } from '../../../../lib/config/types';
 import AddProvider from './AddProviderDialog';
+import ConfigureKeyModal from './ConfigureKeyModal';
 import { useChat } from 'research-agent-ui';
 import { toast } from 'sonner';
 
@@ -295,6 +296,8 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
   const [activeModel, setActiveModel] = useState<string>(
     `${localStorage.getItem('chatModelProviderId')}/${localStorage.getItem('chatModelKey')}`,
   );
+  const [keyModalOpen, setKeyModalOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<{ name: string; keyUrl: string }>({ name: '', keyUrl: '' });
 
   const selectModel = (providerId: string, modelKey: string, modelName: string) => {
     localStorage.setItem('chatModelProviderId', providerId);
@@ -489,23 +492,24 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                       <img
                         src={`/images/provider-logos/${logo}`}
                         alt={`${providerName} logo`}
-                        width={300}
-                        height={80}
+                        width={150}
+                        height={40}
                         className="flex-none object-contain rounded-sm"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                     )}
                     {keyUrl && (
-                      <a
-                        href={keyUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProvider({ name: providerName, keyUrl });
+                          setKeyModalOpen(true);
+                        }}
                         className="flex-none text-black/30 dark:text-white/30 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
-                        title={`Get ${providerName} API key`}
-                        onClick={e => e.stopPropagation()}
+                        title={`Configure ${providerName} API key`}
                       >
                         <KeyRound size={12} />
-                      </a>
+                      </button>
                     )}
                   </div>
                 );
@@ -564,6 +568,13 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
           </div>
         </div>
       )}
+
+      <ConfigureKeyModal
+        open={keyModalOpen}
+        onOpenChange={setKeyModalOpen}
+        providerName={selectedProvider.name}
+        keyUrl={selectedProvider.keyUrl}
+      />
     </div>
   );
 };

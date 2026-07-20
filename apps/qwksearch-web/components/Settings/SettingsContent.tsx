@@ -9,6 +9,7 @@ import {
   UserCircle,
   HardDrive,
   Wand2,
+  Volume2,
 } from 'lucide-react';
 import Account from './Sections/Account';
 import { useEffect, useRef, useState } from 'react';
@@ -32,6 +33,7 @@ import Storage from './Sections/Storage';
 import RewritePrompts from './Sections/RewritePrompts';
 import FileSources from './Sections/FileSources';
 import AIRewriteModes from './Sections/AIRewriteModes';
+import VoiceSection from './Sections/Voice';
 
 const sections = [
   {
@@ -89,6 +91,14 @@ const sections = [
     icon: Wand2,
     component: AIRewriteModes,
     dataAdd: 'rewritePrompts',
+  },
+  {
+    key: 'voice',
+    name: 'Voice Settings',
+    description: 'Configure text-to-speech with Kokoro.js or Cloudflare TTS.',
+    icon: Volume2,
+    component: VoiceSection,
+    dataAdd: 'voice',
   },
 ];
 

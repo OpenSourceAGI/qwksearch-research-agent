@@ -71,6 +71,7 @@
     "search-web-api": "workspace:*",
     "framer-motion": "^12.40.0",
     "grab-url": "^1.6.22",
+    "kokoro-js": "^1.2.1",
     "qwksearch-api-client": "workspace:*",
     "html2canvas": "^1.4.1",
     "lucide-react": "^1.17.0",

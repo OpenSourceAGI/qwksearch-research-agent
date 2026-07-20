@@ -2,7 +2,7 @@ import { UIConfigField, ConfigModelProvider } from '../../../../lib/config/types
 import { cn } from '../../../../lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, Plug2, Plus, Pencil, Trash2, X } from 'lucide-react';
-import grab from 'grab-url';
+import { deleteProviderModel } from 'qwksearch-api-client';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import AddModel from './AddModelDialog';
@@ -27,8 +27,8 @@ const ModelProvider = ({
     modelKey: string,
   ) => {
     try {
-      await grab(`/api/agent/providers/${modelProvider.id}/models`, {
-        method: 'DELETE',
+      await deleteProviderModel({
+        path: { id: modelProvider.id },
         body: { key: modelKey, type: type },
       });
 

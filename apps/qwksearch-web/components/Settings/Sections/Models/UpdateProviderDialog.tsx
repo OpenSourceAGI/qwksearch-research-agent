@@ -1,5 +1,5 @@
 import { Loader2, Pencil } from 'lucide-react';
-import grab from 'grab-url';
+import { updateProvider } from 'qwksearch-api-client';
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
@@ -52,14 +52,14 @@ const UpdateProvider = ({
         });
       }
 
-      const data: ConfigModelProvider = (
-        await grab(`/api/agent/providers/${modelProvider.id}`, {
-          method: 'PATCH',
-          body: {
-            config: resolvedConfig,
-          },
-        })
-      ).provider;
+      const response = await updateProvider({
+        path: { id: modelProvider.id },
+        body: {
+          config: resolvedConfig,
+        },
+      });
+
+      const data: ConfigModelProvider = response.data?.provider || response.provider;
 
       setProviders((prev) => {
         return prev.map((p) => {

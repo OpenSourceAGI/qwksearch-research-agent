@@ -1,5 +1,5 @@
 import { Loader2, Plus } from 'lucide-react';
-import grab from 'grab-url';
+import { addProviderModel } from 'qwksearch-api-client';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ConfigModelProvider } from '../../../../lib/config/types';
@@ -64,8 +64,8 @@ const AddModel = ({
         }
       }
 
-      await grab(`/api/agent/providers/${providerId}/models`, {
-        method: 'POST',
+      await addProviderModel({
+        path: { id: providerId },
         body: {
           name: modelName,
           key: modelKey,
