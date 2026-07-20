@@ -21,6 +21,10 @@ import { useTheme } from 'next-themes';
 import { Eye, EyeOff, Loader2, Moon, Sun } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { AnchorTitle } from './anchors';
+
+const fieldAnchorId = (dataAdd: string, fieldKey: string) =>
+  `${dataAdd}-${fieldKey}`;
 
 const themeNames = [
   "modern-minimal", "elegant-luxury", "cyberpunk", "twitter",
@@ -133,11 +137,16 @@ const SettingsSelect = ({
   };
 
   return (
-    <section className="rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80">
+    <section
+      id={fieldAnchorId(dataAdd, field.key)}
+      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
+    >
       <div className="space-y-3 lg:space-y-5">
         <div>
           <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            {field.name}
+            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
+              {field.name}
+            </AnchorTitle>
           </h4>
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
@@ -212,11 +221,16 @@ const SettingsInput = ({
   };
 
   return (
-    <section className="rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80">
+    <section
+      id={fieldAnchorId(dataAdd, field.key)}
+      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
+    >
       <div className="space-y-3 lg:space-y-5">
         <div>
           <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            {field.name}
+            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
+              {field.name}
+            </AnchorTitle>
           </h4>
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
@@ -281,11 +295,16 @@ const SettingsPasswordInput = ({
   };
 
   return (
-    <section className="rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80">
+    <section
+      id={fieldAnchorId(dataAdd, field.key)}
+      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
+    >
       <div className="space-y-3 lg:space-y-5">
         <div>
           <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            {field.name}
+            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
+              {field.name}
+            </AnchorTitle>
           </h4>
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
@@ -362,11 +381,16 @@ const SettingsTextarea = ({
   };
 
   return (
-    <section className="rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80">
+    <section
+      id={fieldAnchorId(dataAdd, field.key)}
+      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
+    >
       <div className="space-y-3 lg:space-y-5">
         <div>
           <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            {field.name}
+            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
+              {field.name}
+            </AnchorTitle>
           </h4>
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
@@ -437,11 +461,16 @@ const SettingsSwitch = ({
   const isChecked = value === true || value === 'true';
 
   return (
-    <section className="rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80">
+    <section
+      id={fieldAnchorId(dataAdd, field.key)}
+      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
+    >
       <div className="flex flex-row items-center space-x-3 lg:space-x-5 w-full justify-between">
         <div>
           <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            {field.name}
+            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
+              {field.name}
+            </AnchorTitle>
           </h4>
           <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
             {field.description}
@@ -462,6 +491,7 @@ const SettingsSwitch = ({
 const SettingsThemeSelect = ({
   field,
   setValue,
+  dataAdd,
 }: {
   field: ThemeUIConfigField;
   value?: any;
@@ -493,11 +523,18 @@ const SettingsThemeSelect = ({
   const colors = themeColors[colorTheme];
 
   return (
-    <section className="rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80">
+    <section
+      id={fieldAnchorId(dataAdd, field.key)}
+      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
+    >
       <div className="space-y-3 lg:space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm text-black dark:text-white">{field.name}</h4>
+            <h4 className="text-sm text-black dark:text-white">
+              <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
+                {field.name}
+              </AnchorTitle>
+            </h4>
             <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
               {field.description}
             </p>

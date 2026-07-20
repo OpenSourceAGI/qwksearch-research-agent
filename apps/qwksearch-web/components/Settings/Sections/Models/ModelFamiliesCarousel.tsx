@@ -3,7 +3,8 @@ import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, ExternalLink, CheckCircle2, KeyRound } from 'lucide-react';
 import { ModelProviderUISection, ConfigModelProvider } from '../../../../lib/config/types';
 import AddProvider from './AddProviderDialog';
-import ProviderIcon from './ProviderIcon';
+import { useChat } from 'research-agent-ui';
+import { toast } from 'sonner';
 
 interface ModelFamily {
   model_family: string;
@@ -221,6 +222,25 @@ const PROVIDER_API_KEY_URLS: Record<string, string> = {
   Perplexity: 'https://www.perplexity.ai/settings/api',
 };
 
+// Maps a provider display name to its logo in /public/images/provider-logos;
+// providers without a logo fall back to name-only chips
+const PROVIDER_LOGOS: Record<string, string> = {
+  Anthropic: 'anthropic.png',
+  OpenAI: 'openai.png',
+  'Azure OpenAI': 'azure-openai-service.png',
+  Google: 'gemini.png',
+  'Google AI Studio': 'gemini.png',
+  'Vertex AI': 'gemini.png',
+  OpenRouter: 'openrouter.png',
+  Groq: 'groqcloud.png',
+  Together: 'together-ai.png',
+  Ollama: 'ollama.png',
+  Mistral: 'mistral-ai.png',
+  MoonshotAI: 'moonshot-ai.png',
+  Alibaba: 'tongyi.png',
+  'Z.ai': 'zhipu-ai.png',
+};
+
 // Maps a provider display name (from MODEL_FAMILIES.providers[]) to the provider key used in modelProviders
 const PROVIDER_NAME_TO_KEY: Record<string, string> = {
   Anthropic: 'anthropic',
@@ -258,6 +278,19 @@ interface Props {
 const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProviders }: Props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const { setChatModelProvider } = useChat();
+  const [activeModel, setActiveModel] = useState<string>(
+    `${localStorage.getItem('chatModelProviderId')}/${localStorage.getItem('chatModelKey')}`,
+  );
+
+  const selectModel = (providerId: string, modelKey: string, modelName: string) => {
+    localStorage.setItem('chatModelProviderId', providerId);
+    localStorage.setItem('chatModelKey', modelKey);
+    setChatModelProvider({ providerId, key: modelKey });
+    setActiveModel(`${providerId}/${modelKey}`);
+    window.dispatchEvent(new Event('chat-model-changed'));
+    toast.success(`${modelName} is now the active chat model`);
+  };
 
   const scroll = (dir: 'left' | 'right') => {
     const el = scrollRef.current;
@@ -397,7 +430,7 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
           <div className="flex flex-wrap gap-2">
             {family.providers.map((providerName) => {
               const connected = isProviderConnected(providerName);
-              const providerKey = PROVIDER_NAME_TO_KEY[providerName];
+              const logo = PROVIDER_LOGOS[providerName];
               const keyUrl = PROVIDER_API_KEY_URLS[providerName];
               return (
                 <div
@@ -409,11 +442,17 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                   }`}
                   title={providerName}
                 >
-                  {providerKey ? (
-                    <ProviderIcon providerType={providerKey} size={12} className="!p-0 !bg-transparent !dark:bg-transparent" />
-                  ) : (
-                    <span className="text-[10px] text-black/50 dark:text-white/50">{providerName}</span>
+                  {logo && (
+                    <img
+                      src={`/images/provider-logos/${logo}`}
+                      alt={`${providerName} logo`}
+                      width={14}
+                      height={14}
+                      className="flex-none w-3.5 h-3.5 object-contain rounded-sm"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
                   )}
+                  <span className="text-[10px] text-black/60 dark:text-white/60">{providerName}</span>
                   {connected && <CheckCircle2 size={9} className="flex-none text-emerald-500" />}
                   {keyUrl && (
                     <a
@@ -457,15 +496,24 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                 <div key={provider.id} className="flex flex-col gap-1">
                   <p className="text-[10px] text-black/40 dark:text-white/40">{provider.name}</p>
                   <div className="flex flex-wrap gap-1">
-                    {models.map(m => (
-                      <span
-                        key={m.key}
-                        className="px-2 py-0.5 rounded-md text-[10px] bg-light-secondary/60 dark:bg-dark-secondary/60 border border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70 font-mono"
-                        title={m.key}
-                      >
-                        {m.name}
-                      </span>
-                    ))}
+                    {models.map(m => {
+                      const isActive = activeModel === `${provider.id}/${m.key}`;
+                      return (
+                        <button
+                          key={m.key}
+                          type="button"
+                          onClick={() => selectModel(provider.id, m.key, m.name)}
+                          className={`px-2 py-0.5 rounded-md text-[10px] border font-mono transition-colors cursor-pointer ${
+                            isActive
+                              ? 'border-sky-500 bg-sky-500/10 text-sky-600 dark:text-sky-400'
+                              : 'bg-light-secondary/60 dark:bg-dark-secondary/60 border-light-200 dark:border-dark-200 text-black/70 dark:text-white/70 hover:border-sky-500/50 hover:text-sky-600 dark:hover:text-sky-400'
+                          }`}
+                          title={isActive ? `${m.key} (active)` : `Set ${m.key} as active model`}
+                        >
+                          {m.name}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
