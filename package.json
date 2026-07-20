@@ -21,5 +21,8 @@
     "@moonshine-ai/moonshine-js": "^0.1.29",
     "is-vpn": "^1.0.2",
     "mammoth": "^1.12.0"
+  },
+  "overrides": {
+    "@ricky0123/vad-web": "^0.0.30"
   }
 }
