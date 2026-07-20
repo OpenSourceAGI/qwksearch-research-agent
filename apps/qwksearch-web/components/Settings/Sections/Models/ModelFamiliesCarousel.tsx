@@ -1,6 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, ExternalLink, CheckCircle2, KeyRound } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, KeyRound } from 'lucide-react';
 import { ModelProviderUISection, ConfigModelProvider } from '../../../../lib/config/types';
 import AddProvider from './AddProviderDialog';
 import { useChat } from 'research-agent-ui';
@@ -411,20 +411,6 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                 <p className="text-[11px] text-black/50 dark:text-white/50">
                   by {family.maker} · {family.flagship}
                 </p>
-              </div>
-
-              <div className="flex flex-col items-end gap-2 flex-none">
-                {family.apiKeyUrl && (
-                  <a
-                    href={family.apiKeyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[11px] text-sky-500 hover:text-sky-400 transition-colors whitespace-nowrap"
-                  >
-                    <ExternalLink size={11} />
-                    Get API key
-                  </a>
-                )}
               </div>
             </div>
 
