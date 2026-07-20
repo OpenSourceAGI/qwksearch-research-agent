@@ -484,9 +484,9 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                       <img
                         src={`/images/provider-logos/${logo}`}
                         alt={`${providerName} logo`}
-                        width={28}
-                        height={28}
-                        className="flex-none w-7 h-7 object-contain rounded-sm"
+                        width={300}
+                        height={80}
+                        className="flex-none object-contain rounded-sm"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                     )}
