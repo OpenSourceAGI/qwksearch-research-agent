@@ -2,7 +2,7 @@
   "name": "html-renderer-api",
   "version": "1.0.0",
   "description": "Server API renders DOM with puppeteer to get HTML & Bypass Cloudflare bot check.",
-  "main": "scraper-cloudflare.js",
+  "main": "src/scrapers/scraper-cloudflare.js",
   "type": "module",
   "license": "rights.institute/PROSPER",
   "scripts": {

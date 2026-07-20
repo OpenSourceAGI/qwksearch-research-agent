@@ -29,8 +29,6 @@
 
 # research-agent-ui
 
-<a href="https://www.npmjs.com/package/research-agent-ui"><img src="https://img.shields.io/npm/dm/research-agent-ui.svg" alt="NPM Monthly Downloads"></a>
-<a href="https://www.npmjs.com/package/research-agent-ui"><img src="https://img.shields.io/npm/v/research-agent-ui.svg" alt="npm version"></a>
 
 Chat research agent UI: conversation window, article reader, search config,
 file uploads, and chat history for QwkSearch-style apps. Includes the shadcn
