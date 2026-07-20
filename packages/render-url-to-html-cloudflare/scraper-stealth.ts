@@ -48,30 +48,32 @@ export async function applyStealthEvasions(page: Page): Promise<void> {
       (k) => k.startsWith("cdc_") || k.startsWith("$cdc_"),
     );
     props.forEach((prop) => {
-      delete (window as Record<string, unknown>)[prop];
+      delete (window as unknown as Record<string, unknown>)[prop];
     });
 
-    delete (window as Record<string, unknown>).callPhantom;
-    delete (window as Record<string, unknown>)._phantom;
-    delete (window as Record<string, unknown>).__nightmare;
-    delete (window as Record<string, unknown>).domAutomation;
-    delete (window as Record<string, unknown>).domAutomationController;
-    delete (window as Record<string, unknown>)._Selenium_IDE_Recorder;
-    delete (window as Record<string, unknown>)._selenium;
-    delete (window as Record<string, unknown>).__webdriver_script_fn;
-    delete (window as Record<string, unknown>).__driver_evaluate;
-    delete (window as Record<string, unknown>).__webdriver_evaluate;
-    delete (window as Record<string, unknown>).__selenium_evaluate;
-    delete (window as Record<string, unknown>).__fxdriver_evaluate;
-    delete (window as Record<string, unknown>).__driver_unwrapped;
-    delete (window as Record<string, unknown>).__webdriver_unwrapped;
-    delete (window as Record<string, unknown>).__selenium_unwrapped;
-    delete (window as Record<string, unknown>).__fxdriver_unwrapped;
-    delete (window as Record<string, unknown>).__webdriver_script_func;
-    delete (window as Record<string, unknown>).__webdriver_script_function;
-    delete (document as Record<string, unknown>).__webdriver_evaluate;
-    delete (document as Record<string, unknown>).__selenium_evaluate;
-    delete (document as Record<string, unknown>).__webdriver_script_function;
+    const w = window as unknown as Record<string, unknown>;
+    const d = document as unknown as Record<string, unknown>;
+    delete w.callPhantom;
+    delete w._phantom;
+    delete w.__nightmare;
+    delete w.domAutomation;
+    delete w.domAutomationController;
+    delete w._Selenium_IDE_Recorder;
+    delete w._selenium;
+    delete w.__webdriver_script_fn;
+    delete w.__driver_evaluate;
+    delete w.__webdriver_evaluate;
+    delete w.__selenium_evaluate;
+    delete w.__fxdriver_evaluate;
+    delete w.__driver_unwrapped;
+    delete w.__webdriver_unwrapped;
+    delete w.__selenium_unwrapped;
+    delete w.__fxdriver_unwrapped;
+    delete w.__webdriver_script_func;
+    delete w.__webdriver_script_function;
+    delete d.__webdriver_evaluate;
+    delete d.__selenium_evaluate;
+    delete d.__webdriver_script_function;
   });
 
   // Evasion 3: Mock chrome runtime to appear as a real Chrome install
@@ -461,26 +463,25 @@ export async function applyStealthEvasions(page: Page): Promise<void> {
 
   // Evasion 21: Add noise to AudioContext analyser for fingerprint resistance
   await page.evaluateOnNewDocument(() => {
-    type AnyAudioContext = typeof AudioContext | typeof webkitAudioContext;
-    const AudioContextClass: AnyAudioContext | undefined =
-      window.AudioContext ?? (window as Record<string, unknown>).webkitAudioContext as AnyAudioContext | undefined;
-    const originalCreateAnalyser =
-      AudioContextClass?.prototype?.createAnalyser;
-    if (originalCreateAnalyser && AudioContextClass) {
-      AudioContextClass.prototype.createAnalyser = function (
-        this: AudioContext,
-      ) {
-        const analyser = originalCreateAnalyser.call(this);
-        const originalGetFloatFrequencyData =
-          analyser.getFloatFrequencyData.bind(analyser);
-        analyser.getFloatFrequencyData = function (array: Float32Array) {
-          originalGetFloatFrequencyData(array);
-          for (let i = 0; i < array.length; i++) {
-            array[i] += Math.random() * 0.0001;
-          }
+    const w = window as unknown as Record<string, unknown>;
+    const AudioContextClass = (w.AudioContext ?? w.webkitAudioContext) as unknown;
+    if (AudioContextClass && typeof AudioContextClass === 'object') {
+      const proto = (AudioContextClass as Record<string, unknown>).prototype as Record<string, unknown>;
+      const originalCreateAnalyser = proto.createAnalyser as (this: unknown) => AnalyserNode;
+      if (originalCreateAnalyser) {
+        proto.createAnalyser = function (this: unknown) {
+          const analyser = originalCreateAnalyser.call(this) as AnalyserNode;
+          const originalGetFloatFrequencyData =
+            analyser.getFloatFrequencyData.bind(analyser);
+          analyser.getFloatFrequencyData = function (array: Float32Array) {
+            originalGetFloatFrequencyData(array);
+            for (let i = 0; i < array.length; i++) {
+              array[i] += Math.random() * 0.0001;
+            }
+          };
+          return analyser;
         };
-        return analyser;
-      };
+      }
     }
   });
 

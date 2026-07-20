@@ -3,7 +3,7 @@
   "description": "Search, extract, vectorize, outline graph, and monitor the web for topic keywords",
   "version": "2.5.0",
   "author": "vtempest",
-  "license": "rights.institute/prosper",
+  "license": "rights.institute/PROSPER",
   "type": "module",
   "scripts": {
     "dev": "npx open-ready next dev",

@@ -1,4 +1,6 @@
 <p align="center">
+    <img  src="https://i.imgur.com/ir3twBm.png" />
+
 <br /> 
     <a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/dm/pdf-to-html-docling.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/v/pdf-to-html-docling.svg" alt="npm version"></a>
@@ -29,10 +31,6 @@
 
 # PDF To HTML with Docling OCR Model
 
-<a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/dm/pdf-to-html-docling.svg" alt="NPM Monthly Downloads"></a>
-<a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/v/pdf-to-html-docling.svg" alt="npm version"></a>
-
-![docling_pdf_logo](https://i.imgur.com/ir3twBm.png "Docling")
 
 Convert PDF documents to HTML using the [`ibm-granite/granite-docling-258M`](https://huggingface.co/ibm-granite/granite-docling-258M) AI model from Hugging Face.
 

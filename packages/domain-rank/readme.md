@@ -1,4 +1,6 @@
 <p align="center">
+    <img  src="https://i.imgur.com/1MRYUqC.png" />
+
 <br /> 
     <a href="https://www.npmjs.com/package/domain-rank"><img src="https://img.shields.io/npm/dm/domain-rank.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/domain-rank"><img src="https://img.shields.io/npm/v/domain-rank.svg" alt="npm version"></a>
@@ -27,11 +29,6 @@
     </a>
 </p>
 
-![logo](https://i.imgur.com/1MRYUqC.png)
-
-
-   <a href="https://www.npmjs.com/package/domain-rank"><img src="https://img.shields.io/npm/dm/domain-rank.svg" alt="NPM Monthly Downloads"></a>
-    <a href="https://www.npmjs.com/package/domain-rank"><img src="https://img.shields.io/npm/v/domain-rank.svg" alt="npm version"></a>
 
 # domain-rank 
 

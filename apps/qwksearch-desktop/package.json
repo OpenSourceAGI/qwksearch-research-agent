@@ -4,7 +4,7 @@
   "description": "QwkSearch Desktop - Select text, press ` to search web",
   "type": "module",
   "homepage": "https://qwksearch.com",
-  "license": "AGPL-3.0",
+  "license": "rights.institute/PROSPER",
   "author": "QwkSearch <support@qwksearch.com>",
   "scripts": {
     "docker:linux": " sudo docker run -v \"$(pwd)/dist:/output\" qwksearch-linux",

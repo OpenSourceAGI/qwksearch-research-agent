@@ -75,11 +75,12 @@ const MessageSources = ({
     // Check cache status for each article (without triggering fetch)
     for (const source of webSources) {
       try {
-        const response = await fetch(`/api/doc/article?url=${encodeURIComponent(source.metadata.url)}`);
-        const data = await response.json();
+        const { data } = await getArticle({
+          query: { url: source.metadata.url }
+        });
 
         // If article is cached and has content, mark as loaded
-        if (data.cached && data.article?.html) {
+        if (data?.cached && data?.article?.html) {
           setArticleStates(prev => ({ ...prev, [source.metadata.url]: 'loaded' }));
         }
       } catch (error) {

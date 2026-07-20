@@ -1,15 +1,15 @@
 {
-  "name": "render-url-to-html-cloudflare",
+  "name": "html-renderer-api",
   "version": "1.0.0",
   "description": "Server API renders DOM with puppeteer to get HTML & Bypass Cloudflare bot check.",
   "main": "scraper-cloudflare.js",
   "type": "module",
-  "license": "Apache-2.0",
+  "license": "rights.institute/PROSPER",
   "scripts": {
     "start": "bun scraper-cloudflare.js",
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-   "@cloudflare/puppeteer": "*"
+    "@cloudflare/puppeteer": "*"
   }
 }

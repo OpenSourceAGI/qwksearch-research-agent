@@ -3,7 +3,7 @@
   "version": "1.2.55",
   "description": "Multi-provider AI agent toolkit: generate language responses, search the web, extract content, and manage memory across 10+ LLM providers.",
   "author": "vtempest <grokthiscontact@gmail.com>",
-  "license": "AGPL-3.0",
+  "license": "rights.institute/PROSPER",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",

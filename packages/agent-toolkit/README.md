@@ -1,4 +1,5 @@
 <p align="center">
+    <img  src="https://i.imgur.com/YQgNTdv.png" />
 <br /> 
     <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/dm/chat-agent-toolkit.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/v/chat-agent-toolkit.svg" alt="npm version"></a>
@@ -26,12 +27,6 @@
     <img src="https://github.com/codespaces/badge.svg" width="150" height="20" />
     </a>
 </p>
-
-![logo](https://i.imgur.com/YQgNTdv.png)
-
-
-   <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/dm/chat-agent-toolkit.svg" alt="NPM Monthly Downloads"></a>
-    <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/v/chat-agent-toolkit.svg" alt="npm version"></a>
 
 Multi-provider AI agent toolkit for generating language responses, searching the web, extracting page content, and managing long-term memory across 10+ LLM providers.
 
