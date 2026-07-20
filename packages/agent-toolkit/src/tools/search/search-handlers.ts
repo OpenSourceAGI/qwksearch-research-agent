@@ -3,8 +3,7 @@
  * @description Research library module.
  *
  * Note: To use these search handlers, you need to provide search functions
- * (searchSearxng, searchTavily, etc.) from extract-webpage package.
- * See extract-webpage/src/search/index.ts for an example.
+ * (searchSearxng, searchTavily, etc.) from search-web-api package.
  */
 import MetaSearchAgent from "./metaSearchAgent";
 import {

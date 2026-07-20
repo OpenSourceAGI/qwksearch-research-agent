@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import type { Document } from "extract-webpage/search/document";
+import type { Document } from "chat-agent-toolkit";
 import { EventEmitter } from "stream";
 import { describeError } from "research-agent-ui/api";
 import { getDB } from "@/lib/database";

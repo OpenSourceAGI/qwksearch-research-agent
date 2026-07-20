@@ -1,4 +1,4 @@
-import { searchWeb, searchSearxng } from "extract-webpage/search/public-searxng";
+import { searchWeb, searchSearxng } from "search-web-api/search/public-searxng";
 import type { SearchDeps } from "../types";
 
 const websitesForTopic = {

@@ -5,7 +5,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import type { Document } from 'extract-webpage/search';
+import type { Document } from 'chat-agent-toolkit';
 import { useExtractPanel } from '../ArticleReader/ExtractPanelContext';
 import {
   Tooltip,

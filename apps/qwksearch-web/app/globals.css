@@ -314,106 +314,92 @@
   animation: fade-in 0.3s ease-out;
 }
 
-/* Highlight.js code blocks with copy button */
+/* Prism.js code blocks with copy button */
 figure.code-block {
   position: relative;
   margin: 1rem 0;
 }
 
-figure.code-block .hljs {
+figure.code-block pre[class*="language-"] {
   border-radius: 0.5rem;
   padding: 1rem;
   overflow-x: auto;
 }
 
-/* Highlight.js GitHub Dark Theme */
-.hljs {
+/* Prism.js GitHub Dark Theme */
+code[class*="language-"],
+pre[class*="language-"] {
   color: #c9d1d9;
 }
 
-.hljs-doctag,
-.hljs-keyword,
-.hljs-meta .hljs-keyword,
-.hljs-template-tag,
-.hljs-template-variable,
-.hljs-type,
-.hljs-variable.language- {
+.token.keyword,
+.token.tag .token.attr-name,
+.token.template-tag {
   color: #ff7b72;
 }
 
-.hljs-title,
-.hljs-title.class_,
-.hljs-title.class_.inherited__,
-.hljs-title.function_ {
+.token.function,
+.token.class-name {
   color: #d2a8ff;
 }
 
-.hljs-attr,
-.hljs-attribute,
-.hljs-literal,
-.hljs-meta,
-.hljs-number,
-.hljs-operator,
-.hljs-variable,
-.hljs-selector-attr,
-.hljs-selector-class,
-.hljs-selector-id {
+.token.attr-value,
+.token.boolean,
+.token.number,
+.token.operator,
+.token.variable,
+.token.selector {
   color: #79c0ff;
 }
 
-.hljs-regexp,
-.hljs-string,
-.hljs-meta .hljs-string {
+.token.regex,
+.token.string,
+.token.char,
+.token.template-string {
   color: #a5d6ff;
 }
 
-.hljs-built_in,
-.hljs-symbol {
+.token.builtin,
+.token.symbol {
   color: #ffa657;
 }
 
-.hljs-comment,
-.hljs-code,
-.hljs-formula {
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
   color: #8b949e;
 }
 
-.hljs-name,
-.hljs-quote,
-.hljs-selector-tag,
-.hljs-selector-pseudo {
+.token.tag,
+.token.punctuation,
+.token.namespace {
   color: #7ee787;
 }
 
-.hljs-subst {
+.token.entity {
   color: #c9d1d9;
 }
 
-.hljs-section {
+.token.important {
   color: #1f6feb;
   font-weight: bold;
 }
 
-.hljs-bullet {
-  color: #f2cc60;
-}
-
-.hljs-emphasis {
-  color: #c9d1d9;
-  font-style: italic;
-}
-
-.hljs-strong {
-  color: #c9d1d9;
+.token.bold {
   font-weight: bold;
 }
 
-.hljs-addition {
+.token.italic {
+  font-style: italic;
+}
+
+.token.inserted {
   color: #aff5b4;
   background-color: #033a16;
 }
 
-.hljs-deletion {
+.token.deleted {
   color: #ffdcd7;
   background-color: #67060c;
 }

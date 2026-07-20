@@ -4,10 +4,18 @@
  */
 
 import crypto from "crypto";
-import type { ChatTurnMessage } from "extract-webpage/search";
+import type { ChatTurnMessage } from "chat-agent-toolkit";
+import { createSearchHandlers } from "chat-agent-toolkit";
 import { describeError } from "research-agent-ui/api";
 import { getDB } from "@/lib/database";
-import { searchHandlers } from "extract-webpage/search";
+import { searchSearxng } from "search-web-api/search/public-searxng";
+import { searchTavily, isTavilyConfigured } from "search-web-api/search/tavily";
+
+const searchHandlers = createSearchHandlers({
+  searchSearxng,
+  searchTavily,
+  isTavilyConfigured,
+});
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { getUserId } from "@/lib/auth/session";
 import { checkGuestRateLimit } from "@/lib/rate-limit/guestRateLimiter";

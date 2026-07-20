@@ -1,48 +1,10 @@
 /**
- * @module research/search/public-searxng
- * @description Research library module.
+ * @module search-web-api/public-searxng
+ * @description SearXNG metasearch via public or private instances.
  */
 import { getDomainWithoutSuffix } from "tldts";
 import { parseDate } from "chrono-node";
-
-/**
- * Fetch wrapper compatible with grab-url interface
- */
-async function grab(url: string, params: any = {}): Promise<any> {
-  // Build query string from params
-  const queryParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== null && value !== false) {
-      queryParams.append(key, String(value));
-    }
-  }
-
-  const fullUrl = queryParams.toString() ? `${url}?${queryParams}` : url;
-  const timeout = params.timeout ? params.timeout * 1000 : 10000;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    const response = await fetch(fullUrl, {
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const contentType = response.headers.get('content-type');
-    if (contentType?.includes('application/json')) {
-      return { data: await response.json() };
-    }
-    return await response.text();
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
-}
+import grab from "grab-url";
 
 /**
  * Search Web via SearXNG metasearch of all major search engines.
@@ -146,7 +108,7 @@ export async function searchWeb(
     "https://" +
       SEARX_DOMAINS[Math.floor(Math.random() * SEARX_DOMAINS.length)];
 
-  var categoryName = categoryName == "tech" ? (categoryName = "it") : category;
+  const categoryName = category === "tech" ? "it" : category;
 
   let url = `${searchDomain}/search`;
 
@@ -157,19 +119,20 @@ export async function searchWeb(
 
   let resultHTML: any;
   try {
-    resultHTML = await grab(searchDomain + "/search", {
+    const params: Record<string, any> = {
       q: encodeURIComponent(query),
       ["category_" + categoryName]: 1,
       language: lang,
-      [privateSearxng && "format"]: "json",
-      [recency && RECENCY_ALLOWED_LIST.includes(recency) ? "time_range" : ""]:
-        recency,
       safesearch: safesearch ? "1" : "0",
       pageno: page,
       headers: {
         "accept-language": lang + ",en;q=0.9",
       },
-    });
+    };
+    if (privateSearxng) params.format = "json";
+    if (recency && RECENCY_ALLOWED_LIST.includes(recency)) params.time_range = recency;
+
+    resultHTML = await grab(searchDomain + "/search", params);
   } catch (error: any) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.warn(`[searchWeb] Failed to fetch from SearXNG domain "${searchDomain}": ${errorMsg}`);

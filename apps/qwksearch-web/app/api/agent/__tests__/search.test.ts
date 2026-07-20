@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('extract-webpage/search/public-searxng', () => ({
+vi.mock('search-web-api/search/public-searxng', () => ({
   searchWeb: vi.fn(),
   searchSearxng: vi.fn(),
 }))
 
-import { searchWeb } from 'extract-webpage/search/public-searxng'
+import { searchWeb } from 'search-web-api/search/public-searxng'
 import { createSearchHandler } from 'research-agent-ui/api'
 
 const mockSearchWeb = searchWeb as ReturnType<typeof vi.fn>

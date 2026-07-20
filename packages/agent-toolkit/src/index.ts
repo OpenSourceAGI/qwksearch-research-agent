@@ -20,6 +20,7 @@ export * from "./tools";
 // Both write-language and ./tools export AGENT_TOOLS; this package's own wins.
 export { AGENT_TOOLS } from "./tools";
 export * from "./utils";
+export * from "./mastra";
 export { configManager, ModelRegistry, getEnv, getModelProvidersUIConfigSection } from "./config";
 export type { Config, ConfigModelProvider, MCPServerConfig, UIConfigSections, Model, ModelWithProvider } from "./config";
 export { cropProvider, cropProviderAsBlob, cropProviderAsDataURL, getProviderImage, getProviderNames } from "./utils/provider-image-cropper";

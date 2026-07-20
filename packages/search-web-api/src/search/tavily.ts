@@ -1,9 +1,7 @@
 /**
- * @module research/search/tavily
- * @description Research library module.
+ * @module search-web-api/tavily
+ * @description Tavily search API integration.
  */
-import axios from "axios";
-import configManager from "../config";
 
 interface TavilySearchOptions {
   searchDepth?: "basic" | "advanced";
@@ -30,18 +28,14 @@ export const searchTavily = async (
   opts?: TavilySearchOptions,
 ): Promise<{ results: TavilySearchResult[]; suggestions: string[] }> => {
   const tavilyApiKey =
-    configManager.getConfig("search.tavilyApiKey", "") ||
-    (typeof process !== "undefined" ? process.env.TAVILY_API_KEY : "") ||
-    "";
+    (typeof process !== "undefined" ? process.env.TAVILY_API_KEY : "") || "";
 
   if (!tavilyApiKey) {
     throw new Error(
-      "Tavily API key not configured. Please add your API key in Settings > Search.",
+      "Tavily API key not configured. Set TAVILY_API_KEY environment variable.",
     );
   }
 
-  // Sanitize query - Tavily has a maximum query length limit (~400 characters)
-  // If the query is too long, truncate it to avoid 400 Bad Request errors
   let sanitizedQuery = query.trim();
   if (sanitizedQuery.length > 400) {
     console.warn(`[Tavily] Query too long (${sanitizedQuery.length} chars), truncating to 400 chars`);
@@ -49,9 +43,10 @@ export const searchTavily = async (
   }
 
   try {
-    const response = await axios.post<TavilyResponse>(
-      "https://api.tavily.com/search",
-      {
+    const response = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         api_key: tavilyApiKey,
         query: sanitizedQuery,
         search_depth: opts?.searchDepth || "basic",
@@ -60,15 +55,16 @@ export const searchTavily = async (
         exclude_domains: opts?.excludeDomains || [],
         include_answer: false,
         include_raw_content: false,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
+      }),
+    });
 
-    const results = response.data.results || [];
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorBody}`);
+    }
+
+    const data = (await response.json()) as TavilyResponse;
+    const results = data.results || [];
 
     return {
       results: results.map((r) => ({
@@ -83,22 +79,19 @@ export const searchTavily = async (
   } catch (error: any) {
     console.error("Tavily search error:", error);
 
-    // Provide more context for debugging
-    if (error.response?.status === 400) {
+    if (error.message?.includes("400")) {
       console.error("Tavily 400 error - Query length:", sanitizedQuery.length);
       console.error("Tavily 400 error - Query preview:", sanitizedQuery.slice(0, 200));
     }
 
     throw new Error(
-      `Tavily search failed: ${error.response?.data?.error || error.message}`,
+      `Tavily search failed: ${error.message}`,
     );
   }
 };
 
 export const getTavilyApiKey = () =>
-  configManager.getConfig("search.tavilyApiKey", "") ||
-  (typeof process !== "undefined" ? process.env.TAVILY_API_KEY : "") ||
-  "";
+  (typeof process !== "undefined" ? process.env.TAVILY_API_KEY : "") || "";
 
 export const isTavilyConfigured = () => {
   const apiKey = getTavilyApiKey();

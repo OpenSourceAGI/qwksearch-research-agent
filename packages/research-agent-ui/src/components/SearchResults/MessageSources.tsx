@@ -4,7 +4,7 @@
  * the article extract panel. Auto-opens the first source on desktop.
  */
 /* eslint-disable @next/next/no-img-element */
-import type { Document } from 'extract-webpage/search';
+import type { Document } from 'chat-agent-toolkit';
 import { File, Video, Loader2, ExternalLink, FileText } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getArticle, agentSearch } from 'qwksearch-api-client';

@@ -139,7 +139,10 @@ export function convertURLToAbsoluteURL(base, relative) {
 }
 
 import { marked } from "marked";
-import hljs from "highlight.js";
+import Prism from "prismjs";
+import loadLanguages from "prismjs/components/index.js";
+
+loadLanguages();
 
 /**
  * Converts Markdown text to HTML. It handles the following Markdown elements:
@@ -169,53 +172,14 @@ import hljs from "highlight.js";
 export function convertMarkdownToHTML(content, toHtml = true) {
   if (!toHtml) return convertHTMLToMarkdown(content);
 
-  // const md = new MarkdownIt({
-  //   highlight: function (str, lang) {
-  //     // If a language is provided and it's recognized by hljs
-  //     if (lang && hljs.getLanguage(lang)) {
-  //       try {
-  //         return (
-  //           '<pre><code class="hljs">' +
-  //           hljs.highlight(str, { language: lang, ignoreIllegals: true }).value
-  //           + '</code></pre>'
-  //         );
-  //       } catch (__) {}
-  //     }
-
-  //     // Default fallback for unsupported or no language
-  //     return (
-  //       '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>'
-  //     );
-  //   },
-  // }).use(function (md) {
-  //   // Override the default fence rule for handling code blocks
-  //   const fence = md.renderer.rules.fence || function (tokens, idx, options, env, slf) {
-  //     const token = tokens[idx];
-  //     const code = token.content
-  //       .trim() // Trim leading/trailing whitespace
-  //       .replace(/^[ \t]*/gm, '') // Remove leading whitespace while preserving relative indentation
-  //       .replace(/&/g, '&amp;') // Encode HTML special characters
-  //       .replace(/</g, '&lt;')
-  //       .replace(/>/g, '&gt;')
-  //       .replace(/"/g, '&quot;')
-  //       .replace(/'/g, '&#39;');
-
-  //     // Wrap code in a blockquote and ignore the language name
-  //     return `<blockquote class="custom-code-block"><pre><code>${code}</code></pre></blockquote>`;
-  //   };
-
-  //   md.renderer.rules.fence = fence;
-  // });
-
-  // // Render markdown content
-  // return md.render(content);
 
   marked.setOptions({
     highlight: function (code, lang) {
-      const language = hljs.getLanguage(lang) ? lang : "plaintext";
-      return hljs.highlight(code, { language }).value;
+      const language = Prism.languages[lang] ? lang : "plaintext";
+      if (language === "plaintext") return code;
+      return Prism.highlight(code, Prism.languages[language], language);
     },
-    langPrefix: "hljs language-",
+    langPrefix: "language-",
   });
 
   return content?.length ? marked.parse(content) : "";

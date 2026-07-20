@@ -79,7 +79,7 @@
     "@ai-sdk/xai": "^2.0.0",
     "@openrouter/ai-sdk-provider": "^1.2.0",
     "ai": "^5.0.0",
-    "highlight.js": "^11.11.1",
+    "prismjs": "^1.30.0",
     "html-entities": "^2.6.0",
     "marked": "^17.0.4",
     "qwksearch-api-client": "^0.0.12"

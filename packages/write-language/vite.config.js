@@ -33,7 +33,7 @@ export default defineConfig({
         "@ai-sdk/amazon-bedrock",
         "@ai-sdk/mcp",
         "@openrouter/ai-sdk-provider",
-        "highlight.js",
+        "prismjs",
         "html-entities",
         "marked",
         "qwksearch-api-client",

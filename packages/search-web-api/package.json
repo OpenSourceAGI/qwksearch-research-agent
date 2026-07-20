@@ -10,6 +10,16 @@
         "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
         "directory": "packages/search-web-api"
     },
+    "exports": {
+        ".": {
+            "import": "./src/search.ts",
+            "require": "./src/search.ts"
+        },
+        "./*": {
+            "import": "./src/*",
+            "require": "./src/*"
+        }
+    },
     "scripts": {
         "dev": "bun --watch demo/index.ts",
         "start": "bun demo/index.ts",
@@ -18,9 +28,11 @@
     "dependencies": {
         "@huggingface/transformers": "^3.8.1",
         "@scalar/hono-api-reference": "^0.9.26",
+        "chrono-node": "^2.9.0",
         "grab-url": "^1.0.8",
         "hono": "^4.6.12",
-        "linkedom": "^0.18.0"
+        "linkedom": "^0.18.0",
+        "tldts": "^7.0.25"
     },
     "devDependencies": {
         "@types/node": "^25.9.3",

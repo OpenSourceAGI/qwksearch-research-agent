@@ -6,9 +6,6 @@
  * @license AGPL-3.0 Organizations should email grokthiscontact@gmail.com
  * to get a dual-use commercial license to remove the GPL requirements.
  */
-export * from "./search/search-web";
-// Re-export MetaSearchAgent and search handlers (with search functions) for backward compatibility
-export * from "./search";
 export * from "./tokenize/word-to-root-stem";
 export * from "./tokenize/suggest-complete-word";
 export * from "./tokenize/text-to-topic-tokens";

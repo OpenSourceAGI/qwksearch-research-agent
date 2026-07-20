@@ -333,12 +333,6 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
       ? !matchesAnyFamily(modelKey)
       : family?.modelKeywords.some(kw => modelKey.toLowerCase().includes(kw.toLowerCase()));
 
-  const familyHasConnection = (f: ModelFamily) =>
-    f.model_family === 'Other'
-      ? connectedProviders.some(p =>
-          p.chatModels.some(m => m.key !== 'error' && !matchesAnyFamily(m.key)),
-        )
-      : f.providers.some(isProviderConnected);
 
   // Connected providers that have at least one model matching this family
   const variantsByProvider: { provider: ConfigModelProvider; models: { name: string; key: string }[] }[] =
@@ -369,7 +363,6 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
           style={{ scrollbarWidth: 'none' }}
         >
           {ALL_FAMILIES.map((f, i) => {
-            const anyConnected = familyHasConnection(f);
             const isOther = f.model_family === 'Other';
             return (
               <button
@@ -382,7 +375,7 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                 }`}
                 style={{ width: 72 }}
               >
-                {anyConnected && (
+                {f.open && (
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 z-10" />
                 )}
                 {isOther ? (

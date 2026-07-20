@@ -8,7 +8,7 @@
  * filesystem.
  */
 
-import { registerUploadFileLoader } from "extract-webpage/search";
+import { registerUploadFileLoader } from "chat-agent-toolkit";
 import { getExtractedUpload } from "@/lib/uploads";
 
 let registered = false;

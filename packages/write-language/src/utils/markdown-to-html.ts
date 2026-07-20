@@ -1,10 +1,13 @@
 /**
  * @module research/agents/markdown-to-html
- * @description Converts Markdown to HTML with Highlight.js syntax highlighting.
+ * @description Converts Markdown to HTML with Prism.js syntax highlighting.
  */
 import { marked } from "marked";
-import hljs from "highlight.js";
+import Prism from "prismjs";
+import loadLanguages from "prismjs/components/index.js";
 import { encode, decode } from "html-entities";
+
+loadLanguages();
 
 // Inline onclick: self-contained per button, works in dangerouslySetInnerHTML contexts
 const COPY_ONCLICK = [
@@ -28,22 +31,22 @@ marked.use({
       let highlighted: string;
 
       try {
-        if (language && hljs.getLanguage(language)) {
-          highlighted = hljs.highlight(text, { language }).value;
+        if (language && Prism.languages[language]) {
+          highlighted = Prism.highlight(text, Prism.languages[language], language);
         } else {
-          highlighted = hljs.highlightAuto(text).value;
+          highlighted = encode(text);
         }
       } catch (e) {
         highlighted = encode(text);
       }
 
-      return `<figure class="code-block"><button class="code-copy-btn" type="button" onclick="${COPY_ONCLICK}">Copy</button><pre><code class="hljs language-${language}">${highlighted}</code></pre></figure>`;
+      return `<figure class="code-block"><button class="code-copy-btn" type="button" onclick="${COPY_ONCLICK}">Copy</button><pre><code class="language-${language}">${highlighted}</code></pre></figure>`;
     },
   },
 });
 
 /**
- * Convert markdown text to HTML with Highlight.js syntax highlighting.
+ * Convert markdown text to HTML with Prism.js syntax highlighting.
  * Unescapes HTML entities like `&amp;` → `&`.
  */
 export async function convertMarkdownToHTMLEscaped(
