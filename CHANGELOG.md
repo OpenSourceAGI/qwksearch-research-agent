@@ -8,6 +8,28 @@ Major framework modernization with **Vinext** and **Vite 8** (rolldown-based). R
 
 **Model Update**: Changed default model for OpenRouter provider from Kimi 2.5 to **Nemotron 3 Super 120B** for all users and guests. Updated chat configuration to prioritize Nemotron models across the platform.
 
+**Multi-Provider Model Connections**: Added a `ConnectedModelsModal` and `AddProviderDialog` so users can connect their own API keys across 10+ LLM providers. Enhanced the `ModelSelect` component with search and category filtering, added a fallback for unmatched models in the `ModelFamiliesCarousel`, and replaced provider text labels with provider logo chips. Models are now click-to-select, and the API-key link was moved out of the family carousel into a dedicated flow.
+
+**Local Text-to-Speech**: Integrated **Kokoro.js** for on-device TTS with expanded voice settings, giving article and answer read-aloud that runs locally without a cloud speech API.
+
+**Agent Toolkit**: Added **Mastra** telemetry and workflow capabilities to the research agent, and initialized the shared `AGENT_TOOLS` registry so tools are orchestrated through a single array.
+
+**Follow-up Suggestions**: Added a `suggestions` column to the `messages` table (with corrected migration history and schema snapshot) to persist generated follow-up questions per message.
+
+**Auth & Sessions**: Added **Discord** and **LinkedIn** social login, and sorted active sessions by last-updated time so the most recent conversations surface first.
+
+**Settings Overhaul**: Introduced per-tab URLs with copyable anchor links, provider logo chips, and click-to-select model rows for deep-linkable, shareable configuration.
+
+**Search & Extraction**: Refactored search engine and academic sources to use the native `fetch` API (dropping `grab-url`), and switched the scraper API to the `URL` constructor for parameter extraction. Removed the `youtube-po-token-generator` dependency and retired the `youtube-to-text` path in favor of the leaner transcript extractor.
+
+**API Client Migration**: Migrated chat API calls (`useHistoryState`, `DeleteChatSessionButton`, `chatMessages`) to the published **qwksearch-api-client** (bumped to 0.9.1), consolidating backend access behind the typed client.
+
+**Rendering**: Replaced **Prism.js** with a custom `highlightCode` function and reorganized the Markdown-to-HTML conversion logic, adding broader language support along the way.
+
+**Reliability Fixes**: Surfaced root-cause database errors when message saves fail, fixed a chat-history save primary-key conflict, removed a defunct free model, and corrected mobile padding on the chat homepage.
+
+**Docs & Packaging**: Standardized package **READMEs** with NPM monthly-download and version badges, removed redundant badge sections, corrected the `search-web-api` package name, and updated PDF conversion expectations in the docs.
+
 
 ## June 2026
 
