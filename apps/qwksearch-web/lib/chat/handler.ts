@@ -297,9 +297,16 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
       } catch (err) {
         // History persistence is best-effort: the answer stream is already
         // set up, so a failed save must not turn the request into a 500.
+        // Drizzle wraps the driver error; its message only echoes the query,
+        // so surface err.cause to see the actual D1/SQLite failure reason.
+        const cause =
+          err instanceof Error && err.cause instanceof Error
+            ? err.cause.message
+            : undefined;
         console.error(
           "[POST /api/agent/chat] handleHistorySave failed (continuing without history):",
           err,
+          ...(cause ? [`cause: ${cause}`] : []),
         );
       }
     }
