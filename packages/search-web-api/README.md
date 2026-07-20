@@ -1,6 +1,8 @@
 <p align="center">
     <img width="300px" src="https://i.imgur.com/BmaDQeR.png" />
 <br />
+    <a href="https://www.npmjs.com/package/search-web-api"><img src="https://img.shields.io/npm/dm/search-web-api.svg" alt="NPM Monthly Downloads"></a>
+    <a href="https://www.npmjs.com/package/search-web-api"><img src="https://img.shields.io/npm/v/search-web-api.svg" alt="npm version"></a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />

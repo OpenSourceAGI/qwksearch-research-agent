@@ -1,5 +1,8 @@
 # write-language
 
+<a href="https://www.npmjs.com/package/write-language"><img src="https://img.shields.io/npm/dm/write-language.svg" alt="NPM Monthly Downloads"></a>
+<a href="https://www.npmjs.com/package/write-language"><img src="https://img.shields.io/npm/v/write-language.svg" alt="npm version"></a>
+
 Multi-provider language generation toolkit using Vercel AI SDK. Generate AI responses with 10+ LLM providers including OpenAI, Anthropic, Google, AWS Bedrock, and more.
 
 ## Features

@@ -1,5 +1,9 @@
 ![logo](https://i.imgur.com/YQgNTdv.png)
 
+
+   <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/dm/chat-agent-toolkit.svg" alt="NPM Monthly Downloads"></a>
+    <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/v/chat-agent-toolkit.svg" alt="npm version"></a>
+
 Multi-provider AI agent toolkit for generating language responses, searching the web, extracting page content, and managing long-term memory across 10+ LLM providers.
 
 Built on top of the [Vercel AI SDK](https://sdk.vercel.ai), with a small registry of pre-tuned agent prompts (research, summarization, citation answering, query resolution, knowledge-graph extraction, etc.) and tool wrappers around the [QwkSearch](https://qwksearch.com) API.

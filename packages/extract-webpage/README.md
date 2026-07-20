@@ -2,11 +2,11 @@
     <img width="350px" src="https://i.imgur.com/8JvNmxU.jpeg" />
 </p>
 <p align="center">
-    <a href="https://npmjs.org/package/extract-webpage">
-        <img src="https://img.shields.io/npm/v/extract-webpage" alt="NPM version" />
+    <a href="https://www.npmjs.com/package/extract-webpage">
+        <img src="https://img.shields.io/npm/dm/extract-webpage.svg" alt="NPM Monthly Downloads" />
     </a>
-    <a href="https://npmjs.org/package/extract-webpage">
-        <img alt="NPM Downloads" src="https://img.shields.io/npm/dy/extract-webpage" />
+    <a href="https://www.npmjs.com/package/extract-webpage">
+        <img src="https://img.shields.io/npm/v/extract-webpage.svg" alt="npm version" />
     </a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat" alt="Join Discord" />

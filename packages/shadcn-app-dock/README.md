@@ -1,5 +1,8 @@
 # shadcn-app-dock
 
+<a href="https://www.npmjs.com/package/shadcn-app-dock"><img src="https://img.shields.io/npm/dm/shadcn-app-dock.svg" alt="NPM Monthly Downloads"></a>
+<a href="https://www.npmjs.com/package/shadcn-app-dock"><img src="https://img.shields.io/npm/v/shadcn-app-dock.svg" alt="npm version"></a>
+
 A prop-driven, macOS-style category **dock** for React — magnifying icon bar with an
 optional dropdown menu and a built-in **shadcn theme switcher**.
 

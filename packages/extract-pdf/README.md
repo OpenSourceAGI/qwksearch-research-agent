@@ -1,5 +1,8 @@
 # extract-pdf
 
+<a href="https://www.npmjs.com/package/extract-pdf"><img src="https://img.shields.io/npm/dm/extract-pdf.svg" alt="NPM Monthly Downloads"></a>
+<a href="https://www.npmjs.com/package/extract-pdf"><img src="https://img.shields.io/npm/v/extract-pdf.svg" alt="npm version"></a>
+
 > **When users upload a PDF, they expect an instant chat response, not to wait for 5 min on OCR model.**
 
 Instant no-backend-needed javascript to convert a PDF (URL or `ArrayBuffer`) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic, and Table of Contents entries. Works in Node.js, Cloudflare Workers, and browser environments via [pdfjs-serverless](https://github.com/johannschopplich/pdfjs-serverless).

@@ -1,16 +1,52 @@
 <p align="center">
-  <img src="https://i.imgur.com/DqnjYfC.png" alt="QwkSearch Logo" width="200"/>
-</p>
-
-<p align="center">
-  <strong>Search, extract, vectorize and outline a topic base with AI Research Agent</strong>
-</p>
+    <img  src="https://i.imgur.com/ZMY9Xy7.png" />
+<br />
+    <a href="https://doi.org/10.5281/zenodo.20951725"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20951725.svg" alt="DOI"></a>
+    <a href="https://deepwiki.com/OpenSourceAGI/qwksearch-research-agent"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+    <a href="https://qwksearch.com/api/docs"><img src="https://ihttps://www.npmjs.com/package/pdf-to-html-doclingmg.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/API-blue?logo=fastapi&logoColor=white" alt="API badge"></a>
+     <br />
+     <a href="https://github.com/vtempest/qwksearch-research-agent/discussions"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
+    <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/dm/qwksearch-api-client.svg" alt="NPM Monthly Downloads"></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors" alt="Activity"><img src="https://img.shields.io/github/commit-activity/m/vtempest/qwksearch-research-agent" /></a>
+     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/vtempest/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
+     <br />
+    <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/v/qwksearch-api-client.svg" alt="npm version"></a>
+    <a href="https://discord.gg/SJdBqBz3tV"><img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat" alt="Join Discord" /></a>
+    <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"
+            alt="PRs Welcome" /></a>
+    <a href="https://codespaces.new/vtempest/qwksearch-research-agent"><img src="https://github.com/codespaces/badge.svg" width="150" height="20" /></a>
+    <br />
+    <img src="https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=fff" alt="Claude AI"> <img src="https://img.shields.io/badge/Cloudflare-F38020?logo=Cloudflare&logoColor=white" alt="Cloudflare"> <img src="https://img.shields.io/badge/shadcn%2Fui-000?logo=shadcnui&logoColor=fff" alt="shadcn/ui"> <img src="https://img.shields.io/badge/Next.js-black" alt="Next.js" />
+    <a href="https://better-auth.com/docs/introduction" target="_blank"><img src="https://i.imgur.com/eaGdjBq.png" alt="better-auth" /></a>
+ </p>
 
 <p align="center">
   <a href="https://qwksearch.com">Demo</a> •
   <a href="https://airesearch.js.org">Documentation</a> •
   <a href="https://github.com/vtempest/ai-research-agent">GitHub</a>
 </p>
+
+
+## 🧠💻 Reimagine the Internet as Self-Organizing Mind Map
+
+<p align="center">
+ <img  src="https://i.imgur.com/Z9OJMwd.gif" />
+</p>
+
+Critical times call for critical thinkers to create a crowdsourced argument reasoning dataset, for AI models to recommend research quotes, to evolve crowdsourced chain-of-thought reasoning, to unlock faster ways to read long articles, to monitor developments by topic modeling a knowledge base graph, and to provide a public service of answers to research.
+
+Language Models can distill the essence of collective thought into a vector space where every point has a weighted value representing its contribution to the overall decision-making process. AI will show its reasoning based on what sentences and cites it used from the collective research, so that people can see it is aligned with our interests. Research Agents recommend articles for human researchers working alongside AI to develop a summarized topic outline as a public service. The agents monitor for any related articles via web searches for keywords associated with that Topic Model. Imagine uploading a research paper, then the app extracts full text of reference cites and creates topic model and keyword summaries, then monitors that literature base and stores highlights. People will make personal knowledge bases of what influences them to create AI assistants cloning their mind-uploaded perspective and interests in a self-organizing mind map.
+
+```bash
+# Download Source
+bun x git0 vtempest/qwksearch-research-agent
+```
+
+```bash
+# Import API Client
+bun i qwksearch-api-client
+```
 
 ## Overview
 
