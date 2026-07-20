@@ -93,7 +93,6 @@
     "node-fetch": "^3.3.2",
     "qwksearch-api-client": "^0.0.12",
     "tldts": "^7.0.25",
-    "youtube-po-token-generator": "^0.6.0",
     "zod": "^4.3.6"
   },
   "keywords": [

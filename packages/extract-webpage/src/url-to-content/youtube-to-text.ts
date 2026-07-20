@@ -2,7 +2,6 @@
 import { convertURLSafeHTMLToHTML } from "../html-to-content/html-utils";
 import { scrapeURL } from "./url-to-html";
 import grab from "../utils/grab";
-import { generate } from "youtube-po-token-generator";
 import { decode, encode } from "html-entities";
 /**
  * Fetch youtube.com video's webpage HTML for embedded transcript.
@@ -428,8 +427,9 @@ async function fetchTranscriptOfficialYoutube(videoId, options = {}) {
 
   if (!track) return { error: 4 };
 
-  const { poToken } = await generate();
-
+  //TODO: implement  youtube-po-token-generator";
+  // const { poToken } = await generate();
+const { poToken } = 1;
   let transcriptURL =
     track.baseUrl.replaceAll(",", "%2C") +
     "&potc=1&pot=" +
