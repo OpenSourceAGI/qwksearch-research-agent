@@ -1,6 +1,8 @@
 # extract-pdf
 
-Converts a PDF (URL or `ArrayBuffer`) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic, and Table of Contents entries. Works in Node.js, Cloudflare Workers, and browser environments via [pdfjs-serverless](https://github.com/johannschopplich/pdfjs-serverless).
+> **When users upload a PDF, they expect an instant chat response, not to wait for 5 min on OCR model.**
+
+Instant no-backend-needed javascript to convert a PDF (URL or `ArrayBuffer`) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic, and Table of Contents entries. Works in Node.js, Cloudflare Workers, and browser environments via [pdfjs-serverless](https://github.com/johannschopplich/pdfjs-serverless).
 
 ## Install 
 

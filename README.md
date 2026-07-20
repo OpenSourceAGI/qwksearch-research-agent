@@ -3,7 +3,7 @@
 <br />
     <a href="https://doi.org/10.5281/zenodo.20951725"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20951725.svg" alt="DOI"></a>
     <a href="https://deepwiki.com/OpenSourceAGI/qwksearch-research-agent"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
-    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://qwksearch.com/api/docs"><img src="https://ihttps://www.npmjs.com/package/pdf-to-html-doclingmg.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/API-blue?logo=fastapi&logoColor=white" alt="API badge"></a>
      <br />
      <a href="https://github.com/vtempest/qwksearch-research-agent/discussions"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
@@ -104,24 +104,6 @@ bun i qwksearch-api-client
 
 **[QwkSearch for VS Code](apps/qwk-vscode-ext)** — Ask cited research questions from a sidebar in your editor, backed by the same QwkSearch API. Sign in with your account's API key, or use it signed-out as a guest.
 
-## Further Research
-
-- [ThoughtSource Reasoning Datasets](https://github.com/OpenBioLink/ThoughtSource)
-- [Awesome-LLMs-Datasets](https://github.com/lmmlzn/Awesome-LLMs-Datasets)
-- [GPT Researcher](https://github.com/assafelovic/gpt-researcher)
-- [NLP Papers Latest Updates](https://index.quantumstat.com)
-- [Anthropic Persuasion Overview](https://www.anthropic.com/research/measuring-model-persuasiveness)
-- [NLP Research Progress](https://github.com/sebastianruder/NLP-progress/)
-- [NLP Datasets](https://github.com/niderhoff/nlp-datasets?tab=readme-ov-file)
-- [Google Search Algorithm](https://searchengineland.com/google-search-document-leak-ranking-442617)
-- [Can LLMs Generate Novel Research Ideas?](https://arxiv.org/html/2409.04109v1)
-- [Graph Algorithms Playground](https://playground.memgraph.com)
-- [CommonCrawl C4 Download](https://huggingface.co/datasets/allenai/c4)
-- [Knowledge Graphs Prompts Papers](https://github.com/zjunlp/PromptKG)
-- [Paper - Iterative Research Idea Generation](https://arxiv.org/abs/2404.07738)
-- [Open Deep Search](https://arxiv.org/html/2503.20201v1)
-- [LangChain Hub](https://smith.langchain.com/hub)
-
 ## 📦 Packages
 
 - **agent-toolkit** — A multi-provider AI agent toolkit that generates language responses, searches the web, extracts content, and manages memory across 10+ LLM providers. It integrates the Vercel AI SDK, Mastra framework, and MCP protocol to orchestrate research agent workflows.
@@ -155,6 +137,25 @@ bun i qwksearch-api-client
 - **train-next-word-prediction** — A from-scratch GPT-style transformer implementation built on Tinygrad that trains a next-word-prediction language model with a full Wikipedia pipeline. Ships with a FastAPI control API, Docker Compose orchestration, and a Next.js dashboard for monitoring training jobs.
 
 - **write-language** — A multi-provider language generation toolkit using the Vercel AI SDK that generates text responses via 10+ LLM providers including OpenAI, Anthropic, Google, Groq, and more. Provides a unified interface for streaming and non-streaming text generation.
+
+## Further Research
+
+- [ThoughtSource Reasoning Datasets](https://github.com/OpenBioLink/ThoughtSource)
+- [Awesome-LLMs-Datasets](https://github.com/lmmlzn/Awesome-LLMs-Datasets)
+- [GPT Researcher](https://github.com/assafelovic/gpt-researcher)
+- [NLP Papers Latest Updates](https://index.quantumstat.com)
+- [Anthropic Persuasion Overview](https://www.anthropic.com/research/measuring-model-persuasiveness)
+- [NLP Research Progress](https://github.com/sebastianruder/NLP-progress/)
+- [NLP Datasets](https://github.com/niderhoff/nlp-datasets?tab=readme-ov-file)
+- [Google Search Algorithm](https://searchengineland.com/google-search-document-leak-ranking-442617)
+- [Can LLMs Generate Novel Research Ideas?](https://arxiv.org/html/2409.04109v1)
+- [Graph Algorithms Playground](https://playground.memgraph.com)
+- [CommonCrawl C4 Download](https://huggingface.co/datasets/allenai/c4)
+- [Knowledge Graphs Prompts Papers](https://github.com/zjunlp/PromptKG)
+- [Paper - Iterative Research Idea Generation](https://arxiv.org/abs/2404.07738)
+- [Open Deep Search](https://arxiv.org/html/2503.20201v1)
+- [LangChain Hub](https://smith.langchain.com/hub)
+
 
 🌟 Star this repo so it will grow new features!
 
