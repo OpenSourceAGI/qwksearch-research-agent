@@ -437,7 +437,7 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                 return (
                   <div
                     key={providerName}
-                    className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-colors ${
+                    className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border transition-colors ${
                       connected
                         ? 'border-emerald-500/40 bg-emerald-500/10'
                         : 'border-light-200 dark:border-dark-200 bg-light-secondary/50 dark:bg-dark-secondary/50'
@@ -448,14 +448,14 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                       <img
                         src={`/images/provider-logos/${logo}`}
                         alt={`${providerName} logo`}
-                        width={14}
-                        height={14}
-                        className="flex-none w-3.5 h-3.5 object-contain rounded-sm"
+                        width={28}
+                        height={28}
+                        className="flex-none w-7 h-7 object-contain rounded-sm"
                         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                       />
                     )}
-                    <span className="text-[10px] text-black/60 dark:text-white/60">{providerName}</span>
-                    {connected && <CheckCircle2 size={9} className="flex-none text-emerald-500" />}
+                    <span className="text-xs text-black/60 dark:text-white/60">{providerName}</span>
+                    {connected && <CheckCircle2 size={12} className="flex-none text-emerald-500" />}
                     {keyUrl && (
                       <a
                         href={keyUrl}
@@ -465,7 +465,7 @@ const ModelFamiliesCarousel = ({ modelProviders, connectedProviders, setProvider
                         title={`Get ${providerName} API key`}
                         onClick={e => e.stopPropagation()}
                       >
-                        <KeyRound size={10} />
+                        <KeyRound size={12} />
                       </a>
                     )}
                   </div>
