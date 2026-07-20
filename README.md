@@ -3,7 +3,7 @@
 <br />
     <a href="https://doi.org/10.5281/zenodo.20951725"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20951725.svg" alt="DOI"></a>
     <a href="https://deepwiki.com/OpenSourceAGI/qwksearch-research-agent"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
-    <a href="https://qwksearch.com/api/docs"><img src="https://ihttps://www.npmjs.com/package/pdf-to-html-doclingmg.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/API-blue?logo=fastapi&logoColor=white" alt="API badge"></a>
      <br />
      <a href="https://github.com/vtempest/qwksearch-research-agent/discussions"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
@@ -11,7 +11,7 @@
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors" alt="Activity"><img src="https://img.shields.io/github/commit-activity/m/vtempest/qwksearch-research-agent" /></a>
      <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/vtempest/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
      <br />
-     <a href="https://github.com/OWNER/REPO/actions/workflows/test-qwksearch-web.yml"><img    src="https://github.com/OWNER/REPO/actions/workflows/test-qwksearch-web.yml/badge.svg?branch=main"
+     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/actions/workflows/test-web-api.yml"><img    src="https://github.com/OpenSourceAGI/qwksearch-research-agent/actions/workflows/test-web-api.yml/badge.svg?branch=main"
     alt="Test qwksearch-web status for main" /></a>
     <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/v/qwksearch-api-client.svg" alt="npm version"></a>
     <a href="https://discord.gg/SJdBqBz3tV"><img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat" alt="Join Discord" /></a>
