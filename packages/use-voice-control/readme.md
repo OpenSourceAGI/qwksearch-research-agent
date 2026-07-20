@@ -1,1 +1,0 @@
-![logo](https://i.imgur.com/ypVzqbg.png)
