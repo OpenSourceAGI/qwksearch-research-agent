@@ -1,0 +1,109 @@
+// Cloudflare Workers deployment config for research-agent-ui
+// Copy to wrangler.local.jsonc and fill in your Cloudflare resource IDs
+
+{
+  "name": "research-agent-ui",
+  "type": "service",
+  "main": "dist/cloudflare/worker.js",
+
+  "env": {
+    "production": {
+      "routes": [
+        {
+          "pattern": "research-agent-ui.example.workers.dev/*",
+          "zone_name": "example.com"
+        }
+      ]
+    },
+    "staging": {
+      "routes": [
+        {
+          "pattern": "research-agent-ui-staging.example.workers.dev/*",
+          "zone_name": "example.com"
+        }
+      ]
+    }
+  },
+
+  // D1 database for connections, OAuth state, run logs, and idempotency
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "research-agent-ui",
+      "database_id": "replace-with-your-database-id"
+    }
+  ],
+
+  // R2 bucket for temporary transit files (default, supports files >25MB)
+  "r2_buckets": [
+    {
+      "binding": "TRANSIT_FILES",
+      "bucket_name": "research-agent-ui-transit-files"
+    }
+  ],
+
+  // Alternative: Workers KV for transit files (comment out r2_buckets above)
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "TRANSIT_FILES",
+  //     "id": "replace-with-your-kv-namespace-id",
+  //     "preview_id": "replace-with-your-kv-preview-id"
+  //   }
+  // ],
+
+  // Static assets for Web Console
+  "assets": {
+    "directory": "dist/cloudflare/assets"
+  },
+
+  // Service bindings for related services (if deployed to Workers)
+  "services": [
+    // {
+    //   "binding": "SEARCH_API",
+    //   "service": "search-web-api",
+    //   "environment": "production"
+    // }
+  ],
+
+  // Environment variables
+  "env": {
+    "production": {
+      "vars": {
+        "OOMOL_CONNECT_ADMIN_TOKEN": "",  // Set via `wrangler secret put`
+        "OOMOL_CONNECT_ENCRYPTION_KEY": "",  // Set via `wrangler secret put`
+        "TRANSIT_FILES_BACKEND": "r2",  // "r2" or "kv"
+        "OOMOL_CONNECT_TRANSIT_FILE_TTL_SECONDS": "86400",  // 24 hours
+        "OOMOL_CONNECT_TRANSIT_FILE_MAX_BYTES": "52428800",  // 50 MiB
+        "OOMOL_CONNECT_MAX_CONCURRENT_EXECUTIONS": "10",
+        "NODE_ENV": "production"
+      }
+    },
+    "staging": {
+      "vars": {
+        "TRANSIT_FILES_BACKEND": "r2",
+        "OOMOL_CONNECT_TRANSIT_FILE_TTL_SECONDS": "86400",
+        "OOMOL_CONNECT_TRANSIT_FILE_MAX_BYTES": "52428800",
+        "OOMOL_CONNECT_MAX_CONCURRENT_EXECUTIONS": "5",
+        "NODE_ENV": "staging"
+      }
+    }
+  },
+
+  // Analytics Engine for logging
+  "analytics_engine_datasets": ["research_agent_logs"],
+
+  // Triggers for scheduled tasks (e.g., cleanup)
+  // "triggers": {
+  //   "crons": ["0 0 * * *"]  // Daily at midnight UTC
+  // },
+
+  // Build configuration
+  "build": {
+    "command": "bun run build:cloudflare"
+  },
+
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
