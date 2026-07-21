@@ -1,8 +1,9 @@
 /**
- * Toolbar with Ask AI, Suggest, Copy, Highlight, and Favorite buttons shown at the top of the article extract panel.
+ * Toolbar with Ask AI, Suggest, Copy, Highlight, Favorite, Open-in-new-tab, and Close buttons
+ * shown at the top of the article extract panel.
  */
 import React from 'react';
-import { Bot, MessageCircleQuestion, Clipboard, Star, Highlighter } from 'lucide-react';
+import { Bot, MessageCircleQuestion, Clipboard, Star, Highlighter, ExternalLink, X } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { cn } from '../../lib/utils';
 
@@ -12,12 +13,19 @@ interface ArticleActionButtonsProps {
   isLoadingFavorite: boolean;
   isFavorited: boolean;
   isHighlightMode: boolean;
+  articleUrl?: string;
   onAskClick: () => void;
   onSuggestClick: () => void;
   onCopyClick: () => void;
   onFavoriteClick: () => void;
   onHighlightToggle: () => void;
+  onClose: () => void;
 }
+
+const iconButtonClass = cn(
+  "h-9 w-9 rounded-xl transition-all duration-200",
+  "hover:bg-muted/80 hover:text-foreground text-muted-foreground"
+);
 
 const ArticleActionButtons: React.FC<ArticleActionButtonsProps> = ({
   isLoadingAI,
@@ -25,14 +33,16 @@ const ArticleActionButtons: React.FC<ArticleActionButtonsProps> = ({
   isLoadingFavorite,
   isFavorited,
   isHighlightMode,
+  articleUrl,
   onAskClick,
   onSuggestClick,
   onCopyClick,
   onFavoriteClick,
   onHighlightToggle,
+  onClose,
 }) => {
   return (
-    <div className="flex flex-wrap items-center gap-1 rounded-2xl border border-muted bg-gradient-to-b from-background to-muted/30 p-1 shadow-sm">
+    <div className="flex flex-nowrap items-center gap-1 rounded-2xl border border-muted bg-gradient-to-b from-background to-muted/30 p-1 shadow-sm">
       <Button
         onClick={onAskClick}
         disabled={isLoadingAI}
@@ -65,10 +75,8 @@ const ArticleActionButtons: React.FC<ArticleActionButtonsProps> = ({
         onClick={onCopyClick}
         variant="ghost"
         size="icon"
-        className={cn(
-          "h-9 w-9 rounded-xl transition-all duration-200",
-          "hover:bg-muted/80 hover:text-foreground text-muted-foreground"
-        )}
+        className={iconButtonClass}
+        title="Copy article"
       >
         <Clipboard className="size-4" />
       </Button>
@@ -107,6 +115,30 @@ const ArticleActionButtons: React.FC<ArticleActionButtonsProps> = ({
             isFavorited && "fill-yellow-400"
           )}
         />
+      </Button>
+
+      {articleUrl && (
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className={iconButtonClass}
+          title="Open in new tab"
+        >
+          <a href={articleUrl} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="size-4" />
+          </a>
+        </Button>
+      )}
+
+      <Button
+        onClick={onClose}
+        variant="ghost"
+        size="icon"
+        className={cn(iconButtonClass, "ml-auto")}
+        title="Close"
+      >
+        <X className="size-4" />
       </Button>
     </div>
   );

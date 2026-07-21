@@ -19,7 +19,6 @@ import { Dialog, DialogContent, DialogTitle } from '../../ui/dialog';
 import { VisuallyHidden } from '../../ui/visually-hidden';
 import { useExtractPanel } from './ExtractPanelContext';
 import {
-  ArticlePanelHeader,
   ArticleActionButtons,
   ArticlePromptInput,
   ArticleFollowupQuestions,
@@ -333,8 +332,6 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
 
   const renderPanelContent = () => (
     <div className="flex h-full flex-col bg-background shadow-xl">
-      <ArticlePanelHeader onClose={onClose} />
-
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6">
             <div className="space-y-4">
@@ -344,11 +341,13 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
                 isLoadingFavorite={isLoadingFavorite}
                 isFavorited={isFavorited}
                 isHighlightMode={isHighlightMode}
+                articleUrl={extractedArticle?.url || url}
                 onAskClick={() => callLanguageAPI('question')}
                 onSuggestClick={() => callLanguageAPI('suggest-followups')}
                 onCopyClick={handleCopyHTMLToClipboard}
                 onFavoriteClick={toggleFavorite}
                 onHighlightToggle={() => setIsHighlightMode(!isHighlightMode)}
+                onClose={onClose}
               />
 
               {showCopiedMessage && (
