@@ -36,6 +36,13 @@
       "when": 1753089600000,
       "tag": "0004_add_suggestions_column",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1784611346000,
+      "tag": "0005_add_session_location_vpn",
+      "breakpoints": true
     }
   ]
 }

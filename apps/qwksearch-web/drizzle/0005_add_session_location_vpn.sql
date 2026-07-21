@@ -1,2 +1,2 @@
-ALTER TABLE session ADD COLUMN city TEXT;
-ALTER TABLE session ADD COLUMN is_vpn INTEGER DEFAULT 0;
+ALTER TABLE `session` ADD `city` text;--> statement-breakpoint
+ALTER TABLE `session` ADD `is_vpn` integer DEFAULT 0;
