@@ -56,7 +56,14 @@ export default defineConfig(({ command }) => ({
       // because workerd resolves bare specifiers relative to the chunk. The
       // AI SDK packages never reach the final client bundle anyway (they are
       // tree-shaken out), so they must simply be bundled server-side.
-      external: ["fsevents", "kokoro-js", /^@mastra\//],
+      //
+      // Do NOT add `kokoro-js` here: this list applies to the client build too,
+      // and externalizing it leaves a bare `import "kokoro-js"` the browser
+      // can't resolve ("Failed to resolve module specifier"), crashing the
+      // lazy-loaded voice component. It is a browser-only library and must be
+      // bundled client-side; the `externalize-kokoro-on-server` plugin below
+      // keeps it external in the server (rsc/ssr) worker build instead.
+      external: ["fsevents", /^@mastra\//],
     },
   },
   ssr: {
@@ -75,6 +82,31 @@ export default defineConfig(({ command }) => ({
     ],
   },
   plugins: [
+    {
+      // `kokoro-js` (transformers.js / onnxruntime-web) is a browser-only TTS
+      // library. It must be BUNDLED into the client so the lazy-loaded voice
+      // component can resolve it at runtime — leaving it external emits a bare
+      // `import "kokoro-js"` the browser can't resolve ("Failed to resolve
+      // module specifier"), which crashes the component during RSC preload.
+      //
+      // In the server (rsc/ssr) worker build, however, onnxruntime's native
+      // bindings have no place, and `kokoro-js` is never actually executed
+      // there (kokoro.ts is `use client` and only imports the model at runtime
+      // in the browser, via a dynamic `import()`). So keep it external for the
+      // server environments only, instead of globally via rolldownOptions.
+      name: "externalize-kokoro-on-server",
+      enforce: "pre",
+      resolveId(id) {
+        const envName = this.environment?.name;
+        if (
+          (id === "kokoro-js" || id.startsWith("kokoro-js/")) &&
+          (envName === "rsc" || envName === "ssr")
+        ) {
+          return { id, external: true };
+        }
+        return null;
+      },
+    },
     {
       // Resolve `cloudflare:workers` to a harmless stub in the client build,
       // and in local `vite serve` (where we intentionally skip the
