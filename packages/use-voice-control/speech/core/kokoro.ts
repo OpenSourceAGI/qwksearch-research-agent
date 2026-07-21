@@ -2,8 +2,8 @@
  * @fileoverview Kokoro TTS provider implementation using Hugging Face transformers
  * Runs on Node.js CPU via transformers library
  */
-import type { TTSResult } from "./types";
-import { KOKORO_VOICES, type KokoroVoice } from "./types";
+import type { TTSResult } from "../types/types";
+import { KOKORO_VOICES, type KokoroVoice } from "../types/types";
 
 let ttsInstance: any = null;
 let modelLoading: Promise<any> | null = null;
@@ -21,8 +21,11 @@ async function getKokoroTTS() {
 
   modelLoading = (async () => {
     try {
-      // Dynamic import to load transformers library
-      const transformers = await import("@huggingface/transformers");
+      // Dynamic import to load transformers library. The specifier is kept in
+      // a variable so the type-checker/bundler treats it as an optional runtime
+      // dependency (see optionalDependencies) rather than a build-time one.
+      const transformersModule = "@huggingface/transformers";
+      const transformers: any = await import(/* @vite-ignore */ transformersModule);
       const { StyleTextToSpeech2Model, AutoTokenizer } = transformers;
 
       const model_id = "hexgrad/Kokoro-82M";
