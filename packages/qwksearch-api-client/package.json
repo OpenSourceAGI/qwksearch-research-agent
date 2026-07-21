@@ -1,6 +1,6 @@
 {
   "name": "qwksearch-api-client",
-  "version": "0.9.30",
+  "version": "0.9.31",
   "description": "QwkSearch API Client - Generated from openapi-docs.yml",
   "repository": {
     "type": "git",
