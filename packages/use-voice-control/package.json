@@ -14,19 +14,12 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./hooks": {
-      "types": "./dist/hooks/index.d.ts",
-      "import": "./dist/hooks/index.js"
-    },
-    "./components": {
-      "types": "./dist/components/index.d.ts",
-      "import": "./dist/components/index.js"
     }
   },
   "files": [
     "dist",
-    "src"
+    "speech",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc && vite build",
@@ -50,6 +43,9 @@
   "peerDependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
+  },
+  "optionalDependencies": {
+    "@huggingface/transformers": "^3.0.0"
   },
   "license": "rights.institute/PROSPER"
 }

@@ -4,7 +4,26 @@
  */
 import type { TTSResult } from "../types/types";
 import { DEEPGRAM_SPEAKERS, type DeepgramSpeaker } from "../types/types";
-import { getCloudflareContext } from "@/lib/cloudflare-context";
+
+/**
+ * Resolve the Cloudflare Workers AI binding at runtime without a hard
+ * dependency on the host application. Consumers running on Cloudflare can
+ * expose the context by setting `globalThis.getCloudflareContext` (as the
+ * `@opennextjs/cloudflare` / `@cloudflare/next-on-pages` helpers do) or by
+ * placing the bound `env` on `globalThis.__env__`.
+ */
+function resolveCloudflareAI(): any {
+  const g = globalThis as any;
+  try {
+    if (typeof g.getCloudflareContext === "function") {
+      const ctx = g.getCloudflareContext();
+      if (ctx?.env?.AI) return ctx.env.AI;
+    }
+  } catch {
+    // CF context helper threw (e.g. called outside a request scope)
+  }
+  return g.__env__?.AI ?? g.AI;
+}
 
 /**
  * Generate speech from text using Deepgram Aura via Cloudflare Workers AI
@@ -18,13 +37,7 @@ export async function generateDeepgramSpeech(
     ? (speaker as DeepgramSpeaker)
     : "angus";
 
-  let ai: any;
-  try {
-    const ctx = getCloudflareContext();
-    ai = (ctx.env as any)?.AI;
-  } catch {
-    // CF bindings not available
-  }
+  const ai = resolveCloudflareAI();
 
   if (!ai) {
     throw new Error("Cloudflare AI binding not available");
