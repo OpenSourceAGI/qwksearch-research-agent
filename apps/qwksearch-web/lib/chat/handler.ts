@@ -19,7 +19,7 @@ const searchHandlers = createSearchHandlers({
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { getUserId } from "@/lib/auth/session";
 import { checkGuestRateLimit } from "@/lib/rate-limit/guestRateLimiter";
-import { safeValidateBody } from "./schemas";
+import { safeValidateBody, resolveMessageContent } from "./schemas";
 import type { Body } from "./schemas";
 import { handleEmitterEvents } from "./stream-handler";
 import { handleHistorySave } from "./history";
@@ -169,11 +169,21 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     const body = parseBody.data;
     const { message } = body;
 
-    if (message.content === "") {
-      console.warn("[POST /api/agent/chat] empty message content");
+    // Resolve the effective query. A blank message with attached files is
+    // valid and becomes an "analyse the uploaded file(s)" instruction so the
+    // uploaded content (added to the answer context) still reaches the LLM.
+    const resolvedContent = resolveMessageContent(message.content, body.files);
+    if (resolvedContent === null) {
+      console.warn("[POST /api/agent/chat] empty message with no attached files");
       return Response.json(
-        { message: "Please provide a message to process" },
+        { message: "Please provide a message or attach a file to process" },
         { status: 400 },
+      );
+    }
+    const effectiveMessage = { ...message, content: resolvedContent };
+    if (resolvedContent !== message.content) {
+      console.log(
+        `[POST /api/agent/chat] blank message with ${body.files.length} file(s); using default analysis prompt`,
       );
     }
 
@@ -234,7 +244,7 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
 
     // --- Resolve message ID (use client-provided or generate one) ---
     const humanMessageId =
-      message.messageId ?? crypto.randomBytes(7).toString("hex");
+      effectiveMessage.messageId ?? crypto.randomBytes(7).toString("hex");
 
     // --- Convert history tuples to AI SDK chat messages ---
     const history = buildChatHistory(body.history);
@@ -258,7 +268,7 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
       `[POST /api/agent/chat] starting searchAndAnswer focusMode=${body.focusMode} optimizationMode=${body.optimizationMode}`,
     );
     const stream = await handler.searchAndAnswer(
-      message.content,
+      effectiveMessage.content,
       history,
       llm,
       body.optimizationMode,
@@ -285,7 +295,7 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     const writer = responseStream.writable.getWriter();
     const encoder = new TextEncoder();
 
-    handleEmitterEvents(stream, writer, encoder, message.chatId, userId, db);
+    handleEmitterEvents(stream, writer, encoder, effectiveMessage.chatId, userId, db);
 
     // --- Persist chat session and human message (authenticated users only) ---
     console.log(
@@ -295,7 +305,7 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     if (userId && db) {
       try {
         await handleHistorySave(
-          message,
+          effectiveMessage,
           humanMessageId,
           body.focusMode,
           body.files,

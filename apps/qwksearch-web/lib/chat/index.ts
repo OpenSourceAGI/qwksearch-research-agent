@@ -25,6 +25,8 @@ export {
   chatModelSchema,
   bodySchema,
   safeValidateBody,
+  resolveMessageContent,
+  DEFAULT_UPLOAD_ANALYSIS_PROMPT,
   type Message,
   type Body,
   type ValidationError,

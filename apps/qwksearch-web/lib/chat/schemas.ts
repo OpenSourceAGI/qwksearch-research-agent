@@ -2,6 +2,14 @@ import { z } from "zod";
 import { ModelWithProvider } from "chat-agent-toolkit/models/types";
 
 /**
+ * Default query used when a user attaches a file (or files) but sends no
+ * message text. The uploaded content is placed in the answer context, so the
+ * model is instructed to analyse it directly.
+ */
+export const DEFAULT_UPLOAD_ANALYSIS_PROMPT =
+  "Analyze the uploaded file(s) and summarize the key points.";
+
+/**
  * Schema for a single chat message sent by the client.
  *
  * @property {string} messageId  - Client-generated unique identifier for the message.
@@ -13,9 +21,36 @@ export const messageSchema = z.object({
   messageId: z.string().min(1, "Message ID is required"),
   /** Identifier of the chat session this message belongs to. */
   chatId: z.string().min(1, "Chat ID is required"),
-  /** The user's message text. Must be non-empty. */
-  content: z.string().min(1, "Message content is required"),
+  /**
+   * The user's message text. May be empty when files are attached — in that
+   * case the request is treated as "analyse the uploaded file(s)". The
+   * body-level refinement enforces that a request has either text or files.
+   */
+  content: z.string().default(""),
 });
+
+/**
+ * Resolves the effective query to send to the search pipeline and the LLM.
+ *
+ * When the user typed a message, that message is used verbatim. When the
+ * message is blank but files are attached, a default analysis prompt is
+ * substituted so the model has an explicit instruction to work with the
+ * uploaded content. Returns `null` when there is neither text nor a file,
+ * signalling the caller to reject the request.
+ *
+ * @param content - The raw message text from the client (may be empty).
+ * @param files   - Attached file identifiers.
+ * @returns The query to use, or `null` when the request has nothing to act on.
+ */
+export const resolveMessageContent = (
+  content: string,
+  files: readonly string[] | undefined,
+): string | null => {
+  const trimmed = (content ?? "").trim();
+  if (trimmed.length > 0) return content;
+  if (files && files.length > 0) return DEFAULT_UPLOAD_ANALYSIS_PROMPT;
+  return null;
+};
 
 /**
  * Schema for the chat model selection sent by the client.
@@ -80,6 +115,19 @@ export const bodySchema = z.object({
    * 0 = unlimited (uses server default); >0 = budget spread across top 3 sources.
    */
   thinkingTimeLimit: z.number().int().min(0).optional().default(5),
+}).superRefine((data, ctx) => {
+  // A request must carry something to act on: either message text or at least
+  // one attached file. A blank message with files is valid — it means
+  // "analyse the uploaded file(s)".
+  const hasText = data.message.content.trim().length > 0;
+  const hasFiles = Array.isArray(data.files) && data.files.length > 0;
+  if (!hasText && !hasFiles) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["message", "content"],
+      message: "Provide a message or attach a file",
+    });
+  }
 });
 
 /**
