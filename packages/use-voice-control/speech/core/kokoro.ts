@@ -2,8 +2,8 @@
  * @fileoverview Kokoro TTS provider implementation using Hugging Face transformers
  * Runs on Node.js CPU via transformers library
  */
-import type { TTSResult } from "./types";
-import { KOKORO_VOICES, type KokoroVoice } from "./types";
+import type { TTSResult } from "../types/types";
+import { KOKORO_VOICES, type KokoroVoice } from "../types/types";
 
 let ttsInstance: any = null;
 let modelLoading: Promise<any> | null = null;

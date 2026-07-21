@@ -1,6 +1,6 @@
 'use client';
 
-import { KokoroTTS } from '@huggingface/transformers';
+import { KokoroTTS } from 'kokoro-js';
 
 type DeviceMode = 'wasm' | 'webgpu';
 type DType = 'fp32' | 'fp16' | 'q8' | 'q4' | 'q4f16';

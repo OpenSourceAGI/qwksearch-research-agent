@@ -2,8 +2,8 @@
  * @fileoverview Deepgram TTS provider implementation using Cloudflare Workers AI
  * Requires Cloudflare AI binding
  */
-import type { TTSResult } from "./types";
-import { DEEPGRAM_SPEAKERS, type DeepgramSpeaker } from "./types";
+import type { TTSResult } from "../types/types";
+import { DEEPGRAM_SPEAKERS, type DeepgramSpeaker } from "../types/types";
 import { getCloudflareContext } from "@/lib/cloudflare-context";
 
 /**
