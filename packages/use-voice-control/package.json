@@ -27,6 +27,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@huggingface/transformers": "^3.8.1",
     "lucide-react": "^0.344.0",
     "@moonshine-ai/moonshine-js": "^0.1.29",
     "react": "^18.0.0",
