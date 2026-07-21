@@ -19,6 +19,14 @@ import { agentChat, saveMessage } from "qwksearch-api-client";
 const ARTICLE_PREFETCH_COUNT = 3;
 
 /**
+ * Query used when the user attaches files but types no message. Mirrors the
+ * server's `DEFAULT_UPLOAD_ANALYSIS_PROMPT` so a file-only send is treated as
+ * "analyse the uploaded file(s)".
+ */
+const DEFAULT_UPLOAD_ANALYSIS_PROMPT =
+  "Analyze the uploaded file(s) and summarize the key points.";
+
+/**
  * Generates a 14-char hex message ID using the Web Crypto API, matching the
  * format of server-generated IDs (`crypto.randomBytes(7).toString("hex")`).
  * Node's `crypto` module is unavailable in the browser bundle.
@@ -148,8 +156,17 @@ export async function sendMessage(
       ? Number(localStorage.getItem(THINKING_TIME_KEY) ?? "0") || 0
       : 0;
 
-  // Prevent duplicate sends or empty messages
-  if (loading || !message) return;
+  // Prevent duplicate sends. An empty message is allowed when files are
+  // attached — it is treated as "analyse the uploaded file(s)". A truly empty
+  // send (no text, no files) is ignored.
+  if (loading) return;
+  const trimmedMessage = message?.trim() ?? "";
+  const hasFiles = Array.isArray(fileIds) && fileIds.length > 0;
+  if (!trimmedMessage && !hasFiles) return;
+
+  // The text shown as the user's turn and sent to the API. When blank with
+  // files attached, fall back to the default analysis prompt.
+  const effectiveMessage = trimmedMessage ? message : DEFAULT_UPLOAD_ANALYSIS_PROMPT;
 
   // Create a new AbortController for this request
   const abortController = new AbortController();
@@ -182,7 +199,7 @@ export async function sendMessage(
   setMessages((prevMessages) => [
     ...prevMessages,
     {
-      content: message,
+      content: effectiveMessage,
       messageId: messageId,
       chatId: chatId,
       role: "user",
@@ -334,7 +351,7 @@ export async function sendMessage(
         // Update chat history with the complete exchange
         setChatHistory((prevHistory) => [
           ...prevHistory,
-          ["human", message],
+          ["human", effectiveMessage],
           ["assistant", receivedMessage],
         ]);
 
@@ -407,7 +424,7 @@ export async function sendMessage(
         message: {
           messageId: messageId,
           chatId: chatId,
-          content: message,
+          content: effectiveMessage,
         },
         optimizationMode: optimizationMode as "speed" | "balanced" | "quality",
         focusMode: focusMode,
@@ -464,7 +481,7 @@ export async function sendMessage(
       if (receivedMessage) {
         setChatHistory((prevHistory) => [
           ...prevHistory,
-          ["human", message],
+          ["human", effectiveMessage],
           ["assistant", receivedMessage],
         ]);
       }

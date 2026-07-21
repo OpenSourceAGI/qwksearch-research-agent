@@ -30,6 +30,13 @@ export const FilePreviewCard: React.FC<FilePreviewCardProps> = ({ file, onRemove
                 <div className="w-full h-full relative">
                     <img src={file.preview!} alt={file.file.name} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
+                    {/* File size badge overlaid on the generated preview square */}
+                    <span
+                        className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-medium leading-none backdrop-blur-sm pointer-events-none"
+                        title={file.file.name}
+                    >
+                        {formatFileSize(file.file.size)}
+                    </span>
                 </div>
             ) : (
                 <div className="w-full h-full p-3 flex flex-col justify-between">

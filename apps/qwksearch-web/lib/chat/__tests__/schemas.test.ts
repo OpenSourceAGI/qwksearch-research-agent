@@ -4,7 +4,13 @@ import { describe, expect, it, vi } from 'vitest'
 // module so the test runner does not need the workspace package built.
 vi.mock('chat-agent-toolkit/models/types', () => ({}))
 
-import { safeValidateBody, messageSchema, chatModelSchema } from '../schemas'
+import {
+  safeValidateBody,
+  messageSchema,
+  chatModelSchema,
+  resolveMessageContent,
+  DEFAULT_UPLOAD_ANALYSIS_PROMPT,
+} from '../schemas'
 
 const validBody = {
   message: { messageId: 'msg-1', chatId: 'chat-1', content: 'Hello' },
@@ -32,18 +38,20 @@ describe('messageSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('rejects missing content', () => {
+  it('defaults missing content to an empty string (files may carry the request)', () => {
     const result = messageSchema.safeParse({ messageId: 'm1', chatId: 'c1' })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.content).toBe('')
   })
 
-  it('rejects empty content', () => {
+  it('accepts empty content (validated against files at the body level)', () => {
     const result = messageSchema.safeParse({
       messageId: 'm1',
       chatId: 'c1',
       content: '',
     })
-    expect(result.success).toBe(false)
+    expect(result.success).toBe(true)
   })
 })
 
@@ -149,5 +157,61 @@ describe('safeValidateBody', () => {
 
   it('accepts thinkingTimeLimit of 0', () => {
     expect(safeValidateBody({ ...validBody, thinkingTimeLimit: 0 }).success).toBe(true)
+  })
+
+  it('accepts a blank message when files are attached', () => {
+    const result = safeValidateBody({
+      ...validBody,
+      message: { messageId: 'm1', chatId: 'c1', content: '' },
+      files: ['file-abc'],
+    })
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.files).toEqual(['file-abc'])
+  })
+
+  it('accepts a message with omitted content when files are attached', () => {
+    const result = safeValidateBody({
+      ...validBody,
+      message: { messageId: 'm1', chatId: 'c1' },
+      files: ['file-abc'],
+    })
+    expect(result.success).toBe(true)
+    if (!result.success) return
+    expect(result.data.message.content).toBe('')
+  })
+
+  it('rejects a blank message with no attached files', () => {
+    const result = safeValidateBody({
+      ...validBody,
+      message: { messageId: 'm1', chatId: 'c1', content: '   ' },
+      files: [],
+    })
+    expect(result.success).toBe(false)
+    if (result.success) return
+    expect(result.error.some((e) => e.path === 'message.content')).toBe(true)
+  })
+})
+
+describe('resolveMessageContent', () => {
+  it('returns the typed message verbatim when present', () => {
+    expect(resolveMessageContent('summarize this', [])).toBe('summarize this')
+    expect(resolveMessageContent('  keep spaces inside  ', [])).toBe(
+      '  keep spaces inside  ',
+    )
+  })
+
+  it('falls back to the default analysis prompt for a blank message with files', () => {
+    expect(resolveMessageContent('', ['file-1'])).toBe(
+      DEFAULT_UPLOAD_ANALYSIS_PROMPT,
+    )
+    expect(resolveMessageContent('   ', ['file-1', 'file-2'])).toBe(
+      DEFAULT_UPLOAD_ANALYSIS_PROMPT,
+    )
+  })
+
+  it('returns null when there is neither text nor a file', () => {
+    expect(resolveMessageContent('', [])).toBeNull()
+    expect(resolveMessageContent('   ', undefined)).toBeNull()
   })
 })
