@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "shadcn-app-dock"
-import { useSession } from "research-agent-ui"
+import { useSession, useChat } from "research-agent-ui"
 import iconRead from "../icons/icon-read.svg"
 import iconConfigure from "../icons/icon-configure.svg"
 
@@ -27,6 +27,9 @@ export function CategoryDock() {
   const pathname = usePathname()
   const router = useRouter()
   const { isAuthenticated, signIn, signOut } = useSession()
+  const { newChat } = useChat()
+
+  const isOnResearch = pathname === "/" || pathname.startsWith("/c")
 
   const items: DockNavItem[] = [
     ...NAV_ITEMS.map(({ href, label, icon }) => ({
@@ -35,9 +38,14 @@ export function CategoryDock() {
       icon,
       active:
         href === "/"
-          ? pathname === "/" || pathname.startsWith("/c")
+          ? isOnResearch
           : pathname.startsWith(href),
-      onClick: () => router.push(href),
+      // Tapping the Research icon while already on a research page closes the
+      // current chat and opens a fresh one instead of navigating in place.
+      onClick:
+        href === "/" && isOnResearch
+          ? () => newChat()
+          : () => router.push(href),
     })),
     {
       key: "settings",

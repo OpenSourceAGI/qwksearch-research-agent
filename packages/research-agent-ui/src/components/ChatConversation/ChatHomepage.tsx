@@ -88,8 +88,9 @@ export default function ChatHomepage() {
       </div>
 
       <div className="relative z-10">
-        {/* Centered content with input in the middle of the page */}
-        <div className="flex flex-col items-center justify-center min-h-screen max-w-screen-sm mx-auto p-2 pb-20 md:pb-2">
+        {/* Content: centered on desktop, bottom-aligned on mobile so the input sits
+            just above the app dock with almost no gap */}
+        <div className="flex flex-col items-center justify-end md:justify-center min-h-[calc(100dvh-64px)] md:min-h-screen max-w-screen-sm mx-auto p-2 pb-1 md:pb-2">
           <div style={{ height: '200px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <QuantumWaveOrbital
               autoRandomize={true}
