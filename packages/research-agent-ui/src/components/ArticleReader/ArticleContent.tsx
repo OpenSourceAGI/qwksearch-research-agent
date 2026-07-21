@@ -5,7 +5,6 @@
 'use client';
 
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
 import { Article } from '../../types/research';
 import LexicalArticleViewer from './LexicalArticleViewer';
 
@@ -20,19 +19,6 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ article, isHighlightMod
       <div>
         {/* Title and Favorite Button */}
         <div className="flex items-start justify-between mb-2"></div>
-
-        {/* URL Display */}
-        {article.url && (
-          <a
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 mb-3 text-sm text-primary hover:underline truncate max-w-full"
-          >
-            <ExternalLink className="flex-shrink-0 size-3.5" />
-            <span className="truncate">{article.url}</span>
-          </a>
-        )}
 
         {/* Citation Information */}
         {article.cite && (
