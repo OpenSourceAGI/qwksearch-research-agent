@@ -1,7 +1,11 @@
 'use client';
 
-import { KokoroTTS } from 'kokoro-js';
-
+// `kokoro-js` (transformers.js / onnxruntime-web) is a browser-only library
+// that is large and only needed once the user actually invokes TTS. Import it
+// lazily via a dynamic `import()` rather than a top-level static import so it:
+//   * code-splits into its own chunk that downloads on demand, and
+//   * is never evaluated at module load — in particular it stays out of the
+//     server (rsc/ssr) render path, where onnxruntime has no place.
 type DeviceMode = 'wasm' | 'webgpu';
 type DType = 'fp32' | 'fp16' | 'q8' | 'q4' | 'q4f16';
 
@@ -40,6 +44,8 @@ async function loadModel(): Promise<any> {
   const backends: Backend[] = [];
   if (await hasWorkingWebGPU()) backends.push(WEBGPU_BACKEND);
   backends.push(WASM_BACKEND);
+
+  const { KokoroTTS } = await import('kokoro-js');
 
   let lastErr: unknown;
   for (const backend of backends) {
