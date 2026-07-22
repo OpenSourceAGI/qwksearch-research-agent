@@ -30,6 +30,7 @@ import {
 } from '.';
 import { researchAgentUIConfig } from '../../config';
 import { useSession } from '../../hooks/useSession';
+import { useChat } from '../../hooks/useChat';
 
 const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   const {
@@ -42,6 +43,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   } = useExtractPanel();
 
   const { isAuthenticated } = useSession();
+  const { chatModelProvider } = useChat();
 
   const isOpen = props.isOpen !== undefined ? props.isOpen : contextIsOpen;
   const onClose = props.onClose || closePanel;
@@ -265,7 +267,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
             article,
             question: queryText,
             chatHistory: chatHistory.slice(-5),
-            provider: 'groq',
+            chatModel: chatModelProvider,
           },
         });
 
@@ -300,7 +302,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
             article,
             chatHistory: chatHistory.slice(-5),
             maxQuestions,
-            provider: 'groq',
+            chatModel: chatModelProvider,
           },
         });
 
