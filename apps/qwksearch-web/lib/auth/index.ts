@@ -4,6 +4,7 @@ import { oneTap, openAPI, magicLink, anonymous } from "better-auth/plugins";
 import { getDB } from "../database";
 import * as schema from "../database/schema";
 import { getCloudflareContext } from "../cloudflare-context";
+import { detectVpnAndLocation } from "../ip-geolocation";
 import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../config/site";
 
 export interface Env {
@@ -44,14 +45,78 @@ async function authBuilder() {
     };
   }
 
+  // Origins allowed to make authenticated requests. The app is served from
+  // several hosts that all share the same auth backend (production apex, the
+  // `beta.` subdomain, preview builds, and localhost during development).
+  // Without listing them here, better-auth rejects cross-subdomain requests
+  // and omits the CORS headers, which surfaced as a blocked preflight when
+  // signing in from beta.qwksearch.com. Extra origins can be supplied via the
+  // BETTER_AUTH_TRUSTED_ORIGINS env var (comma-separated).
+  const trustedOrigins = Array.from(
+    new Set(
+      [
+        NEXT_PUBLIC_BASE_URL,
+        "https://qwksearch.com",
+        "https://*.qwksearch.com",
+        "http://localhost:3000",
+        ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") ?? []),
+      ]
+        .map((origin) => origin?.trim())
+        .filter((origin): origin is string => Boolean(origin)),
+    ),
+  );
+
   return betterAuth({
     baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    trustedOrigins,
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema,
     }),
     emailAndPassword: {
       enabled: true,
+    },
+    // The `session` table carries two extra columns beyond better-auth's core
+    // model (`city`, `is_vpn`) — see drizzle migration
+    // 0005_add_session_location_vpn. Declaring them here lets better-auth
+    // accept the values written by the databaseHook below. `input: false`
+    // keeps them server-derived only (clients can't set them).
+    session: {
+      additionalFields: {
+        city: {
+          type: "string",
+          required: false,
+          input: false,
+        },
+        isVpn: {
+          type: "boolean",
+          required: false,
+          defaultValue: false,
+          input: false,
+        },
+      },
+    },
+    // Populate the geolocation columns from the request IP whenever a session
+    // is created (any sign-in path: password, social, one-tap, magic link).
+    // detectVpnAndLocation is fully fault-tolerant and returns a neutral
+    // result on any failure, so this never blocks authentication.
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (session) => {
+            const { city, isVpn } = await detectVpnAndLocation(
+              session.ipAddress,
+            );
+            return {
+              data: {
+                ...session,
+                city: city ?? undefined,
+                isVpn,
+              },
+            };
+          },
+        },
+      },
     },
     socialProviders,
     emailVerification: {
