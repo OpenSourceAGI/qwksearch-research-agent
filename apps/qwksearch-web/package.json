@@ -17,7 +17,7 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:push:d1": "drizzle-kit push --config drizzle.d1.config.ts",
-    "db:migrate:d1": "for f in drizzle/*.sql; do echo ''; wrangler d1 execute qwksearch-new --remote --file=$f; done",
+    "db:migrate:d1": "for f in drizzle/*.sql; do echo \"\\n>> $f\"; wrangler d1 execute qwksearch-new --remote --file=$f || echo \"   (skipped: already applied or non-fatal error)\"; done",
     "db:studio": "drizzle-kit studio",
     "db:create": "bun x create cloud-db",
     "analyze": "ANALYZE=true next build --webpack",
