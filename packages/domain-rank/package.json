@@ -1,6 +1,6 @@
 {
   "name": "domain-rank",
-  "version": "0.1.79",
+  "version": "0.1.81",
   "description": "Domain Rank Top Million domains, source names, duplicates, and favicons",
   "repository": {
     "type": "git",

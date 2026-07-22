@@ -1,7 +1,7 @@
 {
   "name": "reason-editor",
   "description": "Formatted Text Editor with toolbar for formatting, docs manager, and note outlines",
-  "version": "0.39.71",
+  "version": "0.39.73",
   "author": "vtempest",
   "repository": {
     "type": "git",
