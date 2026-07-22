@@ -37,6 +37,7 @@ logs/
 
 # Testing
 /coverage/
+coverage/
 
 # Miscellaneous
 .DS_Store

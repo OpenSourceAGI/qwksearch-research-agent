@@ -29,7 +29,7 @@ jobs:
 
       - name: Run tests
         working-directory: apps/qwksearch-web
-        run: bun run test
+        run: bun run test:coverage
 
       - name: Upload coverage
         if: always()
@@ -38,3 +38,12 @@ jobs:
           name: coverage
           path: apps/qwksearch-web/coverage/
           if-no-files-found: ignore
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: apps/qwksearch-web/coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: qwksearch-web
+          fail_ci_if_error: false
