@@ -12,6 +12,10 @@ export default defineConfig({
     restoreMocks: true,
     unstubEnvs: true,
     unstubGlobals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+    },
   },
   resolve: {
     alias: {
