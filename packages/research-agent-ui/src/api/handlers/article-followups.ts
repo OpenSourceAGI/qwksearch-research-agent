@@ -1,13 +1,11 @@
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import type { ModelWithProvider } from "chat-agent-toolkit/config/config-types";
-import { eq } from "drizzle-orm";
 import type { ArticleDeps } from "../types";
 
 interface ArticleFollowupsBody {
   article: string;
   chatHistory?: Array<{ role: string; content: string }>;
   maxQuestions?: number;
-  provider?: string;
   chatModel?: ModelWithProvider;
 }
 
@@ -15,55 +13,25 @@ export function createArticleFollowupsHandler(deps: ArticleDeps) {
   return async (req: Request): Promise<Response> => {
     try {
       const body: ArticleFollowupsBody = await req.json();
-      const {
-        article,
-        chatHistory = [],
-        maxQuestions = 5,
-        provider = "groq",
-        chatModel,
-      } = body;
+      const { article, chatHistory = [], maxQuestions = 5, chatModel } = body;
 
       if (!article) {
         return Response.json({ error: "Article is required" }, { status: 400 });
       }
 
-      const db = deps.getDB();
-      const userId = await deps.getUserId();
-      let user = null;
-      let apiKey = null;
-
-      if (userId) {
-        user = await db.query.user.findFirst({
-          where: eq(deps.userSchema.id, userId),
-        });
-      }
-
-      if (user) {
-        apiKey = user.settings?.providerApiKeys?.find(
-          (key: any) => key.provider == provider,
-        )?.key;
-      }
-
-      if (!apiKey) {
-        apiKey = provider == "groq" ? deps.getEnv("GROQ_API_KEY") : null;
-      }
-
-      if (!apiKey) {
-        return Response.json({ error: "API key is required" }, { status: 500 });
-      }
-
       const registry = new ModelRegistry();
       let llm;
 
-      if (chatModel) {
-        llm = await registry.loadChatModel(chatModel.providerId, chatModel.key);
-      } else {
-        llm = await registry.loadChatModel("groq", "llama-3.3-70b-versatile");
-      }
-
-      if (!llm) {
+      try {
+        llm = await registry.loadChatModel(chatModel?.providerId, chatModel?.key);
+      } catch (error) {
         return Response.json(
-          { error: "Failed to load language model" },
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Failed to load language model",
+          },
           { status: 500 },
         );
       }
