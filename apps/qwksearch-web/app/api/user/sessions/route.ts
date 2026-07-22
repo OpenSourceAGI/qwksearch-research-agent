@@ -28,6 +28,7 @@ export async function GET() {
       updatedAt: sessionTable.updatedAt,
       expiresAt: sessionTable.expiresAt,
       city: sessionTable.city,
+      state: sessionTable.state,
       isVpn: sessionTable.isVpn,
     })
     .from(sessionTable)
@@ -37,19 +38,22 @@ export async function GET() {
   const enrichedSessions = await Promise.all(
     sessions.map(async (s) => {
       let city = s.city;
+      let state = s.state;
       let isVpn = s.isVpn;
 
-      if (!city || isVpn === null) {
+      if (!city || !state || isVpn === null) {
         const geoData = await detectVpnAndLocation(s.ipAddress);
         city = city || geoData.city;
+        state = state || geoData.state;
         isVpn = isVpn !== null ? isVpn : geoData.isVpn;
 
         // Update DB for next time
-        if (!s.city || s.isVpn === null) {
+        if (!s.city || !s.state || s.isVpn === null) {
           await db
             .update(sessionTable)
             .set({
               city: city || null,
+              state: state || null,
               isVpn: isVpn ? 1 : 0,
             })
             .where(eq(sessionTable.id, s.id));
@@ -59,6 +63,7 @@ export async function GET() {
       return {
         ...s,
         city,
+        state,
         isVpn: Boolean(isVpn),
         isCurrent: s.id === currentSession.session.id,
       };

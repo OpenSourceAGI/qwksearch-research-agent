@@ -40,6 +40,7 @@ interface SessionInfo {
   expiresAt: string | number | null;
   isCurrent: boolean;
   city?: string | null;
+  state?: string | null;
   isVpn?: boolean;
 }
 
@@ -772,10 +773,10 @@ export default function Account() {
                     <span className="font-medium">{browser}</span>
                     <span className="text-black/30 dark:text-white/30">·</span>
                     <span>{os}</span>
-                    {s.city && (
+                    {(s.city || s.state) && (
                       <>
                         <span className="text-black/30 dark:text-white/30">·</span>
-                        <span>{s.city}</span>
+                        <span>{[s.city, s.state].filter(Boolean).join(', ')}</span>
                       </>
                     )}
                     {s.isVpn && (

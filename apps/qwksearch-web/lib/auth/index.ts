@@ -88,6 +88,11 @@ async function authBuilder() {
           required: false,
           input: false,
         },
+        state: {
+          type: "string",
+          required: false,
+          input: false,
+        },
         isVpn: {
           type: "boolean",
           required: false,
@@ -104,13 +109,14 @@ async function authBuilder() {
       session: {
         create: {
           before: async (session) => {
-            const { city, isVpn } = await detectVpnAndLocation(
+            const { city, state, isVpn } = await detectVpnAndLocation(
               session.ipAddress,
             );
             return {
               data: {
                 ...session,
                 city: city ?? undefined,
+                state: state ?? undefined,
                 isVpn,
               },
             };
