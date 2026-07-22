@@ -3,7 +3,7 @@
 
 export const /** App Name in title case */
   APP_NAME: string = "QwkSearch",
-  NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://qwksearch.com",
+  NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://beta.qwksearch.com",
   NEXT_PUBLIC_GOOGLE_CLIENT_ID =
     "921732917742-79ql1h9hek2qsdn9f5vnk6lg26jq0vi2.apps.googleusercontent.com",
   /** App Email for support */
