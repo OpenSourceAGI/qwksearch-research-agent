@@ -44,8 +44,30 @@ async function authBuilder() {
     };
   }
 
+  // Origins allowed to make authenticated requests. The app is served from
+  // several hosts that all share the same auth backend (production apex, the
+  // `beta.` subdomain, preview builds, and localhost during development).
+  // Without listing them here, better-auth rejects cross-subdomain requests
+  // and omits the CORS headers, which surfaced as a blocked preflight when
+  // signing in from beta.qwksearch.com. Extra origins can be supplied via the
+  // BETTER_AUTH_TRUSTED_ORIGINS env var (comma-separated).
+  const trustedOrigins = Array.from(
+    new Set(
+      [
+        NEXT_PUBLIC_BASE_URL,
+        "https://qwksearch.com",
+        "https://*.qwksearch.com",
+        "http://localhost:3000",
+        ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") ?? []),
+      ]
+        .map((origin) => origin?.trim())
+        .filter((origin): origin is string => Boolean(origin)),
+    ),
+  );
+
   return betterAuth({
     baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    trustedOrigins,
     database: drizzleAdapter(db, {
       provider: "sqlite",
       schema,
