@@ -12,6 +12,7 @@ import { CategoryDockProvider } from 'shadcn-app-dock';
 import { Toaster } from 'sonner';
 import { authClient } from '@/lib/auth/client';
 import { CategoryDock } from '@/components/layout/CategoryDock';
+import { CookieConsent } from '@/components/layout/CookieConsent';
 import {
   APP_NAME,
   DEFAULT_SUMMARIZE_PROMPT,
@@ -72,6 +73,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 },
               }}
             />
+            <CookieConsent />
           </ChatProvider>
         </ExtractPanelProvider>
       </SessionProvider>

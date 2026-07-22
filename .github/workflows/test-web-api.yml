@@ -1,4 +1,4 @@
-name: Test qwksearch-web
+name: QwkSearch API
 
 on:
   push:
@@ -38,6 +38,13 @@ jobs:
           name: coverage
           path: apps/qwksearch-web/coverage/
           if-no-files-found: ignore
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: apps/qwksearch-web/test-report.junit.xml
 
       - name: Upload coverage to Codecov
         if: always()

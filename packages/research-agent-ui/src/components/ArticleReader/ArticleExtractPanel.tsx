@@ -256,6 +256,10 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
         // Use the new article-qa endpoint for questions
         const queryText = [searchText, userPrompt].filter(Boolean).join('\n');
 
+        if (!article || article.length === 0) {
+          throw new Error('Article content is empty');
+        }
+
         const { data, error } = await articleQa({
           body: {
             article,
@@ -265,7 +269,10 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
           },
         });
 
-        if (error) throw new Error((error as any).error || 'Article QA failed');
+        if (error) {
+          const errorDetails = (error as any).error || (error as any).message || 'Article QA failed';
+          throw new Error(errorDetails);
+        }
 
         const aiAnswer = data?.content || '';
         setAiResponse(aiAnswer);
@@ -283,6 +290,11 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
       } else {
         // Use the new article-followups endpoint for follow-up questions
         const maxQuestions = parseInt(localStorage.getItem('maxFollowupQuestions') || '4');
+
+        if (!article || article.length === 0) {
+          throw new Error('Article content is empty');
+        }
+
         const { data, error } = await articleFollowups({
           body: {
             article,
@@ -292,7 +304,10 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
           },
         });
 
-        if (error) throw new Error((error as any).error || 'Article followups failed');
+        if (error) {
+          const errorDetails = (error as any).error || (error as any).message || 'Article followups failed';
+          throw new Error(errorDetails);
+        }
 
         const questions = data?.extract || [];
         setFollowupQuestions(questions);
@@ -305,7 +320,13 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
       }
     } catch (error) {
       console.error('Error calling language API:', error);
-      setError('Failed to get AI response');
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'message' in error
+            ? (error as any).message
+            : 'Failed to get AI response';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

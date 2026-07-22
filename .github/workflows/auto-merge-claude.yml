@@ -21,15 +21,23 @@ jobs:
           GH_TOKEN: ${{ secrets.GIT_TOKEN }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
         run: |
+          # Never delete production or prod branches
+          if [[ "$HEAD_REF" == "production" || "$HEAD_REF" == "prod" ]]; then
+            MERGE_OPTS="--squash"
+          else
+            MERGE_OPTS="--squash --delete-branch"
+          fi
+
           # Preferred path: let GitHub merge once required checks pass.
           # Requires "Allow auto-merge" in repo settings + branch protection
           # with at least one required status check.
-          if gh pr merge "$PR" --repo "$REPO" --squash --auto --delete-branch; then
+          if gh pr merge "$PR" --repo "$REPO" $MERGE_OPTS --auto; then
             echo "Auto-merge enabled for PR #$PR"
           else
             # Fallback for unprotected branches (no required checks):
             # merge immediately if the PR is mergeable.
             echo "Auto-merge unavailable, attempting direct merge"
-            gh pr merge "$PR" --repo "$REPO" --squash --delete-branch
+            gh pr merge "$PR" --repo "$REPO" $MERGE_OPTS
           fi

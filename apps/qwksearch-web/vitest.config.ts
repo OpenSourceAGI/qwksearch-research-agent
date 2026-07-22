@@ -16,6 +16,10 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
     },
+    reporters: ['default', 'junit'],
+    outputFile: {
+      junit: 'test-report.junit.xml',
+    },
   },
   resolve: {
     alias: {
