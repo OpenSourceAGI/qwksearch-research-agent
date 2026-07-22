@@ -33,10 +33,18 @@ const SessionContext = createContext<SessionContextType>({
 export function SessionProvider({
   children,
   authClient,
+  enableGoogleOneTap = true,
 }: {
   children: React.ReactNode;
   /** Configured better-auth (or compatible) client used to manage the session. */
   authClient: ResearchAgentAuthClient;
+  /**
+   * Whether to prompt Google One Tap for unauthenticated users. Callers whose
+   * backend doesn't have the Google provider configured should pass `false`
+   * to avoid triggering a One Tap prompt that can only fail (the app has no
+   * way to resolve the resulting sign-in). Defaults to `true`.
+   */
+  enableGoogleOneTap?: boolean;
 }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,7 +68,7 @@ export function SessionProvider({
 
   // Prompt Google One Tap sign-in once we know the user is unauthenticated.
   useEffect(() => {
-    if (isLoading || user) return;
+    if (isLoading || user || !enableGoogleOneTap) return;
     authClient.oneTap({
       fetchOptions: {
         onSuccess: async () => {
@@ -69,7 +77,7 @@ export function SessionProvider({
         },
       },
     });
-  }, [isLoading, user]);
+  }, [isLoading, user, enableGoogleOneTap]);
 
   const signIn = () => {
     authClient.signIn.social({
