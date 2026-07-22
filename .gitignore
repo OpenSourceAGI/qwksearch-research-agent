@@ -37,6 +37,8 @@ logs/
 
 # Testing
 /coverage/
+coverage/
+test-report.junit.xml
 
 # Miscellaneous
 .DS_Store

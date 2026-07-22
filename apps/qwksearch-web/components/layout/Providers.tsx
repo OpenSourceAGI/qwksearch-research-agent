@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import {
   ChatProvider,
   SessionProvider,
@@ -11,6 +12,7 @@ import { CategoryDockProvider } from 'shadcn-app-dock';
 import { Toaster } from 'sonner';
 import { authClient } from '@/lib/auth/client';
 import { CategoryDock } from '@/components/layout/CategoryDock';
+import { CookieConsent } from '@/components/layout/CookieConsent';
 import {
   APP_NAME,
   DEFAULT_SUMMARIZE_PROMPT,
@@ -32,6 +34,18 @@ configureResearchAgentUI({
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  // Google One Tap should only be prompted when the backend actually has the
+  // Google provider configured — otherwise the prompt can only fail (a
+  // sign-in with no provider to complete it against).
+  const [googleOneTapEnabled, setGoogleOneTapEnabled] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/providers')
+      .then((res) => res.json())
+      .then((data) => setGoogleOneTapEnabled(!!data.providers?.includes('google')))
+      .catch(() => setGoogleOneTapEnabled(false));
+  }, []);
+
   return (
     <ThemeProvider
       attribute="class"
@@ -39,7 +53,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <SessionProvider authClient={authClient}>
+      <SessionProvider authClient={authClient} enableGoogleOneTap={googleOneTapEnabled}>
         <ExtractPanelProvider>
           <ChatProvider>
             <CategoryDockProvider>
@@ -59,6 +73,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 },
               }}
             />
+            <CookieConsent />
           </ChatProvider>
         </ExtractPanelProvider>
       </SessionProvider>
