@@ -279,22 +279,16 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
       body.thinkingTimeLimit,
     );
 
-    // Surface errors from the agent's EventEmitter that would otherwise crash
-    // the Node process as unhandled "error" events.
-    stream.on("error", (data: string) => {
-      try {
-        const parsed = JSON.parse(data);
-        console.error("[POST /api/agent/chat] agent emitter error:", parsed?.data ?? data);
-      } catch {
-        console.error("[POST /api/agent/chat] agent emitter error (raw):", data);
-      }
-    });
-
     // --- Set up the SSE response stream ---
     const responseStream = new TransformStream();
     const writer = responseStream.writable.getWriter();
     const encoder = new TextEncoder();
 
+    // handleEmitterEvents attaches the sole "error" listener synchronously
+    // here — before the agent's pipeline runs on its deferred macrotask — so
+    // emitted "error" events are always handled (never crashing the process as
+    // an unhandled EventEmitter "error") and its listeners detach on the first
+    // terminal event to avoid accumulating on the emitter.
     handleEmitterEvents(stream, writer, encoder, effectiveMessage.chatId, userId, db);
 
     // --- Persist chat session and human message (authenticated users only) ---
