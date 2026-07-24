@@ -3,7 +3,12 @@
 <br /> 
     <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/dm/chat-agent-toolkit.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/v/chat-agent-toolkit.svg" alt="npm version"></a>
-    <a href="https://bundlephobia.com/package/chat-agent-toolkit"><img src="https://img.shields.io/bundlephobia/minzip/chat-agent-toolkit" alt="Size"></a>
+    <a href="https://bundlephobia.com/package/chat-agent-toolkit" target="_blank" rel="noopener noreferrer">
+  <img
+    src="https://img.shields.io/bundlephobia/minzip/chat-agent-toolkit?style=flat&label=size"
+    alt="npm bundle size "
+  />
+</a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />

@@ -3,7 +3,12 @@
 <br /> 
     <a href="https://www.npmjs.com/package/reason-editor"><img src="https://img.shields.io/npm/dm/reason-editor.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/reason-editor"><img src="https://img.shields.io/npm/v/reason-editor.svg" alt="npm version"></a>
-    <a href="https://bundlephobia.com/package/reason-editor"><img src="https://img.shields.io/bundlephobia/minzip/reason-editor" alt="Size"></a>
+    <a href="https://bundlephobia.com/package/reason-editor" target="_blank" rel="noopener noreferrer">
+  <img
+    src="https://img.shields.io/bundlephobia/minzip/reason-editor?style=flat&label=size"
+    alt="npm bundle size "
+  />
+</a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />
