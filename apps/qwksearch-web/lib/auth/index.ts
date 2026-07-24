@@ -4,6 +4,7 @@ import { oneTap, openAPI, magicLink, anonymous } from "better-auth/plugins";
 import { getDB } from "../database";
 import * as schema from "../database/schema";
 import { getCloudflareContext } from "../cloudflare-context";
+import { detectVpnAndLocation } from "../ip-geolocation";
 import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../config/site";
 
 export interface Env {
@@ -74,6 +75,54 @@ async function authBuilder() {
     }),
     emailAndPassword: {
       enabled: true,
+    },
+    // The `session` table carries two extra columns beyond better-auth's core
+    // model (`city`, `is_vpn`) — see drizzle migration
+    // 0005_add_session_location_vpn. Declaring them here lets better-auth
+    // accept the values written by the databaseHook below. `input: false`
+    // keeps them server-derived only (clients can't set them).
+    session: {
+      additionalFields: {
+        city: {
+          type: "string",
+          required: false,
+          input: false,
+        },
+        state: {
+          type: "string",
+          required: false,
+          input: false,
+        },
+        isVpn: {
+          type: "boolean",
+          required: false,
+          defaultValue: false,
+          input: false,
+        },
+      },
+    },
+    // Populate the geolocation columns from the request IP whenever a session
+    // is created (any sign-in path: password, social, one-tap, magic link).
+    // detectVpnAndLocation is fully fault-tolerant and returns a neutral
+    // result on any failure, so this never blocks authentication.
+    databaseHooks: {
+      session: {
+        create: {
+          before: async (session) => {
+            const { city, state, isVpn } = await detectVpnAndLocation(
+              session.ipAddress,
+            );
+            return {
+              data: {
+                ...session,
+                city: city ?? undefined,
+                state: state ?? undefined,
+                isVpn,
+              },
+            };
+          },
+        },
+      },
     },
     socialProviders,
     emailVerification: {

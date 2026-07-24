@@ -4,6 +4,7 @@
 <br /> 
     <a href="https://www.npmjs.com/package/domain-rank"><img src="https://img.shields.io/npm/dm/domain-rank.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/domain-rank"><img src="https://img.shields.io/npm/v/domain-rank.svg" alt="npm version"></a>
+    <a href="https://bundlephobia.com/package/domain-rank"><img src="https://img.shields.io/bundlephobia/minzip/domain-rank" alt="Size"></a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />

@@ -102,7 +102,24 @@ export const handleEmitterEvents = async (
     return writer.write(encoder.encode("data: " + JSON.stringify(message) + "\n\n"));
   };
 
-  stream.on("data", (data: string) => {
+  /**
+   * Detaches every listener this bridge attached to the emitter.
+   *
+   * The search agent emits over a fresh {@link EventEmitter} per request, and
+   * the `"data"` listener closes over the accumulated `receivedMessage` buffer
+   * plus the writer, encoder, and DB handle. Detaching on the first terminal
+   * event ("end" or "error") releases those references immediately instead of
+   * keeping them reachable through the emitter, and prevents listeners from
+   * piling up on the emitter — the "Possible EventEmitter memory leak" class of
+   * bug that surfaces once an emitter outlives a single attach/detach cycle.
+   */
+  const cleanup = (): void => {
+    stream.removeListener("data", onData);
+    stream.removeListener("end", onEnd);
+    stream.removeListener("error", onError);
+  };
+
+  const onData = (data: string): void => {
     /** @type {StreamEvent} */
     const parsedData: StreamEvent = JSON.parse(data);
 
@@ -157,9 +174,10 @@ export const handleEmitterEvents = async (
           });
       }
     }
-  });
+  };
 
-  stream.on("end", async () => {
+  const onEnd = async (): Promise<void> => {
+    cleanup();
     await writeSSE({ type: "messageEnd" });
     await writer.close();
 
@@ -182,9 +200,10 @@ export const handleEmitterEvents = async (
           );
         });
     }
-  });
+  };
 
-  stream.on("error", async (data: string) => {
+  const onError = async (data: string): Promise<void> => {
+    cleanup();
     let errorText: string;
     try {
       errorText = JSON.parse(data)?.data ?? data;
@@ -202,5 +221,11 @@ export const handleEmitterEvents = async (
     } catch {
       // Writer may already be closed if a prior frame errored.
     }
-  });
+  };
+
+  stream.on("data", onData);
+  // "end" and "error" are terminal: register with `once` so they auto-detach
+  // after firing, and cleanup() removes the remaining "data" listener.
+  stream.once("end", onEnd);
+  stream.once("error", onError);
 };

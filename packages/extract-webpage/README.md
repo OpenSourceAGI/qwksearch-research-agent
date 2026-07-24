@@ -2,6 +2,7 @@
 <br /> 
     <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/dm/extract-webpage.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/v/extract-webpage.svg" alt="npm version"></a>
+    <a href="https://bundlephobia.com/package/extract-webpage"><img src="https://img.shields.io/bundlephobia/minzip/extract-webpage" alt="Size"></a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />

@@ -2,7 +2,7 @@
 node_modules/
 npm-debug.log
 yarn-error.log
-
+wget-log
 # Build output
 .next/
 out/

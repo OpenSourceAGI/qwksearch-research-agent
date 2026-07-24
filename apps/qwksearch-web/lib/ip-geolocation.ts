@@ -2,6 +2,7 @@ import isVpnModule from 'is-vpn';
 
 interface IpGeolocationData {
   city?: string;
+  state?: string;
   isVpn: boolean;
 }
 
@@ -11,7 +12,7 @@ export async function detectVpnAndLocation(
   ipAddress: string | null | undefined
 ): Promise<IpGeolocationData> {
   if (!ipAddress) {
-    return { city: undefined, isVpn: false };
+    return { city: undefined, state: undefined, isVpn: false };
   }
 
   try {
@@ -24,10 +25,12 @@ export async function detectVpnAndLocation(
 
     return {
       city: locationData?.city || undefined,
+      // ipapi.co returns the full state/region name in `region`
+      state: locationData?.region || undefined,
       isVpn: vpnCheck === true,
     };
   } catch (error) {
     console.error('Failed to detect VPN/location:', error);
-    return { city: undefined, isVpn: false };
+    return { city: undefined, state: undefined, isVpn: false };
   }
 }

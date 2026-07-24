@@ -1270,72 +1270,9 @@ export const LANGUAGE_MODELS = [
       "type": "text"
     },
     {
-      "name": "GPT-OSS 120B",
-      "id": "openai/gpt-oss-120b:free",
-      "contextLength": 131_072,
-      "free": true,
-      "type": "text"
-    },
-    {
       "name": "GPT-OSS 20B",
       "id": "openai/gpt-oss-20b:free",
       "contextLength": 131_072,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "Qwen3 Coder",
-      "id": "qwen/qwen3-coder:free",
-      "contextLength": 1_000_000,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "Qwen3 Next 80B A3B Instruct",
-      "id": "qwen/qwen3-next-80b-a3b-instruct:free",
-      "contextLength": 262_000,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "Llama 3.3 70B Instruct",
-      "id": "meta-llama/llama-3.3-70b-instruct:free",
-      "contextLength": 131_072,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "Llama 3.2 3B Instruct",
-      "id": "meta-llama/llama-3.2-3b-instruct:free",
-      "contextLength": 131_072,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "Hermes 3 Llama 3.1 405B",
-      "id": "nousresearch/hermes-3-llama-3.1-405b:free",
-      "contextLength": 131_072,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "Laguna XS 2.1",
-      "id": "poolside/laguna-xs-2.1:free",
-      "contextLength": 262_000,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "Laguna XS 2",
-      "id": "poolside/laguna-xs.2:free",
-      "contextLength": 262_000,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "Laguna M 1",
-      "id": "poolside/laguna-m.1:free",
-      "contextLength": 262_000,
       "free": true,
       "type": "text"
     },
@@ -1346,27 +1283,6 @@ export const LANGUAGE_MODELS = [
       "free": true,
       "type": "text"
     },
-    {
-      "name": "LFM 2.5 1.2B Thinking",
-      "id": "liquid/lfm-2.5-1.2b-thinking:free",
-      "contextLength": 33_000,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "LFM 2.5 1.2B Instruct",
-      "id": "liquid/lfm-2.5-1.2b-instruct:free",
-      "contextLength": 33_000,
-      "free": true,
-      "type": "text"
-    },
-    {
-      "name": "OpenRouter Free (rotating)",
-      "id": "openrouter/free",
-      "contextLength": 200_000,
-      "free": true,
-      "type": "text"
-    }
   ]
 }
 ];
@@ -1379,26 +1295,26 @@ export const LANGUAGE_PROVIDERS = LANGUAGE_MODELS.map((p) =>
 /**
  * Guest-safe models that are known to work reliably.
  * Based on test results: only models with HTTP 200 status.
+ * Last tested: 2026-07-22
  */
 export const GUEST_SAFE_MODELS = {
+  nvidia: [
+    "nvidia/nemotron-3-super-120b-a12b",
+    "meta/llama-3.1-8b-instruct",
+  ],
   openrouter: [
     "openrouter/free",
     "nvidia/nemotron-3-super-120b-a12b:free",
     "nvidia/nemotron-3-ultra-550b-a55b:free",
     "nvidia/nemotron-3-nano-30b-a3b:free",
     "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    "nvidia/nemotron-nano-12b-v2-vl:free",
     "nvidia/nemotron-nano-9b-v2:free",
     "nvidia/nemotron-3.5-content-safety:free",
     "google/gemma-4-31b-it:free",
     "google/gemma-4-26b-a4b-it:free",
     "openai/gpt-oss-20b:free",
-    "poolside/laguna-xs-2.1:free",
-    "poolside/laguna-m.1:free",
     "cohere/north-mini-code:free",
-  ],
-  nvidia: [
-    "nvidia/nemotron-3-super-120b-a12b",
-    "meta/llama-3.1-8b-instruct",
   ],
 };
 
