@@ -83,4 +83,4 @@ export { default as VoiceSettingsPanel } from './components/VoiceSettings/VoiceS
 export { default as KokoroVoiceSelector } from './components/VoiceSettings/KokoroVoiceSelector';
 
 // ============ Utilities ============
-export { cn, formatTimeDifference } from './lib/utils';
+export { cn, formatTimeDifference, formatMessageTime } from './lib/utils';
