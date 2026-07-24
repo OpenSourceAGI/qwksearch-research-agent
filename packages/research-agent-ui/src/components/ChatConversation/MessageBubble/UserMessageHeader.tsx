@@ -5,7 +5,7 @@
 
 import React, { useRef } from 'react';
 import { ChevronDown, ChevronRight, Check, ClipboardList, Pencil } from 'lucide-react';
-import { cn } from '../../../lib/utils';
+import { cn, formatMessageTime } from '../../../lib/utils';
 import { Section } from '../../../hooks/useChat';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../../../ui/tooltip';
 
@@ -58,8 +58,20 @@ const UserMessageHeader = ({
                 </h2>
             </button>
 
-            {/* User message actions: copy & edit */}
+            {/* User message actions: timestamp, copy & edit */}
             <div className="flex items-center gap-0.5 mt-1 ml-10">
+                {(() => {
+                    const timestamp = formatMessageTime(section.userMessage.createdAt);
+                    return timestamp ? (
+                        <time
+                            dateTime={new Date(section.userMessage.createdAt).toISOString()}
+                            className="mr-1.5 text-xs text-muted-foreground tabular-nums select-none"
+                        >
+                            {timestamp}
+                        </time>
+                    ) : null;
+                })()}
+
                 <Tooltip>
                     <TooltipTrigger asChild>
                         <button

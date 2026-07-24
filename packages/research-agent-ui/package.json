@@ -40,6 +40,8 @@
     "dev:cloudflare": "npm run build:cloudflare && wrangler dev --config wrangler.local.jsonc",
     "deploy:cloudflare": "npm run build:cloudflare && wrangler deploy --config wrangler.local.jsonc",
     "type-check": "tsc --noEmit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
     "prepublishOnly": "bun run build"
   },
   "keywords": [
@@ -93,8 +95,12 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/turndown": "^5.0.5",
+    "@storybook/react-vite": "^9.0.0",
+    "@tailwindcss/vite": "^4.3.0",
     "@vitejs/plugin-react": "^6.0.3",
     "itty-router": "^5.0.24",
+    "storybook": "^9.0.0",
+    "tailwindcss": "^4.3.0",
     "next": "^16.2.10",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",

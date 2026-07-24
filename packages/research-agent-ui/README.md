@@ -68,6 +68,24 @@ function App() {
 }
 ```
 
+## Storybook
+
+Individual UI pieces can be browsed in isolation with [Storybook](https://storybook.js.org/).
+Stories render against **mock data only** (see `src/stories/mocks.ts`) — no API,
+auth session, or chat backend is required, so you can develop and review the
+chat components (message header with timestamp/copy/edit actions, search
+progress, follow-up suggestions, file & pasted-content cards) on their own.
+
+```bash
+# from packages/research-agent-ui
+bun run storybook        # dev server on http://localhost:6006
+bun run build-storybook  # static build → storybook-static/
+```
+
+A light/dark toggle in the toolbar switches between the two token palettes
+(mirrored from the host app's `globals.css` in `.storybook/preview.css`). Add
+new stories next to their component as `*.stories.tsx`.
+
 ## API Routes (`research-agent-ui/api`)
 
 All 25 Next.js route handlers are exported from the `research-agent-ui/api`

@@ -5,6 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Formats a message timestamp as a short, locale-aware clock time (e.g. "12:29 PM").
+ * Returns an empty string when the value can't be parsed into a valid date.
+ */
+export const formatMessageTime = (date: Date | string | number): string => {
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return '';
+  return parsed.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+};
+
 export const formatTimeDifference = (
   date1: Date | string,
   date2: Date | string,
