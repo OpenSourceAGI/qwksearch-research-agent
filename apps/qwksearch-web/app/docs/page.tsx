@@ -2,8 +2,12 @@
 
 export default function Page() {
   return (
-    <div className="flex h-screen w-screen items-center justify-center text-muted-foreground">
-      <p>The docs editor is currently unavailable.</p>
-    </div>
+    <iframe
+      src="https://edit.qwksearch.com/"
+      title="Reason - Research Manager"
+      className="h-full w-full border-0"
+      allow="clipboard-read; clipboard-write; microphone; camera; fullscreen"
+      allowFullScreen
+    />
   )
 }

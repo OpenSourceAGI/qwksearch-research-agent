@@ -2,7 +2,12 @@
 <br /> 
     <a href="https://www.npmjs.com/package/research-agent-ui"><img src="https://img.shields.io/npm/dm/research-agent-ui.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/research-agent-ui"><img src="https://img.shields.io/npm/v/research-agent-ui.svg" alt="npm version"></a>
-    <a href="https://bundlephobia.com/package/research-agent-ui"><img src="https://img.shields.io/bundlephobia/minzip/research-agent-ui" alt="Size"></a>
+    <a href="https://bundlephobia.com/package/research-agent-ui" target="_blank" rel="noopener noreferrer">
+  <img
+    src="https://img.shields.io/bundlephobia/minzip/research-agent-ui?style=flat&label=size"
+    alt="npm bundle size "
+  />
+</a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />
@@ -67,6 +72,24 @@ function App() {
   );
 }
 ```
+
+## Storybook
+
+Individual UI pieces can be browsed in isolation with [Storybook](https://storybook.js.org/).
+Stories render against **mock data only** (see `src/stories/mocks.ts`) — no API,
+auth session, or chat backend is required, so you can develop and review the
+chat components (message header with timestamp/copy/edit actions, search
+progress, follow-up suggestions, file & pasted-content cards) on their own.
+
+```bash
+# from packages/research-agent-ui
+bun run storybook        # dev server on http://localhost:6006
+bun run build-storybook  # static build → storybook-static/
+```
+
+A light/dark toggle in the toolbar switches between the two token palettes
+(mirrored from the host app's `globals.css` in `.storybook/preview.css`). Add
+new stories next to their component as `*.stories.tsx`.
 
 ## API Routes (`research-agent-ui/api`)
 
