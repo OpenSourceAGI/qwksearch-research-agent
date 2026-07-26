@@ -68,4 +68,38 @@ describe('rerankDocs with an uploaded file loader', () => {
     const result = await rerankDocs('analyze', [], [], 'balanced');
     expect(result).toEqual([]);
   });
+
+  it('keeps uploaded file content for a "summarize" query', async () => {
+    // Regression: a "summarize" query (typed by the user, or emitted by the
+    // query rephraser for link-only requests) used to early-return only the
+    // web docs, dropping uploaded attachments before they reached the LLM.
+    registerUploadFileLoader(async (fileId) => ({
+      title: `Title ${fileId}`,
+      content: `FILE_${fileId}`,
+    }));
+
+    const webDocs: Document[] = [
+      { pageContent: 'WEB_BODY', metadata: { title: 'Web', url: 'https://x.test' } },
+    ];
+
+    const result = await rerankDocs('summarize', webDocs, ['abc'], 'balanced');
+
+    // File content comes first and is present in the LLM context.
+    expect(result[0].pageContent).toBe('FILE_abc');
+    const context = processDocs(result);
+    expect(context).toContain('FILE_abc');
+  });
+
+  it('resolves uploaded files for a "summarize" query even with no web docs', async () => {
+    registerUploadFileLoader(async (fileId) => ({
+      title: 'Uploaded',
+      content: `FILE_${fileId}`,
+    }));
+
+    const result = await rerankDocs('Summarize', [], ['only-file'], 'balanced');
+
+    expect(result).toHaveLength(1);
+    expect(result[0].pageContent).toBe('FILE_only-file');
+    expect(result[0].metadata.url).toBe('File');
+  });
 });
