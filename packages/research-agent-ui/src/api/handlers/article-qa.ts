@@ -1,3 +1,4 @@
+import { generateText } from "ai";
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import type { ModelWithProvider } from "chat-agent-toolkit/config/config-types";
 import type { ArticleDeps } from "../types";
@@ -62,15 +63,13 @@ User question: ${question}
 
 Please provide a helpful answer based on the article content above.`;
 
-      const stream = await llm.stream([
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ]);
-
-      let fullResponse = "";
-      for await (const chunk of stream) {
-        fullResponse += chunk.content;
-      }
+      const { text: fullResponse } = await generateText({
+        model: llm,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      });
 
       return Response.json({ content: fullResponse, success: true });
     } catch (error) {

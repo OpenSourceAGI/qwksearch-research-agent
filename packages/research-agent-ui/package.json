@@ -65,6 +65,7 @@
     "@radix-ui/react-slot": "^1.2.5",
     "@radix-ui/react-tooltip": "^1.2.9",
     "@ricky0123/vad-web": "^0.0.30",
+    "ai": "^5.0.0",
     "chat-agent-toolkit": "workspace:*",
     "domain-rank": "workspace:*",
     "drizzle-orm": "^0.45.2",
