@@ -89,6 +89,8 @@ export interface Chat {
   id: string;
   title: string;
   createdAt: string;
+  /** Timestamp of the most recent message, used for "last active" display. */
+  lastMessageAt?: string | null;
   focusMode: string;
   userId?: string | null;
   files?: ChatFile[];
