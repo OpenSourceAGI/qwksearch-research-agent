@@ -266,8 +266,36 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     }
   };
 
+  /**
+   * Resolve the chat model to use for Ask / Suggest, mirroring the chat input.
+   *
+   * The panel can render without a mounted ModelSelector, in which case the
+   * ChatProvider's `chatModelProvider` is still the empty default and sending
+   * it makes the article-qa/followups endpoints fail. The chat input persists
+   * its selection in localStorage (`chatModelProviderId` / `chatModelKey`), so
+   * fall back to those keys to reuse the exact same model the user picked.
+   */
+  const resolveChatModel = () => {
+    if (chatModelProvider?.key && chatModelProvider?.providerId) {
+      return chatModelProvider;
+    }
+    try {
+      const key = localStorage.getItem('chatModelKey') || '';
+      const providerId = localStorage.getItem('chatModelProviderId') || '';
+      if (key && providerId) {
+        return { key, providerId };
+      }
+    } catch (error) {
+      console.error('Error reading persisted chat model:', error);
+    }
+    // Let the server pick its default provider/model when nothing is selected.
+    return chatModelProvider;
+  };
+
   const callLanguageAPI = async (agent: 'question' | 'suggest-followups') => {
     if (!extractedArticle) return;
+
+    const chatModel = resolveChatModel();
 
     const article = extractedArticle.html
       ?.replace(/<[^>]*>?/g, '')
@@ -294,12 +322,13 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
             article,
             question: queryText,
             chatHistory: chatHistory.slice(-5),
-            chatModel: chatModelProvider,
+            chatModel,
           },
         });
 
         if (error) {
-          const errorDetails = (error as any).error || (error as any).message || 'Article QA failed';
+          const errorDetails =
+            (error as any).details || (error as any).error || (error as any).message || 'Article QA failed';
           throw new Error(errorDetails);
         }
 
@@ -329,12 +358,13 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
             article,
             chatHistory: chatHistory.slice(-5),
             maxQuestions,
-            chatModel: chatModelProvider,
+            chatModel,
           },
         });
 
         if (error) {
-          const errorDetails = (error as any).error || (error as any).message || 'Article followups failed';
+          const errorDetails =
+            (error as any).details || (error as any).error || (error as any).message || 'Article followups failed';
           throw new Error(errorDetails);
         }
 
