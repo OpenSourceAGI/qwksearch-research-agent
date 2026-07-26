@@ -1,3 +1,4 @@
+import { generateText } from "ai";
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import type { ModelWithProvider } from "chat-agent-toolkit/config/config-types";
 import type { ArticleDeps } from "../types";
@@ -55,15 +56,13 @@ ${historyContext}
 
 Generate ${maxQuestions} follow-up questions that would help readers dive deeper into this article.`;
 
-      const stream = await llm.stream([
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ]);
-
-      let fullResponse = "";
-      for await (const chunk of stream) {
-        fullResponse += chunk.content;
-      }
+      const { text: fullResponse } = await generateText({
+        model: llm,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      });
 
       const questions = fullResponse
         .split("\n")
