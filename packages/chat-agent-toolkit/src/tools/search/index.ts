@@ -10,5 +10,5 @@ export { default as generateSuggestions } from "./suggestionGeneratorAgent";
 export { groupAndSummarizeDocs } from "./link-summarizer";
 export type { Document } from "./document";
 export { splitTextIntoChunks } from "./document";
-export { buildFallbackDocs, rerankDocs, processDocs, normalizeSourcesOutput, registerUploadFileLoader } from "./doc-utils";
-export type { UploadFileLoader } from "./doc-utils";
+export { buildFallbackDocs, rerankDocs, processDocs, normalizeSourcesOutput, registerUploadFileLoader, loadUploadImages } from "./doc-utils";
+export type { UploadFileLoader, LoadedUpload, UploadImageAttachment } from "./doc-utils";

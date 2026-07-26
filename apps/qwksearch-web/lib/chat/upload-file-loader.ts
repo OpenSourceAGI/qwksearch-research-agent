@@ -24,6 +24,11 @@ export function ensureUploadFileLoaderRegistered(): void {
   registerUploadFileLoader(async (fileId: string) => {
     const extracted = await getExtractedUpload(fileId);
     if (!extracted) return null;
-    return { title: extracted.title, content: extracted.content };
+    return {
+      title: extracted.title,
+      content: extracted.content,
+      ...(extracted.mediaType ? { mediaType: extracted.mediaType } : {}),
+      ...(extracted.image ? { image: extracted.image } : {}),
+    };
   });
 }

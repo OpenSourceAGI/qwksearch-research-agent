@@ -38,12 +38,26 @@ export interface AssistantMessage extends BaseMessage {
 }
 
 /**
+ * A file attached to a chat message, shown inline in the conversation flow.
+ */
+export interface MessageFile {
+  /** Original file name (e.g. "report.pdf"). */
+  fileName: string;
+  /** File extension without the dot (e.g. "pdf", "png"). */
+  fileExtension: string;
+  /** Unique identifier of the uploaded file. */
+  fileId: string;
+}
+
+/**
  * Represents a message sent by the user.
  */
 export interface UserMessage extends BaseMessage {
   role: 'user';
   /** The text content of the user message */
   content: string;
+  /** Files the user attached to this message, if any. */
+  files?: MessageFile[];
 }
 
 /**

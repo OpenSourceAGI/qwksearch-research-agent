@@ -8,6 +8,7 @@ import { ChevronDown, ChevronRight, Check, ClipboardList, Pencil } from 'lucide-
 import { cn, formatMessageTime } from '../../../lib/utils';
 import { Section } from '../../../hooks/useChat';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../../../ui/tooltip';
+import MessageAttachments from './MessageAttachments';
 
 interface UserMessageHeaderProps {
     section: Section;
@@ -113,6 +114,9 @@ const UserMessageHeader = ({
                     <TooltipContent side="bottom">Edit &amp; resubmit</TooltipContent>
                 </Tooltip>
             </div>
+
+            {/* Files attached to this message */}
+            <MessageAttachments files={section.userMessage.files} />
 
             {/* Inline edit form */}
             {isEditing && (

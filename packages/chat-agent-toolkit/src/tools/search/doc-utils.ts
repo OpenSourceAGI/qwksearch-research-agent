@@ -36,14 +36,30 @@ export function normalizeSourcesOutput(output: unknown, query: string): Document
   return buildFallbackDocs(query);
 }
 
+/** The payload resolved for an uploaded fileId. */
+export interface LoadedUpload {
+  title: string;
+  content: string;
+  /** MIME type for image uploads (e.g. `"image/png"`). */
+  mediaType?: string;
+  /** `data:`/`http(s)` URL of an image upload, passed to the LLM as image content. */
+  image?: string;
+}
+
+/** An image attachment resolved from an uploaded fileId. */
+export interface UploadImageAttachment {
+  mediaType: string;
+  /** `data:`/`http(s)` URL of the image, ready for an AI SDK image content part. */
+  image: string;
+}
+
 /**
- * Resolves an uploaded fileId to its extracted `{ title, content }` payload.
- * Hosts register a loader (e.g. reading the native R2 binding) so the search
- * pipeline does not depend on filesystem or credential-based access.
+ * Resolves an uploaded fileId to its extracted payload. Hosts register a loader
+ * (e.g. reading the native R2 binding) so the search pipeline does not depend
+ * on filesystem or credential-based access. Image uploads additionally carry
+ * `mediaType` and `image` so they can be passed to the LLM directly.
  */
-export type UploadFileLoader = (
-  fileId: string,
-) => Promise<{ title: string; content: string } | null>;
+export type UploadFileLoader = (fileId: string) => Promise<LoadedUpload | null>;
 
 let uploadFileLoader: UploadFileLoader | null = null;
 
@@ -56,7 +72,7 @@ export function registerUploadFileLoader(loader: UploadFileLoader): void {
   uploadFileLoader = loader;
 }
 
-async function downloadExtractedContent(fileId: string, r2Credentials: R2CredentialsInput): Promise<{ title: string; content: string } | null> {
+async function downloadExtractedContent(fileId: string, r2Credentials: R2CredentialsInput): Promise<LoadedUpload | null> {
   try {
     const { manageStorage } = await import("manage-storage");
     const config = {
@@ -69,11 +85,67 @@ async function downloadExtractedContent(fileId: string, r2Credentials: R2Credent
     const extractedKey = `${fileId}-extracted.json`;
     const data = await manageStorage("download", { ...config, key: extractedKey });
     const parsed = JSON.parse(data);
-    return { title: parsed.title || "Uploaded Document", content: parsed.content || "" };
+    return {
+      title: parsed.title || "Uploaded Document",
+      content: parsed.content || "",
+      ...(parsed.mediaType ? { mediaType: parsed.mediaType } : {}),
+      ...(parsed.image ? { image: parsed.image } : {}),
+    };
   } catch (error) {
     console.error(`[rerankDocs] Failed to download extracted content for fileId ${fileId}:`, error);
     return null;
   }
+}
+
+/**
+ * Resolves a single uploaded fileId via the registered loader (preferred) or
+ * the R2 credentials fallback. Returns `null` when neither can resolve it.
+ */
+async function resolveUpload(
+  fileId: string,
+  r2Credentials?: R2CredentialsInput,
+): Promise<LoadedUpload | null> {
+  if (uploadFileLoader) {
+    try {
+      const loaded = await uploadFileLoader(fileId);
+      if (loaded) return loaded;
+    } catch (error) {
+      console.error(
+        `[resolveUpload] Registered upload loader failed for fileId ${fileId}:`,
+        error,
+      );
+    }
+  }
+  if (r2Credentials) {
+    return downloadExtractedContent(fileId, r2Credentials);
+  }
+  return null;
+}
+
+/**
+ * Resolves image attachments for the given uploaded fileIds so they can be
+ * passed to the LLM as image content parts. Non-image uploads (documents) and
+ * images stored without inline data are skipped.
+ */
+export async function loadUploadImages(
+  fileIds: string[],
+  r2Credentials?: R2CredentialsInput,
+): Promise<UploadImageAttachment[]> {
+  if (!fileIds || fileIds.length === 0) return [];
+
+  const resolved = await Promise.all(
+    fileIds.map((fileId) => resolveUpload(fileId, r2Credentials)),
+  );
+
+  return resolved
+    .filter(
+      (r): r is LoadedUpload =>
+        r !== null && typeof r.image === "string" && r.image.length > 0,
+    )
+    .map((r) => ({
+      mediaType: r.mediaType || "image/png",
+      image: r.image as string,
+    }));
 }
 
 export async function rerankDocs(
@@ -87,37 +159,25 @@ export async function rerankDocs(
     return docs;
   }
 
-  let filesData: { title: string; content: string }[] = [];
+  let filesData: LoadedUpload[] = [];
 
   if (fileIds.length > 0) {
     const results = await Promise.all(
-      fileIds.map(async (fileId) => {
-        if (uploadFileLoader) {
-          try {
-            const loaded = await uploadFileLoader(fileId);
-            if (loaded) return loaded;
-          } catch (error) {
-            console.error(
-              `[rerankDocs] Registered upload loader failed for fileId ${fileId}:`,
-              error,
-            );
-          }
-        }
-        if (r2Credentials) {
-          return downloadExtractedContent(fileId, r2Credentials);
-        }
-        return null;
-      }),
+      fileIds.map((fileId) => resolveUpload(fileId, r2Credentials)),
     );
-    filesData = results.filter((r) => r !== null);
+    filesData = results.filter((r): r is LoadedUpload => r !== null);
   }
 
-  // Uploaded files must always reach the LLM. Build their docs up front so
-  // every return path below keeps them in the answer context.
-  const fileDocs: Document[] = filesData.map((fileData) => ({
-    pageContent: fileData.content,
-    metadata: { title: fileData.title, url: "File" },
-  }));
+  // Uploaded documents must always reach the LLM. Build their docs up front so
+  // every return path below keeps them in the answer context. Image uploads
+  // carry no text content — they are passed separately as image parts (see
+  // loadUploadImages) — so they are excluded here to avoid empty docs.
+  const fileDocs: Document[] = filesData
+    .filter((fileData) => fileData.content && fileData.content.length > 0)
+    .map((fileData) => ({
+      pageContent: fileData.content,
+      metadata: { title: fileData.title, url: "File" },
+    }));
 
   if (query.toLocaleLowerCase() === "summarize") {
     // Skip web-result reranking for an explicit "summarize" request, but keep

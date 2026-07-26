@@ -13,7 +13,7 @@ import {
 } from "../../components/ChatConversation/ChatWindow";
 import { getSuggestions } from "../../lib/suggestions";
 import { researchAgentUIConfig } from "../../config";
-import { ChatModelProvider } from "../../types/chat";
+import { ChatModelProvider, ChatFile } from "../../types/chat";
 import { agentChat, saveMessage } from "qwksearch-api-client";
 
 const ARTICLE_PREFETCH_COUNT = 3;
@@ -65,6 +65,8 @@ export interface SendMessageDeps {
   messages: Message[];
   /** IDs of files attached to the chat */
   fileIds: string[];
+  /** Full metadata of files attached to the chat (for inline display). */
+  files: ChatFile[];
   /** Current search/focus mode */
   focusMode: string;
   /** Current category for search filtering */
@@ -133,6 +135,7 @@ export async function sendMessage(
     loading,
     messages,
     fileIds,
+    files,
     focusMode,
     category,
     optimizationMode,
@@ -195,6 +198,10 @@ export async function sendMessage(
   // Generate or use provided message ID
   const messageId = providedMessageId ?? generateMessageId();
 
+  // Snapshot the files attached at send time so they render inline with this
+  // specific user message (the chat-level attachment list is cleared after send).
+  const attachedFiles: ChatFile[] = Array.isArray(files) ? [...files] : [];
+
   // Add user message to chat immediately
   setMessages((prevMessages) => [
     ...prevMessages,
@@ -204,6 +211,7 @@ export async function sendMessage(
       chatId: chatId,
       role: "user",
       createdAt: new Date(),
+      ...(attachedFiles.length > 0 ? { files: attachedFiles } : {}),
     },
   ]);
 

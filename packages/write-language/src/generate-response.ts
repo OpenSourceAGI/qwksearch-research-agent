@@ -13,12 +13,14 @@ import type {
   AgentTool,
   GenerateLanguageOptions,
   GenerateLanguageResult,
+  LanguageAttachment,
 } from "./generation-types";
 
 export type {
   LLMProviderName,
   GenerateLanguageOptions,
   GenerateLanguageResult,
+  LanguageAttachment,
 } from "./generation-types";
 export { convertMarkdownToHTMLEscaped } from "./utils/markdown-to-html";
 
@@ -61,6 +63,7 @@ export async function writeLanguageResponse(
     temperature = 1,
     html = true,
     applyContextLimit = true,
+    attachments,
     ...context
   } = options;
 
@@ -144,10 +147,23 @@ export async function writeLanguageResponse(
         : undefined;
 
     // \u2500\u2500 8. Invoke LLM via Vercel AI SDK generateText \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    // When files/images are attached, issue a multimodal `messages` request so
+    // the model receives the uploaded content directly. Otherwise fall back to
+    // the simpler `prompt` form.
+    const fileParts = buildAttachmentParts(attachments);
     const { text: rawReply } = await generateText({
       model: llm,
-      prompt,
       temperature,
+      ...(fileParts.length > 0
+        ? {
+            messages: [
+              {
+                role: "user" as const,
+                content: [{ type: "text" as const, text: prompt }, ...fileParts],
+              },
+            ],
+          }
+        : { prompt }),
       ...(tools && { tools, stopWhen: stepCountIs(10) }),
     });
 
@@ -170,6 +186,42 @@ export async function writeLanguageResponse(
             "Failed to generate response. Please try again later."),
     };
   }
+}
+
+/**
+ * Converts {@link LanguageAttachment}s into Vercel AI SDK message content
+ * parts. `image/*` attachments (or those with `kind: "image"`) become
+ * `image` parts; everything else becomes a `file` part carrying its
+ * `mediaType`. Attachments without usable data are skipped.
+ *
+ * @param attachments - File/image attachments from the caller
+ * @returns An array of AI SDK content parts (empty when none are supplied)
+ */
+function buildAttachmentParts(
+  attachments: LanguageAttachment[] | undefined,
+): Array<
+  | { type: "image"; image: LanguageAttachment["data"] }
+  | { type: "file"; data: LanguageAttachment["data"]; mediaType: string; filename?: string }
+> {
+  if (!Array.isArray(attachments) || attachments.length === 0) return [];
+
+  return attachments
+    .filter((a) => a && a.data != null && a.mediaType)
+    .map((a) => {
+      const isImage =
+        a.kind === "image" ||
+        (a.kind !== "file" && a.mediaType.toLowerCase().startsWith("image/"));
+
+      if (isImage) {
+        return { type: "image" as const, image: a.data };
+      }
+      return {
+        type: "file" as const,
+        data: a.data,
+        mediaType: a.mediaType,
+        ...(a.filename ? { filename: a.filename } : {}),
+      };
+    });
 }
 
 /**

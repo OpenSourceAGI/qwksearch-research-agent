@@ -83,13 +83,18 @@ import {
   originalObjectKey,
   extractedObjectKey,
   extractUploadText,
+  buildExtractedUpload,
   storeUpload,
   getExtractedUpload,
   getUserUploadQuota,
   deleteUploadObjects,
+  imageMediaType,
+  isImageExtension,
   MAX_FILE_SIZE_BYTES,
+  MAX_INLINE_IMAGE_BYTES,
   USER_STORAGE_QUOTA_BYTES,
   SUPPORTED_UPLOAD_EXTENSIONS,
+  SUPPORTED_IMAGE_EXTENSIONS,
 } from '../index'
 
 beforeEach(() => {
@@ -149,6 +154,53 @@ describe('extractUploadText', () => {
     const { convertPDFToHTML } = await import('extract-pdf')
     ;(convertPDFToHTML as any).mockRejectedValueOnce(new Error('boom'))
     expect(await extractUploadText(Buffer.from('%PDF'), 'a.pdf', 'pdf')).toBe('')
+  })
+})
+
+describe('image helpers', () => {
+  it('accepts image extensions for upload', () => {
+    expect(SUPPORTED_UPLOAD_EXTENSIONS).toContain('png')
+    expect(SUPPORTED_UPLOAD_EXTENSIONS).toContain('jpg')
+    expect(SUPPORTED_IMAGE_EXTENSIONS).toContain('webp')
+  })
+
+  it('maps extensions to image MIME types', () => {
+    expect(imageMediaType('png')).toBe('image/png')
+    expect(imageMediaType('JPG')).toBe('image/jpeg')
+    expect(imageMediaType('jpeg')).toBe('image/jpeg')
+    expect(imageMediaType('svg')).toBe('image/svg+xml')
+  })
+
+  it('recognises image extensions', () => {
+    expect(isImageExtension('PNG')).toBe(true)
+    expect(isImageExtension('pdf')).toBe(false)
+  })
+})
+
+describe('buildExtractedUpload', () => {
+  it('extracts text for documents (no image fields)', async () => {
+    const out = await buildExtractedUpload(
+      Buffer.from('hello world', 'utf-8'),
+      'notes.txt',
+      'txt',
+    )
+    expect(out).toEqual({ title: 'notes.txt', content: 'hello world' })
+  })
+
+  it('inlines a small image as a base64 data URL with its mediaType', async () => {
+    const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47])
+    const out = await buildExtractedUpload(bytes, 'pic.png', 'png')
+    expect(out.title).toBe('pic.png')
+    expect(out.content).toBe('')
+    expect(out.mediaType).toBe('image/png')
+    expect(out.image).toBe(`data:image/png;base64,${bytes.toString('base64')}`)
+  })
+
+  it('omits inline data for images above the size cap', async () => {
+    const big = Buffer.alloc(MAX_INLINE_IMAGE_BYTES + 1)
+    const out = await buildExtractedUpload(big, 'huge.jpg', 'jpg')
+    expect(out.mediaType).toBe('image/jpeg')
+    expect(out.image).toBeUndefined()
   })
 })
 
