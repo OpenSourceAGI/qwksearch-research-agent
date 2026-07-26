@@ -37,6 +37,15 @@ export interface ResearchAgentUIConfig {
   googleApiKey: string;
   /** Whether to auto-trigger image/video media search after a response completes. */
   getAutoMediaSearch: () => boolean;
+  /**
+   * Requests that the settings UI be opened. Lets the consuming app render
+   * settings in a modal (e.g. on large desktop screens) instead of navigating
+   * to the `/settings` route. Return `true` when the request was handled — the
+   * caller then skips route navigation; return `false`/`undefined` to fall back
+   * to navigating to the settings page (e.g. on small screens). `section`
+   * optionally deep-links to a specific settings tab.
+   */
+  onOpenSettings?: (section?: string) => boolean;
 }
 
 export const researchAgentUIConfig: ResearchAgentUIConfig = {
