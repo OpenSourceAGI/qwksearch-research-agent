@@ -1,16 +1,22 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Settings, LogIn, LogOut } from "lucide-react"
+import { Settings, LogIn, LogOut, Link2 } from "lucide-react"
+import * as LucideIcons from "lucide-react"
 import {
   CategoryDock as BaseCategoryDock,
   type DockNavItem,
   ThemeMenu,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "shadcn-app-dock"
 import { useSession, useChat } from "research-agent-ui"
+import { listFooterLinks } from "@/lib/config/site"
 import iconRead from "../icons/icon-read.svg"
 import iconConfigure from "../icons/icon-configure.svg"
 
@@ -58,6 +64,33 @@ export function CategoryDock() {
               <Settings className="mr-2 h-3.5 w-3.5" />
               <span className="text-sm">Settings</span>
             </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="cursor-pointer py-1 h-7">
+                <Link2 className="mr-2 h-3.5 w-3.5" />
+                <span className="text-sm">Site Links</span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {listFooterLinks.map(({ url, text, icon }) => {
+                  const IconComponent = icon ? (LucideIcons as any)[icon] : null
+                  const isExternal = url.startsWith("http")
+                  return (
+                    <DropdownMenuItem key={url} asChild className="cursor-pointer py-1 h-7">
+                      {isExternal ? (
+                        <a href={url} target="_blank" rel="noopener noreferrer">
+                          {IconComponent && <IconComponent className="mr-2 h-3.5 w-3.5" />}
+                          <span className="text-sm">{text}</span>
+                        </a>
+                      ) : (
+                        <Link href={url}>
+                          {IconComponent && <IconComponent className="mr-2 h-3.5 w-3.5" />}
+                          <span className="text-sm">{text}</span>
+                        </Link>
+                      )}
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             {isAuthenticated ? (
               <DropdownMenuItem onClick={() => signOut()} className="cursor-pointer py-1 h-7">
                 <LogOut className="mr-2 h-3.5 w-3.5" />
