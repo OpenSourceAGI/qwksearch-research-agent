@@ -11,9 +11,10 @@ import LexicalArticleViewer from './LexicalArticleViewer';
 interface ArticleContentProps {
   article: Article;
   isHighlightMode: boolean;
+  fontScale?: number;
 }
 
-const ArticleContent: React.FC<ArticleContentProps> = ({ article, isHighlightMode }) => {
+const ArticleContent: React.FC<ArticleContentProps> = ({ article, isHighlightMode, fontScale = 1 }) => {
   return (
     <div className="border-t border-border pt-6">
       <div>
@@ -43,6 +44,7 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ article, isHighlightMod
           <LexicalArticleViewer
             html={article.html || ''}
             isHighlightMode={isHighlightMode}
+            fontScale={fontScale}
           />
         </div>
       </div>

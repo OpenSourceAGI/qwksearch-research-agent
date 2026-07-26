@@ -68,7 +68,34 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   const [panelWidth, setPanelWidth] = useState(contextPanelWidth);
   const [isResizing, setIsResizing] = useState(false);
   const [isPanelReady, setIsPanelReady] = useState(false);
+  const [fontScale, setFontScale] = useState(1);
   const resizeRef = useRef<HTMLDivElement>(null);
+
+  const MIN_FONT_SCALE = 0.8;
+  const MAX_FONT_SCALE = 1.8;
+  const FONT_SCALE_STEP = 0.1;
+
+  // Restore the reader's preferred zoom level
+  useEffect(() => {
+    const stored = parseFloat(localStorage.getItem('articleFontScale') || '');
+    if (!Number.isNaN(stored)) {
+      setFontScale(Math.min(MAX_FONT_SCALE, Math.max(MIN_FONT_SCALE, stored)));
+    }
+  }, []);
+
+  const persistFontScale = (scale: number) => {
+    const clamped = Math.min(MAX_FONT_SCALE, Math.max(MIN_FONT_SCALE, Math.round(scale * 100) / 100));
+    setFontScale(clamped);
+    try {
+      localStorage.setItem('articleFontScale', String(clamped));
+    } catch (error) {
+      console.error('Error storing article font scale:', error);
+    }
+  };
+
+  const handleZoomIn = () => persistFontScale(fontScale + FONT_SCALE_STEP);
+  const handleZoomOut = () => persistFontScale(fontScale - FONT_SCALE_STEP);
+  const handleZoomReset = () => persistFontScale(1);
 
   // Track window width for desktop/mobile layout
   useEffect(() => {
@@ -355,24 +382,31 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
 
   const renderPanelContent = () => (
     <div className="flex h-full flex-col bg-background shadow-xl">
+      {/* Persistent top bar — stays fixed while the article scrolls */}
+      <div className="shrink-0 border-b border-border bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <ArticleActionButtons
+          isLoadingAI={isLoadingAI}
+          isLoadingFollowups={isLoadingFollowups}
+          isLoadingFavorite={isLoadingFavorite}
+          isFavorited={isFavorited}
+          isHighlightMode={isHighlightMode}
+          articleUrl={extractedArticle?.url || url}
+          fontScale={fontScale}
+          onAskClick={() => callLanguageAPI('question')}
+          onSuggestClick={() => callLanguageAPI('suggest-followups')}
+          onCopyClick={handleCopyHTMLToClipboard}
+          onFavoriteClick={toggleFavorite}
+          onHighlightToggle={() => setIsHighlightMode(!isHighlightMode)}
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onZoomReset={handleZoomReset}
+          onClose={onClose}
+        />
+      </div>
+
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6">
             <div className="space-y-4">
-              <ArticleActionButtons
-                isLoadingAI={isLoadingAI}
-                isLoadingFollowups={isLoadingFollowups}
-                isLoadingFavorite={isLoadingFavorite}
-                isFavorited={isFavorited}
-                isHighlightMode={isHighlightMode}
-                articleUrl={extractedArticle?.url || url}
-                onAskClick={() => callLanguageAPI('question')}
-                onSuggestClick={() => callLanguageAPI('suggest-followups')}
-                onCopyClick={handleCopyHTMLToClipboard}
-                onFavoriteClick={toggleFavorite}
-                onHighlightToggle={() => setIsHighlightMode(!isHighlightMode)}
-                onClose={onClose}
-              />
-
               {showCopiedMessage && (
                 <div className="bg-blue-500 text-white text-sm font-medium px-3 py-2 rounded-md shadow-lg">
                   Copied!
@@ -436,6 +470,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
               <ArticleContent
                 article={extractedArticle}
                 isHighlightMode={isHighlightMode}
+                fontScale={fontScale}
               />
             )}
           </div>

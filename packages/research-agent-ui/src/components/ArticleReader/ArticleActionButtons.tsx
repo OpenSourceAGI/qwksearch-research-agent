@@ -3,7 +3,7 @@
  * shown at the top of the article extract panel.
  */
 import React from 'react';
-import { Bot, MessageCircleQuestion, Clipboard, Star, Highlighter, ExternalLink, X } from 'lucide-react';
+import { Bot, MessageCircleQuestion, Clipboard, Star, Highlighter, ExternalLink, ZoomIn, ZoomOut, X } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { cn } from '../../lib/utils';
 
@@ -14,11 +14,15 @@ interface ArticleActionButtonsProps {
   isFavorited: boolean;
   isHighlightMode: boolean;
   articleUrl?: string;
+  fontScale?: number;
   onAskClick: () => void;
   onSuggestClick: () => void;
   onCopyClick: () => void;
   onFavoriteClick: () => void;
   onHighlightToggle: () => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onZoomReset?: () => void;
   onClose: () => void;
 }
 
@@ -34,13 +38,19 @@ const ArticleActionButtons: React.FC<ArticleActionButtonsProps> = ({
   isFavorited,
   isHighlightMode,
   articleUrl,
+  fontScale,
   onAskClick,
   onSuggestClick,
   onCopyClick,
   onFavoriteClick,
   onHighlightToggle,
+  onZoomIn,
+  onZoomOut,
+  onZoomReset,
   onClose,
 }) => {
+  const showZoomControls = onZoomIn || onZoomOut;
+  const zoomPercent = Math.round((fontScale ?? 1) * 100);
   return (
     <div className="flex flex-nowrap items-center gap-1 rounded-2xl border border-muted bg-gradient-to-b from-background to-muted/30 p-1 shadow-sm">
       <Button
@@ -131,11 +141,42 @@ const ArticleActionButtons: React.FC<ArticleActionButtonsProps> = ({
         </Button>
       )}
 
+      {showZoomControls && (
+        <div className="ml-auto flex items-center gap-0.5 rounded-xl border border-muted/60 bg-muted/20 px-1">
+          <Button
+            onClick={onZoomOut}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-muted/80 hover:text-foreground"
+            title="Zoom out"
+          >
+            <ZoomOut className="size-4" />
+          </Button>
+          <button
+            type="button"
+            onClick={onZoomReset}
+            className="min-w-[3rem] rounded-md px-1 text-center text-xs font-medium tabular-nums text-muted-foreground transition-colors hover:text-foreground"
+            title="Reset zoom"
+          >
+            {zoomPercent}%
+          </button>
+          <Button
+            onClick={onZoomIn}
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-muted/80 hover:text-foreground"
+            title="Zoom in"
+          >
+            <ZoomIn className="size-4" />
+          </Button>
+        </div>
+      )}
+
       <Button
         onClick={onClose}
         variant="ghost"
         size="icon"
-        className={cn(iconButtonClass, "ml-auto")}
+        className={cn(iconButtonClass, !showZoomControls && "ml-auto")}
         title="Close"
       >
         <X className="size-4" />
