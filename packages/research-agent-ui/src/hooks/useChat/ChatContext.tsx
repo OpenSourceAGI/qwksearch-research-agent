@@ -86,6 +86,13 @@ export interface ChatContextValue {
   setFileIds: (fileIds: string[]) => void;
 
   /**
+   * Permanently deletes an uploaded file: removes it from the server, from the
+   * chat-level attachment lists, and from any message it was attached to.
+   * @param fileId - The ID of the uploaded file to delete
+   */
+  deleteAttachedFile: (fileId: string) => Promise<void>;
+
+  /**
    * Sends a message to the chat.
    * @param message - The message content to send
    * @param messageId - Optional custom message ID
@@ -170,6 +177,7 @@ export const chatContext = createContext<ChatContextValue>({
   sendMessage: async () => { },
   setFileIds: () => { },
   setFiles: () => { },
+  deleteAttachedFile: async () => { },
   setFocusMode: () => { },
   setCategory: () => { },
   setOptimizationMode: () => { },

@@ -18,6 +18,7 @@ export type {
   LLMProviderName,
   GenerateLanguageOptions,
   GenerateLanguageResult,
+  LanguageAttachment,
 } from "./generate-response";
 
 export type {

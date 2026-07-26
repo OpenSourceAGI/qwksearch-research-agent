@@ -10,7 +10,12 @@ import { AttachedFile, PastedContent } from "../../types/research";
 import type { ChatFile } from "../../types/chat";
 import { uploadFiles } from "qwksearch-api-client";
 
-const SUPPORTED_EXTS = ["pdf", "docx", "txt", "md", "html", "htm"];
+/** Document types whose text is extracted server-side. */
+const DOCUMENT_EXTS = ["pdf", "docx", "txt", "md", "html", "htm"];
+/** Image types uploaded and passed to the LLM as image content. */
+const IMAGE_EXTS = ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "avif"];
+/** All extensions uploaded to the server (documents + images). */
+const SUPPORTED_EXTS = [...DOCUMENT_EXTS, ...IMAGE_EXTS];
 
 /** Server-enforced limits, mirrored client-side for immediate feedback. */
 const MAX_FILES_PER_REQUEST = 10;
