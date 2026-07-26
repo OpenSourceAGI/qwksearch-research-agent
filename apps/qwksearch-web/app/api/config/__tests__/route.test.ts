@@ -29,12 +29,12 @@ vi.mock('chat-agent-toolkit/models/registry', () => ({
   })),
 }))
 
-vi.mock('@/lib/env', () => ({
+vi.mock('@/lib/config/env', () => ({
   getEnv: vi.fn(),
 }))
 
 import configManager from '@/lib/config'
-import { getEnv } from '@/lib/env'
+import { getEnv } from '@/lib/config/env'
 import ModelRegistry from 'chat-agent-toolkit/models/registry'
 import { GET, POST } from '../route'
 

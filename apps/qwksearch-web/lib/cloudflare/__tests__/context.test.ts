@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { getCloudflareContext } from '../cloudflare-context'
+import { getCloudflareContext } from '../context'
 
 afterEach(() => {
   vi.unstubAllEnvs()

@@ -3,8 +3,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { oneTap, openAPI, magicLink, anonymous } from "better-auth/plugins";
 import { getDB } from "../database";
 import * as schema from "../database/schema";
-import { getCloudflareContext } from "../cloudflare-context";
-import { detectVpnAndLocation } from "../ip-geolocation";
+import { getCloudflareContext } from "../cloudflare/context";
+import { detectVpnAndLocation } from "../cloudflare/ip-geolocation";
 import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../config/site";
 
 export interface Env {

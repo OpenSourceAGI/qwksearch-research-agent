@@ -9,7 +9,7 @@ import { session as sessionTable } from "@/lib/database/schema";
 import { eq } from "drizzle-orm";
 import { initAuth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { detectVpnAndLocation } from "@/lib/ip-geolocation";
+import { detectVpnAndLocation } from "@/lib/cloudflare/ip-geolocation";
 
 export async function GET() {
   const currentSession = await getSession();

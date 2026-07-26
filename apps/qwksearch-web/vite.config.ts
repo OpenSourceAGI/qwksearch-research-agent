@@ -16,7 +16,7 @@ logger.warn = (msg, opts) => {
 // server (rsc/ssr) environments. A few shared modules that read env vars are
 // also reachable from the client bundle, so stub the module there.
 const cloudflareWorkersStub = fileURLToPath(
-  new URL("./lib/cloudflare-workers-stub.ts", import.meta.url),
+  new URL("./lib/cloudflare/workers-stub.ts", import.meta.url),
 );
 
 export default defineConfig(({ command }) => ({
@@ -31,7 +31,6 @@ export default defineConfig(({ command }) => ({
       "qwksearch-api-client/openapi.json": resolve(__dirname, "../../packages/qwksearch-api-client/qwksearch-openapi.json"),
       "qwksearch-api-client": resolve(__dirname, "../../packages/qwksearch-api-client/src"),
       "write-language": resolve(__dirname, "../../packages/write-language/src"),
-      "grab-url": resolve(__dirname, "./lib/api/grab.ts"),
       "search-web-api": resolve(__dirname, "../../packages/search-web-api/src"),
     },
   },

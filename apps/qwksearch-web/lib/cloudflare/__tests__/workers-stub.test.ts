@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import stub, { env } from '../cloudflare-workers-stub'
+import stub, { env } from '../workers-stub'
 
 describe('cloudflare-workers-stub', () => {
   it('exports an empty env object', () => {

@@ -4,7 +4,7 @@ import {
   createAudioURL,
   speakText,
   checkSTTAPI,
-} from '../speech-api'
+} from '../index'
 
 let fetchMock: ReturnType<typeof vi.fn>
 

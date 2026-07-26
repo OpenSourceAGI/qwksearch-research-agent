@@ -28,7 +28,6 @@ export default defineConfig({
       'extract-webpage': resolve(__dirname, '../../packages/extract-webpage/src'),
       'research-agent-ui/api': resolve(__dirname, '../../packages/research-agent-ui/src/api/index.ts'),
       'research-agent-ui': resolve(__dirname, '../../packages/research-agent-ui/src/index.ts'),
-      'grab-url': resolve(__dirname, './lib/api/grab.ts'),
       'domain-rank': resolve(__dirname, '../../packages/domain-rank'),
       'search-web-api': resolve(__dirname, '../../packages/search-web-api/src'),
       'write-language': resolve(__dirname, '../../packages/write-language/src'),

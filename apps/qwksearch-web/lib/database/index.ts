@@ -1,7 +1,7 @@
 import { drizzle as drizzleD1 } from "drizzle-orm/d1";
 import { drizzle as drizzleLibsql } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
-import { getCloudflareContext } from "../cloudflare-context";
+import { getCloudflareContext } from "../cloudflare/context";
 import { cache } from "react";
 import * as schema from "./schema";
 

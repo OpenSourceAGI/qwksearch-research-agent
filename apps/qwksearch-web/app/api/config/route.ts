@@ -7,7 +7,7 @@ import configManager from "@/lib/config";
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { NextRequest, NextResponse } from "next/server";
 import { ConfigModelProvider } from "@/lib/config/types";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/config/env";
 
 type SaveConfigBody = {
   key: string;

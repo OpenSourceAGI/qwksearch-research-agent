@@ -3,7 +3,7 @@
  * Stores encrypted Google auth cookies obtained via Puppeteer login automation.
  */
 
-import { getCloudflareContext } from "../cloudflare-context";
+import { getCloudflareContext } from "../cloudflare/context";
 
 const KV_PREFIX = "notebooklm:creds:";
 
