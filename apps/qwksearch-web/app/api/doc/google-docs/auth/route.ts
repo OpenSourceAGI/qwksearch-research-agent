@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleDocsService } from "@/lib/integrations/googleDocsService";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/config/env";
 
 // GET /api/google-docs/auth - Get OAuth URL for authorization
 export async function GET(request: NextRequest) {

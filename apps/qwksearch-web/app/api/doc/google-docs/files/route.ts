@@ -5,7 +5,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/config/env";
 
 const DRIVE_BASE = "https://www.googleapis.com/drive/v3";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";

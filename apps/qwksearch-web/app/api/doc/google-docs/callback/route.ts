@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleDocsService } from "@/lib/integrations/googleDocsService";
 import { cookies } from "next/headers";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/config/env";
 
 // GET /api/google-docs/callback - OAuth callback handler
 export async function GET(request: NextRequest) {

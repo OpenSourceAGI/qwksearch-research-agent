@@ -2,7 +2,7 @@ import { createAgentsHandler } from "research-agent-ui/api";
 import { getUserId } from "@/lib/auth/session";
 import { getDB } from "@/lib/database";
 import { user as userSchema } from "@/lib/database/schema";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/config/env";
 
 const handler = createAgentsHandler({
   getUserId,

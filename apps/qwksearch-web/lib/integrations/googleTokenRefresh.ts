@@ -1,4 +1,4 @@
-import { getEnv } from "../env";
+import { getEnv } from "../config/env";
 
 export interface TokenRefreshResult {
   accessToken: string;

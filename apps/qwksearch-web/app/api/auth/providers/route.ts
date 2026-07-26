@@ -2,7 +2,7 @@
  * @fileoverview Returns list of configured OAuth providers
  * Used by client to show/hide provider buttons
  */
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/config/env";
 
 export async function GET() {
   const providers: string[] = [];

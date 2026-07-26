@@ -2,7 +2,7 @@
  * Tests for the centralized upload management helpers.
  *
  * The Cloudflare runtime and D1 database are mocked so these run under plain
- * Node: `@/lib/cloudflare-context` exposes an in-memory R2 stub (exercising the
+ * Node: `@/lib/cloudflare/context` exposes an in-memory R2 stub (exercising the
  * native Workers binding path), and `@/lib/database` exposes a hand-rolled
  * Drizzle-shaped query builder backed by controllable in-memory state.
  */
@@ -37,7 +37,7 @@ const mocks = vi.hoisted(() => {
   }
 })
 
-vi.mock('@/lib/cloudflare-context', () => ({
+vi.mock('@/lib/cloudflare/context', () => ({
   getCloudflareContext: () => ({ env: { R2: mocks.r2 }, cf: undefined, ctx: null }),
 }))
 

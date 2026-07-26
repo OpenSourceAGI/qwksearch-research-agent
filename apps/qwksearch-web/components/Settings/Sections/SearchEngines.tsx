@@ -72,7 +72,7 @@ const SearchEngines = ({
 
   const fetchEngines = async () => {
     try {
-      const response = await grab("/api/search/engines");
+      const response = await grab("search/engines");
       const data: CategoryEngines = response.engines || {};
       setEngines(data);
       const first = Object.keys(data).sort()[0];
@@ -87,7 +87,7 @@ const SearchEngines = ({
 
   const loadEnabledEngines = async () => {
     try {
-      const response = await grab("/api/search/engines/status");
+      const response = await grab("search/engines/status");
       setEnabledEngines(new Set(response.enabledEngines || []));
     } catch (error) {
       console.error("Failed to load enabled engines:", error);
@@ -100,7 +100,7 @@ const SearchEngines = ({
     else newEnabled.add(engineName);
     setEnabledEngines(newEnabled);
     try {
-      await grab("/api/search/engines/status", {
+      await grab("search/engines/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabledEngines: Array.from(newEnabled) }),
@@ -116,7 +116,7 @@ const SearchEngines = ({
     setTesting(true);
     setTestResults(new Map());
     try {
-      const response = await grab("/api/search/engines/test", {
+      const response = await grab("search/engines/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ engines: Array.from(enabledEngines) }),
@@ -142,7 +142,7 @@ const SearchEngines = ({
       .map(([name]) => name);
     setEnabledEngines(new Set(workingEngines));
     try {
-      await grab("/api/search/engines/status", {
+      await grab("search/engines/status", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ enabledEngines: workingEngines }),

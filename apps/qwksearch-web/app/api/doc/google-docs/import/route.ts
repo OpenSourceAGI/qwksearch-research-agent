@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleDocsService } from "@/lib/integrations/googleDocsService";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/config/env";
 
 // POST /api/google-docs/import - Import document from Google Docs
 export async function POST(request: NextRequest) {

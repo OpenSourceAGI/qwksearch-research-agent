@@ -18,7 +18,7 @@
  * - `<fileId>-extracted.json` — `{ title, content, url? }` extracted text
  */
 
-import { getCloudflareContext } from "@/lib/cloudflare-context";
+import { getCloudflareContext } from "@/lib/cloudflare/context";
 import { getDB } from "@/lib/database";
 import { uploads as uploadsTable, type Upload } from "@/lib/database/schema";
 import { and, desc, eq, inArray } from "drizzle-orm";

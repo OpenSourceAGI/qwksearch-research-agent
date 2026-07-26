@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleDocsService } from "@/lib/integrations/googleDocsService";
-import { getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/config/env";
 
 // POST /api/google-docs/share - Share Google Doc with specific user or get shareable link
 export async function POST(request: NextRequest) {

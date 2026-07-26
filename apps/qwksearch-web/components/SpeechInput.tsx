@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Mic, Square, Volume2 } from 'lucide-react';
-import { speakText } from '@/lib/speech-api';
+import { speakText } from '@/lib/speech';
 
 interface SpeechInputProps {
   onTranscription: (text: string) => void;
