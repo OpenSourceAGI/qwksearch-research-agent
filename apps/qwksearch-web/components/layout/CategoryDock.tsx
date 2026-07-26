@@ -17,6 +17,7 @@ import {
 } from "shadcn-app-dock"
 import { useSession, useChat } from "research-agent-ui"
 import { listFooterLinks } from "@/lib/config/site"
+import { useSettingsModal } from "@/components/Settings/SettingsModal"
 import iconRead from "../icons/icon-read.svg"
 import iconConfigure from "../icons/icon-configure.svg"
 
@@ -34,6 +35,7 @@ export function CategoryDock() {
   const router = useRouter()
   const { isAuthenticated, signIn, signOut } = useSession()
   const { newChat } = useChat()
+  const { openSettings } = useSettingsModal()
 
   const isOnResearch = pathname === "/" || pathname.startsWith("/c")
 
@@ -60,7 +62,14 @@ export function CategoryDock() {
       menu: {
         renderContent: () => (
           <>
-            <DropdownMenuItem onClick={() => router.push("/settings")} className="cursor-pointer py-1 h-7">
+            <DropdownMenuItem
+              onClick={() => {
+                // Open settings in a modal on large desktop screens; otherwise
+                // navigate to the /settings route.
+                if (!openSettings()) router.push("/settings")
+              }}
+              className="cursor-pointer py-1 h-7"
+            >
               <Settings className="mr-2 h-3.5 w-3.5" />
               <span className="text-sm">Settings</span>
             </DropdownMenuItem>

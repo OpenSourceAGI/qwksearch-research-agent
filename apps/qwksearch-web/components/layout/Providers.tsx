@@ -13,6 +13,7 @@ import { Toaster } from 'sonner';
 import { authClient } from '@/lib/auth/client';
 import { CategoryDock } from '@/components/layout/CategoryDock';
 import { CookieConsent } from '@/components/layout/CookieConsent';
+import { SettingsModalProvider } from '@/components/Settings/SettingsModal';
 import {
   APP_NAME,
   DEFAULT_SUMMARIZE_PROMPT,
@@ -57,12 +58,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ExtractPanelProvider>
           <ChatProvider>
             <CategoryDockProvider>
-              <div className="w-screen h-screen overflow-auto pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0">
-                <CategoryDock />
-                <main className="bg-light-primary dark:bg-dark-primary min-h-screen">
-                  {children}
-                </main>
-              </div>
+              <SettingsModalProvider>
+                <div className="w-screen h-screen overflow-auto pb-[calc(60px+env(safe-area-inset-bottom,0px))] md:pb-0">
+                  <CategoryDock />
+                  <main className="bg-light-primary dark:bg-dark-primary min-h-screen">
+                    {children}
+                  </main>
+                </div>
+              </SettingsModalProvider>
             </CategoryDockProvider>
             <Toaster
               toastOptions={{

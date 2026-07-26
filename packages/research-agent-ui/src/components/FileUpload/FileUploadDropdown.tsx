@@ -35,6 +35,7 @@ import { categories } from '../SearchConfig/categories';
 import { ModelSelectorSubmenu } from '../SearchConfig/ModelSelectorSubmenu';
 import { exportAsMarkdown, exportAsDocx, exportAsPdf, exportToGoogleDocs } from '../../lib/export';
 import { useSession } from '../../hooks/useSession';
+import { researchAgentUIConfig } from '../../config';
 
 interface FileUploadDropdownProps {
   onFileSelect: (files: FileList | File[]) => void;
@@ -535,7 +536,14 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
               <span>History</span>
             </DropdownMenuItem>
 
-            <DropdownMenuItem onSelect={() => router.push('/settings')} className="gap-2">
+            <DropdownMenuItem
+              onSelect={() => {
+                // On large desktop screens the app opens settings in a modal
+                // (onOpenSettings returns true); otherwise fall back to the route.
+                if (!researchAgentUIConfig.onOpenSettings?.()) router.push('/settings');
+              }}
+              className="gap-2"
+            >
               <Settings className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
               <span>Settings</span>
             </DropdownMenuItem>
