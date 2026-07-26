@@ -12,11 +12,8 @@
      <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/vtempest/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
      <br />
     <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/v/qwksearch-api-client.svg" alt="npm version"></a>
-    <a href="https://bundlephobia.com/package/qwksearch-api-client" target="_blank" rel="noopener noreferrer">
-  <img
-    src="https://img.shields.io/bundlephobia/minzip/qwksearch-api-client?style=flat&label=size"
-    alt="npm bundle size "
-  />
+    <a href="https://packagephobia.com/result?p=qwksearch-api-client" target="_blank" rel="noopener noreferrer">
+  <img src="https://packagephobia.com/badge?p=qwksearch-api-client" alt="install size" />
 </a>
     <a href="https://discord.gg/SJdBqBz3tV"><img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat" alt="Join Discord" /></a>
     <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"

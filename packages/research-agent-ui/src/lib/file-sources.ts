@@ -1,11 +1,11 @@
-// File source management utilities
+import { FileSource, AnyFileSource } from '../types/fileSource';
 
-import { FileSource, AnyFileSource } from '@/types/fileSource';
+export type { FileSource, AnyFileSource } from '../types/fileSource';
+export type { FileSourceType, SSHCredentials, S3Credentials, R2Credentials, B2Credentials, GoogleDocsCredentials, TursoDBCredentials, LocalFileSource, SSHFileSource, S3FileSource, R2FileSource, B2FileSource, GoogleDocsFileSource, TursoDBFileSource } from '../types/fileSource';
 
 const STORAGE_KEY = 'REASON-file-sources';
 const ACTIVE_SOURCE_KEY = 'REASON-active-file-source';
 
-// Default local file source
 const defaultLocalSource: FileSource = {
   id: 'local-default',
   name: 'Local Files',
@@ -15,15 +15,11 @@ const defaultLocalSource: FileSource = {
   updatedAt: new Date().toISOString(),
 };
 
-/**
- * Get all file sources from localStorage
- */
 export function getFileSources(): AnyFileSource[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const sources = JSON.parse(stored);
-      // Ensure local default exists
       const hasLocal = sources.some((s: FileSource) => s.id === 'local-default');
       if (!hasLocal) {
         return [defaultLocalSource, ...sources];
@@ -36,9 +32,6 @@ export function getFileSources(): AnyFileSource[] {
   return [defaultLocalSource] as AnyFileSource[];
 }
 
-/**
- * Save file sources to localStorage
- */
 export function saveFileSources(sources: AnyFileSource[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(sources));
@@ -47,9 +40,6 @@ export function saveFileSources(sources: AnyFileSource[]): void {
   }
 }
 
-/**
- * Add a new file source
- */
 export function addFileSource(source: Omit<AnyFileSource, 'id' | 'createdAt' | 'updatedAt'>): AnyFileSource {
   const newSource: AnyFileSource = {
     ...source,
@@ -64,9 +54,6 @@ export function addFileSource(source: Omit<AnyFileSource, 'id' | 'createdAt' | '
   return newSource;
 }
 
-/**
- * Update an existing file source
- */
 export function updateFileSource(id: string, updates: Partial<AnyFileSource>): void {
   const sources = getFileSources();
   const updatedSources = sources.map((source) =>
@@ -77,11 +64,7 @@ export function updateFileSource(id: string, updates: Partial<AnyFileSource>): v
   saveFileSources(updatedSources as AnyFileSource[]);
 }
 
-/**
- * Delete a file source
- */
 export function deleteFileSource(id: string): void {
-  // Don't allow deleting the default local source
   if (id === 'local-default') {
     console.warn('Cannot delete default local source');
     return;
@@ -91,16 +74,12 @@ export function deleteFileSource(id: string): void {
   const updatedSources = sources.filter((source) => source.id !== id);
   saveFileSources(updatedSources);
 
-  // If we deleted the active source, switch to local
   const activeSourceId = getActiveFileSourceId();
   if (activeSourceId === id) {
     setActiveFileSourceId('local-default');
   }
 }
 
-/**
- * Get the currently active file source ID
- */
 export function getActiveFileSourceId(): string {
   try {
     return localStorage.getItem(ACTIVE_SOURCE_KEY) || 'local-default';
@@ -110,9 +89,6 @@ export function getActiveFileSourceId(): string {
   }
 }
 
-/**
- * Set the active file source ID
- */
 export function setActiveFileSourceId(id: string): void {
   try {
     localStorage.setItem(ACTIVE_SOURCE_KEY, id);
@@ -121,26 +97,16 @@ export function setActiveFileSourceId(id: string): void {
   }
 }
 
-/**
- * Get the currently active file source
- */
 export function getActiveFileSource(): AnyFileSource {
   const sources = getFileSources();
   const activeId = getActiveFileSourceId();
   return sources.find((s) => s.id === activeId) || (defaultLocalSource as AnyFileSource);
 }
 
-/**
- * Test connection to a file source (placeholder - would need backend implementation)
- */
 export async function testFileSourceConnection(source: AnyFileSource): Promise<boolean> {
-  // This would need actual implementation with backend API calls
-  // For now, return true for local, false for others (not implemented)
   if (source.type === 'local') {
     return true;
   }
-
-  // TODO: Implement actual connection testing via backend API
   console.warn(`Connection testing for ${source.type} not yet implemented`);
   return false;
 }

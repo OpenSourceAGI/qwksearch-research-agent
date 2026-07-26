@@ -5,7 +5,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { speakText, generateSpeechFromText, checkSTTAPI } from '@/lib/speech';
+import { speakText, generateSpeechFromText, checkSTTAPI } from 'use-voice-control/api-client';
 
 export interface UseSpeechOptions {
   autoPlayFeedback?: boolean;

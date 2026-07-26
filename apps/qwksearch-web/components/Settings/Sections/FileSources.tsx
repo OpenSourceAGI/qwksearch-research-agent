@@ -19,8 +19,6 @@ import {
   addFileSource,
   updateFileSource,
   deleteFileSource,
-} from '../../../lib/file-sources/sources';
-import {
   AnyFileSource,
   FileSourceType,
   SSHCredentials,
@@ -29,7 +27,7 @@ import {
   B2Credentials,
   GoogleDocsCredentials,
   TursoDBCredentials,
-} from '../../../types/fileSource';
+} from 'research-agent-ui/file-sources';
 
 const SOURCE_TYPE_OPTIONS: { value: FileSourceType; label: string }[] = [
   { value: 'ssh', label: 'SSH' },

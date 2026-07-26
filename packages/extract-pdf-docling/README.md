@@ -4,11 +4,8 @@
 <br /> 
     <a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/dm/pdf-to-html-docling.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/v/pdf-to-html-docling.svg" alt="npm version"></a>
-    <a href="https://bundlephobia.com/package/pdf-to-html-docling" target="_blank" rel="noopener noreferrer">
-  <img
-    src="https://img.shields.io/bundlephobia/minzip/pdf-to-html-docling?style=flat&label=size"
-    alt="npm bundle size "
-  />
+    <a href="https://packagephobia.com/result?p=pdf-to-html-docling" target="_blank" rel="noopener noreferrer">
+  <img src="https://packagephobia.com/badge?p=pdf-to-html-docling" alt="install size" />
 </a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"

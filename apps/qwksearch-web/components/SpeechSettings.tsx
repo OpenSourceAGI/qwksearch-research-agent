@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { KOKORO_VOICES, DEEPGRAM_SPEAKERS, type KokoroVoice, type DeepgramSpeaker } from '../../../packages/use-voice-control/speech/types';
-import { speakText } from '@/lib/speech';
+import { speakText } from 'use-voice-control/api-client';
 
 interface SpeechSettingsProps {
   onChange?: (settings: SpeechSettings) => void;

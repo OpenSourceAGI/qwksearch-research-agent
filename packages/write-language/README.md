@@ -2,11 +2,8 @@
 <br /> 
     <a href="https://www.npmjs.com/package/write-language"><img src="https://img.shields.io/npm/dm/write-language.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/write-language"><img src="https://img.shields.io/npm/v/write-language.svg" alt="npm version"></a>
-    <a href="https://bundlephobia.com/package/write-language" target="_blank" rel="noopener noreferrer">
-  <img
-    src="https://img.shields.io/bundlephobia/minzip/write-language?style=flat&label=size"
-    alt="npm bundle size "
-  />
+    <a href="https://packagephobia.com/result?p=write-language" target="_blank" rel="noopener noreferrer">
+  <img src="https://packagephobia.com/badge?p=write-language" alt="install size" />
 </a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"

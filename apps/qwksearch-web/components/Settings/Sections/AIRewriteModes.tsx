@@ -8,7 +8,7 @@ import {
   getRewriteModes,
   saveRewriteModes,
   resetRewriteModes,
-} from '../../../lib/rewrite-modes/modes';
+} from 'write-language/rewrite-modes';
 
 const COLOR_OPTIONS = ['blue', 'purple', 'green', 'orange', 'pink'];
 

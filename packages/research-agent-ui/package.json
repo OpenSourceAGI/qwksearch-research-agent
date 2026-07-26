@@ -27,6 +27,10 @@
       "types": "./dist/api.d.ts",
       "import": "./dist/api.mjs",
       "require": "./dist/api.cjs"
+    },
+    "./file-sources": {
+      "types": "./src/lib/file-sources.ts",
+      "import": "./src/lib/file-sources.ts"
     }
   },
   "files": [

@@ -5,7 +5,7 @@ import {
   saveRewriteModes,
   resetRewriteModes,
   type RewriteMode,
-} from '../modes'
+} from './rewrite-modes'
 
 const STORAGE_KEY = 'REASON-rewrite-modes'
 
