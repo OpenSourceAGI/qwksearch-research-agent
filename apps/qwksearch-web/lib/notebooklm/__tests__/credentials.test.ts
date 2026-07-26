@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Control the KV binding returned via the cloudflare context.
 const getCloudflareContext = vi.fn()
-vi.mock('../../cloudflare-context', () => ({
+vi.mock('@/lib/cloudflare/context', () => ({
   getCloudflareContext: () => getCloudflareContext(),
 }))
 
