@@ -112,18 +112,23 @@ export async function rerankDocs(
     filesData = results.filter((r) => r !== null);
   }
 
+  // Uploaded files must always reach the LLM. Build their docs up front so
+  // every return path below keeps them in the answer context.
+  const fileDocs: Document[] = filesData.map((fileData) => ({
+    pageContent: fileData.content,
+    metadata: { title: fileData.title, url: "File" },
+  }));
+
   if (query.toLocaleLowerCase() === "summarize") {
-    return docs.slice(0, 15);
+    // Skip web-result reranking for an explicit "summarize" request, but keep
+    // the uploaded file content — otherwise attachments are silently dropped
+    // and never analysed.
+    return [...fileDocs, ...docs].slice(0, 15);
   }
 
   const docsWithContent = docs.filter(
     (doc) => doc.pageContent && doc.pageContent.length > 0,
   );
-
-  const fileDocs: Document[] = filesData.map((fileData) => ({
-    pageContent: fileData.content,
-    metadata: { title: fileData.title, url: "File" },
-  }));
 
   // Combine file docs with web results, cap at 15
   return [...fileDocs, ...docsWithContent].slice(0, 15);

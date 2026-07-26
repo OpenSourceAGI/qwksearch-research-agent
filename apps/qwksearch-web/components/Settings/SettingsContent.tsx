@@ -10,7 +10,6 @@ import {
   HardDrive,
   Wand2,
   Volume2,
-  Sparkles,
   Brain,
 } from 'lucide-react';
 import Account from './Sections/Account';
@@ -36,7 +35,6 @@ import RewritePrompts from './Sections/RewritePrompts';
 import FileSources from './Sections/FileSources';
 import AIRewriteModes from './Sections/AIRewriteModes';
 import VoiceSection from './Sections/Voice';
-import AgentSkills from './Sections/AgentSkills';
 import SkillsAndMemory from './Sections/SkillsAndMemory';
 
 const sections = [
@@ -47,22 +45,6 @@ const sections = [
     icon: UserCircle,
     component: Account,
     dataAdd: 'account',
-  },
-  {
-    key: 'skills-memory',
-    name: 'Skills & Memory',
-    description: 'Manage agent skills and view your stored memories.',
-    icon: Brain,
-    component: SkillsAndMemory,
-    dataAdd: 'skillsMemory',
-  },
-  {
-    key: 'agent-skills',
-    name: 'Agent Skills',
-    description: 'Manage which capabilities your research agent can use.',
-    icon: Sparkles,
-    component: AgentSkills,
-    dataAdd: 'agentSkills',
   },
   {
     key: 'models',
@@ -79,6 +61,14 @@ const sections = [
     icon: Server,
     component: MCPServers,
     dataAdd: 'mcpServers',
+  },
+  {
+    key: 'skills-memory',
+    name: 'Skills & Memory',
+    description: 'Manage agent skills and view your stored memories.',
+    icon: Brain,
+    component: SkillsAndMemory,
+    dataAdd: 'skillsMemory',
   },
   {
     key: 'searchEngines',

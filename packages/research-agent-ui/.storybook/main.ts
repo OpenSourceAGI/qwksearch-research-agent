@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import type { StorybookConfig } from '@storybook/react-vite';
 
 /**
@@ -24,6 +25,16 @@ const config: StorybookConfig = {
     const { default: tailwindcss } = await import('@tailwindcss/vite');
     viteConfig.plugins = viteConfig.plugins ?? [];
     viteConfig.plugins.push(tailwindcss());
+
+    // Stories render outside a Next.js app, so alias `next/link` to a plain
+    // anchor stub. This lets presentational components that use it (e.g.
+    // Footer, HistoryChatItem) render in isolation without an App Router.
+    viteConfig.resolve = viteConfig.resolve ?? {};
+    viteConfig.resolve.alias = {
+      ...(viteConfig.resolve.alias ?? {}),
+      'next/link': fileURLToPath(new URL('./next-link-stub.tsx', import.meta.url)),
+    };
+
     return viteConfig;
   },
 };

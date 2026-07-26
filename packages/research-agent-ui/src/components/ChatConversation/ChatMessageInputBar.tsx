@@ -14,6 +14,7 @@ import Focus from '../SearchConfig/ResearchFocusToggleButton';
 import { useChat, Section } from '../../hooks/useChat';
 import { Popover, PopoverTrigger, PopoverContent } from '../../ui/popover';
 import { exportAsMarkdown, exportAsPdf } from '../../lib/export';
+import { canSubmitMessage } from '../../lib/composer';
 
 /**
  * Input bar component for sending chat messages.
@@ -24,13 +25,17 @@ import { exportAsMarkdown, exportAsPdf } from '../../lib/export';
  * @returns {JSX.Element} The rendered message input bar
  */
 const MessageInput = () => {
-  const { loading, sendMessage, stopStreaming, sections } = useChat();
+  const { loading, sendMessage, stopStreaming, sections, fileIds } = useChat();
 
   const [copilotEnabled, setCopilotEnabled] = useState(false);
   const [message, setMessage] = useState('');
   const [textareaRows, setTextareaRows] = useState(1);
   const [mode, setMode] = useState<'multi' | 'single'>('single');
   const [title, setTitle] = useState<string>('');
+
+  // Submit is valid when there is text OR at least one attached file, so a
+  // follow-up can be sent with only an uploaded image/PDF and no text.
+  const canSubmit = canSubmitMessage(message, fileIds);
 
   useEffect(() => {
     if (textareaRows >= 2 && message && mode === 'single') {
@@ -79,12 +84,14 @@ const MessageInput = () => {
       onSubmit={(e) => {
         if (loading) return;
         e.preventDefault();
+        if (!canSubmit) return;
         sendMessage(message);
         setMessage('');
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' && !e.shiftKey && !loading) {
           e.preventDefault();
+          if (!canSubmit) return;
           sendMessage(message);
           setMessage('');
         }
@@ -158,7 +165,7 @@ const MessageInput = () => {
             </button>
           ) : (
             <button
-              disabled={message.trim().length === 0}
+              disabled={!canSubmit}
               className="bg-primary text-primary-foreground disabled:text-muted-foreground hover:bg-primary/85 transition duration-100 disabled:bg-muted rounded-full p-2"
             >
               <ArrowUp size={17} />
@@ -221,7 +228,7 @@ const MessageInput = () => {
               </button>
             ) : (
               <button
-                disabled={message.trim().length === 0}
+                disabled={!canSubmit}
                 className="bg-primary text-primary-foreground disabled:text-muted-foreground hover:bg-primary/85 transition duration-100 disabled:bg-muted rounded-full p-2"
               >
                 <ArrowUp size={17} />

@@ -10,6 +10,7 @@ import Optimization from '../SearchConfig/SearchOptimizationSelector';
 import Attach from '../FileUpload/FileAttachmentButton';
 import { useChat } from '../../hooks/useChat';
 import ModelSelector from '../SearchConfig/ChatModelSelector';
+import { canSubmitMessage } from '../../lib/composer';
 
 /**
  * Specialized input component for the empty chat state (homepage).
@@ -19,10 +20,14 @@ import ModelSelector from '../SearchConfig/ChatModelSelector';
  * @returns {JSX.Element} The rendered empty state input
  */
 const EmptyChatMessageInput = () => {
-  const { sendMessage } = useChat();
+  const { sendMessage, fileIds } = useChat();
 
   /* const [copilotEnabled, setCopilotEnabled] = useState(false); */
   const [message, setMessage] = useState('');
+
+  // Submit is valid when there is text OR at least one attached file, so a
+  // file-only send (upload an image/PDF with no text) is allowed.
+  const canSubmit = canSubmitMessage(message, fileIds);
 
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -54,12 +59,14 @@ const EmptyChatMessageInput = () => {
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        if (!canSubmit) return;
         sendMessage(message);
         setMessage('');
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
+          if (!canSubmit) return;
           sendMessage(message);
           setMessage('');
         }
@@ -84,7 +91,7 @@ const EmptyChatMessageInput = () => {
               <Attach />
             </div>
             <button
-              disabled={message.trim().length === 0}
+              disabled={!canSubmit}
               className="bg-primary text-primary-foreground disabled:text-muted-foreground disabled:bg-muted hover:bg-primary/85 transition duration-100 rounded-full p-2"
             >
               <ArrowRight className="bg-background" size={17} />

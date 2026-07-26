@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { convertHTMLToBasicHTML } from "../html-to-content/html-to-basic-html";
-import { convertMarkdownToHTML } from "../html-to-content/html-utils";
+import { convertMarkdownToFormattedHTML } from "../html-to-content/html-utils";
 import grab from "../utils/grab";
 
 /**
@@ -299,7 +299,10 @@ export async function scrapeJINA(url) {
   var match = articleExtract.match(/Markdown Content:([\s\S]*)/);
   articleExtract = match ? match[1] : articleExtract;
 
-  articleExtract = convertMarkdownToHTML(articleExtract);
+  // JINA returns the article body as Markdown. Convert it to formatted HTML
+  // using regexp-based Markdown detection so headers, lists, links, emphasis,
+  // and code render correctly downstream.
+  articleExtract = convertMarkdownToFormattedHTML(articleExtract);
 
   if (title) articleExtract = "<title>" + title + "</title>" + articleExtract;
 
