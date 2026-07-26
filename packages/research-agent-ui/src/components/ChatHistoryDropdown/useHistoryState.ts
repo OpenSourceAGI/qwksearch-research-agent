@@ -11,12 +11,28 @@ import {
   getGuestChats,
   deleteGuestChat,
   clearAllGuestChats,
+  type GuestChat,
 } from "../../lib/guest";
 import { Chat } from "../../types/research";
 import { toast } from "sonner";
 import { listChats, deleteChatById, deleteAllChats, searchChats } from "qwksearch-api-client";
 
 const PINNED_CHATS_KEY = "qwksearch_pinned_chats";
+
+/**
+ * Derives the timestamp of a guest chat's most recent message so history can
+ * show how long ago the conversation was last active. Falls back to the
+ * chat's creation time when no messages carry a usable timestamp.
+ */
+function getLastMessageAt(chat: GuestChat): string {
+  const last = chat.messages?.[chat.messages.length - 1];
+  const raw = last && "createdAt" in last ? (last as { createdAt?: unknown }).createdAt : undefined;
+  if (raw) {
+    const time = new Date(raw as string | number | Date).getTime();
+    if (!Number.isNaN(time)) return new Date(time).toISOString();
+  }
+  return chat.createdAt;
+}
 
 function getPinnedChatIds(): string[] {
   if (typeof window === "undefined") return [];
@@ -97,6 +113,7 @@ export function useHistoryState() {
             ...chat,
             messageCount:
               chat.messages?.filter((m) => m.role === "user").length ?? 0,
+            lastMessageAt: getLastMessageAt(chat),
           }));
           setChats(guestChats);
           return;
@@ -232,6 +249,7 @@ export function useHistoryState() {
               ...chat,
               messageCount:
                 chat.messages?.filter((m) => m.role === "user").length ?? 0,
+              lastMessageAt: getLastMessageAt(chat),
             })),
           );
         }

@@ -2,6 +2,7 @@ export * from "./types";
 export * from "./handlers/article-followups";
 export * from "./handlers/article-qa";
 export * from "./handlers/chats";
+export * from "./handlers/chat-title";
 export * from "./handlers/messages";
 export * from "./handlers/providers";
 export * from "./handlers/mcpservers";

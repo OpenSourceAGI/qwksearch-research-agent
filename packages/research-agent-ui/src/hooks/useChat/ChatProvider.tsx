@@ -10,7 +10,8 @@
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { ChatTurn } from '../../components/ChatConversation/ChatWindow';
-import { saveGuestChat, GuestChat } from '../../lib/guest';
+import { saveGuestChat, GuestChat, updateGuestChatTitle } from '../../lib/guest';
+import { generateChatTitle } from '../../lib/chatTitle';
 import { useSession } from '../useSession';
 import { chatContext, ChatContextValue } from './ChatContext';
 import { useChatState } from './useChatState';
@@ -58,6 +59,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   );
   const abortControllerRef = useRef<AbortController | null>(null);
   const [incognito, setIncognito] = useState(false);
+
+  // LLM-generated conversation titles, keyed by chatId, so the guest-persist
+  // effect keeps them instead of falling back to the first message. A separate
+  // set guards against requesting a title more than once per chat per session.
+  const generatedTitlesRef = useRef<Record<string, string>>({});
+  const titleRequestedRef = useRef<Set<string>>(new Set());
 
   // ============ Effects ============
 
@@ -143,7 +150,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       );
 
       if (turns.length > 0) {
-        const title = turns[0].content.slice(0, 50);
+        const title =
+          generatedTitlesRef.current[state.chatId] ?? turns[0].content.slice(0, 50);
         const guestChat: GuestChat = {
           id: state.chatId,
           title,
@@ -161,6 +169,53 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated,
     state.focusMode,
     state.files,
+  ]);
+
+  /**
+   * Generate an LLM title for conversations with multiple user turns.
+   *
+   * Once a chat started in this session reaches two or more user messages and
+   * the latest response has finished streaming, request a concise title
+   * summarising the whole conversation. The title is persisted server-side for
+   * authenticated users; for guests it is stored in localStorage and cached in
+   * `generatedTitlesRef` so the persist effect above keeps it. Runs at most
+   * once per chat per session.
+   */
+  useEffect(() => {
+    if (incognito || !state.chatId || !state.isMessagesLoaded) return;
+    // Only for chats originating in this session, not ones loaded from history.
+    if (!state.newChatCreated) return;
+    // Wait until the current response has finished streaming.
+    if (state.loading) return;
+
+    const userTurns = chatTurns.filter((turn) => turn.role === 'user').length;
+    if (userTurns < 2) return;
+
+    const chatId = state.chatId;
+    if (titleRequestedRef.current.has(chatId)) return;
+    titleRequestedRef.current.add(chatId);
+
+    void (async () => {
+      const title = await generateChatTitle(chatId, state.messages);
+      if (!title) {
+        // Allow a retry on the next completed turn if generation failed.
+        titleRequestedRef.current.delete(chatId);
+        return;
+      }
+      generatedTitlesRef.current[chatId] = title;
+      if (!isAuthenticated) {
+        updateGuestChatTitle(chatId, title);
+      }
+    })();
+  }, [
+    chatTurns,
+    state.messages,
+    state.chatId,
+    state.loading,
+    state.isMessagesLoaded,
+    state.newChatCreated,
+    incognito,
+    isAuthenticated,
   ]);
 
   /**

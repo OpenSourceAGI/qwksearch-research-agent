@@ -1,4 +1,4 @@
-import { eq, and, inArray, sql, count, or, like } from "drizzle-orm";
+import { eq, and, inArray, sql, count, or, like, max } from "drizzle-orm";
 import type { ChatsDeps } from "../types";
 
 export function createChatsHandler(deps: ChatsDeps) {
@@ -18,6 +18,7 @@ export function createChatsHandler(deps: ChatsDeps) {
           userId: chats.userId,
           files: chats.files,
           messageCount: count(messages.id),
+          lastMessageAt: max(messages.createdAt),
         })
         .from(chats)
         .leftJoin(
