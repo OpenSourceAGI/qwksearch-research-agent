@@ -1,6 +1,6 @@
 {
   "name": "notebooklm-api-client",
-  "version": "0.1.54",
+  "version": "0.1.58",
   "description": "NotebookLM API via Cloudflare Containers — on-demand Python sandbox that sleeps when idle",
   "author": "vtempest <grokthiscontact@gmail.com>",
   "license": "rights.institute/PROSPER",

@@ -20,7 +20,7 @@ import {
   MAX_FILES_PER_REQUEST,
   SUPPORTED_UPLOAD_EXTENSIONS,
   URL_UPLOAD_EXTENSION,
-  extractUploadText,
+  buildExtractedUpload,
   storeUpload,
   getExtractedUpload,
   getUserUploads,
@@ -107,7 +107,7 @@ async function handleFileUpload(req: Request, userId: string | null) {
       const fileId = newFileId();
       const buffer = Buffer.from(await file.arrayBuffer());
 
-      const content = await extractUploadText(buffer, file.name, fileExtension);
+      const extracted = await buildExtractedUpload(buffer, file.name, fileExtension);
 
       await storeUpload({
         fileId,
@@ -116,7 +116,7 @@ async function handleFileUpload(req: Request, userId: string | null) {
         size: file.size,
         userId,
         originalBuffer: buffer,
-        extracted: { title: file.name, content },
+        extracted,
       });
 
       processedFiles.push({

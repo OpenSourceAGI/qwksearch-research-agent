@@ -21,6 +21,31 @@ export type LLMProviderName =
   | (string & {}); // preserve autocomplete while allowing arbitrary strings
 
 /**
+ * A file or image attachment passed to the model alongside the text prompt.
+ *
+ * The Vercel AI SDK accepts these as multimodal message content parts:
+ * images become `{ type: "image", image }` parts and every other media type
+ * becomes a `{ type: "file", data, mediaType }` part. `data` may be a base64
+ * string, a `data:` URL, an `http(s)` URL, a `URL` instance, or raw bytes.
+ */
+export interface LanguageAttachment {
+  /** MIME type, e.g. `"image/png"`, `"application/pdf"`. */
+  mediaType: string;
+  /**
+   * The attachment payload: a base64 string, a `data:`/`http(s)` URL, a `URL`
+   * instance, or raw bytes (`Uint8Array`/`ArrayBuffer`).
+   */
+  data: string | Uint8Array | ArrayBuffer | URL;
+  /** Optional original filename (used by providers that surface it). */
+  filename?: string;
+  /**
+   * Force how the part is sent. Defaults to auto-detection from `mediaType`
+   * (`image/*` → image part, otherwise a file part).
+   */
+  kind?: "image" | "file";
+}
+
+/**
  * Configuration options for {@link writeLanguageResponse}.
  */
 export interface GenerateLanguageOptions {
@@ -47,6 +72,12 @@ export interface GenerateLanguageOptions {
   article?: string;
   /** Prior conversation history for context-aware agents */
   chat_history?: string;
+  /**
+   * File and image attachments to send to the model alongside the prompt.
+   * When present, the request is issued as a multimodal `messages` call so the
+   * model receives the uploaded files (images and documents) directly.
+   */
+  attachments?: LanguageAttachment[];
   /** Return `HTML` (`true`) or raw Markdown (`false`). Default: `true` */
   html?: boolean;
   /** Truncate the prompt to the model's context window length. Default: `true` */

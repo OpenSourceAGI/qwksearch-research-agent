@@ -32,8 +32,8 @@ export const MAX_FILES_PER_REQUEST = 10;
 /** Per-user storage quota across all uploads (1 GB). */
 export const USER_STORAGE_QUOTA_BYTES = 1024 * 1024 * 1024;
 
-/** File extensions accepted for upload and text extraction. */
-export const SUPPORTED_UPLOAD_EXTENSIONS = [
+/** Document extensions whose text content is extracted for the LLM. */
+export const SUPPORTED_DOCUMENT_EXTENSIONS = [
   "pdf",
   "docx",
   "txt",
@@ -42,8 +42,48 @@ export const SUPPORTED_UPLOAD_EXTENSIONS = [
   "htm",
 ] as const;
 
+/** Image extensions passed to the LLM directly as image content. */
+export const SUPPORTED_IMAGE_EXTENSIONS = [
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "webp",
+  "svg",
+  "bmp",
+  "avif",
+] as const;
+
+/** File extensions accepted for upload (documents + images). */
+export const SUPPORTED_UPLOAD_EXTENSIONS = [
+  ...SUPPORTED_DOCUMENT_EXTENSIONS,
+  ...SUPPORTED_IMAGE_EXTENSIONS,
+] as const;
+
 /** Extension recorded for context files created from an extracted URL. */
 export const URL_UPLOAD_EXTENSION = "url";
+
+/**
+ * Maximum original image size inlined into the extracted payload as a data URL
+ * for the LLM (8 MB). Larger images are still stored and listed but not sent
+ * to the model, since most providers reject very large image payloads.
+ */
+export const MAX_INLINE_IMAGE_BYTES = 8 * 1024 * 1024;
+
+/** Returns the image MIME type for a supported image extension. */
+export function imageMediaType(fileExtension: string): string {
+  const ext = fileExtension.toLowerCase();
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "svg") return "image/svg+xml";
+  return `image/${ext}`;
+}
+
+/** Whether an extension is a supported image type. */
+export function isImageExtension(fileExtension: string): boolean {
+  return (SUPPORTED_IMAGE_EXTENSIONS as readonly string[]).includes(
+    fileExtension.toLowerCase(),
+  );
+}
 
 /** R2 object key of the original uploaded file. */
 export const originalObjectKey = (fileId: string, fileExtension: string) =>
@@ -59,6 +99,13 @@ export interface ExtractedUpload {
   content: string;
   /** Set when the upload was created by extracting a typed-in URL. */
   url?: string;
+  /** MIME type for image uploads (e.g. `"image/png"`). */
+  mediaType?: string;
+  /**
+   * `data:` URL of an image upload, passed to the LLM as image content.
+   * Absent for documents and for images above {@link MAX_INLINE_IMAGE_BYTES}.
+   */
+  image?: string;
 }
 
 /** Per-user storage usage snapshot. */
@@ -222,6 +269,31 @@ export async function extractUploadText(
   }
 }
 
+/**
+ * Builds the stored {@link ExtractedUpload} payload for an uploaded file.
+ *
+ * Documents get their extracted text as `content`. Images get a `mediaType`
+ * and, when small enough, a base64 `data:` URL in `image` so the chat pipeline
+ * can pass them to the LLM as image content.
+ */
+export async function buildExtractedUpload(
+  buffer: Buffer,
+  fileName: string,
+  fileExtension: string,
+): Promise<ExtractedUpload> {
+  if (isImageExtension(fileExtension)) {
+    const mediaType = imageMediaType(fileExtension);
+    const extracted: ExtractedUpload = { title: fileName, content: "", mediaType };
+    if (buffer.length <= MAX_INLINE_IMAGE_BYTES) {
+      extracted.image = `data:${mediaType};base64,${buffer.toString("base64")}`;
+    }
+    return extracted;
+  }
+
+  const content = await extractUploadText(buffer, fileName, fileExtension);
+  return { title: fileName, content };
+}
+
 // ---------------------------------------------------------------------------
 // Quota accounting (D1 `uploads` table)
 // ---------------------------------------------------------------------------
@@ -351,6 +423,8 @@ export async function getExtractedUpload(
       title: parsed.title || "Uploaded Document",
       content: parsed.content || "",
       ...(parsed.url ? { url: parsed.url } : {}),
+      ...(parsed.mediaType ? { mediaType: parsed.mediaType } : {}),
+      ...(parsed.image ? { image: parsed.image } : {}),
     };
   } catch (error) {
     console.error(`[getExtractedUpload] Failed for ${fileId}:`, error);

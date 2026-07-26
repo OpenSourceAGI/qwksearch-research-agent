@@ -9,7 +9,9 @@
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { ChatTurn } from '../../components/ChatConversation/ChatWindow';
+import { toast } from 'sonner';
+import { deleteUploadedFile } from 'qwksearch-api-client';
+import { ChatTurn, UserMessage } from '../../components/ChatConversation/ChatWindow';
 import { saveGuestChat, GuestChat, updateGuestChatTitle } from '../../lib/guest';
 import { generateChatTitle } from '../../lib/chatTitle';
 import { useSession } from '../useSession';
@@ -266,6 +268,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           loading: state.loading,
           messages: state.messages,
           fileIds: state.fileIds,
+          files: state.files,
           focusMode: state.focusMode,
           category: state.category,
           optimizationMode: state.optimizationMode,
@@ -287,6 +290,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       state.loading,
       state.messages,
       state.fileIds,
+      state.files,
       state.focusMode,
       state.category,
       state.optimizationMode,
@@ -331,6 +335,46 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       handleSendMessage(message.content, message.messageId, true);
     },
     [state.messages, chatTurns, handleSendMessage],
+  );
+
+  /**
+   * Deletes an uploaded file everywhere it appears.
+   *
+   * Optimistically removes the file from the chat-level attachment lists and
+   * from any user message that referenced it, then deletes the underlying
+   * upload from the server. On server failure the local removal is kept (the
+   * file is already gone from the user's view) and an error toast is shown.
+   */
+  const handleDeleteAttachedFile = useCallback(
+    async (fileId: string) => {
+      // Remove from the chat-level attachment lists (composer + context).
+      setters.setFiles(state.files.filter((f) => f.fileId !== fileId));
+      setters.setFileIds(state.fileIds.filter((id) => id !== fileId));
+
+      // Remove from any message that carried this file inline.
+      setters.setMessages((prev) =>
+        prev.map((msg) => {
+          if (msg.role !== 'user') return msg;
+          const userMsg = msg as UserMessage;
+          if (!userMsg.files?.some((f) => f.fileId === fileId)) return msg;
+          return {
+            ...userMsg,
+            files: userMsg.files.filter((f) => f.fileId !== fileId),
+          };
+        }),
+      );
+
+      try {
+        const { error } = await deleteUploadedFile({ query: { fileId } });
+        if (error) {
+          throw new Error((error as { message?: string }).message ?? 'Delete failed');
+        }
+      } catch (err) {
+        console.error('[ChatProvider] Failed to delete uploaded file:', err);
+        toast.error('Removed from the chat, but the file could not be deleted from storage.');
+      }
+    },
+    [state.files, state.fileIds],
   );
 
   /**
@@ -386,6 +430,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     // Actions
     setFileIds: setters.setFileIds,
     setFiles: setters.setFiles,
+    deleteAttachedFile: handleDeleteAttachedFile,
     setFocusMode: setters.setFocusMode,
     setCategory: setters.setCategory,
     setOptimizationMode: setters.setOptimizationMode,

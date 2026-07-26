@@ -15,6 +15,7 @@ import {
   registerUploadFileLoader,
   rerankDocs,
   processDocs,
+  loadUploadImages,
 } from 'chat-agent-toolkit';
 // Pure UI helpers imported directly from the research-agent-ui source.
 import { canSubmitMessage } from '../../../../../packages/research-agent-ui/src/lib/composer';
@@ -63,6 +64,43 @@ describe('rerankDocs: uploaded files reach the LLM context', () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].pageContent).toBe('ONLY_FILE');
+  });
+});
+
+describe('image uploads reach the LLM as image content', () => {
+  it('resolves image attachments (mediaType + data URL) via loadUploadImages', async () => {
+    registerUploadFileLoader(async (fileId: string) => ({
+      title: 'Screenshot',
+      content: '',
+      mediaType: 'image/png',
+      image: `data:image/png;base64,IMG_${fileId}`,
+    }));
+
+    const images = await loadUploadImages(['img1']);
+
+    expect(images).toEqual([
+      { mediaType: 'image/png', image: 'data:image/png;base64,IMG_img1' },
+    ]);
+  });
+
+  it('ignores documents (no image field) when collecting images', async () => {
+    registerUploadFileLoader(async () => ({ title: 'Doc', content: 'TEXT_ONLY' }));
+
+    expect(await loadUploadImages(['d1'])).toEqual([]);
+  });
+
+  it('keeps image uploads out of the text docs (no empty file docs)', async () => {
+    registerUploadFileLoader(async () => ({
+      title: 'Photo',
+      content: '',
+      mediaType: 'image/jpeg',
+      image: 'data:image/jpeg;base64,AAAA',
+    }));
+
+    const result = await rerankDocs('describe', [], ['pic'], 'balanced');
+
+    // The image produces no text doc; it is passed separately as an image part.
+    expect(result).toHaveLength(0);
   });
 });
 

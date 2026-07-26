@@ -35,6 +35,7 @@ import {
   rerankDocs,
   processDocs,
   normalizeSourcesOutput,
+  loadUploadImages,
   type R2CredentialsInput,
 } from "./doc-utils";
 import { groupAndSummarizeDocs } from "./link-summarizer";
@@ -378,11 +379,26 @@ class MetaSearchAgent implements MetaSearchAgentType {
         date: new Date().toISOString(),
       });
 
+      // Resolve any uploaded images so they are passed to the LLM directly as
+      // image content parts (alongside the text query). Documents already
+      // reach the model as text context via processDocs above.
+      const imageAttachments = await loadUploadImages(fileIds, r2Credentials);
+      const userContent =
+        imageAttachments.length > 0
+          ? [
+              { type: "text" as const, text: message },
+              ...imageAttachments.map((img) => ({
+                type: "image" as const,
+                image: img.image,
+              })),
+            ]
+          : message;
+
       const result = streamText({
         model: llm,
         temperature: 0.7,
         system: systemPrompt,
-        messages: [...history, { role: "user", content: message }],
+        messages: [...history, { role: "user", content: userContent }],
       });
 
       let responseChunkCount = 0;
