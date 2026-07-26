@@ -1,6 +1,6 @@
 {
   "name": "use-voice-control",
-  "version": "0.1.33",
+  "version": "0.1.36",
   "description": "React voice control with speech transcription, vocalization, and interruption (STT/TTS/VAD) support.",
   "repository": {
     "type": "git",
