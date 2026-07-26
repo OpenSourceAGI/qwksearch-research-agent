@@ -206,96 +206,229 @@ export function convertMarkdownToHTML(content, toHtml = true) {
   if (!toHtml) return convertHTMLToMarkdown(content);
 
   return content?.length ? marked.parse(content) : "";
+}
 
-  var html = contentconvertMarkdownToHTML
-    // Convert headers
-    .replace(/^(#{1,6})\s(.+)$/gm, (match, hashes, content) => {
-      const level = hashes.length;
-      return `<h${level}>${content.trim()}</h${level}>`;
-    })
+/**
+ * Escape the HTML-significant characters in a raw string so it can be
+ * safely embedded inside generated HTML (used for code spans/blocks).
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHTMLChars(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 
-    // Convert bold text
-    .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
-
-    // Convert italic text
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-
-    // Convert unordered lists
-    .replace(/^\s*\*\s(.+)$/gm, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>")
-
-    // Convert ordered lists
-    .replace(/^\s*\d+\.\s(.+)$/gm, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>)/s, "<ol>$1</ol>")
-
-    // Convert horizontal rules (---, ___, ***)
-    .replace(/^[-_*]{3,}\s*$/gm, "<hr>")
-
-    // Convert code blocks (```)
-    .replace(/```([^`]+)```/g, "<code>$1</code>")
-
-    .replace(/```(\w*)\n([\s\S]*?)```/g, function (match, lang, code) {
-      code = code
-        .trim()
-        // Remove leading whitespace from each line while preserving relative indentation
-        .replace(/^[ \t]*/gm, "")
-        // Encode HTML special characters
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-
-      return lang
-        ? `<code class="language-${lang}">${code}</code>`
-        : `<code>${code}</code>`;
-    })
-
-    // Handle inline code blocks
+/**
+ * Apply inline-level Markdown regexp replacements (images, links, bold,
+ * italic, strikethrough) to a single already-block-parsed line of text.
+ * Inline code spans are expected to already be swapped out for placeholders
+ * so their contents are never touched here.
+ * @param {string} text
+ * @returns {string}
+ */
+function applyInlineMarkdown(text) {
+  return text
+    // Images: ![alt](src "title") -- must run before links
     .replace(
-      /(^|[^\\])(`+)([^\r]*?[^`])\2(?!`)/gm,
-      function (match, pre, backticks, code) {
-        code = code
-          .trim()
-          // Remove leading and trailing whitespace
-          .replace(/^[ \t]*/g, "")
-          .replace(/[ \t]*$/g, "")
-          // Encode HTML special characters
-
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#39;");
-
-        return pre + "<code>" + code + "</code>";
-      }
+      /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g,
+      (_m, alt, src, title) =>
+        `<img src="${src}" alt="${alt}"${title ? ` title="${title}"` : ""} />`
     )
+    // Links: [text](href "title")
+    .replace(
+      /\[([^\]]+)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g,
+      (_m, label, href, title) =>
+        `<a href="${href}"${title ? ` title="${title}"` : ""}>${label}</a>`
+    )
+    // Bold: **text** or __text__
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+    // Italic: *text* or _text_ (avoid matching inside words for `_`)
+    .replace(/\*([^*\n]+)\*/g, "<em>$1</em>")
+    .replace(/(^|[^A-Za-z0-9_])_([^_\n]+)_(?=[^A-Za-z0-9_]|$)/g, "$1<em>$2</em>")
+    // Strikethrough: ~~text~~
+    .replace(/~~([^~]+)~~/g, "<del>$1</del>");
+}
 
-    // Convert inline code (`)
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
+/**
+ * Convert a Markdown document to formatted HTML using regular expressions to
+ * detect Markdown syntax. Unlike {@link convertMarkdownToHTML} (which relies on
+ * the `marked` library), this is a dependency-free, self-contained converter
+ * intended for post-processing content returned as Markdown (e.g. from the
+ * JINA reader fallback in the scraper).
+ *
+ * Supported block elements: ATX headers (`#`..`######`), fenced code blocks
+ * (```lang), blockquotes (`>`), unordered lists (`-`, `*`, `+`), ordered lists
+ * (`1.`, `1)`), horizontal rules (`---`, `***`, `___`) and paragraphs.
+ * Supported inline elements: bold, italic, strikethrough, inline code, images
+ * and links.
+ *
+ * @param {string} markdown - The Markdown content to convert.
+ * @returns {string} The resulting formatted HTML string.
+ * @category HTML Utilities
+ * @example
+ * convertMarkdownToFormattedHTML("# Title\n\nSome **bold** text.");
+ * // => "<h1>Title</h1>\n<p>Some <strong>bold</strong> text.</p>"
+ */
+export function convertMarkdownToFormattedHTML(markdown) {
+  if (!markdown || typeof markdown !== "string") return "";
 
-    // Convert paragraphs
-    .split("\n\n")
-    .map((para) => {
-      if (!para.startsWith("<")) {
-        return `<p>${para.trim()}</p>`;
+  let text = markdown.replace(/\r\n?/g, "\n");
+
+  // 1. Pull fenced code blocks out first so their contents are never parsed
+  // as Markdown. Each is replaced by a placeholder restored at the end.
+  const codeBlocks = [];
+  text = text.replace(
+    /```([^\n`]*)\n([\s\S]*?)```/g,
+    (_m, lang, code) => {
+      const language = (lang || "").trim();
+      const cls = language ? ` class="language-${language}"` : "";
+      const body = escapeHTMLChars(code.replace(/\n$/, ""));
+      codeBlocks.push(`<pre><code${cls}>${body}</code></pre>`);
+      return `\u0000CB${codeBlocks.length - 1}\u0000`;
+    }
+  );
+
+  // 2. Pull inline code spans out next for the same reason.
+  const inlineCodes = [];
+  text = text.replace(/`([^`\n]+)`/g, (_m, code) => {
+    inlineCodes.push(`<code>${escapeHTMLChars(code)}</code>`);
+    return `\u0000IC${inlineCodes.length - 1}\u0000`;
+  });
+
+  const lines = text.split("\n");
+  const out = [];
+  let inUl = false;
+  let inOl = false;
+  let inBlockquote = false;
+  let paragraph = [];
+
+  const flushParagraph = () => {
+    if (paragraph.length) {
+      out.push(`<p>${applyInlineMarkdown(paragraph.join(" "))}</p>`);
+      paragraph = [];
+    }
+  };
+  const closeLists = () => {
+    if (inUl) {
+      out.push("</ul>");
+      inUl = false;
+    }
+    if (inOl) {
+      out.push("</ol>");
+      inOl = false;
+    }
+  };
+  const closeBlockquote = () => {
+    if (inBlockquote) {
+      out.push("</blockquote>");
+      inBlockquote = false;
+    }
+  };
+
+  for (const line of lines) {
+    // Standalone fenced-code-block placeholder line
+    const cb = line.match(/^\u0000CB(\d+)\u0000$/);
+    if (cb) {
+      flushParagraph();
+      closeLists();
+      closeBlockquote();
+      out.push(codeBlocks[Number(cb[1])]);
+      continue;
+    }
+
+    // Blank line closes open blocks
+    if (/^\s*$/.test(line)) {
+      flushParagraph();
+      closeLists();
+      closeBlockquote();
+      continue;
+    }
+
+    // Horizontal rule: ---, ***, ___ (3+)
+    if (/^\s*([-*_])(?:\s*\1){2,}\s*$/.test(line)) {
+      flushParagraph();
+      closeLists();
+      closeBlockquote();
+      out.push("<hr>");
+      continue;
+    }
+
+    // ATX header: # .. ######
+    const header = line.match(/^\s*(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (header) {
+      flushParagraph();
+      closeLists();
+      closeBlockquote();
+      const level = header[1].length;
+      out.push(`<h${level}>${applyInlineMarkdown(header[2])}</h${level}>`);
+      continue;
+    }
+
+    // Blockquote: > text
+    const bq = line.match(/^\s*>\s?(.*)$/);
+    if (bq) {
+      flushParagraph();
+      closeLists();
+      if (!inBlockquote) {
+        out.push("<blockquote>");
+        inBlockquote = true;
       }
-      return para;
-    })
-    .join("\n")
+      out.push(`<p>${applyInlineMarkdown(bq[1])}</p>`);
+      continue;
+    }
+    closeBlockquote();
 
-    // Convert images
-    .replace(/\!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" />')
+    // Unordered list item: -, *, +
+    const ul = line.match(/^\s*[-*+]\s+(.+)$/);
+    if (ul) {
+      flushParagraph();
+      if (inOl) {
+        out.push("</ol>");
+        inOl = false;
+      }
+      if (!inUl) {
+        out.push("<ul>");
+        inUl = true;
+      }
+      out.push(`<li>${applyInlineMarkdown(ul[1])}</li>`);
+      continue;
+    }
 
-    // Convert links
-    .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
+    // Ordered list item: 1. or 1)
+    const ol = line.match(/^\s*\d+[.)]\s+(.+)$/);
+    if (ol) {
+      flushParagraph();
+      if (inUl) {
+        out.push("</ul>");
+        inUl = false;
+      }
+      if (!inOl) {
+        out.push("<ol>");
+        inOl = true;
+      }
+      out.push(`<li>${applyInlineMarkdown(ol[1])}</li>`);
+      continue;
+    }
 
-    // Clean up extra newlines
-    .replace(/\n\s*\n/g, "\n")
-    .trim();
+    // Otherwise accumulate into the current paragraph
+    closeLists();
+    paragraph.push(line.trim());
+  }
 
-  return html;
+  flushParagraph();
+  closeLists();
+  closeBlockquote();
+
+  let html = out.join("\n");
+
+  // Restore inline code placeholders
+  html = html.replace(/\u0000IC(\d+)\u0000/g, (_m, i) => inlineCodes[Number(i)]);
+
+  return html.trim();
 }
 
 export function convertHTMLToMarkdown(html) {

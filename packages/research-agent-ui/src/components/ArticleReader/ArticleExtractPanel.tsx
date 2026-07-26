@@ -28,6 +28,7 @@ import {
   ChatMessage,
   ArticleExtractPanelProps
 } from '.';
+import { ARTICLE_TOOLBAR_SHORTCUTS } from './ArticleActionButtons';
 import { researchAgentUIConfig } from '../../config';
 import { useSession } from '../../hooks/useSession';
 import { useChat } from '../../hooks/useChat';
@@ -70,8 +71,11 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   const [isPanelReady, setIsPanelReady] = useState(false);
   const [fontScale, setFontScale] = useState(1);
   const resizeRef = useRef<HTMLDivElement>(null);
+  // Holds the latest toolbar action handlers so the global keydown listener
+  // (registered once per open) always calls current closures, never stale ones.
+  const shortcutActionsRef = useRef<Partial<Record<string, () => void>>>({});
 
-  const MIN_FONT_SCALE = 0.8;
+  const MIN_FONT_SCALE = 0.5;
   const MAX_FONT_SCALE = 1.8;
   const FONT_SCALE_STEP = 0.1;
 
@@ -409,6 +413,78 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
       console.error('Failed to copy to clipboard:', error);
     }
   };
+
+  // Keep the shortcut handler map pointing at the freshest closures every render.
+  shortcutActionsRef.current = {
+    ask: () => callLanguageAPI('question'),
+    suggest: () => callLanguageAPI('suggest-followups'),
+    copy: handleCopyHTMLToClipboard,
+    highlight: () => setIsHighlightMode((prev) => !prev),
+    favorite: toggleFavorite,
+    open: () => {
+      const target = extractedArticle?.url || url;
+      if (target) window.open(target, '_blank', 'noopener,noreferrer');
+    },
+    zoomIn: handleZoomIn,
+    zoomOut: handleZoomOut,
+    zoomReset: handleZoomReset,
+    close: onClose,
+  };
+
+  // Global keyboard shortcuts for the toolbar actions while the panel is open.
+  // Alt/Option + key triggers an action; Escape always closes. Typing in an
+  // input, textarea, or contenteditable is never intercepted.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // Map a shortcut key to its physical KeyboardEvent.code. Matching on `code`
+    // (not `key`) is required because holding Alt/Option on macOS rewrites
+    // `event.key` to an alternate character (e.g. Option+A -> "å").
+    const codeForKey = (key: string): string => {
+      if (/^[a-z]$/.test(key)) return `Key${key.toUpperCase()}`;
+      if (/^[0-9]$/.test(key)) return `Digit${key}`;
+      if (key === '-') return 'Minus';
+      if (key === '=') return 'Equal';
+      return key;
+    };
+
+    const actionByCode: Record<string, string> = {};
+    (Object.keys(ARTICLE_TOOLBAR_SHORTCUTS) as Array<keyof typeof ARTICLE_TOOLBAR_SHORTCUTS>)
+      .forEach((action) => {
+        const { alt, key } = ARTICLE_TOOLBAR_SHORTCUTS[action];
+        if (alt) actionByCode[codeForKey(key.toLowerCase())] = action;
+      });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        shortcutActionsRef.current.close?.();
+        return;
+      }
+      if (!event.altKey || event.ctrlKey || event.metaKey) return;
+
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      const action = actionByCode[event.code];
+      if (!action) return;
+
+      const run = shortcutActionsRef.current[action];
+      if (run) {
+        event.preventDefault();
+        run();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   const renderPanelContent = () => (
     <div className="flex h-full flex-col bg-background shadow-xl">
