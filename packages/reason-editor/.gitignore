@@ -1,0 +1,41 @@
+.DS_Store
+node_modules
+/dist
+/lib
+examples/dist
+
+# Lock files (only pnpm-lock.yaml is tracked)
+bun.lock
+bun.lockb
+
+auto-imports.d.ts
+components.d.ts
+
+# local env files
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.env
+.vercel
+.wrangler
+
+docs/.vitepress/dist
+docs/.vitepress/node_modules
+docs/.vitepress/.temp
+docs/.vitepress/cache
+
+.dev.vars*
+!.dev.vars.example
+!.env.example

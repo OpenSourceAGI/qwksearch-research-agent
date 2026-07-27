@@ -2,9 +2,6 @@
 <br /> 
     <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/dm/extract-webpage.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/v/extract-webpage.svg" alt="npm version"></a>
-    <a href="https://packagephobia.com/result?p=extract-webpage" target="_blank" rel="noopener noreferrer">
-  <img src="https://packagephobia.com/badge?p=extract-webpage" alt="install size" />
-</a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />

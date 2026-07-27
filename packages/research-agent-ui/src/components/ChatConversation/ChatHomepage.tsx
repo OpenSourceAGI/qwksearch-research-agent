@@ -12,6 +12,8 @@ import { useChat } from '../../hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import { researchAgentUIConfig } from '../../config';
 import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
+import { DownloadAppButton } from 'react-native-app-buttons';
+import 'react-native-app-buttons/styles';
 
 /**
  * The homepage component for the chat interface.

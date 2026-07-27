@@ -1,0 +1,32 @@
+/**
+ * Reusable separator/divider UI primitive (shadcn/Radix style) styled with the editor's Tailwind classes. Shared across the editor for consistent separator/divider rendering.
+ */
+
+'use client';
+
+import * as SeparatorPrimitive from '@radix-ui/react-separator';
+import * as React from 'react';
+
+import { cn } from '@/lib/utils';
+
+const Separator = React.forwardRef<
+  React.ElementRef<typeof SeparatorPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root>
+>(({ className, orientation = 'horizontal', decorative = true, ...props }, ref) => (
+  <SeparatorPrimitive.Root
+    ref={ref}
+    decorative={decorative}
+    orientation={orientation}
+    className={cn(
+      'richtext-shrink-0 richtext-bg-border',
+      orientation === 'horizontal'
+        ? 'richtext-h-[1px] richtext-w-full'
+        : 'richtext-h-full richtext-w-[1px]',
+      className
+    )}
+    {...props}
+  />
+));
+Separator.displayName = SeparatorPrimitive.Root.displayName;
+
+export { Separator };

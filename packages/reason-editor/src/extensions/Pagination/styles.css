@@ -1,0 +1,44 @@
+.page-break {
+  height: 20px;
+  width: 100%;
+  border-top: 2px dashed #d1d5db;
+  border-bottom: 2px dashed #d1d5db;
+  margin: 16px 0;
+  background: linear-gradient(180deg, #f9fafb 0%, transparent 50%, #f9fafb 100%);
+}
+
+.dark .page-break {
+  border-top-color: #4b5563;
+  border-bottom-color: #4b5563;
+  background: linear-gradient(180deg, #1f2937 0%, transparent 50%, #1f2937 100%);
+}
+
+.page-break-label {
+  text-align: center;
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+.dark .page-break-label {
+  color: #6b7280;
+}
+
+.ProseMirror {
+  background: #ffffff;
+  max-width: 100%;
+}
+
+.dark .ProseMirror {
+  background: #1f2937;
+  color: #f3f4f6;
+}
+
+.editor-container {
+  background: #f3f4f6;
+  padding: 16px;
+}
+
+.dark .editor-container {
+  background: #111827;
+}

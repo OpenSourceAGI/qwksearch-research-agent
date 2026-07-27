@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "react-reason-editor",
+  "compatibility_date": "2026-07-06",
+  "observability": {
+    "enabled": true
+  },
+  // Build the library and demo site (-> ./dist/demo) before deploying, so
+  // `wrangler deploy` produces the assets directory even when the platform's
+  // build step only runs `build:lib` (or no build step at all) first.
+  "build": {
+    "command": "pnpm run build:lib && pnpm run build:demo",
+    "watch_dir": "src"
+  },
+  "assets": {
+    "directory": "./dist/demo",
+    "not_found_handling": "single-page-application"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

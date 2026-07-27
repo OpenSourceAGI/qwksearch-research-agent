@@ -1,0 +1,49 @@
+/**
+ * Defines the HorizontalRule Tiptap extension, which adds horizontal-rule dividers to the editor. It sets up the extension's schema, commands, and default options so the feature integrates with the editor.
+ */
+
+import { mergeAttributes } from '@tiptap/core';
+import { HorizontalRule as TiptapHorizontalRule } from '@tiptap/extension-horizontal-rule';
+
+import { ActionButton } from '@/components';
+
+import type { GeneralOptions } from '@/types';
+import type { HorizontalRuleOptions as TiptapHorizontalRuleOptions } from '@tiptap/extension-horizontal-rule';
+export * from './components/RichTextHorizontalRule';
+
+export interface HorizontalRuleOptions
+  extends TiptapHorizontalRuleOptions, GeneralOptions<HorizontalRuleOptions> {}
+
+export const HorizontalRule =
+   TiptapHorizontalRule.extend<HorizontalRuleOptions>({
+    //@ts-expect-error
+    addOptions() {
+      return {
+        ...this.parent?.(),
+        button: ({ editor, t, extension }) => ({
+          component: ActionButton,
+          componentProps: {
+            action: () => editor.commands.setHorizontalRule(),
+            disabled: !editor.can().setHorizontalRule(),
+            icon: 'Minus',
+            shortcutKeys: extension.options.shortcutKeys ?? ['mod', 'alt', 'S'],
+            tooltip: t('editor.horizontalrule.tooltip'),
+          },
+        }),
+      };
+    },
+    addKeyboardShortcuts() {
+      return {
+        'Mod-Alt-s': () => this.editor.commands.setHorizontalRule(),
+      };
+    },
+    renderHTML() {
+      return [
+        'div',
+        mergeAttributes(this.options.HTMLAttributes, {
+          'data-type': this.name,
+        }),
+        ['hr'],
+      ];
+    },
+  });

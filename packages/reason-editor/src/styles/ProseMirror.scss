@@ -1,0 +1,289 @@
+
+.ProseMirror {
+  /* Typography */
+  p {
+    @apply richtext-mb-1.5 richtext-leading-relaxed first:richtext-mt-0 last:richtext-mb-0;
+  }
+
+  & > p {
+    @apply richtext-mb-1.5 first:richtext-mt-0 last:richtext-mb-0;
+  }
+
+  h1 {
+    @apply richtext-text-3xl;
+  }
+
+  h2 {
+    @apply richtext-text-2xl;
+  }
+
+  h3 {
+    @apply richtext-text-xl;
+  }
+
+  h4 {
+    @apply richtext-text-lg;
+  }
+
+  h5 {
+    @apply richtext-text-base;
+  }
+
+  h6 {
+    @apply richtext-text-sm;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply richtext-font-bold first:richtext-mt-0 last:richtext-mb-0;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply richtext-mt-12;
+  }
+
+  h4,
+  h5,
+  h6 {
+    @apply richtext-mt-8;
+  }
+
+  a.link {
+    @apply richtext-font-extrabold richtext-text-blue-500 dark:richtext-text-blue-400;
+  }
+
+  mark {
+    @apply richtext-rounded-sm richtext-bg-red-500 richtext-decoration-clone richtext-px-0 richtext-py-1 richtext-text-inherit dark:richtext-bg-red-400;
+  }
+
+  & img {
+    @apply richtext-h-auto richtext-max-w-full;
+  }
+
+  @for $i from 1 through 7 /* max-indent */ {
+    $indent-margin-base: 2em;
+
+    *[data-indent='#{$i}'] {
+      text-indent: $indent-margin-base * $i !important;
+    }
+  }
+  iframe {
+    @apply richtext-border !important;
+    @apply richtext-mt-2 richtext-h-full richtext-w-full richtext-rounded-sm richtext-border-border;
+  }
+
+  /* Block Quote */
+  .blockquote {
+    @apply richtext-rounded-lg richtext-rounded-bl-none richtext-rounded-tl-none richtext-border-l-4 richtext-border-l-neutral-700 richtext-bg-opacity-80 richtext-px-4 richtext-py-2 richtext-text-black;
+    @apply dark:richtext-border-l-neutral-300 dark:richtext-text-white;
+  }
+
+  code {
+    @apply richtext-rounded-sm richtext-bg-neutral-900 richtext-font-mono richtext-text-white richtext-caret-white richtext-shadow-lg;
+
+    &::selection {
+      @apply richtext-bg-white/30;
+    }
+  }
+
+  pre {
+    @apply richtext-my-1 richtext-rounded !richtext-border richtext-border-black richtext-border-border richtext-bg-neutral-700 richtext-p-4 richtext-text-white richtext-caret-white dark:richtext-bg-neutral-900;
+
+    *::selection {
+      @apply richtext-bg-white/20;
+    }
+
+    code {
+      @apply richtext-bg-inherit richtext-p-0 richtext-text-inherit richtext-shadow-none;
+    }
+  }
+  /* List */
+  ol {
+    @apply richtext-list-decimal;
+  }
+
+  ul {
+    @apply richtext-list-disc;
+  }
+
+  ul,
+  ol {
+    @apply richtext-my-6 richtext-px-8 richtext-py-0 first:richtext-mt-0 last:richtext-mb-0;
+
+    ul,
+    ol,
+    li {
+      @apply richtext-my-1;
+    }
+
+    p {
+      @apply richtext-mb-1 richtext-mt-0;
+    }
+  }
+
+  & > ul,
+  & > ol {
+    @apply richtext-my-8 first:richtext-mt-0 last:richtext-mb-0;
+  }
+
+  ul[data-type='taskList'] {
+    @apply richtext-list-none richtext-p-0;
+
+    p {
+      @apply richtext-m-0;
+    }
+
+    li {
+      @apply richtext-flex;
+
+      > label {
+        @apply richtext-mr-2 richtext-inline richtext-flex-auto richtext-shrink-0 richtext-grow-0 richtext-select-none;
+      }
+
+      > div {
+        @apply richtext-flex-auto;
+      }
+
+      &[data-checked='true'] {
+        @apply richtext-line-through;
+      }
+    }
+  }
+
+  table {
+    border: 1px solid;
+    @apply richtext-box-border richtext-block richtext-table-fixed richtext-border-collapse richtext-overflow-x-auto richtext-overflow-y-hidden richtext-border-black/10;
+    @apply dark:richtext-border-white/20;
+
+    td,
+    th {
+      border: 1px solid;
+      @apply richtext-border !important;
+      @apply richtext-relative richtext-box-border richtext-min-w-[1em] richtext-border-black/10 richtext-p-2 richtext-text-left richtext-align-top;
+      @apply dark:richtext-border-white/20;
+
+      &:first-of-type:not(a) {
+        @apply richtext-mt-0;
+      }
+
+      p {
+        @apply richtext-m-0;
+
+        & + p {
+          @apply richtext-mt-3;
+        }
+      }
+    }
+
+    th {
+      @apply richtext-text-left richtext-font-bold;
+    }
+  }
+}
+
+.reactjs-tiptap-editor .ProseMirror .search-result {
+  background-color: #ffd90080;
+}
+
+.reactjs-tiptap-editor .ProseMirror .search-result-current {
+  background-color: #0dff0080;
+}
+
+/* Harper proofing issue decorations */
+.reactjs-tiptap-editor .ProseMirror .harper-issue {
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+  text-decoration-skip-ink: none;
+  cursor: pointer;
+}
+
+.reactjs-tiptap-editor .ProseMirror .harper-issue-spelling {
+  text-decoration-color: #e5484d;
+}
+
+.reactjs-tiptap-editor .ProseMirror .harper-issue-grammar {
+  text-decoration-color: #f5a623;
+}
+
+/* Harper suggestion tooltip */
+.harper-tooltip {
+  max-width: 320px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 6px 20px rgb(15 23 42 / 12%);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.harper-tooltip-header {
+  margin-bottom: 4px;
+}
+
+.harper-tooltip-kind {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.harper-tooltip-message {
+  margin: 0 0 8px;
+}
+
+.harper-tooltip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.harper-tooltip-suggestion {
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  color: #111827;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.harper-tooltip-suggestion:hover {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+.harper-tooltip-ignore {
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #6b7280;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.harper-tooltip-ignore:hover {
+  color: #111827;
+}
+
+.harper-tooltip-empty {
+  color: #9ca3af;
+  font-size: 12px;
+}

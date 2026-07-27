@@ -1,0 +1,58 @@
+/**
+ * Defines the TaskList Tiptap extension, which adds task/checklist lists to the editor. It sets up the extension's schema, commands, and default options so the feature integrates with the editor.
+ */
+
+// import type { TaskItemOptions } from '@tiptap/extension-task-item';
+// import { TaskItem } from '@tiptap/extension-task-item';
+// import type { TaskListOptions as TiptapTaskListOptions } from '@tiptap/extension-task-list';
+// import { TaskList as TiptapTaskList } from '@tiptap/extension-task-list';
+
+import {
+  TaskList as TiptapTaskList,
+  TaskItem,
+  type TaskItemOptions,
+  type TaskListOptions as TiptapTaskListOptions,
+} from '@tiptap/extension-list';
+
+import type { GeneralOptions } from '@/types';
+
+export * from './components/RichTextTaskList';
+
+/**
+ * Represents the interface for task list options, extending TiptapTaskListOptions and GeneralOptions.
+ */
+export interface TaskListOptions extends TiptapTaskListOptions, GeneralOptions<TaskListOptions> {
+  /** options for task items */
+  taskItem: Partial<TaskItemOptions>;
+}
+
+export const TaskList =  TiptapTaskList.extend<TaskListOptions>({
+  //@ts-expect-error
+  addOptions() {
+    return {
+      ...this.parent?.(),
+      HTMLAttributes: {
+        class: 'task-list',
+      },
+      taskItem: {
+        HTMLAttributes: {
+          class: 'task-list-item',
+        },
+      },
+      button: ({ editor, t, extension }) => ({
+        componentProps: {
+          action: () => editor.commands.toggleTaskList(),
+          isActive: () => editor.isActive('taskList'),
+          disabled: false,
+          icon: 'ListTodo',
+          shortcutKeys: extension.options.shortcutKeys ?? ['shift', 'mod', '9'],
+          tooltip: t('editor.tasklist.tooltip'),
+        },
+      }),
+    };
+  },
+
+  addExtensions() {
+    return [TaskItem.configure(this.options.taskItem)];
+  },
+});
