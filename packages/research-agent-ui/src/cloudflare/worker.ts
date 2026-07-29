@@ -9,12 +9,24 @@
  */
 import { Router, IRequest } from 'itty-router';
 import { json, text, error as httpError } from 'itty-router';
+import type { D1Database, R2Bucket, KVNamespace, ExecutionContext, ScheduledEvent } from '@cloudflare/workers-types';
 
 // itty-router v5 removed the `missing` helper; provide a 404 shim via `error`.
 const missing = (message?: string) => httpError(404, message ?? 'Not Found');
 
 // Cloudflare Workers runtime for research-agent-ui
 // Provides metadata endpoints, OAuth flows, connection management, and transit file handling
+
+interface TransitFileRow {
+  id: string;
+  connection_id: string;
+  name: string;
+  mime_type: string;
+  size_bytes: number;
+  backend: 'r2' | 'kv';
+  backend_key: string;
+  expires_at: string;
+}
 
 export interface Env {
   DB: D1Database;
@@ -165,7 +177,8 @@ router.post('/api/v1/oauth/callback', async (req: IRequest, env: Env) => {
 router.get('/api/v1/run-logs', async (req: IRequest, env: Env) => {
   if (!authenticateAdmin(req, env)) return httpError(401, 'Unauthorized');
 
-  const limit = Math.min(parseInt(req.query.limit || '100'), 1000);
+  const limitParam = Array.isArray(req.query.limit) ? req.query.limit[0] : req.query.limit;
+  const limit = Math.min(parseInt(limitParam || '100'), 1000);
   const { results } = await env.DB.prepare('SELECT * FROM run_logs ORDER BY created_at DESC LIMIT ?')
     .bind(limit)
     .all();
@@ -215,12 +228,12 @@ router.post('/api/v1/transit-files', async (req: IRequest, env: Env) => {
   const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
 
   // Store file in backend
+  const buffer = await file.arrayBuffer();
   if (env.TRANSIT_FILES_BACKEND === 'r2') {
     const bucket = env.TRANSIT_FILES as R2Bucket;
-    await bucket.put(backendKey, file);
+    await bucket.put(backendKey, buffer);
   } else {
     const kv = env.TRANSIT_FILES as KVNamespace;
-    const buffer = await file.arrayBuffer();
     await kv.put(backendKey, buffer, { expirationTtl: ttlSeconds });
   }
 
@@ -237,7 +250,7 @@ router.get('/api/v1/transit-files/:id', async (req: IRequest, env: Env) => {
   if (!authenticateAdmin(req, env)) return httpError(401, 'Unauthorized');
 
   const { id } = req.params;
-  const { results } = await env.DB.prepare('SELECT * FROM transit_files WHERE id = ?').bind(id).all();
+  const { results } = await env.DB.prepare('SELECT * FROM transit_files WHERE id = ?').bind(id).all<TransitFileRow>();
 
   if (!results || results.length === 0) {
     return missing('File not found');
@@ -250,7 +263,7 @@ router.get('/api/v1/transit-files/:id', async (req: IRequest, env: Env) => {
     const bucket = env.TRANSIT_FILES as R2Bucket;
     const obj = await bucket.get(fileRecord.backend_key);
     if (!obj) return missing('File not found in R2');
-    return new Response(obj.body, { headers: { 'Content-Type': fileRecord.mime_type } });
+    return new Response(obj.body as unknown as ReadableStream, { headers: { 'Content-Type': fileRecord.mime_type } });
   } else {
     const kv = env.TRANSIT_FILES as KVNamespace;
     const data = await kv.get(fileRecord.backend_key, 'arrayBuffer');
@@ -263,7 +276,7 @@ router.delete('/api/v1/transit-files/:id', async (req: IRequest, env: Env) => {
   if (!authenticateAdmin(req, env)) return httpError(401, 'Unauthorized');
 
   const { id } = req.params;
-  const { results } = await env.DB.prepare('SELECT * FROM transit_files WHERE id = ?').bind(id).all();
+  const { results } = await env.DB.prepare('SELECT * FROM transit_files WHERE id = ?').bind(id).all<TransitFileRow>();
 
   if (!results || results.length === 0) {
     return missing('File not found');
@@ -312,7 +325,7 @@ async function cleanupExpiredRecords(env: Env) {
   // Clean up expired transit files from DB and storage
   const { results: expiredFiles } = await env.DB.prepare(
     'SELECT * FROM transit_files WHERE expires_at < ?'
-  ).bind(now).all();
+  ).bind(now).all<TransitFileRow>();
 
   if (expiredFiles) {
     for (const file of expiredFiles) {

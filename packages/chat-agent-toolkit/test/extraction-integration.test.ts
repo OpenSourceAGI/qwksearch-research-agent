@@ -8,7 +8,7 @@ import { AGENT_TOOLS } from '../src/tools/qwksearch-api-tools';
 import * as QwkSearch from 'qwksearch-api-client';
 
 // Mock the QwkSearch API client
-vi.mock('qwksearch-api-client');
+vi.mock("qwksearch-api-client");
 
 describe('Web Extraction Integration Tests', () => {
   const extractPageTool = AGENT_TOOLS.find(t => t.name === 'extract_page');
@@ -37,7 +37,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://technews.com/ai-advances-2024',
@@ -72,7 +72,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://devblog.com/web-dev-guide'
@@ -99,7 +99,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://research.org/climate-report'
@@ -126,7 +126,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://journal.com/study'
@@ -162,7 +162,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://proghub.com/visual-guide',
@@ -189,7 +189,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://blog.com/post'
@@ -215,7 +215,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://example.com/long'
@@ -236,7 +236,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://example.com/special'
@@ -258,7 +258,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://example.fr/article'
@@ -279,7 +279,7 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       const result = await extractPageTool!.func({
         url: 'https://example.com/article?utm_source=test&utm_campaign=demo'
@@ -290,7 +290,7 @@ describe('Web Extraction Integration Tests', () => {
     });
 
     it('should handle timeout errors gracefully', async () => {
-      vi.mocked(QwkSearch.extractContent).mockRejectedValueOnce(
+      vi.mocked(QwkSearch.getArticle).mockRejectedValueOnce(
         new Error('Request timeout after 10 seconds')
       );
 
@@ -304,7 +304,7 @@ describe('Web Extraction Integration Tests', () => {
     });
 
     it('should handle 404 errors', async () => {
-      vi.mocked(QwkSearch.extractContent).mockRejectedValueOnce(
+      vi.mocked(QwkSearch.getArticle).mockRejectedValueOnce(
         new Error('404 Not Found')
       );
 
@@ -317,7 +317,7 @@ describe('Web Extraction Integration Tests', () => {
     });
 
     it('should handle network errors', async () => {
-      vi.mocked(QwkSearch.extractContent).mockRejectedValueOnce(
+      vi.mocked(QwkSearch.getArticle).mockRejectedValueOnce(
         new Error('Network connection failed')
       );
 
@@ -342,14 +342,14 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       await extractPageTool!.func({
         url: 'https://example.com',
         images: false
       });
 
-      expect(QwkSearch.extractContent).toHaveBeenCalledWith(
+      expect(QwkSearch.getArticle).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({
             images: false
@@ -369,14 +369,14 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       await extractPageTool!.func({
         url: 'https://example.com',
         links: false
       });
 
-      expect(QwkSearch.extractContent).toHaveBeenCalledWith(
+      expect(QwkSearch.getArticle).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({
             links: false
@@ -396,14 +396,14 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       await extractPageTool!.func({
         url: 'https://example.com',
         formatting: false
       });
 
-      expect(QwkSearch.extractContent).toHaveBeenCalledWith(
+      expect(QwkSearch.getArticle).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({
             formatting: false
@@ -423,14 +423,14 @@ describe('Web Extraction Integration Tests', () => {
         }
       };
 
-      vi.mocked(QwkSearch.extractContent).mockResolvedValueOnce(mockResponse as any);
+      vi.mocked(QwkSearch.getArticle).mockResolvedValueOnce(mockResponse as any);
 
       await extractPageTool!.func({
         url: 'https://example.com',
         timeout: 30
       });
 
-      expect(QwkSearch.extractContent).toHaveBeenCalledWith(
+      expect(QwkSearch.getArticle).toHaveBeenCalledWith(
         expect.objectContaining({
           query: expect.objectContaining({
             timeout: 30
