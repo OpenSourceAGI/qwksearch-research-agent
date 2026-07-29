@@ -8,6 +8,10 @@ import { getModelProvidersUIConfigSection } from "chat-agent-toolkit/models/prov
 import { getMCPServersUIConfigSection } from "../mcp-servers";
 import { getEnv } from "./env";
 import { ALL_ENGINES } from "search-web-api/search/search-engines-registry-list.js";
+// App-specific settings schema now lives as data in research-agent-ui; the
+// config manager "requests" it here instead of declaring the fields inline.
+import { searchSettingsFields } from "research-agent-ui/settings";
+import type { UIConfigField } from "./types";
 
 // Simple browser-compatible deterministic hash
 const hashObj = (obj: { [key: string]: any }) => {
@@ -41,123 +45,10 @@ class ConfigManager {
     preferences: [],
     modelProviders: [],
     mcpServers: [],
-    search: [
-      {
-        name: "Background Art",
-        key: "showBackgroundArt",
-        type: "switch",
-        required: false,
-        description: "Show a random artistic background on the chat homepage.",
-        default: true,
-        scope: "client",
-      },
-      {
-        name: "TTS Voice",
-        key: "ttsSpeaker",
-        type: "select",
-        required: false,
-        description: "Voice used for read-aloud text-to-speech.",
-        default: "angus",
-        scope: "client",
-        options: [
-          { name: "Angus", value: "angus" },
-          { name: "Asteria", value: "asteria" },
-          { name: "Arcas", value: "arcas" },
-          { name: "Orion", value: "orion" },
-          { name: "Orpheus", value: "orpheus" },
-          { name: "Athena", value: "athena" },
-          { name: "Luna", value: "luna" },
-          { name: "Zeus", value: "zeus" },
-          { name: "Perseus", value: "perseus" },
-          { name: "Helios", value: "helios" },
-          { name: "Hera", value: "hera" },
-          { name: "Stella", value: "stella" },
-        ],
-      },
-      {
-        name: "System Instructions",
-        key: "systemInstructions",
-        type: "textarea",
-        required: false,
-        description: "Add custom behavior or tone for the model.",
-        placeholder:
-          'e.g., "Respond in a friendly and concise tone" or "Use British English and format answers as bullet points."',
-        scope: "client",
-      },
-      {
-        name: "Follow-up Questions",
-        key: "maxFollowupQuestions",
-        type: "select",
-        options: [
-          { name: "2 questions", value: "2" },
-          { name: "3 questions", value: "3" },
-          { name: "4 questions (default)", value: "4" },
-          { name: "5 questions", value: "5" },
-          { name: "6 questions", value: "6" },
-        ],
-        required: false,
-        description: "Number of follow-up question suggestions to generate after each chat response.",
-        default: "4",
-        scope: "client",
-      },
-      {
-        name: "SearXNG URL",
-        key: "searxngURL",
-        type: "string",
-        required: false,
-        description: "The URL of your SearXNG instance",
-        placeholder: "http://localhost:4000",
-        default: "",
-        scope: "server",
-        env: "SEARXNG_API_URL",
-      },
-      {
-        name: "Proxy URL",
-        key: "proxyURL",
-        type: "string",
-        required: false,
-        description: "Optional HTTP/HTTPS/SOCKS5 proxy for outbound search and scrape requests. Format: http://user:pass@host:port or socks5://host:port",
-        placeholder: "http://user:pass@proxy.example.com:8080",
-        default: "",
-        scope: "server",
-        env: "PROXY_URL",
-        links: [
-          { name: "Webshare", url: "https://www.webshare.io/?referral_code=proxy" },
-          { name: "Bright Data", url: "https://brightdata.com" },
-          { name: "ProxyMesh", url: "https://proxymesh.com" },
-          { name: "Free Proxy List", url: "https://free-proxy-list.net" },
-        ],
-      },
-      {
-        name: "Tavily API Key",
-        key: "tavilyApiKey",
-        type: "password",
-        required: false,
-        description:
-          "Optional. Enter your own Tavily API key to override the site default. Leave blank to use the site-provided key.",
-        placeholder: "tvly-...",
-        default: "",
-        scope: "server",
-        env: "TAVILY_API_KEY",
-      },
-      {
-        name: "Scrape timeout (seconds)",
-        key: "sourceScrapeTimeout",
-        type: "select",
-        options: [
-          { name: "3 seconds", value: "3" },
-          { name: "5 seconds (default)", value: "5" },
-          { name: "10 seconds", value: "10" },
-          { name: "15 seconds", value: "15" },
-          { name: "20 seconds", value: "20" },
-        ],
-        required: false,
-        description:
-          "Maximum time to wait when scraping each source URL. Slower timeouts allow more content but increase response time.",
-        default: "5",
-        scope: "server",
-      },
-    ],
+    // Search-section fields are declared as JSON data in research-agent-ui and
+    // requested here (see ./settings in that package). The shape matches
+    // UIConfigField, so we cast the imported schema to the app's union.
+    search: searchSettingsFields as unknown as UIConfigField[],
   };
 
   constructor() {

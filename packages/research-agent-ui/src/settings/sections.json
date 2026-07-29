@@ -1,0 +1,65 @@
+[
+  {
+    "key": "account",
+    "name": "Account",
+    "description": "Manage your profile, password, and linked accounts.",
+    "icon": "UserCircle",
+    "dataAdd": "account"
+  },
+  {
+    "key": "models",
+    "name": "Language Models",
+    "description": "Connect to AI services and manage connections.",
+    "icon": "BrainCog",
+    "dataAdd": "modelProviders"
+  },
+  {
+    "key": "mcpservers",
+    "name": "Connectors",
+    "description": "Configure Model Context Protocol servers.",
+    "icon": "Server",
+    "dataAdd": "mcpServers"
+  },
+  {
+    "key": "skills-memory",
+    "name": "Skills & Memory",
+    "description": "Manage agent skills and view your stored memories.",
+    "icon": "Brain",
+    "dataAdd": "skillsMemory"
+  },
+  {
+    "key": "searchEngines",
+    "name": "Search Sources",
+    "description": "Manage search engine sources by category.",
+    "icon": "Search",
+    "dataAdd": "searchEngines"
+  },
+  {
+    "key": "search",
+    "name": "Search Settings",
+    "description": "Configure search parameters.",
+    "icon": "Search",
+    "dataAdd": "search"
+  },
+  {
+    "key": "fileSources",
+    "name": "Cloud Storage",
+    "description": "Manage storage sources (SSH, S3, R2, B2, Google Docs, Turso DB).",
+    "icon": "HardDrive",
+    "dataAdd": "storage"
+  },
+  {
+    "key": "aiRewriteModes",
+    "name": "Rewrite Modes",
+    "description": "Customize AI rewrite prompts and add your own modes.",
+    "icon": "Wand2",
+    "dataAdd": "rewritePrompts"
+  },
+  {
+    "key": "voice",
+    "name": "Voice Settings",
+    "description": "Configure text-to-speech with Kokoro.js or Cloudflare TTS.",
+    "icon": "Volume2",
+    "dataAdd": "voice"
+  }
+]
