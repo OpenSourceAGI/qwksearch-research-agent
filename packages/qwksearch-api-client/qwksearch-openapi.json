@@ -2607,7 +2607,8 @@
         "properties": {
           "domain": { "type": "string" },
           "name": { "type": "string" },
-          "favicon": { "type": "string" }
+          "favicon": { "type": "string" },
+          "rank": { "type": "number" }
         }
       },
       "Article": {

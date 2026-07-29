@@ -38,3 +38,6 @@ export const SnowflakeIcon = (props: IconProps) => (
 export const SunIcon = (props: IconProps) => (
   <BaseIcon {...props}><path d="M12 4V2m0 20v-2m10-8h-2M4 12H2m15.657-5.657 1.414-1.414M4.93 19.07l1.414-1.414m12.728 1.414-1.414-1.414M6.343 6.343 4.93 4.929M7 12a5 5 0 1 0 10 0 5 5 0 0 0-10 0Z" /></BaseIcon>
 );
+export const WindIcon = (props: IconProps) => (
+  <BaseIcon {...props}><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" /></BaseIcon>
+);
