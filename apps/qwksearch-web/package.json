@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx open-ready next dev",
-    "prebuild": "cd ../../packages/extract-pdf && bun run build && cd ../shadcn-app-dock && bun run build && cd ../react-weather-forecast && bun run build && cd ../research-agent-ui && bun run build",
+    "prebuild": "cd ../../packages/extract-pdf && bun run build && cd ../shadcn-app-dock && bun run build && cd ../shadcn-settings && bun run build && cd ../react-weather-forecast && bun run build && cd ../research-agent-ui && bun run build",
     "build": "vinext build",
     "deploy": "vinext deploy",
     "start": "next start",
@@ -89,6 +89,7 @@
     "react-weather-forecast": "workspace:*",
     "research-agent-ui": "workspace:*",
     "shadcn-app-dock": "workspace:*",
+    "shadcn-settings": "workspace:*",
     "shadcn-theme-menu": "^1.1.13",
     "search-web-api": "workspace:*",
     "sonner": "^2.0.7",

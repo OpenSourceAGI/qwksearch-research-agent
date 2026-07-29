@@ -1,30 +1,47 @@
-import {
-  PasswordUIConfigField,
-  SelectUIConfigField,
-  StringUIConfigField,
-  SwitchUIConfigField,
-  TextareaUIConfigField,
-  ThemeUIConfigField,
-  UIConfigField,
-} from '../../lib/config/types';
-import { useState, useEffect } from 'react';
+'use client';
+
+import { UIConfigField } from '../../lib/config/types';
+import { useEffect, useState } from 'react';
 import grab from 'grab-url';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from '../ui/select';
 import { toast } from 'sonner';
 import { useTheme } from 'next-themes';
-import { Eye, EyeOff, Loader2, Moon, Sun } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
+import { Link2, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AnchorTitle } from './anchors';
+import { copyAnchorLink } from './anchors';
+import {
+  SettingsField as SettingsFieldRenderer,
+  type SettingsClassNames,
+  type SettingsFieldRenderProps,
+  type SettingsFieldRenderers,
+  type SettingsValue,
+} from 'shadcn-settings';
 
 const fieldAnchorId = (dataAdd: string, fieldKey: string) =>
   `${dataAdd}-${fieldKey}`;
+
+// Class-name overrides that keep the shadcn-settings renderer looking like the
+// rest of the app (light-200 / dark-primary tokens, muted helper text).
+const APP_FIELD_CLASSNAMES: SettingsClassNames = {
+  root: 'rounded-xl border border-light-200 bg-light-primary/80 dark:border-dark-200 dark:bg-dark-primary/80',
+  title: 'text-black dark:text-white',
+  description: 'text-black/50 dark:text-white/50',
+};
+
+const emitClientConfigChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('client-config-changed'));
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Theme picker — app-specific variant injected into the shared renderer.
+// ---------------------------------------------------------------------------
 
 const themeNames = [
   "modern-minimal", "elegant-luxury", "cyberpunk", "twitter",
@@ -67,437 +84,11 @@ const themeColors: Record<string, { primary: string; secondary: string }> = {
 const formatThemeName = (name: string) =>
   name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
-const FieldLinks = ({ links }: { links?: { name: string; url: string }[] }) => {
-  if (!links?.length) return null;
-  return (
-    <div className="flex flex-wrap gap-2 mt-1">
-      {links.map((link) => (
-        <a
-          key={link.url}
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[11px] lg:text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 underline"
-        >
-          {link.name}
-        </a>
-      ))}
-    </div>
-  );
-};
-
-const emitClientConfigChanged = () => {
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('client-config-changed'));
-  }
-};
-
-const SettingsSelect = ({
-  field,
-  value,
-  setValue,
-  dataAdd,
-}: {
-  field: SelectUIConfigField;
-  value?: any;
-  setValue: (value: any) => void;
-  dataAdd: string;
-}) => {
-  const [loading, setLoading] = useState(false);
-  const { setTheme } = useTheme();
-
-  const handleSave = async (newValue: any) => {
-    setLoading(true);
-    setValue(newValue);
-    try {
-      if (field.scope === 'client') {
-        localStorage.setItem(field.key, newValue);
-        if (field.key === 'theme') {
-          setTheme(newValue);
-        }
-        emitClientConfigChanged();
-      } else {
-        await grab('config', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            key: `${dataAdd}.${field.key}`,
-            value: newValue,
-          }),
-        });
-      }
-    } catch (error) {
-      console.error('Error saving config:', error);
-      toast.error('Failed to save configuration.');
-    } finally {
-      setTimeout(() => setLoading(false), 150);
-    }
-  };
-
-  return (
-    <section
-      id={fieldAnchorId(dataAdd, field.key)}
-      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
-    >
-      <div className="space-y-3 lg:space-y-5">
-        <div>
-          <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
-              {field.name}
-            </AnchorTitle>
-          </h4>
-          <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
-            {field.description}
-          </p>
-          <FieldLinks links={field.links} />
-        </div>
-        <Select
-          value={value}
-          onValueChange={(newValue) => handleSave(newValue)}
-          disabled={loading}
-        >
-          <SelectTrigger className="w-full bg-light-primary dark:bg-dark-primary border-light-200 dark:border-dark-200 text-black dark:text-white">
-            <SelectValue placeholder="Select an option" />
-          </SelectTrigger>
-          <SelectContent className="bg-light-primary dark:bg-dark-primary border-light-200 dark:border-dark-200">
-            {field.options
-              .filter((option) => option.value !== '')
-              .map((option) => (
-                <SelectItem
-                  key={option.value}
-                  value={option.value}
-                  className="text-black dark:text-white focus:bg-light-200 dark:focus:bg-dark-200"
-                >
-                  {option.name}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-      </div>
-    </section>
-  );
-};
-
-const SettingsInput = ({
-  field,
-  value,
-  setValue,
-  dataAdd,
-}: {
-  field: StringUIConfigField;
-  value?: any;
-  setValue: (value: any) => void;
-  dataAdd: string;
-}) => {
-  const [loading, setLoading] = useState(false);
-
-  const handleSave = async (newValue: any) => {
-    setLoading(true);
-    setValue(newValue);
-    try {
-      if (field.scope === 'client') {
-        localStorage.setItem(field.key, newValue);
-        emitClientConfigChanged();
-      } else {
-        await grab('config', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            key: `${dataAdd}.${field.key}`,
-            value: newValue,
-          }),
-        });
-      }
-    } catch (error) {
-      console.error('Error saving config:', error);
-      toast.error('Failed to save configuration.');
-    } finally {
-      setTimeout(() => setLoading(false), 150);
-    }
-  };
-
-  return (
-    <section
-      id={fieldAnchorId(dataAdd, field.key)}
-      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
-    >
-      <div className="space-y-3 lg:space-y-5">
-        <div>
-          <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
-              {field.name}
-            </AnchorTitle>
-          </h4>
-          <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
-            {field.description}
-          </p>
-          <FieldLinks links={field.links} />
-        </div>
-        <div className="relative">
-          <input
-            value={value ?? field.default ?? ''}
-            onChange={(event) => setValue(event.target.value)}
-            onBlur={(event) => handleSave(event.target.value)}
-            className="w-full rounded-lg border border-light-200 dark:border-dark-200 bg-light-primary dark:bg-dark-primary px-3 py-2 lg:px-4 lg:py-3 pr-10 !text-xs lg:!text-[13px] text-black/80 dark:text-white/80 placeholder:text-black/40 dark:placeholder:text-white/40 focus-visible:outline-none focus-visible:border-light-300 dark:focus-visible:border-dark-300 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-            placeholder={field.placeholder}
-            type="text"
-            disabled={loading}
-          />
-          {loading && (
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-black/40 dark:text-white/40">
-              <Loader2 className="h-4 w-4 animate-spin" />
-            </span>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const SettingsPasswordInput = ({
-  field,
-  value,
-  setValue,
-  dataAdd,
-}: {
-  field: PasswordUIConfigField;
-  value?: any;
-  setValue: (value: any) => void;
-  dataAdd: string;
-}) => {
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSave = async (newValue: any) => {
-    setLoading(true);
-    setValue(newValue);
-    try {
-      if (field.scope === 'client') {
-        localStorage.setItem(field.key, newValue);
-        emitClientConfigChanged();
-      } else {
-        await grab('config', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key: `${dataAdd}.${field.key}`, value: newValue }),
-        });
-      }
-    } catch (error) {
-      console.error('Error saving config:', error);
-      toast.error('Failed to save configuration.');
-    } finally {
-      setTimeout(() => setLoading(false), 150);
-    }
-  };
-
-  return (
-    <section
-      id={fieldAnchorId(dataAdd, field.key)}
-      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
-    >
-      <div className="space-y-3 lg:space-y-5">
-        <div>
-          <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
-              {field.name}
-            </AnchorTitle>
-          </h4>
-          <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
-            {field.description}
-          </p>
-          <FieldLinks links={field.links} />
-        </div>
-        <div className="relative">
-          <input
-            value={value ?? field.default ?? ''}
-            onChange={(event) => setValue(event.target.value)}
-            onBlur={(event) => handleSave(event.target.value)}
-            className="w-full rounded-lg border border-light-200 dark:border-dark-200 bg-light-primary dark:bg-dark-primary px-3 py-2 lg:px-4 lg:py-3 pr-16 !text-xs lg:!text-[13px] text-black/80 dark:text-white/80 placeholder:text-black/40 dark:placeholder:text-white/40 focus-visible:outline-none focus-visible:border-light-300 dark:focus-visible:border-dark-300 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-            placeholder={field.placeholder}
-            type={showPassword ? 'text' : 'password'}
-            disabled={loading}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-black/40 hover:text-black/70 dark:text-white/40 dark:hover:text-white/70 transition-colors"
-            title={showPassword ? 'Hide' : 'Show'}
-          >
-            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
-          {loading && (
-            <span className="pointer-events-none absolute right-8 top-1/2 -translate-y-1/2 text-black/40 dark:text-white/40">
-              <Loader2 className="h-4 w-4 animate-spin" />
-            </span>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const SettingsTextarea = ({
-  field,
-  value,
-  setValue,
-  dataAdd,
-}: {
-  field: TextareaUIConfigField;
-  value?: any;
-  setValue: (value: any) => void;
-  dataAdd: string;
-}) => {
-  const [loading, setLoading] = useState(false);
-
-  const handleSave = async (newValue: any) => {
-    setLoading(true);
-    setValue(newValue);
-    try {
-      if (field.scope === 'client') {
-        localStorage.setItem(field.key, newValue);
-        emitClientConfigChanged();
-      } else {
-        await grab('config', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            key: `${dataAdd}.${field.key}`,
-            value: newValue,
-          }),
-        });
-      }
-    } catch (error) {
-      console.error('Error saving config:', error);
-      toast.error('Failed to save configuration.');
-    } finally {
-      setTimeout(() => setLoading(false), 150);
-    }
-  };
-
-  return (
-    <section
-      id={fieldAnchorId(dataAdd, field.key)}
-      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
-    >
-      <div className="space-y-3 lg:space-y-5">
-        <div>
-          <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
-              {field.name}
-            </AnchorTitle>
-          </h4>
-          <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
-            {field.description}
-          </p>
-          <FieldLinks links={field.links} />
-        </div>
-        <div className="relative">
-          <textarea
-            value={value ?? field.default ?? ''}
-            onChange={(event) => setValue(event.target.value)}
-            onBlur={(event) => handleSave(event.target.value)}
-            className="w-full rounded-lg border border-light-200 dark:border-dark-200 bg-light-primary dark:bg-dark-primary px-3 py-2 lg:px-4 lg:py-3 pr-10 !text-xs lg:!text-[13px] text-black/80 dark:text-white/80 placeholder:text-black/40 dark:placeholder:text-white/40 focus-visible:outline-none focus-visible:border-light-300 dark:focus-visible:border-dark-300 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-            placeholder={field.placeholder}
-            rows={4}
-            disabled={loading}
-          />
-          {loading && (
-            <span className="pointer-events-none absolute right-3 translate-y-3 text-black/40 dark:text-white/40">
-              <Loader2 className="h-4 w-4 animate-spin" />
-            </span>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const SettingsSwitch = ({
-  field,
-  value,
-  setValue,
-  dataAdd,
-}: {
-  field: SwitchUIConfigField;
-  value?: any;
-  setValue: (value: any) => void;
-  dataAdd: string;
-}) => {
-  const [loading, setLoading] = useState(false);
-
-  const handleSave = async (newValue: boolean) => {
-    setLoading(true);
-    setValue(newValue);
-    try {
-      if (field.scope === 'client') {
-        localStorage.setItem(field.key, String(newValue));
-        emitClientConfigChanged();
-      } else {
-        await grab('config', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            key: `${dataAdd}.${field.key}`,
-            value: newValue,
-          }),
-        });
-      }
-    } catch (error) {
-      console.error('Error saving config:', error);
-      toast.error('Failed to save configuration.');
-    } finally {
-      setTimeout(() => setLoading(false), 150);
-    }
-  };
-
-  const isChecked = value === true || value === 'true';
-
-  return (
-    <section
-      id={fieldAnchorId(dataAdd, field.key)}
-      className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
-    >
-      <div className="flex flex-row items-center space-x-3 lg:space-x-5 w-full justify-between">
-        <div>
-          <h4 className="text-sm lg:text-sm text-black dark:text-white">
-            <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
-              {field.name}
-            </AnchorTitle>
-          </h4>
-          <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
-            {field.description}
-          </p>
-          <FieldLinks links={field.links} />
-        </div>
-        <Switch
-          checked={isChecked}
-          onCheckedChange={handleSave}
-          disabled={loading}
-          className="h-6 w-12"
-        />
-      </div>
-    </section>
-  );
-};
-
 const SettingsThemeSelect = ({
   field,
-  setValue,
-  dataAdd,
-}: {
-  field: ThemeUIConfigField;
-  value?: any;
-  setValue: (value: any) => void;
-  dataAdd: string;
-}) => {
+  anchorId,
+  titleAddon,
+}: SettingsFieldRenderProps) => {
   const { theme, setTheme } = useTheme();
   const [colorTheme, setColorTheme] = useState("modern-minimal");
   const [mounted, setMounted] = useState(false);
@@ -510,7 +101,6 @@ const SettingsThemeSelect = ({
 
   const handleColorThemeChange = (newTheme: string) => {
     setColorTheme(newTheme);
-    setValue(newTheme);
     localStorage.setItem("color-theme", newTheme);
     document.cookie = `color-theme=${newTheme}; path=/; max-age=31536000`;
     themeNames.forEach(t => document.documentElement.classList.remove(`theme-${t}`));
@@ -524,16 +114,15 @@ const SettingsThemeSelect = ({
 
   return (
     <section
-      id={fieldAnchorId(dataAdd, field.key)}
+      id={anchorId}
       className="scroll-mt-4 rounded-xl border border-light-200 bg-light-primary/80 p-4 lg:p-6 transition-colors dark:border-dark-200 dark:bg-dark-primary/80"
     >
       <div className="space-y-3 lg:space-y-5">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="text-sm text-black dark:text-white">
-              <AnchorTitle anchorId={fieldAnchorId(dataAdd, field.key)}>
-                {field.name}
-              </AnchorTitle>
+            <h4 className="flex items-center gap-1.5 text-sm text-black dark:text-white">
+              {field.name}
+              {titleAddon}
             </h4>
             <p className="text-[11px] lg:text-xs text-black/50 dark:text-white/50">
               {field.description}
@@ -597,6 +186,28 @@ const SettingsThemeSelect = ({
   );
 };
 
+const CUSTOM_RENDERERS: SettingsFieldRenderers = {
+  theme: SettingsThemeSelect,
+};
+
+// A small copy-link button rendered next to each field's title, matching the
+// previous AnchorTitle affordance.
+const AnchorLinkButton = ({ anchorId }: { anchorId: string }) => (
+  <button
+    type="button"
+    onClick={() => copyAnchorLink(anchorId)}
+    title="Copy link to this section"
+    className="group/anchor inline-flex cursor-pointer items-center"
+  >
+    <Link2
+      size={12}
+      className="shrink-0 opacity-0 transition-opacity group-hover/anchor:opacity-60"
+    />
+  </button>
+);
+
+// ---------------------------------------------------------------------------
+
 const SettingsField = ({
   field,
   value,
@@ -606,66 +217,49 @@ const SettingsField = ({
   value: any;
   dataAdd: string;
 }) => {
-  const [val, setVal] = useState(value);
+  const [val, setVal] = useState<SettingsValue>(value);
+  const { setTheme } = useTheme();
+  const anchorId = fieldAnchorId(dataAdd, field.key);
 
-  switch (field.type) {
-    case 'theme':
-      return (
-        <SettingsThemeSelect
-          field={field}
-          value={val}
-          setValue={setVal}
-          dataAdd={dataAdd}
-        />
-      );
-    case 'select':
-      return (
-        <SettingsSelect
-          field={field}
-          value={val}
-          setValue={setVal}
-          dataAdd={dataAdd}
-        />
-      );
-    case 'string':
-      return (
-        <SettingsInput
-          field={field}
-          value={val}
-          setValue={setVal}
-          dataAdd={dataAdd}
-        />
-      );
-    case 'password':
-      return (
-        <SettingsPasswordInput
-          field={field}
-          value={val}
-          setValue={setVal}
-          dataAdd={dataAdd}
-        />
-      );
-    case 'textarea':
-      return (
-        <SettingsTextarea
-          field={field}
-          value={val}
-          setValue={setVal}
-          dataAdd={dataAdd}
-        />
-      );
-    case 'switch':
-      return (
-        <SettingsSwitch
-          field={field}
-          value={val}
-          setValue={setVal}
-          dataAdd={dataAdd}
-        />
-      );
-    default:
-      return <div>Unsupported field type: {field.type}</div>;
-  }
+  // Persist a committed value: client-scoped fields write to localStorage,
+  // server-scoped fields POST to the config API. Errors are surfaced via a
+  // toast and never rejected, so the renderer's spinner always clears.
+  const handleCommit = async (newValue: SettingsValue) => {
+    try {
+      if (field.scope === 'client') {
+        localStorage.setItem(field.key, String(newValue ?? ''));
+        if (field.key === 'theme' && typeof newValue === 'string') {
+          setTheme(newValue);
+        }
+        emitClientConfigChanged();
+      } else {
+        await grab('config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            key: `${dataAdd}.${field.key}`,
+            value: newValue,
+          }),
+        });
+      }
+    } catch (error) {
+      console.error('Error saving config:', error);
+      toast.error('Failed to save configuration.');
+    }
+  };
+
+  return (
+    <SettingsFieldRenderer
+      field={field as unknown as SettingsFieldRenderProps['field']}
+      value={val}
+      onChange={setVal}
+      onCommit={handleCommit}
+      anchorId={anchorId}
+      titleAddon={<AnchorLinkButton anchorId={anchorId} />}
+      classNames={APP_FIELD_CLASSNAMES}
+      renderers={CUSTOM_RENDERERS}
+    />
+  );
 };
 
 export default SettingsField;

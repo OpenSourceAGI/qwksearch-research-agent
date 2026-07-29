@@ -37,81 +37,45 @@ import FileSources from './Sections/FileSources';
 import AIRewriteModes from './Sections/AIRewriteModes';
 import VoiceSection from './Sections/Voice';
 import SkillsAndMemory from './Sections/SkillsAndMemory';
+import { settingsSections } from 'research-agent-ui/settings';
+import type { ComponentType } from 'react';
 
-const sections = [
-  {
-    key: 'account',
-    name: 'Account',
-    description: 'Manage your profile, password, and linked accounts.',
-    icon: UserCircle,
-    component: Account,
-    dataAdd: 'account',
-  },
-  {
-    key: 'models',
-    name: 'Language Models',
-    description: 'Connect to AI services and manage connections.',
-    icon: BrainCog,
-    component: Models,
-    dataAdd: 'modelProviders',
-  },
-  {
-    key: 'mcpservers',
-    name: 'Connectors',
-    description: 'Configure Model Context Protocol servers.',
-    icon: Server,
-    component: MCPServers,
-    dataAdd: 'mcpServers',
-  },
-  {
-    key: 'skills-memory',
-    name: 'Skills & Memory',
-    description: 'Manage agent skills and view your stored memories.',
-    icon: Brain,
-    component: SkillsAndMemory,
-    dataAdd: 'skillsMemory',
-  },
-  {
-    key: 'searchEngines',
-    name: 'Search Sources',
-    description: 'Manage search engine sources by category.',
-    icon: Search,
-    component: SearchEngines,
-    dataAdd: 'searchEngines',
-  },
-  {
-    key: 'search',
-    name: 'Search Settings',
-    description: 'Configure search parameters.',
-    icon: Search,
-    component: SearchSection,
-    dataAdd: 'search',
-  },
-  {
-    key: 'fileSources',
-    name: 'Cloud Storage',
-    description: 'Manage storage sources (SSH, S3, R2, B2, Google Docs, Turso DB).',
-    icon: HardDrive,
-    component: FileSources,
-    dataAdd: 'storage',
-  },
-  {
-    key: 'aiRewriteModes',
-    name: 'Rewrite Modes',
-    description: 'Customize AI rewrite prompts and add your own modes.',
-    icon: Wand2,
-    component: AIRewriteModes,
-    dataAdd: 'rewritePrompts',
-  },
-  {
-    key: 'voice',
-    name: 'Voice Settings',
-    description: 'Configure text-to-speech with Kokoro.js or Cloudflare TTS.',
-    icon: Volume2,
-    component: VoiceSection,
-    dataAdd: 'voice',
-  },
-];
+// The section list (order, labels, descriptions, icon names) is declared as
+// data in research-agent-ui. The React components and lucide icons stay here in
+// the app and are keyed back onto that schema.
+const SECTION_COMPONENTS: Record<string, ComponentType<any>> = {
+  account: Account,
+  models: Models,
+  mcpservers: MCPServers,
+  'skills-memory': SkillsAndMemory,
+  searchEngines: SearchEngines,
+  search: SearchSection,
+  fileSources: FileSources,
+  aiRewriteModes: AIRewriteModes,
+  voice: VoiceSection,
+};
+
+const SECTION_ICONS: Record<string, ComponentType<any>> = {
+  UserCircle,
+  BrainCog,
+  Server,
+  Brain,
+  Search,
+  HardDrive,
+  Wand2,
+  Volume2,
+};
+
+const sections = settingsSections
+  .filter((section) => SECTION_COMPONENTS[section.key])
+  .map((section) => ({
+    key: section.key,
+    name: section.name,
+    description: section.description,
+    icon: SECTION_ICONS[section.icon] ?? Search,
+    component: SECTION_COMPONENTS[section.key],
+    dataAdd: section.dataAdd,
+  }));
 
 export { sections };
 

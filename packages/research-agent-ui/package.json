@@ -31,10 +31,18 @@
     "./file-sources": {
       "types": "./src/lib/file-sources.ts",
       "import": "./src/lib/file-sources.ts"
+    },
+    "./settings": {
+      "types": "./src/settings/index.ts",
+      "import": "./src/settings/index.ts"
+    },
+    "./settings/*": {
+      "import": "./src/settings/*"
     }
   },
   "files": [
     "dist",
+    "src/settings",
     "README.md"
   ],
   "sideEffects": false,
