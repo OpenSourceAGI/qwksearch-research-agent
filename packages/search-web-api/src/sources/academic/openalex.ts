@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the OpenAlex API for scholarly works, reconstructing abstracts from their inverted index.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 function reconstructAbstract(

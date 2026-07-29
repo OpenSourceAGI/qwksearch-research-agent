@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the ThinkTagProcessor component covering the actively-thinking and thinking-ended states.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import ThinkTagProcessor from './ThinkTagProcessor';

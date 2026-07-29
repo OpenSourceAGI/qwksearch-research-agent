@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Defines the default text-rewrite mode presets (clarity, concise,
+ * summarize, rephrase, expand) and helpers to read/write/reset the user's custom
+ * modes from `localStorage`.
+ */
+
 export interface RewriteMode {
   id: string;
   name: string;

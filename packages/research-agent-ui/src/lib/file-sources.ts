@@ -1,3 +1,10 @@
+/**
+ * @fileoverview localStorage-backed CRUD for configured file sources (local, SSH, S3, R2, B2, Google Docs, Turso).
+ *
+ * Always guarantees a default "Local Files" source is present and tracks
+ * which source is currently active; used by the file browser to let users
+ * connect and switch between multiple storage backends.
+ */
 import { FileSource, AnyFileSource } from '../types/fileSource';
 
 export type { FileSource, AnyFileSource } from '../types/fileSource';

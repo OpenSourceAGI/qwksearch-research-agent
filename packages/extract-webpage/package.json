@@ -41,6 +41,7 @@
     "test": "vitest",
     "ship": "npm run build && npx standard-version --release-as patch; rm CHANGELOG.md; npm publish",
     "test-ui": "vitest --ui --watch",
+    "test:coverage": "vitest run --coverage",
     "make": "rm -rf dist/*; NODE_OPTIONS=--max-old-space-size=15192 BUN_JSC_forceRAMSize=15192  vite build "
   },
   "peerDependencies": {
@@ -54,6 +55,7 @@
   "devDependencies": {
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "axios": "^1.13.6",
     "clsx": "^2.1.1",

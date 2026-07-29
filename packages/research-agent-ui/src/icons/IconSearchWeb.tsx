@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Renders the "web" search category icon (a globe with a magnifier) as inline SVG.
+ */
 export default function IconSearchWeb(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 214.6279 198.1416" {...props}>

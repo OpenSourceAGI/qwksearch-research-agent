@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the ArticleFollowupQuestions component covering multi-question rendering, auto-splitting of combined questions, and the empty state.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';

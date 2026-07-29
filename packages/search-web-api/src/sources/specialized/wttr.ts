@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries wttr.in for weather data, mapping WWO condition codes to human-readable descriptions.
+ */
 import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 
 // Weather condition mapping

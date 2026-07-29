@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Fetches web pages from a list of links, strips them to plain
+ * text, and splits them into `Document` chunks for downstream use.
+ */
 import axios from 'axios';
 import { splitTextIntoChunks, type Document } from 'chat-agent-toolkit';
 

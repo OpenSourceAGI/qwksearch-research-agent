@@ -1,5 +1,5 @@
 /**
- * Shared logic for chat message composers.
+ * @fileoverview Shared logic for chat message composers.
  */
 
 /**

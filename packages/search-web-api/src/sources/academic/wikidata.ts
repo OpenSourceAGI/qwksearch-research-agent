@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Wikidata API for entity search results.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const wikidata: EngineFunction = async (

@@ -1,6 +1,9 @@
 /**
- * Settings dropdown combining search category, thinking-time limit, model selector, file upload from device/folder/Google Drive,
- * private mode toggle, and links to History and Settings pages.
+ * @fileoverview Settings dropdown for search category, model, thinking time, file upload, and chat export/sharing.
+ *
+ * Renders the gear-icon dropdown menu combining search category selection, a "speed" (thinking time) submenu,
+ * model selector, file upload from device/folder/Google Drive, a private-mode toggle, share/export actions,
+ * and links to History and Settings.
  */
 'use client';
 

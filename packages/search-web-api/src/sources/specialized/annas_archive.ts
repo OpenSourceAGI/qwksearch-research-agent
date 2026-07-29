@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that scrapes Anna's Archive search results, trying multiple mirror domains.
+ */
 import { parseHTML } from "linkedom";
 import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 

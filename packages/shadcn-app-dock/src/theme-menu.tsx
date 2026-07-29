@@ -1,3 +1,9 @@
+/**
+ * @fileoverview `ThemeMenu` component: dropdown-menu content that renders a light/dark/system appearance toggle plus a shadcn color-theme picker with hover preview.
+ *
+ * Persists the selected color theme to localStorage and a cookie and toggles a
+ * `theme-<name>` class on the document element.
+ */
 "use client"
 
 import { useEffect, useState } from "react"

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview localStorage-backed CRUD for guest (unauthenticated) chat history.
+ *
+ * Mirrors the shape of server-persisted chats so guest users can create,
+ * read, update, and delete chats entirely client-side without an account.
+ */
 import { Message } from "../components/ChatConversation/ChatWindow";
 import type { ChatFile as File } from "../types/chat";
 

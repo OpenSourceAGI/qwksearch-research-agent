@@ -1,3 +1,10 @@
+/**
+ * @fileoverview React context and hooks that let pages register category state into a shared dock and control the dock's visibility.
+ *
+ * `CategoryDockProvider` holds the currently registered category state plus a
+ * localStorage-backed `dockHidden` flag; `useCategoryDock` lets a page register/unregister
+ * itself, while `useCategoryDockState` and `useCategoryDockVisibility` expose read access.
+ */
 "use client"
 
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"

@@ -1,6 +1,5 @@
 /**
- * Collapsible panel that shows the AI's internal reasoning/thinking process extracted from `<think>` tags;
- * auto-collapses once the thinking phase finishes.
+ * @fileoverview Collapsible panel that shows the AI's internal reasoning/thinking process extracted from `<think>` tags; auto-collapses once the thinking phase finishes.
  */
 'use client';
 

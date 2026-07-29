@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Handler that tests a provider's API key against its available models.
+ */
 import {
   testProviderModels,
   type ProviderTestResult,

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Standalone `KokoroTTS` class generating audio from text via a Kokoro model loaded from Hugging Face, using transformers.js pulled from a CDN URL.
+ *
+ * Near-identical unused duplicate of `core/kokoro.js` (same CDN-based implementation,
+ * missing that file's commented-out package-import alternative); no other file in this
+ * package imports `KokoroTTS.js` directly.
+ */
 import { StyleTextToSpeech2Model, AutoTokenizer, Tensor, RawAudio } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/transformers.min.js";
 
 import { phonemize } from "./phonemize.js";

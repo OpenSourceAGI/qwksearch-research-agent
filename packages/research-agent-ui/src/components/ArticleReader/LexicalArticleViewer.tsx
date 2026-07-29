@@ -1,7 +1,7 @@
 /**
- * Lightweight read-only article viewer that renders sanitized extracted HTML.
- * Replaces the previous reason-editor (Lexical) based reader so the web app has
- * no dependency on the reason-editor package.
+ * @fileoverview Lightweight read-only article viewer that renders sanitized extracted HTML.
+ *
+ * Replaces the previous reason-editor (Lexical) based reader so the web app has no dependency on the reason-editor package.
  */
 'use client';
 

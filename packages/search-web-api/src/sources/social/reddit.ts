@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that scrapes Reddit search results.
+ */
 import { parseHTML } from "linkedom";
 import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 

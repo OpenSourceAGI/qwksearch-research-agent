@@ -1,6 +1,8 @@
 /**
- * Trash button that opens a confirmation dialog then deletes the current chat from the API (authenticated users)
- * or localStorage (guests), optionally redirecting to the homepage after deletion.
+ * @fileoverview Trash button that confirms and deletes the current chat session.
+ *
+ * Renders a delete icon that opens a confirmation dialog, then deletes the chat via the API for
+ * authenticated users or from localStorage for guests, optionally redirecting home afterward.
  */
 import { Trash } from 'lucide-react';
 import { useState } from 'react';

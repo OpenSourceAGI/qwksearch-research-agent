@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Favicon lookup and domain/URL parsing helpers.
+ *
+ * Provides `getFaviconForDomain` (fetches or reads a cached base64 favicon via
+ * Google's favicon API), `convertURLToDomain` (regex-based root domain
+ * extraction handling multi-part TLDs), and `isURLValid` for basic URL
+ * validation.
+ */
 import fs from 'fs';
 
 interface FaviconCache {

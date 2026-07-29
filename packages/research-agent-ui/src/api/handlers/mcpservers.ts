@@ -1,3 +1,10 @@
+/**
+ * @fileoverview CRUD handlers for configured MCP (Model Context Protocol) servers.
+ *
+ * Provides list/add (createMCPServersHandler), update/delete
+ * (createMCPServerByIdHandler), and enable/disable
+ * (createMCPServerToggleHandler) operations backed by deps.configManager.
+ */
 import type { MCPServersDeps } from "../types";
 
 export function createMCPServersHandler(deps: MCPServersDeps) {

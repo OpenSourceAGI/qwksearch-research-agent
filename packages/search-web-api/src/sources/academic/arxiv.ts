@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the arXiv API for academic paper search results.
+ */
 import { parseHTML } from "linkedom";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 

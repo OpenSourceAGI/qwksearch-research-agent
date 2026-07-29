@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Static metadata for well-known LLM model families (Claude, ChatGPT,
+ * Gemini, Llama, etc.) used for display purposes such as provider/maker attribution,
+ * flagship model naming, and open vs. closed licensing status.
+ */
 
 export interface LanguageModelFamily {
   model_family: string;

@@ -1,1 +1,1 @@
-# Next Word Prediction Transformer Model Package 
+"""Next word prediction transformer model training package."""

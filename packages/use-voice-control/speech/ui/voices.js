@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Kokoro voice catalog and per-voice style-vector loading/caching used by the legacy TTS demo.
+ *
+ * Exports the `VOICES` metadata map (name, language, gender, quality grade) plus
+ * `getVoiceData`, which fetches each voice's style-vector `.bin` file from the Hugging Face
+ * Hub (via the Cache API and an in-memory `VOICE_CACHE`) and returns it as a `Float32Array`.
+ */
 export const VOICES = Object.freeze({
   af_heart: {
     name: "Heart",

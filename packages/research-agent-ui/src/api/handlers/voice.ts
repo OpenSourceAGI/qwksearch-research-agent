@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Handler that generates text-to-speech audio, rate-limited per user/IP.
+ *
+ * Accepts text plus a voice/provider (defaulting to Kokoro), enforces a
+ * 10/day TTS rate limit keyed by user id or forwarded IP, and streams back
+ * the generated audio with an appropriate content type.
+ */
 import type { VoiceDeps } from "../types";
 
 export function createVoiceHandler(deps: VoiceDeps) {

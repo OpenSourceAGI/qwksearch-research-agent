@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Mastodon public API for post search results.
+ */
 import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 
 export const mastodon: EngineFunction = async (

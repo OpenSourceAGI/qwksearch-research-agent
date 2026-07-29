@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the ArticleAIResponse component covering loading, response, and error states.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import ArticleAIResponse from './ArticleAIResponse';

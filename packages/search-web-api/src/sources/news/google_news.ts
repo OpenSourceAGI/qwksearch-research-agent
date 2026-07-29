@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that scrapes Google News search results.
+ */
 import { parseHTML } from "linkedom";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 

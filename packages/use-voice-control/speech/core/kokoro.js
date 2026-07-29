@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Browser/worker `KokoroTTS` class that generates audio from text using a Kokoro model loaded via Hugging Face transformers.
+ *
+ * Loads `@huggingface/transformers` from a jsdelivr CDN URL (rather than the npm package)
+ * so it can run inside the Web Worker in `legacy/worker.js` without a bundler resolving the
+ * dependency. Kept alongside the near-duplicate `KokoroTTS.js` in this directory; this is the
+ * file actually imported by `legacy/worker.js`.
+ */
 import { StyleTextToSpeech2Model, AutoTokenizer, Tensor, RawAudio } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/transformers.min.js";
 //import { StyleTextToSpeech2Model, AutoTokenizer, Tensor, RawAudio } from "@huggingface/transformers";
 

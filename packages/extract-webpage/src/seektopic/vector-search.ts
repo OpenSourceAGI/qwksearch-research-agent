@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Text embedding and semantic similarity utilities using
+ * HuggingFace Transformers (local MiniLM model) or the remote Inference API.
+ * Provides cosine-similarity-based document reranking against one or more queries.
+ */
 import grab from "../utils/grab";
 
 /**

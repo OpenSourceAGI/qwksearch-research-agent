@@ -1,5 +1,5 @@
 /**
- * Renders a clickable list of AI-generated follow-up question suggestions for the open article.
+ * @fileoverview Renders a clickable list of AI-generated follow-up question suggestions for the open article.
  */
 import React from 'react';
 import { researchAgentUIConfig } from '../../config';

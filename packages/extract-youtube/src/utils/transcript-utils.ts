@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Transcript timing utilities: encode/decode run-length compressed
+ * playback speeds and interpolate timestamps from character offsets.
+ */
+
 import { FetchedTranscript } from '../models';
 
 /**

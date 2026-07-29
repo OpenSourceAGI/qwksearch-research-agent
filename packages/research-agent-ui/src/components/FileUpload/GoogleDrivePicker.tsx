@@ -1,6 +1,8 @@
 /**
- * React hook that lazily loads the Google Picker API scripts and exposes `openPicker` to let users
- * select files from Google Drive using an OAuth access token.
+ * @fileoverview Hook that lazily loads the Google Picker API and exposes a function to open it.
+ *
+ * `useGooglePicker` loads the Google API client and Picker scripts on mount, then returns `openPicker`,
+ * which lets the user select files from Google Drive using an OAuth access token.
  */
 'use client';
 

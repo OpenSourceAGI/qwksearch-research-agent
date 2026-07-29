@@ -23,7 +23,8 @@
   "scripts": {
     "dev": "bun --watch demo/index.ts",
     "start": "bun demo/index.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",

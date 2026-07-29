@@ -1,5 +1,5 @@
 /**
- * Re-exports ChatProvider, useChat hook, chatContext, and shared types from the chat module index.
+ * @fileoverview Re-exports ChatProvider, useChat hook, chatContext, and shared types from the chat module index.
  */
 'use client';
 

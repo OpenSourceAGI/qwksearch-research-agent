@@ -49,6 +49,7 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test-ui": "vitest --ui --watch",
     "make": "rm -rf dist/*; NODE_OPTIONS=--max-old-space-size=15192 vite build",
     "ship": "npx standard-version --release-as patch && npm publish --access public"
@@ -68,6 +69,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "terser": "^5.46.0",
     "typedoc-plugin-markdown": "^4.10.0",

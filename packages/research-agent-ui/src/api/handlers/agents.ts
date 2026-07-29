@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Deprecated legacy language-generation endpoint handler.
+ *
+ * Validates the caller's API key (from user settings or the GROQ_API_KEY
+ * fallback) but always responds with a 501 pointing callers to /api/agent/chat.
+ */
 import { eq } from "drizzle-orm";
 import type { AgentsDeps } from "../types";
 

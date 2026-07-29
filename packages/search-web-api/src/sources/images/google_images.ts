@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that scrapes Google Images search results.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const google_images: EngineFunction = async (

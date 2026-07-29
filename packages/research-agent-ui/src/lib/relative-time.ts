@@ -1,5 +1,5 @@
 /**
- * Formats a timestamp as a compact relative string (e.g. "5 min", "2 hr",
+ * @fileoverview Formats a timestamp as a compact relative string (e.g. "5 min", "2 hr",
  * "3 days"). Used by the home page chat history chips to show how long ago a
  * conversation was last active, without a trailing "ago".
  */

@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Hook that manages Kokoro.js in-browser TTS playback for a given text: model
+ * preloading, voice selection/persistence, and speak/stop controls.
+ */
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';

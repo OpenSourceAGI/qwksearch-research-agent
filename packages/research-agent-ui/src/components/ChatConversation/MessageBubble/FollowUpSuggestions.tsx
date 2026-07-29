@@ -1,6 +1,7 @@
 /**
- * Renders AI-generated follow-up question suggestions as clickable buttons below the last assistant response;
- * hidden while loading or for non-final messages. Supports keyboard shortcuts (1-5) to trigger suggestions.
+ * @fileoverview Renders AI-generated follow-up question suggestions as clickable buttons below the last assistant response; hidden while loading or for non-final messages.
+ *
+ * Supports keyboard shortcuts (1-5) to trigger suggestions.
  */
 'use client';
 

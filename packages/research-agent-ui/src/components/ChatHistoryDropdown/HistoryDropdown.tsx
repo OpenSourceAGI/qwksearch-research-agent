@@ -1,6 +1,5 @@
 /**
- * Centered modal for viewing and managing chat history with
- * pinned chats, private mode, and delete/clear-all actions.
+ * @fileoverview Centered modal for viewing and managing chat history with pinned chats, private mode, and delete/clear-all actions.
  */
 'use client';
 

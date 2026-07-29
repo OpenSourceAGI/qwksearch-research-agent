@@ -1,7 +1,9 @@
 /**
- * Hook managing file attachment state: uploads supported document types (PDF, DOCX, TXT, MD, HTML) to the server,
- * extracts typed-in URLs as attachable context, handles drag-and-drop events, validates file count/size limits,
- * and converts large clipboard pastes into PastedContent cards.
+ * @fileoverview Hook managing attached-file and pasted-content state for the message composer.
+ *
+ * Uploads supported document types (PDF, DOCX, TXT, MD, HTML) to the server, extracts typed-in URLs as
+ * attachable context, handles drag-and-drop and paste events, enforces file count/size limits, and converts
+ * large clipboard pastes into PastedContent cards.
  */
 import { useState, useCallback } from "react";
 import React from "react";

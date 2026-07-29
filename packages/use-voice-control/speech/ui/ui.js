@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Legacy demo UI glue: renders the conversation transcript, drives the tab navigation, and wires the recording toggle button to a `Conversation` instance.
+ *
+ * Provides `displayConversation` (renders chat history into the DOM) and a
+ * `DOMContentLoaded` handler that sets up tab switching, the voice selector, the
+ * record/stop button (with a live timer), and an F8 "continue" keyboard shortcut.
+ */
 import { Conversation } from './conversation.js';
 import { initVoiceSelector } from './voice-selector.js';
 

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview `CategoryDock` component: a fixed macOS-style navigation dock rendered as a desktop top-left bar and a mobile bottom bar, with items that act as buttons or open dropdown menus.
+ *
+ * Renders `DockNavItem`s using the `Dock`/`DockItem`/`DockIcon`/`DockLabel` primitives,
+ * supports optional Alt+1..n keyboard shortcuts, and lets items opt into an inline dropdown
+ * (via `CategoryDockMenu.renderContent`) instead of a plain click handler.
+ */
 "use client"
 
 import { useEffect, type ReactNode } from "react"

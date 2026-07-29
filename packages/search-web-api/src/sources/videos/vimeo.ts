@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Vimeo API for video search results.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const vimeo: EngineFunction = async (

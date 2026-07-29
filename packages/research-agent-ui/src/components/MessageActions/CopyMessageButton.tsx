@@ -1,6 +1,8 @@
 /**
- * Button that copies the assistant message text plus citation URLs to the clipboard, showing a brief
- * checkmark confirmation after a successful copy.
+ * @fileoverview Button that copies an assistant message and its citations to the clipboard.
+ *
+ * Renders a tooltip-wrapped icon button; on click it copies the message text plus a formatted list of
+ * citation URLs, and briefly swaps its icon to a checkmark to confirm the copy.
  */
 import { Check, ClipboardList } from 'lucide-react';
 import { useState } from 'react';

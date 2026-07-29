@@ -1,5 +1,5 @@
 /**
- * Hook that plays AI-generated speech via Kokoro.js (local client-side TTS) with Cloudflare
+ * @fileoverview Hook that plays AI-generated speech via Kokoro.js (local client-side TTS) with Cloudflare
  * Workers AI TTS and browser speechSynthesis as fallbacks. Exposes `speechStatus`, `start`, and `stop`.
  * VAD-based live interruption is commented out pending a switch to @huggingface/transformers.
  */

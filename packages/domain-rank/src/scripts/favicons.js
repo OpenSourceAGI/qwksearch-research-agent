@@ -1,3 +1,14 @@
+/**
+ * @fileoverview CLI/module for fetching and caching domain favicons in a local
+ * SQLite database.
+ *
+ * `fetchAndStoreFavicons` walks a range of the top-1M domains list, downloads
+ * each favicon via Google's favicon API, and stores it in `favicons.sqlite`
+ * (skipping domains already cached at the requested size). Also exposes
+ * `getFaviconFromDatabase`, `getDomainsWithFavicons`, and `getDatabaseStats`
+ * for reading back the cache. Runs `fetchAndStoreFavicons` for the first 1000
+ * domains when executed directly.
+ */
 import { Database } from "bun:sqlite";
 import domains from "../../data/domains-1m.js";
 

@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that scrapes Google web search results.
+ */
 import { parseHTML } from "linkedom";
 import { EngineFunction } from "../../types/search-engine-interface.js";
 

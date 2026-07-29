@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Radix-based dropdown menu primitives (trigger, content, items, checkboxes, radio group, submenu) styled for the dock's shadcn theme.
+ *
+ * These are thin wrappers around `@radix-ui/react-dropdown-menu` that apply consistent
+ * Tailwind classes and `data-slot` attributes, re-exported for consumers to compose custom
+ * dock menu content (e.g. `ThemeMenu`).
+ */
 "use client";
 
 import * as React from "react";

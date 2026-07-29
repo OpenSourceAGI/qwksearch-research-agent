@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Small shared utilities: Tailwind class merging and human-readable time formatting.
+ */
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 

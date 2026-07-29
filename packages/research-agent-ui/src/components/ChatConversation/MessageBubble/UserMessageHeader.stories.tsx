@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the UserMessageHeader component covering the default, long-question, and copied-state variants via an interactive controlled wrapper.
+ */
 import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import UserMessageHeader from './UserMessageHeader';

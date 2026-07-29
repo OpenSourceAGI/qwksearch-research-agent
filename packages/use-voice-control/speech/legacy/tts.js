@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Legacy `textToSpeech` entry point that offloads Kokoro TTS generation to a Web Worker and streams the resulting audio to an `AudioPlayer`.
+ *
+ * Exposes `ttsModelReadyPromise` (resolved once the worker reports its model is loaded) and
+ * `textToSpeech(text, voice)`, which strips Markdown formatting before posting the request
+ * to `worker.js`.
+ */
 import { AudioPlayer } from "./AudioPlayer.js";
 
 const my_worker = new Worker(new URL("./worker.js", import.meta.url), { type: "module" });

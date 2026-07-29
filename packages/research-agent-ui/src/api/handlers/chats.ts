@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Handlers for listing, deleting, searching, sharing, and fetching chats.
+ *
+ * Exposes createChatsHandler (list/delete all chats for a user),
+ * createChatByIdHandler (fetch/delete a single chat, honoring public share
+ * access), createChatsSearchHandler (search chats by title/message content),
+ * and createChatsShareHandler (mark a chat public and produce a share URL).
+ */
 import { eq, and, inArray, sql, count, or, like, max } from "drizzle-orm";
 import type { ChatsDeps } from "../types";
 

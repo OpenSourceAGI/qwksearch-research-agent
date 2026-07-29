@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Internet Archive API for search results.
+ */
 import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 
 export const archive: EngineFunction = async (

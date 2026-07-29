@@ -1,5 +1,5 @@
 /**
- * Displays the AI-generated response to a user's prompt about the current article, with loading spinner and error state.
+ * @fileoverview Displays the AI-generated response to a user's prompt about the current article, with loading spinner and error state.
  */
 import React from 'react';
 

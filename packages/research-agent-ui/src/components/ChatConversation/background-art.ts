@@ -1,4 +1,8 @@
 /**
+ * @fileoverview Helper functions providing randomized background artwork URLs and time-of-day greeting strings for the chat homepage.
+ */
+
+/**
  * Gets a random artistic background about graph theory
  * and collective consciousness, 50+ AI-gen artworks found online
  * @returns {string} Imgur URL of random artistic background

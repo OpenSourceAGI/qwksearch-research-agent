@@ -1,3 +1,10 @@
+/**
+ * @fileoverview `phonemize` converts input text into phonemes for the Kokoro TTS pipeline, using the `phonemizer` (espeak-ng) library loaded from a CDN.
+ *
+ * Normalizes text first (quotes/punctuation, abbreviations, numbers, currency,
+ * possessives, hyphenation) via `normalize_text`, splits on punctuation to preserve it, runs
+ * each section through espeak-ng, then applies Kokoro-specific phoneme post-processing.
+ */
 import { phonemize as espeakng } from "https://cdn.jsdelivr.net/npm/phonemizer@1.2.1/dist/phonemizer.min.js";
 //import { phonemize as espeakng } from "phonemizer";
 

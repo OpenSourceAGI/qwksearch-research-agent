@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the Footer component covering the default icon bar, an icon-less variant, and an empty-links state.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Footer from './Footer';

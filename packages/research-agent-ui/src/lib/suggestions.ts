@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Client helper for fetching LLM-generated follow-up question suggestions for a chat.
+ */
 import grab from "grab-url";
 import { Message } from "../components/ChatConversation/ChatWindow";
 

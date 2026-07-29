@@ -1,7 +1,6 @@
 /**
- * URL Auto-linking Utility
+ * @fileoverview URL auto-linking utility: detects plain URLs and email addresses in text and converts them to markdown links.
  *
- * Detects plain URLs (with or without protocol) and converts them to markdown links.
  * Handles patterns like:
  * - github.com/kubet/mk-blog
  * - https://github.com/kubet/mk-blog

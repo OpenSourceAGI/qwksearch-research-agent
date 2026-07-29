@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Qwant search API.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const qwant: EngineFunction = async (

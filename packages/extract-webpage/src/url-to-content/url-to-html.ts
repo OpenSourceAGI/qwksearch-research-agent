@@ -1,4 +1,8 @@
 // @ts-nocheck
+/**
+ * @fileoverview Web crawler utility ("Tardigrade") that fetches a URL's raw HTML
+ * with bot-detection handling and Cloudflare/JINA fallbacks, plus robots.txt checking.
+ */
 import { convertHTMLToBasicHTML } from "../html-to-content/html-to-basic-html";
 import { convertMarkdownToFormattedHTML } from "../html-to-content/html-utils";
 import grab from "../utils/grab";

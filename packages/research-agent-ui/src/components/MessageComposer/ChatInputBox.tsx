@@ -1,6 +1,8 @@
 /**
- * Primary animated chat input box with cycling placeholder text, debounced autocomplete dropdown,
- * drag-and-drop / paste file handling, voice input waveform, and attachment tray for files and pasted content.
+ * @fileoverview Primary animated chat input box for the composer.
+ *
+ * Renders a cycling animated placeholder, a debounced autocomplete/domain-suggestion dropdown, drag-and-drop
+ * and paste file handling, a voice-input waveform, and an attachment tray for files and pasted content.
  */
 "use client"
 

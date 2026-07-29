@@ -1,3 +1,11 @@
+/**
+ * @fileoverview CRUD handlers for AI providers and their models.
+ *
+ * Exposes createProvidersHandler (list active providers filtered for
+ * guest/authenticated access, add a provider), createProviderByIdHandler
+ * (update/delete a provider), and createProviderModelsHandler (add/remove a
+ * model on a provider) via ModelRegistry.
+ */
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import type { Model } from "chat-agent-toolkit/config/config-types";
 import type { ProvidersDeps } from "../types";

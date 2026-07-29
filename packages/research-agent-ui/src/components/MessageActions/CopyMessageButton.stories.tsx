@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Storybook story for `CopyMessageButton`.
+ *
+ * Demonstrates the default copy-to-clipboard button rendered with a mock assistant message section.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Copy from './CopyMessageButton';

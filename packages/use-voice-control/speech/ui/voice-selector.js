@@ -1,3 +1,6 @@
+/**
+ * @fileoverview `initVoiceSelector` populates the legacy demo's voice `<select>` element, grouping voices by gender and sorting each group by quality grade.
+ */
 import { VOICES } from './voices.js';
 
 export function initVoiceSelector() {

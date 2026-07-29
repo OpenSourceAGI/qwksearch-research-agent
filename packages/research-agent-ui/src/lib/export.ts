@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Utilities for exporting article/chat HTML content as Markdown, DOCX, PDF, or to Google Docs.
+ *
+ * DOCX and PDF export lazily load their heavy dependencies (docx, jsPDF) from
+ * a CDN via cdn-loader rather than bundling them directly.
+ */
 import html2canvas from 'html2canvas';
 import TurndownService from 'turndown';
 import { loadDocx, loadJsPDF } from './cdn-loader';

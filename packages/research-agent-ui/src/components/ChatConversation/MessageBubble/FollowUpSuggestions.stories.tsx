@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the FollowUpSuggestions component covering the default three-suggestion case and a many-suggestions case that exceeds the five keyboard-shortcut slots.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';

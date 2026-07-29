@@ -1,3 +1,12 @@
+/**
+ * @fileoverview CLI script that exports the merged domain-rank dataset to
+ * JSON, NDJSON, and/or CSV files.
+ *
+ * Loads `domain-rank-merged.json` and `domain-info.json`, normalises records
+ * into a flat `{ rank, domain, source, score, info }` shape, and writes the
+ * requested formats to an output directory (both configurable via
+ * `--formats=` and `--out=` CLI args).
+ */
 import fs from 'fs/promises';
 import { createWriteStream } from 'fs';
 import path from 'path';

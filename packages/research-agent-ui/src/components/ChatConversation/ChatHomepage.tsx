@@ -1,6 +1,5 @@
 /**
- * Full-screen homepage with a randomised AI-themed background artwork (image or video), the
- * QuantumWaveOrbital animation, recent history chips, the main chat input box, and an app footer.
+ * @fileoverview Full-screen homepage with a randomised AI-themed background artwork (image or video), the QuantumWaveOrbital animation, recent history chips, the main chat input box, and an app footer.
  */
 'use client';
 import { useEffect, useState } from 'react';
@@ -8,6 +7,7 @@ import { GradientBlur } from '../../ui/gradient-blur';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
 import Footer from '../Footer';
+import { WeatherForecast } from 'react-weather-forecast';
 import { useChat } from '../../hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import { researchAgentUIConfig } from '../../config';
@@ -123,6 +123,18 @@ export default function ChatHomepage() {
           </p>
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
+            <WeatherForecast
+              forecastDays={5}
+              forecastHours={12}
+              className="rounded-2xl"
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: 'inherit',
+                backdropFilter: 'blur(8px)',
+                maxWidth: '100%',
+              }}
+            />
             <ChatInputBox />
           </div>
         </div>

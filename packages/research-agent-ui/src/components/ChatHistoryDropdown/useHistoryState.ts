@@ -1,6 +1,5 @@
 /**
- * Hook managing all state and logic for the chat history dropdown,
- * including fetching chats, pinning, deleting, clearing, and private mode.
+ * @fileoverview Hook managing all state and logic for the chat history dropdown, including fetching chats, pinning, deleting, clearing, and private mode.
  */
 "use client";
 

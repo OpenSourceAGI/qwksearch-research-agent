@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Crossref API for scholarly work metadata.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const crossref: EngineFunction = async (

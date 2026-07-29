@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Genius API for song/lyrics search results.
+ */
 import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 
 export const genius: EngineFunction = async (

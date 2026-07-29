@@ -1,5 +1,5 @@
 /**
- * Displays the user's question as a collapsible heading with copy and inline-edit (resubmit) actions.
+ * @fileoverview Displays the user's question as a collapsible heading with copy and inline-edit (resubmit) actions.
  */
 'use client';
 

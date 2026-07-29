@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Public API barrel for the shadcn-app-dock package.
+ *
+ * Re-exports the `CategoryDock` component and its types, the `ThemeMenu` theme switcher,
+ * the dock context provider/hooks, and select dropdown-menu/dock primitives that consumers
+ * need to build custom `menu.renderContent` implementations.
+ */
 "use client"
 
 export {

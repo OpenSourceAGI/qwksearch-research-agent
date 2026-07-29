@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Handler that validates OpenRouter model availability, with a 24-hour in-memory cache.
+ */
 import type { ValidateOpenRouterDeps } from "../types";
 
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours

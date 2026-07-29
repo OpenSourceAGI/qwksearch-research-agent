@@ -1,3 +1,7 @@
+/**
+ * @fileoverview No-op `fs` module mock used to stub out Node's filesystem API
+ * in bundled/browser builds where real filesystem access is unavailable.
+ */
 export const promises = {
   mkdir: async () => {},
   readFile: async () => "",

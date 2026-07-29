@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Splits long text into TTS-sized chunks along paragraph, sentence, comma, and word boundaries so speech synthesis can process it incrementally.
+ *
+ * Exports `splitTextSmart` (primary chunker, falling back to `splitLongSentence` for
+ * oversized sentences) and `splitLongSentence`. Also retains an older, unused
+ * `splitTextSmartOld` variant that lacks the long-sentence fallback.
+ */
 export function splitTextSmart(text, maxChunkLength = 500) {
   const paragraphChunks = text.split(/\n\s*\n/);
   const finalChunks = [];

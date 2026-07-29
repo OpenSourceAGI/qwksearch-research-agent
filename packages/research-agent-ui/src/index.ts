@@ -1,5 +1,5 @@
 /**
- * research-agent-ui - Chat research agent UI: conversation window, article
+ * @fileoverview research-agent-ui - Chat research agent UI: conversation window, article
  * reader, search config, file uploads, and chat history for QwkSearch-style
  * apps.
  *

@@ -1,6 +1,8 @@
 /**
- * Central `Icons` export map of Lucide icons and custom SVGs (Thinking clock, SelectArrow)
- * used across MessageComposer and related components.
+ * @fileoverview Central `Icons` export map of Lucide icons and custom SVGs used across the message composer.
+ *
+ * Re-exports commonly used Lucide icons under short names and adds custom inline SVGs (Thinking clock,
+ * SelectArrow) shared by MessageComposer and related components.
  */
 import React from "react";
 import { Plus, Paperclip, ChevronDown, ArrowUp, X, FileText, Loader2, Check, Archive, Cloud, Upload, File, Mic, Square, SquarePen } from "lucide-react";

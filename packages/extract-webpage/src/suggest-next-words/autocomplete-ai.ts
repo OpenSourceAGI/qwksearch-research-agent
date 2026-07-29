@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Local small-model next-word prediction utility (DistilGPT2 via
+ * HuggingFace Transformers). Currently disabled/commented out; kept for reference.
+ */
 // import { pipeline, type TextGenerationSingle } from "@huggingface/transformers";
 
 // /**

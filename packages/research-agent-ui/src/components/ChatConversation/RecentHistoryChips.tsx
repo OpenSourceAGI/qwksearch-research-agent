@@ -1,8 +1,7 @@
 /**
- * Horizontal row of pill chips linking to the five most recent chat sessions
- * plus the history dropdown trigger. Each pill shows the chat title followed
- * by a subtle italic label showing how long ago that conversation was last
- * active.
+ * @fileoverview Horizontal row of pill chips linking to the five most recent chat sessions plus the history dropdown trigger.
+ *
+ * Each pill shows the chat title followed by a subtle italic label showing how long ago that conversation was last active.
  */
 'use client';
 

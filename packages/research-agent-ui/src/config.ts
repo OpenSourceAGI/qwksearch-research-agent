@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Package-wide configuration: app branding, defaults, and the auth client contract, overridable via configureResearchAgentUI.
+ */
 export interface FooterLink {
   url: string;
   text: string;

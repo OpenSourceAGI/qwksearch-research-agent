@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Barrel re-export of the API dependency-injection types and all route handler factories.
+ */
 export * from "./types";
 export * from "./handlers/article-followups";
 export * from "./handlers/article-qa";

@@ -1,6 +1,10 @@
 
 /**
- * Utility functions for detecting sentence boundaries in streaming text
+ * @fileoverview Utility functions for detecting sentence boundaries in streaming text so speech can be synthesized incrementally as an LLM response streams in.
+ *
+ * Exports `isCompleteSentence` (checks basic/dialog/list-item/paragraph endings plus a
+ * length-based fallback) and `processStreamingText`, which splits an accumulator + new
+ * chunk into ready-to-speak sentences and a leftover remainder.
  */
 
 // These are common sentence ending patterns

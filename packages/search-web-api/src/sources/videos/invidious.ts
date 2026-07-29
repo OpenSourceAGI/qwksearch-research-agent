@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries public Invidious instances for YouTube video search results.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 // Public Invidious instances - user can configure their own

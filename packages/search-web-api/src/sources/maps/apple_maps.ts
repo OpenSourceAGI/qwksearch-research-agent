@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Apple Maps API for place search results, with automatic access-token caching/renewal.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 // Token management for Apple Maps API

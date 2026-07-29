@@ -1,6 +1,5 @@
 /**
- * Large full-featured input for the empty-chat homepage, adds Model and Optimization selectors
- * not present in the follow-up bar; auto-focuses on mount and submits via Enter.
+ * @fileoverview Large full-featured input for the empty-chat homepage, adds Model and Optimization selectors not present in the follow-up bar; auto-focuses on mount and submits via Enter.
  */
 import { ArrowRight } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';

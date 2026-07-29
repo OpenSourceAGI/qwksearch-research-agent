@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Handler for persisting a chat message, plus a driver-error formatting utility.
+ *
+ * createMessagesHandler validates and inserts a message row scoped to the
+ * authenticated user; describeError flattens Drizzle/D1's wrapped `cause`
+ * chain into a single readable string for logging.
+ */
 import type { MessagesDeps } from "../types";
 
 const VALID_ROLES = ["assistant", "user", "source", "suggestion"] as const;

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Handler that generates follow-up question suggestions for a chat conversation.
+ *
+ * Loads a chat model, runs the suggestion-generator agent over the chat
+ * history, then splits any multi-question suggestions on "?" into separate
+ * standalone questions.
+ */
 import generateSuggestions from "chat-agent-toolkit/tools/search/suggestionGeneratorAgent";
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import type { ModelWithProvider } from "chat-agent-toolkit/config/config-types";

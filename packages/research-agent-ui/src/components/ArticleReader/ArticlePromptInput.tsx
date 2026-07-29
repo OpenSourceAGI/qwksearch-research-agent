@@ -1,5 +1,5 @@
 /**
- * Single-line text input for entering AI questions about the current article; submits on Enter.
+ * @fileoverview Single-line text input for entering AI questions about the current article; submits on Enter.
  */
 import React from 'react';
 

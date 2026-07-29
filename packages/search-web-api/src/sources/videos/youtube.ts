@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries YouTube video search via public Invidious instances, with fallback across multiple instances.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 // Multiple Invidious instances for fallback

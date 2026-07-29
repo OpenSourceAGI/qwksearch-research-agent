@@ -1,6 +1,8 @@
 /**
- * Standard paperclip button for attaching files to a message; shows a popover list of attached files
- * with add/clear actions when files are present.
+ * @fileoverview Paperclip button that uploads files and shows a popover list of attached files.
+ *
+ * Renders the standard file-attach control for the message composer; while files are attached it shows a
+ * popover listing them with "Add" and "Clear" actions, and a spinner while an upload is in flight.
  */
 import { useRef, useState } from 'react';
 import { cn } from '../../lib/utils';

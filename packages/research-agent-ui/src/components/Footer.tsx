@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Footer component that renders a bar of links (with optional Lucide icons) pinned to the bottom of the screen, collapsing into an info-icon popover on mobile.
+ */
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";

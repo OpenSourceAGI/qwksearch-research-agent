@@ -1,3 +1,12 @@
+/**
+ * @fileoverview JSDOM-based headless scraper for fetching and rendering web pages.
+ *
+ * Fetches a URL, loads the HTML into a JSDOM instance (with scripts and
+ * resources enabled), optionally runs UI automation steps (click/type/waitFor)
+ * and a custom user script against the DOM, then extracts title, meta
+ * description, text content, and links from the resulting document.
+ */
+
 import { JSDOM } from 'jsdom'
 
 export interface ScraperOptions {

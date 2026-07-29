@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the HistoryChatItem component covering default, pinned, no-messages, and long-title states.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';

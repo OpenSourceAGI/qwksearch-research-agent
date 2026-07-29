@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Handler that transcribes an uploaded audio file via Cloudflare Workers AI Whisper.
+ *
+ * Maps a requested quality tier ("small"/"medium"/"large"/etc.) to a
+ * specific Whisper model binding and requires the Cloudflare AI binding to
+ * be present (unavailable in local dev without CF bindings).
+ */
 import type { TranscriptDeps } from "../types";
 
 function getWhisperModel(modelParam: string | null): string {

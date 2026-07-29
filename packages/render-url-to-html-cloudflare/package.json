@@ -11,9 +11,15 @@
   },
   "scripts": {
     "start": "bun src/scrapers/scraper-cloudflare.js",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@cloudflare/puppeteer": "*"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18",
+    "@vitest/coverage-v8": "^4.0.18"
   }
 }

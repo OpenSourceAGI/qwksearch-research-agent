@@ -1,6 +1,5 @@
 /**
- * Renders the full extracted article body including the source URL link, citation info, word count,
- * and the Lexical rich-text viewer with optional text-highlight mode.
+ * @fileoverview Renders the full extracted article body including the source URL link, citation info, word count, and the Lexical rich-text viewer with optional text-highlight mode.
  */
 'use client';
 

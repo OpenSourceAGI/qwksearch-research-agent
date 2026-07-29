@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Handler for search-box autocomplete: query suggestions plus domain matches.
+ *
+ * Combines multi-backend autocomplete (with a word-dropping fallback when the
+ * full query yields no results) with a Fuse.js fuzzy index over a ranked
+ * domain dataset to surface site suggestions as the user types.
+ */
 import { searchAutocompleteMulti } from "extract-webpage/suggest-next-words/autocomplete-search-engines";
 import Fuse from "fuse.js";
 import domainData from "domain-rank/data/domain-rank-merged.json";

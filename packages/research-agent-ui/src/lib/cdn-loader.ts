@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Lazily loads third-party CDN scripts (jsPDF, docx) in the browser, caching in-flight loads.
+ *
+ * Scripts are injected once per `src` (deduped via an in-memory promise
+ * cache and a `data-cdn-loader` attribute check) so repeated calls to
+ * loadJsPDF/loadDocx reuse the same load rather than re-fetching.
+ */
 const scriptCache = new Map<string, Promise<void>>();
 
 function loadScript(src: string): Promise<void> {

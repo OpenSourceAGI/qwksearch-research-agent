@@ -1,6 +1,5 @@
 /**
- * Configuration error component shown when no AI providers are configured.
- * Provides helpful instructions for setting up environment variables.
+ * @fileoverview Configuration error component shown when no AI providers are configured. Provides helpful instructions for setting up environment variables.
  */
 'use client';
 

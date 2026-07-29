@@ -1,5 +1,5 @@
 /**
- * Type definitions used by the ResearchAgent area of the ResearchAgent feature.
+ * @fileoverview Type definitions used by the ResearchAgent area of the ResearchAgent feature.
  */
 import { ChatFile, ChatModelProvider } from "./chat";
 

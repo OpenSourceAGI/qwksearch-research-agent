@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Audio-buffer utility functions for resampling, gain adjustment, and WAV encoding, used by the legacy STT/TTS pipeline.
+ *
+ * Exports `resampleAudio` (via `OfflineAudioContext`), `applyAudioGain` (volume boost with
+ * clamping, used to retry failed transcriptions), and `convertAudioBufferToWav` (manual RIFF/WAV
+ * header + PCM encoding) plus its internal `writeString` helper.
+ */
 //see also: https://github.com/colmeye/js-mediarecorder-to-wav/blob/main/wave-worker.js
 
 // 16000

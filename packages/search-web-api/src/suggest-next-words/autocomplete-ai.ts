@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Local next-word prediction using the DistilGPT-2 model via Hugging Face Transformers.js.
+ */
 import { pipeline, type TextGenerationSingle } from "@huggingface/transformers";
 
 /**

@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the npm registry search API.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const npm: EngineFunction = async (

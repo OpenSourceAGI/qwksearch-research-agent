@@ -1,5 +1,10 @@
 
 /**
+ * @fileoverview Utility for extracting the publication/source name from a
+ * document's `og:site_name` meta tag or class-based markers.
+ */
+
+/**
  * Extract source from document using common class names
  *
  * @param {document} document document or dom object with article content

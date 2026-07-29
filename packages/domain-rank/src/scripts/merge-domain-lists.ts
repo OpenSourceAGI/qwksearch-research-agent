@@ -1,3 +1,12 @@
+/**
+ * @fileoverview CLI script that merges the general domain-info list with the
+ * curated news-domain-rank list into a single compact ranked dataset.
+ *
+ * News entries override general entries for shared domains; news-only
+ * domains are appended with sequentially assigned ranks. Writes the result
+ * as trailing-value-trimmed arrays to `domain-rank-merged.json`. Runs
+ * `mergeDomainLists()` when executed directly.
+ */
 import fs from "fs";
 
 type OldDomainEntry = [number, string]; // [rank, title] (existing source format)

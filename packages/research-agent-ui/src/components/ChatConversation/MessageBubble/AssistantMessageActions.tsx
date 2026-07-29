@@ -1,6 +1,5 @@
 /**
- * Action toolbar below each AI response with rewrite, copy, read-aloud (TTS), export
- * (Markdown/PDF/DOCX/Google Docs), and "Open in LLM" (Claude/Perplexity/Gemini/ChatGPT) buttons.
+ * @fileoverview Action toolbar below each AI response with rewrite, copy, read-aloud (TTS), export (Markdown/PDF/DOCX/Google Docs), and "Open in LLM" (Claude/Perplexity/Gemini/ChatGPT) buttons.
  */
 'use client';
 

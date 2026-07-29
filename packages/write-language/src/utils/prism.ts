@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Configures Prism.js with a fixed set of language grammars and exposes
+ * a small `highlightCode` helper used by markdown-to-html.ts for code-block syntax
+ * highlighting.
+ */
 import Prism from "prismjs";
 import "prismjs/components/prism-markup";
 import "prismjs/components/prism-css";

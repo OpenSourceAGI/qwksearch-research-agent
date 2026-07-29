@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Wikipedia API for article search results.
+ */
 import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
 
 export const wikipedia: EngineFunction = async (

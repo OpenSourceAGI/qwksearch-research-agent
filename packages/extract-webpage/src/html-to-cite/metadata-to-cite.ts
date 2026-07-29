@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Extracts citation metadata (author, date, title, source) from
+ * a document's `<meta>` tags using a list of commonly used property/name attributes.
+ */
 
 export interface CiteMetadata {
   author?: string;

@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the CORE API for open-access academic papers (requires CORE_API_KEY).
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const core: EngineFunction = async (

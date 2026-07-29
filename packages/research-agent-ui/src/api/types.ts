@@ -1,5 +1,5 @@
 /**
- * Dependency injection types for research-agent-ui API route handlers.
+ * @fileoverview Dependency injection types for research-agent-ui API route handlers.
  *
  * Each factory function accepts a narrow `deps` object containing only the
  * app-specific implementations it needs (db, auth helpers, env accessor, etc.)

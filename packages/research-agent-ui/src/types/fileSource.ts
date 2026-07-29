@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Type definitions for pluggable file storage source backends and their credentials.
+ */
 // File source types for different storage backends
 
 export type FileSourceType = 'local' | 'ssh' | 's3' | 'r2' | 'b2' | 'gdocs' | 'turso';

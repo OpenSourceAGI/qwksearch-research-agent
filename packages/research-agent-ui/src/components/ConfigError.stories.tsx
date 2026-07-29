@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the ConfigError component's default full-screen setup guide.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import ConfigError from './ConfigError';

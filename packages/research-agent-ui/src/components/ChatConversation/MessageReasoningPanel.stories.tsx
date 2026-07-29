@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the MessageReasoningPanel (ThinkBox) component covering the actively-thinking and finished/auto-collapsed states.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import ThinkBox from './MessageReasoningPanel';

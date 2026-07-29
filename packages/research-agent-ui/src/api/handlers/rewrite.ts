@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Handler that rewrites user-supplied text for clarity/grammar/style via Groq.
+ */
 import type { RewriteDeps } from "../types";
 
 export function createRewriteHandler(deps: RewriteDeps) {

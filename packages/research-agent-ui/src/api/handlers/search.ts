@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Handlers for web search and the topic-based "discover" feed.
+ *
+ * createSearchHandler proxies queries to SearxNG (falling back to the public
+ * instance if the private one returns no results). createDiscoverHandler
+ * pulls recent news blogs for curated topics (tech, finance, art, sports,
+ * entertainment) from a fixed set of trusted domains.
+ */
 import { searchWeb, searchSearxng } from "search-web-api/search/public-searxng";
 import type { SearchDeps } from "../types";
 

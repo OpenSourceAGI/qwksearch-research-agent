@@ -1,8 +1,7 @@
 /**
- * Renders the files a user attached to a message inline in the conversation
- * flow. Each attachment is shown as a compact chip with a file-type icon,
- * name and extension, plus a trash button that asks for confirmation before
- * permanently deleting the upload.
+ * @fileoverview Renders the files a user attached to a message inline in the conversation flow.
+ *
+ * Each attachment is shown as a compact chip with a file-type icon, name and extension, plus a trash button that asks for confirmation before permanently deleting the upload.
  */
 'use client';
 

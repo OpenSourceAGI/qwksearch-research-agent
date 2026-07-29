@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Legacy `SpeechToText` class performing in-browser speech recognition via a Hugging Face transformers.js ASR pipeline.
+ *
+ * Detects WebGPU support to pick device/dtype, records microphone audio with
+ * `MediaRecorder`, converts it to WAV (with a gain-boosted retry if transcription comes
+ * back empty), and transcribes it with the `onnx-community/moonshine-base-ONNX` model.
+ */
 import { pipeline } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/transformers.min.js";
 
 import { convertAudioBufferToWav, resampleAudio, applyAudioGain } from "./audio-utils.js";

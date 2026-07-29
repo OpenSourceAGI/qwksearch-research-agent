@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Renders the "files" search category icon (stacked document pages) as inline SVG.
+ */
 export default function IconSearchFiles(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg height="800px" width="800px" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 503.322 503.322" {...props}>

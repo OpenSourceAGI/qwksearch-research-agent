@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Cloudflare Worker entry point exposing metadata, OAuth, connection
+ * management, run-log, and transit-file endpoints for research-agent-ui.
+ *
+ * Routes are admin-token authenticated (except metadata/health/OAuth) and
+ * backed directly by D1 plus an R2 or KV transit-file store. A scheduled
+ * handler periodically purges expired OAuth state, idempotency keys, and
+ * transit files.
+ */
 import { Router, IRequest } from 'itty-router';
 import { json, text, error as httpError } from 'itty-router';
 

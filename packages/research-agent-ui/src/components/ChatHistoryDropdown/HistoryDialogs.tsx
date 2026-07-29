@@ -1,6 +1,5 @@
 /**
- * Confirmation dialogs for deleting a single chat and clearing all
- * chat history, built on a shared reusable ConfirmDialog component.
+ * @fileoverview Confirmation dialogs for deleting a single chat and clearing all chat history, built on a shared reusable ConfirmDialog component.
  */
 'use client';
 

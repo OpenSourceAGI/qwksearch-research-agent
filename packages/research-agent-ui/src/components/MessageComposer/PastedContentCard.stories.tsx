@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Storybook story for `PastedContentCard`.
+ *
+ * Shows the card as it appears in the composer's attachment tray for a large pasted text block.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview `AudioPlayer` class that queues raw Float32 audio chunks and plays them back sequentially through the Web Audio API.
+ *
+ * Supports queueing additional chunks while playback is in progress, stopping playback and
+ * clearing the queue, and closing the underlying `AudioContext`.
+ */
 const SAMPLE_RATE = 24000;
 
 export class AudioPlayer {

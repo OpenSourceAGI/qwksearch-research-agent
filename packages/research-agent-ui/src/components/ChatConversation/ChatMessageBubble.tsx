@@ -1,6 +1,5 @@
 /**
- * Renders a single conversation turn (user message + AI response) with expand/collapse, inline editing,
- * search progress, source citations, markdown rendering, text-to-speech, and follow-up suggestions.
+ * @fileoverview Renders a single conversation turn (user message + AI response) with expand/collapse, inline editing, search progress, source citations, markdown rendering, text-to-speech, and follow-up suggestions.
  */
 'use client';
 

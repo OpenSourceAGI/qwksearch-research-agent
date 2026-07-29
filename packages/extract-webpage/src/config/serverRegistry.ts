@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Convenience accessors for reading server-side config values
+ * (model providers, search backends, scrape limits) from the shared ConfigManager.
+ */
 import configManager from "./index";
 import type { ConfigModelProvider } from "./types";
 

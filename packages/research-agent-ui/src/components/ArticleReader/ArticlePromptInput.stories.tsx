@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the ArticlePromptInput component covering empty, pre-filled, and fully interactive states.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';

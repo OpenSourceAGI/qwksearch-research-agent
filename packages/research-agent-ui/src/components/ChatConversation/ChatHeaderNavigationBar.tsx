@@ -1,7 +1,7 @@
 /**
- * Sticky navigation bar showing the abbreviated chat title and delete button.
- * Shifts right when the article side panel is open on desktop.
- * Share/export options moved to the message input bar.
+ * @fileoverview Sticky navigation bar showing the abbreviated chat title and delete button.
+ *
+ * Shifts right when the article side panel is open on desktop. Share/export options moved to the message input bar.
  */
 import { useEffect, useState } from 'react';
 import { Edit } from 'lucide-react';

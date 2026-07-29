@@ -1,6 +1,5 @@
 /**
- * React context and provider managing open/close state, target URL, search text, and panel width for the
- * article extract panel; also reflects open state in the URL query string via the `extract` param.
+ * @fileoverview React context and provider managing open/close state, target URL, search text, and panel width for the article extract panel; also reflects open state in the URL query string via the `extract` param.
  */
 'use client';
 

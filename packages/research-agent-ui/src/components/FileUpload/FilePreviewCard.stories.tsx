@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Storybook stories for `FilePreviewCard`.
+ *
+ * Covers a non-image PDF attachment, an image attachment with a generated preview, and the uploading state.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';

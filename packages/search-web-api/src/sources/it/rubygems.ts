@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the RubyGems API for gem search results.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const rubygems: EngineFunction = async (

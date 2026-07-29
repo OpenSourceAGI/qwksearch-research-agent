@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Handler that generates LLM-powered follow-up questions for an article.
+ *
+ * Loads a chat model via ModelRegistry, prompts it with the article text
+ * (truncated to 15000 chars) and prior chat history, then parses the
+ * response into a cleaned list of questions.
+ */
 import { generateText } from "ai";
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import type { ModelWithProvider } from "chat-agent-toolkit/config/config-types";

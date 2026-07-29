@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Client helper for requesting an LLM-generated chat title from the server.
+ */
 import grab from "grab-url";
 import { Message } from "../components/ChatConversation/ChatWindow";
 

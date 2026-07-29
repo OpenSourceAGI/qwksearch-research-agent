@@ -1,6 +1,8 @@
 /**
- * Thumbnail card for a single attached file showing an image preview or a file-type icon with name and size;
- * overlays upload status (spinner / error) and a hover-revealed remove button.
+ * @fileoverview Thumbnail card for a single attached file, showing an image preview or file-type icon.
+ *
+ * Renders a square preview tile with name/size for non-image files, or the image itself for image
+ * attachments, overlaying upload status (spinner/error) and a hover-revealed remove button.
  */
 import React from "react";
 import { Icons } from "../MessageComposer/MessageInputIconSet";

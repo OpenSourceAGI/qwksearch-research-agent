@@ -1,5 +1,5 @@
 /**
- * Shared mock data for Storybook stories.
+ * @fileoverview Shared mock data for Storybook stories.
  *
  * These fixtures let the chat components render in complete isolation — no
  * API calls, auth session, or chat provider required. Everything a story

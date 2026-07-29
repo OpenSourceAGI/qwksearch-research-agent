@@ -1,6 +1,5 @@
 /**
- * Single chat row in the history dropdown showing title, timestamp,
- * message count, and hover-revealed pin/delete actions.
+ * @fileoverview Single chat row in the history dropdown showing title, timestamp, message count, and hover-revealed pin/delete actions.
  */
 'use client';
 

@@ -1,3 +1,13 @@
+/**
+ * @fileoverview CLI script that builds `domain-info.json` by resolving a
+ * display title for each domain in the official top-domains list.
+ *
+ * For each domain, skips removals/duplicates, prefers a manual title
+ * override or formatted domain name, and falls back to scraping the live
+ * page's title when no override exists. Supports resuming from the last
+ * processed domain and writes results incrementally. Runs for the first 1M
+ * domains with resume enabled when executed directly.
+ */
 import domainsOfficial from "../../data/domains-official-1m.js";
 import fs from "fs";
 import {

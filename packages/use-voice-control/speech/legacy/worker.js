@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Web Worker (legacy) that loads the Kokoro TTS model off the main thread and generates audio for queued text chunks, streaming each result back via `postMessage`.
+ *
+ * Detects WebGPU, loads `KokoroTTS` from `../core/kokoro.js`, splits incoming text into
+ * chunks with `splitTextSmart`, and processes them one at a time through a simple queue,
+ * transferring each generated audio buffer back to the main thread.
+ */
 import { KokoroTTS } from "./kokoro.js";
 import { splitTextSmart } from "./semantic-split.js";
 

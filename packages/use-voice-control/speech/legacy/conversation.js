@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Legacy `Conversation` class driving the full voice loop: record speech, transcribe it, stream an LLM chat completion, and speak the response sentence-by-sentence.
+ *
+ * Pre-refactor, DOM-coupled implementation (queries elements like `#serverUrl` and
+ * `#systemPrompt` directly) that wires together `SpeechToText`, the streaming chat fetch,
+ * `processStreamingText` for incremental sentence detection, and `textToSpeech` playback.
+ */
 import { SpeechToText } from "./stt.js";
 import { textToSpeech, ttsModelReadyPromise } from "./tts.js";
 import { processStreamingText } from "./sentence-detector.js";

@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Accessors for configured model providers and search-related settings.
+ *
+ * Thin read helpers over `configManager` for model provider lookups (by list or id)
+ * and SearxNG/Tavily search configuration (URL, API key, scrape count/timeout).
+ */
 import { configManager } from "./index";
 import type { ConfigModelProvider } from "./config-types";
 

@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Renders the "tech" search category icon (a monitor/window) as inline SVG.
+ */
 export default function IconSearchTech(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg height="800px" width="800px" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" className="iconify iconify--noto" preserveAspectRatio="xMidYMid meet" {...props}>

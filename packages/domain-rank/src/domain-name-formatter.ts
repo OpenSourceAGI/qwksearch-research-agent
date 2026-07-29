@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Domain title formatting and cleanup utilities.
+ *
+ * Handles duplicate/removal domain checks (`shouldRemoveDomain`,
+ * `findMainDomain`), manual title overrides (`getTitleOverride`), converting a
+ * bare domain into a readable display title (`formatDomainAsTitle`), cleaning
+ * scraped page titles (`cleanSourceTitle`), and fetching a page's og:title or
+ * `<title>` from its live HTML (`getSourceTitle`).
+ */
 import { getDomainWithoutSuffix } from "tldts";
 import { duplicates, removals, titles } from "./data/duplicates.js";
 import { domainExceptions } from "./data/domain-exceptions.js";

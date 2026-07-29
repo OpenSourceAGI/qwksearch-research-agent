@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the GitLab API for project search results.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const gitlab: EngineFunction = async (

@@ -1,6 +1,5 @@
 /**
- * Animated spotlight search input with category shortcut buttons that appear on hover (blob SVG filter effect),
- * model selection, and an optimization selector; used as an alternative homepage input.
+ * @fileoverview Animated spotlight search input with category shortcut buttons that appear on hover (blob SVG filter effect), model selection, and an optimization selector; used as an alternative homepage input.
  */
 'use client';
 

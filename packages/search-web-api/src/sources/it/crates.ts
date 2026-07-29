@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the crates.io API for Rust package search results.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const crates: EngineFunction = async (

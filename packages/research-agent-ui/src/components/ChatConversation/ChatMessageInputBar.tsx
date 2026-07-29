@@ -1,6 +1,5 @@
 /**
- * Follow-up message input bar in the active chat thread; auto-expands from single-line to multi-line,
- * supports file attachment, category picker, search options, export menu, and a stop-streaming button while the AI is responding.
+ * @fileoverview Follow-up message input bar in the active chat thread; auto-expands from single-line to multi-line, supports file attachment, category picker, search options, export menu, and a stop-streaming button while the AI is responding.
  */
 import { cn } from '../../lib/utils';
 import { ArrowUp, Square, Share, FileText, FileDown } from 'lucide-react';

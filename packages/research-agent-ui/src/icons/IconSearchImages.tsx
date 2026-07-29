@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Renders the "images" search category icon (a picture/landscape tile) as inline SVG.
+ */
 export default function IconSearchImages(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg width="800px" height="800px" viewBox="0 0 73 73" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" {...props}>

@@ -1,6 +1,5 @@
 /**
- * Header bar for the history dropdown with a "Chat History" label,
- * search input, private-mode toggle, and "Clear All" button.
+ * @fileoverview Header bar for the history dropdown with a "Chat History" label, search input, private-mode toggle, and "Clear All" button.
  */
 'use client';
 

@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Lazily loads and runs the Kokoro in-browser TTS model, preferring WebGPU over WASM.
+ */
 'use client';
 
 // `kokoro-js` (transformers.js / onnxruntime-web) is a browser-only library

@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Crops a single provider's icon out of a shared sprite-sheet image.
+ *
+ * The sprite sheet is a 6-column by 4-row grid of provider logos; each provider's
+ * grid position is looked up in `PROVIDERS` and rendered onto a canvas, which can
+ * then be returned as a canvas, Blob, or data URL.
+ */
 const PROVIDERS = {
   openrouter: { row: 0, col: 0 },
   tongyi: { row: 0, col: 1 },

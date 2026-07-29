@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Handler that answers a user's question about an article using an LLM.
+ *
+ * Loads a chat model via ModelRegistry and prompts it with the article text
+ * (truncated to 15000 chars), prior chat history, and the user's question.
+ */
 import { generateText } from "ai";
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import type { ModelWithProvider } from "chat-agent-toolkit/config/config-types";

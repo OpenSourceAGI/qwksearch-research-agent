@@ -1,5 +1,5 @@
 /**
- * Maps the custom `<think>` markdown tag in AI responses to the collapsible MessageReasoningPanel component.
+ * @fileoverview Maps the custom `<think>` markdown tag in AI responses to the collapsible MessageReasoningPanel component.
  */
 'use client';
 

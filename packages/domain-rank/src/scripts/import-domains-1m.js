@@ -1,3 +1,14 @@
+/**
+ * @fileoverview CLI scripts for downloading top-domain ranking datasets.
+ *
+ * `importDomainsPageRankCrawler` streams and decompresses a CommonCrawl
+ * domain-ranks.txt.gz web graph into `data/domains-1m.js`, reversing each
+ * hostname into dotted PageRank order. `getDomainCrawlerUrl` scrapes the
+ * CommonCrawl web-graphs page to locate the latest dataset URL.
+ * `importDomainsOfficialList` downloads and streams-unzips the Tranco
+ * top-1M CSV list into `data/domains-official-100k.js`. Runs
+ * `importDomainsOfficialList` when executed directly.
+ */
 import fs from "fs";
 import zlib from "zlib";
 import readline from "readline";

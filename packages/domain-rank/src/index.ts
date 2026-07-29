@@ -1,3 +1,12 @@
+/**
+ * @fileoverview Public entry point for the domain-rank package.
+ *
+ * Loads the merged domain-rank and domain-info JSON datasets into an
+ * in-memory `Map` and exposes lookup/search APIs (`lookupDomain`,
+ * `getTopDomains`, `searchDomains`, `getTotalDomains`, `getAllDomains`), plus
+ * re-exports the favicon and title-formatting utilities from `domain-api`
+ * and `domain-name-formatter`.
+ */
 import domainData from '../data/domain-rank-merged.json';
 import domainInfo from '../data/domain-info.json';
 

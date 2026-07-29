@@ -1,6 +1,8 @@
 /**
- * Small inline paperclip button for attaching files in the follow-up input bar; shows a popover list
- * of attached files with add/clear actions when files are present.
+ * @fileoverview Compact paperclip button that uploads files and shows a popover list of attached files.
+ *
+ * Renders a small icon-only attach control for the follow-up input bar; while files are attached it
+ * shows a popover listing them with "Add" and "Clear" actions, and a spinner while an upload is in flight.
  */
 import { cn } from '../../lib/utils';
 import {

@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Engine adapter that queries the Directory of Open Access Journals (DOAJ) API.
+ */
 import { EngineFunction } from "../../types/search-engine-interface.js";
 
 export const doaj: EngineFunction = async (

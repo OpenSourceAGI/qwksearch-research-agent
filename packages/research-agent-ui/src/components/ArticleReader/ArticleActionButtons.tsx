@@ -1,6 +1,5 @@
 /**
- * Toolbar with Ask AI, Suggest, Copy, Highlight, Favorite, Open-in-new-tab, and Close buttons
- * shown at the top of the article extract panel.
+ * @fileoverview Toolbar with Ask AI, Suggest, Copy, Highlight, Favorite, Open-in-new-tab, and Close buttons shown at the top of the article extract panel.
  *
  * Each button has a shadcn/Radix tooltip that appears on hover (zero delay) showing the
  * action label and its keyboard shortcut. The shortcut key definitions are exported as

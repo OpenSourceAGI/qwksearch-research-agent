@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Handler that generates and persists an LLM-written chat title.
+ */
 import generateTitle from "chat-agent-toolkit/tools/search/titleGeneratorAgent";
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import type { ModelWithProvider } from "chat-agent-toolkit/config/config-types";

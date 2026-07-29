@@ -1,6 +1,8 @@
 /**
- * Small card shown in the attachment tray when a large block of text (>300 chars) is pasted into the input;
- * displays a truncated preview with a "PASTED" label and a hover-revealed remove button.
+ * @fileoverview Card shown in the attachment tray for large pasted text blocks.
+ *
+ * Renders a truncated preview of clipboard text pasted into the input (>300 chars) with a "PASTED" label
+ * and a hover-revealed remove button.
  */
 import React from "react";
 import { Icons } from "./MessageInputIconSet";

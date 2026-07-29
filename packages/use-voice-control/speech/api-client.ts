@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Browser-side helper functions for calling the package's TTS/STT HTTP API routes.
+ *
+ * Provides `generateSpeechFromText`/`createAudioURL`/`speakText` for turning text into
+ * playable audio via `POST /api/speech/tts`, and `checkSTTAPI` to probe availability of
+ * `/api/speech/stt`.
+ */
 import type { TTSOptions } from "./types/types";
 
 export async function generateSpeechFromText(

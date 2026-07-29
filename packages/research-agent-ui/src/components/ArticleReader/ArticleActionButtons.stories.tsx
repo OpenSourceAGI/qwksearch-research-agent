@@ -1,3 +1,6 @@
+/**
+ * @fileoverview Storybook stories for the ArticleActionButtons component covering default, active (highlighted/favorited), loading, zoomed-in, and no-URL states.
+ */
 import React from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';

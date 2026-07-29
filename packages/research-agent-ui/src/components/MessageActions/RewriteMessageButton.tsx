@@ -1,6 +1,8 @@
 /**
- * Button that opens a searchable provider/model picker popover and regenerates the selected
- * assistant message using the chosen model.
+ * @fileoverview Button that regenerates an assistant message with a chosen model.
+ *
+ * Renders a tooltip-wrapped icon button that opens a searchable provider/model picker popover; selecting a
+ * model rewrites the given message using it.
  */
 'use client';
 
