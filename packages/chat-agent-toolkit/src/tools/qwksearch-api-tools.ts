@@ -39,14 +39,14 @@ export const AGENT_TOOLS = [
         const baseUrl = baseURL || QWKSEARCH_CONFIG.baseURL;
         const headers = apiKey || QWKSEARCH_CONFIG.apiKey ? { 'x-api-key': apiKey || QWKSEARCH_CONFIG.apiKey } : undefined;
 
-        const result = await QwkSearch.searchWeb({
+        const result = await QwkSearch.agentSearch({
           query: {
             q: query,
             cat: category,
             recency: recency,
             page: page,
             lang: language,
-            public: isPublic,
+            publicInstances: isPublic,
             timeout: timeout
           },
           baseUrl: baseUrl,
@@ -102,7 +102,7 @@ export const AGENT_TOOLS = [
         const baseUrl = baseURL || QWKSEARCH_CONFIG.baseURL;
         const headers = apiKey || QWKSEARCH_CONFIG.apiKey ? { 'x-api-key': apiKey || QWKSEARCH_CONFIG.apiKey } : undefined;
 
-        const result = await QwkSearch.extractContent({
+        const result = await QwkSearch.getArticle({
           query: {
             url: url,
             images: images,
@@ -162,90 +162,6 @@ export const AGENT_TOOLS = [
         return resultText;
       } catch (error) {
         return `Unable to extract content from "${url}". Error: ${error.message}`;
-      }
-    },
-  },
-  {
-    name: "generate_ai_response",
-    description:
-      "Generate AI language model responses using QwkSearch API with various agent templates. Supports multiple providers (Groq, OpenAI, Anthropic, etc.) and agent types for different tasks like summarization, question answering, and content generation.",
-    schema: z.object({
-      provider: z.enum(["groq", "openai", "anthropic", "together", "xai", "google", "perplexity", "cloudflare"]),
-      key: z.string().optional(),
-      agent: z.enum([
-        "question",
-        "summarize-bullets",
-        "summarize",
-        "suggest-followups",
-        "answer-cite-sources",
-        "query-resolution",
-        "knowledge-graph-nodes",
-        "summary-longtext"
-      ]).optional().default("question"),
-      model: z.string().optional().default("meta-llama/llama-4-maverick-17b-128e-instruct"),
-      temperature: z.number().min(0).max(2).optional().default(0.7),
-      html: z.boolean().optional().default(true),
-      query: z.string().optional(),
-      chat_history: z.string().optional(),
-      article: z.string().optional(),
-      baseURL: z.string().optional(),
-      apiKey: z.string().optional()
-    }),
-    func: async ({ provider, key, agent = "question", model = "meta-llama/llama-4-maverick-17b-128e-instruct", temperature = 0.7, html = true, query, chat_history, article, baseURL, apiKey }) => {
-      try {
-        // Use provided config or fall back to environment/defaults
-        const baseUrl = baseURL || QWKSEARCH_CONFIG.baseURL;
-        const headers = apiKey || QWKSEARCH_CONFIG.apiKey ? { 'x-api-key': apiKey || QWKSEARCH_CONFIG.apiKey } : undefined;
-
-        const requestBody = {
-          agent,
-          provider,
-          model,
-          html,
-          temperature
-        };
-
-        if (key) {
-          requestBody.key = key;
-        }
-
-        if (query) {
-          requestBody.query = query;
-        }
-
-        if (chat_history) {
-          requestBody.chat_history = chat_history;
-        }
-
-        if (article) {
-          requestBody.article = article;
-        }
-
-        const result = await QwkSearch.writeLanguage({
-          body: requestBody,
-          baseUrl: baseUrl,
-          ...(headers && { headers })
-        });
-
-        if (!result.data) {
-          return `No response generated. Please check your input parameters and try again.`;
-        }
-
-        let resultText = `AI Response (${agent} agent, ${provider} provider):\n\n`;
-
-        if (result.data.content) {
-          resultText += result.data.content;
-        }
-
-        if (result.data.extract) {
-          resultText += `\n\nStructured Extract:\n${JSON.stringify(result.data.extract, null, 2)}`;
-        }
-
-        resultText += `\n\nThis is the complete AI-generated response.`;
-
-        return resultText;
-      } catch (error) {
-        return `Unable to generate AI response. Error: ${error.message}`;
       }
     },
   },

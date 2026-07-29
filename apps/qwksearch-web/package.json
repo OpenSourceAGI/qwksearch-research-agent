@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx open-ready next dev",
-    "prebuild": "cd ../../packages/extract-pdf && bun run build && cd ../shadcn-app-dock && bun run build && cd ../shadcn-settings && bun run build && cd ../react-weather-forecast && bun run build && cd ../research-agent-ui && bun run build",
+    "prebuild": "cd ../../packages/extract-pdf && bun run build && cd ../shadcn-app-dock && bun run build && cd ../shadcn-settings && bun run build && cd ../react-weather-forecast && bun run build && cd ../chat-agent-toolkit && bun run build && cd ../research-agent-ui && bun run build",
     "build": "vinext build",
     "deploy": "vinext deploy",
     "start": "next start",
@@ -77,7 +77,7 @@
     "onnxruntime-web": "^1.26.0",
     "prettier": "^3.8.4",
     "quantum-sphere-loading-icon": "^1.0.3",
-    "qwksearch-api-client": "^0.0.12",
+    "qwksearch-api-client": "workspace:*",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-error-boundary": "^6.1.2",
