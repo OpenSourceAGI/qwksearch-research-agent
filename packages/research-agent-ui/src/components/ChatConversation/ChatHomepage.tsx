@@ -124,6 +124,7 @@ export default function ChatHomepage() {
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
             <WeatherForecast
+              compact
               forecastDays={5}
               forecastHours={12}
               className="rounded-2xl"

@@ -6,6 +6,7 @@ import { WeatherIcon } from '../icons/WeatherIcon';
 type Props = WeatherForecastOptions & {
   className?: string;
   style?: React.CSSProperties;
+  compact?: boolean;
 };
 
 const styles = {
@@ -22,6 +23,7 @@ const styles = {
   hours: { display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 } as React.CSSProperties,
   hourCard: { minWidth: 72, textAlign: 'center' as const, padding: 8, borderRadius: 8, background: '#f9fafb' },
   dayRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 0', borderBottom: '1px solid #f3f4f6' } as React.CSSProperties,
+  compactRoot: { fontFamily: 'system-ui, sans-serif', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8 } as React.CSSProperties,
 };
 
 export function WeatherForecast(props: Props) {
@@ -30,6 +32,18 @@ export function WeatherForecast(props: Props) {
   if (loading) return <div className={props.className} style={props.style}>Loading weather...</div>;
   if (error) return <div className={props.className} style={props.style}>Error: {error.message}</div>;
   if (!data) return <div className={props.className} style={props.style}>No forecast available.</div>;
+
+  if (props.compact) {
+    return (
+      <div className={props.className} style={{ ...styles.compactRoot, ...props.style }}>
+        <WeatherIcon condition={data.current.icon} width={20} height={20} title="Current weather" />
+        <strong style={{ fontSize: 16 }}>{data.current.temperature}°</strong>
+        <span style={{ fontSize: 14, opacity: 0.8 }}>
+          {data.location?.city || 'Current location'}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className={props.className} style={{ ...styles.root, ...props.style }}>
