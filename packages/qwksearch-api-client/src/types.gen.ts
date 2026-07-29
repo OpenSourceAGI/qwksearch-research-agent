@@ -27,6 +27,7 @@ export type DomainSuggestion = {
     domain?: string;
     name?: string;
     favicon?: string;
+    rank?: number;
 };
 
 export type Article = {

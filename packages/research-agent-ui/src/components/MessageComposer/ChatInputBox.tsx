@@ -23,6 +23,7 @@ interface DomainSuggestion {
     domain: string;
     name: string;
     favicon: string;
+    rank: number;
 }
 
 const PLACEHOLDERS = [
@@ -505,6 +506,11 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
                                         <img src={d.favicon} alt="" className="w-4 h-4 rounded-sm shrink-0" />
                                         <span className="truncate font-medium">{d.name || d.domain}</span>
                                         <span className="truncate text-[13px] text-text-400 shrink-0">{d.domain}</span>
+                                        {Number.isFinite(d.rank) && d.rank < Number.MAX_SAFE_INTEGER && (
+                                            <span className="ml-auto shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-semibold tabular-nums bg-bg-200 dark:bg-[#3A3A38] text-text-400">
+                                                #{d.rank.toLocaleString()}
+                                            </span>
+                                        )}
                                     </button>
                                 </li>
                             ))}

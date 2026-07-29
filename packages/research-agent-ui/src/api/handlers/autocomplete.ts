@@ -17,6 +17,7 @@ export interface DomainSuggestion {
   domain: string;
   name: string;
   favicon: string;
+  rank: number;
 }
 
 interface DomainEntry {
@@ -71,6 +72,7 @@ function searchDomains(query: string): DomainSuggestion[] {
       domain: item.domain,
       name: item.name,
       favicon: `https://www.google.com/s2/favicons?domain=${encodeURIComponent(item.domain)}&sz=64`,
+      rank: item.rank,
     }));
 }
 
