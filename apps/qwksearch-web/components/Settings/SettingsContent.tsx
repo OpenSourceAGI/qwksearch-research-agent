@@ -13,7 +13,8 @@ import {
   Brain,
 } from 'lucide-react';
 import Account from './Sections/Account';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import Fuse from 'fuse.js';
 import { AnchorTitle, highlightAnchor } from './anchors';
 import grab from 'grab-url';
 import { toast } from 'sonner';
@@ -128,8 +129,27 @@ const SettingsContent = ({
   const [selectedSection, setSelectedSection] = useState(
     sections.find((s) => s.key === initialKey)!,
   );
+  const [searchQuery, setSearchQuery] = useState('');
 
   const isFirstUrlSync = useRef(true);
+
+  // Fuzzy-search index over the settings menu items so the sidebar can be
+  // filtered down as the user types.
+  const fuse = useMemo(
+    () =>
+      new Fuse(sections, {
+        keys: ['name', 'description'],
+        threshold: 0.4,
+        ignoreLocation: true,
+      }),
+    [],
+  );
+
+  const filteredSections = useMemo(() => {
+    const query = searchQuery.trim();
+    if (!query) return sections;
+    return fuse.search(query).map((result) => result.item);
+  }, [fuse, searchQuery]);
 
   useEffect(() => {
     setSelectedSection(sections.find((s) => s.key === activeSection)!);
@@ -224,22 +244,42 @@ const SettingsContent = ({
             Back
           </p>
         </button>
-        <div className="flex flex-col items-start space-y-1 mt-8">
-          {sections.map((section) => (
-            <button
-              key={section.dataAdd}
-              className={cn(
-                `flex flex-row items-center space-x-2 px-2 py-1.5 rounded-lg w-full text-sm hover:bg-light-200 hover:dark:bg-dark-200 transition duration-200 active:scale-95`,
-                activeSection === section.key
-                  ? 'bg-light-200 dark:bg-dark-200 text-black/90 dark:text-white/90'
-                  : ' text-black/70 dark:text-white/70',
-              )}
-              onClick={() => setActiveSection(section.key)}
-            >
-              <section.icon size={17} />
-              <p>{section.name}</p>
-            </button>
-          ))}
+        <div className="relative mt-8">
+          <Search
+            size={15}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-black/40 dark:text-white/40 pointer-events-none"
+          />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search settings"
+            aria-label="Search settings"
+            className="w-full bg-light-200 dark:bg-dark-200 text-black/90 dark:text-white/90 placeholder:text-black/40 dark:placeholder:text-white/40 text-sm rounded-lg pl-8 pr-2 py-1.5 outline-none focus:ring-1 focus:ring-black/10 dark:focus:ring-white/10"
+          />
+        </div>
+        <div className="flex flex-col items-start space-y-1 mt-3">
+          {filteredSections.length === 0 ? (
+            <p className="text-xs text-black/50 dark:text-white/50 px-2 py-1.5">
+              No settings match &ldquo;{searchQuery.trim()}&rdquo;.
+            </p>
+          ) : (
+            filteredSections.map((section) => (
+              <button
+                key={section.dataAdd}
+                className={cn(
+                  `flex flex-row items-center space-x-2 px-2 py-1.5 rounded-lg w-full text-sm hover:bg-light-200 hover:dark:bg-dark-200 transition duration-200 active:scale-95`,
+                  activeSection === section.key
+                    ? 'bg-light-200 dark:bg-dark-200 text-black/90 dark:text-white/90'
+                    : ' text-black/70 dark:text-white/70',
+                )}
+                onClick={() => setActiveSection(section.key)}
+              >
+                <section.icon size={17} />
+                <p>{section.name}</p>
+              </button>
+            ))
+          )}
         </div>
       </div>
       <div className="w-full flex flex-col overflow-hidden">
