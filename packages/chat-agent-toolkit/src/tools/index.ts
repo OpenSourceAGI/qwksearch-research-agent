@@ -10,4 +10,5 @@
  */
 
 export { AGENT_TOOLS } from "./qwksearch-api-tools";
+export { QwkSearchMCPSession, getQwkSearchTools } from "./qwksearch-mcp-tools";
 export * from "./search";

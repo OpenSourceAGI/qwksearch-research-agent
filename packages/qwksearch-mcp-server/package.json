@@ -1,0 +1,24 @@
+{
+  "name": "qwksearch-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server exposing web search and content extraction tools via stdio transport",
+  "type": "module",
+  "bin": {
+    "qwksearch-mcp": "./bin/qwksearch-mcp.ts"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "start": "bun run bin/qwksearch-mcp.ts",
+    "dev": "bun --watch run bin/qwksearch-mcp.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "search-web-api": "workspace:*",
+    "extract-webpage": "workspace:*",
+    "zod": "^4.3.6"
+  }
+}

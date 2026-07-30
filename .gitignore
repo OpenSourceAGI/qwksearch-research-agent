@@ -38,6 +38,7 @@ logs/
 # Testing
 /coverage/
 coverage/
+html/
 test-report.junit.xml
 
 # Miscellaneous

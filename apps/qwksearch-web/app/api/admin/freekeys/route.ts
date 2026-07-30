@@ -22,6 +22,7 @@ import { LANGUAGE_MODELS } from "chat-agent-toolkit/config/language-models-datab
 import { getEnv } from "chat-agent-toolkit/config/environment-variables";
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { getSession } from "@/lib/auth/session";
+import { assertAdmin } from "@/lib/auth/admin";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -179,6 +180,9 @@ async function testAllFreeModels(
 }
 
 export async function GET(req: NextRequest) {
+  const guard = await assertAdmin();
+  if (guard) return guard;
+
   const nvidiaKey = getEnv("NVIDIA_API_KEY") ?? "";
   const nvidiaBase =
     getEnv("NVIDIA_BASE_URL") ?? "https://integrate.api.nvidia.com/v1";
