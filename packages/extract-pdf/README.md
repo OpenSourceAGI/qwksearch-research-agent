@@ -54,16 +54,75 @@ const { html } = await convertPDFToHTML(buffer, { addPageNumbers: true });
 
 ### Options
 
-| Option           | Default | Description                                                                                |
-| ---------------- | ------- | ------------------------------------------------------------------------------------------ |
-| `addPageNumbers` | `false` | Inserts `[n]` markers at each page boundary                                                |
-| `addCitation`    | `true`  | Reads PDF metadata and first-page heading to populate `title`/`author` in the return value |
+| Option            | Default               | Description                                                                                |
+| ----------------- | ---------------------- | ------------------------------------------------------------------------------------------ |
+| `addPageNumbers`  | `false`                | Inserts `[n]` markers at each page boundary                                                |
+| `addCitation`     | `true`                 | Reads PDF metadata and first-page heading to populate `title`/`author` in the return value |
+| `method`          | `"ts-block-algorithm"` | Parsing engine — `"ts-block-algorithm"` or `"liteparse"` (see below)                       |
+| `liteParseOptions`| `{}`                   | Passed through to LiteParse's constructor when `method: "liteparse"`                       |
 
 ### Return value
 
 ```ts
 { html: string, title?: string, author?: string, format: "pdf" }
 ```
+
+## Parse methods
+
+`convertPDFToHTML` supports two interchangeable parsing engines via `options.method`:
+
+| Method                              | Engine                                                              | Environments                       | OCR |
+| ------------------------------------ | -------------------------------------------------------------------- | ----------------------------------- | --- |
+| `"ts-block-algorithm"` (default)     | The pure-TS pipeline documented below (this package)                  | Node.js, Cloudflare Workers, browser | No  |
+| `"liteparse"`                        | [LiteParse](https://github.com/run-llama/liteparse) (native, `@llamaindex/liteparse`) | Node.js only                        | Optional |
+
+```ts
+import { convertPDFToHTML } from "extract-pdf";
+
+const { html } = await convertPDFToHTML(buffer, { method: "liteparse" });
+```
+
+LiteParse ships a native (napi) addon, so `method: "liteparse"` only runs in
+Node.js — it is not bundled into browser or Cloudflare Workers builds. Install
+it explicitly (`bun add @llamaindex/liteparse`) since it's an optional
+dependency; if it isn't installed, `convertPDFToHTML` returns `{ error }`
+instead of throwing.
+
+By default the LiteParse path runs with OCR disabled (`ocrEnabled: false`) —
+matching this package's "instant, no backend" philosophy. Use
+`detectPdfNeedsOcr` (below) to decide when a document is worth re-parsing with
+`liteParseOptions: { ocrEnabled: true }`.
+
+## Detecting whether a PDF needs OCR
+
+Before committing to a full (and potentially slow) OCR parse, `detectPdfNeedsOcr`
+runs a cheap, text-layer-only pass and reports whether each page needs OCR or
+other heavy parsing — useful for routing documents to different pipelines
+(fast path vs. OCR vs. screenshots vs. a heavier parser like LlamaParse or
+Docling):
+
+```ts
+import { detectPdfNeedsOcr, convertPDFToHTML } from "extract-pdf";
+
+const assessment = await detectPdfNeedsOcr(buffer);
+// { needsOcr: boolean, pages: PageComplexityStats[], reasons: string[] }
+
+if (!assessment.needsOcr) {
+  const { html } = await convertPDFToHTML(buffer, { method: "liteparse" });
+} else {
+  console.log("Needs OCR:", assessment.reasons); // e.g. ["scanned", "sparse-text"]
+  // Route to an OCR-enabled pipeline, e.g.:
+  const { html } = await convertPDFToHTML(buffer, {
+    method: "liteparse",
+    liteParseOptions: { ocrEnabled: true },
+  });
+}
+```
+
+`reasons` collects every distinct signal found across pages: `"scanned"`,
+`"no-text"`, `"sparse-text"`, `"embedded-images"`, `"garbled"`, or
+`"vector-text"`. Like `method: "liteparse"`, this is Node.js only and requires
+`@llamaindex/liteparse`.
 
 ## Pipeline
 

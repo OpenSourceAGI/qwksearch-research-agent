@@ -9,34 +9,7 @@ import {
 } from "./utils/page-number-functions";
 import TextItem from "./models/text-item";
 import Page from "./models/page";
-
-/**
- * Fetch wrapper for grabbing binary content
- */
-async function grab(url: string, options: { responseType?: string; timeout?: number } = {}) {
-  const timeout = options.timeout ? options.timeout * 1000 : 10000;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    if (options.responseType === "arraybuffer") {
-      return await response.arrayBuffer();
-    }
-    return await response.text();
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
-}
+import { grab } from "./utils/grab";
 
 import CalculateGlobalStats from "./transforms/calculate-global-stats";
 import CompactLines from "./transforms/line-item/compact-lines";
@@ -52,6 +25,21 @@ import DetectListLevels from "./transforms/block/detect-list-levels";
 import ToTextBlocks from "./transforms/to-text-blocks";
 import ToHTML from "./transforms/to-html";
 import ParseResult from "./models/parse-result";
+import {
+  convertPDFToHTMLWithLiteParse,
+  type LiteParseHTMLOptions,
+} from "./liteparse-to-html";
+
+/**
+ * Which parsing engine {@link convertPDFToHTML} runs.
+ * - `"ts-block-algorithm"` (default) — the pure-TS pipeline in this file: groups
+ *   pdfjs text spans into lines/blocks and renders headings/lists/code blocks.
+ *   Works in Node.js, Cloudflare Workers, and browsers.
+ * - `"liteparse"` — delegates to [LiteParse](https://github.com/run-llama/liteparse),
+ *   a native/OCR-capable parser. Node.js only (ships a napi addon), and requires
+ *   the optional `@llamaindex/liteparse` dependency to be installed.
+ */
+export type ParseMethod = "ts-block-algorithm" | "liteparse";
 
 /**
  * Extracts formatted text from PDF with parsing of linebreaks ,
@@ -67,6 +55,8 @@ import ParseResult from "./models/parse-result";
  * @param {Object} [options]
  * @param {boolean} options.addPageNumbers default=false - Adds  #  to end of each page
  * @param {boolean} options.removePageHeaders default=true - Removes repeated headers found on each page
+ * @param {ParseMethod} options.method default="ts-block-algorithm" - Parsing engine to use;
+ *   `"liteparse"` delegates to LiteParse (Node.js only, see {@link ParseMethod})
  * @returns {string|Object} HTML formatted text
  * @category Extract
  * @author [vtempest (2025)](https://github.com/vtempest),
@@ -75,8 +65,17 @@ import ParseResult from "./models/parse-result";
  */
 export async function convertPDFToHTML(
   pdfURLOrBuffer: any,
-  options: { addPageNumbers?: boolean; addCitation?: boolean } = {},
+  options: {
+    addPageNumbers?: boolean;
+    addCitation?: boolean;
+    method?: ParseMethod;
+  } & Pick<LiteParseHTMLOptions, "liteParseOptions"> = {},
 ) {
+  if (options.method === "liteparse") {
+    const { method: _method, ...liteParseOptions } = options;
+    return convertPDFToHTMLWithLiteParse(pdfURLOrBuffer, liteParseOptions);
+  }
+
   // try {
   var { addPageNumbers = false, addCitation = true } = options;
 
@@ -222,4 +221,11 @@ export async function convertPDFToHTML(
   return { author, title, html, format: "pdf" };
 }
 
+export { convertPDFToHTMLWithLiteParse };
+export type { LiteParseHTMLOptions } from "./liteparse-to-html";
+export { detectPdfNeedsOcr } from "./detect-needs-ocr";
+export type {
+  DetectPdfNeedsOcrOptions,
+  PdfOcrAssessment,
+} from "./detect-needs-ocr";
 

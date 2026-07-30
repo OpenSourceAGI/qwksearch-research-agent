@@ -43,7 +43,11 @@ export default defineConfig(({ command }) => ({
       // require() lazily inside a try/catch; it has no place in the Worker
       // bundle and is never installed on Linux, so leave it external.
       // `@mastra/core` and `@mastra/mcp` are optional dependencies with incorrect package.json exports.
-      external: ["fsevents", /^@mastra\//],
+      // `@llamaindex/liteparse` (dynamically imported by extract-pdf's
+      // "liteparse" ParseMethod, behind a try/catch) ships a native napi addon
+      // that workerd cannot load; nothing in this app opts into that method,
+      // so keep it external rather than trying to bundle the .node binary.
+      external: ["fsevents", /^@mastra\//, "@llamaindex/liteparse"],
     },
     rolldownOptions: {
       // Rolldown (Vite 8.x bundler) needs its own external list.
@@ -62,7 +66,10 @@ export default defineConfig(({ command }) => ({
       // lazy-loaded voice component. It is a browser-only library and must be
       // bundled client-side; the `externalize-kokoro-on-server` plugin below
       // keeps it external in the server (rsc/ssr) worker build instead.
-      external: ["fsevents", /^@mastra\//],
+      //
+      // `@llamaindex/liteparse` is likewise kept external — see the comment
+      // in `rollupOptions.external` above.
+      external: ["fsevents", /^@mastra\//, "@llamaindex/liteparse"],
     },
   },
   ssr: {
