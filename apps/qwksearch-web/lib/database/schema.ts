@@ -69,6 +69,7 @@ export const user = sqliteTable("user", {
   updatedAt: integer("updated_at", {
     mode: "timestamp",
   }).notNull(),
+  isAnonymous: integer("is_anonymous", { mode: "boolean" }),
 });
 
 export const session = sqliteTable("session", {
