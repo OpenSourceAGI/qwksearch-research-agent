@@ -84,6 +84,7 @@
     "react-hook-form": "^7.78.0",
     "react-icons": "^5.6.0",
     "react-markdown": "^10.1.0",
+    "react-native-app-buttons": "^0.1.4",
     "react-textarea-autosize": "^8.5.9",
     "remark-gfm": "^4.0.1",
     "react-weather-forecast": "workspace:*",
