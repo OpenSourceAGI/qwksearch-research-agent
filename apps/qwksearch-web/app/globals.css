@@ -6,6 +6,7 @@
    registered explicitly. */
 @source "../../../packages/shadcn-app-dock/src";
 @source "../../../packages/research-agent-ui/src";
+@source "../../../packages/shadcn-settings/src";
 
 @custom-variant dark (&:is(.dark *));
 /* @plugin "@tailwindcss/typography"; */
