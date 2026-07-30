@@ -1,5 +1,5 @@
 {
-  "include": ["src/pdf-to-html.ts", "src/models/**/*.ts", "src/transforms/**/*.ts", "src/utils/**/*.ts"],
+  "include": ["src/pdf-to-html.ts", "src/liteparse-to-html.ts", "src/detect-needs-ocr.ts", "src/models/**/*.ts", "src/transforms/**/*.ts", "src/utils/**/*.ts"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "target": "ESNext",

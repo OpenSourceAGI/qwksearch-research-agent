@@ -27,6 +27,9 @@
     "ship": "npm run build && npx standard-version --release-as patch; rm -f CHANGELOG.md; npm publish"
   },
   "dependencies": {},
+  "optionalDependencies": {
+    "@llamaindex/liteparse": "^2.10.0"
+  },
   "devDependencies": {
     "terser": "^5.46.0",
     "typescript": "^5.9.3",
