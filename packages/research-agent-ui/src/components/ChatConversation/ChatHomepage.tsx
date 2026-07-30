@@ -13,7 +13,9 @@ import { getBackgroundArtwork } from './background-art';
 import { researchAgentUIConfig } from '../../config';
 import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 import { DownloadAppButton } from 'react-native-app-buttons';
-import 'react-native-app-buttons/styles';
+// Stylesheet is imported by the host app (globals.css) inside a named cascade
+// layer instead of here — it's a Tailwind v3 build with an unlayered `*`
+// reset that would otherwise beat every Tailwind v4 utility in the app.
 
 /**
  * The homepage component for the chat interface.
