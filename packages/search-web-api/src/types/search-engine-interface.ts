@@ -5,9 +5,9 @@
  * import `EngineFunction` and `EngineResult` from here.
  */
 
-import { EngineResult, Engine, EngineFunction } from "./search-result-types.js";
+import type { EngineResult, Engine, EngineFunction } from "./search-result-types.js";
 
-export { EngineResult, Engine, EngineFunction };
+export type { EngineResult, Engine, EngineFunction };
 
 /**
  * Extract the actual data from a grab-url response.

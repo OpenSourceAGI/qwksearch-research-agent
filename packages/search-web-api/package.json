@@ -12,10 +12,12 @@
   },
   "exports": {
     ".": {
+      "types": "./src/search.ts",
       "import": "./src/search.ts",
       "require": "./src/search.ts"
     },
     "./*": {
+      "types": "./src/*.ts",
       "import": "./src/*",
       "require": "./src/*"
     }

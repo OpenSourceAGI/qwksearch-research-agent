@@ -1,0 +1,14 @@
+{
+  "name": "test-reports",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "generate": "cd ../.. && vitest run --reporter=default --reporter=html --outputFile.html=apps/test-reports/dist/index.html",
+    "generate:coverage": "cd ../.. && vitest run --reporter=default --reporter=html --outputFile.html=apps/test-reports/dist/index.html --coverage",
+    "preview": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.107.0"
+  }
+}

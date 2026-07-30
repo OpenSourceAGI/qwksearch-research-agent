@@ -1,29 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/database";
 import { user } from "@/lib/database/schema";
-import { getSession } from "@/lib/auth/session";
+import { assertAdmin } from "@/lib/auth/admin";
 import { eq } from "drizzle-orm";
 
 export const runtime = "nodejs";
-
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
-  .split(",")
-  .map((e) => e.trim().toLowerCase())
-  .filter(Boolean);
-
-async function assertAdmin() {
-  const session = await getSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (
-    ADMIN_EMAILS.length > 0 &&
-    !ADMIN_EMAILS.includes(session.user.email.toLowerCase())
-  ) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-  return null;
-}
 
 type Params = { params: Promise<{ id: string }> };
 
