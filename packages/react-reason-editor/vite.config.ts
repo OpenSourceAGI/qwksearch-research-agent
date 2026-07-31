@@ -22,6 +22,7 @@ export default defineConfig(async ({ mode }) => {
     path.resolve(__dirname, 'src/locale-bundle.ts'),
     path.resolve(__dirname, 'src/bubble.ts'),
     path.resolve(__dirname, 'src/theme/theme.ts'),
+    path.resolve(__dirname, 'src/reason-docs.ts'),
   ];
 
   const files = await globbySync('src/extensions/**/*.ts', {

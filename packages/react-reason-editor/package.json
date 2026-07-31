@@ -238,6 +238,16 @@
       "require": "./dist/style.css",
       "import": "./dist/style.css"
     },
+    "./reason-docs": {
+      "require": {
+        "types": "./dist/reason-docs.d.cts",
+        "default": "./dist/reason-docs.cjs"
+      },
+      "import": {
+        "types": "./dist/reason-docs.d.ts",
+        "default": "./dist/reason-docs.js"
+      }
+    },
     "./dist/*": "./dist/*",
     "./package.json": "./package.json",
     "./*": "./dist/*",

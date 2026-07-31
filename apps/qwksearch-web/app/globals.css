@@ -15,6 +15,7 @@
 @source "../../../packages/shadcn-settings/src";
 @source "../../../packages/research-agent-ui/src";
 @source "../../../packages/shadcn-settings/src";
+@source "../../../packages/react-reason-editor/src";
 
 @custom-variant dark (&:is(.dark *));
 /* @plugin "@tailwindcss/typography"; */

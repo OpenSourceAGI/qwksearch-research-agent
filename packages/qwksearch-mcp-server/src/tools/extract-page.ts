@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { extractContent } from "extract-webpage";
+import { extractContent } from "extract-webpage/url-to-content/url-to-content";
 
 export function registerExtractPageTool(server: McpServer) {
   server.registerTool("extract_page", {
