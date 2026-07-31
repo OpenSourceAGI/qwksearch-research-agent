@@ -53,7 +53,7 @@ export function useDocumentSync(
     if (!enableSync) return;
 
     try {
-      const dbDocuments = await grab("/api/doc/documents");
+      const dbDocuments = await grab("doc/documents");
 
       // Transform database documents to match the app's Document interface
       const transformedDocs: Document[] = dbDocuments.map((doc: any) => ({
@@ -109,7 +109,7 @@ export function useDocumentSync(
 
         if (isNewDoc) {
           // Create new document
-          const newDoc = await grab("/api/doc/documents", {
+          const newDoc = await grab("doc/documents", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: payload,

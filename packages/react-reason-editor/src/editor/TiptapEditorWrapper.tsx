@@ -129,9 +129,10 @@ export const TiptapEditorWrapper = forwardRef<TiptapEditorHandle, TiptapEditorWr
     // Configured once: callbacks read the store through a ref so the editor is
     // not recreated when threads change. Appended to the shared full extension
     // set (the `comment` plugin is off in the config-driven toolbar build).
+    // Filter out any existing Comment extension to prevent duplicate registration.
     const editorExtensions = useMemo(
       () => [
-        ...fullExtensions,
+        ...fullExtensions.filter(ext => ext.name !== 'comment'),
         Comment.configure({
           authorId: CURRENT_AUTHOR.id,
           authorName: CURRENT_AUTHOR.name,

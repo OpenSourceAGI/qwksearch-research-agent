@@ -43,7 +43,7 @@ export function useSpeechInput(
     formData.append("file", audioBlob, "speech-input.webm");
     formData.append("languageCode", "en");
 
-    const data = await grab("/api/agent/transcript", {
+    const data = await grab("agent/transcript", {
       method: "POST",
       body: formData,
     });

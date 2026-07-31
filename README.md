@@ -6,6 +6,7 @@
     <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/API-blue?logo=fastapi&logoColor=white" alt="API badge"></a>
     <a href="https://youtu.be/DzykBAdrw6s" target="_blank" rel="noopener noreferrer"><img   height="20px" src="https://img.shields.io/badge/YouTube-red?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube"  /></a> 
+    <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/OpenSourceAGI/qwksearch-research-agent" target="_blank" rel="noopener noreferrer">  <img    height="24px" src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers" /></a>
 <br />
      <a href="https://github.com/vtempest/qwksearch-research-agent/discussions"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
     <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/dm/qwksearch-api-client.svg" alt="NPM Monthly Downloads"></a>
@@ -20,7 +21,6 @@
     <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"
             alt="PRs Welcome" /></a>
     <br />
-    <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/OpenSourceAGI/qwksearch-research-agent" target="_blank" rel="noopener noreferrer">  <img    height="20px" src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers" /></a>
     <a href="https://codespaces.new/vtempest/qwksearch-research-agent"><img src="https://github.com/codespaces/badge.svg" width="150" height="20" /></a>
 <img src="https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=fff" alt="Claude AI"> <img src="https://img.shields.io/badge/Cloudflare-F38020?logo=Cloudflare&logoColor=white" alt="Cloudflare"> <img src="https://img.shields.io/badge/shadcn%2Fui-000?logo=shadcnui&logoColor=fff" alt="shadcn/ui"> <img src="https://img.shields.io/badge/Next.js-black" alt="Next.js" />
  </p>
