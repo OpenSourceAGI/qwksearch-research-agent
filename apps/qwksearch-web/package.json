@@ -106,7 +106,6 @@
     "react-reason-editor": "workspace:*",
     "react-textarea-autosize": "^8.5.9",
     "remark-gfm": "^4.0.1",
-    "react-reason-editor": "workspace:*",
     "react-weather-forecast": "workspace:*",
     "research-agent-ui": "workspace:*",
     "scroll-into-view-if-needed": "^3.1.0",
@@ -119,6 +118,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tldts": "^7.4.2",
     "use-sync-external-store": "^1.6.0",
+    "write-language": "workspace:*",
     "zod": "^4.4.3"
   },
   "devDependencies": {
