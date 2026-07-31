@@ -1,3 +1,5 @@
+
+ext - dl to reason dl folswe
 1. in sidebar, have it sugegst related by keywords
 2. Chat with open tabs as context.
 3. Show Vals scores for all models; example Kimi K2.5 page lists Vals Index 51.70%, latency 807.18s, and cost/test $0.29.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override)
