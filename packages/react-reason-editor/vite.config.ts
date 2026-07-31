@@ -47,22 +47,11 @@ function selfReferenceResolver(srcDir: string): Plugin {
       if (id === 'react-reason-editor/style.css') return path.resolve(srcDir, 'styles/index.scss');
       if (id === 'react-reason-editor/theme') return path.resolve(srcDir, 'theme/theme.ts');
       if (id === 'react-reason-editor/locale-bundle') return path.resolve(srcDir, 'locale-bundle.ts');
-      if (id === 'react-reason-editor/bubble') return path.resolve(srcDir, 'bubble.ts');
-
-      const m = id.match(/^react-reason-editor\/(.+)$/);
-      if (!m) return;
-      const name = m[1];
-      const variants = [
-        extDirByLowerName.get(name.toLowerCase()),
-        name.charAt(0).toUpperCase() + name.slice(1),
-        name,
-      ].filter((v, i, arr): v is string => !!v && arr.indexOf(v) === i);
-      for (const v of variants) {
-        const idx = path.resolve(extDir, v, 'index.ts');
-        if (fs.existsSync(idx)) return idx;
-        const file = path.resolve(extDir, v, `${v}.ts`);
-        if (fs.existsSync(file)) return file;
-      }
+      // Rolldown fails to resolve this one extension subpath as a
+      // cross-entry self-reference (unlike every other `./extensions/*`
+      // export, which it resolves natively during this build), so it needs
+      // the same explicit source redirect as the paths above.
+      if (id === 'react-reason-editor/wordcount') return path.resolve(srcDir, 'extensions/WordCount/index.ts');
     },
   };
 }
@@ -200,6 +189,23 @@ export default defineConfig(async ({ mode }) => {
           'react',
           'react-dom',
           'react/jsx-runtime',
+          // Pulled in transitively (e.g. by swr, and vendored into grab-url's
+          // own dist). Its shim does a NODE_ENV-conditional `require(...)`,
+          // which Rollup can't resolve to a single static import — bundling
+          // it produces a "dynamic require" call that has no `require` to
+          // run against in an ESM output. Left external, host bundlers
+          // (Next.js/webpack) resolve the real CJS package and its
+          // conditional require normally.
+          'use-sync-external-store',
+          'use-sync-external-store/shim',
+          'use-sync-external-store/shim/index.js',
+          'use-sync-external-store/shim/with-selector',
+          'use-sync-external-store/shim/with-selector.js',
+          'use-sync-external-store/with-selector',
+          // grab-url's own published dist already vendors the
+          // use-sync-external-store shim above (same dynamic-require issue),
+          // so it must stay external too rather than get re-bundled here.
+          'grab-url',
           'katex',
           'docx',
           '@radix-ui/react-dropdown-menu',
