@@ -16,6 +16,7 @@ import type { SidebarPanelType, SidebarAiProps } from './types';
 import type { TocEntry } from '../../app-types/toc';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
+import { ssrSafeLocalStorage } from '../../utils/storage';
 import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search } from 'lucide-react';
 import { FileTypeIcon } from '../../app-ui/FileTypeIcon';
 import { cn } from '../../app-utils/utils';
@@ -194,7 +195,10 @@ export const SidebarContent = ({
     );
   }, [outlineFilter, headings, sectionBodies]);
 
-  const [panelSizes, setPanelSizes] = usePersistence({ key: `sidebar-panels-${persistenceKey}` });
+  const [panelSizes, setPanelSizes] = usePersistence({
+    key: `sidebar-panels-${persistenceKey}`,
+    storage: ssrSafeLocalStorage,
+  });
 
   const renderOpenTabs = () => (
     <div className="h-full overflow-auto">

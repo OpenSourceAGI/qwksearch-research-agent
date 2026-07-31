@@ -14,6 +14,7 @@ import { useTheme } from 'next-themes';
 import { useState } from 'react';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
+import { ssrSafeLocalStorage } from '../utils/storage';
 import '../app-styles/split-pane.css';
 
 
@@ -28,7 +29,10 @@ const Index = () => {
   const [settingsInitialSection, setSettingsInitialSection] = useState<string | undefined>(undefined);
 
   // Use persistence hook for sidebar sizes
-  const [sidebarSizes, setSidebarSizes] = usePersistence({ key: 'reason-docs-sidebar' });
+  const [sidebarSizes, setSidebarSizes] = usePersistence({
+    key: 'reason-docs-sidebar',
+    storage: ssrSafeLocalStorage,
+  });
 
   /** Toggles between 'dark' and 'light' application theme. */
   const handleToggleTheme = () => {

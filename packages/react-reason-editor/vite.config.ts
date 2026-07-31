@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import react from '@vitejs/plugin-react';
@@ -11,11 +12,54 @@ import postcssReplace from 'postcss-replace';
 // to use v4 for their own styles.
 import tailwindcss3 from 'tailwindcss3';
 import dts from 'unplugin-dts/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+
+// A few internal modules (e.g. src/editor/TiptapEditorWrapper.tsx) import
+// the package by its own published name — the self-reference Node resolves
+// once consumers install this package for real. During this library's own
+// build there is no such install yet, so point those specifiers straight at
+// their source equivalents (mirrors demo/vite.config.ts's resolver, which
+// does the same for the demo build).
+//
+// Extension subpaths (e.g. react-reason-editor/wordcount) are handled
+// generically rather than as a fixed list: without this, an unresolved
+// subpath falls through to Node's own self-reference algorithm, which
+// points at the not-yet-written dist/*.js chunk for that entry. Whether
+// that resolves depends on Rolldown's (non-deterministic) transform order
+// relative to when the target entry's own chunk gets emitted, so the build
+// would pass or fail from run to run.
+function selfReferenceResolver(srcDir: string): Plugin {
+  const extDir = path.resolve(srcDir, 'extensions');
+  // Map lowercase package subpaths to PascalCase extension dirs
+  // (e.g. bulletlist -> BulletList). First-letter capitalization alone
+  // misses multi-word names, which would fall through to the package
+  // self-reference and race the not-yet-built dist output.
+  const extDirByLowerName = new Map<string, string>();
+  for (const dir of fs.readdirSync(extDir)) {
+    extDirByLowerName.set(dir.toLowerCase(), dir);
+  }
+
+  return {
+    name: 'reason-editor-self-reference',
+    enforce: 'pre',
+    resolveId(id) {
+      if (id === 'react-reason-editor') return path.resolve(srcDir, 'index.ts');
+      if (id === 'react-reason-editor/style.css') return path.resolve(srcDir, 'styles/index.scss');
+      if (id === 'react-reason-editor/theme') return path.resolve(srcDir, 'theme/theme.ts');
+      if (id === 'react-reason-editor/locale-bundle') return path.resolve(srcDir, 'locale-bundle.ts');
+      // Rolldown fails to resolve this one extension subpath as a
+      // cross-entry self-reference (unlike every other `./extensions/*`
+      // export, which it resolves natively during this build), so it needs
+      // the same explicit source redirect as the paths above.
+      if (id === 'react-reason-editor/wordcount') return path.resolve(srcDir, 'extensions/WordCount/index.ts');
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
   const isDev = mode !== 'production';
+  const srcDir = path.resolve(__dirname, 'src');
 
   const entry = [
     path.resolve(__dirname, 'src/index.ts'),
@@ -67,7 +111,7 @@ export default defineConfig(async ({ mode }) => {
   // fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, 2))
 
   return {
-    plugins: [react(), dts({
+    plugins: [selfReferenceResolver(srcDir), react(), dts({
       // Pin the declaration source root to src/ so declarations emit directly
       // under dist/ (e.g. dist/extensions/Bold/index.d.ts) matching the
       // package.json export/type paths, with no post-build hoist step.
@@ -138,9 +182,31 @@ export default defineConfig(async ({ mode }) => {
           '@tiptap/pm/model',
           '@tiptap/pm/state',
           '@tiptap/pm/view',
+          // @tiptap/react pulls in use-sync-external-store's CJS shim. Bundled
+          // in (rather than externalized), Rolldown's CJS interop for it falls
+          // back to a runtime `require("react")`, which crashes under strict
+          // Node ESM — e.g. Next.js SSR — where no `require` global exists.
+          '@tiptap/react',
           'react',
           'react-dom',
           'react/jsx-runtime',
+          // Pulled in transitively (e.g. by swr, and vendored into grab-url's
+          // own dist). Its shim does a NODE_ENV-conditional `require(...)`,
+          // which Rollup can't resolve to a single static import — bundling
+          // it produces a "dynamic require" call that has no `require` to
+          // run against in an ESM output. Left external, host bundlers
+          // (Next.js/webpack) resolve the real CJS package and its
+          // conditional require normally.
+          'use-sync-external-store',
+          'use-sync-external-store/shim',
+          'use-sync-external-store/shim/index.js',
+          'use-sync-external-store/shim/with-selector',
+          'use-sync-external-store/shim/with-selector.js',
+          'use-sync-external-store/with-selector',
+          // grab-url's own published dist already vendors the
+          // use-sync-external-store shim above (same dynamic-require issue),
+          // so it must stay external too rather than get re-bundled here.
+          'grab-url',
           'katex',
           'docx',
           '@radix-ui/react-dropdown-menu',
@@ -170,6 +236,9 @@ export default defineConfig(async ({ mode }) => {
           'clsx',
           'harper.js',
           'harper.js/binary',
+          // Pulls in swr, which shares the same use-sync-external-store CJS
+          // shim problem as @tiptap/react above.
+          'react-tweet',
         ],
       },
     },
