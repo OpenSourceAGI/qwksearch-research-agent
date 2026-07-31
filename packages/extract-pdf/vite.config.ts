@@ -17,7 +17,10 @@ export default defineConfig({
       format: { comments: false },
     },
     rollupOptions: {
-      external: [],
+      // @llamaindex/liteparse ships a native (napi) addon — never inline it,
+      // keep it as a runtime dependency resolved by Node.js when the
+      // "liteparse" ParseMethod is actually used.
+      external: ["@llamaindex/liteparse"],
     },
   },
   plugins: [
@@ -26,6 +29,8 @@ export default defineConfig({
       rollupTypes: true,
       include: [
         "src/pdf-to-html.ts",
+        "src/liteparse-to-html.ts",
+        "src/detect-needs-ocr.ts",
         "src/models/**/*.ts",
         "src/transforms/**/*.ts",
         "src/utils/**/*.ts",
