@@ -2,6 +2,11 @@
   "name": "qwksearch-mcp-server",
   "version": "1.0.0",
   "description": "MCP server exposing web search and content extraction tools via stdio transport",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/qwksearch-mcp-server"
+  },
   "type": "module",
   "bin": {
     "qwksearch-mcp": "./bin/qwksearch-mcp.ts"
