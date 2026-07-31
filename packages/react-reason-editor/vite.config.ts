@@ -11,11 +11,31 @@ import postcssReplace from 'postcss-replace';
 // to use v4 for their own styles.
 import tailwindcss3 from 'tailwindcss3';
 import dts from 'unplugin-dts/vite';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
+
+// A few internal modules (e.g. src/editor/TiptapEditorWrapper.tsx) import
+// the package by its own published name — the self-reference Node resolves
+// once consumers install this package for real. During this library's own
+// build there is no such install yet, so point those specifiers straight at
+// their source equivalents (mirrors demo/vite.config.ts's resolver, which
+// does the same for the demo build).
+function selfReferenceResolver(srcDir: string): Plugin {
+  return {
+    name: 'reason-editor-self-reference',
+    enforce: 'pre',
+    resolveId(id) {
+      if (id === 'react-reason-editor') return path.resolve(srcDir, 'index.ts');
+      if (id === 'react-reason-editor/style.css') return path.resolve(srcDir, 'styles/index.scss');
+      if (id === 'react-reason-editor/theme') return path.resolve(srcDir, 'theme/theme.ts');
+      if (id === 'react-reason-editor/locale-bundle') return path.resolve(srcDir, 'locale-bundle.ts');
+    },
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
   const isDev = mode !== 'production';
+  const srcDir = path.resolve(__dirname, 'src');
 
   const entry = [
     path.resolve(__dirname, 'src/index.ts'),
@@ -66,7 +86,7 @@ export default defineConfig(async ({ mode }) => {
   // fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, 2))
 
   return {
-    plugins: [react(), dts({
+    plugins: [selfReferenceResolver(srcDir), react(), dts({
       // Pin the declaration source root to src/ so declarations emit directly
       // under dist/ (e.g. dist/extensions/Bold/index.d.ts) matching the
       // package.json export/type paths, with no post-build hoist step.
