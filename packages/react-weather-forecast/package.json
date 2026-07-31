@@ -5,6 +5,11 @@
   "keywords": ["react", "weather", "forecast", "open-meteo", "ipinfo", "component-library"],
   "license": "MIT",
   "author": "Perplexity",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/react-weather-forecast"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

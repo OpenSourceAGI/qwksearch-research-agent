@@ -2,6 +2,11 @@
   "name": "react-reason-editor",
   "version": "1.0.24",
   "description": "A modern WYSIWYG rich text editor based on tiptap and shadcn ui for React",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/react-reason-editor"
+  },
   "keywords": [
     "editor",
     "react",
