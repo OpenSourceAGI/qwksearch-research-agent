@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import react from '@vitejs/plugin-react';
@@ -19,7 +20,25 @@ import { defineConfig, type Plugin } from 'vite';
 // build there is no such install yet, so point those specifiers straight at
 // their source equivalents (mirrors demo/vite.config.ts's resolver, which
 // does the same for the demo build).
+//
+// Extension subpaths (e.g. react-reason-editor/wordcount) are handled
+// generically rather than as a fixed list: without this, an unresolved
+// subpath falls through to Node's own self-reference algorithm, which
+// points at the not-yet-written dist/*.js chunk for that entry. Whether
+// that resolves depends on Rolldown's (non-deterministic) transform order
+// relative to when the target entry's own chunk gets emitted, so the build
+// would pass or fail from run to run.
 function selfReferenceResolver(srcDir: string): Plugin {
+  const extDir = path.resolve(srcDir, 'extensions');
+  // Map lowercase package subpaths to PascalCase extension dirs
+  // (e.g. bulletlist -> BulletList). First-letter capitalization alone
+  // misses multi-word names, which would fall through to the package
+  // self-reference and race the not-yet-built dist output.
+  const extDirByLowerName = new Map<string, string>();
+  for (const dir of fs.readdirSync(extDir)) {
+    extDirByLowerName.set(dir.toLowerCase(), dir);
+  }
+
   return {
     name: 'reason-editor-self-reference',
     enforce: 'pre',
@@ -162,6 +181,11 @@ export default defineConfig(async ({ mode }) => {
           '@tiptap/pm/model',
           '@tiptap/pm/state',
           '@tiptap/pm/view',
+          // @tiptap/react pulls in use-sync-external-store's CJS shim. Bundled
+          // in (rather than externalized), Rolldown's CJS interop for it falls
+          // back to a runtime `require("react")`, which crashes under strict
+          // Node ESM — e.g. Next.js SSR — where no `require` global exists.
+          '@tiptap/react',
           'react',
           'react-dom',
           'react/jsx-runtime',
@@ -211,6 +235,9 @@ export default defineConfig(async ({ mode }) => {
           'clsx',
           'harper.js',
           'harper.js/binary',
+          // Pulls in swr, which shares the same use-sync-external-store CJS
+          // shim problem as @tiptap/react above.
+          'react-tweet',
         ],
       },
     },
