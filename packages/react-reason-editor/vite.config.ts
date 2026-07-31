@@ -28,6 +28,11 @@ function selfReferenceResolver(srcDir: string): Plugin {
       if (id === 'react-reason-editor/style.css') return path.resolve(srcDir, 'styles/index.scss');
       if (id === 'react-reason-editor/theme') return path.resolve(srcDir, 'theme/theme.ts');
       if (id === 'react-reason-editor/locale-bundle') return path.resolve(srcDir, 'locale-bundle.ts');
+      // Rolldown fails to resolve this one extension subpath as a
+      // cross-entry self-reference (unlike every other `./extensions/*`
+      // export, which it resolves natively during this build), so it needs
+      // the same explicit source redirect as the paths above.
+      if (id === 'react-reason-editor/wordcount') return path.resolve(srcDir, 'extensions/WordCount/index.ts');
     },
   };
 }
