@@ -160,6 +160,23 @@ export default defineConfig(async ({ mode }) => {
           'react',
           'react-dom',
           'react/jsx-runtime',
+          // Pulled in transitively (e.g. by swr, and vendored into grab-url's
+          // own dist). Its shim does a NODE_ENV-conditional `require(...)`,
+          // which Rollup can't resolve to a single static import — bundling
+          // it produces a "dynamic require" call that has no `require` to
+          // run against in an ESM output. Left external, host bundlers
+          // (Next.js/webpack) resolve the real CJS package and its
+          // conditional require normally.
+          'use-sync-external-store',
+          'use-sync-external-store/shim',
+          'use-sync-external-store/shim/index.js',
+          'use-sync-external-store/shim/with-selector',
+          'use-sync-external-store/shim/with-selector.js',
+          'use-sync-external-store/with-selector',
+          // grab-url's own published dist already vendors the
+          // use-sync-external-store shim above (same dynamic-require issue),
+          // so it must stay external too rather than get re-bundled here.
+          'grab-url',
           'katex',
           'docx',
           '@radix-ui/react-dropdown-menu',
