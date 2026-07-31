@@ -17,11 +17,7 @@ async function loadFrimousse() {
   if (frimousseMod) return frimousseMod;
   if (loadPromise) return loadPromise;
 
-  if (typeof window !== 'undefined' && !window.React) {
-    window.React = React;
-  }
-
-  loadPromise = import('https://esm.sh/frimousse@0.3.0')
+  loadPromise = import('frimousse')
     .then(mod => {
       frimousseMod = mod;
       return mod;

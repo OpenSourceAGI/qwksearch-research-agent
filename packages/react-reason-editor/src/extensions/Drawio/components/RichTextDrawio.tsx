@@ -49,30 +49,56 @@ export function RichTextDrawio() {
       return;
     }
 
-    const iframe = iframeRef as any;
     try {
-      iframe.contentWindow.postMessage({ action: 'export' }, '*');
+      iframeRef.contentWindow?.postMessage(
+        JSON.stringify({ action: 'export', format: 'xml' }),
+        '*'
+      );
     } catch (err) {
       setError(err);
     }
   }, [iframeRef]);
 
+  // With proto=json every message crossing the embed.diagrams.net iframe boundary
+  // is a JSON string keyed by `event` (incoming) / `action` (outgoing), not a plain object.
   const handleMessage = useCallback(
     (event: MessageEvent) => {
-      if (event.data && event.data.action === 'export') {
-        const xml = event.data.xml;
+      if (!iframeRef || event.source !== iframeRef.contentWindow || typeof event.data !== 'string') {
+        return;
+      }
+
+      let message: any;
+      try {
+        message = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      if (message.event === 'init') {
+        toggleLoading(false);
+        if (data) {
+          iframeRef.contentWindow?.postMessage(
+            JSON.stringify({ action: 'load', xml: data, autosave: 1 }),
+            '*'
+          );
+        }
+      } else if (message.event === 'export') {
+        const xml = message.xml || message.data;
         if (xml) {
           setData(xml);
           editor.chain().focus().setDrawio({ data: { xml } }).run();
           toggleVisible(false);
+        } else {
+          setError(new Error('Unable to export diagram'));
         }
       }
     },
-    [editor]
+    [editor, data, iframeRef]
   );
 
   const handler = (payload: any) => {
     toggleVisible(true);
+    setError(null);
     if (payload?.data?.xml) {
       setData(payload.data.xml);
     } else {
@@ -92,21 +118,11 @@ export function RichTextDrawio() {
   }, [handleMessage]);
 
   useEffect(() => {
-    if (visible && iframeRef) {
+    if (visible) {
       toggleLoading(true);
-      const handleIframeLoad = () => {
-        toggleLoading(false);
-        if (data) {
-          const iframe = iframeRef as any;
-          iframe.contentWindow.postMessage(
-            { action: 'load', xml: data },
-            '*'
-          );
-        }
-      };
-      iframeRef.onload = handleIframeLoad;
+      setError(null);
     }
-  }, [visible, iframeRef, data]);
+  }, [visible]);
 
   return (
     <Dialog onOpenChange={toggleVisible} open={visible}>

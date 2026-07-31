@@ -48,33 +48,50 @@ function NodeViewDrawio({ editor, node, updateAttributes }: any) {
       return;
     }
 
+    toggleLoading(true);
+    setError(null);
+
     const iframe = document.createElement('iframe');
-    iframe.src = 'https://embed.diagrams.net/?embed=1&ui=minimal&spin=1&modified=unsaved&proto=json';
+    iframe.src = 'https://embed.diagrams.net/?embed=1&ui=minimal&spin=1&proto=json';
     iframe.style.display = 'none';
     document.body.appendChild(iframe);
 
+    // embed.diagrams.net only responds with 'init' once ready; with proto=json every
+    // message crossing the iframe boundary is a JSON string keyed by `event`/`action`.
     const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.action === 'load') {
+      if (event.source !== iframe.contentWindow || typeof event.data !== 'string') return;
+
+      let message: any;
+      try {
+        message = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      if (message.event === 'init') {
         iframe.contentWindow?.postMessage(
-          { action: 'load', xml: data.xml },
+          JSON.stringify({ action: 'export', format: 'xmlsvg', xml: data.xml }),
           '*'
         );
-      } else if (event.data && event.data.action === 'export') {
-        const svgContent = event.data.svg;
-        if (svgContent) {
-          setSvg(svgContent);
-          toggleLoading(false);
+      } else if (message.event === 'export') {
+        if (message.data) {
+          setSvg(message.data);
+        } else {
+          setError(new Error('Unable to render diagram preview'));
         }
+        toggleLoading(false);
       }
     };
 
     window.addEventListener('message', handleMessage);
 
-    iframe.onload = () => {
-      iframe.contentWindow?.postMessage({ action: 'export' }, '*');
-    };
+    const timeout = window.setTimeout(() => {
+      setError(new Error('Timed out loading diagram preview'));
+      toggleLoading(false);
+    }, 15000);
 
     return () => {
+      window.clearTimeout(timeout);
       window.removeEventListener('message', handleMessage);
       document.body.removeChild(iframe);
     };
@@ -117,7 +134,6 @@ function NodeViewDrawio({ editor, node, updateAttributes }: any) {
 
           {!loading && !error && svg && (
             <div
-              dangerouslySetInnerHTML={{ __html: svg }}
               style={{
                 height: '100%',
                 maxHeight: '100%',
@@ -129,7 +145,13 @@ function NodeViewDrawio({ editor, node, updateAttributes }: any) {
                 transform: `scale(${zoom / 100})`,
                 transition: 'all ease-in-out .3s',
               }}
-            />
+            >
+              <img
+                alt='Diagram preview'
+                src={svg}
+                style={{ maxWidth: '100%', maxHeight: '100%' }}
+              />
+            </div>
           )}
 
           {!loading && !error && !svg && data?.xml && (
