@@ -172,6 +172,7 @@
         "tailwindcss-animate": "^1.0.7",
         "tldts": "^7.4.2",
         "use-sync-external-store": "^1.6.0",
+        "write-language": "workspace:*",
         "zod": "^4.4.3",
       },
       "devDependencies": {

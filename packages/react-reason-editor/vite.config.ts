@@ -179,8 +179,27 @@ export default defineConfig(async ({ mode }) => {
           },
         },
         external: [
+          '@tiptap/core',
+          // Every @tiptap/pm/* subpath actually used by the bundled extensions
+          // must stay external, not just model/state/view: prosemirror-state
+          // keeps a module-scoped counter that auto-generates plugin keys
+          // ("plugin$", "plugin$1", ...). A subpath left un-externalized gets
+          // its dependency tree (down to prosemirror-state) inlined into this
+          // package's own dist bundle — a second copy of that module, with its
+          // own independent counter — so a plugin built from the inlined copy
+          // collides with one built from the app's externally-resolved copy
+          // the moment both land in the same EditorState (thrown as "Adding
+          // different instances of a keyed plugin").
+          '@tiptap/pm/commands',
+          '@tiptap/pm/dropcursor',
+          '@tiptap/pm/gapcursor',
+          '@tiptap/pm/history',
+          '@tiptap/pm/keymap',
           '@tiptap/pm/model',
+          '@tiptap/pm/schema-list',
           '@tiptap/pm/state',
+          '@tiptap/pm/tables',
+          '@tiptap/pm/transform',
           '@tiptap/pm/view',
           // @tiptap/react pulls in use-sync-external-store's CJS shim. Bundled
           // in (rather than externalized), Rolldown's CJS interop for it falls

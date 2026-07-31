@@ -6,7 +6,12 @@ import { findParentNode } from '@tiptap/core';
 import { Node } from '@tiptap/pm/model';
 import { type EditorState, TextSelection } from '@tiptap/pm/state';
 
-import { ColumnNode, MultipleColumnNode } from '@/extensions/Column';
+// Node type names, kept as literals (matching the `name` given to
+// `Node.create()` in Column.ts) rather than importing the extensions
+// directly — that import would form a cycle, since Column.ts imports
+// these helpers from this module.
+const MULTIPLE_COLUMN_NODE_NAME = 'columns';
+const COLUMN_NODE_NAME = 'column';
 
 export function createColumn(colType: any, index: any, colContent = null) {
   if (colContent) {
@@ -56,10 +61,10 @@ export function addOrDeleteCol({
   dispatch: any;
   type: 'addBefore' | 'addAfter' | 'delete';
 }) {
-  const maybeColumns = findParentNode((node: Node) => node.type.name === MultipleColumnNode.name)(
+  const maybeColumns = findParentNode((node: Node) => node.type.name === MULTIPLE_COLUMN_NODE_NAME)(
     state.selection
   );
-  const maybeColumn = findParentNode((node: Node) => node.type.name === ColumnNode.name)(
+  const maybeColumn = findParentNode((node: Node) => node.type.name === COLUMN_NODE_NAME)(
     state.selection
   );
 
@@ -126,10 +131,10 @@ export function gotoCol({
   dispatch: any;
   type: 'before' | 'after';
 }) {
-  const maybeColumns = findParentNode((node: Node) => node.type.name === MultipleColumnNode.name)(
+  const maybeColumns = findParentNode((node: Node) => node.type.name === MULTIPLE_COLUMN_NODE_NAME)(
     state.selection
   );
-  const maybeColumn = findParentNode((node: Node) => node.type.name === ColumnNode.name)(
+  const maybeColumn = findParentNode((node: Node) => node.type.name === COLUMN_NODE_NAME)(
     state.selection
   );
 
