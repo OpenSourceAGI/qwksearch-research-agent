@@ -5,6 +5,11 @@ webview-ui/node_modules/**
 webview-ui/*.json
 webview-ui/*.ts
 webview-ui/index.html
+webview-ui-editor/src/**
+webview-ui-editor/node_modules/**
+webview-ui-editor/*.json
+webview-ui-editor/*.ts
+webview-ui-editor/index.html
 node_modules/**
 .gitignore
 esbuild.js

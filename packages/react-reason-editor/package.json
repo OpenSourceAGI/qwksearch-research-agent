@@ -253,6 +253,16 @@
         "default": "./dist/reason-docs.js"
       }
     },
+    "./editor-kit": {
+      "require": {
+        "types": "./dist/editor-kit.d.cts",
+        "default": "./dist/editor-kit.cjs"
+      },
+      "import": {
+        "types": "./dist/editor-kit.d.ts",
+        "default": "./dist/editor-kit.js"
+      }
+    },
     "./dist/*": "./dist/*",
     "./package.json": "./package.json",
     "./*": "./dist/*",

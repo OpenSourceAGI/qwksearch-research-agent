@@ -48,6 +48,28 @@
         }
       ]
     },
+    "customEditors": [
+      {
+        "viewType": "qwksearch.reasonEditor.markdown",
+        "displayName": "QwkSearch Reason Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "qwksearch.reasonEditor.docx",
+        "displayName": "QwkSearch Reason Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.docx"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
     "commands": [
       {
         "command": "qwksearch.login",
@@ -101,10 +123,11 @@
   },
   "scripts": {
     "build:webview": "cd webview-ui && bun run build",
+    "build:webview-editor": "cd webview-ui-editor && bun run build",
     "build": "bun run compile",
-    "compile": "bun run build:webview && node esbuild.mjs",
+    "compile": "bun run build:webview && bun run build:webview-editor && node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
-    "package": "bun run build:webview && node esbuild.mjs --production",
+    "package": "bun run build:webview && bun run build:webview-editor && node esbuild.mjs --production",
     "vscode:prepublish": "bun run package",
     "type-check": "tsc --noEmit -p ./"
   },
