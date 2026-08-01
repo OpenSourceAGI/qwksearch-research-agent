@@ -75,6 +75,30 @@ export function FullEditor() {
 }
 ```
 
+> The example above imports straight from `src/editor-views/*`, which only
+> resolves inside this repo (that tree isn't part of the package's built
+> `dist/` output). Consumers outside this monorepo — e.g.
+> `apps/qwk-vscode-ext`'s custom editors — should import the same pieces
+> (`RichTextToolbar`, `BubbleMenus`, `buildExtensions`, `createDefaultConfig`,
+> `debounce`, `RichTextProvider`) from the dedicated, published
+> `react-reason-editor/editor-kit` subpath instead:
+>
+> ```tsx
+> import { useEditor, EditorContent } from '@tiptap/react'
+> import {
+>   RichTextProvider,
+>   RichTextToolbar,
+>   BubbleMenus,
+>   buildExtensions,
+>   createDefaultConfig,
+> } from 'react-reason-editor/editor-kit'
+>
+> const editor = useEditor({
+>   content: '<p>Start typing here…</p>',
+>   extensions: buildExtensions(createDefaultConfig()),
+> })
+> ```
+
 ### 3. Small toolbar — basics
 
 A compact, hand-picked toolbar. Import only the `RichText*` control components you want and lay them out yourself; pair them with the bubble menus for selection formatting.

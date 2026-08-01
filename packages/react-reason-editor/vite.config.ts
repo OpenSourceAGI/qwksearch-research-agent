@@ -67,6 +67,7 @@ export default defineConfig(async ({ mode }) => {
     path.resolve(__dirname, 'src/bubble.ts'),
     path.resolve(__dirname, 'src/theme/theme.ts'),
     path.resolve(__dirname, 'src/reason-docs.ts'),
+    path.resolve(__dirname, 'src/editor-kit.ts'),
   ];
 
   const files = await globbySync('src/extensions/**/*.ts', {
@@ -116,7 +117,19 @@ export default defineConfig(async ({ mode }) => {
       // under dist/ (e.g. dist/extensions/Bold/index.d.ts) matching the
       // package.json export/type paths, with no post-build hoist step.
       entryRoot: path.resolve(__dirname, 'src'),
-      exclude: ['src/editor-views/**'],
+      // The example-editor tree is excluded from the public declaration
+      // output *except* for the handful of modules `editor-kit.ts` re-exports
+      // (the toolbar, bubble menus, and config builder) -- those need real
+      // .d.ts files on disk, or `editor-kit`'s own declaration (which
+      // re-exports `from './editor-views/...'`) would point at files that
+      // were never emitted.
+      exclude: [
+        'src/editor-views/App.tsx',
+        'src/editor-views/Editor-with-toolbar.tsx',
+        'src/editor-views/main.tsx',
+        'src/editor-views/emojis.ts',
+        'src/editor-views/config/SettingsModal.tsx',
+      ],
       compilerOptions: {
         rootDir: path.resolve(__dirname, 'src'),
         skipLibCheck: true,

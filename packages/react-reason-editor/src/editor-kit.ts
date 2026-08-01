@@ -1,0 +1,18 @@
+/**
+ * Headless building blocks for embedding a full-featured reason-editor
+ * surface (toolbar, bubble menus, default extension set) in a host that
+ * owns its own single-document load/save lifecycle instead of the
+ * ReasonDocs app shell's own document store — e.g. a VS Code custom
+ * editor backed by a real file on disk. Mirrors what the demo's
+ * `TabEditorOnly` composes from internal `src/` paths, but as a stable
+ * public subpath (`react-reason-editor/editor-kit`) any consumer of the
+ * published package can import.
+ */
+
+export { RichTextProvider } from './components/RichTextProvider';
+export { RichTextToolbar, BubbleMenus, debounce } from './editor-views/components';
+export {
+  buildExtensions,
+  createDefaultConfig,
+  type EditorConfig,
+} from './editor-views/config/editorConfig';
