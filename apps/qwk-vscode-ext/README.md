@@ -19,7 +19,7 @@ as a VS Code extension and talking to the live QwkSearch API.
 - **Ask About Selection** — select text in any file, right-click, and choose
   "QwkSearch: Ask About Selection" to send it straight to the composer.
 - **Reason editor for `.md` and `.docx`** — opening a Markdown or Word file
-  loads it in [`react-reason-editor`](../../packages/react-reason-editor)'s
+  loads it in [`react-reason-editor`](../../packages/reason-editor)'s
   rich-text (WYSIWYG) surface instead of plain text, with its full toolbar
   (tables, images, KaTeX, Mermaid, comments, Word import/export, ...). An
   **Ask QwkSearch** button in its toolbar sends the current selection (or the
