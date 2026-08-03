@@ -1,5 +1,5 @@
 {
-  "name": "reason-editor",
+  "name": "react-reason-editor",
   "version": "1.0.24",
   "description": "A modern WYSIWYG rich text editor based on tiptap and shadcn ui for React",
   "repository": {
