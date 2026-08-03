@@ -173,6 +173,7 @@ const SaveButton = ({ onClick, loading, disabled }: { onClick: () => void; loadi
 
 export default function Account() {
   const { data: authSession, isPending: isSessionLoading } = authClient.useSession();
+ // @ts-ignore
   const isAuthenticated = !!authSession?.user;
   const { theme, setTheme } = useTheme();
 
