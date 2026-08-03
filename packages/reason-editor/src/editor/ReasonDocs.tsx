@@ -11,19 +11,23 @@ import { ReasonDocsDialogs } from './ReasonDocsDialogs';
 import { useReasonDocsState } from './useReasonDocsState';
 import { DynamicIslandTOC } from '../search/DynamicIslandTOC';
 import { useTheme } from 'next-themes';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../utils/storage';
 import '../app-styles/split-pane.css';
 
 
+interface ReasonDocsProps {
+  mainContent?: ReactNode;
+}
+
 /**
  * Root application component that wires together all major UI regions.
  * Uses `useReasonDocsState` for shared state and `next-themes` for theme control.
  * Renders a resizable panel layout on desktop and a stacked layout on mobile.
  */
-const Index = () => {
+const Index = ({ mainContent }: ReasonDocsProps) => {
   const { theme, setTheme } = useTheme();
   const state = useReasonDocsState();
   const [settingsInitialSection, setSettingsInitialSection] = useState<string | undefined>(undefined);
@@ -155,7 +159,7 @@ const Index = () => {
         <div className="flex-1 flex overflow-hidden">
           <Sidebar {...sidebarProps} headings={state.headings} />
           <main className="flex-1 overflow-hidden flex flex-col">
-            <EditorArea {...editorProps} />
+            {mainContent ?? <EditorArea {...editorProps} />}
           </main>
           {rightPanel}
         </div>
@@ -173,7 +177,7 @@ const Index = () => {
             <Pane>
               <div className="h-screen flex bg-background">
                 <div className="flex-1 min-h-0 overflow-auto">
-                  <EditorArea {...editorProps} />
+                  {mainContent ?? <EditorArea {...editorProps} />}
                 </div>
                 {rightPanel}
               </div>

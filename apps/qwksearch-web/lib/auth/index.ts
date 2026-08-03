@@ -125,6 +125,11 @@ async function authBuilder() {
       },
     },
     socialProviders,
+    user: {
+      deleteUser: {
+        enabled: true,
+      },
+    },
     emailVerification: {
       sendOnSignUp: false,
       autoSignInAfterVerification: true,

@@ -18,6 +18,7 @@ import {
 import { useSession, useChat } from "research-agent-ui"
 import { listFooterLinks } from "@/lib/config/site"
 import { useSettingsModal } from "@/components/Settings/SettingsModal"
+import { useMainView } from "@/components/layout/MainViewProvider"
 import iconRead from "../icons/icon-read.svg"
 import iconConfigure from "../icons/icon-configure.svg"
 
@@ -36,6 +37,7 @@ export function CategoryDock() {
   const { isAuthenticated, signIn, signOut } = useSession()
   const { newChat } = useChat()
   const { openSettings } = useSettingsModal()
+  const { activeView, setActiveView } = useMainView()
 
   const isOnResearch = pathname === "/" || pathname.startsWith("/c")
 
@@ -46,14 +48,19 @@ export function CategoryDock() {
       icon,
       active:
         href === "/"
-          ? isOnResearch
-          : pathname.startsWith(href),
-      // Tapping the Research icon while already on a research page closes the
-      // current chat and opens a fresh one instead of navigating in place.
-      onClick:
-        href === "/" && isOnResearch
-          ? () => newChat()
-          : () => router.push(href),
+          ? activeView === "research"
+          : activeView === "docs",
+      onClick: () => {
+        if (href === "/") {
+          setActiveView("research")
+          if (isOnResearch) {
+            newChat()
+          }
+          return
+        }
+
+        setActiveView("docs")
+      },
     })),
     {
       key: "settings",

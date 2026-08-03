@@ -1,20 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { ReasonDocs } from 'react-reason-editor/reason-docs'
-import { themeActions } from 'react-reason-editor/theme'
-import { localeActions } from 'react-reason-editor/locale-bundle'
-
-import 'react-reason-editor/style.css'
-import 'katex/dist/katex.min.css'
-import 'easydrawer/styles.css'
-import 'katex/contrib/mhchem'
+import { MainWorkspaceView } from '@/components/layout/MainWorkspaceView'
 
 export default function Page() {
-  useEffect(() => {
-    localeActions.setLang('en')
-    themeActions.setColor('default')
-  }, [])
-
-  return <ReasonDocs />
+  return <MainWorkspaceView />
 }

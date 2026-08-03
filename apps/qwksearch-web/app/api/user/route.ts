@@ -103,15 +103,26 @@ export async function DELETE() {
 
   try {
     const auth = await initAuth();
-    await auth.api.deleteUser({
+    const response = await auth.api.deleteUser({
       headers: await headers(),
+      body: {},
     });
+
+    if (response?.success === false) {
+      return NextResponse.json(
+        { message: response.message || "Failed to delete account." },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json({ message: "Account deleted successfully." });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting user:", error);
-    return NextResponse.json(
-      { message: "Failed to delete account." },
-      { status: 500 }
-    );
+    const message =
+      error?.status === 400 || error?.status === 401 || error?.status === 403
+        ? error?.message || "Failed to delete account."
+        : "Failed to delete account.";
+
+    return NextResponse.json({ message }, { status: 500 });
   }
 }
