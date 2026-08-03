@@ -13,6 +13,7 @@ import { Toaster } from 'sonner';
 import { authClient } from '@/lib/auth/client';
 import { CategoryDock } from '@/components/layout/CategoryDock';
 import { CookieConsent } from '@/components/layout/CookieConsent';
+import { useChunkErrorReload } from '@/components/layout/useChunkErrorReload';
 import { SettingsModalProvider } from '@/components/Settings/SettingsModal';
 import {
   APP_NAME,
@@ -39,6 +40,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // Google provider configured — otherwise the prompt can only fail (a
   // sign-in with no provider to complete it against).
   const [googleOneTapEnabled, setGoogleOneTapEnabled] = useState(false);
+
+  useChunkErrorReload();
 
   useEffect(() => {
     fetch('/api/auth/providers')
