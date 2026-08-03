@@ -13,7 +13,7 @@
   "module": "./dist/api-client.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/src/index.d.ts",
       "import": "./dist/api-client.js",
       "require": "./dist/api-client.umd.cjs"
     },
