@@ -220,7 +220,7 @@ export const Sidebar = ({
 
   // Desktop: render as sidebar, full height
   return (
-    <aside className="h-screen w-full flex flex-col bg-sidebar-background">
+    <aside className="h-screen w-full flex flex-col bg-sidebar-background pt-14">
       <SidebarToolbar {...toolbarProps} />
       <div className="flex-1 min-h-0 overflow-hidden">
         <SidebarContent {...contentProps} />
