@@ -115,6 +115,10 @@ export function isNumberedListItem(string: string): boolean {
   return /^[\s]*[\d]*[.][\s].*$/g.test(string)
 }
 
+export function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 export function wordMatch(string1: string, string2: string): number {
   const words1 = new Set(string1.toUpperCase().split(' '))
   const words2 = new Set(string2.toUpperCase().split(' '))

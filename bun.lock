@@ -282,6 +282,9 @@
     "packages/extract-pdf": {
       "name": "extract-pdf",
       "version": "0.1.104",
+      "dependencies": {
+        "@llamaindex/liteparse-wasm": "^2.11.0",
+      },
       "devDependencies": {
         "terser": "^5.46.0",
         "typescript": "^5.9.3",
@@ -1355,6 +1358,8 @@
     "@llamaindex/liteparse-linux-x64-gnu": ["@llamaindex/liteparse-linux-x64-gnu@2.10.1", "", { "os": "linux", "cpu": "x64" }, "sha512-O5Ep8Ykpb4caJsIP3/ohdyWQiXMhjfkxI1oVW7UtnBG8iDsqjQCTYSvcOmnRib7E4ud1dqy+T8m5vAtUcTwA4w=="],
 
     "@llamaindex/liteparse-linux-x64-musl": ["@llamaindex/liteparse-linux-x64-musl@2.10.1", "", { "os": "linux", "cpu": "x64" }, "sha512-3BMr+6a7YBBtD1kiBQR9VAroqWP9iBzuCX3H9CCkwxL61j+ldPbpdTzf75jhXo1/KkDN6eP6A9ntKDfZX1I0dg=="],
+
+    "@llamaindex/liteparse-wasm": ["@llamaindex/liteparse-wasm@2.11.0", "", {}, "sha512-V9EKjrOC3wI8bHXeGFcSkOxpih1dAYzkz85ruN2WJkAV/bZq02iD9cqNsGMnlvADB9ARAGXcEWRph2mlXSeWxA=="],
 
     "@llamaindex/liteparse-win32-arm64-msvc": ["@llamaindex/liteparse-win32-arm64-msvc@2.10.1", "", { "os": "win32", "cpu": "arm64" }, "sha512-eFzr8i8XaiMJ/jaKr3IeGVnpxoF2dcG5BhMkmf1VfuYSxTEFYKa6i+0tMbfdiiPlLBrOsJl2zw8YVr4jydeQmw=="],
 

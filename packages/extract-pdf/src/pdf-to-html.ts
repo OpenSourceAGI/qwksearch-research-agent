@@ -29,6 +29,10 @@ import {
   convertPDFToHTMLWithLiteParse,
   type LiteParseHTMLOptions,
 } from "./liteparse-to-html";
+import {
+  convertPDFToHTMLWithLiteParseWasm,
+  type LiteParseWasmHTMLOptions,
+} from "./liteparse-wasm-to-html";
 
 /**
  * Which parsing engine {@link convertPDFToHTML} runs.
@@ -38,8 +42,12 @@ import {
  * - `"liteparse"` — delegates to [LiteParse](https://github.com/run-llama/liteparse),
  *   a native/OCR-capable parser. Node.js only (ships a napi addon), and requires
  *   the optional `@llamaindex/liteparse` dependency to be installed.
+ * - `"liteparse-wasm"` — delegates to LiteParse's WebAssembly build. Runs
+ *   anywhere WASM does — browsers, Cloudflare Workers, and Node.js — and
+ *   requires the optional `@llamaindex/liteparse-wasm` dependency to be
+ *   installed. OCR requires passing an `ocrEngine` callback (e.g. tesseract-js).
  */
-export type ParseMethod = "ts-block-algorithm" | "liteparse";
+export type ParseMethod = "ts-block-algorithm" | "liteparse" | "liteparse-wasm";
 
 /**
  * Extracts formatted text from PDF with parsing of linebreaks ,
@@ -74,6 +82,14 @@ export async function convertPDFToHTML(
   if (options.method === "liteparse") {
     const { method: _method, ...liteParseOptions } = options;
     return convertPDFToHTMLWithLiteParse(pdfURLOrBuffer, liteParseOptions);
+  }
+
+  if (options.method === "liteparse-wasm") {
+    const { method: _method, ...liteParseOptions } = options;
+    return convertPDFToHTMLWithLiteParseWasm(
+      pdfURLOrBuffer,
+      liteParseOptions as unknown as LiteParseWasmHTMLOptions,
+    );
   }
 
   // try {
@@ -223,6 +239,8 @@ export async function convertPDFToHTML(
 
 export { convertPDFToHTMLWithLiteParse };
 export type { LiteParseHTMLOptions } from "./liteparse-to-html";
+export { convertPDFToHTMLWithLiteParseWasm };
+export type { LiteParseWasmHTMLOptions } from "./liteparse-wasm-to-html";
 export { detectPdfNeedsOcr } from "./detect-needs-ocr";
 export type {
   DetectPdfNeedsOcrOptions,
