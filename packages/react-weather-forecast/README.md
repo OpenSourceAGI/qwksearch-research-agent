@@ -1,6 +1,6 @@
 # react-weather-forecast
 
-React weather forecast component using Open-Meteo for current, hourly, and daily forecasts and IPinfo for IP geolocation.
+React weather forecast component using Open-Meteo for current, hourly, and daily forecasts and Cloudflare/ip-api for IP geolocation.
 
 ## Features
 
@@ -29,7 +29,7 @@ export default function App() {
       forecastDays={5}
       forecastHours={12}
       temperatureUnit="fahrenheit"
-      ipInfoToken={import.meta.env.VITE_IPINFO_TOKEN}
+      geoEndpoint={import.meta.env.VITE_GEO_WORKER_URL}
     />
   );
 }
@@ -56,8 +56,30 @@ npm install
 npm run build
 ```
 
+## IP geolocation
+
+This package no longer uses ipinfo.io. Instead:
+
+- Pass `geoEndpoint` pointing at a deployed instance of the bundled Cloudflare Worker
+  (`worker/geo-worker.ts`) for accurate results. The worker reads Cloudflare's built-in
+  geolocation (`request.cf`) for the visitor's own IP, and falls back to `ip-api.com`
+  when a `?ip=` query param (or the `ip` prop) is supplied for an arbitrary address.
+- If `geoEndpoint` is omitted, the package falls back to calling `ip-api.com` directly
+  from the browser. **Note:** ip-api.com's free tier only serves plain HTTP, so this
+  fallback will be blocked as mixed content on pages served over HTTPS — deploy the
+  worker and pass `geoEndpoint` for any HTTPS site.
+
+### Deploying the geo worker
+
+```bash
+cd packages/react-weather-forecast
+npm run worker:deploy
+```
+
+This deploys `worker/geo-worker.ts` via Wrangler. Use the resulting `*.workers.dev` URL
+(or a custom route) as `geoEndpoint`.
+
 ## Notes
 
 - Open-Meteo powers the forecast data.
-- IPinfo is used for client IP geolocation.
-- Pass `ipInfoToken` for the Core API path, otherwise the package falls back to `https://ipinfo.io/json`.
+- Cloudflare's `request.cf` and ip-api.com power IP geolocation (see above).

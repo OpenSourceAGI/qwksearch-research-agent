@@ -51,7 +51,7 @@ export async function getWeatherForecast(
       longitude: options.longitude,
     };
   } else {
-    location = await getClientLocation(options.ipInfoToken);
+    location = await getClientLocation(options.geoEndpoint, options.ip);
   }
 
   const url = buildUrl(location.latitude, location.longitude, { ...options, location });

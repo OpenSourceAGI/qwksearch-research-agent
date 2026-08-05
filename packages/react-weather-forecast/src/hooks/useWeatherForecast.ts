@@ -21,7 +21,8 @@ export function useWeatherForecast(options: WeatherForecastOptions = {}) {
   }, [
     options.latitude,
     options.longitude,
-    options.ipInfoToken,
+    options.geoEndpoint,
+    options.ip,
     options.forecastDays,
     options.forecastHours,
     options.temperatureUnit,

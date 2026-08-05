@@ -2,7 +2,7 @@
   "name": "react-weather-forecast",
   "version": "0.1.0",
   "description": "React weather forecast component using Open-Meteo and IP geolocation",
-  "keywords": ["react", "weather", "forecast", "open-meteo", "ipinfo", "component-library"],
+  "keywords": ["react", "weather", "forecast", "open-meteo", "cloudflare", "ip-api", "component-library"],
   "license": "MIT",
   "author": "Perplexity",
   "repository": {
@@ -28,13 +28,18 @@
     "react-dom": "^18 || ^19"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250115.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tsup": "^8.2.4",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "wrangler": "^3.88.0"
   },
   "scripts": {
     "build": "tsup",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "worker:typecheck": "tsc --noEmit -p worker/tsconfig.json",
+    "worker:dev": "wrangler dev --config worker/wrangler.jsonc",
+    "worker:deploy": "wrangler deploy --config worker/wrangler.jsonc"
   }
 }
