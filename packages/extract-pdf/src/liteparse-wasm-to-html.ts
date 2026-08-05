@@ -1,35 +1,53 @@
 /**
- * Alternate `ParseMethod` for convertPDFToHTML that delegates to
- * [LiteParse](https://github.com/run-llama/liteparse) instead of the built-in
- * ts-block-algorithm pipeline. LiteParse ships a native (napi) addon, so this
- * path is Node.js only — it will not run in Cloudflare Workers or browsers —
- * and requires the optional `@llamaindex/liteparse` dependency to be installed.
+ * Alternate `ParseMethod` for convertPDFToHTML that delegates to LiteParse's
+ * [WASM build](https://github.com/run-llama/liteparse/blob/main/packages/wasm/README.md)
+ * instead of the native napi addon. Unlike `"liteparse"`, this path runs
+ * anywhere WebAssembly does — browsers, Cloudflare Workers, and Node.js — and
+ * requires the optional `@llamaindex/liteparse-wasm` dependency to be
+ * installed. OCR is not built in; pass `liteParseOptions.ocrEngine` (e.g.
+ * backed by tesseract-js) to enable it.
  */
 import { grab } from "./utils/grab";
 import { escapeHtml } from "./utils/string-functions";
-import type { LiteParseConfig } from "@llamaindex/liteparse";
+import type { LiteParseInit } from "@llamaindex/liteparse-wasm";
 
-export interface LiteParseHTMLOptions {
+export interface LiteParseWasmHTMLOptions {
   addPageNumbers?: boolean;
   addCitation?: boolean;
-  liteParseOptions?: Partial<LiteParseConfig>;
+  liteParseOptions?: Partial<LiteParseInit>;
+}
+
+// wasm-bindgen's `init()` locates and instantiates the .wasm binary itself
+// (relative to the package, via fetch in the browser or Node.js's file
+// loader); it only needs to run once per process, so the promise is cached
+// at module scope and reused by every call.
+let wasmInitPromise: Promise<unknown> | undefined;
+
+async function ensureWasmInit(
+  liteParseWasm: typeof import("@llamaindex/liteparse-wasm"),
+): Promise<void> {
+  if (!wasmInitPromise) {
+    wasmInitPromise = liteParseWasm.default();
+  }
+  await wasmInitPromise;
 }
 
 /**
- * Converts a PDF (URL or ArrayBuffer) into HTML using LiteParse's spatial text
- * extraction, mirroring the return shape of `convertPDFToHTML`.
+ * Converts a PDF (URL or ArrayBuffer) into HTML using LiteParse's WASM build,
+ * mirroring the return shape of `convertPDFToHTML`.
  * @param pdfURLOrBuffer - URL to a PDF file or buffer from fs.readFile
  * @param options.addPageNumbers default=false - Adds `[n]` markers at each page boundary
  * @param options.addCitation default=true - Populates `title`/`author` from PDF metadata
  * @param options.liteParseOptions - Passed through to the `LiteParse` constructor;
  *   defaults to `{ ocrEnabled: false, ocrFailureFatal: false }` (use detectPdfNeedsOcr
- *   to decide when a document is worth re-parsing with `ocrEnabled: true`)
+ *   to decide when a document is worth re-parsing with `ocrEnabled: true`, or pass
+ *   `ocrEngine` to run OCR in-process, e.g. via tesseract-js)
  * @returns `{ html, title, author, format: "pdf" }`, or `{ error }` on failure
  * @category Extract
  */
-export async function convertPDFToHTMLWithLiteParse(
+export async function convertPDFToHTMLWithLiteParseWasm(
   pdfURLOrBuffer: any,
-  options: LiteParseHTMLOptions = {},
+  options: LiteParseWasmHTMLOptions = {},
 ) {
   const { addPageNumbers = false, addCitation = true, liteParseOptions = {} } = options;
 
@@ -38,24 +56,19 @@ export async function convertPDFToHTMLWithLiteParse(
       ? await grab(pdfURLOrBuffer, { responseType: "arraybuffer", timeout: 10 })
       : pdfURLOrBuffer;
 
-  let LiteParse: typeof import("@llamaindex/liteparse").LiteParse;
+  let liteParseWasm: typeof import("@llamaindex/liteparse-wasm");
   try {
-    ({ LiteParse } = await import("@llamaindex/liteparse"));
+    liteParseWasm = await import("@llamaindex/liteparse-wasm");
+    await ensureWasmInit(liteParseWasm);
   } catch (e: any) {
     return {
       error:
-        "method: 'liteparse' requires the optional @llamaindex/liteparse dependency " +
-        `(Node.js only): ${e.message}`,
+        "method: 'liteparse-wasm' requires the optional @llamaindex/liteparse-wasm " +
+        `dependency: ${e.message}`,
     };
   }
 
-  // Default to no OCR: this method exists for the fast/local path (see
-  // detectPdfNeedsOcr for routing scanned/complex pages elsewhere), and OCR
-  // requires downloading tessdata on first use, which is slow and can fail
-  // offline. `ocrFailureFatal: false` keeps already-recovered native text
-  // instead of discarding the whole parse if a caller opts OCR back in and it
-  // fails on some pages.
-  const parser = new LiteParse({
+  const parser = new liteParseWasm.LiteParse({
     quiet: true,
     ocrEnabled: false,
     ocrFailureFatal: false,

@@ -17,10 +17,11 @@ export default defineConfig({
       format: { comments: false },
     },
     rollupOptions: {
-      // @llamaindex/liteparse ships a native (napi) addon — never inline it,
-      // keep it as a runtime dependency resolved by Node.js when the
-      // "liteparse" ParseMethod is actually used.
-      external: ["@llamaindex/liteparse"],
+      // @llamaindex/liteparse ships a native (napi) addon, and
+      // @llamaindex/liteparse-wasm ships a .wasm binary — never inline either,
+      // keep them as runtime dependencies resolved by the consuming app when
+      // the "liteparse" / "liteparse-wasm" ParseMethods are actually used.
+      external: ["@llamaindex/liteparse", "@llamaindex/liteparse-wasm"],
     },
   },
   plugins: [
@@ -30,6 +31,7 @@ export default defineConfig({
       include: [
         "src/pdf-to-html.ts",
         "src/liteparse-to-html.ts",
+        "src/liteparse-wasm-to-html.ts",
         "src/detect-needs-ocr.ts",
         "src/models/**/*.ts",
         "src/transforms/**/*.ts",

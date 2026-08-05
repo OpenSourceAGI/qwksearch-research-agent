@@ -28,7 +28,8 @@
   },
   "dependencies": {},
   "optionalDependencies": {
-    "@llamaindex/liteparse": "^2.10.0"
+    "@llamaindex/liteparse": "^2.10.0",
+    "@llamaindex/liteparse-wasm": "^2.11.0"
   },
   "devDependencies": {
     "terser": "^5.46.0",
