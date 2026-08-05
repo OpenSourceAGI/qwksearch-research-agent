@@ -69,7 +69,8 @@ export type WeatherForecastOptions = {
   latitude?: number;
   longitude?: number;
   location?: Partial<WeatherLocation>;
-  ipInfoToken?: string;
+  geoEndpoint?: string;
+  ip?: string;
   forecastDays?: number;
   forecastHours?: number;
   temperatureUnit?: TemperatureUnit;
