@@ -1,25 +1,38 @@
 // Icon components are no longer imported - we use string names instead
 // and resolve them dynamically in client components
 
-export const /** App Name in title case */
-  APP_NAME: string = "QwkSearch",
-  NEXT_PUBLIC_BASE_URL = "https://beta.qwksearch.com",
-  NEXT_PUBLIC_GOOGLE_CLIENT_ID =
-    "921732917742-79ql1h9hek2qsdn9f5vnk6lg26jq0vi2.apps.googleusercontent.com",
+export interface Config {
+  /** App Name in title case */
+  appName: string;
+  baseUrl: string;
+  googleClientId: string;
   /** App Email for support */
-  APP_EMAIL: string = "support@qwksearch.com",
+  appEmail: string;
   /** Terms & Privacy Last Revised Date */
-  LAST_REVISED_DATE: string = "2026-01-15",
+  lastRevisedDate: string;
   /** Windows product ID for native & URL links */
-  DOWNLOAD_WINDOWS_STORE_ID: string = "9PCGF9GNK460",
-  /** Download Button URL for Chrome extension  */
-  DOWNLOAD_CHROME_URL: string =
-    "https://chromewebstore.google.com/detail/tab-manager-ai/manhemnhmipdhdpabojcplebckhckeko",
+  downloadWindowsStoreId: string;
+  /** Download Button URL for Chrome extension */
+  downloadChromeUrl: string;
   /** Default prompt template for article */
-  DEFAULT_SUMMARIZE_PROMPT: string =
-    "Summarize in bullet points and bold topics",
+  defaultSummarizePrompt: string;
   /** Max char length for article body sent to the LLM */
-  MAX_ARTICLE_LENGTH: number = 1500;
+  maxArticleLength: number;
+}
+
+export const config: Config = {
+  appName: "QwkSearch",
+  baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "https://beta.qwksearch.com",
+  googleClientId:
+    "921732917742-79ql1h9hek2qsdn9f5vnk6lg26jq0vi2.apps.googleusercontent.com",
+  appEmail: "support@qwksearch.com",
+  lastRevisedDate: "2026-01-15",
+  downloadWindowsStoreId: "9PCGF9GNK460",
+  downloadChromeUrl:
+    "https://chromewebstore.google.com/detail/tab-manager-ai/manhemnhmipdhdpabojcplebckhckeko",
+  defaultSummarizePrompt: "Summarize in bullet points and bold topics",
+  maxArticleLength: 1500,
+};
 
 export const listFooterLinks: FooterLink[] = [
   // {

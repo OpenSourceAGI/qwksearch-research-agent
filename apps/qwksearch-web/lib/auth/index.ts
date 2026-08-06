@@ -5,7 +5,7 @@ import { getDB } from "../database";
 import * as schema from "../database/schema";
 import { getCloudflareContext } from "../cloudflare/context";
 import { detectVpnAndLocation } from "../cloudflare/ip-geolocation";
-import { APP_NAME, APP_EMAIL, NEXT_PUBLIC_BASE_URL } from "../config/site";
+import { config } from "../config/site";
 
 export interface Env {
   EMAIL: {
@@ -55,7 +55,7 @@ async function authBuilder() {
   const trustedOrigins = Array.from(
     new Set(
       [
-        NEXT_PUBLIC_BASE_URL,
+        config.baseUrl,
         "https://qwksearch.com",
         "https://*.qwksearch.com",
         "http://localhost:3000",
@@ -67,7 +67,7 @@ async function authBuilder() {
   );
 
   return betterAuth({
-    baseURL: NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+    baseURL: config.baseUrl || "http://localhost:3000",
     trustedOrigins,
     database: drizzleAdapter(db, {
       provider: "sqlite",
@@ -149,10 +149,10 @@ async function authBuilder() {
             }
 
             await env.EMAIL.send({
-              from: APP_EMAIL || "noreply@example.com",
+              from: config.appEmail || "noreply@example.com",
               to: email,
-              subject: `Sign in to ${APP_NAME}`,
-              html: `<p>Click the link below to sign in to ${APP_NAME}:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 5 minutes.</p>`,
+              subject: `Sign in to ${config.appName}`,
+              html: `<p>Click the link below to sign in to ${config.appName}:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 5 minutes.</p>`,
             });
           } catch (error) {
             console.error("[auth] Magic link send failed:", error);
