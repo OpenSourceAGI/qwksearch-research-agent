@@ -13,6 +13,11 @@ import { FileManagerModal } from '../../dialogs/FileManagerModal';
 import { SidebarToolbar } from './SidebarToolbar';
 import { SidebarContent } from './SidebarContent';
 import type { SidebarProps } from './types';
+import { cn } from '../../app-utils/utils';
+
+/** Translucent, blurred glass background — matches the app dock and weather widget. */
+const SIDEBAR_GLASS_CLASSES =
+  'bg-white/10 dark:bg-black/20 backdrop-blur-md border-white/15 dark:border-white/10';
 
 export const Sidebar = ({
   documents,
@@ -205,8 +210,8 @@ export const Sidebar = ({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="left" className="w-80 p-0">
-          <aside className="h-full flex flex-col bg-sidebar-background">
+        <SheetContent side="left" className={cn('w-80 p-0', SIDEBAR_GLASS_CLASSES)}>
+          <aside className="h-full flex flex-col">
             <SidebarToolbar {...toolbarProps} />
             <div className="flex-1 min-h-0 overflow-hidden">
               <SidebarContent {...contentProps} />
@@ -220,7 +225,7 @@ export const Sidebar = ({
 
   // Desktop: render as sidebar, full height
   return (
-    <aside className="h-screen w-full flex flex-col bg-sidebar-background pt-14">
+    <aside className={cn('h-screen w-full flex flex-col pt-14', SIDEBAR_GLASS_CLASSES)}>
       <SidebarToolbar {...toolbarProps} />
       <div className="flex-1 min-h-0 overflow-hidden">
         <SidebarContent {...contentProps} />

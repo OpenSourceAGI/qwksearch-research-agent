@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { ChatWindow } from 'research-agent-ui';
+import { ChatInputBox, ChatWindow } from 'research-agent-ui';
 import { ReasonDocs } from 'react-reason-editor/reason-docs';
 import { themeActions } from 'react-reason-editor/theme';
 import { localeActions } from 'react-reason-editor/locale-bundle';
@@ -13,7 +13,7 @@ import 'easydrawer/styles.css';
 import 'katex/contrib/mhchem';
 
 export function MainWorkspaceView() {
-  const { activeView } = useMainView();
+  const { activeView, filesSidebarRequestId } = useMainView();
 
   useEffect(() => {
     localeActions.setLang('en');
@@ -21,8 +21,11 @@ export function MainWorkspaceView() {
   }, []);
 
   return activeView === 'docs' ? (
-    <ReasonDocs />
+    <ReasonDocs
+      belowMainContent={<ChatInputBox />}
+      openFilesSidebarSignal={filesSidebarRequestId}
+    />
   ) : (
-    <ReasonDocs mainContent={<ChatWindow />} />
+    <ReasonDocs mainContent={<ChatWindow />} openFilesSidebarSignal={filesSidebarRequestId} />
   );
 }

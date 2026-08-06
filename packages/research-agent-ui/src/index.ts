@@ -43,6 +43,7 @@ export type {
 
 // ============ Chat ============
 export { default as ChatWindow } from './components/ChatConversation/ChatWindow';
+export { default as ChatInputBox } from './components/MessageComposer/ChatInputBox';
 export type {
   Message,
   ChatTurn,

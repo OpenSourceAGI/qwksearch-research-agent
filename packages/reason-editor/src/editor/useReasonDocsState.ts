@@ -23,12 +23,16 @@ import { toast } from "sonner";
 /**
  * Aggregates all Reason Docs application state into a single hook.
  *
+ * @param openFilesSidebarSignal - Optional value from the host app; changing
+ * it (e.g. bumping a counter) opens the files sidebar. Lets chrome mounted
+ * outside this component (like an app dock icon) request the sidebar open.
  * @returns An object containing reactive state values and handler callbacks
  * consumed by {@link Index} and its child components.
  */
-export function useReasonDocsState() {
+export function useReasonDocsState(openFilesSidebarSignal?: number | string) {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(false);
@@ -441,6 +445,14 @@ export function useReasonDocsState() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Opens the files sidebar in response to an external trigger (e.g. an app
+  // dock icon mounted outside this component tree).
+  useEffect(() => {
+    if (!openFilesSidebarSignal) return;
+    setLeftPanels(["files"]);
+    setIsSidebarOpen(true);
+  }, [openFilesSidebarSignal]);
+
   // Apply default sidebar view on mount
   useEffect(() => {
     if (defaultSidebarView === "tree") {
@@ -738,6 +750,8 @@ export function useReasonDocsState() {
     isMobile,
     isSidebarOpen,
     setIsSidebarOpen,
+    isRightSidebarOpen,
+    setIsRightSidebarOpen,
     isSearchModalOpen,
     setIsSearchModalOpen,
     isSettingsOpen,
