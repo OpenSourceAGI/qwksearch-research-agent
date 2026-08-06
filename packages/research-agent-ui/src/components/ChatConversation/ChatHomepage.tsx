@@ -9,6 +9,7 @@ import RecentHistoryChips from './RecentHistoryChips';
 import Footer from '../Footer';
 import DownloadsDialog from './DownloadsDialog';
 import { WeatherForecast, type WeatherLocationInput } from 'use-weather-forecast';
+import { TrendingNews } from 'trending-news-api';
 import { useChat } from '../../hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import { researchAgentUIConfig } from '../../config';
@@ -60,12 +61,15 @@ export default function ChatHomepage() {
   const [fading, setFading] = useState(false);
   const [downloadsOpen, setDownloadsOpen] = useState(false);
   const [weatherLocations, setWeatherLocations] = useState<WeatherLocationInput[]>([]);
+  const [trendingNewsApiUrl, setTrendingNewsApiUrl] = useState<string | null>(null);
   const footerLinks = researchAgentUIConfig.footerLinks.map((link) =>
     link.url === '/#downloads' ? { ...link, onClick: () => setDownloadsOpen(true) } : link,
   );
   useEffect(() => {
-    const readLocations = () =>
+    const readLocations = () => {
       setWeatherLocations(parseWeatherLocations(localStorage.getItem('weatherLocations')));
+      setTrendingNewsApiUrl(localStorage.getItem('trendingNewsApiUrl'));
+    };
     readLocations();
     window.addEventListener('client-config-changed', readLocations);
     window.addEventListener('storage', readLocations);
@@ -142,20 +146,35 @@ export default function ChatHomepage() {
 
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
-            <WeatherForecast
-              compact
-              forecastDays={5}
-              forecastHours={12}
-              locations={weatherLocations.length > 0 ? weatherLocations : undefined}
-              className="rounded-2xl"
-              style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                color: 'inherit',
-                backdropFilter: 'blur(8px)',
-                maxWidth: '100%',
-              }}
-            />
+            <div className="flex flex-col md:flex-row gap-2 w-full">
+              <WeatherForecast
+                compact
+                forecastDays={5}
+                forecastHours={12}
+                locations={weatherLocations.length > 0 ? weatherLocations : undefined}
+                className="rounded-2xl md:flex-1"
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  color: 'inherit',
+                  backdropFilter: 'blur(8px)',
+                  maxWidth: '100%',
+                }}
+              />
+              <TrendingNews
+                compact
+                maxTopics={6}
+                apiEndpoint={trendingNewsApiUrl || undefined}
+                className="rounded-2xl md:flex-1"
+                style={{
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  color: 'inherit',
+                  backdropFilter: 'blur(8px)',
+                  maxWidth: '100%',
+                }}
+              />
+            </div>
             <ChatInputBox />
           </div>
         </div>
