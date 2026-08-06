@@ -62,6 +62,7 @@ export default function ChatHomepage() {
   const [downloadsOpen, setDownloadsOpen] = useState(false);
   const [weatherLocations, setWeatherLocations] = useState<WeatherLocationInput[]>([]);
   const [trendingNewsApiUrl, setTrendingNewsApiUrl] = useState<string | null>(null);
+  const [orbHoverGlow, setOrbHoverGlow] = useState(false);
   const footerLinks = researchAgentUIConfig.footerLinks.map((link) =>
     link.url === '/#downloads' ? { ...link, onClick: () => setDownloadsOpen(true) } : link,
   );
@@ -69,6 +70,7 @@ export default function ChatHomepage() {
     const readLocations = () => {
       setWeatherLocations(parseWeatherLocations(localStorage.getItem('weatherLocations')));
       setTrendingNewsApiUrl(localStorage.getItem('trendingNewsApiUrl'));
+      setOrbHoverGlow(localStorage.getItem('orbHoverGlow') === 'true');
     };
     readLocations();
     window.addEventListener('client-config-changed', readLocations);
