@@ -54,7 +54,8 @@ pnpm-lock*
 apps/qwksearch-web/.open-next
 .dev.vars
 packages/reason-editor/demo
-.claude
+.claude/*
+!.claude/skills
 .turbo
 
 yarn.lock
