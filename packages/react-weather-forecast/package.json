@@ -2,7 +2,7 @@
   "name": "use-weather-forecast",
   "version": "0.1.0",
   "description": "React weather forecast component using Open-Meteo and IP geolocation",
-  "keywords": ["react", "weather", "forecast", "open-meteo", "cloudflare", "ip-api", "component-library"],
+  "keywords": ["react", "weather", "forecast", "open-meteo", "cloudflare", "ipapi", "component-library"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",

@@ -10,6 +10,8 @@ interface FooterLink {
     url: string;
     text: string;
     icon?: string;
+    /** When set, clicking the link runs this instead of navigating to `url` (e.g. to open a popup). */
+    onClick?: () => void;
 }
 
 interface FooterProps {
@@ -52,7 +54,7 @@ export default function Footer({
     }, [open]);
 
     const renderLinks = () =>
-        listFooterLinks.map(({ url, text, icon }) => {
+        listFooterLinks.map(({ url, text, icon, onClick }) => {
             const IconComponent = icon ? (LucideIcons as any)[icon] : null;
 
             const isExternal = url.startsWith("http");
@@ -72,6 +74,19 @@ export default function Footer({
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full group-hover:shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
                 </>
             );
+
+            if (onClick) {
+                return (
+                    <button
+                        key={url}
+                        type="button"
+                        onClick={onClick}
+                        className="relative group inline-flex items-center gap-1 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-all duration-300 whitespace-nowrap"
+                    >
+                        {content}
+                    </button>
+                );
+            }
 
             return isExternal ? (
                 <a

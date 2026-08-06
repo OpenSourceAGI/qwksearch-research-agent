@@ -1,6 +1,6 @@
 # use-weather-forecast
 
-React weather forecast component using Open-Meteo for current, hourly, and daily forecasts and Cloudflare/ip-api for IP geolocation.
+React weather forecast component using Open-Meteo for current, hourly, and daily forecasts and Cloudflare/ipapi.co for IP geolocation.
 
 ## Features
 
@@ -62,12 +62,14 @@ This package no longer uses ipinfo.io. Instead:
 
 - Pass `geoEndpoint` pointing at a deployed instance of the bundled Cloudflare Worker
   (`worker/geo-worker.ts`) for accurate results. The worker reads Cloudflare's built-in
-  geolocation (`request.cf`) for the visitor's own IP, and falls back to `ip-api.com`
+  geolocation (`request.cf`) for the visitor's own IP, and falls back to `ipapi.co`
   when a `?ip=` query param (or the `ip` prop) is supplied for an arbitrary address.
-- If `geoEndpoint` is omitted, the package falls back to calling `ip-api.com` directly
-  from the browser. **Note:** ip-api.com's free tier only serves plain HTTP, so this
-  fallback will be blocked as mixed content on pages served over HTTPS — deploy the
-  worker and pass `geoEndpoint` for any HTTPS site.
+- If `geoEndpoint` is omitted, the package falls back to calling `ipapi.co` directly
+  from the browser (`https://ipapi.co/json/`, or `https://ipapi.co/<ip>/json/` when an
+  `ip` is supplied). Unlike the previous ip-api.com fallback, this works over HTTPS with
+  no mixed-content issues, though ipapi.co's free tier is rate-limited (1,000
+  requests/day) — deploy the worker and pass `geoEndpoint` for higher-volume or
+  production use.
 
 ### Deploying the geo worker
 
@@ -79,7 +81,16 @@ npm run worker:deploy
 This deploys `worker/geo-worker.ts` via Wrangler. Use the resulting `*.workers.dev` URL
 (or a custom route) as `geoEndpoint`.
 
+## Caching
+
+`getWeatherForecast` caches each response in `localStorage` for 30 minutes, keyed by
+the exact request URL (location + units + forecast range). Repeated calls for the same
+location/options within that window are served from the cache instead of hitting
+Open-Meteo again, which keeps the widget well under Open-Meteo's rate limits. Call
+`clearWeatherForecastCache()` to evict everything (e.g. in tests). The cache is a no-op
+in non-browser environments (SSR) or when `localStorage` is unavailable/full.
+
 ## Notes
 
 - Open-Meteo powers the forecast data.
-- Cloudflare's `request.cf` and ip-api.com power IP geolocation (see above).
+- Cloudflare's `request.cf` and ipapi.co power IP geolocation (see above).

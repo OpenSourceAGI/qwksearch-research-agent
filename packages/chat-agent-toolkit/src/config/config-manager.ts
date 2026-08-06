@@ -20,6 +20,7 @@ const PROVIDER_KEY_TO_DB_NAME: Record<string, string> = {
   deepseek: "deepseek",
   nvidia: "nvidia",
   openrouter: "openrouter",
+  anyapi: "anyapi",
 };
 
 /**

@@ -47,6 +47,13 @@ export interface CategoryDockProps {
   className?: string
   /** Which fixed placements to render. Defaults to both. */
   placements?: { desktop?: boolean; mobile?: boolean }
+  /**
+   * Horizontal alignment of the mobile dock at `sm:` widths and up (it stays
+   * centered below that). `"end"` shifts it to the right, freeing the rest
+   * of the bottom row for other fixed bottom chrome (e.g. a chat input bar)
+   * to share the same row. Defaults to `"center"`.
+   */
+  mobileAlign?: "center" | "end"
 }
 
 const ICON_SIZE = 24
@@ -155,6 +162,7 @@ export function CategoryDock({
   enableKeyboardShortcuts = false,
   className,
   placements,
+  mobileAlign = "center",
 }: CategoryDockProps) {
   const showDesktop = placements?.desktop ?? true
   const showMobile = placements?.mobile ?? true
@@ -190,7 +198,10 @@ export function CategoryDock({
       {showMobile && (
         <div className={cn("md:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe", className)}>
           <DockInstance
-            dockClassName="h-[52px] shrink-0 !mt-0 mx-auto w-max mb-2 !gap-1 !p-1"
+            dockClassName={cn(
+              "h-[52px] shrink-0 !mt-0 w-max mb-2 !gap-1 !p-1 mx-auto",
+              mobileAlign === "end" && "sm:ml-auto sm:mr-3",
+            )}
             side="top"
             items={items}
             renderImage={renderImage}

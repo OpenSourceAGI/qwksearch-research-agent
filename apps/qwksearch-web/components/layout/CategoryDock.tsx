@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Settings, LogIn, LogOut, Link2 } from "lucide-react"
+import { Settings, LogIn, LogOut, Link2, FileText } from "lucide-react"
 import * as LucideIcons from "lucide-react"
 import {
   CategoryDock as BaseCategoryDock,
@@ -37,7 +37,7 @@ export function CategoryDock() {
   const { isAuthenticated, signIn, signOut } = useSession()
   const { newChat } = useChat()
   const { openSettings } = useSettingsModal()
-  const { activeView, setActiveView } = useMainView()
+  const { activeView, setActiveView, requestFilesSidebar } = useMainView()
 
   const isOnResearch = pathname === "/" || pathname.startsWith("/c")
 
@@ -62,6 +62,15 @@ export function CategoryDock() {
         setActiveView("docs")
       },
     })),
+    {
+      key: "files",
+      label: "Files",
+      icon: <FileText className="w-full h-full p-1" />,
+      onClick: () => {
+        setActiveView("docs")
+        requestFilesSidebar()
+      },
+    },
     {
       key: "settings",
       label: "Settings",
@@ -130,6 +139,7 @@ export function CategoryDock() {
     <BaseCategoryDock
       items={items}
       enableKeyboardShortcuts
+      mobileAlign={activeView === "docs" ? "end" : "center"}
       renderImage={(src, alt, size) => (
         <Image src={src} alt={alt} width={size} height={size} unoptimized className="w-full h-full" />
       )}
