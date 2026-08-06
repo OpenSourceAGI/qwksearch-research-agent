@@ -16,7 +16,13 @@ import type { OutlineViewHandle } from '../search/OutlineView';
 import type { TocEntry } from '../app-types/toc';
 import type { Document } from '../documents/DocumentTree';
 import { Button } from '../app-ui/button';
+import { Sheet, SheetContent } from '../app-ui/sheet';
+import { cn } from '../app-utils/utils';
 import { X } from 'lucide-react';
+
+/** Translucent, blurred glass background — matches the app dock and weather widget. */
+const SIDEBAR_GLASS_CLASSES =
+  'bg-white/10 dark:bg-black/20 backdrop-blur-md border-white/15 dark:border-white/10';
 
 /** Props for the {@link RightPanel} component. */
 interface RightPanelProps {
@@ -48,6 +54,12 @@ interface RightPanelProps {
   aiProps: SidebarAiProps;
   /** Closes the panel by clearing the right sidebar's panel list. */
   onClose: () => void;
+  /** Renders as a slide-in drawer instead of an inset resizable panel. */
+  isMobile?: boolean;
+  /** Whether the mobile drawer is open. Ignored when `isMobile` is false. */
+  isOpen?: boolean;
+  /** Called when the mobile drawer's open state should change. */
+  onOpenChange?: (open: boolean) => void;
 }
 
 const RESIZE_HANDLES = {
@@ -96,10 +108,68 @@ export function RightPanel({
   outlineRef,
   aiProps,
   onClose,
+  isMobile,
+  isOpen,
+  onOpenChange,
 }: RightPanelProps) {
   const [width, setWidth] = useState(320);
 
   const title = panels.length === 1 ? PANEL_LABELS[panels[0]] : 'Right Panel';
+
+  const body = (
+    <div className="h-full overflow-hidden flex flex-col">
+      <div className="px-3 py-2 border-b border-sidebar-border/60 flex items-center justify-between select-none shrink-0">
+        <h3 className="text-sm font-semibold text-sidebar-foreground">{title}</h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 px-2"
+          onClick={onClose}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="flex-1 min-h-0">
+        <SidebarContent
+          panels={panels}
+          split={split}
+          persistenceKey="right"
+          activeDocuments={documents}
+          activeId={activeId}
+          activeDocument={activeDocument}
+          headings={headings}
+          onSelect={onSelect}
+          onAdd={onAdd}
+          onDelete={onDelete}
+          onDuplicate={onDuplicate}
+          onMove={onMove}
+          onManageTags={onManageTags}
+          onRename={onRename}
+          outlineRef={outlineRef}
+          openTabs={openTabs}
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+          onTabClose={onTabClose}
+          onTabRename={onTabRename}
+          onSplitRight={onSplitRight}
+          onReopenLastClosed={onReopenLastClosed}
+          canReopenLastClosed={canReopenLastClosed}
+          onNavigate={onNavigate}
+          aiProps={aiProps}
+        />
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <SheetContent side="right" className={cn('w-80 p-0', SIDEBAR_GLASS_CLASSES)}>
+          <aside className="h-full flex flex-col">{body}</aside>
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <Resizable
@@ -108,50 +178,9 @@ export function RightPanel({
       minWidth={260}
       maxWidth={640}
       enable={RESIZE_HANDLES}
-      className="h-full flex flex-col border-l border-sidebar-border/60 bg-sidebar-background shrink-0"
+      className={cn('h-full flex flex-col border-l shrink-0', SIDEBAR_GLASS_CLASSES)}
     >
-      <div className="h-full overflow-hidden flex flex-col">
-        <div className="px-3 py-2 border-b border-sidebar-border/60 flex items-center justify-between select-none shrink-0">
-          <h3 className="text-sm font-semibold text-sidebar-foreground">{title}</h3>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="flex-1 min-h-0">
-          <SidebarContent
-            panels={panels}
-            split={split}
-            persistenceKey="right"
-            activeDocuments={documents}
-            activeId={activeId}
-            activeDocument={activeDocument}
-            headings={headings}
-            onSelect={onSelect}
-            onAdd={onAdd}
-            onDelete={onDelete}
-            onDuplicate={onDuplicate}
-            onMove={onMove}
-            onManageTags={onManageTags}
-            onRename={onRename}
-            outlineRef={outlineRef}
-            openTabs={openTabs}
-            activeTab={activeTab}
-            onTabChange={onTabChange}
-            onTabClose={onTabClose}
-            onTabRename={onTabRename}
-            onSplitRight={onSplitRight}
-            onReopenLastClosed={onReopenLastClosed}
-            canReopenLastClosed={canReopenLastClosed}
-            onNavigate={onNavigate}
-            aiProps={aiProps}
-          />
-        </div>
-      </div>
+      {body}
     </Resizable>
   );
 }

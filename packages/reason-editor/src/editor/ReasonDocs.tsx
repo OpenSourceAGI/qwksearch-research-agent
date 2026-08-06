@@ -10,16 +10,31 @@ import { RightPanel } from './RightPanel';
 import { ReasonDocsDialogs } from './ReasonDocsDialogs';
 import { useReasonDocsState } from './useReasonDocsState';
 import { DynamicIslandTOC } from '../search/DynamicIslandTOC';
+import { Button } from '../app-ui/button';
 import { useTheme } from 'next-themes';
 import { useState, type ReactNode } from 'react';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../utils/storage';
+import { Menu, PanelRight } from 'lucide-react';
 import '../app-styles/split-pane.css';
 
 
 interface ReasonDocsProps {
   mainContent?: ReactNode;
+  /**
+   * Optional content rendered below `mainContent` (e.g. a compact chat
+   * input), stacked under the main area with minimal padding. On mobile
+   * widths with room to spare it shares the bottom row with the app dock
+   * instead of stacking above it.
+   */
+  belowMainContent?: ReactNode;
+  /**
+   * Changing this value (e.g. bumping a counter) opens the files sidebar.
+   * Lets chrome mounted outside this component — like an app dock icon —
+   * request the sidebar open.
+   */
+  openFilesSidebarSignal?: number | string;
 }
 
 /**
@@ -27,9 +42,9 @@ interface ReasonDocsProps {
  * Uses `useReasonDocsState` for shared state and `next-themes` for theme control.
  * Renders a resizable panel layout on desktop and a stacked layout on mobile.
  */
-const Index = ({ mainContent }: ReasonDocsProps) => {
+const Index = ({ mainContent, belowMainContent, openFilesSidebarSignal }: ReasonDocsProps) => {
   const { theme, setTheme } = useTheme();
-  const state = useReasonDocsState();
+  const state = useReasonDocsState(openFilesSidebarSignal);
   const [settingsInitialSection, setSettingsInitialSection] = useState<string | undefined>(undefined);
 
   // Use persistence hook for sidebar sizes
@@ -150,18 +165,53 @@ const Index = ({ mainContent }: ReasonDocsProps) => {
         onAiRegenerate: state.handleAIRegenerate,
       }}
       onClose={() => state.setRightPanels([])}
+      isMobile={state.isMobile}
+      isOpen={state.isRightSidebarOpen}
+      onOpenChange={state.setIsRightSidebarOpen}
     />
   );
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden">
       {state.isMobile ? (
-        <div className="flex-1 flex overflow-hidden">
-          <Sidebar {...sidebarProps} headings={state.headings} />
-          <main className="flex-1 overflow-hidden flex flex-col">
-            {mainContent ?? <EditorArea {...editorProps} />}
-          </main>
-          {rightPanel}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Hamburger bar: opens the left (files) and right sidebars as drawers. */}
+          <div className="flex items-center justify-between h-10 px-1 border-b border-sidebar-border/60 shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="size-8 p-0"
+              onClick={() => state.setIsSidebarOpen(true)}
+              aria-label="Open sidebar"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            {state.rightPanels.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="size-8 p-0"
+                onClick={() => state.setIsRightSidebarOpen(true)}
+                aria-label="Open right panel"
+              >
+                <PanelRight className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+          <div className="flex-1 flex overflow-hidden">
+            <Sidebar {...sidebarProps} headings={state.headings} />
+            <main className="flex-1 overflow-hidden flex flex-col">
+              <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                {mainContent ?? <EditorArea {...editorProps} />}
+              </div>
+              {belowMainContent && (
+                <div className="shrink-0 px-2 pt-1 pb-[60px] sm:pb-2 sm:pr-56">
+                  {belowMainContent}
+                </div>
+              )}
+            </main>
+            {rightPanel}
+          </div>
         </div>
       ) : (
         <div className="flex-1 overflow-hidden">
@@ -175,11 +225,16 @@ const Index = ({ mainContent }: ReasonDocsProps) => {
 
             {/* Main area */}
             <Pane>
-              <div className="h-screen flex bg-background">
-                <div className="flex-1 min-h-0 overflow-auto">
-                  {mainContent ?? <EditorArea {...editorProps} />}
+              <div className="h-screen flex flex-col bg-background">
+                <div className="flex-1 flex min-h-0">
+                  <div className="flex-1 min-h-0 overflow-auto">
+                    {mainContent ?? <EditorArea {...editorProps} />}
+                  </div>
+                  {rightPanel}
                 </div>
-                {rightPanel}
+                {belowMainContent && (
+                  <div className="shrink-0 px-2 pb-2">{belowMainContent}</div>
+                )}
               </div>
             </Pane>
           </SplitPane>
