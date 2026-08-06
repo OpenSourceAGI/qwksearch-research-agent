@@ -81,6 +81,15 @@ npm run worker:deploy
 This deploys `worker/geo-worker.ts` via Wrangler. Use the resulting `*.workers.dev` URL
 (or a custom route) as `geoEndpoint`.
 
+## Caching
+
+`getWeatherForecast` caches each response in `localStorage` for 30 minutes, keyed by
+the exact request URL (location + units + forecast range). Repeated calls for the same
+location/options within that window are served from the cache instead of hitting
+Open-Meteo again, which keeps the widget well under Open-Meteo's rate limits. Call
+`clearWeatherForecastCache()` to evict everything (e.g. in tests). The cache is a no-op
+in non-browser environments (SSR) or when `localStorage` is unavailable/full.
+
 ## Notes
 
 - Open-Meteo powers the forecast data.
