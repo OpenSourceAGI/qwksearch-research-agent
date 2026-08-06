@@ -26,6 +26,7 @@ export type DocumentTreeHandle = {
   collapseAll: () => void;
   edit: (nodeId: string) => void;
   expandAll: () => void;
+  expandToLevel: (level: number) => void;
   cancelExpand: () => void;
 };
 import { Tree, TreeDragLine, TreeItem, TreeItemLabel } from "../app-ui/tree";
@@ -74,6 +75,34 @@ interface FileTreeProps {
 
 const ROOT_ID = "__root__";
 const INDENT = 20;
+
+/** Folder ids reachable within `level` levels of nesting (1 = top-level folders). */
+function getFolderIdsUpToLevel(items: Record<string, FileTreeItem>, level: number): string[] {
+  if (level <= 0) return [];
+
+  const result: string[] = [];
+  const queue: Array<{ depth: number; id: string }> = [{ depth: 0, id: ROOT_ID }];
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!current) break;
+    const item = items[current.id];
+    if (!item) continue;
+
+    for (const childId of item.children ?? []) {
+      const child = items[childId];
+      if (!child?.isFolder) continue;
+
+      const childDepth = current.depth + 1;
+      if (childDepth > level) continue;
+
+      result.push(childId);
+      queue.push({ depth: childDepth, id: childId });
+    }
+  }
+
+  return result;
+}
 
 function buildItems(documents: Document[]): Record<string, FileTreeItem> {
   const items: Record<string, FileTreeItem> = {
@@ -236,6 +265,11 @@ const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
       expandAll: () => {
         expandCancelToken.current = false;
         tree.expandAll(expandCancelToken);
+      },
+      expandToLevel: (level: number) => {
+        expandCancelToken.current = true;
+        const ids = getFolderIdsUpToLevel(items, level);
+        setState((prev) => ({ ...prev, expandedItems: ids }));
       },
       cancelExpand: () => {
         expandCancelToken.current = true;

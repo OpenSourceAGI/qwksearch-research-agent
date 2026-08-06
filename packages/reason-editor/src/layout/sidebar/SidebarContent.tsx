@@ -29,7 +29,7 @@ import {
 } from '../../app-ui/context-menu';
 import '../../app-styles/split-pane.css';
 
-type DocumentTreeHandle = { collapseAll: () => void; edit: (nodeId: string) => void; expandAll: () => void; cancelExpand: () => void };
+type DocumentTreeHandle = { collapseAll: () => void; edit: (nodeId: string) => void; expandAll: () => void; expandToLevel: (level: number) => void; cancelExpand: () => void };
 
 /** Human-readable panel titles used in headers/empty states. */
 const PANEL_TITLES: Record<SidebarPanelType, string> = {
