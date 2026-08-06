@@ -3,14 +3,14 @@
  * Scalar API reference viewer powered by the OpenAPI spec.
  */
 import { NextResponse } from "next/server";
-import { APP_NAME } from "@/lib/config/site";
+import { config } from "@/lib/config/site";
 
 export async function GET() {
   const html = `
 <!DOCTYPE html>
 <html>
 <head>
-  <title>${APP_NAME} API Documentation</title>
+  <title>${config.appName} API Documentation</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>

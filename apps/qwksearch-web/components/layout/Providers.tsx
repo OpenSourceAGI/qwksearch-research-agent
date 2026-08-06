@@ -16,21 +16,14 @@ import { CookieConsent } from '@/components/layout/CookieConsent';
 import { useChunkErrorReload } from '@/components/layout/useChunkErrorReload';
 import { SettingsModalProvider } from '@/components/Settings/SettingsModal';
 import { MainViewProvider } from '@/components/layout/MainViewProvider';
-import {
-  APP_NAME,
-  DEFAULT_SUMMARIZE_PROMPT,
-  MAX_ARTICLE_LENGTH,
-  DOWNLOAD_CHROME_URL,
-  DOWNLOAD_WINDOWS_STORE_ID,
-  listFooterLinks,
-} from '@/lib/config/site';
+import { config, listFooterLinks } from '@/lib/config/site';
 
 configureResearchAgentUI({
-  appName: APP_NAME,
-  defaultSummarizePrompt: DEFAULT_SUMMARIZE_PROMPT,
-  maxArticleLength: MAX_ARTICLE_LENGTH,
-  downloadChromeUrl: DOWNLOAD_CHROME_URL,
-  downloadWindowsStoreId: DOWNLOAD_WINDOWS_STORE_ID,
+  appName: config.appName,
+  defaultSummarizePrompt: config.defaultSummarizePrompt,
+  maxArticleLength: config.maxArticleLength,
+  downloadChromeUrl: config.downloadChromeUrl,
+  downloadWindowsStoreId: config.downloadWindowsStoreId,
   footerLinks: listFooterLinks,
   googleApiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '',
   getAutoMediaSearch: () => true,

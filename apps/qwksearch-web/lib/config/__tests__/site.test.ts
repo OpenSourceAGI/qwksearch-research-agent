@@ -1,32 +1,29 @@
 import { describe, expect, it } from 'vitest'
 import {
-  APP_NAME,
-  APP_EMAIL,
-  MAX_ARTICLE_LENGTH,
-  DEFAULT_SUMMARIZE_PROMPT,
+  config,
   listFooterLinks,
   SubscriptionPlans,
   SearchCategories,
 } from '../site'
 
 describe('scalar constants', () => {
-  it('APP_NAME is a non-empty string', () => {
-    expect(typeof APP_NAME).toBe('string')
-    expect(APP_NAME.length).toBeGreaterThan(0)
+  it('appName is a non-empty string', () => {
+    expect(typeof config.appName).toBe('string')
+    expect(config.appName.length).toBeGreaterThan(0)
   })
 
-  it('APP_EMAIL contains an @ sign', () => {
-    expect(APP_EMAIL).toMatch(/@/)
+  it('appEmail contains an @ sign', () => {
+    expect(config.appEmail).toMatch(/@/)
   })
 
-  it('MAX_ARTICLE_LENGTH is a positive integer', () => {
-    expect(Number.isInteger(MAX_ARTICLE_LENGTH)).toBe(true)
-    expect(MAX_ARTICLE_LENGTH).toBeGreaterThan(0)
+  it('maxArticleLength is a positive integer', () => {
+    expect(Number.isInteger(config.maxArticleLength)).toBe(true)
+    expect(config.maxArticleLength).toBeGreaterThan(0)
   })
 
-  it('DEFAULT_SUMMARIZE_PROMPT is a non-empty string', () => {
-    expect(typeof DEFAULT_SUMMARIZE_PROMPT).toBe('string')
-    expect(DEFAULT_SUMMARIZE_PROMPT.length).toBeGreaterThan(0)
+  it('defaultSummarizePrompt is a non-empty string', () => {
+    expect(typeof config.defaultSummarizePrompt).toBe('string')
+    expect(config.defaultSummarizePrompt.length).toBeGreaterThan(0)
   })
 })
 

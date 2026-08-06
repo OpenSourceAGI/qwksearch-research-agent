@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth/client"
-import { APP_NAME } from "@/lib/config/site"
+import { config } from "@/lib/config/site"
 
 // Google Sign In Button
 function GoogleSignIn() {
@@ -215,7 +215,7 @@ export default function LoginPage() {
                                 className="h-full w-full object-cover"
                             />
                         </div>
-                        <span className="text-2xl font-bold">{APP_NAME}</span>
+                        <span className="text-2xl font-bold">{config.appName}</span>
                     </div>
                     <div className="text-center">
                         <p className="text-sm text-muted-foreground">

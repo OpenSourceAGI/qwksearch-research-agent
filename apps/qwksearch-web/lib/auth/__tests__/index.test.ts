@@ -19,9 +19,11 @@ vi.mock("../cloudflare/ip-geolocation", () => ({
 }));
 
 vi.mock("../config/site", () => ({
-  APP_NAME: "Test App",
-  APP_EMAIL: "noreply@example.com",
-  NEXT_PUBLIC_BASE_URL: "http://localhost:3000",
+  config: {
+    appName: "Test App",
+    appEmail: "noreply@example.com",
+    baseUrl: "http://localhost:3000",
+  },
 }));
 
 describe("auth configuration", () => {
