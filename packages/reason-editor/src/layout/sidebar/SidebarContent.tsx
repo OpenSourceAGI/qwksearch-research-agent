@@ -12,12 +12,12 @@ import { OutlineView, type OutlineViewHandle } from '../../search/OutlineView';
 import { AIRewriteSuggestion } from '../../features/ai-rewrite/AIRewriteSuggestion';
 import { Input } from '../../app-ui/input';
 import { Document } from '../../documents/DocumentTree';
-import type { SidebarPanelType, SidebarAiProps } from './types';
+import type { SidebarPanelType, SidebarAiProps, OpenTabItem } from './types';
 import type { TocEntry } from '../../app-types/toc';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../../utils/storage';
-import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search } from 'lucide-react';
+import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus } from 'lucide-react';
 import { FileTypeIcon } from '../../app-ui/FileTypeIcon';
 import { cn } from '../../app-utils/utils';
 import {
@@ -36,7 +36,7 @@ const PANEL_TITLES: Record<SidebarPanelType, string> = {
   ai: 'AI Suggestions',
   files: 'Files',
   outline: 'Outline',
-  openTabs: 'Open Files',
+  openTabs: 'Open Tabs',
 };
 
 /** Props for the {@link SidebarContent} component. */
@@ -97,6 +97,10 @@ interface SidebarContentProps {
   onNavigate?: (key: string) => void;
   /** AI suggestion state/handlers (used by the "ai" panel). */
   aiProps?: SidebarAiProps;
+  /** Unified tab list (files + chats). Overrides file-only tab derivation when set. */
+  tabItems?: OpenTabItem[];
+  /** Opens a new chat tab from the "Open Tabs" panel header. */
+  onNewChat?: () => void;
 }
 
 /**
@@ -132,6 +136,8 @@ export const SidebarContent = ({
   canReopenLastClosed = false,
   onNavigate,
   aiProps,
+  tabItems,
+  onNewChat,
 }: SidebarContentProps) => {
   // Track copied document for copy/paste operations
   const [copiedDocId, setCopiedDocId] = useState<string | null>(null);
@@ -200,17 +206,44 @@ export const SidebarContent = ({
     storage: ssrSafeLocalStorage,
   });
 
+  // Fall back to file-only tabs derived from `openTabs`/`activeDocuments`
+  // when the host app hasn't supplied a unified `tabItems` list.
+  const resolvedTabItems: OpenTabItem[] = tabItems ?? openTabs.map((tabId) => ({
+    id: tabId,
+    title: activeDocuments.find(d => d.id === tabId)?.title || 'Untitled',
+    kind: 'file' as const,
+  }));
+
   const renderOpenTabs = () => (
     <div className="h-full overflow-auto">
       <div className="px-1 py-1">
-        <p className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Open Files</p>
-        {openTabs.length === 0 ? (
-          <div className="px-2 py-3 text-xs text-muted-foreground">No open files</div>
+        <div className="flex items-center justify-between px-2 py-1">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Open Tabs</p>
+          <div className="flex items-center gap-0.5">
+            <button
+              className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+              title="New File"
+              onClick={() => onAdd(null, false)}
+            >
+              <FilePlus2 className="h-3.5 w-3.5" />
+            </button>
+            {onNewChat && (
+              <button
+                className="h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                title="New Chat"
+                onClick={onNewChat}
+              >
+                <MessageSquarePlus className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+        {resolvedTabItems.length === 0 ? (
+          <div className="px-2 py-3 text-xs text-muted-foreground">No open tabs</div>
         ) : (
-          openTabs.map((tabId) => {
-            const doc = activeDocuments.find(d => d.id === tabId);
-            const title = doc?.title || 'Untitled';
+          resolvedTabItems.map(({ id: tabId, title, kind }) => {
             const isActive = tabId === activeTab;
+            const isChat = kind === 'chat';
             return (
               <ContextMenu key={tabId}>
                 <ContextMenuTrigger>
@@ -221,7 +254,11 @@ export const SidebarContent = ({
                     )}
                     onClick={() => onTabChange?.(tabId)}
                   >
-                    <FileTypeIcon filename={title} size={16} />
+                    {isChat ? (
+                      <MessageSquare className="shrink-0 h-4 w-4 text-blue-500" />
+                    ) : (
+                      <FileTypeIcon filename={title} size={16} />
+                    )}
                     <span className="flex-1 truncate text-sm">{title}</span>
                     {onTabClose && (
                       <button
@@ -237,7 +274,7 @@ export const SidebarContent = ({
                   </div>
                 </ContextMenuTrigger>
                 <ContextMenuContent>
-                  {onTabRename && (
+                  {onTabRename && !isChat && (
                     <ContextMenuItem onClick={() => {
                       const newTitle = window.prompt('Rename document', title);
                       if (newTitle?.trim()) onTabRename(tabId, newTitle.trim());
@@ -255,14 +292,14 @@ export const SidebarContent = ({
                       Close
                     </ContextMenuItem>
                   )}
-                  <ContextMenuSeparator />
-                  {onSplitRight && (
+                  {!isChat && (onSplitRight || onReopenLastClosed) && <ContextMenuSeparator />}
+                  {onSplitRight && !isChat && (
                     <ContextMenuItem onClick={() => onSplitRight(tabId)}>
                       <SplitSquareVertical className="mr-2 h-4 w-4" />
                       Split Right
                     </ContextMenuItem>
                   )}
-                  {onReopenLastClosed && (
+                  {onReopenLastClosed && !isChat && (
                     <ContextMenuItem
                       onClick={onReopenLastClosed}
                       disabled={!canReopenLastClosed}

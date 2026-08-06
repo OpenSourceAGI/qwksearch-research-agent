@@ -11,7 +11,7 @@ import { RefObject, useState } from 'react';
 import { Resizable } from 're-resizable';
 import { SidebarContent } from '../layout/sidebar/SidebarContent';
 import { PANEL_OPTIONS } from '../layout/sidebar/panelOptions';
-import type { SidebarPanelType, SidebarAiProps } from '../layout/sidebar/types';
+import type { SidebarPanelType, SidebarAiProps, OpenTabItem } from '../layout/sidebar/types';
 import type { OutlineViewHandle } from '../search/OutlineView';
 import type { TocEntry } from '../app-types/toc';
 import type { Document } from '../documents/DocumentTree';

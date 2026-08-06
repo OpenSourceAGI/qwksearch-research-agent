@@ -6,6 +6,7 @@ import { ReasonDocs } from 'react-reason-editor/reason-docs';
 import { themeActions } from 'react-reason-editor/theme';
 import { localeActions } from 'react-reason-editor/locale-bundle';
 import { useMainView } from '@/components/layout/MainViewProvider';
+import { useChatTabs } from '@/components/layout/useChatTabs';
 
 import 'react-reason-editor/style.css';
 import 'katex/dist/katex.min.css';

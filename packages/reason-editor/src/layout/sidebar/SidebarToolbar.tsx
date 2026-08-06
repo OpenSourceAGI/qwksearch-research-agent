@@ -8,15 +8,16 @@ import { RefObject } from 'react';
 import { Button } from '../../app-ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../app-ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../../app-ui/dropdown-menu';
-import { Search, FilePlus, FolderPlus, ChevronsDownUp, ChevronsUpDown, Check, Folders, Trash2, RotateCcw, MoreHorizontal, X } from 'lucide-react';
+import { Search, FilePlus, FolderPlus, ChevronsDownUp, ChevronsUpDown, Check, Folders, Trash2, RotateCcw, MoreHorizontal, X, MessageSquare } from 'lucide-react';
 import { AnyFileSource } from '../../app-types/fileSource';
 import { getSourceIcon, getSourceTypeLabel } from './fileSourceUtils';
 import type { DocumentTreeHandle } from '../../file-tree/filetree';
 import type { OutlineViewHandle } from '../../search/OutlineView';
-import type { SidebarPanelType } from './types';
+import type { SidebarPanelType, OpenTabItem } from './types';
 import { SidebarViewMenu } from './SidebarViewMenu';
 import { cn } from '../../app-utils/utils';
 import { Document } from '../../documents/DocumentTree';
+import { FileTypeIcon } from '../../app-ui/FileTypeIcon';
 
 /** Props for the {@link SidebarToolbar} component. */
 interface SidebarToolbarProps {
@@ -90,6 +91,8 @@ interface SidebarToolbarProps {
   onTabClose?: (id: string) => void;
   /** All documents (used for tab title lookup). */
   documents?: Document[];
+  /** Unified tab list (files + chats). Overrides file-only tab derivation when set. */
+  tabItems?: OpenTabItem[];
 }
 
 /**
@@ -134,8 +137,14 @@ export const SidebarToolbar = ({
   onTabChange,
   onTabClose,
   documents = [],
+  tabItems,
 }: SidebarToolbarProps) => {
   const getDocTitle = (id: string) => documents.find(d => d.id === id)?.title || 'Untitled';
+  const resolvedTabItems: OpenTabItem[] = tabItems ?? openTabs.map((tabId) => ({
+    id: tabId,
+    title: getDocTitle(tabId),
+    kind: 'file' as const,
+  }));
   return (
     <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-sidebar-border">
         <TooltipProvider delayDuration={300}>
@@ -331,7 +340,7 @@ export const SidebarToolbar = ({
               </DropdownMenu>
 
               {/* All Tabs Dropdown */}
-              {openTabs.length > 0 && onTabChange && (
+              {resolvedTabItems.length > 0 && onTabChange && (
                 <DropdownMenu>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -350,7 +359,7 @@ export const SidebarToolbar = ({
                     </TooltipContent>
                   </Tooltip>
                   <DropdownMenuContent align="end" className="w-56 max-h-80 overflow-y-auto">
-                    {openTabs.map((tabId) => (
+                    {resolvedTabItems.map(({ id: tabId, title, kind }) => (
                       <DropdownMenuItem
                         key={tabId}
                         className={cn(
@@ -359,7 +368,14 @@ export const SidebarToolbar = ({
                         )}
                         onSelect={() => onTabChange(tabId)}
                       >
-                        <span className="truncate flex-1 text-sm">{getDocTitle(tabId)}</span>
+                        <span className="flex items-center gap-2 flex-1 min-w-0">
+                          {kind === 'chat' ? (
+                            <MessageSquare className="shrink-0 h-3.5 w-3.5 text-blue-500" />
+                          ) : (
+                            <FileTypeIcon filename={title} size={14} />
+                          )}
+                          <span className="truncate text-sm">{title}</span>
+                        </span>
                         {onTabClose && (
                           <button
                             className="shrink-0 h-5 w-5 flex items-center justify-center rounded hover:bg-destructive/10 hover:text-destructive"
