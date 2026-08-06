@@ -73,20 +73,31 @@ export const checkConfig = async (
       if (openRouterProvider) {
         chatModelProvider = openRouterProvider;
       } else {
-        // Fallback to Nvidia
-        const nvidiaProvider = providers.find(
+        // Fallback to AnyAPI (100,000 free anyTokens/day)
+        const anyApiProvider = providers.find(
           (p) =>
-            p.name.toLowerCase().includes("nvidia") &&
+            p.name.toLowerCase().includes("anyapi") &&
             (p.chatModels?.length ?? 0) > 0,
         );
 
-        if (nvidiaProvider) {
-          chatModelProvider = nvidiaProvider;
+        if (anyApiProvider) {
+          chatModelProvider = anyApiProvider;
         } else {
-          // Final fallback to any provider with available models
-          chatModelProvider = providers.find(
-            (p) => (p.chatModels?.length ?? 0) > 0,
+          // Fallback to Nvidia
+          const nvidiaProvider = providers.find(
+            (p) =>
+              p.name.toLowerCase().includes("nvidia") &&
+              (p.chatModels?.length ?? 0) > 0,
           );
+
+          if (nvidiaProvider) {
+            chatModelProvider = nvidiaProvider;
+          } else {
+            // Final fallback to any provider with available models
+            chatModelProvider = providers.find(
+              (p) => (p.chatModels?.length ?? 0) > 0,
+            );
+          }
         }
       }
     }
@@ -116,6 +127,13 @@ export const checkConfig = async (
       if (!chatModel && chatModelProvider.name.toLowerCase().includes("openrouter")) {
         chatModel = chatModelProvider.chatModels.find(
           (m) => m.key === "nvidia/nemotron-3-super-120b-a12b:free"
+        );
+      }
+
+      // For AnyAPI, prefer DeepSeek V3 (free)
+      if (!chatModel && chatModelProvider.name.toLowerCase().includes("anyapi")) {
+        chatModel = chatModelProvider.chatModels.find(
+          (m) => m.key === "deepseek/deepseek-v3:free"
         );
       }
 

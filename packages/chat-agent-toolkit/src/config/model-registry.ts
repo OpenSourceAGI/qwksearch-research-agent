@@ -22,6 +22,7 @@ const PROVIDER_KEY_TO_DB_NAME: Record<string, string> = {
   deepseek: "deepseek",
   nvidia: "nvidia",
   openrouter: "openrouter",
+  anyapi: "anyapi",
 };
 
 /** Default chat models for a provider type from the LANGUAGE_MODELS database. */
@@ -86,7 +87,8 @@ export default class ModelRegistry {
   /**
    * Finds a provider by id, falling back to free providers in order:
    * OpenRouter (no daily limits, best for guests), Groq (fastest, daily limits),
-   * then NVIDIA, then the first configured provider.
+   * AnyAPI (100,000 anyTokens/day free), then NVIDIA, then the first
+   * configured provider.
    * Client-side provider ids are config hashes that go stale whenever
    * server env config changes, so a graceful fallback keeps existing
    * chat sessions working after a redeploy.
@@ -100,6 +102,7 @@ export default class ModelRegistry {
       provider =
         providers.find((p) => p.name.toLowerCase().includes("openrouter")) ??
         providers.find((p) => p.name.toLowerCase().includes("groq")) ??
+        providers.find((p) => p.name.toLowerCase().includes("anyapi")) ??
         providers.find((p) => p.name.toLowerCase().includes("nvidia")) ??
         providers[0];
     }
@@ -166,6 +169,7 @@ export default class ModelRegistry {
       perplexity: "https://api.perplexity.ai",
       nvidia: "https://integrate.api.nvidia.com/v1",
       openrouter: "https://openrouter.ai/api/v1",
+      anyapi: "https://api.anyapi.ai/v1",
       deepseek: "https://api.deepseek.com",
       xai: "https://api.x.ai/v1",
     };
