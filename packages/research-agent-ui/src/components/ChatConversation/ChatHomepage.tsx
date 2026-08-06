@@ -7,12 +7,12 @@ import { GradientBlur } from '../../ui/gradient-blur';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
 import Footer from '../Footer';
+import DownloadsDialog from './DownloadsDialog';
 import { WeatherForecast } from 'use-weather-forecast';
 import { useChat } from '../../hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import { researchAgentUIConfig } from '../../config';
 import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
-import { DownloadAppButton } from 'react-native-app-buttons';
 // Stylesheet is imported by the host app (globals.css) inside a named cascade
 // layer instead of here — it's a Tailwind v3 build with an unlayered `*`
 // reset that would otherwise beat every Tailwind v4 utility in the app.
@@ -27,6 +27,10 @@ export default function ChatHomepage() {
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
   const [nextBackgroundUrl, setNextBackgroundUrl] = useState<string | null>(null);
   const [fading, setFading] = useState(false);
+  const [downloadsOpen, setDownloadsOpen] = useState(false);
+  const footerLinks = researchAgentUIConfig.footerLinks.map((link) =>
+    link.url === '/#downloads' ? { ...link, onClick: () => setDownloadsOpen(true) } : link,
+  );
   useEffect(() => {
     const showBg = localStorage.getItem('showBackgroundArt');
     if (showBg === 'false') return;
@@ -89,18 +93,6 @@ export default function ChatHomepage() {
             />
           </div>
 
-          <div id="downloads" className="flex items-center justify-center gap-3 mt-4">
-            <DownloadAppButton
-              platform="chrome-extension"
-              href={researchAgentUIConfig.downloadChromeUrl}
-              autoHighlight
-            />
-            <DownloadAppButton
-              platform="windows"
-              appId={researchAgentUIConfig.downloadWindowsStoreId}
-              autoHighlight
-            />
-          </div>
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
             <WeatherForecast
@@ -121,7 +113,8 @@ export default function ChatHomepage() {
         </div>
       </div>
 
-      <Footer listFooterLinks={researchAgentUIConfig.footerLinks} />
+      <Footer listFooterLinks={footerLinks} />
+      <DownloadsDialog open={downloadsOpen} onOpenChange={setDownloadsOpen} />
     </div>
   );
 }
