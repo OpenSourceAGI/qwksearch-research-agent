@@ -8,7 +8,7 @@ import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
 import Footer from '../Footer';
 import DownloadsDialog from './DownloadsDialog';
-import { WeatherForecast } from 'use-weather-forecast';
+import { WeatherForecast, type WeatherLocationInput } from 'use-weather-forecast';
 import { useChat } from '../../hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import { researchAgentUIConfig } from '../../config';
@@ -16,6 +16,37 @@ import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 // Stylesheet is imported by the host app (globals.css) inside a named cascade
 // layer instead of here — it's a Tailwind v3 build with an unlayered `*`
 // reset that would otherwise beat every Tailwind v4 utility in the app.
+
+/**
+ * Parses the `weatherLocations` setting (one location per line, formatted as
+ * "Label, latitude, longitude") into structured entries for the weather
+ * widget. Lines without valid coordinates fall back to a label-only entry
+ * (which auto-detects the current location). Blank input yields no locations,
+ * so the widget auto-detects a single current location.
+ */
+function parseWeatherLocations(raw: string | null): WeatherLocationInput[] {
+  if (!raw) return [];
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const parts = line.split(',').map((part) => part.trim());
+      const lat = Number(parts[parts.length - 2]);
+      const lon = Number(parts[parts.length - 1]);
+      const hasCoords =
+        parts.length >= 2 &&
+        parts[parts.length - 2] !== '' &&
+        parts[parts.length - 1] !== '' &&
+        Number.isFinite(lat) &&
+        Number.isFinite(lon);
+      if (hasCoords) {
+        const label = parts.slice(0, parts.length - 2).filter(Boolean).join(', ');
+        return { label: label || undefined, latitude: lat, longitude: lon };
+      }
+      return { label: line };
+    });
+}
 
 /**
  * The homepage component for the chat interface.
@@ -28,9 +59,22 @@ export default function ChatHomepage() {
   const [nextBackgroundUrl, setNextBackgroundUrl] = useState<string | null>(null);
   const [fading, setFading] = useState(false);
   const [downloadsOpen, setDownloadsOpen] = useState(false);
+  const [weatherLocations, setWeatherLocations] = useState<WeatherLocationInput[]>([]);
   const footerLinks = researchAgentUIConfig.footerLinks.map((link) =>
     link.url === '/#downloads' ? { ...link, onClick: () => setDownloadsOpen(true) } : link,
   );
+  useEffect(() => {
+    const readLocations = () =>
+      setWeatherLocations(parseWeatherLocations(localStorage.getItem('weatherLocations')));
+    readLocations();
+    window.addEventListener('client-config-changed', readLocations);
+    window.addEventListener('storage', readLocations);
+    return () => {
+      window.removeEventListener('client-config-changed', readLocations);
+      window.removeEventListener('storage', readLocations);
+    };
+  }, []);
+
   useEffect(() => {
     const showBg = localStorage.getItem('showBackgroundArt');
     if (showBg === 'false') return;
@@ -99,6 +143,7 @@ export default function ChatHomepage() {
               compact
               forecastDays={5}
               forecastHours={12}
+              locations={weatherLocations.length > 0 ? weatherLocations : undefined}
               className="rounded-2xl"
               style={{
                 background: 'rgba(255,255,255,0.08)',

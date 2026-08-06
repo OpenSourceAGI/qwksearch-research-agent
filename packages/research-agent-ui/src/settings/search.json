@@ -110,5 +110,15 @@
     "description": "Maximum time to wait when scraping each source URL. Slower timeouts allow more content but increase response time.",
     "default": "5",
     "scope": "server"
+  },
+  {
+    "name": "Weather Locations",
+    "key": "weatherLocations",
+    "type": "textarea",
+    "required": false,
+    "description": "Show the homepage weather widget for one or more places. Enter one location per line as \"Label, latitude, longitude\" (for example: Tokyo, 35.68, 139.69). Leave blank to auto-detect your current location.",
+    "placeholder": "Tokyo, 35.68, 139.69\nNew York, 40.71, -74.01",
+    "scope": "client",
+    "default": ""
   }
 ]

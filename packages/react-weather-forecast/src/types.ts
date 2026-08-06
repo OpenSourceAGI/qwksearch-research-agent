@@ -12,6 +12,13 @@ export type WeatherLocation = {
   longitude: number;
 };
 
+export type WeatherLocationInput = {
+  label?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+};
+
 export type WeatherCondition =
   | 'sun'
   | 'cloud-sun'
@@ -69,6 +76,7 @@ export type WeatherForecastOptions = {
   latitude?: number;
   longitude?: number;
   location?: Partial<WeatherLocation>;
+  locations?: WeatherLocationInput[];
   geoEndpoint?: string;
   ip?: string;
   forecastDays?: number;
