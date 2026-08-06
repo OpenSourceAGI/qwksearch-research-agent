@@ -54,6 +54,11 @@ export const listFooterLinks: FooterLink[] = [
   { url: "/legal/privacy", text: "Privacy", icon: "Lock" },
   { url: "https://rights.institute/ethics", text: "Ethics", icon: "Bot" },
   { url: "/enterprise", text: "Enterprise", icon: "Building2" },
+  {
+    url: "https://stats.uptimerobot.com/wgqOZtDv0i",
+    text: "Uptime",
+    icon: "Activity",
+  },
 ];
 
 export const SubscriptionPlans: SubscriptionPlan[] = [
