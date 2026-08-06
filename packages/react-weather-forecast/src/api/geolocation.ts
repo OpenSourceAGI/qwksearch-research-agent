@@ -1,19 +1,16 @@
 import type { WeatherLocation } from '../types';
 
-// ip-api.com's free tier only serves plain HTTP (HTTPS requires their paid plan),
-// so this default will be blocked as mixed content on pages served over HTTPS.
-// Deploy worker/geo-worker.ts and pass its URL as `geoEndpoint` to avoid that.
-const DEFAULT_IP_API_URL = 'http://ip-api.com/json/';
+const DEFAULT_IP_API_URL = 'https://ipapi.co';
 
 type IpApiResponse = {
-  status: 'success' | 'fail';
   city?: string;
-  regionName?: string;
-  country?: string;
+  region?: string;
+  country_name?: string;
   timezone?: string;
-  lat?: number;
-  lon?: number;
-  message?: string;
+  latitude?: number;
+  longitude?: number;
+  error?: boolean;
+  reason?: string;
 };
 
 type GeoWorkerResponse = {
@@ -42,20 +39,20 @@ export async function getClientLocation(geoEndpoint?: string, ip?: string): Prom
     };
   }
 
-  const res = await fetch(`${DEFAULT_IP_API_URL}${ip ? encodeURIComponent(ip) : ''}`);
-  if (!res.ok) throw new Error(`ip-api lookup failed: ${res.status}`);
+  const res = await fetch(`${DEFAULT_IP_API_URL}/${ip ? `${encodeURIComponent(ip)}/` : ''}json/`);
+  if (!res.ok) throw new Error(`ipapi.co lookup failed: ${res.status}`);
   const data: IpApiResponse = await res.json();
 
-  if (data.status === 'fail') {
-    throw new Error(`ip-api lookup failed: ${data.message ?? 'unknown error'}`);
+  if (data.error) {
+    throw new Error(`ipapi.co lookup failed: ${data.reason ?? 'unknown error'}`);
   }
 
   return {
     city: data.city,
-    region: data.regionName,
-    country: data.country,
+    region: data.region,
+    country: data.country_name,
     timezone: data.timezone,
-    latitude: Number(data.lat),
-    longitude: Number(data.lon),
+    latitude: Number(data.latitude),
+    longitude: Number(data.longitude),
   };
 }

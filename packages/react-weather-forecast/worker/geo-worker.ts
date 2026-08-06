@@ -11,24 +11,23 @@ type CloudflareGeo = {
 };
 
 type IpApiResponse = {
-  status: 'success' | 'fail';
-  query?: string;
-  country?: string;
-  countryCode?: string;
-  regionName?: string;
+  ip?: string;
+  country_name?: string;
+  country_code?: string;
+  region?: string;
   city?: string;
-  lat?: number;
-  lon?: number;
+  latitude?: number;
+  longitude?: number;
   timezone?: string;
-  isp?: string;
   org?: string;
-  as?: string;
-  message?: string;
+  asn?: string;
+  error?: boolean;
+  reason?: string;
 };
 
 async function lookupIpApi(ip: string): Promise<IpApiResponse> {
-  const res = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}`);
-  if (!res.ok) throw new Error(`ip-api HTTP ${res.status}`);
+  const res = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`);
+  if (!res.ok) throw new Error(`ipapi.co HTTP ${res.status}`);
   return res.json() as Promise<IpApiResponse>;
 }
 
@@ -41,20 +40,19 @@ export default {
       const data = await lookupIpApi(ip);
       return Response.json(
         {
-          source: 'ip-api',
-          ip: data.query ?? ip,
-          country: data.country,
-          countryCode: data.countryCode,
-          region: data.regionName,
+          source: 'ipapi.co',
+          ip: data.ip ?? ip,
+          country: data.country_name,
+          countryCode: data.country_code,
+          region: data.region,
           city: data.city,
-          latitude: data.lat,
-          longitude: data.lon,
+          latitude: data.latitude,
+          longitude: data.longitude,
           timezone: data.timezone,
-          isp: data.isp,
           org: data.org,
-          as: data.as,
-          status: data.status,
-          message: data.message,
+          asn: data.asn,
+          error: data.error,
+          reason: data.reason,
         },
         { headers: { 'Cache-Control': 'no-store' } }
       );
