@@ -55,8 +55,10 @@ interface SidebarToolbarProps {
   onFileSourceChange?: (sourceId: string) => void;
   /** Selects a source by ID and updates the active source state. */
   onSourceSelect: (sourceId: string) => void;
-  /** Whether all tree nodes are currently expanded. */
+  /** Whether all tree nodes are currently expanded (drives the toggle icon). */
   allExpanded: boolean;
+  /** Tooltip label describing what the expand-all toggle will do next (cycles by folder level). */
+  expandToggleLabel: string;
   /** Whether all outline entries are currently expanded. */
   outlineExpanded: boolean;
   /** Toggles expand/collapse of all tree nodes. */
@@ -118,6 +120,7 @@ export const SidebarToolbar = ({
   onFileSourceChange,
   onSourceSelect,
   allExpanded,
+  expandToggleLabel,
   outlineExpanded,
   onToggleAllExpanded,
   onToggleOutlineExpanded,
@@ -284,7 +287,7 @@ export const SidebarToolbar = ({
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
-                  <p>{allExpanded ? 'Collapse All' : 'Expand All'}</p>
+                  <p>{expandToggleLabel}</p>
                 </TooltipContent>
               </Tooltip>
 

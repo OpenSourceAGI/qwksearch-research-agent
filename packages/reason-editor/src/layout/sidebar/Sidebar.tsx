@@ -3,7 +3,7 @@
  * @description Mobile-aware sidebar shell. Renders the toolbar and content
  * inside a Sheet on mobile and directly in the layout on desktop.
  */
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { DocumentTreeHandle } from '../../file-tree/filetree';
 import { OutlineViewHandle } from '../../search/OutlineView';
 import { Sheet, SheetContent } from '../../app-ui/sheet';
@@ -13,6 +13,11 @@ import { FileManagerModal } from '../../dialogs/FileManagerModal';
 import { SidebarToolbar } from './SidebarToolbar';
 import { SidebarContent } from './SidebarContent';
 import type { SidebarProps } from './types';
+import { cn } from '../../app-utils/utils';
+
+/** Translucent, blurred glass background — matches the app dock and weather widget. */
+const SIDEBAR_GLASS_CLASSES =
+  'bg-white/10 dark:bg-black/20 backdrop-blur-md border-white/15 dark:border-white/10';
 
 export const Sidebar = ({
   documents,
@@ -62,8 +67,32 @@ export const Sidebar = ({
 
   const activeDocuments = documents.filter(doc => !doc.isDeleted);
 
-  // Track expand/collapse all state for file tree
-  const [allExpanded, setAllExpanded] = useState(false);
+  // Cycle depth for the file tree's expand-all button: 0 = collapsed, then
+  // 1, 2, 3... one folder level at a time, up to the deepest nesting level,
+  // before wrapping back to collapsed.
+  const [expandLevel, setExpandLevel] = useState(0);
+  // Deepest folder nesting level currently in the tree (1 = only top-level folders).
+  const maxExpandLevel = useMemo(() => {
+    const byId = new Map(activeDocuments.map((doc) => [doc.id, doc]));
+    let max = 0;
+    for (const doc of activeDocuments) {
+      if (!doc.isFolder) continue;
+      let depth = 1;
+      let parentId = doc.parentId;
+      const seen = new Set<string>();
+      while (parentId && byId.has(parentId) && !seen.has(parentId)) {
+        seen.add(parentId);
+        depth++;
+        parentId = byId.get(parentId)?.parentId ?? null;
+      }
+      max = Math.max(max, depth);
+    }
+    return max;
+  }, [activeDocuments]);
+  // Clamp to the current max depth if folders were deleted/collapsed elsewhere.
+  useEffect(() => {
+    setExpandLevel((prev) => Math.min(prev, maxExpandLevel));
+  }, [maxExpandLevel]);
   // Track expand/collapse all state for outline
   const [outlineExpanded, setOutlineExpanded] = useState(true);
   // Ref for file tree
@@ -98,17 +127,28 @@ export const Sidebar = ({
   };
 
   const handleToggleAllExpanded = () => {
-    const newState = !allExpanded;
-    setAllExpanded(newState);
+    if (maxExpandLevel === 0) return;
+    const nextLevel = expandLevel >= maxExpandLevel ? 0 : expandLevel + 1;
+    setExpandLevel(nextLevel);
     if (treeRef.current) {
-      if (newState) {
-        treeRef.current.expandAll();
-      } else {
+      if (nextLevel === 0) {
         treeRef.current.cancelExpand?.();
         treeRef.current.collapseAll();
+      } else {
+        treeRef.current.expandToLevel(nextLevel);
       }
     }
   };
+
+  const isFullyExpanded = expandLevel > 0 && expandLevel >= maxExpandLevel;
+  const expandToggleLabel =
+    expandLevel === 0
+      ? maxExpandLevel > 1
+        ? 'Expand Level 1'
+        : 'Expand All'
+      : isFullyExpanded
+        ? 'Collapse All'
+        : `Expand Level ${expandLevel + 1}`;
 
   const handleToggleOutlineExpanded = () => {
     const newState = !outlineExpanded;
@@ -153,7 +193,8 @@ export const Sidebar = ({
     activeFileSourceId,
     onFileSourceChange,
     onSourceSelect: handleSourceSelect,
-    allExpanded,
+    allExpanded: isFullyExpanded,
+    expandToggleLabel,
     outlineExpanded,
     onToggleAllExpanded: handleToggleAllExpanded,
     onToggleOutlineExpanded: handleToggleOutlineExpanded,
@@ -210,8 +251,8 @@ export const Sidebar = ({
   if (isMobile) {
     return (
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="left" className="w-80 p-0">
-          <aside className="h-full flex flex-col bg-sidebar-background">
+        <SheetContent side="left" className={cn('w-80 p-0', SIDEBAR_GLASS_CLASSES)}>
+          <aside className="h-full flex flex-col">
             <SidebarToolbar {...toolbarProps} />
             <div className="flex-1 min-h-0 overflow-hidden">
               <SidebarContent {...contentProps} />
@@ -225,7 +266,7 @@ export const Sidebar = ({
 
   // Desktop: render as sidebar, full height
   return (
-    <aside className="h-screen w-full flex flex-col bg-sidebar-background pt-14">
+    <aside className={cn('h-screen w-full flex flex-col pt-14', SIDEBAR_GLASS_CLASSES)}>
       <SidebarToolbar {...toolbarProps} />
       <div className="flex-1 min-h-0 overflow-hidden">
         <SidebarContent {...contentProps} />
