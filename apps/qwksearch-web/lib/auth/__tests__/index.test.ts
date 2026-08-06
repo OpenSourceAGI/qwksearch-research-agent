@@ -6,19 +6,19 @@ vi.mock("better-auth", () => ({
   betterAuth: betterAuthMock,
 }));
 
-vi.mock("../database", () => ({
+vi.mock("../../database", () => ({
   getDB: () => ({})
 }));
 
-vi.mock("../cloudflare/context", () => ({
+vi.mock("../../cloudflare/context", () => ({
   getCloudflareContext: () => ({ env: {} }),
 }));
 
-vi.mock("../cloudflare/ip-geolocation", () => ({
+vi.mock("../../cloudflare/ip-geolocation", () => ({
   detectVpnAndLocation: vi.fn().mockResolvedValue({ city: null, state: null, isVpn: false }),
 }));
 
-vi.mock("../config/site", () => ({
+vi.mock("../../config/site", () => ({
   config: {
     appName: "Test App",
     appEmail: "noreply@example.com",
