@@ -27,7 +27,6 @@ export default function ChatHomepage() {
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
   const [nextBackgroundUrl, setNextBackgroundUrl] = useState<string | null>(null);
   const [fading, setFading] = useState(false);
-  const [deviceInfo, setDeviceInfo] = useState({ os: '' });
   useEffect(() => {
     const showBg = localStorage.getItem('showBackgroundArt');
     if (showBg === 'false') return;
@@ -46,19 +45,6 @@ export default function ChatHomepage() {
     }, 20000);
 
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const userAgent = window.navigator.userAgent.toLowerCase();
-      if (userAgent.includes('win')) {
-        setDeviceInfo({ os: 'Windows' });
-      } else if (userAgent.includes('mac')) {
-        setDeviceInfo({ os: 'MacOS' });
-      } else {
-        setDeviceInfo({ os: 'Other' });
-      }
-    }
   }, []);
 
   const isVideo = (url: string) => url.endsWith('.webm') || url.endsWith('.mp4');
@@ -103,26 +89,18 @@ export default function ChatHomepage() {
             />
           </div>
 
-          <p className="text-lg text-gray-500 text-center justify-center mt-4">
-            <a
-              aria-label="Chrome Web Store"
-              className="download-chrome download-btn text-center justify-center"
-              target="_blank"
+          <div id="downloads" className="flex items-center justify-center gap-3 mt-4">
+            <DownloadAppButton
+              platform="chrome-extension"
               href={researchAgentUIConfig.downloadChromeUrl}
-            >
-            </a>
-
-            <a
-              aria-label="Microsoft Store"
-              className="download-windows download-btn text-center justify-center"
-              target="_blank"
-              href={deviceInfo.os == "Windows"
-                ? `ms-windows-store://pdp/?productid=${researchAgentUIConfig.downloadWindowsStoreId}`
-                : `https://apps.microsoft.com/detail/${researchAgentUIConfig.downloadWindowsStoreId}?rtc=1`
-              }
-            >
-            </a>
-          </p>
+              autoHighlight
+            />
+            <DownloadAppButton
+              platform="windows"
+              appId={researchAgentUIConfig.downloadWindowsStoreId}
+              autoHighlight
+            />
+          </div>
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
             <WeatherForecast
