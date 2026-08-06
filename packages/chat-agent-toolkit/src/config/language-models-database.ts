@@ -1194,6 +1194,119 @@ export const LANGUAGE_MODELS = [
     ],
   },
  {
+  "provider": "AnyAPI",
+  "docs": "https://docs.anyapi.ai/get-started/supported-sdks",
+  "api_key": "https://anyapi.ai/pricing",
+  "default": "deepseek/deepseek-v3:free",
+  "models": [
+    {
+      "name": "LFM2.5 1.2B Instruct",
+      "id": "liquidai/lfm2.5-1.2b-instruct:free",
+      "contextLength": 32_768,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "LFM2.5 1.2B Thinking",
+      "id": "liquidai/lfm2.5-1.2b-thinking:free",
+      "contextLength": 32_768,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Trinity Large Preview",
+      "id": "arcee-ai/trinity-large-preview:free",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Step 3.5 Flash",
+      "id": "stepfun/step-3.5-flash:free",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Kimi K2 0711",
+      "id": "moonshotai/kimi-k2-0711:free",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Qwen 2.5 Coder 32B Instruct",
+      "id": "qwen/qwen2.5-coder-32b-instruct:free",
+      "contextLength": 32_768,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Gemma 2 9B",
+      "id": "google/gemma-2-9b:free",
+      "contextLength": 8_192,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Gemma 3 12B",
+      "id": "google/gemma-3-12b:free",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Gemma 3 27B",
+      "id": "google/gemma-3-27b:free",
+      "contextLength": 131_072,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Gemma 3n 2B",
+      "id": "google/gemma-3n-2b:free",
+      "contextLength": 32_768,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Gemma 3n 4B",
+      "id": "google/gemma-3n-4b:free",
+      "contextLength": 32_768,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "DeepSeek V3",
+      "id": "deepseek/deepseek-v3:free",
+      "contextLength": 64_000,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "DeepSeek R1 0528",
+      "id": "deepseek/deepseek-r1-0528:free",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "LongCat Flash Chat",
+      "id": "meituan/longcat-flash-chat:free",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text"
+    },
+    {
+      "name": "Tongyi DeepResearch 30B A3B",
+      "id": "alibaba/tongyi-deepresearch-30b-a3b:free",
+      "contextLength": 128_000,
+      "free": true,
+      "type": "text"
+    }
+  ]
+},
+ {
   "provider": "OpenRouter",
   "docs": "https://openrouter.ai/docs",
   "api_key": "https://openrouter.ai/settings/keys",
@@ -1301,6 +1414,23 @@ export const GUEST_SAFE_MODELS = {
   nvidia: [
     "nvidia/nemotron-3-super-120b-a12b",
     "meta/llama-3.1-8b-instruct",
+  ],
+  anyapi: [
+    "liquidai/lfm2.5-1.2b-instruct:free",
+    "liquidai/lfm2.5-1.2b-thinking:free",
+    "arcee-ai/trinity-large-preview:free",
+    "stepfun/step-3.5-flash:free",
+    "moonshotai/kimi-k2-0711:free",
+    "qwen/qwen2.5-coder-32b-instruct:free",
+    "google/gemma-2-9b:free",
+    "google/gemma-3-12b:free",
+    "google/gemma-3-27b:free",
+    "google/gemma-3n-2b:free",
+    "google/gemma-3n-4b:free",
+    "deepseek/deepseek-v3:free",
+    "deepseek/deepseek-r1-0528:free",
+    "meituan/longcat-flash-chat:free",
+    "alibaba/tongyi-deepresearch-30b-a3b:free",
   ],
   openrouter: [
     "openrouter/free",
