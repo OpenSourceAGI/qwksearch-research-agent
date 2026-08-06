@@ -68,7 +68,7 @@ export async function getWeatherForecast(
   }
 
   return {
-    location,
+    location: { ...location, timezone: data.timezone || location.timezone },
     current: {
       time: data.current.time,
       temperature: Math.round(data.current.temperature_2m),
