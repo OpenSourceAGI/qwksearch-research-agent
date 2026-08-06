@@ -11,7 +11,7 @@ import { RefObject, useState } from 'react';
 import { Resizable } from 're-resizable';
 import { SidebarContent } from '../layout/sidebar/SidebarContent';
 import { PANEL_OPTIONS } from '../layout/sidebar/panelOptions';
-import type { SidebarPanelType, SidebarAiProps } from '../layout/sidebar/types';
+import type { SidebarPanelType, SidebarAiProps, OpenTabItem } from '../layout/sidebar/types';
 import type { OutlineViewHandle } from '../search/OutlineView';
 import type { TocEntry } from '../app-types/toc';
 import type { Document } from '../documents/DocumentTree';
@@ -48,6 +48,10 @@ interface RightPanelProps {
   aiProps: SidebarAiProps;
   /** Closes the panel by clearing the right sidebar's panel list. */
   onClose: () => void;
+  /** Unified tab list (files + chats). Overrides file-only tab derivation when set. */
+  tabItems?: OpenTabItem[];
+  /** Opens a new chat tab from the "Open Tabs" panel header. */
+  onNewChat?: () => void;
 }
 
 const RESIZE_HANDLES = {
@@ -96,6 +100,8 @@ export function RightPanel({
   outlineRef,
   aiProps,
   onClose,
+  tabItems,
+  onNewChat,
 }: RightPanelProps) {
   const [width, setWidth] = useState(320);
 
@@ -149,6 +155,8 @@ export function RightPanel({
             canReopenLastClosed={canReopenLastClosed}
             onNavigate={onNavigate}
             aiProps={aiProps}
+            tabItems={tabItems}
+            onNewChat={onNewChat}
           />
         </div>
       </div>

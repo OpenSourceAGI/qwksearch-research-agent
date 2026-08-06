@@ -55,6 +55,8 @@ export const Sidebar = ({
   onReopenLastClosed,
   canReopenLastClosed = false,
   aiProps,
+  tabItems,
+  onNewChat,
 }: SidebarProps) => {
   const deletedDocs = documents.filter(doc => doc.isDeleted);
 
@@ -168,6 +170,7 @@ export const Sidebar = ({
     onTabChange,
     onTabClose,
     documents,
+    tabItems,
   };
 
   const contentProps = {
@@ -199,6 +202,8 @@ export const Sidebar = ({
     canReopenLastClosed,
     onNavigate,
     aiProps,
+    tabItems,
+    onNewChat,
   };
 
   // Mobile: render in a drawer
