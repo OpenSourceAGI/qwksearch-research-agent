@@ -51,6 +51,8 @@ interface RightPanelProps {
   onReopenLastClosed?: () => void;
   canReopenLastClosed?: boolean;
   outlineRef?: RefObject<OutlineViewHandle | null>;
+  tabItems?: OpenTabItem[];
+  onNewChat?: () => void;
   aiProps: SidebarAiProps;
   /** Closes the panel by clearing the right sidebar's panel list. */
   onClose: () => void;
@@ -106,6 +108,8 @@ export function RightPanel({
   onReopenLastClosed,
   canReopenLastClosed,
   outlineRef,
+  tabItems,
+  onNewChat,
   aiProps,
   onClose,
   isMobile,
@@ -155,6 +159,8 @@ export function RightPanel({
           onReopenLastClosed={onReopenLastClosed}
           canReopenLastClosed={canReopenLastClosed}
           onNavigate={onNavigate}
+          tabItems={tabItems}
+          onNewChat={onNewChat}
           aiProps={aiProps}
         />
       </div>

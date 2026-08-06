@@ -17,6 +17,7 @@ import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../utils/storage';
 import { Menu, PanelRight } from 'lucide-react';
+import type { OpenTabItem } from '../layout/sidebar/types';
 import '../app-styles/split-pane.css';
 
 /** A non-document tab (e.g. a chat conversation) supplied by the host app. */
@@ -41,6 +42,18 @@ interface ReasonDocsProps {
    * request the sidebar open.
    */
   openFilesSidebarSignal?: number | string;
+  /** Host-supplied non-document tabs (e.g. open chats) merged into the Open Tabs panel. */
+  extraTabs?: ReasonDocsExtraTab[];
+  /** ID of the currently active extra tab, if one is active instead of a document. */
+  activeExtraTabId?: string;
+  /** Called when an extra tab is selected from the Open Tabs panel. */
+  onExtraTabSelect?: (id: string) => void;
+  /** Called when an extra tab is closed from the Open Tabs panel. */
+  onExtraTabClose?: (id: string) => void;
+  /** Called when the "new chat" action is triggered from the Open Tabs panel header. */
+  onExtraTabAdd?: () => void;
+  /** Called whenever a document/file tab becomes active, so the host can switch away from an extra tab. */
+  onFileTabSelect?: () => void;
 }
 
 /**
@@ -48,7 +61,17 @@ interface ReasonDocsProps {
  * Uses `useReasonDocsState` for shared state and `next-themes` for theme control.
  * Renders a resizable panel layout on desktop and a stacked layout on mobile.
  */
-const Index = ({ mainContent, belowMainContent, openFilesSidebarSignal }: ReasonDocsProps) => {
+const Index = ({
+  mainContent,
+  belowMainContent,
+  openFilesSidebarSignal,
+  extraTabs,
+  activeExtraTabId,
+  onExtraTabSelect,
+  onExtraTabClose,
+  onExtraTabAdd,
+  onFileTabSelect,
+}: ReasonDocsProps) => {
   const { theme, setTheme } = useTheme();
   const state = useReasonDocsState(openFilesSidebarSignal);
   const [settingsInitialSection, setSettingsInitialSection] = useState<string | undefined>(undefined);
