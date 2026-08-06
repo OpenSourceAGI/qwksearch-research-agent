@@ -7,7 +7,7 @@ import { GradientBlur } from '../../ui/gradient-blur';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
 import Footer from '../Footer';
-import { WeatherForecast } from 'react-weather-forecast';
+import { WeatherForecast } from 'use-weather-forecast';
 import { useChat } from '../../hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import { researchAgentUIConfig } from '../../config';

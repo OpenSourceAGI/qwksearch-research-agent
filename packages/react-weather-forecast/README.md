@@ -1,4 +1,4 @@
-# react-weather-forecast
+# use-weather-forecast
 
 React weather forecast component using Open-Meteo for current, hourly, and daily forecasts and Cloudflare/ip-api for IP geolocation.
 
@@ -15,13 +15,13 @@ React weather forecast component using Open-Meteo for current, hourly, and daily
 ## Install
 
 ```bash
-npm install react-weather-forecast
+npm install use-weather-forecast
 ```
 
 ## Usage
 
 ```tsx
-import { WeatherForecast } from 'react-weather-forecast';
+import { WeatherForecast } from 'use-weather-forecast';
 
 export default function App() {
   return (
@@ -38,7 +38,7 @@ export default function App() {
 ## Direct API usage
 
 ```ts
-import { getWeatherForecast } from 'react-weather-forecast';
+import { getWeatherForecast } from 'use-weather-forecast';
 
 const data = await getWeatherForecast({
   latitude: 37.3688,
