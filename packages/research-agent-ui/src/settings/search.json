@@ -9,6 +9,15 @@
     "scope": "client"
   },
   {
+    "name": "Orb Hover Glow",
+    "key": "orbHoverGlow",
+    "type": "switch",
+    "required": false,
+    "description": "Highlight the homepage orb animation with a color glow when you hover over it.",
+    "default": false,
+    "scope": "client"
+  },
+  {
     "name": "TTS Voice",
     "key": "ttsSpeaker",
     "type": "select",

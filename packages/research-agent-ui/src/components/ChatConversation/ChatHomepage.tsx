@@ -27,6 +27,11 @@ export default function ChatHomepage() {
   const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
   const [nextBackgroundUrl, setNextBackgroundUrl] = useState<string | null>(null);
   const [fading, setFading] = useState(false);
+  const [orbHoverGlow, setOrbHoverGlow] = useState(false);
+  useEffect(() => {
+    setOrbHoverGlow(localStorage.getItem('orbHoverGlow') === 'true');
+  }, []);
+
   useEffect(() => {
     const showBg = localStorage.getItem('showBackgroundArt');
     if (showBg === 'false') return;
@@ -81,7 +86,10 @@ export default function ChatHomepage() {
         {/* Content: centered on desktop, bottom-aligned on mobile so the input sits
             just above the app dock with almost no gap */}
         <div className="flex flex-col items-center justify-end md:justify-center min-h-[calc(100dvh-64px)] md:min-h-screen max-w-screen-sm mx-auto p-2 pb-1 md:pb-2">
-          <div style={{ height: '200px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div
+            style={{ height: '200px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            className={orbHoverGlow ? undefined : 'pointer-events-none'}
+          >
             <QuantumWaveOrbital
               autoRandomize={true}
               onSphereClick={() => console.log('Sphere clicked')}
