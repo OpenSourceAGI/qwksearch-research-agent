@@ -12,7 +12,7 @@ import { useReasonDocsState } from './useReasonDocsState';
 import { DynamicIslandTOC } from '../search/DynamicIslandTOC';
 import { Button } from '../app-ui/button';
 import { useTheme } from 'next-themes';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../utils/storage';
@@ -54,6 +54,15 @@ interface ReasonDocsProps {
   onExtraTabAdd?: () => void;
   /** Called whenever a document/file tab becomes active, so the host can switch away from an extra tab. */
   onFileTabSelect?: () => void;
+  /**
+   * Document ID to open as the active document once (e.g. restored from a
+   * URL param on load). Applied only on the first render where the document
+   * exists — later changes to this prop are ignored, so it never fights with
+   * the user's own tab switching.
+   */
+  initialDocId?: string | null;
+  /** Called whenever the active document changes, so the host can mirror it (e.g. into a URL param). */
+  onActiveDocumentChange?: (docId: string | null) => void;
 }
 
 /**
@@ -71,10 +80,30 @@ const Index = ({
   onExtraTabClose,
   onExtraTabAdd,
   onFileTabSelect,
+  initialDocId,
+  onActiveDocumentChange,
 }: ReasonDocsProps) => {
   const { theme, setTheme } = useTheme();
   const state = useReasonDocsState(openFilesSidebarSignal);
   const [settingsInitialSection, setSettingsInitialSection] = useState<string | undefined>(undefined);
+
+  // Restore the active document from a host-supplied ID (e.g. a `?docs=`
+  // URL param) once, the first time it resolves to a real document.
+  const initialDocIdAppliedRef = useRef(false);
+  useEffect(() => {
+    if (initialDocIdAppliedRef.current || !initialDocId) return;
+    if (state.documents.some((doc) => doc.id === initialDocId)) {
+      initialDocIdAppliedRef.current = true;
+      if (initialDocId !== state.activeDocId) {
+        state.handleSelectDocument(initialDocId);
+      }
+    }
+  }, [initialDocId, state.documents, state.activeDocId, state.handleSelectDocument]);
+
+  // Mirror the active document back to the host so it can sync a URL param.
+  useEffect(() => {
+    onActiveDocumentChange?.(state.activeDocId);
+  }, [state.activeDocId, onActiveDocumentChange]);
 
   // Use persistence hook for sidebar sizes
   const [sidebarSizes, setSidebarSizes] = usePersistence({

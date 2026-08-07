@@ -7,6 +7,7 @@ import { Trash, Pin } from 'lucide-react';
 import { Chat } from '../../types/research';
 import { formatTimeDifference } from '../../lib/utils';
 import { Badge } from '../../ui/badge';
+import { researchAgentUIConfig } from '../../config';
 import Link from 'next/link';
 
 interface HistoryChatItemProps {
@@ -20,7 +21,13 @@ export function HistoryChatItem({ chat, isPinned, onTogglePin, onDelete }: Histo
   const messageCount = chat.messageCount ?? 0;
   return (
     <div className="group flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-secondary transition-colors duration-200">
-      <Link href={`/c/${chat.id}`} className="flex-1 min-w-0 flex items-center gap-1.5">
+      <Link
+        href={`/c/${chat.id}`}
+        onClick={(e) => {
+          if (researchAgentUIConfig.onOpenChat?.(chat.id)) e.preventDefault();
+        }}
+        className="flex-1 min-w-0 flex items-center gap-1.5"
+      >
         <span className="flex items-center gap-1 shrink-0">
           {messageCount > 0 && (
             <Badge className="px-1.5 py-0 text-[10px] font-medium bg-zinc-200 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-700 border-0 rounded-md">

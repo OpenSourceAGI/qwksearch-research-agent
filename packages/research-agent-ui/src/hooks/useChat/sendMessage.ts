@@ -178,9 +178,15 @@ export async function sendMessage(
   setLoading(true);
   setMessageAppeared(false);
 
-  // Update URL to include chat ID (for sharing/bookmarking)
-  if (messages.length <= 1) {
-    window.history.replaceState(null, "", `/c/${chatId}`);
+  // Reflect the chat ID in the URL as a `?chat=` param once the conversation
+  // starts (for sharing/bookmarking/reload), without changing the route:
+  // chats live as tabs within the current page, not a separate `/c/<id>`
+  // page. Skipped when the host app owns this itself (e.g. the tabbed
+  // workspace, which mirrors the active tab on every switch already).
+  if (messages.length <= 1 && !researchAgentUIConfig.onOpenChat) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("chat", chatId);
+    window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}${url.hash}`);
   }
 
   // Accumulator for streaming response

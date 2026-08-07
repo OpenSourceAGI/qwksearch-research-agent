@@ -135,14 +135,28 @@ export function CategoryDock() {
     },
   ]
 
+  // The "Files" shortcut only makes sense on mobile, where REASON's file
+  // sidebar isn't otherwise reachable at a glance — on desktop it's always
+  // visible in the persistent sidebar, so the dock icon would be redundant.
+  const desktopItems = items.filter((item) => item.key !== "files")
+  const renderImage = (src: string, alt: string, size: number) => (
+    <Image src={src} alt={alt} width={size} height={size} unoptimized className="w-full h-full" />
+  )
+
   return (
-    <BaseCategoryDock
-      items={items}
-      enableKeyboardShortcuts
-      mobileAlign={activeView === "docs" ? "end" : "center"}
-      renderImage={(src, alt, size) => (
-        <Image src={src} alt={alt} width={size} height={size} unoptimized className="w-full h-full" />
-      )}
-    />
+    <>
+      <BaseCategoryDock
+        items={desktopItems}
+        enableKeyboardShortcuts
+        placements={{ desktop: true, mobile: false }}
+        renderImage={renderImage}
+      />
+      <BaseCategoryDock
+        items={items}
+        placements={{ desktop: false, mobile: true }}
+        mobileAlign={activeView === "docs" ? "end" : "center"}
+        renderImage={renderImage}
+      />
+    </>
   )
 }
