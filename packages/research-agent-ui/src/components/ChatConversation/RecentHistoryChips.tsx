@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useHistoryState } from '../ChatHistoryDropdown/useHistoryState';
 import HistoryDropdown from '../ChatHistoryDropdown';
 import { formatRelativeTime } from '../../lib/relative-time';
+import { researchAgentUIConfig } from '../../config';
 
 /** Most recent activity timestamp for a chat, falling back to creation time. */
 const activityTime = (chat: { lastMessageAt?: string | null; createdAt: string }) =>
@@ -32,6 +33,9 @@ export default function RecentHistoryChips() {
           <Link
             key={chat.id}
             href={`/c/${chat.id}`}
+            onClick={(e) => {
+              if (researchAgentUIConfig.onOpenChat?.(chat.id)) e.preventDefault();
+            }}
             className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs text-muted-foreground bg-secondary hover:bg-secondary/80 hover:text-foreground transition-colors duration-150 max-w-[220px]"
             title={chat.title}
           >
