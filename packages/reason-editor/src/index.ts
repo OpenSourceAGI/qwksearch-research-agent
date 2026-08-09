@@ -10,3 +10,15 @@ export * from '@/components/RichTextProvider';
  * the whole editor experience directly instead of iframing the hosted demo.
  */
 export { default as ReasonDocs } from '@/editor/ReasonDocs';
+
+/**
+ * Controls whether heavy third-party libraries (KaTeX, Mermaid) load lazily
+ * from a CDN or from this package's own bundled dependencies. See
+ * `@/store/externalLibsMode` for details.
+ */
+export {
+  useExternalLibsMode,
+  getExternalLibsMode,
+  externalLibsModeActions,
+  type ExternalLibsMode,
+} from '@/store/externalLibsMode';
