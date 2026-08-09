@@ -10,6 +10,7 @@
  */
 
 import type { ThemeColorType } from '@/theme/theme';
+import type { ExternalLibsMode } from '@/store/externalLibsMode';
 
 import {
   PLUGIN_BY_KEY,
@@ -31,6 +32,13 @@ export interface EditorConfig {
   theme: 'light' | 'dark';
   /** accent color preset */
   accentColor: ThemeColorType;
+  /**
+   * How heavy third-party libraries (KaTeX, Mermaid) are loaded: 'cdn' fetches
+   * them from a public CDN on first use, 'bundled' imports them from this
+   * package's own dependencies so the editor works offline. Does not affect
+   * Draw.io, which is always a remote embed. See `@/store/externalLibsMode`.
+   */
+  externalLibsMode: ExternalLibsMode;
   /** per-plugin enable flags and settings, keyed by plugin key */
   plugins: Record<string, PluginConfigEntry>;
 }
@@ -47,6 +55,7 @@ export function createDefaultConfig(): EditorConfig {
     language: 'en',
     theme: 'light',
     accentColor: 'default',
+    externalLibsMode: 'cdn',
     plugins,
   };
 }
@@ -73,6 +82,7 @@ export function normalizeConfig(saved: Partial<EditorConfig> | null | undefined)
     language: saved.language ?? base.language,
     theme: saved.theme === 'dark' ? 'dark' : 'light',
     accentColor: (saved.accentColor as ThemeColorType) ?? base.accentColor,
+    externalLibsMode: saved.externalLibsMode === 'bundled' ? 'bundled' : base.externalLibsMode,
     plugins,
   };
 }

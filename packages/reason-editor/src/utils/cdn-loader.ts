@@ -1,6 +1,13 @@
 /**
- * Lazily loads external scripts and styles from a CDN at runtime. Used to defer heavy dependencies until a feature actually needs them.
+ * Lazily loads heavy third-party libraries used by editor extensions (KaTeX,
+ * Mermaid). By default these are fetched from a public CDN the first time a
+ * feature needs them; when `externalLibsMode` is set to 'bundled' (see
+ * `@/store/externalLibsMode`) this instead resolves them from the package's
+ * own npm dependencies via a code-split dynamic import, so the same
+ * `loadKatex()` / `loadMermaid()` callers work offline with no code changes.
  */
+
+import { getExternalLibsMode } from '@/store/externalLibsMode';
 
 const loadedScripts = new Set<string>();
 const loadingPromises = new Map<string, Promise<void>>();
@@ -62,7 +69,21 @@ export async function loadStylesheet(url: string): Promise<void> {
   return promise;
 }
 
+let bundledKatexPromise: Promise<any> | null = null;
+let bundledMermaidPromise: Promise<any> | null = null;
+
 export async function loadKatex() {
+  if (getExternalLibsMode() === 'bundled') {
+    if (!bundledKatexPromise) {
+      bundledKatexPromise = Promise.all([
+        import('katex'),
+        // @ts-ignore - side-effect CSS import, resolved by the bundler
+        import('katex/dist/katex.min.css'),
+      ]).then(([mod]) => mod.default ?? mod);
+    }
+    return bundledKatexPromise;
+  }
+
   await Promise.all([
     loadStylesheet('https://cdn.jsdelivr.net/npm/katex@0.16.47/dist/katex.min.css'),
     loadScript('https://cdn.jsdelivr.net/npm/katex@0.16.47/dist/katex.min.js'),
@@ -71,11 +92,13 @@ export async function loadKatex() {
 }
 
 export async function loadMermaid() {
+  if (getExternalLibsMode() === 'bundled') {
+    if (!bundledMermaidPromise) {
+      bundledMermaidPromise = import('mermaid').then((mod) => mod.default ?? mod);
+    }
+    return bundledMermaidPromise;
+  }
+
   await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.12.0/mermaid.min.js');
   return (window as any).mermaid;
-}
-
-export async function loadDrawio() {
-  await loadScript('https://cdn.jsdelivr.net/npm/mxgraph@4.10.38/javascript/mxClient.min.js');
-  return (window as any).mxGraph ? { mxGraph: (window as any).mxGraph } : null;
 }

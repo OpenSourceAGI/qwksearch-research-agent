@@ -20,6 +20,7 @@ import {
 } from './config/editorConfig';
 import { localeActions } from 'react-reason-editor/locale-bundle';
 import { themeActions } from 'react-reason-editor/theme';
+import { externalLibsModeActions } from '@/store/externalLibsMode';
 import { DEFAULT_CONTENT, debounce } from './components/constants';
 
 import 'react-reason-editor/style.css';
@@ -47,6 +48,10 @@ function App() {
   useEffect(() => {
     themeActions.setColor(config.accentColor);
   }, [config.accentColor]);
+
+  useEffect(() => {
+    externalLibsModeActions.setMode(config.externalLibsMode);
+  }, [config.externalLibsMode]);
 
   useEffect(() => {
     setTheme(config.theme);

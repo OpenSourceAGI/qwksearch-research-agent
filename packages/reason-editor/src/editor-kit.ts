@@ -16,3 +16,9 @@ export {
   createDefaultConfig,
   type EditorConfig,
 } from './editor-views/config/editorConfig';
+export {
+  useExternalLibsMode,
+  getExternalLibsMode,
+  externalLibsModeActions,
+  type ExternalLibsMode,
+} from './store/externalLibsMode';

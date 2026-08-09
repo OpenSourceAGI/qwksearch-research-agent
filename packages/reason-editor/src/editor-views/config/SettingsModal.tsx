@@ -13,6 +13,8 @@ import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Check,
+  CloudDownload,
+  HardDrive,
   Plus,
   Puzzle,
   RotateCcw,
@@ -254,6 +256,10 @@ export function SettingsModal({
     onConfigChange({ ...config, theme: mode });
   };
 
+  const setExternalLibsMode = (mode: EditorConfig['externalLibsMode']) => {
+    onConfigChange({ ...config, externalLibsMode: mode });
+  };
+
   const resetDefaults = () => {
     if (!confirm('Reset all editor settings and plugins to defaults?')) return;
     const fresh = createDefaultConfig();
@@ -359,6 +365,58 @@ export function SettingsModal({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </section>
+
+          {/* External libraries loading mode */}
+          <section className="space-y-3">
+            <h3 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+              Library Loading
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Controls how KaTeX and Mermaid are loaded when a plugin needs them.
+              Draw.io always opens diagrams.net in an embedded frame regardless of
+              this setting.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                onClick={() => setExternalLibsMode('cdn')}
+                className={`flex items-start gap-2 text-left rounded-lg border p-3 transition-colors ${
+                  config.externalLibsMode !== 'bundled'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-gray-200 dark:border-slate-700 hover:border-blue-400'
+                }`}
+              >
+                <CloudDownload size={15} className="mt-0.5 text-blue-500 shrink-0" />
+                <span className="min-w-0">
+                  <span className="block text-xs font-medium text-gray-800 dark:text-gray-100">
+                    Lazy-load from CDN
+                  </span>
+                  <span className="block text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                    Smallest bundle. Fetches libraries on first use — requires
+                    network access to the CDN.
+                  </span>
+                </span>
+              </button>
+              <button
+                onClick={() => setExternalLibsMode('bundled')}
+                className={`flex items-start gap-2 text-left rounded-lg border p-3 transition-colors ${
+                  config.externalLibsMode === 'bundled'
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-gray-200 dark:border-slate-700 hover:border-blue-400'
+                }`}
+              >
+                <HardDrive size={15} className="mt-0.5 text-blue-500 shrink-0" />
+                <span className="min-w-0">
+                  <span className="block text-xs font-medium text-gray-800 dark:text-gray-100">
+                    Bundled (offline)
+                  </span>
+                  <span className="block text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                    Ships the libraries with the app. Larger bundle, but works
+                    fully offline or behind restrictive firewalls.
+                  </span>
+                </span>
+              </button>
             </div>
           </section>
 
