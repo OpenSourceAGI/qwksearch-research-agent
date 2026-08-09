@@ -18,6 +18,15 @@
     "scope": "client"
   },
   {
+    "name": "Search Result Glow Effect",
+    "key": "searchResultGlow",
+    "type": "switch",
+    "required": false,
+    "description": "Add a cursor-following glow border to source cards in the search results panel.",
+    "default": false,
+    "scope": "client"
+  },
+  {
     "name": "TTS Voice",
     "key": "ttsSpeaker",
     "type": "select",
