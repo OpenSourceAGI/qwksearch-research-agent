@@ -765,6 +765,8 @@
     "build:lib": "vite build",
     "build:demo": "vite build --config demo/vite.config.ts",
     "preview": "wrangler dev",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "deploy": "pnpm build:lib && pnpm build:demo && wrangler deploy"
   },
   "dependencies": {
@@ -875,6 +877,9 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.43.0",
+    "@vitest/coverage-v8": "^4.0.18",
+    "jsdom": "^28.1.0",
+    "vitest": "^4.0.18",
     "@tailwindcss/vite": "^4.3.0",
     "@types/deep-equal": "^1.0.4",
     "@types/html-to-docx": "^1.8.1",

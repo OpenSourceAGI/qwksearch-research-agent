@@ -62,7 +62,16 @@ export async function scrapeURL(url, options = {}) {
 
   if (checkRobotsAllowed) {
     const rules = await fetchScrapingRules(url);
-    if (!isAllowedToScrape(rules, url)) {
+    // isAllowedToScrape matches rule paths with startsWith, so it needs the
+    // request path — passing the full URL made every rule (including
+    // `Disallow: /`) silently fail to match.
+    let requestPath: string;
+    try {
+      requestPath = new URL(url).pathname;
+    } catch {
+      requestPath = url;
+    }
+    if (!isAllowedToScrape(rules, requestPath)) {
       return { error: "Robots.txt forbids to scrape there" };
     }
   }

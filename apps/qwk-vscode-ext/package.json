@@ -129,13 +129,20 @@
     "watch": "node esbuild.mjs --watch",
     "package": "bun run build:webview && bun run build:webview-editor && node esbuild.mjs --production",
     "vscode:prepublish": "bun run package",
-    "type-check": "tsc --noEmit -p ./"
+    "type-check": "tsc --noEmit -p ./",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
     "@types/vscode": "^1.85.0",
     "esbuild": "^0.28.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "@vitest/coverage-v8": "^4.0.18",
+    "vitest": "^4.0.18",
+    "jsdom": "^28.1.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "dependencies": {
     "vite": "^8.1.4"

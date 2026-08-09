@@ -1,74 +1,107 @@
 import { describe, it, expect } from 'vitest';
-import * as QwkSearch from '..';
+import * as QwkSearch from '../src/index';
+import { client } from '../src/client.gen';
 
-describe('QwkSearch API Client', () => {
+/**
+ * `src/sdk.gen.ts` is regenerated from `qwksearch-openapi.json` by
+ * `bun run build:api`, so these assertions guard the generated surface rather
+ * than hand-written logic: that generation actually ran, that the operations
+ * the rest of the monorepo imports still exist, and that every operation is
+ * wired to the shared client.
+ *
+ * The live round-trips at the bottom need network access and a configured
+ * API key; opt in with `RUN_LIVE_API_TESTS=1`.
+ */
+const runLive = process.env.RUN_LIVE_API_TESTS === '1';
 
-  describe('writeLanguage', () => {
-    it('generates language model reply', async () => {
-      const result = await QwkSearch..writeLanguage({
-        body: {
-          agent: 'summarize-bullets',
-          article: `
-          # What is the capital of France?
-          The capital of France is Paris.
-          # What is the capital of Germany?
-          The capital of Germany is Berlin.
-          # What is the capital of Italy?
-          The capital of Italy is Rome.
-          # What is the capital of Spain?
-          `,
-          provider: 'groq',
-          model: 'meta-llama/llama-4-maverick-17b-128e-instruct',
-          html: true,
-          temperature: 0.7
-        }
-      });
+const operations = Object.entries(QwkSearch).filter(([, value]) => typeof value === 'function');
 
-      console.log('writeLanguage result:', result.data);
-      expect(result.data).toHaveProperty('content'); // Changed from 'reply' to 'content'
-    }, 5000); // Added test timeout
+describe('generated SDK surface', () => {
+  it('exports a substantial set of operations', () => {
+    expect(operations.length).toBeGreaterThan(50);
   });
 
-  describe('searchWeb', () => {
-    it('searches the web', async () => {
-      const result = await QwkSearch.searchWeb({
-        query: {
-          q: 'What is the capital of France?',
-          cat: 'general',
-          lang: 'en-US',
-          page: 1,
-          public: false,
-          timeout: 10
-        }
-      });
-
-      console.log('searchWeb result:', result.data);
-      expect(result.data).toHaveProperty('results'); // Changed from 'results' to 'items'
-
-      if (result.data.results.length > 0) {
-        const firstResult = result.data.results[0];
-        expect(firstResult).toHaveProperty('title');
-        expect(firstResult).toHaveProperty('url'); 
-      }
-    }, 10000); // Added test timeout
+  it('exports every operation as a function', () => {
+    for (const [name, operation] of operations) {
+      expect(typeof operation, name).toBe('function');
+    }
   });
 
-
-
-  describe('extractContent', () => {
-    it('extracts content from a URL', async () => {
-      const result = await QwkSearch.extractContent({
-        query: {
-          url: 'https://builtin.com/data-science/beginners-guide-language-models',
-          timeout: 10 
-        }
-      });
-
-      console.log('extractContent result:', result.data);
-      expect(result.data).toHaveProperty('title');
-      expect(result.data).toHaveProperty('html');
-      expect(result.data.title).toBe('A Beginner\'s Guide to Language Models');
-    }, 10000); // Added longer test timeout
+  it('names every operation in camelCase', () => {
+    for (const [name] of operations) {
+      expect(name, name).toMatch(/^[a-z][A-Za-z0-9]*$/);
+    }
   });
 
+  it('covers the agent endpoints', () => {
+    for (const name of ['agentChat', 'agentSearch', 'autocomplete', 'generateSuggestions']) {
+      expect(QwkSearch, name).toHaveProperty(name);
+    }
+  });
+
+  it('covers the search and scrape endpoints', () => {
+    for (const name of ['listSearchEngines', 'testSearchEngines', 'scrapeGet', 'scrapePost']) {
+      expect(QwkSearch, name).toHaveProperty(name);
+    }
+  });
+
+  it('covers the document and chat endpoints', () => {
+    for (const name of ['listDocuments', 'createDocument', 'listChats', 'getChatById']) {
+      expect(QwkSearch, name).toHaveProperty(name);
+    }
+  });
+
+  it('covers the provider and config endpoints', () => {
+    for (const name of ['listProviders', 'addProvider', 'getConfig', 'saveConfig']) {
+      expect(QwkSearch, name).toHaveProperty(name);
+    }
+  });
+});
+
+describe('generated client', () => {
+  it('exposes the HTTP verbs the SDK dispatches through', () => {
+    for (const verb of ['get', 'post', 'put', 'patch', 'delete']) {
+      expect(typeof client[verb], verb).toBe('function');
+    }
+  });
+
+  it('is configurable, so consumers can point it at their own deployment', () => {
+    expect(typeof client.setConfig).toBe('function');
+    expect(typeof client.getConfig).toBe('function');
+  });
+
+  it('carries a base URL in its config', () => {
+    expect(typeof client.getConfig().baseUrl).toBe('string');
+  });
+
+  it('routes an operation through the client when one is supplied', async () => {
+    const calls = [];
+    const fakeClient = {
+      get: async (options) => {
+        calls.push(options);
+        return { data: { engines: [] } };
+      },
+    };
+
+    await QwkSearch.listSearchEngines({ client: fakeClient });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBeTruthy();
+  });
+});
+
+describe.runIf(runLive)('live API round-trips', () => {
+  it('lists the available search engines', async () => {
+    const result = await QwkSearch.listSearchEngines({});
+
+    expect(result.data).toBeDefined();
+  }, 20000);
+
+  it('runs an agent search', async () => {
+    const result = await QwkSearch.agentSearch({
+      query: { q: 'What is the capital of France?' },
+    });
+
+    expect(result.data).toBeDefined();
+  }, 20000);
 });
