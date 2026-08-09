@@ -16,16 +16,16 @@ vi.mock("ai", () => ({
 }));
 
 // Return a truthy fake model so writeLanguageResponse proceeds to generateText.
-vi.mock("./provider-factory", () => ({
+vi.mock("../src/provider-factory", () => ({
   createLLMProvider: () => ({ id: "fake-model" }),
 }));
 
 // Avoid pulling the markdown/prism stack into the test.
-vi.mock("./utils/markdown-to-html", () => ({
+vi.mock("../src/utils/markdown-to-html", () => ({
   convertMarkdownToHTMLEscaped: async (s: string) => s,
 }));
 
-import { writeLanguageResponse } from "./generate-response";
+import { writeLanguageResponse } from "../src/generate-response";
 
 afterEach(() => {
   generateTextMock.mockClear();

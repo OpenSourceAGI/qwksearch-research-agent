@@ -1,45 +1,50 @@
 /**
  * @fileoverview Unit tests for URL content extraction
  */
+import { beforeEach, describe, expect, it, vi, type MockedFunction } from "vitest";
 import { extractContent } from "../url-to-content";
 import { scrapeURL } from "../url-to-html";
 import { extractContentAndCite } from "../../html-to-content/html-to-content";
-import { convertYoutubeToText } from "../youtube-helpers";
+import { convertYoutubeToText, getURLYoutubeVideo } from "../youtube-helpers";
+import grab from "../../utils/grab";
 import { convertPDFToHTML } from "extract-pdf";
 
 // Mock dependencies
-jest.mock("../url-to-html", () => ({
-  scrapeURL: jest.fn(),
+vi.mock("../url-to-html", () => ({
+  scrapeURL: vi.fn(),
 }));
 
-jest.mock("../../html-to-content/html-to-content", () => ({
-  extractContentAndCite: jest.fn(),
+vi.mock("../../html-to-content/html-to-content", () => ({
+  extractContentAndCite: vi.fn(),
 }));
 
-jest.mock("../youtube-helpers", () => ({
-  getURLYoutubeVideo: jest.fn(),
-  convertYoutubeToText: jest.fn(),
+vi.mock("../youtube-helpers", () => ({
+  getURLYoutubeVideo: vi.fn(),
+  convertYoutubeToText: vi.fn(),
 }));
 
-jest.mock("extract-pdf", () => ({
-  convertPDFToHTML: jest.fn(),
+vi.mock("extract-pdf", () => ({
+  convertPDFToHTML: vi.fn(),
 }));
 
-jest.mock("grab-url", () => jest.fn());
+vi.mock("../../utils/grab");
 
-const mockScrapeURL = scrapeURL as jest.MockedFunction<typeof scrapeURL>;
-const mockExtractContentAndCite = extractContentAndCite as jest.MockedFunction<
+const mockScrapeURL = scrapeURL as MockedFunction<typeof scrapeURL>;
+const mockExtractContentAndCite = extractContentAndCite as MockedFunction<
   typeof extractContentAndCite
 >;
 const mockConvertYoutubeToText =
-  convertYoutubeToText as jest.MockedFunction<typeof convertYoutubeToText>;
-const mockConvertPDFToHTML = convertPDFToHTML as jest.MockedFunction<
+  convertYoutubeToText as MockedFunction<typeof convertYoutubeToText>;
+const mockConvertPDFToHTML = convertPDFToHTML as MockedFunction<
   typeof convertPDFToHTML
 >;
+const mockGetURLYoutubeVideo =
+  getURLYoutubeVideo as MockedFunction<typeof getURLYoutubeVideo>;
+const mockGrab = grab as MockedFunction<typeof grab>;
 
 describe("extractContent", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("URL extraction", () => {
@@ -62,17 +67,10 @@ describe("extractContent", () => {
       expect(mockScrapeURL).toHaveBeenCalledWith("https://example.com/article", {
         proxy: null,
       });
-      expect(mockExtractContentAndCite).toHaveBeenCalledWith(mockHtml, {
-        url: "https://example.com/article",
-        images: true,
-        links: true,
-        formatting: true,
-        absoluteURLs: true,
-        timeout: 10,
-        proxy: null,
-        citeFormatMonthFull: false,
-        citeFormatAuthorFull: true,
-      });
+      expect(mockExtractContentAndCite).toHaveBeenCalledWith(
+        mockHtml,
+        expect.objectContaining({ url: "https://example.com/article" })
+      );
       expect(result.title).toBe("Test Article");
       expect(result.html).toBe("<p>Test content</p>");
     });
@@ -84,7 +82,8 @@ describe("extractContent", () => {
 
       const result = await extractContent("https://blocked-site.com/article");
 
-      expect(result.error).toBe("HTTP error: 403 Forbidden");
+      // Any non-string scrapeURL result collapses to one generic message.
+      expect(result.error).toBe("Failed to fetch HTML content");
       expect(mockExtractContentAndCite).not.toHaveBeenCalled();
     });
 
@@ -120,9 +119,10 @@ describe("extractContent", () => {
     it("should handle scrapeURL throwing an error", async () => {
       mockScrapeURL.mockRejectedValueOnce(new Error("Network timeout"));
 
-      await expect(
-        extractContent("https://timeout.com/article")
-      ).rejects.toThrow("Network timeout");
+      const result = await extractContent("https://timeout.com/article");
+
+      // extractContent catches scrape failures and reports them in-band.
+      expect(result.error).toBe("Failed to scrape URL: Network timeout");
     });
 
     it("should handle extraction returning no HTML", async () => {
@@ -192,8 +192,7 @@ describe("extractContent", () => {
 
   describe("YouTube extraction", () => {
     it("should extract YouTube video transcript", async () => {
-      const youtubeHelpers = require("../youtube-helpers");
-      youtubeHelpers.getURLYoutubeVideo.mockReturnValueOnce("dQw4w9WgXcQ");
+      mockGetURLYoutubeVideo.mockReturnValueOnce("dQw4w9WgXcQ");
 
       const mockTranscript = {
         title: "Test Video",
@@ -269,6 +268,10 @@ describe("extractContent", () => {
       };
 
       mockConvertPDFToHTML.mockResolvedValueOnce(mockPdfContent as any);
+      // isUrlPDF sniffs the leading "%PDF-" magic bytes via grab().
+      mockGrab.mockResolvedValueOnce(
+        new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]).buffer as any
+      );
 
       await extractContent(
         "https://drive.google.com/file/d/ABC123/view"

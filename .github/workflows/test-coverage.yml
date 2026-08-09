@@ -1,0 +1,97 @@
+name: Coverage
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vitest:
+    name: ${{ matrix.flag }}
+    runs-on: ubuntu-latest
+    strategy:
+      # One package's failure should not hide the coverage of the others.
+      fail-fast: false
+      matrix:
+        include:
+          - { flag: qwk-vscode-ext, dir: apps/qwk-vscode-ext }
+          - { flag: qwksearch-desktop, dir: apps/qwksearch-desktop }
+          - { flag: qwksearch-ext, dir: apps/qwksearch-ext }
+          - { flag: qwksearch-web, dir: apps/qwksearch-web }
+          - { flag: chat-agent-toolkit, dir: packages/chat-agent-toolkit }
+          - { flag: extract-pdf-docling, dir: packages/extract-pdf-docling }
+          - { flag: extract-webpage, dir: packages/extract-webpage }
+          - { flag: html-renderer-api, dir: packages/html-renderer-api }
+          - { flag: notebooklm-api-client, dir: packages/notebooklm-api-client }
+          - { flag: qwksearch-api-client, dir: packages/qwksearch-api-client }
+          - { flag: qwksearch-mcp-server, dir: packages/qwksearch-mcp-server }
+          - { flag: react-weather-forecast, dir: packages/react-weather-forecast }
+          - { flag: reason-editor, dir: packages/reason-editor }
+          - { flag: research-agent-ui, dir: packages/research-agent-ui }
+          - { flag: search-web-api, dir: packages/search-web-api }
+          - { flag: shadcn-app-dock, dir: packages/shadcn-app-dock }
+          - { flag: shadcn-settings, dir: packages/shadcn-settings }
+          - { flag: trending-news-api, dir: packages/trending-news-api }
+          - { flag: use-voice-control, dir: packages/use-voice-control }
+          - { flag: write-language, dir: packages/write-language }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      # A full install (not --ignore-scripts) so workspace packages that are
+      # consumed through their `dist` are built by their `prepare` scripts.
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run tests with coverage
+        working-directory: ${{ matrix.dir }}
+        run: bun run test:coverage
+
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: ${{ matrix.dir }}/coverage/lcov.info
+          flags: ${{ matrix.flag }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  # Packages that do not run on Vitest and so need their own invocation.
+  other-runners:
+    name: ${{ matrix.flag }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { flag: domain-rank, dir: packages/domain-rank, lcov: coverage/lcov.info }
+          - { flag: extract-pdf, dir: packages/extract-pdf, lcov: coverage/lcov.info }
+          - { flag: extract-youtube, dir: packages/extract-youtube, lcov: coverage/lcov.info }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run tests with coverage
+        working-directory: ${{ matrix.dir }}
+        run: bun run test:coverage
+
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: ${{ matrix.dir }}/${{ matrix.lcov }}
+          flags: ${{ matrix.flag }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
