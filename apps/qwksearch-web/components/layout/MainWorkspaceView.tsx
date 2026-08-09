@@ -9,7 +9,6 @@ import { localeActions } from 'react-reason-editor/locale-bundle';
 import { useMainView } from '@/components/layout/MainViewProvider';
 import { useChatTabs } from '@/components/layout/useChatTabs';
 
-import 'react-reason-editor/style.css';
 import 'katex/dist/katex.min.css';
 import 'easydrawer/styles.css';
 import 'katex/contrib/mhchem';

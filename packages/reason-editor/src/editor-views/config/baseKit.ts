@@ -24,7 +24,7 @@ export function buildBaseKit(): any[] {
     Text,
     Dropcursor.configure({
       class: 'react-reason-editor-theme',
-      color: 'hsl(var(--primary))',
+      color: 'hsl(var(--richtext-primary))',
       width: 2,
     }),
     Gapcursor,
