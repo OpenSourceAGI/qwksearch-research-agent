@@ -5,7 +5,7 @@
   overflow: hidden;
   line-height: 0;
   flex-direction: column;
-  border: 1px dashed hsl(var(--border)) !important;
+  border: 1px dashed hsl(var(--richtext-border)) !important;
   border-radius: 6px;
 
   .handlerWrap {
@@ -18,7 +18,7 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    border-radius: var(--border-radius);
+    border-radius: var(--richtext-border-radius);
     flex: 1;
   }
 

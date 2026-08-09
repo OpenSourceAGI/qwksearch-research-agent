@@ -1,7 +1,7 @@
 
 .reactjs-tiptap-editor {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: hsl(var(--richtext-background));
+  color: hsl(var(--richtext-foreground));
   // Fill the host container so height constraints propagate to the editor.
   // Resolves to `auto` (content height) when the parent is auto-height, so the
   // common page-grows embedding is unaffected; when the parent is bounded (e.g.
@@ -72,7 +72,7 @@
         @apply richtext-bg-black/5 dark:richtext-bg-white/10;
 
         hr {
-          border-top-color: hsl(var(--foreground)) !important;
+          border-top-color: hsl(var(--richtext-foreground)) !important;
         }
       }
 
@@ -88,7 +88,7 @@
 
     :not(.image-view)::selection,
     :not(.search-result)::selection {
-      background-color: hsl(var(--accent)) !important;
+      background-color: hsl(var(--richtext-accent)) !important;
     }
 
     .is-empty::before {
@@ -167,7 +167,7 @@
 
         &--focused:hover,
         &--resizing:hover {
-          outline-color: hsl(var(--primary));
+          outline-color: hsl(var(--richtext-primary));
         }
 
         &__placeholder {
@@ -186,7 +186,7 @@
       }
 
       .image-view__body--focused {
-        outline-color: hsl(var(--primary)) !important;
+        outline-color: hsl(var(--richtext-primary)) !important;
       }
 
       &.focus {
@@ -220,7 +220,7 @@
         height: 12px;
         border: 1px solid #fff;
         border-radius: 2px;
-        background-color: hsl(var(--primary));
+        background-color: hsl(var(--richtext-primary));
 
         &--tl {
           top: -6px;
@@ -266,12 +266,12 @@
   }
 
   .ProseMirror {
-    caret-color: hsl(var(--richtext-text-foreground)) !important;
+    caret-color: hsl(var(--richtext-foreground)) !important;
   }
 }
 
 .bg-item-active.bg-item-active {
-  background-color: hsl(var(--accent)) !important;
+  background-color: hsl(var(--richtext-accent)) !important;
 }
 
 .heading-1 {

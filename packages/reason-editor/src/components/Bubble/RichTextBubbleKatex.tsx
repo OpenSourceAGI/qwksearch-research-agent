@@ -95,7 +95,7 @@ function ModalEditKatex({ children, visible, toggleVisible }: any) {
       <DialogContent className='richtext-z-[99999] !richtext-max-w-[1300px]'>
         <DialogTitle>{t('editor.formula.dialog.text')}</DialogTitle>
 
-        <div style={{ height: '100%', border: '1px solid hsl(var(--border))' }}>
+        <div style={{ height: '100%', border: '1px solid hsl(var(--richtext-border))' }}>
           <div className='richtext-flex richtext-gap-[10px] richtext-rounded-[10px] richtext-p-[10px]'>
             <div className='richtext-flex-1'>
               <Label className='mb-[6px]'>Expression</Label>
@@ -109,7 +109,7 @@ function ModalEditKatex({ children, visible, toggleVisible }: any) {
                 rows={10}
                 value={currentValue}
                 style={{
-                  color: 'hsl(var(--foreground))',
+                  color: 'hsl(var(--richtext-foreground))',
                 }}
               />
 
@@ -121,7 +121,7 @@ function ModalEditKatex({ children, visible, toggleVisible }: any) {
                 rows={10}
                 value={currentMacros}
                 style={{
-                  color: 'hsl(var(--foreground))',
+                  color: 'hsl(var(--richtext-foreground))',
                 }}
               />
             </div>
