@@ -34,10 +34,25 @@ const MessageSources = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [glowEnabled, setGlowEnabled] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const wasOpenRef = useRef(false);
   const userClosedPanelRef = useRef(false);
   const { openPanel, isOpen } = useExtractPanel();
+
+  // Off by default; enabled via the "Search Result Glow Effect" setting.
+  useEffect(() => {
+    const readGlowSetting = () => {
+      setGlowEnabled(localStorage.getItem('searchResultGlow') === 'true');
+    };
+    readGlowSetting();
+    window.addEventListener('client-config-changed', readGlowSetting);
+    window.addEventListener('storage', readGlowSetting);
+    return () => {
+      window.removeEventListener('client-config-changed', readGlowSetting);
+      window.removeEventListener('storage', readGlowSetting);
+    };
+  }, []);
 
   // Track article loading/loaded states
   const [articleStates, setArticleStates] = useState<Record<string, 'loading' | 'loaded'>>({});
@@ -297,7 +312,7 @@ const MessageSources = ({
           <GlowingEffect
             spread={40}
             glow={true}
-            disabled={false}
+            disabled={!glowEnabled}
             proximity={64}
             inactiveZone={0.01}
             borderWidth={2}
@@ -335,7 +350,7 @@ const MessageSources = ({
         <GlowingEffect
           spread={40}
           glow={true}
-          disabled={false}
+          disabled={!glowEnabled}
           proximity={64}
           inactiveZone={0.01}
           borderWidth={2}
