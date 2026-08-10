@@ -2,6 +2,16 @@
 
 # MVP Phase (2026)
 
+## August 2026
+
+This cycle focused on delivery polish, weather, packaging, editor navigation, and user-account/connection quality improvements. The work stream shows a series of provider and UI changes: a new wide-area provider integration for `AnyAPI.ai` alongside OpenRouter and NVIDIA, discussions around a beta environment base URL and connection billing/social provider support, plus a settings and account-card update to show account email instead of provider account IDs.
+
+The app also saw a weather-forecast expansion with `ipinfo.io` replacement, live local time, F/C temperature toggles, precipitation and multi-location settings, then a package rename from `react-weather-forecast` to `use-weather-forecast` with cleanup of workspace dependencies and package references.
+
+On the REASON/editor side, the stack receives a new `MainViewProvider` workspace-navigation layer, a richer open-tabs/sidebar experience for chats and docs, sidebar file-tree and dock refinements, tooltip styling fixes, and CSS-variable isolation fixes to avoid collisions with the web app. Reliability fixes add stale-chunk reload behavior after deploys, a missing workspace dependency correction, and a build-error fix for an incorrect toast-import path.
+
+The release cadence also brought test-suite expansion and coverage wiring for packages through Codecov, plus integrative UX refinements such as the homepage downloads popup and app-store/extension landing-page button work.
+
 ## July 2026
 
 Major framework modernization with **Vinext** and **Vite 8** (rolldown-based). Replaced **LangChain** with **Vercel AI SDK** across the chat pipeline. Improved error handling in model loading and database operations. Fixed Worker deployments, CommonJS/ESM compatibility, and frozen lockfile issues.
