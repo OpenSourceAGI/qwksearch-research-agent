@@ -9,7 +9,16 @@ import { History } from '@/extensions/History/History';
 import { useActive } from '@/hooks/useActive';
 import { useButtonProps } from '@/hooks/useButtonProps';
 
-export function RichTextUndo() {
+export interface RichTextHistoryProps {
+  /**
+   * Render nothing while the command is unavailable instead of showing a
+   * greyed-out button — used by the main toolbar so undo/redo only appear
+   * once there is something to undo or redo.
+   */
+  hideWhenDisabled?: boolean;
+}
+
+export function RichTextUndo({ hideWhenDisabled }: RichTextHistoryProps = {}) {
   const buttonProps = useButtonProps(History.name);
 
   const {
@@ -35,6 +44,10 @@ export function RichTextUndo() {
     return <></>;
   }
 
+  if (hideWhenDisabled && disabled) {
+    return <></>;
+  }
+
   return (
     <ActionButton
       action={onAction}
@@ -47,7 +60,7 @@ export function RichTextUndo() {
   );
 }
 
-export function RichTextRedo() {
+export function RichTextRedo({ hideWhenDisabled }: RichTextHistoryProps = {}) {
   const buttonProps = useButtonProps(History.name);
 
   const {
@@ -68,6 +81,10 @@ export function RichTextRedo() {
   };
 
   if (!buttonProps) {
+    return <></>;
+  }
+
+  if (hideWhenDisabled && disabled) {
     return <></>;
   }
 
