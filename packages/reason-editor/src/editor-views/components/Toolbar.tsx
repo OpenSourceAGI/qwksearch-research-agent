@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import type { Editor } from '@tiptap/core';
 import { useCurrentEditor } from '@tiptap/react';
 import { ToolbarMenuItem } from '@/components';
 import { localeActions, useLocale } from 'react-reason-editor/locale-bundle';
@@ -45,7 +46,10 @@ import { RichTextVideo } from 'react-reason-editor/video';
 import { RichTextKatex } from 'react-reason-editor/katex';
 import { RichTextMermaid } from 'react-reason-editor/mermaid';
 import { RichTextSearchAndReplace } from 'react-reason-editor/searchandreplace';
-import { RichTextWordCount } from 'react-reason-editor/wordcount';
+import {
+  getWordCountStats,
+  type WordCountStats,
+} from '@/extensions/WordCount/utils/wordCount';
 import { RichTextCodeView } from 'react-reason-editor/codeview';
 import { RichTextImportWord } from 'react-reason-editor/importword';
 import { RichTextExportWord } from 'react-reason-editor/exportword';
@@ -70,6 +74,7 @@ import {
   ClipboardType,
   ListTree,
   File,
+  FileText,
   Download,
   Share2,
   Copy,
@@ -79,7 +84,6 @@ import {
   Globe,
   Mail,
   Users,
-  MoreVertical,
   MessageSquare,
   MessageSquarePlus,
 } from 'lucide-react';
@@ -584,7 +588,7 @@ function ToolbarIconBtn({
 const panelCls =
   'fixed bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-gray-200/60 dark:border-slate-700/60 rounded-lg shadow-xl py-1 z-50 min-w-[220px] dropdown-portal';
 
-// ─── File sharing modal ───────────────────────────────────────────────────────
+// ─── Document details modal (info + word count + sharing) ─────────────────────
 
 interface SharedUser {
   email: string;
@@ -599,7 +603,52 @@ interface SharingState {
   shareLink: string | null;
 }
 
-function FileShareModal({ onClose, documentTitle }: { onClose: () => void; documentTitle: string }) {
+type DocumentDetailsTab = 'info' | 'share';
+
+/**
+ * Single popup that merges what used to be three separate surfaces: the
+ * document info modal, the word-count popover, and the share modal. It opens
+ * on whichever tab the caller asks for.
+ */
+function DocumentDetailsModal({
+  onClose,
+  documentTitle,
+  editor,
+  initialTab = 'info',
+}: {
+  onClose: () => void;
+  documentTitle: string;
+  editor?: Editor | null;
+  initialTab?: DocumentDetailsTab;
+}) {
+  const [tab, setTab] = useState<DocumentDetailsTab>(initialTab);
+  const [stats, setStats] = useState<WordCountStats>(() => getWordCountStats(editor));
+
+  // Live counters: refresh while the modal is open so the numbers track edits
+  // made behind it.
+  useEffect(() => {
+    if (!editor) return;
+
+    const update = () => setStats(getWordCountStats(editor));
+
+    update();
+    editor.on('update', update);
+
+    return () => {
+      editor.off('update', update);
+    };
+  }, [editor]);
+
+  // Placeholder timestamps — kept stable across renders so the dates don't
+  // shuffle while the modal is open.
+  const { createdDate, modifiedDate } = useMemo(
+    () => ({
+      createdDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      modifiedDate: new Date(),
+    }),
+    [],
+  );
+
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'viewer' | 'commentor' | 'editor'>('viewer');
   const [sharing, setSharing] = useState<SharingState>({
@@ -662,16 +711,35 @@ function FileShareModal({ onClose, documentTitle }: { onClose: () => void; docum
     }
   };
 
+  const statRows: { label: string; value: number }[] = [
+    { label: 'Words', value: stats.words },
+    { label: 'Characters (with spaces)', value: stats.charactersWithSpaces },
+    { label: 'Characters (no spaces)', value: stats.charactersNoSpaces },
+    { label: 'Sentences', value: stats.sentences },
+    { label: 'Paragraphs', value: stats.paragraphs },
+    { label: 'Links', value: stats.links },
+    { label: 'Images', value: stats.images },
+  ];
+
+  const tabCls = (name: DocumentDetailsTab) =>
+    `px-3 py-1.5 text-sm rounded-md transition-colors ${
+      tab === name
+        ? 'bg-white dark:bg-slate-900 text-gray-900 dark:text-white shadow-sm font-medium'
+        : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
+    }`;
+
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl w-[600px] max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700">
-          <div className="flex items-center gap-3">
-            <Share2 size={18} className="text-blue-500" />
-            <div>
-              <h2 className="font-semibold text-gray-900 dark:text-white">Share "{documentTitle}"</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Manage who can access this document</p>
+          <div className="flex items-center gap-3 min-w-0">
+            <FileText size={18} className="text-blue-500 shrink-0" />
+            <div className="min-w-0">
+              <h2 className="font-semibold text-gray-900 dark:text-white truncate">{documentTitle}</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {tab === 'info' ? 'Document details and statistics' : 'Manage who can access this document'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800">
@@ -679,7 +747,76 @@ function FileShareModal({ onClose, documentTitle }: { onClose: () => void; docum
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 p-6 space-y-6">
+        {/* Tabs */}
+        <div className="px-6 pt-3">
+          <div className="inline-flex gap-1 p-1 rounded-lg bg-gray-100 dark:bg-slate-800">
+            <button className={tabCls('info')} onClick={() => setTab('info')} type="button">
+              Info &amp; word count
+            </button>
+            <button className={tabCls('share')} onClick={() => setTab('share')} type="button">
+              Sharing
+            </button>
+          </div>
+        </div>
+
+        <div className={`overflow-y-auto flex-1 p-6 space-y-6 ${tab === 'info' ? '' : 'hidden'}`}>
+          {/* Document metadata */}
+          <div className="space-y-4">
+            <div>
+              <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Document Name</p>
+              <p className="text-sm text-gray-900 dark:text-white break-words">{documentTitle}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Created</p>
+                <p className="text-sm text-gray-900 dark:text-white">{createdDate.toLocaleDateString()}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Last Modified</p>
+                <p className="text-sm text-gray-900 dark:text-white">{modifiedDate.toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Access</p>
+                <p className="text-sm text-gray-900 dark:text-white">{sharing.isPublic ? 'Public' : 'Private'}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Shared with</p>
+                <p className="text-sm text-gray-900 dark:text-white">
+                  {sharing.sharedWith.length === 1 ? '1 person' : `${sharing.sharedWith.length} people`}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Word count */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Word Count</h3>
+            <table className="w-full text-sm">
+              <tbody>
+                {statRows.map(row => (
+                  <tr key={row.label} className="border-b border-gray-100 dark:border-slate-700 last:border-b-0">
+                    <td className="py-1.5 pr-2 text-gray-500 dark:text-gray-400">{row.label}</td>
+                    <td className="py-1.5 text-right font-semibold tabular-nums text-gray-900 dark:text-white">
+                      {row.value.toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <button
+            onClick={() => setTab('share')}
+            className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200"
+          >
+            <Share2 size={14} />
+            Manage sharing
+          </button>
+        </div>
+
+        <div className={`overflow-y-auto flex-1 p-6 space-y-6 ${tab === 'share' ? '' : 'hidden'}`}>
           {/* Public access toggle */}
           <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/50">
             <div className="flex items-center gap-3">
@@ -767,6 +904,7 @@ function FileShareModal({ onClose, documentTitle }: { onClose: () => void; docum
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      <span className="text-gray-400 dark:text-gray-500">{getRoleIcon(user.role)}</span>
                       <select
                         value={user.role}
                         onChange={e => handleUpdateRole(user.email, e.target.value as 'viewer' | 'commentor' | 'editor')}
@@ -846,56 +984,6 @@ function FileRenameModal({ onClose, currentName }: { onClose: () => void; curren
   );
 }
 
-// ─── File info modal ───────────────────────────────────────────────────────────
-
-function FileInfoModal({ onClose, documentTitle }: { onClose: () => void; documentTitle: string }) {
-  const createdDate = new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000);
-  const modifiedDate = new Date();
-  const wordCount = Math.floor(Math.random() * 5000) + 100;
-  const charCount = Math.floor(Math.random() * 30000) + 1000;
-
-  return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl w-[450px]" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700">
-          <h2 className="font-semibold text-gray-900 dark:text-white">Document info</h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800">
-            <X size={16} />
-          </button>
-        </div>
-        <div className="p-6 space-y-4">
-          <div>
-            <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Document Name</p>
-            <p className="text-sm text-gray-900 dark:text-white break-words">{documentTitle}</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Created</p>
-              <p className="text-sm text-gray-900 dark:text-white">{createdDate.toLocaleDateString()}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Last Modified</p>
-              <p className="text-sm text-gray-900 dark:text-white">{modifiedDate.toLocaleDateString()}</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Words</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">{wordCount.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Characters</p>
-              <p className="text-lg font-semibold text-gray-900 dark:text-white">{charCount.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
-
 // ─── Main toolbar ─────────────────────────────────────────────────────────────
 
 export const RichTextToolbar = ({
@@ -913,9 +1001,9 @@ export const RichTextToolbar = ({
   const [showCss, setShowCss] = useState(false);
   const [showToc, setShowToc] = useState(false);
   const [harperOn, setHarperOn] = useState(false);
-  const [showShare, setShowShare] = useState(false);
   const [showRename, setShowRename] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
+  // Which tab the combined document modal should open on — null keeps it closed.
+  const [detailsTab, setDetailsTab] = useState<DocumentDetailsTab | null>(null);
 
   // When an open-settings handler is supplied the Settings button opens the
   // parent-owned config modal; otherwise it falls back to the quick dropdown.
@@ -1071,9 +1159,9 @@ export const RichTextToolbar = ({
     <>
       <div className="flex items-center gap-0.5 border-b border-gray-200 dark:border-slate-700 px-2 py-1 flex-wrap">
 
-        {/* Undo / Redo */}
-        <RichTextUndo />
-        <RichTextRedo />
+        {/* Undo / Redo — only rendered while the command is actually available */}
+        <RichTextUndo hideWhenDisabled />
+        <RichTextRedo hideWhenDisabled />
 
         {/* Zoom controls */}
         <div className="border-l border-gray-200 dark:border-slate-700 mx-0.5 px-0.5">
@@ -1086,46 +1174,6 @@ export const RichTextToolbar = ({
         <RichTextUnderline />
         <RichTextFontSize />
         <RichTextHighlight />
-
-        {/* File menu */}
-        <div className="dropdown-container">
-          <ToolbarIconBtn name="file" label="File" active={open === 'file'} onClick={openMenu}>
-            <File size={16} />
-          </ToolbarIconBtn>
-          {open === 'file' && pos && createPortal(
-            <div className={panelCls} style={panelStyle()}>
-              <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">File</div>
-              <MenuAction
-                icon={<Copy size={14} />}
-                label="Make a copy"
-                onClick={() => { close(); alert('Document copied to your drive'); }}
-              />
-              <MenuAction
-                icon={<Download size={14} />}
-                label="Download"
-                onClick={() => { close(); alert('Downloading document...'); }}
-              />
-              <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
-              <MenuAction
-                icon={<Edit3 size={14} />}
-                label="Rename"
-                onClick={() => { close(); setShowRename(true); }}
-              />
-              <MenuAction
-                icon={<Share2 size={14} />}
-                label="Share"
-                onClick={() => { close(); setShowShare(true); }}
-              />
-              <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
-              <MenuAction
-                icon={<MoreVertical size={14} />}
-                label="Document info"
-                onClick={() => { close(); setShowInfo(true); }}
-              />
-            </div>,
-            document.body
-          )}
-        </div>
 
         {/* ≡ — Block format */}
         <div className="dropdown-container">
@@ -1250,7 +1298,34 @@ export const RichTextToolbar = ({
             </svg>
           </ToolbarIconBtn>
           {open === 'tools' && pos && createPortal(
-            <div className={panelCls} style={panelStyle()}>
+            <div className={`${panelCls} max-h-[70vh] overflow-y-auto`} style={panelStyle()}>
+              <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Document</div>
+              <MenuAction
+                icon={<FileText size={14} />}
+                label="Document info & word count"
+                onClick={() => { close(); setDetailsTab('info'); }}
+              />
+              <MenuAction
+                icon={<Share2 size={14} />}
+                label="Share"
+                onClick={() => { close(); setDetailsTab('share'); }}
+              />
+              <MenuAction
+                icon={<Edit3 size={14} />}
+                label="Rename"
+                onClick={() => { close(); setShowRename(true); }}
+              />
+              <MenuAction
+                icon={<Copy size={14} />}
+                label="Make a copy"
+                onClick={() => { close(); alert('Document copied to your drive'); }}
+              />
+              <MenuAction
+                icon={<Download size={14} />}
+                label="Download"
+                onClick={() => { close(); alert('Downloading document...'); }}
+              />
+              <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
               <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Tools</div>
               <MenuAction icon={<Scissors size={14} />} label="Cut" shortcut="Ctrl+X" onClick={() => { close(); handleCut(); }} />
               <MenuAction icon={<Clipboard size={14} />} label="Copy" shortcut="Ctrl+C" onClick={() => { close(); handleCopy(); }} />
@@ -1270,7 +1345,6 @@ export const RichTextToolbar = ({
                 <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
               )}
               <ToolbarMenuItem label="Find / Replace"><RichTextSearchAndReplace /></ToolbarMenuItem>
-              <ToolbarMenuItem label="Word Count"><RichTextWordCount /></ToolbarMenuItem>
               <ToolbarMenuItem label="View Source"><RichTextCodeView /></ToolbarMenuItem>
               <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
               <MenuToggle
@@ -1403,9 +1477,15 @@ export const RichTextToolbar = ({
         <RichTextTableOfContentsPanel editor={editor} onClose={() => setShowToc(false)} />
       )}
       {hasHarper && harperOn && editor && <RichTextHarper editor={editor} />}
-      {showShare && <FileShareModal onClose={() => setShowShare(false)} documentTitle={documentTitle} />}
       {showRename && <FileRenameModal onClose={() => setShowRename(false)} currentName={documentTitle} />}
-      {showInfo && <FileInfoModal onClose={() => setShowInfo(false)} documentTitle={documentTitle} />}
+      {detailsTab && (
+        <DocumentDetailsModal
+          documentTitle={documentTitle}
+          editor={editor}
+          initialTab={detailsTab}
+          onClose={() => setDetailsTab(null)}
+        />
+      )}
     </>
   );
 };
