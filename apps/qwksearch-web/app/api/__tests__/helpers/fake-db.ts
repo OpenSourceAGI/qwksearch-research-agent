@@ -8,17 +8,32 @@
  * call is recorded for assertions.
  */
 
+/**
+ * A configured result: either a fixed value, or a function receiving the
+ * 0-based index of the call so a handler that runs several queries of the same
+ * kind (e.g. a cache lookup followed by a related-rows lookup) can return a
+ * different result for each.
+ */
+export type FakeResult<T> = T | ((callIndex: number) => T);
+
 export interface FakeDbOptions {
   /** Rows returned by an awaited `db.select()...` chain. */
-  select?: unknown[];
+  select?: FakeResult<unknown[]>;
   /** Rows returned by an awaited `db.insert()...returning()` chain. */
-  insert?: unknown[];
+  insert?: FakeResult<unknown[]>;
   /** Rows returned by an awaited `db.update()...returning()` chain. */
-  update?: unknown[];
+  update?: FakeResult<unknown[]>;
   /** Value an awaited `db.delete()...` chain resolves to. */
-  delete?: unknown;
+  delete?: FakeResult<unknown>;
   /** Results for the relational `db.query.<table>.findMany/findFirst` API. */
   query?: Record<string, { findMany?: unknown; findFirst?: unknown }>;
+}
+
+function resolveResult<T>(configured: FakeResult<T> | undefined, fallback: T, callIndex: number): T {
+  if (configured === undefined) return fallback;
+  return typeof configured === 'function'
+    ? (configured as (callIndex: number) => T)(callIndex)
+    : configured;
 }
 
 /** Every fluent method a route handler in this app chains onto a query. */
@@ -68,9 +83,13 @@ export function createFakeDb(options: FakeDbOptions = {}): FakeDb {
     return node;
   };
 
-  const entrypoint = (name: string, resolveWith: () => unknown) => (...args: unknown[]) => {
-    record(name, args);
-    return makeChain(resolveWith);
+  const entrypoint = (name: string, resolveWith: (callIndex: number) => unknown) => {
+    let callIndex = 0;
+    return (...args: unknown[]) => {
+      record(name, args);
+      const index = callIndex++;
+      return makeChain(() => resolveWith(index));
+    };
   };
 
   const query = new Proxy(
@@ -92,10 +111,10 @@ export function createFakeDb(options: FakeDbOptions = {}): FakeDb {
   ) as FakeDb['query'];
 
   return {
-    select: entrypoint('select', () => options.select ?? []),
-    insert: entrypoint('insert', () => options.insert ?? []),
-    update: entrypoint('update', () => options.update ?? []),
-    delete: entrypoint('delete', () => options.delete ?? undefined),
+    select: entrypoint('select', (i) => resolveResult(options.select, [], i)),
+    insert: entrypoint('insert', (i) => resolveResult(options.insert, [], i)),
+    update: entrypoint('update', (i) => resolveResult(options.update, [], i)),
+    delete: entrypoint('delete', (i) => resolveResult(options.delete, undefined, i)),
     query,
     calls,
   };
