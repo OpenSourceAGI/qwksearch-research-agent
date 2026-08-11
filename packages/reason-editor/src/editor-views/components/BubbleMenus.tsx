@@ -20,6 +20,8 @@ import {
 } from 'react-reason-editor/bubble';
 import { SlashCommandList } from 'react-reason-editor/slashcommand';
 
+import { AiMenu } from '@/extensions/Ai';
+
 export const BubbleMenus = () => {
   return (
     <>
@@ -38,6 +40,7 @@ export const BubbleMenus = () => {
       <RichTextBubbleCodeBlock />
       <RichTextBubbleMenuDragHandle />
       <SlashCommandList />
+      <AiMenu />
     </>
   );
 };

@@ -62,6 +62,7 @@ import { Twitter } from 'react-reason-editor/twitter';
 import { Video } from 'react-reason-editor/video';
 import { WordCount } from 'react-reason-editor/wordcount';
 
+import { Ai } from '@/extensions/Ai';
 import { Comment } from '@/extensions/Comment';
 import { Drawio } from '@/extensions/Drawio';
 import { Harper } from '@/extensions/Harper';
@@ -619,6 +620,16 @@ export const PLUGIN_REGISTRY: PluginDefinition[] = [
       },
     ],
     create: (s) => Harper.configure({ autoLint: !!s.autoLint }),
+  },
+  {
+    key: 'ai',
+    label: 'AI Writing',
+    description: 'Ask AI anything: rewrite, expand, shorten, or fix selected text with an inline diff review.',
+    category: 'Collaboration',
+    // Ships with an offline demo completion so the menu works out of the box;
+    // host apps override it with a real model via `Ai.configure({ getCompletion })`.
+    defaultEnabled: true,
+    create: () => Ai,
   },
 
   // ── Discoverable extras (off by default) ──
