@@ -5,10 +5,38 @@ export default defineConfig({
   resolve: {
     // Mirrors the `@` alias in vite.config.ts; without it the untested utils
     // that import through `@/…` cannot be transformed for the coverage report.
-    alias: [{ find: '@', replacement: path.resolve(import.meta.dirname, 'src') }],
+    alias: [
+      { find: '@', replacement: path.resolve(import.meta.dirname, 'src') },
+      // `react-tweet`'s published ESM imports CSS modules, which Node cannot
+      // load once Vitest externalizes the package. It reaches the module graph
+      // through both this package's Twitter extension and Novel's own bundle,
+      // and nothing under test renders a tweet, so it is stubbed out.
+      {
+        find: /^react-tweet$/,
+        replacement: path.resolve(import.meta.dirname, 'test/helpers/react-tweet-stub.tsx'),
+      },
+    ],
+  },
+  css: {
+    // Components under test (the Novel editor shell, RichTextProvider) import
+    // `src/styles/index.scss`. An inline postcss config stops Vite from
+    // discovering the repo's `postcss.config.js`, whose `tailwindcss/nesting`
+    // entry no longer resolves under Tailwind v4. Vitest does not apply the
+    // resulting CSS anyway (`test.css` is off), so an empty plugin list is
+    // enough to let the import through.
+    postcss: { plugins: [] },
   },
   test: {
     globals: true,
+    server: {
+      deps: {
+        // Novel must go through Vite rather than Node's ESM loader: its
+        // bundle imports `react-tweet`, whose published ESM imports CSS
+        // modules that Node cannot load. Inlined, Vite resolves that import
+        // through the `react-tweet` alias below instead.
+        inline: ['novel', 'react-tweet'],
+      },
+    },
     // The utilities under test touch localStorage, navigator and Blob/File.
     environment: 'jsdom',
     include: ['test/**/*.test.ts', 'test/**/*.test.tsx'],

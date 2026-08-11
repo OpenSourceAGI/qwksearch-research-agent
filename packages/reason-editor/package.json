@@ -859,6 +859,7 @@
     "mermaid": "^11.15.0",
     "motion": "^12.40.0",
     "next-themes": "^0.4.6",
+    "novel": "^1.0.2",
     "prosemirror-docx": "^0.6.1",
     "re-resizable": "^6.11.2",
     "react-colorful": "^5.7.0",

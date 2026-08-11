@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useEditor, EditorContent } from "@tiptap/react";
+import type { Editor } from "@tiptap/core";
 import {
-  RichTextProvider,
+  NovelEditor,
   RichTextToolbar,
   BubbleMenus,
   buildExtensions,
@@ -24,50 +24,59 @@ interface DocState {
   html: string;
 }
 
-interface EditorSurfaceProps {
+interface ReasonEditorViewProps {
   html: string;
   theme: "light" | "dark";
   onChange: (html: string) => void;
   onAskQwkSearch: (text: string) => void;
 }
 
-/** Remounted (via the `key` at the call site) whenever a new revision arrives from disk. */
-function EditorSurface({ html, theme, onChange, onAskQwkSearch }: EditorSurfaceProps) {
-  const editor = useEditor({
-    content: html,
-    extensions: EXTENSIONS,
-    onUpdate: ({ editor }) => onChange(editor.getHTML()),
-  });
-
-  if (!editor) return null;
+/**
+ * Remounted (via the `key` at the call site) whenever a new revision arrives
+ * from disk. `NovelEditor` builds the editor — Novel's `EditorRoot`/
+ * `EditorContent` shell — and hands back the `EditorSurface` placed in the
+ * body slot below, so the toolbar/topbar layout is unchanged.
+ */
+function ReasonEditorView({ html, theme, onChange, onAskQwkSearch }: ReasonEditorViewProps) {
+  const [editor, setEditor] = useState<Editor | null>(null);
 
   const askAboutSelection = () => {
+    if (!editor) return;
     const selected = window.getSelection()?.toString().trim();
     const text = selected && selected.length > 0 ? selected : editor.getText();
     if (text.trim()) onAskQwkSearch(text);
   };
 
   return (
-    <RichTextProvider editor={editor} dark={theme === "dark"}>
-      <div className="reason-editor-shell">
-        <div className="reason-editor-topbar">
-          <div className="reason-editor-toolbar-scroll">
-            <RichTextToolbar theme={theme} setTheme={() => {}} />
+    <NovelEditor
+      extensions={EXTENSIONS}
+      initialContent={html}
+      onEditor={setEditor}
+      onUpdate={({ editor: e }) => onChange(e.getHTML())}
+    >
+      {({ editor: currentEditor, EditorSurface }) => (
+        <div className="reason-editor-shell">
+          <div className="reason-editor-topbar">
+            <div className="reason-editor-toolbar-scroll">
+              {/* Waits for the editor, as `RichTextProvider` used to by
+                  rendering nothing until its `editor` prop arrived. */}
+              {currentEditor && <RichTextToolbar theme={theme} setTheme={() => {}} />}
+            </div>
+            <button
+              className="icon-button ask-qwksearch"
+              onClick={askAboutSelection}
+              title="Send the current selection (or whole document) to the QwkSearch sidebar"
+            >
+              Ask QwkSearch
+            </button>
           </div>
-          <button
-            className="icon-button ask-qwksearch"
-            onClick={askAboutSelection}
-            title="Send the current selection (or whole document) to the QwkSearch sidebar"
-          >
-            Ask QwkSearch
-          </button>
+          <div className="reason-editor-body">
+            <EditorSurface />
+          </div>
+          {currentEditor && <BubbleMenus />}
         </div>
-        <div className="reason-editor-body">
-          <EditorContent editor={editor} />
-        </div>
-        <BubbleMenus />
-      </div>
-    </RichTextProvider>
+      )}
+    </NovelEditor>
   );
 }
 
@@ -127,7 +136,7 @@ export default function App() {
   }
 
   return (
-    <EditorSurface
+    <ReasonEditorView
       key={doc.revision}
       html={doc.html}
       theme={theme}
