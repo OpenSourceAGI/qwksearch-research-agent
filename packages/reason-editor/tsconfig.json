@@ -18,6 +18,7 @@
       "@/*": ["./src/*"],
       "react-reason-editor": ["./src/index.ts"],
       "react-reason-editor/theme": ["./src/theme/theme.ts"],
+      "react-reason-editor/docs-agent": ["./src/docs-agent.ts"],
       "react-reason-editor/locale-bundle": ["./src/locale-bundle.ts"],
       "react-reason-editor/bubble": ["./src/bubble.ts"],
       "react-reason-editor/attachment": ["./src/extensions/Attachment/index.ts"],

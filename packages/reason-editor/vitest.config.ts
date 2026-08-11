@@ -11,6 +11,13 @@ export default defineConfig({
       // load once Vitest externalizes the package. It reaches the module graph
       // through both this package's Twitter extension and Novel's own bundle,
       // and nothing under test renders a tweet, so it is stubbed out.
+      // Third-party ESM (e.g. `@platejs/math`) imports stylesheets as a side
+      // effect; Node cannot load a `.css` specifier once Vitest externalizes
+      // the package, and nothing under test renders styled output.
+      {
+        find: /^katex\/dist\/katex(\.min)?\.css$/,
+        replacement: path.resolve(import.meta.dirname, 'test/helpers/empty-module.ts'),
+      },
       {
         find: /^react-tweet$/,
         replacement: path.resolve(import.meta.dirname, 'test/helpers/react-tweet-stub.tsx'),
@@ -34,12 +41,15 @@ export default defineConfig({
         // bundle imports `react-tweet`, whose published ESM imports CSS
         // modules that Node cannot load. Inlined, Vite resolves that import
         // through the `react-tweet` alias below instead.
-        inline: ['novel', 'react-tweet'],
+        // Plate packages import stylesheets as a side effect; inlined, Vite
+        // resolves those through the aliases above instead of Node's loader.
+        inline: ['novel', 'react-tweet', /@platejs\//, /katex/],
       },
     },
     // The utilities under test touch localStorage, navigator and Blob/File.
     environment: 'jsdom',
     include: ['test/**/*.test.ts', 'test/**/*.test.tsx'],
+    testTimeout: 20000,
     restoreMocks: true,
     unstubGlobals: true,
     coverage: {

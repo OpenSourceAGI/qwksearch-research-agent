@@ -16,6 +16,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     projects: [
+      'apps/collaboration-server',
       'apps/qwk-vscode-ext',
       'apps/qwksearch-desktop',
       'apps/qwksearch-ext',

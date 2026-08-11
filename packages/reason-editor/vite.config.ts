@@ -47,6 +47,7 @@ function selfReferenceResolver(srcDir: string): Plugin {
       if (id === 'react-reason-editor/style.css') return path.resolve(srcDir, 'styles/index.scss');
       if (id === 'react-reason-editor/theme') return path.resolve(srcDir, 'theme/theme.ts');
       if (id === 'react-reason-editor/locale-bundle') return path.resolve(srcDir, 'locale-bundle.ts');
+      if (id === 'react-reason-editor/docs-agent') return path.resolve(srcDir, 'docs-agent.ts');
       // Rolldown fails to resolve this one extension subpath as a
       // cross-entry self-reference (unlike every other `./extensions/*`
       // export, which it resolves natively during this build), so it needs
@@ -116,6 +117,7 @@ export default defineConfig(async ({ mode }) => {
     path.resolve(__dirname, 'src/theme/theme.ts'),
     path.resolve(__dirname, 'src/reason-docs.ts'),
     path.resolve(__dirname, 'src/editor-kit.ts'),
+    path.resolve(__dirname, 'src/docs-agent.ts'),
   ];
 
   const files = await globbySync('src/extensions/**/*.ts', {
