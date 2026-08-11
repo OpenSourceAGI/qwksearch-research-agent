@@ -3,7 +3,7 @@
   /* for NodeView */
   border-width: 1px !important;
   border-radius: var(--richtext-radius) !important;
-  border-color: hsl(var(--richtext-border)) !important;
+  border-color: var(--richtext-border) !important;
   padding: 8px;
   display: flex;
   align-items: center;

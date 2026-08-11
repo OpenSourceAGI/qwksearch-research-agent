@@ -2,51 +2,116 @@
 @tailwind components;
 @tailwind utilities;
 
-// shadcn UI design tokens - light theme
+// ── Design tokens ─────────────────────────────────────────────────────────
+//
+// Every `--richtext-*` token is an alias for the *host application's* shadcn
+// token of the same name, so an app that themes itself by redefining
+// `--primary` / `--secondary` / `--background` / … themes the editor with it —
+// no per-package theme wiring, and no editor that stays stubbornly white while
+// the rest of the product is on a coloured theme.
+//
+// The second argument of each `var()` is the fallback used when the host does
+// not define that token (the standalone `bun run dev:editor` shell, Storybook,
+// or any consumer of the published package). Those fallbacks are the values
+// this file used to hard-code, so a bare embed looks exactly as it did before.
+//
+// Tokens hold *complete colours*, not the bare `H S L` channel triplets shadcn
+// v3 used, because host themes are free to express their palette in any colour
+// space (this product uses `oklch()`); `hsl(var(--x))` cannot wrap those. Every
+// consumer therefore reads `var(--richtext-x)` directly — see
+// `tailwind.config.js`, which no longer wraps these in `hsl()`. Alpha variants
+// use `color-mix()` rather than the `hsl(… / α)` slash syntax.
 :root {
-  --richtext-radius: 0.65rem;
-  --richtext-background: 0 0% 100%;
-  --richtext-foreground: 240 10% 3.9%;
-  --richtext-card: 0 0% 100%;
-  --richtext-card-foreground: 240 10% 3.9%;
-  --richtext-popover: 0 0% 100%;
-  --richtext-popover-foreground: 240 10% 3.9%;
-  --richtext-primary: 240 5.9% 10%;
-  --richtext-primary-foreground: 0 0% 98%;
-  --richtext-secondary: 240 4.8% 95.9%;
-  --richtext-secondary-foreground: 240 5.9% 10%;
-  --richtext-muted: 240 4.8% 95.9%;
-  --richtext-muted-foreground: 240 3.8% 46.1%;
-  --richtext-accent: 240 4.8% 95.9%;
-  --richtext-accent-foreground: 240 5.9% 10%;
-  --richtext-destructive: 0 84.2% 60.2%;
-  --richtext-destructive-foreground: 0 0% 98%;
-  --richtext-border: 240 5.9% 90%;
-  --richtext-input: 240 5.9% 90%;
-  --richtext-ring: 240 5.9% 10%;
+  --richtext-radius: var(--radius, 0.65rem);
+  // The editor canvas follows the host's dedicated editor surface colour when
+  // there is one, and its page background otherwise.
+  --richtext-background: var(--editor-bg, var(--background, hsl(0 0% 100%)));
+  --richtext-foreground: var(--foreground, hsl(240 10% 3.9%));
+  --richtext-card: var(--card, hsl(0 0% 100%));
+  --richtext-card-foreground: var(--card-foreground, hsl(240 10% 3.9%));
+  --richtext-popover: var(--popover, hsl(0 0% 100%));
+  --richtext-popover-foreground: var(--popover-foreground, hsl(240 10% 3.9%));
+  --richtext-primary: var(--primary, hsl(240 5.9% 10%));
+  --richtext-primary-foreground: var(--primary-foreground, hsl(0 0% 98%));
+  --richtext-secondary: var(--secondary, hsl(240 4.8% 95.9%));
+  --richtext-secondary-foreground: var(--secondary-foreground, hsl(240 5.9% 10%));
+  --richtext-muted: var(--muted, hsl(240 4.8% 95.9%));
+  --richtext-muted-foreground: var(--muted-foreground, hsl(240 3.8% 46.1%));
+  --richtext-accent: var(--accent, hsl(240 4.8% 95.9%));
+  --richtext-accent-foreground: var(--accent-foreground, hsl(240 5.9% 10%));
+  --richtext-destructive: var(--destructive, hsl(0 84.2% 60.2%));
+  --richtext-destructive-foreground: var(--destructive-foreground, hsl(0 0% 98%));
+  --richtext-border: var(--border, hsl(240 5.9% 90%));
+  --richtext-input: var(--input, hsl(240 5.9% 90%));
+  --richtext-ring: var(--ring, hsl(240 5.9% 10%));
 }
 
-// shadcn UI design tokens - dark theme
+// Dark theme.
+//
+// When the host toggles dark mode on `<html>` these aliases would already
+// resolve correctly — they are declared on `:root`, so they re-substitute
+// against the host's own dark values. The block is repeated here for the case
+// the host puts `.dark` on a *descendant* (a body wrapper, a preview pane): a
+// custom property is substituted on the element that declares it, so without
+// this the editor would keep the light values it inherited from `:root`. Only
+// the fallbacks differ from the block above.
 .dark {
-  --richtext-background: 240 10% 3.9%;
-  --richtext-foreground: 0 0% 98%;
-  --richtext-card: 240 10% 3.9%;
-  --richtext-card-foreground: 0 0% 98%;
-  --richtext-popover: 240 10% 3.9%;
-  --richtext-popover-foreground: 0 0% 98%;
-  --richtext-primary: 0 0% 98%;
-  --richtext-primary-foreground: 240 5.9% 10%;
-  --richtext-secondary: 240 3.7% 15.9%;
-  --richtext-secondary-foreground: 0 0% 98%;
-  --richtext-muted: 240 3.7% 15.9%;
-  --richtext-muted-foreground: 240 5% 64.9%;
-  --richtext-accent: 240 3.7% 15.9%;
-  --richtext-accent-foreground: 0 0% 98%;
-  --richtext-destructive: 0 62.8% 30.6%;
-  --richtext-destructive-foreground: 0 0% 98%;
-  --richtext-border: 240 3.7% 15.9%;
-  --richtext-input: 240 3.7% 15.9%;
-  --richtext-ring: 240 4.9% 83.9%;
+  --richtext-background: var(--editor-bg, var(--background, hsl(240 10% 3.9%)));
+  --richtext-foreground: var(--foreground, hsl(0 0% 98%));
+  --richtext-card: var(--card, hsl(240 10% 3.9%));
+  --richtext-card-foreground: var(--card-foreground, hsl(0 0% 98%));
+  --richtext-popover: var(--popover, hsl(240 10% 3.9%));
+  --richtext-popover-foreground: var(--popover-foreground, hsl(0 0% 98%));
+  --richtext-primary: var(--primary, hsl(0 0% 98%));
+  --richtext-primary-foreground: var(--primary-foreground, hsl(240 5.9% 10%));
+  --richtext-secondary: var(--secondary, hsl(240 3.7% 15.9%));
+  --richtext-secondary-foreground: var(--secondary-foreground, hsl(0 0% 98%));
+  --richtext-muted: var(--muted, hsl(240 3.7% 15.9%));
+  --richtext-muted-foreground: var(--muted-foreground, hsl(240 5% 64.9%));
+  --richtext-accent: var(--accent, hsl(240 3.7% 15.9%));
+  --richtext-accent-foreground: var(--accent-foreground, hsl(0 0% 98%));
+  --richtext-destructive: var(--destructive, hsl(0 62.8% 30.6%));
+  --richtext-destructive-foreground: var(--destructive-foreground, hsl(0 0% 98%));
+  --richtext-border: var(--border, hsl(240 3.7% 15.9%));
+  --richtext-input: var(--input, hsl(240 3.7% 15.9%));
+  --richtext-ring: var(--ring, hsl(240 4.9% 83.9%));
+}
+
+// ── Tooltips ──────────────────────────────────────────────────────────────
+//
+// Tooltip content is portalled to <body>, outside `.reactjs-tiptap-editor`, so
+// it picks up the host page's typography instead of the editor's and none of
+// the editor's own resets reach it. Pin the presentation here so a toolbar
+// tooltip reads the same whatever page it is portalled into, and keep it on the
+// theme tokens so it follows the host's palette in both light and dark.
+//
+// `:where()` keeps this at zero specificity: it is the base look, and any
+// utility class a caller passes through `tooltipOptions.className` still wins.
+:where([data-slot='tooltip-content'], .richtext-tooltip) {
+  z-index: 60;
+  // Wide enough for a label plus its shortcut on one line, capped so a long
+  // one wraps instead of stretching across the window.
+  max-width: 18rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--richtext-border);
+  border-radius: calc(var(--richtext-radius) - 2px);
+  background-color: var(--richtext-popover);
+  color: var(--richtext-popover-foreground);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: break-word;
+  box-shadow: 0 4px 12px color-mix(in oklab, var(--richtext-foreground) 12%, transparent);
+  // A tooltip that swallowed pointer events would re-trigger its own trigger's
+  // hover state as it is placed under the cursor.
+  pointer-events: none;
+}
+
+// Radix renders the arrow as an <svg>; keep it on the popover surface.
+:where([data-slot='tooltip-content'], .richtext-tooltip) > svg {
+  fill: var(--richtext-popover);
 }
 
 // Dropdown menus, popovers and selects must never run off the side of the

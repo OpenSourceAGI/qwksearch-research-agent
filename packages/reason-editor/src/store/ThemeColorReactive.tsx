@@ -7,6 +7,17 @@ import { useEffect } from 'react';
 import { THEME, useTheme } from '@/theme/theme';
 import { removeCSS, updateCSS } from '@/utils/dynamicCSS';
 
+/**
+ * Elements the theme tokens are applied to: the editor root, the standalone
+ * theme scope, and the portalled surfaces (tooltips, dropdowns, bubble menus)
+ * which render outside the editor's DOM subtree and so cannot inherit from it.
+ */
+const THEME_SCOPE = [
+  '.reactjs-tiptap-editor',
+  '.reactjs-tiptap-editor-theme',
+  'div[data-richtext-portal]',
+].join(', ');
+
 export function ThemeColorReactive() {
   const { theme, color, borderRadius } = useTheme();
 
@@ -14,35 +25,33 @@ export function ThemeColorReactive() {
     const themeValue = theme || 'light';
     const colorValue = color || 'default';
 
-    //@ts-ignore
-    let themeObject = THEME[themeValue][colorValue];
+    // @ts-ignore — indexed by the two signal values, both validated below.
+    const themeObject = THEME[themeValue]?.[colorValue] ?? THEME.light.default;
 
-    if (!themeObject) {
-      themeObject = THEME['light']['default'];
-      return;
+    const declarations: string[] = [
+      `--richtext-radius: ${typeof borderRadius === 'string' ? borderRadius : themeObject.radius};`,
+    ];
+
+    // `default` means "inherit the host application's theme". The static
+    // tokens in `styles/global.scss` already alias `--richtext-*` onto the
+    // app's own `--primary` / `--secondary` / `--background` / … so there is
+    // nothing to inject: writing the packaged shadcn greys here would paint
+    // over the product's palette (and its dark mode) with a fixed light one,
+    // which is what used to leave the editor stubbornly white inside a themed
+    // app. Only an explicitly chosen accent palette overrides the host.
+    if (colorValue !== 'default') {
+      for (const [key, value] of Object.entries(themeObject)) {
+        if (key === 'radius') continue;
+        // The palettes in `theme/theme.ts` store bare `H S L` channels, while
+        // the tokens hold complete colours (a host may theme in any colour
+        // space, so consumers can no longer wrap them in `hsl()`).
+        declarations.push(`--richtext-${key}: hsl(${value});`);
+      }
     }
 
-    updateCSS(
-      `
-      .reactjs-tiptap-editor, .reactjs-tiptap-editor *,
-      .reactjs-tiptap-editor-theme, .reactjs-tiptap-editor-theme *,
-      div[data-richtext-portal], div[data-richtext-portal] * {
-        ${Object.entries(themeObject)
-          .map(([key, value]) => {
-            if (typeof borderRadius === 'string' && key === 'radius') {
-              return `--${key}: ${borderRadius};`;
-            }
-
-            return `--${key}: ${value};`;
-          })
-          .join('\n')}
-      }
-      `,
-      'richtext-theme',
-      {
-        priority: 50,
-      }
-    );
+    updateCSS(`${THEME_SCOPE} {\n${declarations.join('\n')}\n}`, 'richtext-theme', {
+      priority: 50,
+    });
 
     return () => {
       removeCSS('richtext-theme');

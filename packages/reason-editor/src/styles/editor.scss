@@ -1,7 +1,54 @@
+// ── Editable surface sizing ───────────────────────────────────────────────
+//
+// `.reason-editor-surface` is the container `NovelEditor` puts around the
+// contenteditable. @tiptap/react mounts ProseMirror inside an unclassed
+// wrapper div of its own, so without these rules the editable area is only as
+// tall as its text: a short document leaves dead space below it where clicks
+// do not reach the document and the host background shows through. Making the
+// chain a flex column lets the contenteditable claim the full height and width
+// the host gave the editor, while still growing past it (and scrolling, where
+// the host set `overflow-auto`) once the document is longer.
+.reason-editor-surface {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  > div:has(> .ProseMirror) {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .ProseMirror {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+
+// The editable area is focusable, so the browser draws its default focus ring
+// (a solid blue box in Chrome) around the whole document as soon as the caret
+// is placed. A permanent border around the page is not wanted here — the caret
+// already shows focus — so suppress it on the editable surface and on the
+// wrappers that can take focus with it.
+.reason-editor-surface,
+.reason-editor-surface > div,
+.reactjs-tiptap-editor .ProseMirror,
+.reactjs-tiptap-editor .ProseMirror-focused,
+.reactjs-tiptap-editor [contenteditable='true'] {
+  &,
+  &:focus,
+  &:focus-visible,
+  &:focus-within {
+    outline: none !important;
+    box-shadow: none;
+  }
+}
 
 .reactjs-tiptap-editor {
-  background-color: hsl(var(--richtext-background));
-  color: hsl(var(--richtext-foreground));
+  background-color: var(--richtext-background);
+  color: var(--richtext-foreground);
   // Fill the host container so height constraints propagate to the editor.
   // Resolves to `auto` (content height) when the parent is auto-height, so the
   // common page-grows embedding is unaffected; when the parent is bounded (e.g.
@@ -19,6 +66,9 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  // Claim the host's full width for the same reason as the height above: as a
+  // flex item the wrapper would otherwise shrink to its content.
+  width: 100%;
 
   .ProseMirror.ProseMirror.ProseMirror {
     min-height: 180px;
@@ -72,7 +122,7 @@
         @apply richtext-bg-black/5 dark:richtext-bg-white/10;
 
         hr {
-          border-top-color: hsl(var(--richtext-foreground)) !important;
+          border-top-color: var(--richtext-foreground) !important;
         }
       }
 
@@ -88,7 +138,7 @@
 
     :not(.image-view)::selection,
     :not(.search-result)::selection {
-      background-color: hsl(var(--richtext-accent)) !important;
+      background-color: var(--richtext-accent) !important;
     }
 
     .is-empty::before {
@@ -167,7 +217,7 @@
 
         &--focused:hover,
         &--resizing:hover {
-          outline-color: hsl(var(--richtext-primary));
+          outline-color: var(--richtext-primary);
         }
 
         &__placeholder {
@@ -186,7 +236,7 @@
       }
 
       .image-view__body--focused {
-        outline-color: hsl(var(--richtext-primary)) !important;
+        outline-color: var(--richtext-primary) !important;
       }
 
       &.focus {
@@ -220,7 +270,7 @@
         height: 12px;
         border: 1px solid #fff;
         border-radius: 2px;
-        background-color: hsl(var(--richtext-primary));
+        background-color: var(--richtext-primary);
 
         &--tl {
           top: -6px;
@@ -266,12 +316,12 @@
   }
 
   .ProseMirror {
-    caret-color: hsl(var(--richtext-foreground)) !important;
+    caret-color: var(--richtext-foreground) !important;
   }
 }
 
 .bg-item-active.bg-item-active {
-  background-color: hsl(var(--richtext-accent)) !important;
+  background-color: var(--richtext-accent) !important;
 }
 
 .heading-1 {

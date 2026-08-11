@@ -1,5 +1,28 @@
 import tailwindcssAnimate from 'tailwindcss-animate';
 
+/**
+ * Reads a `--richtext-*` design token (see `src/styles/global.scss`) as a
+ * complete colour rather than the bare `H S L` triplet shadcn v3 assumes.
+ *
+ * The tokens alias the host application's own theme variables, and a host is
+ * free to express its palette in any colour space — this product uses
+ * `oklch()` — so the old `hsl(var(--token))` wrapper would produce an invalid
+ * declaration and the editor would fall back to unstyled white. Reading the
+ * token directly works whatever colour space the host themes in.
+ *
+ * Tailwind calls this with an explicit `opacityValue` for opacity modifiers
+ * (`bg-primary/90`), which `color-mix()` applies to the opaque token — what
+ * the `hsl(… / α)` slash syntax used to do. Without a modifier it instead
+ * threads its own `--tw-*-opacity` variable through `opacityVariable` (and
+ * pins it to 1 on the same rule), so the token is emitted unwrapped.
+ *
+ * @param {string} token CSS custom property name, e.g. `--richtext-primary`.
+ */
+const themeColor = (token) => ({ opacityValue, opacityVariable } = {}) =>
+  opacityValue === undefined || opacityVariable !== undefined
+    ? `var(${token})`
+    : `color-mix(in oklab, var(${token}) calc(${opacityValue} * 100%), transparent)`;
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class', "[class~='dark']"],
@@ -33,38 +56,38 @@ export default {
     },
     extend: {
       colors: {
-        border: 'hsl(var(--richtext-border))',
-        input: 'hsl(var(--richtext-input))',
-        ring: 'hsl(var(--richtext-ring))',
-        background: 'hsl(var(--richtext-background))',
-        foreground: 'hsl(var(--richtext-foreground))',
+        border: themeColor('--richtext-border'),
+        input: themeColor('--richtext-input'),
+        ring: themeColor('--richtext-ring'),
+        background: themeColor('--richtext-background'),
+        foreground: themeColor('--richtext-foreground'),
         primary: {
-          DEFAULT: 'hsl(var(--richtext-primary))',
-          foreground: 'hsl(var(--richtext-primary-foreground))',
+          DEFAULT: themeColor('--richtext-primary'),
+          foreground: themeColor('--richtext-primary-foreground'),
         },
         secondary: {
-          DEFAULT: 'hsl(var(--richtext-secondary))',
-          foreground: 'hsl(var(--richtext-secondary-foreground))',
+          DEFAULT: themeColor('--richtext-secondary'),
+          foreground: themeColor('--richtext-secondary-foreground'),
         },
         destructive: {
-          DEFAULT: 'hsl(var(--richtext-destructive))',
-          foreground: 'hsl(var(--richtext-destructive-foreground))',
+          DEFAULT: themeColor('--richtext-destructive'),
+          foreground: themeColor('--richtext-destructive-foreground'),
         },
         muted: {
-          DEFAULT: 'hsl(var(--richtext-muted))',
-          foreground: 'hsl(var(--richtext-muted-foreground))',
+          DEFAULT: themeColor('--richtext-muted'),
+          foreground: themeColor('--richtext-muted-foreground'),
         },
         accent: {
-          DEFAULT: 'hsl(var(--richtext-accent))',
-          foreground: 'hsl(var(--richtext-accent-foreground))',
+          DEFAULT: themeColor('--richtext-accent'),
+          foreground: themeColor('--richtext-accent-foreground'),
         },
         popover: {
-          DEFAULT: 'hsl(var(--richtext-popover))',
-          foreground: 'hsl(var(--richtext-popover-foreground))',
+          DEFAULT: themeColor('--richtext-popover'),
+          foreground: themeColor('--richtext-popover-foreground'),
         },
         card: {
-          DEFAULT: 'hsl(var(--richtext-card))',
-          foreground: 'hsl(var(--richtext-card-foreground))',
+          DEFAULT: themeColor('--richtext-card'),
+          foreground: themeColor('--richtext-card-foreground'),
         },
       },
       borderRadius: {
