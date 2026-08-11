@@ -31,6 +31,24 @@
     "mammoth": "^1.12.0"
   },
   "overrides": {
-    "@ricky0123/vad-web": "^0.0.30"
+    "@ricky0123/vad-web": "^0.0.30",
+    "@tiptap/core": "^3.28.0",
+    "@tiptap/pm": "^3.28.0",
+    "@tiptap/react": "^3.28.0",
+    "@tiptap/starter-kit": "^3.28.0",
+    "@tiptap/suggestion": "^3.28.0",
+    "@tiptap/extension-character-count": "^3.28.0",
+    "@tiptap/extension-code-block-lowlight": "^3.28.0",
+    "@tiptap/extension-color": "^3.28.0",
+    "@tiptap/extension-highlight": "^3.28.0",
+    "@tiptap/extension-horizontal-rule": "^3.28.0",
+    "@tiptap/extension-image": "^3.28.0",
+    "@tiptap/extension-link": "^3.28.0",
+    "@tiptap/extension-placeholder": "^3.28.0",
+    "@tiptap/extension-task-item": "^3.28.0",
+    "@tiptap/extension-task-list": "^3.28.0",
+    "@tiptap/extension-text-style": "^3.28.0",
+    "@tiptap/extension-underline": "^3.28.0",
+    "@tiptap/extension-youtube": "^3.28.0"
   }
 }

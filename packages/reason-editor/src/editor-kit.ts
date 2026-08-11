@@ -11,6 +11,20 @@
 
 export { RichTextProvider } from './components/RichTextProvider';
 export { RichTextToolbar, BubbleMenus, debounce } from './editor-views/components';
+/**
+ * The Novel-based editor shell. `NovelEditor` mounts the editor (Novel's
+ * `EditorRoot`/`EditorContent`) and hands back the live editor plus an
+ * `EditorSurface` component to place in the host's own layout, so hosts no
+ * longer call `useEditor` themselves. `RichTextProvider` above remains for
+ * hosts that still construct their own editor instance.
+ */
+export {
+  NovelEditor,
+  useNovelEditor,
+  type NovelEditorProps,
+  type NovelEditorApi,
+  type EditorSurfaceProps,
+} from './novel/NovelEditor';
 export {
   buildExtensions,
   createDefaultConfig,
