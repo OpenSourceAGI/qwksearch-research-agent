@@ -18,6 +18,15 @@
     "scope": "client"
   },
   {
+    "name": "Cursor Glow Trail",
+    "key": "cursorGlowTrail",
+    "type": "switch",
+    "required": false,
+    "description": "Paint a colored glow trail that follows your cursor across the chat homepage background.",
+    "default": false,
+    "scope": "client"
+  },
+  {
     "name": "Search Result Glow Effect",
     "key": "searchResultGlow",
     "type": "switch",
