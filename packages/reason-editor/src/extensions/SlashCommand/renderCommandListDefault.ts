@@ -175,6 +175,20 @@ export function renderCommandListDefault({ t }: any) {
     },
   });
 
+  // ask ai
+  groups[1].commands.push({
+    name: 'ai',
+    label: 'Ask AI',
+    iconName: 'Sparkles',
+    description: 'Generate or rewrite text with AI',
+    aliases: ['ai', 'assistant'],
+    shouldBeHidden: (editor) => typeof (editor.commands as any).openAiMenu !== 'function',
+    action: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      (editor.commands as any).openAiMenu();
+    },
+  });
+
   return groups;
 }
 
