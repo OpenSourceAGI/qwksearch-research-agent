@@ -49,6 +49,25 @@
   --richtext-ring: 240 4.9% 83.9%;
 }
 
+// Dropdown menus, popovers and selects must never run off the side of the
+// screen. Radix already shifts them back into view (see MENU_COLLISION_PADDING),
+// but a menu that is intrinsically wider than the viewport still gets clipped,
+// so cap the width here. On phone-width screens the menus stretch across the
+// screen instead of hugging their trigger — with the width pinned to the
+// viewport, Radix's collision handling lands them centred.
+[data-richtext-menu] {
+  max-width: calc(100vw - 16px);
+}
+
+@media (max-width: 640px) {
+  [data-richtext-menu] {
+    width: calc(100vw - 16px) !important;
+    min-width: 0 !important;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+}
+
 // https://github.com/radix-ui/primitives/issues/1496
 html body[data-scroll-locked] {
   --removed-body-scroll-bar-size: 0 !important;

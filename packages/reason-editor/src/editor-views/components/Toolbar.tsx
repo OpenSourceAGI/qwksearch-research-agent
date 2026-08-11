@@ -2,7 +2,7 @@
  * Full formatting toolbar for the example editor, wiring each extension's RichText control together. Provides the top row of editing actions users interact with.
  */
 
-import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import type { Editor } from '@tiptap/core';
 import { useCurrentEditor } from '@tiptap/react';
@@ -588,6 +588,91 @@ function ToolbarIconBtn({
 const panelCls =
   'fixed bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-gray-200/60 dark:border-slate-700/60 rounded-lg shadow-xl py-1 z-50 min-w-[220px] dropdown-portal';
 
+/** Gutter kept clear between an open panel and every edge of the viewport. */
+const PANEL_MARGIN = 8;
+/** At or below this viewport width panels stop tracking the trigger. */
+const PANEL_MOBILE_BREAKPOINT = 640;
+
+/**
+ * Portal shell for the toolbar dropdowns. The panels are wider than a phone
+ * screen, so anchoring them to their trigger pushes them off the side; this
+ * clamps every panel into the viewport instead. On phone-width screens the
+ * trigger position is ignored horizontally and the panel spans the full width,
+ * centred between equal margins. Height is capped to what is left below the
+ * trigger so long menus scroll rather than run off the bottom.
+ */
+function MenuPanel({
+  top,
+  left,
+  right,
+  className = '',
+  children,
+}: {
+  top: number;
+  left?: number;
+  right?: number;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  // Rendered off-screen for one layout pass so the panel can be measured
+  // before it is placed.
+  const [style, setStyle] = useState<React.CSSProperties>({
+    top,
+    left: -9999,
+    visibility: 'hidden',
+  });
+
+  useLayoutEffect(() => {
+    const place = () => {
+      const el = ref.current;
+      if (!el) return;
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const maxHeight = Math.max(160, vh - top - PANEL_MARGIN);
+
+      if (vw <= PANEL_MOBILE_BREAKPOINT) {
+        setStyle({
+          top,
+          left: PANEL_MARGIN,
+          right: PANEL_MARGIN,
+          width: 'auto',
+          // The panels carry min-w-[300px]/min-w-[400px] for desktop; those
+          // would keep them wider than the screen and clip the right edge.
+          minWidth: 0,
+          maxWidth: 'none',
+          maxHeight,
+          overflowY: 'auto',
+        });
+        return;
+      }
+
+      const width = el.offsetWidth;
+      const desired = right != null ? vw - right - width : left ?? PANEL_MARGIN;
+      const clamped = Math.max(PANEL_MARGIN, Math.min(desired, vw - width - PANEL_MARGIN));
+
+      setStyle({
+        top,
+        left: clamped,
+        maxWidth: vw - PANEL_MARGIN * 2,
+        maxHeight,
+        overflowY: 'auto',
+      });
+    };
+
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [top, left, right]);
+
+  return (
+    <div className={`${panelCls} ${className}`} ref={ref} style={style}>
+      {children}
+    </div>
+  );
+}
+
 // ─── Document details modal (info + word count + sharing) ─────────────────────
 
 interface SharedUser {
@@ -1150,11 +1235,6 @@ export const RichTextToolbar = ({
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  const panelStyle = (rightAligned?: boolean) =>
-    rightAligned && pos?.right != null
-      ? { top: `${pos!.top}px`, right: `${pos!.right}px` }
-      : { top: `${pos!.top}px`, left: `${pos!.left}px` };
-
   return (
     <>
       <div className="flex items-center gap-0.5 border-b border-gray-200 dark:border-slate-700 px-2 py-1 flex-wrap">
@@ -1185,7 +1265,7 @@ export const RichTextToolbar = ({
             </svg>
           </ToolbarIconBtn>
           {open === 'block' && pos && createPortal(
-            <div className={`${panelCls} min-w-[400px]`} style={panelStyle()}>
+            <MenuPanel className="min-w-[400px]" left={pos.left} top={pos.top}>
               <div className="grid grid-cols-2 gap-0.5 px-1 py-1">
                 <div><HiddenControl icon="H1" label="Heading 1" shortcut="Ctrl+Alt+1"><RichTextHeading level={1} /></HiddenControl></div>
                 <div><HiddenControl icon="H2" label="Heading 2" shortcut="Ctrl+Alt+2"><RichTextHeading level={2} /></HiddenControl></div>
@@ -1216,7 +1296,7 @@ export const RichTextToolbar = ({
                 <Paintbrush size={14} className="text-gray-400 shrink-0" />
                 Customize default styles…
               </button>
-            </div>,
+            </MenuPanel>,
             document.body
           )}
         </div>
@@ -1227,7 +1307,7 @@ export const RichTextToolbar = ({
             <span className="text-sm font-mono">Tt</span>
           </ToolbarIconBtn>
           {open === 'textstyles' && pos && createPortal(
-            <div className={`${panelCls} min-w-[400px]`} style={panelStyle()}>
+            <MenuPanel className="min-w-[400px]" left={pos.left} top={pos.top}>
               <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Text Styles</div>
               <div className="grid grid-cols-2 gap-0.5 px-1 py-1">
                 <div className="col-span-2"><ToolbarMenuItem><RichTextFontFamily /></ToolbarMenuItem></div>
@@ -1240,7 +1320,7 @@ export const RichTextToolbar = ({
                 <div><ToolbarMenuItem label="Line Spacing"><RichTextLineHeight /></ToolbarMenuItem></div>
                 <div className="col-span-2"><ToolbarMenuItem label="Alignment"><RichTextAlign /></ToolbarMenuItem></div>
               </div>
-            </div>,
+            </MenuPanel>,
             document.body
           )}
         </div>
@@ -1251,7 +1331,7 @@ export const RichTextToolbar = ({
             <Plus size={16} />
           </ToolbarIconBtn>
           {open === 'insert' && pos && createPortal(
-            <div className={`${panelCls} min-w-[300px] max-h-[360px] overflow-y-auto`} style={panelStyle()}>
+            <MenuPanel className="min-w-[300px]" left={pos.left} top={pos.top}>
               <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Insert</div>
               <div className="grid grid-cols-2 gap-0.5 px-1">
                 <div><ToolbarMenuItem label="Link"><RichTextLink /></ToolbarMenuItem></div>
@@ -1284,7 +1364,7 @@ export const RichTextToolbar = ({
                   </div>
                 )}
               </div>
-            </div>,
+            </MenuPanel>,
             document.body
           )}
         </div>
@@ -1298,7 +1378,7 @@ export const RichTextToolbar = ({
             </svg>
           </ToolbarIconBtn>
           {open === 'tools' && pos && createPortal(
-            <div className={`${panelCls} max-h-[70vh] overflow-y-auto`} style={panelStyle()}>
+            <MenuPanel left={pos.left} top={pos.top}>
               <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Document</div>
               <MenuAction
                 icon={<FileText size={14} />}
@@ -1375,7 +1455,7 @@ export const RichTextToolbar = ({
               <ToolbarMenuItem label="Import Word"><RichTextImportWord /></ToolbarMenuItem>
               <ToolbarMenuItem label="Export Word"><RichTextExportWord /></ToolbarMenuItem>
               <ToolbarMenuItem label="Export PDF"><RichTextExportPdf /></ToolbarMenuItem>
-            </div>,
+            </MenuPanel>,
             document.body
           )}
         </div>
@@ -1403,9 +1483,10 @@ export const RichTextToolbar = ({
             <Settings size={16} />
           </button>
           {!configDriven && open === 'settings' && pos && createPortal(
-            <div
-              className="fixed bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-gray-200/60 dark:border-slate-700/60 rounded-lg shadow-2xl p-2 z-50 w-[260px] dropdown-portal"
-              style={panelStyle(true)}
+            <MenuPanel
+              className="w-[260px] px-2 py-2 shadow-2xl"
+              right={pos.right}
+              top={pos.top}
             >
               <div className="text-[10px] font-semibold mb-1 text-gray-500 dark:text-gray-400 uppercase px-1">Theme</div>
               <div className="flex gap-1 mb-2 px-1">
@@ -1466,7 +1547,7 @@ export const RichTextToolbar = ({
                   </button>
                 ))}
               </div>
-            </div>,
+            </MenuPanel>,
             document.body
           )}
         </div>
