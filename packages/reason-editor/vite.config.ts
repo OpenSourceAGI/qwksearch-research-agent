@@ -56,6 +56,54 @@ function selfReferenceResolver(srcDir: string): Plugin {
   };
 }
 
+// `novel@1.0.2` is published against Tiptap v2 while this package is on v3.
+// The root package.json `overrides` already force every one of Novel's
+// `@tiptap/*` dependencies onto the v3 line, and almost all of Novel's runtime
+// surface (EditorProvider, useCurrentEditor, Extension/Node/Mark, ReactRenderer,
+// @tiptap/pm/*) is API-compatible across that jump. Two imports are not, and
+// both are rewritten here rather than by patching node_modules:
+//
+//  1. `export { default as TextStyle } from '@tiptap/extension-text-style'` —
+//     v3's text-style package dropped its default export in favour of named
+//     ones. Nothing here imports Novel's `TextStyle` (baseKit registers the
+//     named v3 export directly), but the module is still parsed, so the
+//     missing export breaks dev prebundling.
+//
+//  2. `import { BubbleMenu } from '@tiptap/react'` — v3 moved `BubbleMenu` to
+//     the `@tiptap/react/menus` subpath. Novel only uses it for `EditorBubble`,
+//     which this package does not re-export (it has its own bubble menus), but
+//     Novel's dist declares it with an unannotated top-level `forwardRef(...)`
+//     call, so it survives tree-shaking and the dangling import surfaces as a
+//     MISSING_EXPORT error in *consumers'* builds of this package's dist.
+function novelTiptapV3Compat(): Plugin {
+  return {
+    name: 'novel-tiptap-v3-compat',
+    enforce: 'pre',
+    transform(code, id) {
+      if (!id.includes('/novel/dist/')) return null;
+
+      let patched = code.replace(
+        /export\s*\{\s*default as TextStyle\s*\}\s*from\s*(['"])@tiptap\/extension-text-style\1/,
+        "export{TextStyle}from'@tiptap/extension-text-style'"
+      );
+
+      patched = patched.replace(
+        /import\s*\{([^}]*)\}\s*from\s*(['"])@tiptap\/react\2/,
+        (match, names: string) => {
+          const kept = names
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name && name.split(/\s+as\s+/)[0]?.trim() !== 'BubbleMenu');
+          if (kept.length === names.split(',').filter((n) => n.trim()).length) return match;
+          return `import{${kept.join(',')}}from'@tiptap/react';import{BubbleMenu}from'@tiptap/react/menus'`;
+        }
+      );
+
+      return patched === code ? null : { code: patched, map: null };
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
   const isDev = mode !== 'production';
@@ -112,7 +160,7 @@ export default defineConfig(async ({ mode }) => {
   // fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, 2))
 
   return {
-    plugins: [selfReferenceResolver(srcDir), react(), dts({
+    plugins: [selfReferenceResolver(srcDir), novelTiptapV3Compat(), react(), dts({
       // Pin the declaration source root to src/ so declarations emit directly
       // under dist/ (e.g. dist/extensions/Bold/index.d.ts) matching the
       // package.json export/type paths, with no post-build hoist step.
@@ -138,6 +186,23 @@ export default defineConfig(async ({ mode }) => {
     })],
     resolve: {
       alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
+      // Novel resolves its own `@tiptap/*` copies. A second `@tiptap/core` or
+      // `@tiptap/pm` in the graph means a second ProseMirror schema and a
+      // second plugin-key counter, so Novel's shell must bind to the exact
+      // instances this package's extensions are built against.
+      dedupe: [
+        '@tiptap/core',
+        '@tiptap/pm',
+        '@tiptap/react',
+        '@tiptap/suggestion',
+        'react',
+        'react-dom',
+      ],
+    },
+    optimizeDeps: {
+      // Novel is pre-bundled ESM with `sideEffects: false`; letting esbuild
+      // prebundle it would bypass the `novel-tiptap-v3-compat` transform above.
+      exclude: ['novel'],
     },
     css: {
       postcss: {
@@ -219,6 +284,10 @@ export default defineConfig(async ({ mode }) => {
           // back to a runtime `require("react")`, which crashes under strict
           // Node ESM — e.g. Next.js SSR — where no `require` global exists.
           '@tiptap/react',
+          // Where v3 moved BubbleMenu/FloatingMenu. Reached both by this
+          // package's own bubble menus and by Novel's `EditorBubble` after the
+          // `novel-tiptap-v3-compat` rewrite above.
+          '@tiptap/react/menus',
           'react',
           'react-dom',
           'react/jsx-runtime',

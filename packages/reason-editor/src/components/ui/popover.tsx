@@ -20,6 +20,8 @@ const PopoverContent = React.forwardRef<
   <PopoverPrimitive.Portal>
     <PopoverPrimitive.Content
       align={align}
+      collisionPadding={8}
+      data-richtext-menu
       data-richtext-portal
       ref={ref}
       sideOffset={sideOffset}

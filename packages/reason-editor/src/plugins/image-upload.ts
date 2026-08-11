@@ -1,179 +1,77 @@
 /**
- * ProseMirror plugin that shows placeholder decorations while images are uploading. Tracks pending uploads so the editor can display progress and swap in the final image when ready.
+ * Image-upload plumbing for the editor: a ProseMirror plugin that shows a
+ * placeholder decoration while an image uploads, plus paste/drop handlers that
+ * feed files into it.
+ *
+ * The implementation is Novel's — this module is the adapter layer over
+ * `novel`'s `UploadImagesPlugin` / `createImageUpload` / `handleImagePaste` /
+ * `handleImageDrop`, which this package previously carried as a fork. Sharing
+ * Novel's plugin matters beyond deduplication: its decorations are keyed on a
+ * `PluginKey` that lives inside the `novel` module, so a forked copy could
+ * never find or clear placeholders created by Novel's own paste/drop helpers.
+ *
+ * The one thing kept from the fork is the calling convention. Novel's
+ * `UploadFn` takes a single `File`; {@link createImageUpload} below accepts a
+ * `File[]` and adds a `postUpload` hook, so existing callers keep working.
  */
 
-import { Plugin, PluginKey } from '@tiptap/pm/state';
-import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import {
+  UploadImagesPlugin as novelUploadImagesPlugin,
+  createImageUpload as novelCreateImageUpload,
+  handleImageDrop,
+  handleImagePaste,
+} from '@/novel';
 
-import type { EditorState } from '@tiptap/pm/state';
 import type { EditorView } from '@tiptap/pm/view';
 
-const uploadKey = new PluginKey('customPluginImageUpload');
+export { handleImagePaste, handleImageDrop };
 
-interface UploadAction {
-  add?: Array<{ id: string; pos: number; src: string }>;
-  remove?: string[];
-}
+/** Class applied to the placeholder `<img>` shown while an upload is in flight. */
+const PLACEHOLDER_IMAGE_CLASS = 'opacity-50';
 
-export function UploadImagesPlugin() {
-  return new Plugin({
-    key: uploadKey,
-    state: {
-      init() {
-        return DecorationSet.empty;
-      },
-      apply(tr: any, set: any) {
-        set = set.map(tr.mapping, tr.doc);
-        const action = tr.getMeta(uploadKey) as UploadAction;
-
-        if (action?.add) {
-          for (const { id, pos, src } of action.add) {
-            const placeholder = createPlaceholder(src);
-            const deco = Decoration.widget(pos, placeholder, { id });
-            set = set.add(tr.doc, [deco]);
-          }
-        } else if (action?.remove) {
-          for (const id of action.remove) {
-            set = set.remove(set.find(undefined, undefined, (spec: any) => spec.id === id));
-          }
-        }
-
-        return set;
-      },
-    },
-    props: {
-      decorations(state) {
-        return this.getState(state);
-      },
-    },
-  });
-}
-
-function createPlaceholder(src: string): HTMLElement {
-  const placeholder = document.createElement('div');
-  const image = document.createElement('img');
-  image.setAttribute('class', 'opacity-50');
-  image.src = src;
-  image.addEventListener('load', () => {
-    placeholder.setAttribute('class', 'img-placeholder');
-  });
-  placeholder.append(image);
-  return placeholder;
-}
-
-function findPlaceholder(state: EditorState, id: string): number | null {
-  const decos = uploadKey.getState(state) as DecorationSet;
-  const found = decos.find(undefined, undefined, (spec) => spec.id === id);
-  return found.length > 0 ? found[0]?.from : null;
+/**
+ * The placeholder-decoration plugin. Register it from an extension's
+ * `addProseMirrorPlugins()` alongside the paste/drop handlers.
+ */
+export function UploadImagesPlugin(imageClass: string = PLACEHOLDER_IMAGE_CLASS) {
+  return novelUploadImagesPlugin({ imageClass });
 }
 
 export interface ImageUploadOptions {
+  /**
+   * Return `false` to reject a file before anything is inserted (wrong type,
+   * too large, …). Novel skips files with no validator at all, so omitting
+   * this accepts everything.
+   */
   validateFn?: (file: File) => boolean;
+  /** Performs the upload. Resolve with the final image URL. */
   onUpload: (file: File) => Promise<string | object>;
+  /** Optional post-processing of the returned URL (CDN rewrite, signing, …). */
   postUpload?: (src: string) => Promise<string>;
-  defaultInline?: boolean;
 }
 
+/** Multi-file upload handler, as used by the paste/drop props below. */
 export type UploadFn = (files: File[], view: EditorView, pos: number) => void;
 
-export function createImageUpload({
-  validateFn,
-  onUpload,
-  postUpload,
-  defaultInline = false,
-}: ImageUploadOptions): UploadFn {
+/**
+ * Wraps Novel's single-file `createImageUpload` into this package's multi-file
+ * signature and threads `postUpload` through the resolved URL.
+ */
+export function createImageUpload({ validateFn, onUpload, postUpload }: ImageUploadOptions): UploadFn {
+  const uploadOne = novelCreateImageUpload({
+    // Novel treats a falsy return as "reject", and skips the file entirely
+    // when no validator is supplied — so always pass one.
+    validateFn: ((file: File) => (validateFn ? validateFn(file) : true)) as any,
+    onUpload: async (file: File) => {
+      const src = await onUpload(file);
+      if (postUpload && typeof src === 'string') return postUpload(src);
+      return src;
+    },
+  });
+
   return (files, view, pos) => {
     for (const file of files) {
-      if (validateFn && !validateFn(file)) {
-        continue;
-      }
-
-      const id = Date.now().toString();
-      const tr = view.state.tr;
-      if (!tr.selection.empty) {
-        tr.deleteSelection();
-      }
-
-      const result = URL.createObjectURL(file);
-      tr.setMeta(uploadKey, {
-        add: [{ id, pos, src: result }],
-      });
-      view.dispatch(tr);
-
-      onUpload(file).then(
-        async (src) => {
-          if (postUpload && typeof src === 'string') {
-            src = await postUpload(src);
-          }
-
-          const { schema } = view.state;
-          let placeholderPos = findPlaceholder(view.state, id);
-          if (placeholderPos === null) {
-            return;
-          }
-
-          const imageSrc = typeof src === 'object' ? result : src;
-          const node = schema.nodes.image?.create({
-            src: imageSrc,
-            inline: defaultInline,
-          });
-          if (!node) {
-            return;
-          }
-
-          // check position larger than doc.content.size
-          const { doc } = view.state;
-          if (placeholderPos > doc.content.size) {
-            placeholderPos = doc.content.size - 1;
-          }
-
-          const transaction = view.state.tr
-            .replaceWith(placeholderPos, placeholderPos, node)
-            .setMeta(uploadKey, { remove: [id] });
-
-          view.dispatch(transaction);
-        },
-        () => {
-          const transaction = view.state.tr.delete(pos, pos).setMeta(uploadKey, { remove: [id] });
-          view.dispatch(transaction);
-        }
-      );
+      uploadOne(file, view, pos);
     }
   };
-}
-
-export function handleImagePaste(
-  view: EditorView,
-  event: ClipboardEvent,
-  uploadFn: UploadFn
-): boolean {
-  const files = [...(event.clipboardData?.files || [])];
-  if (files.length > 0) {
-    event.preventDefault();
-    const pos = view.state.selection.from;
-    uploadFn(files, view, pos + 1);
-    return true;
-  }
-  return false;
-}
-
-export function handleImageDrop(
-  view: EditorView,
-  event: DragEvent,
-  moved: boolean,
-  uploadFn: UploadFn
-): boolean {
-  const files = [...(event.dataTransfer?.files || [])];
-  if (!moved && files.length > 0) {
-    event.preventDefault();
-    const coordinates = view.posAtCoords({
-      left: event.clientX,
-      top: event.clientY,
-    });
-    if (coordinates) {
-      uploadFn(files, view, coordinates.pos + 1);
-      return true;
-    }
-  }
-  return false;
 }

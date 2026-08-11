@@ -63,6 +63,8 @@ export default function ChatHomepage() {
   const [weatherLocations, setWeatherLocations] = useState<WeatherLocationInput[]>([]);
   const [trendingNewsApiUrl, setTrendingNewsApiUrl] = useState<string | null>(null);
   const [orbHoverGlow, setOrbHoverGlow] = useState(false);
+  // Off by default; enabled via the "Cursor Glow Trail" setting.
+  const [cursorGlowTrail, setCursorGlowTrail] = useState(false);
   const footerLinks = researchAgentUIConfig.footerLinks.map((link) =>
     link.url === '/#downloads' ? { ...link, onClick: () => setDownloadsOpen(true) } : link,
   );
@@ -71,6 +73,7 @@ export default function ChatHomepage() {
       setWeatherLocations(parseWeatherLocations(localStorage.getItem('weatherLocations')));
       setTrendingNewsApiUrl(localStorage.getItem('trendingNewsApiUrl'));
       setOrbHoverGlow(localStorage.getItem('orbHoverGlow') === 'true');
+      setCursorGlowTrail(localStorage.getItem('cursorGlowTrail') === 'true');
     };
     readLocations();
     window.addEventListener('client-config-changed', readLocations);
@@ -128,7 +131,7 @@ export default function ChatHomepage() {
       <div className="fixed inset-0 z-0">
         {backgroundUrl && renderBackground(backgroundUrl, fading ? 'opacity-0' : 'opacity-30')}
         {nextBackgroundUrl && renderBackground(nextBackgroundUrl, fading ? 'opacity-30' : 'opacity-0')}
-        <GradientBlur />
+        {cursorGlowTrail && <GradientBlur />}
       </div>
 
       <div className="relative z-10">

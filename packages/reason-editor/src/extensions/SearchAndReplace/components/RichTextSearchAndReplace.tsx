@@ -2,7 +2,7 @@
  * Toolbar control (React) for the SearchAndReplace extension, which adds searching and replacing text. Renders the button and dispatches the matching editor command when activated.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import {
   ActionButton,
@@ -27,6 +27,11 @@ export function RichTextSearchAndReplace() {
   const editor = useEditorInstance();
   const buttonProps = useButtonProps(SearchAndReplace.name);
 
+  const id = useId();
+  const searchInputId = `${id}-search`;
+  const replaceInputId = `${id}-replace`;
+  const caseSensitiveId = `${id}-case-sensitive`;
+
   const {
     icon = undefined,
     tooltip = undefined,
@@ -45,9 +50,10 @@ export function RichTextSearchAndReplace() {
   const [result, setResult] = useState('');
 
   const updateResult = () => {
-    setResult(
-      `${editor?.storage?.searchAndReplace?.resultIndex + 1}/${editor?.storage?.searchAndReplace?.results.length}`
-    );
+    const total = editor?.storage?.searchAndReplace?.results?.length ?? 0;
+    const index = total ? (editor?.storage?.searchAndReplace?.resultIndex ?? 0) + 1 : 0;
+
+    setResult(`${index}/${total}`);
   };
 
   useEffect(() => {
@@ -123,8 +129,12 @@ export function RichTextSearchAndReplace() {
     setSearchTerm('');
     setReplaceTerm('');
 
+    // Drop the search decorations too, otherwise the previous matches stay highlighted
+    editor?.commands?.setSearchTerm?.('');
+    editor?.commands?.setReplaceTerm?.('');
     editor?.commands?.resetIndex?.();
-    updateResult();
+
+    setResult('0/0');
   };
 
   const replaceAll = () => {
@@ -149,70 +159,96 @@ export function RichTextSearchAndReplace() {
         />
       </PopoverTrigger>
 
-      <PopoverContent align='start' className='richtext-w-full' hideWhenDetached side='bottom'>
-        <div className='richtext-mb-[6px] richtext-flex richtext-items-center richtext-justify-between'>
-          <Label>{t('editor.search.dialog.text')}</Label>
+      <PopoverContent
+        align='start'
+        hideWhenDetached
+        side='bottom'
+        className='richtext-w-[320px] richtext-max-w-[calc(100vw_-_16px)] richtext-space-y-3'
+      >
+        <div className='richtext-space-y-1.5'>
+          <div className='richtext-flex richtext-items-center richtext-justify-between richtext-gap-2'>
+            <Label htmlFor={searchInputId}>{t('editor.search.dialog.text')}</Label>
 
-          <span className='richtext-font-semibold'>{result}</span>
+            <span className='richtext-shrink-0 richtext-text-xs richtext-tabular-nums richtext-text-muted-foreground'>
+              {result}
+            </span>
+          </div>
+
+          <div className='richtext-flex richtext-items-center richtext-gap-1.5'>
+            <Input
+              autoFocus
+              className='richtext-min-w-0 richtext-flex-1'
+              id={searchInputId}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={t('editor.search.dialog.text')}
+              type='text'
+              value={searchTerm}
+            />
+
+            <Button
+              aria-label='Previous match'
+              className='richtext-shrink-0'
+              onClick={previous}
+              size='icon'
+              title='Previous match'
+              variant='outline'
+            >
+              <IconComponent name='ChevronUp' />
+            </Button>
+
+            <Button
+              aria-label='Next match'
+              className='richtext-shrink-0'
+              onClick={next}
+              size='icon'
+              title='Next match'
+              variant='outline'
+            >
+              <IconComponent name='ChevronDown' />
+            </Button>
+          </div>
         </div>
 
-        <div className='richtext-mb-[10px] richtext-flex richtext-w-full richtext-max-w-sm richtext-items-center richtext-gap-1.5'>
+        <div className='richtext-space-y-1.5'>
+          <Label htmlFor={replaceInputId}>{t('editor.replace.dialog.text')}</Label>
+
           <Input
-            autoFocus
             className='richtext-w-full'
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder='Text'
-            required
+            id={replaceInputId}
+            onChange={(e) => setReplaceTerm(e.target.value)}
+            placeholder={t('editor.replace.dialog.text')}
             type='text'
-            value={searchTerm}
+            value={replaceTerm}
           />
+        </div>
 
-          <Button className='richtext-flex-1' onClick={previous}>
-            <IconComponent name='ChevronUp' />
-          </Button>
+        <div className='richtext-flex richtext-items-center richtext-justify-between richtext-gap-2'>
+          <div className='richtext-flex richtext-min-w-0 richtext-items-center richtext-gap-2'>
+            <Checkbox
+              checked={caseSensitive}
+              id={caseSensitiveId}
+              onCheckedChange={(v) => {
+                setCaseSensitive(v as boolean);
+                editor?.commands?.setCaseSensitive?.(v as boolean);
+              }}
+            />
 
-          <Button className='richtext-flex-1' onClick={next}>
-            <IconComponent name='ChevronDown' />
-          </Button>
+            <Label className='richtext-cursor-pointer richtext-truncate' htmlFor={caseSensitiveId}>
+              {t('editor.replace.caseSensitive')}
+            </Label>
+          </div>
 
-          <Button className='richtext-flex-1' onClick={clear}>
+          <Button className='richtext-shrink-0' onClick={clear} size='sm' variant='ghost'>
             Clear
           </Button>
         </div>
 
-        <Label className='richtext-mb-[6px]'>{t('editor.replace.dialog.text')}</Label>
-
-        <div className='richtext-mb-[5px] richtext-flex richtext-w-full richtext-max-w-sm richtext-items-center richtext-gap-1.5'>
-          <div className='richtext-relative richtext-w-full richtext-max-w-sm richtext-items-center'>
-            <Input
-              className='richtext-w-80'
-              onChange={(e) => setReplaceTerm(e.target.value)}
-              placeholder='Text'
-              required
-              type='text'
-              value={replaceTerm}
-            />
-          </div>
-        </div>
-
-        <div className='richtext-my-[10px] richtext-flex richtext-items-center richtext-gap-1'>
-          <Checkbox
-            checked={caseSensitive}
-            onCheckedChange={(v) => {
-              setCaseSensitive(v as boolean);
-              editor.commands.setCaseSensitive(v as boolean);
-            }}
-          />
-
-          <Label>{t('editor.replace.caseSensitive')}</Label>
-        </div>
-
-        <div className='richtext-flex richtext-items-center richtext-gap-[10px]'>
-          <Button className='richtext-flex-1' onClick={replace}>
+        <div className='richtext-flex richtext-items-center richtext-gap-2'>
+          <Button className='richtext-min-w-0 richtext-flex-1' onClick={replace} variant='outline'>
             {t('editor.replace.dialog.text')}
           </Button>
 
-          <Button className='richtext-flex-1' onClick={replaceAll}>
+          <Button className='richtext-min-w-0 richtext-flex-1' onClick={replaceAll}>
             {t('editor.replaceAll.dialog.text')}
           </Button>
         </div>

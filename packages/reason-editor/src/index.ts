@@ -5,6 +5,21 @@
 export * from '@/components/RichTextProvider';
 
 /**
+ * The Novel-based editor shell. This is the base mount for the editor: Novel's
+ * `EditorRoot`/`EditorContent` create the Tiptap instance, while this package's
+ * own extensions, toolbar, and bubble menus are layered on top. Hosts render
+ * `<NovelEditor extensions={…}>` and place the returned `EditorSurface` in
+ * their layout instead of calling `useEditor` themselves.
+ */
+export {
+  NovelEditor,
+  useNovelEditor,
+  type NovelEditorProps,
+  type NovelEditorApi,
+  type EditorSurfaceProps,
+} from '@/novel/NovelEditor';
+
+/**
  * Full document-organizer app (sidebar, file tree, editor) — the same
  * component the standalone demo mounts. Exported so host apps can embed
  * the whole editor experience directly instead of iframing the hosted demo.

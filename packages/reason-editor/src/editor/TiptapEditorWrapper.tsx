@@ -9,14 +9,15 @@
 /**
  * @module TiptapEditorWrapper
  * @description Provides `TiptapEditorWrapper`, a ref-forwarding React component that
- * embeds a fully-featured Tiptap rich-text editor with the full toolbar and bubble menus.
- * Handles HTML serialization, debounced change propagation, table-of-contents reporting,
- * and smooth scroll-to-heading.
+ * embeds a fully-featured rich-text editor with the full toolbar and bubble menus.
+ * The editor is mounted by `NovelEditor` — Novel's `EditorRoot`/`EditorContent`
+ * shell — with this package's own extension set passed through, so the schema,
+ * toolbar, and bubble menus are unchanged. Handles HTML serialization, debounced
+ * change propagation, table-of-contents reporting, and smooth scroll-to-heading.
  */
 
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { EditorContent, useEditor } from '@tiptap/react';
-import { RichTextProvider } from 'react-reason-editor';
+import { NovelEditor } from '@/novel/NovelEditor';
 import { Comment } from '@/extensions/Comment';
 import { Header } from '@/editor-views/components/Header';
 import { RichTextToolbar } from '@/editor-views/components/Toolbar';
@@ -31,6 +32,7 @@ import 'katex/dist/katex.min.css';
 import 'easydrawer/styles.css';
 import 'katex/contrib/mhchem';
 
+import type { Editor } from '@tiptap/core';
 import type { TocEntry } from '../app-types/toc';
 import { useSyncStore } from './useSyncStore';
 
@@ -81,7 +83,7 @@ interface TiptapEditorWrapperProps {
  * Extracts heading entries from the editor's JSON document as TocEntry tuples.
  * Key format: `"${level}:${index}:${text}"` — level and index allow unambiguous DOM lookup.
  */
-function extractTocHeadings(editor: ReturnType<typeof useEditor>): TocEntry[] {
+function extractTocHeadings(editor: Editor | null): TocEntry[] {
   if (!editor) return [];
   const json = editor.getJSON();
   const entries: TocEntry[] = [];
@@ -155,7 +157,7 @@ export const TiptapEditorWrapper = forwardRef<TiptapEditorHandle, TiptapEditorWr
     useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
     useEffect(() => { onHeadingsChangeRef.current = onHeadingsChange; }, [onHeadingsChange]);
 
-    const reportHeadings = useCallback((e: ReturnType<typeof useEditor>) => {
+    const reportHeadings = useCallback((e: Editor | null) => {
       if (!onHeadingsChangeRef.current) return;
       const headings = extractTocHeadings(e);
       const now = Date.now();
@@ -172,30 +174,30 @@ export const TiptapEditorWrapper = forwardRef<TiptapEditorHandle, TiptapEditorWr
       }
     }, []);
 
-    const editor = useEditor({
-      extensions: editorExtensions,
-      content,
-      editable: !readOnly,
-      onUpdate: ({ editor: e }) => {
-        dirtyRef.current = true;
-        if (timerRef.current) clearTimeout(timerRef.current);
-        timerRef.current = setTimeout(() => {
-          if (!dirtyRef.current) return;
-          dirtyRef.current = false;
-          syncStore.markContentSaved();
-          onChangeRef.current(e.getHTML());
-        }, SAVE_DEBOUNCE_MS);
-        reportHeadings(e);
-      },
-      onSelectionUpdate: ({ editor: e }) => {
-        setSelectionEmpty(e.state.selection.empty);
-        const id = activeCommentId(e);
-        if (id) {
-          setActiveComment(id);
-          setShowComments(true);
-        }
-      },
-    });
+    // Novel's shell owns editor construction; it hands the instance back here
+    // through `onEditor` so the effects and imperative handle below can use it.
+    const [editor, setEditor] = useState<Editor | null>(null);
+
+    const handleUpdate = useCallback(({ editor: e }: { editor: Editor }) => {
+      dirtyRef.current = true;
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
+        if (!dirtyRef.current) return;
+        dirtyRef.current = false;
+        syncStore.markContentSaved();
+        onChangeRef.current(e.getHTML());
+      }, SAVE_DEBOUNCE_MS);
+      reportHeadings(e);
+    }, [reportHeadings, syncStore]);
+
+    const handleSelectionUpdate = useCallback(({ editor: e }: { editor: Editor }) => {
+      setSelectionEmpty(e.state.selection.empty);
+      const id = activeCommentId(e);
+      if (id) {
+        setActiveComment(id);
+        setShowComments(true);
+      }
+    }, []);
 
     // Reload content when the document key changes (document switch)
     useEffect(() => {
@@ -290,41 +292,52 @@ export const TiptapEditorWrapper = forwardRef<TiptapEditorHandle, TiptapEditorWr
     return (
       <div className="flex h-full w-full flex-col bg-editor-bg">
         <Header editor={editor} theme={theme} setTheme={setTheme} />
-        <RichTextProvider editor={editor} dark={theme === 'dark'}>
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {!readOnly && (
-              <RichTextToolbar
-                theme={theme}
-                setTheme={setTheme}
-                onAddComment={handleAddComment}
-                commentDisabled={selectionEmpty}
-                showComments={showComments}
-                onToggleComments={() => setShowComments((v) => !v)}
-                commentCount={openCount}
-              />
-            )}
-            <div className="flex flex-1 min-h-0 overflow-hidden">
-              <div className="flex-1 min-h-0 overflow-auto prose dark:prose-invert max-w-none px-4 py-3">
-                <EditorContent editor={editor} />
-              </div>
-              {!readOnly && showComments && (
-                <div className="w-80 shrink-0">
-                  <CommentsSidebar
-                    threads={threads.threads}
-                    activeId={activeComment}
-                    onSelect={handleSelectComment}
-                    onSubmitBody={threads.setThreadText}
-                    onReply={handleReplyComment}
-                    onResolve={handleResolveComment}
-                    onRemove={handleRemoveComment}
-                    onClose={() => setShowComments(false)}
-                  />
-                </div>
+        <NovelEditor
+          className="flex flex-1 min-h-0 flex-col"
+          extensions={editorExtensions}
+          initialContent={content}
+          editable={!readOnly}
+          onEditor={setEditor}
+          onUpdate={handleUpdate}
+          onSelectionUpdate={handleSelectionUpdate}
+        >
+          {({ editor: currentEditor, EditorSurface }) => (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* The toolbar and bubble menus dereference the editor, so they
+                  wait for Novel's shell to build it — the same gate
+                  `RichTextProvider` applied via its `editor` prop. */}
+              {!readOnly && currentEditor && (
+                <RichTextToolbar
+                  theme={theme}
+                  setTheme={setTheme}
+                  onAddComment={handleAddComment}
+                  commentDisabled={selectionEmpty}
+                  showComments={showComments}
+                  onToggleComments={() => setShowComments((v) => !v)}
+                  commentCount={openCount}
+                />
               )}
+              <div className="flex flex-1 min-h-0 overflow-hidden">
+                <EditorSurface className="flex-1 min-h-0 overflow-auto prose dark:prose-invert max-w-none px-4 py-3" />
+                {!readOnly && showComments && (
+                  <div className="w-80 shrink-0">
+                    <CommentsSidebar
+                      threads={threads.threads}
+                      activeId={activeComment}
+                      onSelect={handleSelectComment}
+                      onSubmitBody={threads.setThreadText}
+                      onReply={handleReplyComment}
+                      onResolve={handleResolveComment}
+                      onRemove={handleRemoveComment}
+                      onClose={() => setShowComments(false)}
+                    />
+                  </div>
+                )}
+              </div>
+              {!readOnly && currentEditor && <BubbleMenus />}
             </div>
-            {!readOnly && <BubbleMenus />}
-          </div>
-        </RichTextProvider>
+          )}
+        </NovelEditor>
       </div>
     );
   }

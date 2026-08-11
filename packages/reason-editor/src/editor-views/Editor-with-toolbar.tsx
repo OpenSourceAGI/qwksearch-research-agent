@@ -1,13 +1,16 @@
 /**
- * Example composition wiring the header, toolbar, and editor container into a complete editor. Demonstrates a full-featured editor setup built with the library.
+ * Example composition wiring the header, toolbar, and editor container into a
+ * complete editor. The editor itself is mounted by `NovelEditor` — Novel's
+ * `EditorRoot`/`EditorContent` shell — with this package's full extension set
+ * passed in, so the toolbar and bubble menus are unchanged.
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import { useEditor } from '@tiptap/react';
 import { Header } from './components/Header';
 import { EditorContainer } from './components/EditorContainer';
 import { extensions } from './components/extensions';
 import { DEFAULT_CONTENT, debounce } from './components/constants';
+import { NovelEditor } from '@/novel/NovelEditor';
 
 import 'react-reason-editor/style.css';
 import 'katex/dist/katex.min.css';
@@ -15,8 +18,9 @@ import 'easydrawer/styles.css';
 import 'katex/contrib/mhchem';
 
 function EditorWithToolbar() {
-  const [content, setContent] = useState(DEFAULT_CONTENT);
+  const [_content, setContent] = useState(DEFAULT_CONTENT);
   const [theme, setTheme] = useState('light');
+  const [editor, setEditor] = useState<any>(null);
 
   const onValueChange = useCallback(
     debounce((value: any) => {
@@ -25,16 +29,6 @@ function EditorWithToolbar() {
     []
   );
 
-  const editor = useEditor({
-    textDirection: 'auto',
-    content,
-    extensions,
-    onUpdate: ({ editor }) => {
-      const html = editor.getHTML();
-      onValueChange(html);
-    },
-  });
-
   useEffect(() => {
     // @ts-ignore
     window['editor'] = editor;
@@ -42,8 +36,26 @@ function EditorWithToolbar() {
 
   return (
     <div className='flex flex-col w-full h-screen'>
-      <Header editor={editor} setTheme={setTheme} theme={theme} />
-      <EditorContainer editor={editor} theme={theme} setTheme={setTheme} />
+      <NovelEditor
+        className='flex flex-1 min-h-0 flex-col'
+        extensions={extensions}
+        initialContent={DEFAULT_CONTENT}
+        textDirection='auto'
+        onEditor={setEditor}
+        onUpdate={({ editor: e }) => onValueChange(e.getHTML())}
+      >
+        {({ editor: currentEditor, EditorSurface }) => (
+          <>
+            <Header editor={currentEditor} setTheme={setTheme} theme={theme} />
+            <EditorContainer
+              editor={currentEditor}
+              EditorSurface={EditorSurface}
+              theme={theme}
+              setTheme={setTheme}
+            />
+          </>
+        )}
+      </NovelEditor>
     </div>
   );
 }

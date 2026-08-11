@@ -10,6 +10,14 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * Gutter Radix keeps between a menu and the viewport edge when it flips or
+ * shifts a menu back into view. Matches the toolbar's own panel margin, and
+ * pairs with the `[data-richtext-menu]` sizing rules in `styles/global.scss`
+ * that stop wide menus from being clipped on narrow screens.
+ */
+const MENU_COLLISION_PADDING = 8;
+
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
@@ -48,6 +56,8 @@ const DropdownMenuSubContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.SubContent>
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.SubContent
+    collisionPadding={MENU_COLLISION_PADDING}
+    data-richtext-menu
     data-richtext-portal
     ref={ref}
     className={cn(
@@ -65,6 +75,8 @@ const DropdownMenuContent = React.forwardRef<
 >(({ className, sideOffset = 4, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal data-richtext-portal>
     <DropdownMenuPrimitive.Content
+      collisionPadding={MENU_COLLISION_PADDING}
+      data-richtext-menu
       data-richtext-portal
       ref={ref}
       sideOffset={sideOffset}
