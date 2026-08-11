@@ -1,0 +1,21 @@
+{
+  "name": "collaboration-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hocuspocus server backing the Reason Editor's Tiptap and Plate collaboration rooms",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hocuspocus/extension-sqlite": "^4.1.1",
+    "@hocuspocus/server": "^4.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "vitest": "^4.0.18"
+  }
+}
