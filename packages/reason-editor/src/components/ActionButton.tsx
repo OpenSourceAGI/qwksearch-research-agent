@@ -51,7 +51,10 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Partial<ActionButtonPro
   (props, ref) => {
     const {
       icon = undefined,
-      // title = undefined,
+      // Pulled out of `rest` so it never reaches the DOM as the `title`
+      // attribute: the browser would draw its own native tooltip on hover,
+      // overlapping and offset from the styled Radix one below.
+      title: _title = undefined,
       tooltip = undefined,
       disabled = false,
       customClass = '',
@@ -99,7 +102,7 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Partial<ActionButtonPro
 
         {tooltip && (
           <TooltipContent {...tooltipOptions} className='richtext-tooltip'>
-            <div className='richtext-flex richtext-max-w-24 richtext-flex-col richtext-items-center richtext-text-center'>
+            <div className='richtext-flex richtext-flex-col richtext-items-center richtext-text-center'>
               <div>{tooltip}</div>
 
               {!!shortcutKeys?.length && <span>{getShortcutKeys(shortcutKeys)}</span>}

@@ -215,7 +215,15 @@ export function NovelEditor({
             editable={current.editable}
             immediatelyRender={current.immediatelyRender}
             textDirection={current.textDirection}
-            editorContainerProps={contentClassName ? { className: contentClassName } : undefined}
+            // `reason-editor-surface` is the stylesheet's hook for stretching
+            // the contenteditable to fill this container (see
+            // `styles/editor.scss`); it is always present so the rule does not
+            // depend on what the host passes in `className`.
+            editorContainerProps={{
+              className: contentClassName
+                ? `reason-editor-surface ${contentClassName}`
+                : 'reason-editor-surface',
+            }}
             editorProps={{
               ...restEditorProps,
               handleDOMEvents: {

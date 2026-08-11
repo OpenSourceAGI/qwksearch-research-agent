@@ -9,7 +9,7 @@
     padding: 12px;
     border-width: 1px;
     border-style: solid;
-    border-color: hsl(var(--richtext-border));
+    border-color: var(--richtext-border);
     border-radius: 2px;
     flex: 1 1 0%;
     box-sizing: border-box;
