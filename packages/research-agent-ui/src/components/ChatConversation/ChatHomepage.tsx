@@ -128,7 +128,7 @@ export default function ChatHomepage() {
 
   return (
     <div className="relative min-h-screen w-full">
-      <div className="fixed inset-0 z-0">
+      <div className="absolute inset-0 z-0">
         {backgroundUrl && renderBackground(backgroundUrl, fading ? 'opacity-0' : 'opacity-30')}
         {nextBackgroundUrl && renderBackground(nextBackgroundUrl, fading ? 'opacity-30' : 'opacity-0')}
         {cursorGlowTrail && <GradientBlur />}
