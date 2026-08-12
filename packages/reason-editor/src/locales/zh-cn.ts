@@ -27,6 +27,8 @@ const locale = {
   'editor.content': '请输入内容',
   'editor.fontFamily.tooltip': '字体',
   'editor.fontFamily.default.tooltip': '默认',
+  'editor.fontFamily.search': '搜索字体...',
+  'editor.fontFamily.empty': '没有匹配的字体',
   'editor.moremark': '更多文本样式',
   'editor.size.small.tooltip': '小',
   'editor.size.medium.tooltip': '中',

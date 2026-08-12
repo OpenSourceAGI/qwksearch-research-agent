@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'يرجى إدخال المحتوى',
   'editor.fontFamily.tooltip': 'عائلة الخط',
   'editor.fontFamily.default.tooltip': 'افتراضي',
+  'editor.fontFamily.search': 'ابحث عن الخطوط...',
+  'editor.fontFamily.empty': 'لا توجد خطوط مطابقة',
   'editor.moremark': 'المزيد من أنماط النص',
   'editor.size.small.tooltip': 'صغير',
   'editor.size.medium.tooltip': 'متوسط',

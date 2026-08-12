@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'Írjon be tartalmat',
   'editor.fontFamily.tooltip': 'Betűtípus',
   'editor.fontFamily.default.tooltip': 'Alapértelmezett',
+  'editor.fontFamily.search': 'Betűtípusok keresése...',
+  'editor.fontFamily.empty': 'Nincs találat',
   'editor.moremark': 'Több betűstílus',
   'editor.size.small.tooltip': 'Kicsi',
   'editor.size.medium.tooltip': 'Közepes',

@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'Lütfen içerik girin',
   'editor.fontFamily.tooltip': 'Yazı tipi',
   'editor.fontFamily.default.tooltip': 'Varsayılan',
+  'editor.fontFamily.search': 'Yazı tipi ara...',
+  'editor.fontFamily.empty': 'Eşleşen yazı tipi yok',
   'editor.moremark': 'Daha fazla metin stili',
   'editor.size.small.tooltip': 'Küçük',
   'editor.size.medium.tooltip': 'Orta',

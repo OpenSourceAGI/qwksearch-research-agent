@@ -195,6 +195,14 @@
   background-color: #0dff0080;
 }
 
+/* Extra ranges held by the "select similar formatting" multi-selection. Painted
+   like a selection so it reads as one, without being the real one. */
+.reactjs-tiptap-editor .ProseMirror .similar-selection {
+  background-color: rgb(59 130 246 / 22%);
+  box-shadow: inset 0 0 0 1px rgb(59 130 246 / 35%);
+  border-radius: 2px;
+}
+
 /* Harper proofing issue decorations */
 .reactjs-tiptap-editor .ProseMirror .harper-issue {
   text-decoration-line: underline;

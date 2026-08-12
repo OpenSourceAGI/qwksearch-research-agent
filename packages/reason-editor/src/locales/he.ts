@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'אנא הזן תוכן',
   'editor.fontFamily.tooltip': 'גופן',
   'editor.fontFamily.default.tooltip': 'ברירת מחדל',
+  'editor.fontFamily.search': 'חיפוש גופנים...',
+  'editor.fontFamily.empty': 'לא נמצאו גופנים תואמים',
   'editor.moremark': 'עוד סגנונות טקסט',
   'editor.size.small.tooltip': 'קטן',
   'editor.size.medium.tooltip': 'בינוני',
