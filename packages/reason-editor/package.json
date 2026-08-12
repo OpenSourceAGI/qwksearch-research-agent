@@ -937,6 +937,7 @@
     "tailwind-scrollbar-hide": "^4.0.0",
     "tiptap-pagination-plus": "^3.1.0",
     "use-sync-external-store": "^1.6.0",
+    "use-voice-control": "^0.1.37",
     "y-indexeddb": "^9.0.12",
     "y-protocols": "^1.0.7",
     "y-webrtc": "10.3.0",

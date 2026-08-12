@@ -159,6 +159,8 @@ const locale = {
   'Frequently used': 'Frequently used',
   'editor.formula.dialog.text': 'Formula',
   'editor.katex.tooltip': 'Math Formula',
+  'editor.readAloud.tooltip': 'Read Aloud',
+  'editor.transcribe.tooltip': 'Dictate',
   'editor.exportPdf.tooltip': 'Export PDF',
   'editor.exportWord.tooltip': 'Export Word',
   'editor.importWord.tooltip': 'Import Word',

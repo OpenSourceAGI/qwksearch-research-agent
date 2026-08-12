@@ -49,6 +49,9 @@ export default defineConfig({
     // The utilities under test touch localStorage, navigator and Blob/File.
     environment: 'jsdom',
     include: ['test/**/*.test.ts', 'test/**/*.test.tsx'],
+    // Keeps a destroyed editor's last ProseMirror flush from outliving its own
+    // jsdom environment — see the file for the full story.
+    setupFiles: ['./test/helpers/vitest.setup.ts'],
     testTimeout: 20000,
     restoreMocks: true,
     unstubGlobals: true,
