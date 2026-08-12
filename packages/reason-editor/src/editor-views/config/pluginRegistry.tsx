@@ -68,6 +68,7 @@ import { Drawio } from '@/extensions/Drawio';
 import { Harper } from '@/extensions/Harper';
 import { OfficePaste } from '@/extensions/OfficePaste';
 import { Pagination } from '@/extensions/Pagination';
+import { SelectSimilar } from '@/extensions/SelectSimilar';
 
 import { EMOJI_LIST } from '../emojis';
 import { convertBase64ToBlob, MOCK_USERS } from '../components/constants';
@@ -169,6 +170,14 @@ export const PLUGIN_REGISTRY: PluginDefinition[] = [
     category: 'Editing',
     defaultEnabled: true,
     create: () => Clear,
+  },
+  {
+    key: 'selectSimilar',
+    label: 'Select Similar',
+    description: 'Select every run of text sharing the selection’s font or style, and format them together.',
+    category: 'Editing',
+    defaultEnabled: true,
+    create: () => SelectSimilar,
   },
 
   // ── Text formatting ──

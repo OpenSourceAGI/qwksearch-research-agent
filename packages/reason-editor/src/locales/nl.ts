@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'Voer inhoud in',
   'editor.fontFamily.tooltip': 'Lettertype',
   'editor.fontFamily.default.tooltip': 'Standaard',
+  'editor.fontFamily.search': 'Lettertypen zoeken...',
+  'editor.fontFamily.empty': 'Geen overeenkomende lettertypen',
   'editor.moremark': 'Meer tekststijlen',
   'editor.size.small.tooltip': 'Klein',
   'editor.size.medium.tooltip': 'Middel',

@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'Por favor ingresa contenido',
   'editor.fontFamily.tooltip': 'Familia tipográfica',
   'editor.fontFamily.default.tooltip': 'Predeterminado',
+  'editor.fontFamily.search': 'Buscar fuentes...',
+  'editor.fontFamily.empty': 'No hay fuentes coincidentes',
   'editor.moremark': 'Más estilos de texto',
   'editor.size.small.tooltip': 'Pequeño',
   'editor.size.medium.tooltip': 'Mediano',
