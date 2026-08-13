@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { searchAllDocuments, replaceInAllDocuments } from './findReplaceAllDocs';
+import { searchAllDocuments, replaceInAllDocuments, shouldReloadOpenDocument } from './findReplaceAllDocs';
 import type { Document } from '../documents/DocumentTree';
 
 function makeDoc(overrides: Partial<Document> & { id: string }): Document {
@@ -110,5 +110,31 @@ describe('replaceInAllDocuments', () => {
     const result = replaceInAllDocuments([doc], 'PLACEHOLDER', '$100 ($&)');
 
     expect(result.documents[0].content).toBe('Cost: $100 ($&)');
+  });
+
+  it('replaces the document currently open in the editor like any other', () => {
+    const result = replaceInAllDocuments(documents, 'fox', 'dog');
+    const docA = result.documents.find((d) => d.id === 'a')!;
+
+    expect(result.changedIds).toContain('a');
+    expect(docA.content).toBe('The quick brown dog jumps over the lazy dog.');
+  });
+});
+
+describe('shouldReloadOpenDocument', () => {
+  it('is false when no document is open', () => {
+    expect(shouldReloadOpenDocument(null, ['a', 'c'])).toBe(false);
+  });
+
+  it('is false when the open document did not change', () => {
+    expect(shouldReloadOpenDocument('b', ['a', 'c'])).toBe(false);
+  });
+
+  it('is false when nothing changed', () => {
+    expect(shouldReloadOpenDocument('a', [])).toBe(false);
+  });
+
+  it('is true when the open document is among the changed ones', () => {
+    expect(shouldReloadOpenDocument('a', ['a', 'c'])).toBe(true);
   });
 });

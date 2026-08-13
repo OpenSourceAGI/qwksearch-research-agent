@@ -28,11 +28,12 @@ interface FindReplaceAllDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Full document list to search across. */
   documents: Document[];
-  /** ID of the document currently open in the editor, if any. Excluded from replace-all. */
+  /** ID of the document currently open in the editor, if any. Included in replace-all; its editor reloads to reflect the change. */
   activeDocId: string | null;
   /**
    * Replaces every occurrence of `query` with `replacement` across all
-   * documents (except the active one) and returns a summary of the change.
+   * documents, including the one currently open in the editor, and returns a
+   * summary of the change.
    */
   onReplaceAll: (
     query: string,
@@ -64,9 +65,7 @@ export const FindReplaceAllDialog = ({
     [documents, query, caseSensitive]
   );
 
-  const replaceableMatches = matches.filter((m) => m.documentId !== activeDocId);
-  const totalMatches = replaceableMatches.reduce((sum, m) => sum + m.matchCount, 0);
-  const activeDocSkipped = matches.some((m) => m.documentId === activeDocId);
+  const totalMatches = matches.reduce((sum, m) => sum + m.matchCount, 0);
 
   const reset = () => {
     setQuery('');
@@ -142,7 +141,7 @@ export const FindReplaceAllDialog = ({
                         <span className="text-sm font-medium truncate">{m.title}</span>
                         <span className="text-xs text-muted-foreground flex-shrink-0">
                           {m.matchCount} match{m.matchCount === 1 ? '' : 'es'}
-                          {m.documentId === activeDocId ? ' (open — skipped)' : ''}
+                          {m.documentId === activeDocId ? ' (currently open)' : ''}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-1">{m.snippet}</p>
@@ -152,13 +151,6 @@ export const FindReplaceAllDialog = ({
               </ul>
             )}
           </ScrollArea>
-        )}
-
-        {activeDocSkipped && (
-          <p className="text-xs text-muted-foreground">
-            The document currently open in the editor is skipped here — use its in-editor
-            Find & Replace instead.
-          </p>
         )}
 
         {lastResult && (
@@ -175,7 +167,7 @@ export const FindReplaceAllDialog = ({
                 Cancel
               </Button>
               <Button variant="destructive" onClick={handleReplaceAll}>
-                Confirm replace in {replaceableMatches.length} doc{replaceableMatches.length === 1 ? '' : 's'}
+                Confirm replace in {matches.length} doc{matches.length === 1 ? '' : 's'}
               </Button>
             </>
           ) : (

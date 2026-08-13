@@ -33,6 +33,7 @@ import 'katex/contrib/mhchem';
 
 import type { TocEntry } from '../app-types/toc';
 import { useSyncStore } from './useSyncStore';
+import { computeStableKey } from './computeStableKey';
 
 /** Debounce interval (ms) before flushing pending HTML to the parent `onChange` handler. */
 const SAVE_DEBOUNCE_MS = 20_000;
@@ -55,6 +56,12 @@ interface TiptapEditorWrapperProps {
   content: string;
   /** Change this when switching documents to force a reload */
   contentKey?: string;
+  /**
+   * Bump this (to any new value) to force `content` to reload into the editor
+   * even though `contentKey` (the document id) hasn't changed — e.g. after an
+   * external bulk update overwrote the currently open document's content.
+   */
+  reloadToken?: string | number;
   onChange: (content: string) => void;
   title: string;
   onTitleChange: (title: string) => void;
@@ -113,10 +120,10 @@ function extractTocHeadings(editor: ReturnType<typeof useEditor>): TocEntry[] {
  * ```
  */
 export const TiptapEditorWrapper = forwardRef<TiptapEditorHandle, TiptapEditorWrapperProps>(
-  ({ content, contentKey, onChange, onHeadingsChange, readOnly }, ref) => {
+  ({ content, contentKey, reloadToken, onChange, onHeadingsChange, readOnly }, ref) => {
     const syncStore = useSyncStore();
     const [theme, setTheme] = useState('light');
-    const stableKey = contentKey ?? content.slice(0, 40);
+    const stableKey = computeStableKey(contentKey, content, reloadToken);
 
     // ── Comments ──────────────────────────────────────────────────────────
     const threads = useCommentThreads();

@@ -90,10 +90,8 @@ export function searchAllDocuments(
 /**
  * Replaces every occurrence of `query` with `replacement` across all
  * searchable documents, skipping any document whose ID is in
- * `options.excludeIds` (used to skip the document currently open in the
- * editor, whose in-memory Tiptap state would otherwise silently overwrite the
- * replacement on its next autosave). Documents with no match are returned
- * by reference, unchanged. A blank query is a no-op.
+ * `options.excludeIds`. Documents with no match are returned by reference,
+ * unchanged. A blank query is a no-op.
  */
 export function replaceInAllDocuments(
   documents: Document[],
@@ -126,4 +124,17 @@ export function replaceInAllDocuments(
   });
 
   return { documents: nextDocuments, changedIds, replacedCount };
+}
+
+/**
+ * Whether a replace-all result changed the document currently open in the
+ * editor, meaning its in-memory Tiptap state is now stale and the editor
+ * must be forced to reload the fresh content (e.g. by bumping a reload
+ * token independent of the document id).
+ */
+export function shouldReloadOpenDocument(
+  activeDocId: string | null,
+  changedIds: string[]
+): boolean {
+  return activeDocId !== null && changedIds.includes(activeDocId);
 }
