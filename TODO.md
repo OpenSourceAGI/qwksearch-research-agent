@@ -15,7 +15,7 @@ ext - dl to reason dl folswe
 
 5. Filter outline — fixed: filtering already existed in the sidebar outline panel, but it dropped headings that matched only via body text and mis-hid items when a filter was active (index mismatch between the filtered list and the full outline). See packages/react-reason-editor/src/search/OutlineView.tsx and SidebarContent.tsx.
 
-9. Reasoning view zoom default at 125% — fixed: the zoom control defaulted to 100% and reset on every reload since it wasn't persisted. Default is now 125% and the chosen zoom level persists across sessions via localStorage (`REASON-zoom`), applied on mount. See packages/react-reason-editor/src/extensions/Zoom/components/RichTextZoom.tsx.
+9. Reasoning view zoom default at 125% — fixed: the zoom control defaulted to 100% and reset on every reload since it wasn't persisted. Default is now 125% and the chosen zoom level persists across sessions via localStorage (`REASON-zoom`), applied on mount. See packages/react-reason-editor/src/extensions/Zoom/components/RichTextZoom.tsx. PR: https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/189
 
 ## Longterm
 
