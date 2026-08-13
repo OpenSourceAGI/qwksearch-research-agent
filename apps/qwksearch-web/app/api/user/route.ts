@@ -115,4 +115,14 @@ export async function DELETE() {
       );
     }
 
-    return NextResponse.json({ message: "Acc
+    return NextResponse.json({ message: "Account deleted successfully." });
+  } catch (error: any) {
+    console.error("Error deleting user:", error);
+    const message =
+      error?.status === 400 || error?.status === 401 || error?.status === 403
+        ? error?.message || "Failed to delete account."
+        : "Failed to delete account.";
+
+    return NextResponse.json({ message }, { status: 500 });
+  }
+}

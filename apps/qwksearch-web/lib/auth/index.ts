@@ -263,4 +263,7 @@ export async function getUserId(): Promise<string | null> {
 /**
  * Require user ID or throw
  */
-export async function requireUserId(): Promise<string> 
+export async function requireUserId(): Promise<string> {
+  const session = await requireSession();
+  return session.user.id;
+}

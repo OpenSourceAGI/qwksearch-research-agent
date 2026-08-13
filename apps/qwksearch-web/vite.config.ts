@@ -19,6 +19,13 @@ const cloudflareWorkersStub = fileURLToPath(
   new URL("./lib/cloudflare/workers-stub.ts", import.meta.url),
 );
 
+// `@llamaindex/liteparse` is an optional dependency of `extract-pdf`, only
+// reachable through its `method: "liteparse"` branch (see the stub for why it
+// never runs here).
+const liteParseStub = fileURLToPath(
+  new URL("./lib/pdf/liteparse-stub.ts", import.meta.url),
+);
+
 export default defineConfig(({ command }) => ({
   customLogger: logger,
   resolve: {
@@ -43,11 +50,9 @@ export default defineConfig(({ command }) => ({
       // require() lazily inside a try/catch; it has no place in the Worker
       // bundle and is never installed on Linux, so leave it external.
       // `@mastra/core` and `@mastra/mcp` are optional dependencies with incorrect package.json exports.
-      // `@llamaindex/liteparse` (dynamically imported by extract-pdf's
-      // "liteparse" ParseMethod, behind a try/catch) ships a native napi addon
-      // that workerd cannot load; nothing in this app opts into that method,
-      // so keep it external rather than trying to bundle the .node binary.
-      external: ["fsevents", /^@mastra\//, "@llamaindex/liteparse"],
+      // `@llamaindex/liteparse` is neither external nor bundled — it resolves
+      // to a stub instead, see the `stub-liteparse` plugin below.
+      external: ["fsevents", /^@mastra\//],
     },
     rolldownOptions: {
       // Rolldown (Vite 8.x bundler) needs its own external list.
@@ -67,9 +72,7 @@ export default defineConfig(({ command }) => ({
       // bundled client-side; the `externalize-kokoro-on-server` plugin below
       // keeps it external in the server (rsc/ssr) worker build instead.
       //
-      // `@llamaindex/liteparse` is likewise kept external — see the comment
-      // in `rollupOptions.external` above.
-      external: ["fsevents", /^@mastra\//, "@llamaindex/liteparse"],
+      external: ["fsevents", /^@mastra\//],
     },
   },
   ssr: {
@@ -109,6 +112,28 @@ export default defineConfig(({ command }) => ({
           (envName === "rsc" || envName === "ssr")
         ) {
           return { id, external: true };
+        }
+        return null;
+      },
+    },
+    {
+      // `@llamaindex/liteparse` (dynamically imported by extract-pdf's
+      // "liteparse" ParseMethod, behind a try/catch) ships a native napi addon
+      // that workerd cannot load, and nothing in this app opts into that
+      // method. Leaving it external kept a live `import "@llamaindex/liteparse"`
+      // in the server bundle, which vinext's standalone step then treats as a
+      // required runtime dependency it cannot resolve from the app — the
+      // package is only installed for `extract-pdf`. Resolving it to a stub
+      // that throws on evaluation keeps the native package out of the build
+      // and leaves extract-pdf's own try/catch to report it as unavailable.
+      name: "stub-liteparse",
+      enforce: "pre",
+      resolveId(id) {
+        if (
+          id === "@llamaindex/liteparse" ||
+          id.startsWith("@llamaindex/liteparse/")
+        ) {
+          return liteParseStub;
         }
         return null;
       },
