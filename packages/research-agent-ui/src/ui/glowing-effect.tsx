@@ -13,6 +13,11 @@ interface GlowingEffectProps {
   glow?: boolean;
   className?: string;
   disabled?: boolean;
+  /**
+   * Seconds the highlight takes to ease to the pointer's angle. Keep this
+   * short: the arc is drawn at the *animated* angle, so a long duration leaves
+   * the glow trailing far behind the cursor while the pointer is moving.
+   */
   movementDuration?: number;
   borderWidth?: number;
 }
@@ -25,13 +30,14 @@ const GlowingEffect = memo(
     variant = "default",
     glow = false,
     className,
-    movementDuration = 2,
+    movementDuration = 0.2,
     borderWidth = 1,
     disabled = true,
   }: GlowingEffectProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const lastPosition = useRef({ x: 0, y: 0 });
     const animationFrameRef = useRef<number>(0);
+    const angleAnimationRef = useRef<{ stop: () => void } | null>(null);
 
     const handleMove = useCallback(
       (e?: MouseEvent | { x: number; y: number }) => {
@@ -85,7 +91,11 @@ const GlowingEffect = memo(
           const angleDiff = ((targetAngle - currentAngle + 180) % 360) - 180;
           const newAngle = currentAngle + angleDiff;
 
-          animate(currentAngle, newAngle, {
+          // Stop the previous tween first. Without this, every pointer move
+          // stacks another animation onto the same `--start` property and the
+          // older ones keep writing stale angles over the newer ones.
+          angleAnimationRef.current?.stop();
+          angleAnimationRef.current = animate(currentAngle, newAngle, {
             duration: movementDuration,
             ease: [0.16, 1, 0.3, 1],
             onUpdate: (value) => {
@@ -103,17 +113,27 @@ const GlowingEffect = memo(
       const handleScroll = () => handleMove();
       const handlePointerMove = (e: PointerEvent) => handleMove(e);
 
-      window.addEventListener("scroll", handleScroll, { passive: true });
-      document.body.addEventListener("pointermove", handlePointerMove, {
+      // Capture phase: `scroll` does not bubble, so a window-phase listener
+      // misses scrolling inside nested containers (the source grid has its
+      // own). Missing those leaves the cached rect — and the glow — stale.
+      window.addEventListener("scroll", handleScroll, {
         passive: true,
+        capture: true,
+      });
+      window.addEventListener("pointermove", handlePointerMove, {
+        passive: true,
+        capture: true,
       });
 
       return () => {
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current);
         }
-        window.removeEventListener("scroll", handleScroll);
-        document.body.removeEventListener("pointermove", handlePointerMove);
+        angleAnimationRef.current?.stop();
+        window.removeEventListener("scroll", handleScroll, { capture: true });
+        window.removeEventListener("pointermove", handlePointerMove, {
+          capture: true,
+        });
       };
     }, [handleMove, disabled]);
 
