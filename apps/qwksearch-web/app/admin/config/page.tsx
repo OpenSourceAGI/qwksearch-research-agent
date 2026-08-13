@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { config as siteConfig, SubscriptionPlans } from "@/lib/config/site";
+import {
+  APP_NAME,
+  NEXT_PUBLIC_BASE_URL,
+  APP_EMAIL,
+  LAST_REVISED_DATE,
+  SubscriptionPlans,
+} from "@/lib/config/site";
 
 interface ConfigField {
   name: string;
@@ -250,10 +256,10 @@ export default function AdminConfigPage() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {[
-            { label: "App Name", value: siteConfig.appName },
-            { label: "Base URL", value: siteConfig.baseUrl },
-            { label: "Support Email", value: siteConfig.appEmail },
-            { label: "Terms Last Revised", value: siteConfig.lastRevisedDate },
+            { label: "App Name", value: APP_NAME },
+            { label: "Base URL", value: NEXT_PUBLIC_BASE_URL },
+            { label: "Support Email", value: APP_EMAIL },
+            { label: "Terms Last Revised", value: LAST_REVISED_DATE },
           ].map(({ label, value }) => (
             <div key={label} className="bg-gray-50 dark:bg-gray-900 rounded px-3 py-2">
               <div className="text-xs text-gray-500 mb-0.5">{label}</div>

@@ -58,8 +58,8 @@ const { html } = await convertPDFToHTML(buffer, { addPageNumbers: true });
 | ----------------- | ---------------------- | ------------------------------------------------------------------------------------------ |
 | `addPageNumbers`  | `false`                | Inserts `[n]` markers at each page boundary                                                |
 | `addCitation`     | `true`                 | Reads PDF metadata and first-page heading to populate `title`/`author` in the return value |
-| `method`          | `"ts-block-algorithm"` | Parsing engine — `"ts-block-algorithm"`, `"liteparse"`, or `"liteparse-wasm"` (see below)   |
-| `liteParseOptions`| `{}`                   | Passed through to LiteParse's constructor when `method` is `"liteparse"` or `"liteparse-wasm"` |
+| `method`          | `"ts-block-algorithm"` | Parsing engine — `"ts-block-algorithm"` or `"liteparse"` (see below)                       |
+| `liteParseOptions`| `{}`                   | Passed through to LiteParse's constructor when `method: "liteparse"`                       |
 
 ### Return value
 
@@ -69,21 +69,17 @@ const { html } = await convertPDFToHTML(buffer, { addPageNumbers: true });
 
 ## Parse methods
 
-`convertPDFToHTML` supports three interchangeable parsing engines via `options.method`:
+`convertPDFToHTML` supports two interchangeable parsing engines via `options.method`:
 
 | Method                              | Engine                                                              | Environments                       | OCR |
 | ------------------------------------ | -------------------------------------------------------------------- | ----------------------------------- | --- |
 | `"ts-block-algorithm"` (default)     | The pure-TS pipeline documented below (this package)                  | Node.js, Cloudflare Workers, browser | No  |
 | `"liteparse"`                        | [LiteParse](https://github.com/run-llama/liteparse) (native, `@llamaindex/liteparse`) | Node.js only                        | Optional |
-| `"liteparse-wasm"`                   | [LiteParse](https://github.com/run-llama/liteparse) (WASM, `@llamaindex/liteparse-wasm`) | Node.js, Cloudflare Workers, browser | Optional (via callback) |
 
 ```ts
 import { convertPDFToHTML } from "extract-pdf";
 
 const { html } = await convertPDFToHTML(buffer, { method: "liteparse" });
-
-// Or the WASM build, which also runs in browsers and Cloudflare Workers:
-const { html } = await convertPDFToHTML(buffer, { method: "liteparse-wasm" });
 ```
 
 LiteParse ships a native (napi) addon, so `method: "liteparse"` only runs in
@@ -92,15 +88,7 @@ it explicitly (`bun add @llamaindex/liteparse`) since it's an optional
 dependency; if it isn't installed, `convertPDFToHTML` returns `{ error }`
 instead of throwing.
 
-`method: "liteparse-wasm"` delegates to LiteParse's WebAssembly build instead,
-which runs anywhere WASM does — browsers, Cloudflare Workers, and Node.js.
-Install it explicitly (`bun add @llamaindex/liteparse-wasm`) since it's also
-an optional dependency; if it isn't installed, `convertPDFToHTML` returns
-`{ error }` instead of throwing. The WASM build has no OCR engine built in —
-pass a `liteParseOptions.ocrEngine` callback (e.g. backed by `tesseract-js`)
-to enable OCR.
-
-By default both LiteParse paths run with OCR disabled (`ocrEnabled: false`) —
+By default the LiteParse path runs with OCR disabled (`ocrEnabled: false`) —
 matching this package's "instant, no backend" philosophy. Use
 `detectPdfNeedsOcr` (below) to decide when a document is worth re-parsing with
 `liteParseOptions: { ocrEnabled: true }`.
@@ -161,8 +149,6 @@ Raw pdfjs text spans
 ```
 src/
   pdf-to-html.ts          — main entry point (convertPDFToHTML)
-  liteparse-to-html.ts    — "liteparse" method (native napi addon)
-  liteparse-wasm-to-html.ts — "liteparse-wasm" method (WASM, browser/edge)
   models/                 — data classes: Page, ParseResult, TextItem,
   │                         LineItem, LineItemBlock, Word, BlockType, …
   transforms/

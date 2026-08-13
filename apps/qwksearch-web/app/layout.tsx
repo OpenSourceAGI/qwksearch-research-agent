@@ -5,11 +5,11 @@ import './globals.css';
 import 'shadcn-theme-menu/themes.css';
 import { cookies } from "next/headers"
 import { cn } from '@/lib/utils';
-import { config } from '@/lib/config/site';
+import { APP_NAME } from '@/lib/config/site';
 import { Providers } from '@/components/layout/Providers';
 
 export const metadata: Metadata = {
-  title: config.appName + ' - Reimagine the Web as a Self-Organizing Mind Map',
+  title: APP_NAME + ' - Reimagine the Web as a Self-Organizing Mind Map',
   description:
     "Search, extract, vectorize, outline graph, and monitor the web for a topic",
   icons: {

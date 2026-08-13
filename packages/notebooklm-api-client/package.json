@@ -14,18 +14,14 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "types": "wrangler types",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "types": "wrangler types"
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.0.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",
-    "@vitest/coverage-v8": "^4.0.18",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.18",
     "wrangler": "^4.0.0"
   }
 }

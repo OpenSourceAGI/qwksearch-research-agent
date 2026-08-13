@@ -6,24 +6,22 @@ vi.mock("better-auth", () => ({
   betterAuth: betterAuthMock,
 }));
 
-vi.mock("../../database", () => ({
+vi.mock("../database", () => ({
   getDB: () => ({})
 }));
 
-vi.mock("../../cloudflare/context", () => ({
+vi.mock("../cloudflare/context", () => ({
   getCloudflareContext: () => ({ env: {} }),
 }));
 
-vi.mock("../../cloudflare/ip-geolocation", () => ({
+vi.mock("../cloudflare/ip-geolocation", () => ({
   detectVpnAndLocation: vi.fn().mockResolvedValue({ city: null, state: null, isVpn: false }),
 }));
 
-vi.mock("../../config/site", () => ({
-  config: {
-    appName: "Test App",
-    appEmail: "noreply@example.com",
-    baseUrl: "http://localhost:3000",
-  },
+vi.mock("../config/site", () => ({
+  APP_NAME: "Test App",
+  APP_EMAIL: "noreply@example.com",
+  NEXT_PUBLIC_BASE_URL: "http://localhost:3000",
 }));
 
 describe("auth configuration", () => {

@@ -60,7 +60,6 @@ bun i qwksearch-api-client
 - 📚 **Search History** - All searches saved with memories, except for privacy mode
 - ❓ **Follow-up Questions** - Generate follow-up questions to ask language models
 
-
 ## REASON Writing Agent
 
 <p align="center">

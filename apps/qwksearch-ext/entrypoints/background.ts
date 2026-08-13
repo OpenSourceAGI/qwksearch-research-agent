@@ -1,6 +1,5 @@
 import { setupContextMenu } from "@/background/context-menu"
 import { setupAllowCORS } from "@/background/allow-cors"
-import { scrapeURLViaOffscreen } from "@/background/offscreen-scraper"
 
 export default defineBackground(() => {
   setupContextMenu()
@@ -10,13 +9,33 @@ export default defineBackground(() => {
   chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     const { type, url } = request
 
-    // Extract HTML invisibly via the offscreen document, no visible tab
+    // Open tab to extract HTML, then close
     if (type === "extractURL") {
-      scrapeURLViaOffscreen(url)
-        .then((result) => sendResponse(result))
-        .catch((error) =>
-          sendResponse({ success: false, error: error instanceof Error ? error.message : String(error) })
-        )
+      chrome.tabs.create(
+        { url, selected: false, active: false },
+        (tab) => {
+          const tabId = tab.id!
+          const onTabUpdated = (updatedTabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+            if (updatedTabId === tabId && changeInfo.status === "complete") {
+              chrome.tabs.onUpdated.removeListener(onTabUpdated)
+              chrome.scripting
+                .executeScript({
+                  target: { tabId },
+                  func: () => document.documentElement.outerHTML
+                })
+                .then((htmlContent) => {
+                  sendResponse({ success: true, html: htmlContent?.[0]?.result })
+                  chrome.tabs.remove(tabId)
+                })
+                .catch((error) => {
+                  sendResponse({ success: false, error: error.message })
+                  chrome.tabs.remove(tabId)
+                })
+            }
+          }
+          chrome.tabs.onUpdated.addListener(onTabUpdated)
+        }
+      )
     }
 
     // Open tab in foreground or background

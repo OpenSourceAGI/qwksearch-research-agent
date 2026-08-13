@@ -1,108 +1,42 @@
 /**
- * @fileoverview Hook providing `toggleSpeech` for voice input.
- *
- * Dictation runs through `use-voice-control`'s shared `LiveTranscriber`, which
- * streams the recognizer's in-progress guess through `onPartial` and each settled
- * phrase through `onTranscript` — so the composer can type words into the input as
- * they are being said instead of waiting for the speaker to stop. Browsers without
- * a native recognizer (Firefox) keep the previous behaviour: record with
- * MediaRecorder and transcribe server-side once, which yields no partials.
- *
- * Exposes `isListening`, `isSpeechSupported`, and the `lastPhrase`/`phraseId` pair
- * that the on-screen phrase display reads. Global Ctrl+` toggles listening while
- * the hook is mounted.
+ * @fileoverview Hook providing `toggleSpeech` for voice input: uses the Web Speech API when available, falling back to
+ * MediaRecorder + server-side transcription endpoint. Exposes `isListening` and `isSpeechSupported`.
+ * Global Ctrl+` shortcut toggles listening while the hook is mounted.
  */
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import grab from "grab-url";
-import { LiveTranscriber } from "use-voice-control/client";
-
-export interface SpeechInputOptions {
-  /** The in-progress phrase, replacing whatever was reported before it. */
-  onPartial?: (text: string) => void;
-  /** BCP-47 language tag for the browser recognizer. */
-  language?: string;
-}
-
-export interface SpeechInputReturn {
-  isListening: boolean;
-  toggleSpeech: () => Promise<void>;
-  isSpeechSupported: boolean;
-  /** The phrase currently being spoken; empty between phrases. */
-  partial: string;
-  /** The most recent thing heard, partial or settled. */
-  lastPhrase: string;
-  /** Increments on every `lastPhrase` update, repeats included. */
-  phraseId: number;
-}
-
-function hasNativeRecognizer(): boolean {
-  if (typeof window === "undefined") return false;
-  return !!(
-    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-  );
-}
 
 export function useSpeechInput(
-  /** Called once per settled phrase — append it, do not replace the input. */
   onTranscript: (transcript: string) => void,
   onEnd: () => void,
-  options: SpeechInputOptions = {},
-): SpeechInputReturn {
+) {
   const [isListening, setIsListening] = useState(false);
-  const [partial, setPartial] = useState("");
-  const [lastPhrase, setLastPhrase] = useState("");
-  const [phraseId, setPhraseId] = useState(0);
-
+  const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+  const transcriptReceivedRef = useRef(false);
+  const fallbackFromRecognitionRef = useRef(false);
 
-  // Callers pass inline closures; hold them in a ref so the transcriber is built
-  // once rather than on every render.
-  const callbacksRef = useRef({ onTranscript, onEnd, onPartial: options.onPartial });
-  callbacksRef.current = { onTranscript, onEnd, onPartial: options.onPartial };
+  const SpeechRecognition =
+    typeof window !== "undefined"
+      ? (window as any).SpeechRecognition ||
+        (window as any).webkitSpeechRecognition
+      : null;
 
-  const transcriber = useMemo(
-    () =>
-      new LiveTranscriber({
-        // Pinned to the browser's own recognizer: the MediaRecorder path below
-        // already covers browsers without one, and it does not make the user
-        // wait on a model download.
-        engine: "webspeech",
-        language: options.language ?? "en-US",
-        onStateChange: setIsListening,
-        onPartial: (text) => {
-          setPartial(text);
-          if (text) {
-            setLastPhrase(text);
-            setPhraseId((id) => id + 1);
-          }
-          callbacksRef.current.onPartial?.(text);
-        },
-        onCommit: (text) => {
-          setPartial("");
-          setLastPhrase(text);
-          setPhraseId((id) => id + 1);
-          callbacksRef.current.onTranscript(text);
-        },
-        onError: () => {
-          toast.error("Speech recognition stopped unexpectedly.");
-        },
-      }),
-    [options.language],
-  );
-
-  const stopFallbackRecorder = useCallback(() => {
+  const stopFallbackRecorder = () => {
     const mediaRecorder = mediaRecorderRef.current;
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
-      return;
+    } else {
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+      mediaRecorderRef.current = null;
+      setIsListening(false);
+      onEnd();
     }
-    mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
-    mediaStreamRef.current = null;
-    mediaRecorderRef.current = null;
-  }, []);
+  };
 
   const transcribeAudio = async (audioBlob: Blob): Promise<string> => {
     const formData = new FormData();
@@ -116,7 +50,7 @@ export function useSpeechInput(
     return (data?.text ?? "").trim();
   };
 
-  const startFallbackRecording = useCallback(async () => {
+  const startFallbackRecording = async () => {
     if (
       typeof navigator === "undefined" ||
       !navigator.mediaDevices?.getUserMedia ||
@@ -126,7 +60,7 @@ export function useSpeechInput(
         duration: 5000,
       });
       setIsListening(false);
-      callbacksRef.current.onEnd();
+      onEnd();
       return;
     }
 
@@ -149,27 +83,30 @@ export function useSpeechInput(
 
       recorder.onstop = async () => {
         try {
-          const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
+          const audioBlob = new Blob(chunksRef.current, {
+            type: "audio/webm",
+          });
           chunksRef.current = [];
           mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
           mediaStreamRef.current = null;
           mediaRecorderRef.current = null;
           setIsListening(false);
 
-          if (audioBlob.size === 0) return;
+          if (audioBlob.size === 0) {
+            onEnd();
+            return;
+          }
 
           const transcript = await transcribeAudio(audioBlob);
           if (transcript) {
-            setLastPhrase(transcript);
-            setPhraseId((id) => id + 1);
-            callbacksRef.current.onTranscript(transcript);
+            onTranscript(transcript);
           } else {
             toast.error("No speech detected. Please try again.");
           }
         } catch {
           toast.error("Unable to transcribe audio.");
         } finally {
-          callbacksRef.current.onEnd();
+          onEnd();
         }
       };
 
@@ -177,32 +114,73 @@ export function useSpeechInput(
     } catch {
       toast.error("Microphone access is required for speech input.");
       setIsListening(false);
-      callbacksRef.current.onEnd();
+      onEnd();
     }
-  }, []);
+  };
 
-  const toggleSpeech = useCallback(async () => {
-    if (transcriber.isListening()) {
-      await transcriber.stop();
-      setPartial("");
-      callbacksRef.current.onEnd();
-      return;
-    }
-
-    if (mediaRecorderRef.current) {
+  const toggleSpeech = async () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
       stopFallbackRecorder();
       return;
     }
 
-    if (hasNativeRecognizer()) {
-      await transcriber.start();
+    fallbackFromRecognitionRef.current = false;
+    transcriptReceivedRef.current = false;
+
+    if (!SpeechRecognition) {
+      await startFallbackRecording();
       return;
     }
 
-    await startFallbackRecording();
-  }, [transcriber, startFallbackRecording, stopFallbackRecorder]);
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
 
-  // Global Ctrl+` shortcut for the mic.
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      transcriptReceivedRef.current = true;
+      onTranscript(transcript);
+    };
+
+    recognition.onend = async () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+      if (fallbackFromRecognitionRef.current) {
+        fallbackFromRecognitionRef.current = false;
+        return;
+      }
+      onEnd();
+    };
+
+    recognition.onerror = async (event: any) => {
+      setIsListening(false);
+      recognitionRef.current = null;
+      const errorCode = event?.error;
+      const shouldFallback =
+        !transcriptReceivedRef.current && errorCode !== "aborted";
+
+      if (shouldFallback) {
+        fallbackFromRecognitionRef.current = true;
+        await startFallbackRecording();
+        return;
+      }
+    };
+
+    recognitionRef.current = recognition;
+    try {
+      recognition.start();
+    } catch {
+      recognitionRef.current = null;
+      setIsListening(false);
+      await startFallbackRecording();
+    }
+  };
+
+  // Global Ctrl+` shortcut for mic
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "`") {
@@ -211,15 +189,12 @@ export function useSpeechInput(
       }
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [toggleSpeech]);
-
-  useEffect(() => {
     return () => {
-      void transcriber.stop();
+      window.removeEventListener("keydown", onKeyDown);
+      recognitionRef.current?.stop();
       stopFallbackRecorder();
     };
-  }, [transcriber, stopFallbackRecorder]);
+  }, [isListening]);
 
   const hasFallbackSupport =
     typeof navigator !== "undefined" &&
@@ -229,9 +204,6 @@ export function useSpeechInput(
   return {
     isListening,
     toggleSpeech,
-    isSpeechSupported: hasNativeRecognizer() || hasFallbackSupport,
-    partial,
-    lastPhrase,
-    phraseId,
+    isSpeechSupported: !!SpeechRecognition || hasFallbackSupport,
   };
 }

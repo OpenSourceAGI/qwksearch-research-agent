@@ -9,9 +9,6 @@ type MainViewContextValue = {
   setActiveView: (view: MainViewMode) => void
   toggleToDocs: () => void
   toggleToResearch: () => void
-  /** Bumped whenever the files sidebar should be opened (e.g. from a dock icon). */
-  filesSidebarRequestId: number
-  requestFilesSidebar: () => void
 }
 
 const MainViewContext = createContext<MainViewContextValue | null>(null)
@@ -20,7 +17,6 @@ const STORAGE_KEY = 'qwksearch-main-view'
 
 export function MainViewProvider({ children }: { children: React.ReactNode }) {
   const [activeView, setActiveView] = useState<MainViewMode>('research')
-  const [filesSidebarRequestId, setFilesSidebarRequestId] = useState(0)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -43,10 +39,8 @@ export function MainViewProvider({ children }: { children: React.ReactNode }) {
       setActiveView,
       toggleToDocs: () => setActiveView('docs'),
       toggleToResearch: () => setActiveView('research'),
-      filesSidebarRequestId,
-      requestFilesSidebar: () => setFilesSidebarRequestId((id) => id + 1),
     }),
-    [activeView, filesSidebarRequestId],
+    [activeView],
   )
 
   return <MainViewContext.Provider value={value}>{children}</MainViewContext.Provider>

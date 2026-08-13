@@ -1,5 +1,5 @@
 /**
- * API endpoint to debug free model availability for NVIDIA, OpenRouter, and AnyAPI
+ * API endpoint to debug free model availability for NVIDIA and OpenRouter
  *
  * GET /api/admin/freekeys
  *   - Whether API keys are visible via each env source (cloudflare:workers
@@ -13,7 +13,7 @@
  *   - Auth diagnostics: BETTER_AUTH_SECRET, Google OAuth config, and the
  *     current request's session (to debug "unauthorized after login").
  *
- * GET /api/admin/freekeys?testAll=nvidia|openrouter|anyapi|all
+ * GET /api/admin/freekeys?testAll=nvidia|openrouter|all
  *   - Live-tests every free model for the provider(s) and cross-checks each
  *     model ID against the provider's live /models endpoint.
  */
@@ -71,7 +71,7 @@ interface LiveTestResult {
 }
 
 async function testChatCompletion(
-  provider: "nvidia" | "openrouter" | "anyapi",
+  provider: "nvidia" | "openrouter",
   apiKey: string,
   baseUrl: string,
   modelId: string,
@@ -142,7 +142,7 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
-function getFreeModels(providerName: "nvidia" | "openrouter" | "anyapi") {
+function getFreeModels(providerName: "nvidia" | "openrouter") {
   const entry = LANGUAGE_MODELS.find(
     (p) => p.provider.toLowerCase() === providerName
   );
@@ -152,7 +152,7 @@ function getFreeModels(providerName: "nvidia" | "openrouter" | "anyapi") {
 }
 
 async function testAllFreeModels(
-  provider: "nvidia" | "openrouter" | "anyapi",
+  provider: "nvidia" | "openrouter",
   apiKey: string,
   baseUrl: string
 ): Promise<{ upstreamModelsFetched: boolean; results: LiveTestResult[] }> {
@@ -188,8 +188,6 @@ export async function GET(req: NextRequest) {
     getEnv("NVIDIA_BASE_URL") ?? "https://integrate.api.nvidia.com/v1";
   const orKey = getEnv("OPENROUTER_API_KEY") ?? "";
   const orBase = getEnv("OPENROUTER_BASE_URL") ?? "https://openrouter.ai/api/v1";
-  const anyapiKey = getEnv("ANYAPI_API_KEY") ?? "";
-  const anyapiBase = getEnv("ANYAPI_BASE_URL") ?? "https://api.anyapi.ai/v1";
 
   // --- Full test mode: live-test every free model ---------------------------
   const testAll = req.nextUrl.searchParams.get("testAll");
@@ -205,38 +203,25 @@ export async function GET(req: NextRequest) {
         ? await testAllFreeModels("openrouter", orKey, orBase)
         : { error: "OPENROUTER_API_KEY not set" };
     }
-    if (testAll === "anyapi" || testAll === "all") {
-      out.anyapi = anyapiKey
-        ? await testAllFreeModels("anyapi", anyapiKey, anyapiBase)
-        : { error: "ANYAPI_API_KEY not set" };
-    }
     return NextResponse.json(out);
   }
 
   // --- Summary mode ----------------------------------------------------------
   const nvidiaFreeModels = getFreeModels("nvidia");
   const orFreeModels = getFreeModels("openrouter");
-  const anyapiFreeModels = getFreeModels("anyapi");
 
   // Test one representative model per provider if key is present
   const nvidiaTestModel = nvidiaFreeModels[0]?.id ?? "";
   const orTestModel =
     orFreeModels.find((m) => m.id === "meta-llama/llama-3.3-70b-instruct:free")
       ?.id ?? orFreeModels[0]?.id ?? "";
-  const anyapiTestModel =
-    anyapiFreeModels.find((m) => m.id === "deepseek/deepseek-v3:free")?.id ??
-    anyapiFreeModels[0]?.id ??
-    "";
 
-  const [nvidiaTest, orTest, anyapiTest] = await Promise.all([
+  const [nvidiaTest, orTest] = await Promise.all([
     nvidiaKey && nvidiaTestModel
       ? testChatCompletion("nvidia", nvidiaKey, nvidiaBase, nvidiaTestModel)
       : Promise.resolve(null),
     orKey && orTestModel
       ? testChatCompletion("openrouter", orKey, orBase, orTestModel)
-      : Promise.resolve(null),
-    anyapiKey && anyapiTestModel
-      ? testChatCompletion("anyapi", anyapiKey, anyapiBase, anyapiTestModel)
       : Promise.resolve(null),
   ]);
 
@@ -299,33 +284,16 @@ export async function GET(req: NextRequest) {
         ? { model: orTestModel, ...orTest }
         : { skipped: true, reason: orKey ? "no free model found" : "no API key" },
     },
-    anyapi: {
-      key: envSourceReport("ANYAPI_API_KEY"),
-      keyConfigured: !!anyapiKey,
-      keyMasked: anyapiKey ? mask(anyapiKey) : null,
-      baseUrl: anyapiBase,
-      freeModelCount: anyapiFreeModels.length,
-      freeModels: anyapiFreeModels.map((m) => ({
-        id: m.id,
-        name: m.name,
-        contextLength: m.contextLength,
-      })),
-      liveTest: anyapiTest
-        ? { model: anyapiTestModel, ...anyapiTest }
-        : { skipped: true, reason: anyapiKey ? "no free model found" : "no API key" },
-    },
     guestProviders: {
       note: "Exactly what /api/agent/providers returns to guests. If a provider is missing here, its required env vars are not visible to the worker.",
       providers: guestProviders,
       error: guestProvidersError,
     },
     guestLogic: {
-      note: "All configured providers are loaded for guests. NVIDIA, OpenRouter, and AnyAPI each load independently when their API keys are set.",
+      note: "All configured providers are loaded for guests. Both NVIDIA and OpenRouter load independently when their API keys are set.",
       openrouterKeySet: !!orKey,
-      anyapiKeySet: !!anyapiKey,
       nvidiaWillBeLoaded: !!nvidiaKey,
       openrouterWillBeLoaded: !!orKey,
-      anyapiWillBeLoaded: !!anyapiKey,
     },
     auth: {
       betterAuthSecretSet: !!getEnv("BETTER_AUTH_SECRET"),

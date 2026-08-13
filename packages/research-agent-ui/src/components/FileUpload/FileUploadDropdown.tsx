@@ -2,13 +2,13 @@
  * @fileoverview Settings dropdown for search category, model, thinking time, file upload, and chat export/sharing.
  *
  * Renders the gear-icon dropdown menu combining search category selection, a "speed" (thinking time) submenu,
- * model selector, file upload from device/folder/Google Drive, share/export actions, a History submenu
- * (private-mode toggle plus the ten most recent chats), and a link to Settings.
+ * model selector, file upload from device/folder/Google Drive, a private-mode toggle, share/export actions,
+ * and links to History and Settings.
  */
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Upload, CloudIcon, FolderOpen, Loader2, Clock, SlidersHorizontal, Paperclip, Settings, Share2, Link, FileText, FileType, FileDown, FileSpreadsheet, BookMarked } from 'lucide-react';
+import { Upload, CloudIcon, FolderOpen, Loader2, Clock, SlidersHorizontal, Paperclip, History, Settings, EyeOff, Share2, Link, FileText, FileType, FileDown, FileSpreadsheet, BookMarked } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
   googleDocsAuthStatus,
@@ -36,7 +36,6 @@ import { useGooglePicker } from './GoogleDrivePicker';
 import { useChat } from '../../hooks/useChat';
 import { categories } from '../SearchConfig/categories';
 import { ModelSelectorSubmenu } from '../SearchConfig/ModelSelectorSubmenu';
-import { HistorySubmenu } from '../ChatHistoryDropdown/HistorySubmenu';
 import { exportAsMarkdown, exportAsDocx, exportAsPdf, exportToGoogleDocs } from '../../lib/export';
 import { useSession } from '../../hooks/useSession';
 import { researchAgentUIConfig } from '../../config';
@@ -69,7 +68,7 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
   disabled = false,
 }) => {
   const router = useRouter();
-  const { category, setCategory, sections, chatId } = useChat();
+  const { category, setCategory, incognito, setIncognito, sections, chatId } = useChat();
   const { isAuthenticated } = useSession();
   const selectedCodes = category ? category.split(',').filter(Boolean) : ['general'];
   const primaryCategory = categories.find((cat) => cat.code === selectedCodes[0]) || categories[0];
@@ -397,6 +396,18 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
 
             <DropdownMenuSeparator />
 
+            <DropdownMenuCheckboxItem
+              checked={incognito}
+              onCheckedChange={setIncognito}
+              onSelect={(e) => e.preventDefault()}
+              className="gap-2"
+            >
+              <EyeOff className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+              <span>Private</span>
+            </DropdownMenuCheckboxItem>
+
+            <DropdownMenuSeparator />
+
             {/* Share & Export submenu - only show when there are messages */}
             {sections.length > 0 && (
               <>
@@ -523,7 +534,10 @@ const FileUploadDropdown: React.FC<FileUploadDropdownProps> = ({
               </>
             )}
 
-            <HistorySubmenu />
+            <DropdownMenuItem onSelect={() => router.push('/library')} className="gap-2">
+              <History className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+              <span>History</span>
+            </DropdownMenuItem>
 
             <DropdownMenuItem
               onSelect={() => {

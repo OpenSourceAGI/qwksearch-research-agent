@@ -52,11 +52,6 @@ export const getModelProvidersUIConfigSection =
         fields: getOpenRouterConfigFields(),
       },
       {
-        key: "anyapi",
-        name: "AnyAPI",
-        fields: getAnyAPIConfigFields(),
-      },
-      {
         key: "perplexity",
         name: "Perplexity",
         fields: getPerplexityConfigFields(),
@@ -200,32 +195,6 @@ function getOpenRouterConfigFields() {
       placeholder: "https://openrouter.ai/api/v1",
       default: "https://openrouter.ai/api/v1",
       env: "OPENROUTER_BASE_URL",
-      scope: "server" as const,
-    },
-  ];
-}
-
-function getAnyAPIConfigFields() {
-  return [
-    {
-      type: "password" as const,
-      name: "API Key",
-      key: "apiKey",
-      description: "Your AnyAPI.ai API key. Free plan includes 100,000 anyTokens/day (resets daily, no credit card) with access to free/basic models - get yours at anyapi.ai/pricing",
-      required: true,
-      placeholder: "sk-...",
-      env: "ANYAPI_API_KEY",
-      scope: "server" as const,
-    },
-    {
-      type: "string" as const,
-      name: "Base URL",
-      key: "baseURL",
-      description: "The base URL for AnyAPI's OpenAI-compatible API",
-      required: true,
-      placeholder: "https://api.anyapi.ai/v1",
-      default: "https://api.anyapi.ai/v1",
-      env: "ANYAPI_BASE_URL",
       scope: "server" as const,
     },
   ];

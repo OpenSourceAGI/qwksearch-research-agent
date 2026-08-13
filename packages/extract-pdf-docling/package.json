@@ -9,13 +9,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/pdf2html.js",
-    "start": "node src/pdf2html.js",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
-  },
-  "devDependencies": {
-    "@vitest/coverage-v8": "^4.0.18",
-    "vitest": "^4.0.18"
+    "start": "node src/pdf2html.js"
   },
   "dependencies": {
     "@hono/node-server": "^1.8.2",

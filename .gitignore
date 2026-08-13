@@ -54,10 +54,11 @@ pnpm-lock*
 apps/qwksearch-web/.open-next
 .dev.vars
 packages/reason-editor/demo
-.claude/*
-!.claude/skills
+.claude
 .turbo
 
 yarn.lock
 .yarnrc.yml
 bun.lockb
+
+apps/qwksearch-web/drizzle

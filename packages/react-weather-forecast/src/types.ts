@@ -12,13 +12,6 @@ export type WeatherLocation = {
   longitude: number;
 };
 
-export type WeatherLocationInput = {
-  label?: string;
-  latitude?: number;
-  longitude?: number;
-  timezone?: string;
-};
-
 export type WeatherCondition =
   | 'sun'
   | 'cloud-sun'
@@ -62,10 +55,6 @@ export type DailyWeather = {
   max: number;
   weatherCode: number;
   precipitationProbabilityMax?: number;
-  /** Total precipitation for the day, in millimetres. */
-  precipitationSum?: number;
-  /** Peak wind speed for the day, in the requested wind speed unit. */
-  windSpeedMax?: number;
   icon: WeatherCondition;
 };
 
@@ -80,9 +69,7 @@ export type WeatherForecastOptions = {
   latitude?: number;
   longitude?: number;
   location?: Partial<WeatherLocation>;
-  locations?: WeatherLocationInput[];
-  geoEndpoint?: string;
-  ip?: string;
+  ipInfoToken?: string;
   forecastDays?: number;
   forecastHours?: number;
   temperatureUnit?: TemperatureUnit;

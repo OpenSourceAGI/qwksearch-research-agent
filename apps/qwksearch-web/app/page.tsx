@@ -1,9 +1,9 @@
 'use client';
 
-import { MainWorkspaceView } from '@/components/layout/MainWorkspaceView';
+import { ChatWindow } from 'research-agent-ui';
 
 const Home = () => {
-  return <MainWorkspaceView />;
+  return <ChatWindow />;
 };
 
 export default Home;

@@ -48,8 +48,6 @@ export function GradientBlur({
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
-    let frameId = 0
-
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
@@ -107,7 +105,7 @@ export function GradientBlur({
       }
 
       ctx.globalAlpha = 1
-      frameId = requestAnimationFrame(draw)
+      requestAnimationFrame(draw)
     }
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -127,11 +125,9 @@ export function GradientBlur({
     draw()
 
     return () => {
-      cancelAnimationFrame(frameId)
       window.removeEventListener("mousemove", handleMouseMove)
       window.removeEventListener("touchmove", handleTouchMove)
       window.removeEventListener("resize", resizeCanvas)
-      circsRef.current = []
     }
   }, [radius, opacityDecay, backgroundColor, color, colorGenerator])
 

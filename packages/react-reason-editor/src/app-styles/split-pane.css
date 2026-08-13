@@ -1,0 +1,74 @@
+/**
+ * Custom styles for react-split-pane dividers.
+ * Library uses class: split-pane-divider [horizontal|vertical] [dragging]
+ */
+
+.split-pane-divider {
+  position: relative;
+  z-index: 10;
+  transition: background-color 0.15s ease;
+  /* Expand the narrow 1px hit area without shifting layout */
+  flex: none;
+}
+
+/* ── Horizontal split (left/right panes) ── vertical bar ── */
+.split-pane-divider.horizontal {
+  padding: 0 6px;
+  cursor: col-resize;
+}
+
+.split-pane-divider.horizontal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background-color: hsl(var(--border));
+  border-radius: 2px;
+  transition: width 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.split-pane-divider.horizontal:hover,
+.split-pane-divider.horizontal.dragging {
+  background-color: hsl(var(--primary) / 0.08);
+}
+
+.split-pane-divider.horizontal:hover::before,
+.split-pane-divider.horizontal.dragging::before {
+  width: 3px;
+  background-color: hsl(var(--primary));
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.45);
+}
+
+/* ── Vertical split (top/bottom panes) ── horizontal bar ── */
+.split-pane-divider.vertical {
+  padding: 6px 0;
+  cursor: row-resize;
+}
+
+.split-pane-divider.vertical::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  height: 2px;
+  width: 100%;
+  background-color: hsl(var(--border));
+  border-radius: 2px;
+  transition: height 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.split-pane-divider.vertical:hover,
+.split-pane-divider.vertical.dragging {
+  background-color: hsl(var(--primary) / 0.08);
+}
+
+.split-pane-divider.vertical:hover::before,
+.split-pane-divider.vertical.dragging::before {
+  height: 3px;
+  background-color: hsl(var(--primary));
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.45);
+}

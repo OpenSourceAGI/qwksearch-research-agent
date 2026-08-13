@@ -118,79 +118,6 @@ export function VoiceOutput() {
 
 ---
 
-## 🗣️ Read Aloud & Live Dictation
-
-Two ready-made browser engines ship from `use-voice-control/client` (framework
-agnostic) and `use-voice-control/react` (hooks plus an on-screen phrase display).
-They back the **Read aloud** and **Dictate** tools in the REASON editor and the
-chat composer.
-
-### Read aloud
-
-`ReadAloudController` chunks text along sentence and paragraph boundaries,
-synthesizes each chunk (Kokoro via `POST /api/speech/tts` by default) and plays
-them back-to-back while pre-fetching the next — so playback starts after the first
-short chunk instead of after the whole document. If no TTS route answers, it falls
-back to the browser's built-in `speechSynthesis` rather than failing.
-
-```tsx
-import { useReadAloud } from 'use-voice-control/react';
-
-function ReadButton({ text }: { text: string }) {
-  const { toggle, isActive, currentChunk } = useReadAloud({ voice: 'af_heart' });
-
-  return (
-    <button onClick={() => toggle(text)}>
-      {isActive ? `Stop (${currentChunk?.index ?? 0})` : 'Read aloud'}
-    </button>
-  );
-}
-```
-
-Options: `provider`, `voice`, `endpoint`, `maxChunkLength`, and `synthesize` to
-plug in your own TTS. Controls: `speak`, `pause`, `resume`, `stop`, `toggle`.
-
-### Live dictation
-
-`LiveTranscriber` reports two streams: `onPartial`, the guess that keeps changing
-while a phrase is being spoken, and `onCommit`, the phrase the recognizer settled
-on. The first is what lets you type words into an input *as they are said*. It
-prefers the browser's own `SpeechRecognition` (no model download) and falls back to
-on-device Moonshine; Chromium's recognizer stops itself after a pause, so sessions
-restart automatically.
-
-```tsx
-import { useLiveTranscription, SpokenPhraseOverlay } from 'use-voice-control/react';
-
-function Dictate() {
-  const [text, setText] = useState('');
-  const base = useRef('');
-
-  const { toggle, isListening, lastPhrase, phraseId } = useLiveTranscription({
-    onPartial: (phrase) => setText(`${base.current}${phrase}`),
-    onCommit: (phrase) => {
-      base.current = `${base.current}${phrase} `;
-      setText(base.current);
-    },
-  });
-
-  return (
-    <>
-      <textarea value={text} onChange={(e) => setText(e.target.value)} />
-      <button onClick={toggle}>{isListening ? 'Stop' : 'Dictate'}</button>
-      <SpokenPhraseOverlay phrase={lastPhrase} phraseId={phraseId} visible={isListening} />
-    </>
-  );
-}
-```
-
-`<SpokenPhraseOverlay />` shows the latest phrase in large type at the centre of the
-viewport and fades out two seconds after the last update, so you can confirm you
-were heard without watching the input. It renders through a portal with pointer
-events disabled and is styled inline, so it looks the same in any app.
-
----
-
 ## 📚 API Reference
 
 ### Hooks
@@ -544,10 +471,6 @@ const SpeechWorker = require('use-voice-control/speech/worker.js');
 ## 📦 Exports
 
 ```ts
-// Read aloud & live dictation (implemented)
-export { ReadAloudController, LiveTranscriber, isTranscriptionSupported } from 'use-voice-control/client';
-export { useReadAloud, useLiveTranscription, SpokenPhraseOverlay } from 'use-voice-control/react';
-
 // Hooks
 export { useSpeechRecognition } from 'use-voice-control/hooks';
 export { useSpeechSynthesis } from 'use-voice-control/hooks';

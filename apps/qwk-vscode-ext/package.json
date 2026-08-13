@@ -48,28 +48,6 @@
         }
       ]
     },
-    "customEditors": [
-      {
-        "viewType": "qwksearch.reasonEditor.markdown",
-        "displayName": "QwkSearch Reason Editor",
-        "selector": [
-          {
-            "filenamePattern": "*.md"
-          }
-        ],
-        "priority": "default"
-      },
-      {
-        "viewType": "qwksearch.reasonEditor.docx",
-        "displayName": "QwkSearch Reason Editor",
-        "selector": [
-          {
-            "filenamePattern": "*.docx"
-          }
-        ],
-        "priority": "default"
-      }
-    ],
     "commands": [
       {
         "command": "qwksearch.login",
@@ -123,26 +101,18 @@
   },
   "scripts": {
     "build:webview": "cd webview-ui && bun run build",
-    "build:webview-editor": "cd webview-ui-editor && bun run build",
     "build": "bun run compile",
-    "compile": "bun run build:webview && bun run build:webview-editor && node esbuild.mjs",
+    "compile": "bun run build:webview && node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
-    "package": "bun run build:webview && bun run build:webview-editor && node esbuild.mjs --production",
+    "package": "bun run build:webview && node esbuild.mjs --production",
     "vscode:prepublish": "bun run package",
-    "type-check": "tsc --noEmit -p ./",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "type-check": "tsc --noEmit -p ./"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
     "@types/vscode": "^1.85.0",
     "esbuild": "^0.28.1",
-    "typescript": "^6.0.3",
-    "@vitest/coverage-v8": "^4.0.18",
-    "vitest": "^4.0.18",
-    "jsdom": "^28.1.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "typescript": "^6.0.3"
   },
   "dependencies": {
     "vite": "^8.1.4"

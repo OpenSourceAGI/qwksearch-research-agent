@@ -1,17 +1,16 @@
 /**
  * @fileoverview Unit tests for URL scraping functionality
  */
-import { beforeEach, describe, expect, it, vi, type MockedFunction } from "vitest";
 import { scrapeURL, scrapeJINA } from "../url-to-html";
-import grab from "../../utils/grab";
+import grab from "../utils/grab";
 
-// The module under test imports the local grab wrapper, not grab-url.
-vi.mock("../../utils/grab");
-const mockGrab = grab as MockedFunction<typeof grab>;
+// Mock grab-url
+jest.mock("grab-url");
+const mockGrab = grab as jest.MockedFunction<typeof grab>;
 
 describe("scrapeURL", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     // Reset environment variables
     delete process.env.SCRAPER_URL;
     delete process.env.SCRAPER_API_KEY;
@@ -54,7 +53,7 @@ describe("scrapeURL", () => {
     mockGrab.mockRejectedValueOnce(error);
 
     // Mock Cloudflare scraper
-    global.fetch = vi.fn().mockRejectedValueOnce(new Error("Cloudflare failed"));
+    global.fetch = jest.fn().mockRejectedValueOnce(new Error("Cloudflare failed"));
 
     // Mock JINA fallback
     mockGrab.mockResolvedValueOnce("Title: Test\nMarkdown Content:\nFallback content");
@@ -70,12 +69,12 @@ describe("scrapeURL", () => {
     error.status = 500;
     mockGrab.mockRejectedValue(error);
 
-    global.fetch = vi.fn().mockRejectedValue(new Error("Cloudflare failed"));
+    global.fetch = jest.fn().mockRejectedValue(new Error("Cloudflare failed"));
 
-    // Exhausting every strategy throws rather than returning an error object.
-    await expect(scrapeURL("https://failing-site.com")).rejects.toThrow(
-      /All scraping methods failed/
-    );
+    const result = await scrapeURL("https://failing-site.com");
+
+    expect(typeof result).toBe("object");
+    expect((result as any).error).toBeDefined();
   });
 
   it("should detect bot protection and retry", async () => {
@@ -87,7 +86,7 @@ describe("scrapeURL", () => {
     mockGrab.mockResolvedValueOnce(botDetectionHtml);
 
     // Mock successful Cloudflare bypass
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    global.fetch = jest.fn().mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         html: successHtml,
@@ -111,7 +110,7 @@ describe("scrapeURL", () => {
     mockGrab.mockResolvedValueOnce(botDetectionHtml);
 
     // Cloudflare fails
-    global.fetch = vi.fn().mockRejectedValueOnce(new Error("Cloudflare failed"));
+    global.fetch = jest.fn().mockRejectedValueOnce(new Error("Cloudflare failed"));
 
     // JINA succeeds
     mockGrab.mockResolvedValueOnce(
@@ -127,26 +126,24 @@ describe("scrapeURL", () => {
   });
 
   it("should return error when bot detection persists", async () => {
-    // Note: the "Cloudflare Ray ID found " marker in checkHTMLForBotDetection
-    // carries a trailing space, so it does not match this fixture; use one of
-    // the markers that does.
-    const botDetectionHtml =
-      "<html><body>Please verify you are a human</body></html>";
+    const botDetectionHtml = "<html><body>Cloudflare Ray ID found</body></html>";
 
     // Initial request returns bot detection
     mockGrab.mockResolvedValueOnce(botDetectionHtml);
 
     // Cloudflare attempt also fails
-    global.fetch = vi.fn().mockResolvedValueOnce({
+    global.fetch = jest.fn().mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         html: botDetectionHtml, // Still bot detection
       }),
     } as any);
 
-    await expect(
-      scrapeURL("https://protected-site.com", { checkBotDetection: true })
-    ).rejects.toThrow(/Bot detected/);
+    const result = await scrapeURL("https://protected-site.com", {
+      checkBotDetection: true,
+    });
+
+    expect((result as any).error).toBe("Bot detected");
   });
 
   it("should prepend proxy to URL if provided", async () => {
@@ -217,7 +214,7 @@ describe("scrapeURL", () => {
 
 describe("scrapeJINA", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   it("should extract content from JINA API", async () => {
@@ -238,13 +235,10 @@ This is the article content in markdown format.
 
     expect(mockGrab).toHaveBeenCalledWith(
       "https://r.jina.ai/https://example.com/article",
-      expect.objectContaining({
+      {
         responseType: "text",
         timeout: 30,
-        // JINA is asked for HTML, and gets an Authorization header when
-        // JINA_API_KEY is set.
-        headers: expect.objectContaining({ Accept: "text/html" }),
-      })
+      }
     );
     expect(result).toContain("<title>Test Article</title>");
     expect(result).toContain("article content");

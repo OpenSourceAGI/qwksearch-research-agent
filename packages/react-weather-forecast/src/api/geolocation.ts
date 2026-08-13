@@ -1,58 +1,32 @@
 import type { WeatherLocation } from '../types';
 
-const DEFAULT_IP_API_URL = 'https://ipapi.co';
-
-type IpApiResponse = {
-  city?: string;
-  region?: string;
-  country_name?: string;
-  timezone?: string;
-  latitude?: number;
-  longitude?: number;
-  error?: boolean;
-  reason?: string;
-};
-
-type GeoWorkerResponse = {
-  city?: string;
-  region?: string;
-  country?: string;
-  timezone?: string;
-  latitude?: number | string;
-  longitude?: number | string;
-};
-
-export async function getClientLocation(geoEndpoint?: string, ip?: string): Promise<WeatherLocation> {
-  if (geoEndpoint) {
-    const url = ip ? `${geoEndpoint}?ip=${encodeURIComponent(ip)}` : geoEndpoint;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Geolocation worker lookup failed: ${res.status}`);
-    const data: GeoWorkerResponse = await res.json();
+export async function getClientLocation(ipInfoToken?: string): Promise<WeatherLocation> {
+  if (ipInfoToken) {
+    const res = await fetch(`https://api.ipinfo.io/lookup/me?token=${ipInfoToken}`);
+    if (!res.ok) throw new Error(`IPinfo lookup failed: ${res.status}`);
+    const data = await res.json();
 
     return {
-      city: data.city,
-      region: data.region,
-      country: data.country,
-      timezone: data.timezone,
-      latitude: Number(data.latitude),
-      longitude: Number(data.longitude),
+      city: data.geo?.city,
+      region: data.geo?.region,
+      country: data.geo?.country,
+      timezone: data.geo?.timezone,
+      latitude: Number(data.geo?.latitude),
+      longitude: Number(data.geo?.longitude),
     };
   }
 
-  const res = await fetch(`${DEFAULT_IP_API_URL}/${ip ? `${encodeURIComponent(ip)}/` : ''}json/`);
-  if (!res.ok) throw new Error(`ipapi.co lookup failed: ${res.status}`);
-  const data: IpApiResponse = await res.json();
-
-  if (data.error) {
-    throw new Error(`ipapi.co lookup failed: ${data.reason ?? 'unknown error'}`);
-  }
+  const res = await fetch('https://ipinfo.io/json');
+  if (!res.ok) throw new Error(`IPinfo legacy lookup failed: ${res.status}`);
+  const data = await res.json();
+  const [latitude, longitude] = String(data.loc).split(',');
 
   return {
     city: data.city,
     region: data.region,
-    country: data.country_name,
+    country: data.country,
     timezone: data.timezone,
-    latitude: Number(data.latitude),
-    longitude: Number(data.longitude),
+    latitude: Number(latitude),
+    longitude: Number(longitude),
   };
 }

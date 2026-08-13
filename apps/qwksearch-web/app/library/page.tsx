@@ -293,8 +293,7 @@ function ChatRow({ chat, isPinned, onTogglePin, onDelete }: ChatRowProps) {
 
   return (
     <div className="group flex items-center gap-2 px-3 py-3 rounded-xl hover:bg-secondary transition-colors duration-200">
-      {/* Chats open as a tab on the homepage workspace, not a dedicated `/c/<id>` page. */}
-      <Link href={`/?chat=${chat.id}`} className="flex-1 min-w-0">
+      <Link href={`/c/${chat.id}`} className="flex-1 min-w-0">
         <p className="text-sm font-medium truncate">
           {isPinned && <Pin size={12} className="inline mr-1.5 text-primary" />}
           {chat.title}

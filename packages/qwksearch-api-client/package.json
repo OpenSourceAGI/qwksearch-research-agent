@@ -23,8 +23,7 @@
     "ship": "npx standard-version --release-as patch; npm publish",
     "build:api": " openapi-ts && vite build",
     "test:api": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test": "vitest run"
+    "test:coverage": "vitest run --coverage"
   },
   "files": [
     "dist",

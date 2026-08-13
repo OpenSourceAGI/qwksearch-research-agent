@@ -49,15 +49,6 @@ export interface ResearchAgentUIConfig {
    * optionally deep-links to a specific settings tab.
    */
   onOpenSettings?: (section?: string) => boolean;
-  /**
-   * Requests that a chat from history be opened in place. Lets the consuming
-   * app switch to the chat as a tab within its current workspace (e.g. on
-   * the homepage) instead of navigating to the `/c/<chatId>` route. Return
-   * `true` when handled — the caller then skips route navigation; return
-   * `false`/`undefined` (or leave unset) to fall back to navigating to
-   * `/c/<chatId>`.
-   */
-  onOpenChat?: (chatId: string) => boolean;
 }
 
 export const researchAgentUIConfig: ResearchAgentUIConfig = {

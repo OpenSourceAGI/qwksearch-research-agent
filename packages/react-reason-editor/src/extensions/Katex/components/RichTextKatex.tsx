@@ -1,0 +1,165 @@
+/**
+ * Toolbar control (React) for the Katex extension, which adds KaTeX mathematical equations. Renders the button and dispatches the matching editor command when activated.
+ */
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { ActionButton, Button, Label } from '@/components';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Katex } from '@/extensions/Katex/Katex';
+import { useToggleActive } from '@/hooks/useActive';
+import { useAttributes } from '@/hooks/useAttributes';
+import { useButtonProps } from '@/hooks/useButtonProps';
+import { useLocale } from '@/locales';
+import { useEditorInstance } from '@/store/editor';
+import { loadKatex } from '@/utils/cdn-loader';
+import { safeJSONParse } from '@/utils/json';
+
+import type { IKatexAttrs } from '@/extensions/Katex/Katex';
+
+export function RichTextKatex() {
+  const { t } = useLocale();
+  const [visible, toggleVisible] = useState(false);
+  const [katexLib, setKatexLib] = useState<any>(null);
+
+  useEffect(() => {
+    loadKatex().then(setKatexLib);
+  }, []);
+
+  const buttonProps = useButtonProps(Katex.name);
+
+  const {
+    icon = undefined,
+    tooltip = undefined,
+    tooltipOptions = {},
+    isActive = undefined,
+  } = buttonProps?.componentProps ?? {};
+
+  const { editorDisabled } = useToggleActive(isActive);
+
+  const editor = useEditorInstance();
+
+  const attrs = useAttributes<IKatexAttrs>(editor, Katex.name, {
+    text: '',
+    macros: '',
+  });
+  const { text, macros } = attrs;
+
+  const [currentValue, setCurrentValue] = useState(decodeURIComponent(text || ''));
+  const [currentMacros, setCurrentMacros] = useState(decodeURIComponent(macros || ''));
+
+  const submit = useCallback(() => {
+    editor
+      .chain()
+      .focus()
+      .setKatex({
+        text: encodeURIComponent(currentValue),
+        macros: encodeURIComponent(currentMacros),
+      })
+      .run();
+
+    setCurrentValue('');
+    setCurrentMacros('');
+    toggleVisible(false);
+  }, [editor, currentValue, currentMacros]);
+
+  const formatText = useMemo(() => {
+    if (!katexLib) return currentValue;
+    try {
+      return katexLib.renderToString(currentValue, {
+        macros: safeJSONParse(currentMacros),
+      });
+    } catch {
+      return currentValue;
+    }
+  }, [currentMacros, currentValue, katexLib]);
+
+  const previewContent = useMemo(() => {
+    if (`${currentValue}`.trim()) {
+      return formatText;
+    }
+
+    return null;
+  }, [currentValue, formatText]);
+
+  return (
+    <Dialog onOpenChange={toggleVisible} open={visible}>
+      <DialogTrigger asChild disabled={editorDisabled}>
+        <ActionButton
+          disabled={editorDisabled}
+          icon={icon}
+          tooltip={tooltip}
+          tooltipOptions={tooltipOptions}
+          action={() => {
+            if (editorDisabled) return;
+            toggleVisible(true);
+          }}
+        />
+      </DialogTrigger>
+
+      <DialogContent className='richtext-z-[99999] !richtext-max-w-[1300px]'>
+        <DialogTitle>{t('editor.formula.dialog.text')}</DialogTitle>
+
+        <div style={{ height: '100%', border: '1px solid hsl(var(--border))' }}>
+          <div className='richtext-flex richtext-gap-[10px] richtext-rounded-[10px] richtext-p-[10px]'>
+            <div className='richtext-flex-1'>
+              <Label className='mb-[6px]'>Expression</Label>
+
+              <Textarea
+                autoFocus
+                className='richtext-mb-[10px]'
+                onChange={(e) => setCurrentValue(e.target.value)}
+                placeholder='Text'
+                required
+                rows={10}
+                value={currentValue}
+                style={{
+                  color: 'hsl(var(--foreground))',
+                }}
+              />
+
+              <Label className='mb-[6px]'>Macros</Label>
+
+              <Textarea
+                className='richtext-flex-1'
+                placeholder='Macros'
+                rows={10}
+                value={currentMacros}
+                onChange={(e) => {
+                  setCurrentMacros(e.target.value);
+                }}
+                style={{
+                  color: 'hsl(var(--foreground))',
+                }}
+              />
+            </div>
+
+            <div
+              className='richtext-flex richtext-flex-1 richtext-items-center richtext-justify-center richtext-rounded-[10px] richtext-p-[10px]'
+              dangerouslySetInnerHTML={{ __html: previewContent || '' }}
+              style={{
+                height: '100%',
+                borderWidth: 1,
+                minHeight: 500,
+                background: '#fff',
+              }}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={submit} type='button'>
+            Save changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

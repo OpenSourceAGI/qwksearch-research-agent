@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import './privacy.css';
-import { config } from '@/lib/config/site';
+import { APP_NAME, APP_EMAIL, LAST_REVISED_DATE } from '@/lib/config/site';
 
 export const metadata: Metadata = {
-    title: `${config.appName} Terms of Service and Privacy Policy`,
-    description: `Terms of Service and Privacy Policy for ${config.appName}`,
+    title: `${APP_NAME} Terms of Service and Privacy Policy`,
+    description: `Terms of Service and Privacy Policy for ${APP_NAME}`,
 };
 
 export default function PrivacyPage() {
@@ -17,13 +17,13 @@ export default function PrivacyPage() {
                 </Link>
             </div>
 
-            <h1>{config.appName} Terms of Service and Privacy Policy</h1>
-            <p><strong>Revised Date: {config.lastRevisedDate}</strong></p>
+            <h1>{APP_NAME} Terms of Service and Privacy Policy</h1>
+            <p><strong>Revised Date: {LAST_REVISED_DATE}</strong></p>
 
             <h2>1. Introduction</h2>
-            <p>These Terms of Service (&quot;Terms&quot;) govern your use of {config.appName}'s products and services, along with any associated apps, software, and websites (together, our &quot;Services&quot;). These Terms are a contract between you and {config.appName}, and they include our Acceptable Use Policy. By accessing our Services, you agree to these Terms.</p>
+            <p>These Terms of Service (&quot;Terms&quot;) govern your use of {APP_NAME}'s products and services, along with any associated apps, software, and websites (together, our &quot;Services&quot;). These Terms are a contract between you and {APP_NAME}, and they include our Acceptable Use Policy. By accessing our Services, you agree to these Terms.</p>
 
-            <p>This document also describes how {config.appName} (&quot;we&quot;, &quot;us,&quot; &quot;our&quot;) collects, uses and discloses information about individuals who use our websites, applications, services, tools and features, purchase our products or otherwise interact with us (collectively, the &quot;Services&quot;). For the purposes of this document, &quot;you&quot; and &quot;your&quot; means you as the user of the Services, whether you are a customer, website visitor, job applicant, representative of a company with whom we do business, or another individual whose information we have collected pursuant to this Privacy Policy. Please note that the Services are designed for users in the United States only and are not intended for users located outside the United States.</p>
+            <p>This document also describes how {APP_NAME} (&quot;we&quot;, &quot;us,&quot; &quot;our&quot;) collects, uses and discloses information about individuals who use our websites, applications, services, tools and features, purchase our products or otherwise interact with us (collectively, the &quot;Services&quot;). For the purposes of this document, &quot;you&quot; and &quot;your&quot; means you as the user of the Services, whether you are a customer, website visitor, job applicant, representative of a company with whom we do business, or another individual whose information we have collected pursuant to this Privacy Policy. Please note that the Services are designed for users in the United States only and are not intended for users located outside the United States.</p>
 
             <p>Please read this document carefully. By using any of the Services, you agree to the collection, use, and disclosure of your information as described in this document. If you do not agree to these terms, please do not use or access the Services.</p>
 
@@ -68,8 +68,8 @@ export default function PrivacyPage() {
             </ol>
 
             <h2>4. Account Creation and Access</h2>
-            <p><strong>Your {config.appName} Account:</strong> To access our Services, we may ask you to create an Account. You agree to provide correct, current, and complete Account information. You may not share your Account login information with anyone else. You are responsible for all activity occurring under your Account.</p>
-            <p>You may close your Account at any time by contacting us at {config.appEmail}.</p>
+            <p><strong>Your {APP_NAME} Account:</strong> To access our Services, we may ask you to create an Account. You agree to provide correct, current, and complete Account information. You may not share your Account login information with anyone else. You are responsible for all activity occurring under your Account.</p>
+            <p>You may close your Account at any time by contacting us at {APP_EMAIL}.</p>
 
             <h2>5. Use of Our Services</h2>
             <p>You may access and use our Services only in compliance with our Terms, our Acceptable Use Policy, and any guidelines or supplemental terms we may post on the Services (the &quot;Permitted Use&quot;).</p>
@@ -140,7 +140,7 @@ export default function PrivacyPage() {
             <h2>13. Data Security and Retention</h2>
             <p>Despite our reasonable efforts to protect your information, no security measures are impenetrable, and we cannot guarantee &quot;perfect security.&quot; Any information you send to us electronically, while using the Services or otherwise interacting with us, may not be secure while in transit. We recommend that you do not use unsecure channels to send us sensitive or confidential information.</p>
             <p>We retain your information for as long as is reasonably necessary for the purposes specified in this document. When determining the length of time to retain your information, we consider various criteria, including whether we need the information to continue to provide you the Services, resolve a dispute, enforce our contractual agreements, prevent harm, promote safety, security and integrity, or protect ourselves, including our rights, property or products.</p>
-            <p>You may opt out of information collection for AI, which would prohibit us from using your search information to improve our AI models in your settings page if you are logged into the Services. If you delete your account, we will delete your personal information from our servers within 30 days. Please contact us at {config.appEmail} to request deletion.</p>
+            <p>You may opt out of information collection for AI, which would prohibit us from using your search information to improve our AI models in your settings page if you are logged into the Services. If you delete your account, we will delete your personal information from our servers within 30 days. Please contact us at {APP_EMAIL} to request deletion.</p>
 
             <h2>14. California Residents</h2>
             <p>This section applies to you only if you are a California resident (&quot;resident&quot; or &quot;residents&quot;). For purposes of this section, references to &quot;personal information&quot; shall include &quot;sensitive personal information,&quot; as these terms are defined under the California Consumer Privacy Act (&quot;CCPA&quot;).</p>
@@ -190,14 +190,14 @@ export default function PrivacyPage() {
             <p>If you provide Feedback to us, you agree that we may use the Feedback however we choose without any obligation or payment to you.</p>
 
             <h2>16. Disclaimer of Warranties and Limitations of Liability</h2>
-            <p>The services are provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind. {config.appName} disclaims all warranties, express or implied.</p>
-            <p>To the fullest extent permissible under applicable law, {config.appName} shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues.</p>
+            <p>The services are provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind. {APP_NAME} disclaims all warranties, express or implied.</p>
+            <p>To the fullest extent permissible under applicable law, {APP_NAME} shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues.</p>
 
             <h2>17. Termination</h2>
             <p>We may suspend or terminate your access to the Services at any time if we believe that you have breached these Terms, or if we must do so to comply with law.</p>
 
             <h2>18. How to Contact Us</h2>
-            <p>Should you have any questions about our privacy practices, these Terms of Service, or this document, please email us at {config.appEmail}</p>
+            <p>Should you have any questions about our privacy practices, these Terms of Service, or this document, please email us at {APP_EMAIL}</p>
         </main>
     );
 }

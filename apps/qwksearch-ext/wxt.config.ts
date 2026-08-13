@@ -50,7 +50,6 @@ export default defineConfig({
       'activeTab',
       'webRequest',
       'declarativeNetRequest',
-      'offscreen',
     ],
     host_permissions: ['<all_urls>'],
     commands: {

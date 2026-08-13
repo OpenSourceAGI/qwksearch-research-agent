@@ -1,38 +1,25 @@
 // Icon components are no longer imported - we use string names instead
 // and resolve them dynamically in client components
 
-export interface Config {
-  /** App Name in title case */
-  appName: string;
-  baseUrl: string;
-  googleClientId: string;
-  /** App Email for support */
-  appEmail: string;
-  /** Terms & Privacy Last Revised Date */
-  lastRevisedDate: string;
-  /** Windows product ID for native & URL links */
-  downloadWindowsStoreId: string;
-  /** Download Button URL for Chrome extension */
-  downloadChromeUrl: string;
-  /** Default prompt template for article */
-  defaultSummarizePrompt: string;
-  /** Max char length for article body sent to the LLM */
-  maxArticleLength: number;
-}
-
-export const config: Config = {
-  appName: "QwkSearch",
-  baseUrl: process.env.NEXT_PUBLIC_BASE_URL || "https://beta.qwksearch.com",
-  googleClientId:
+export const /** App Name in title case */
+  APP_NAME: string = "QwkSearch",
+  NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://beta.qwksearch.com",
+  NEXT_PUBLIC_GOOGLE_CLIENT_ID =
     "921732917742-79ql1h9hek2qsdn9f5vnk6lg26jq0vi2.apps.googleusercontent.com",
-  appEmail: "support@qwksearch.com",
-  lastRevisedDate: "2026-01-15",
-  downloadWindowsStoreId: "9PCGF9GNK460",
-  downloadChromeUrl:
+  /** App Email for support */
+  APP_EMAIL: string = "support@qwksearch.com",
+  /** Terms & Privacy Last Revised Date */
+  LAST_REVISED_DATE: string = "2026-01-15",
+  /** Windows product ID for native & URL links */
+  DOWNLOAD_WINDOWS_STORE_ID: string = "9PCGF9GNK460",
+  /** Download Button URL for Chrome extension  */
+  DOWNLOAD_CHROME_URL: string =
     "https://chromewebstore.google.com/detail/tab-manager-ai/manhemnhmipdhdpabojcplebckhckeko",
-  defaultSummarizePrompt: "Summarize in bullet points and bold topics",
-  maxArticleLength: 1500,
-};
+  /** Default prompt template for article */
+  DEFAULT_SUMMARIZE_PROMPT: string =
+    "Summarize in bullet points and bold topics",
+  /** Max char length for article body sent to the LLM */
+  MAX_ARTICLE_LENGTH: number = 1500;
 
 export const listFooterLinks: FooterLink[] = [
   // {
@@ -50,15 +37,9 @@ export const listFooterLinks: FooterLink[] = [
     text: "Support",
     icon: "MessageCircle",
   },
-  { url: "/#downloads", text: "Downloads", icon: "Download" },
   { url: "/legal/privacy", text: "Privacy", icon: "Lock" },
   { url: "https://rights.institute/ethics", text: "Ethics", icon: "Bot" },
   { url: "/enterprise", text: "Enterprise", icon: "Building2" },
-  {
-    url: "https://stats.uptimerobot.com/wgqOZtDv0i",
-    text: "Uptime",
-    icon: "Activity",
-  },
 ];
 
 export const SubscriptionPlans: SubscriptionPlan[] = [

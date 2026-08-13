@@ -1,7 +1,6 @@
 import type { WeatherForecastData, WeatherForecastOptions, WeatherLocation } from '../types';
 import { getWeatherIcon } from '../weatherCodes';
 import { getClientLocation } from './geolocation';
-import { readCachedForecast, writeCachedForecast } from '../lib/cache';
 
 function buildUrl(latitude: number, longitude: number, options: WeatherForecastOptions) {
   const params = new URLSearchParams({
@@ -34,8 +33,6 @@ function buildUrl(latitude: number, longitude: number, options: WeatherForecastO
       'temperature_2m_min',
       'weather_code',
       'precipitation_probability_max',
-      'precipitation_sum',
-      'wind_speed_10m_max',
     ].join(','),
   });
 
@@ -54,14 +51,10 @@ export async function getWeatherForecast(
       longitude: options.longitude,
     };
   } else {
-    location = await getClientLocation(options.geoEndpoint, options.ip);
+    location = await getClientLocation(options.ipInfoToken);
   }
 
   const url = buildUrl(location.latitude, location.longitude, { ...options, location });
-
-  const cached = readCachedForecast<WeatherForecastData>(url);
-  if (cached) return cached;
-
   const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
 
   if (!response.ok) {
@@ -74,8 +67,8 @@ export async function getWeatherForecast(
     throw new Error('Invalid weather response');
   }
 
-  const result: WeatherForecastData = {
-    location: { ...location, timezone: data.timezone || location.timezone },
+  return {
+    location,
     current: {
       time: data.current.time,
       temperature: Math.round(data.current.temperature_2m),
@@ -103,12 +96,7 @@ export async function getWeatherForecast(
       max: Math.round(data.daily.temperature_2m_max[index]),
       weatherCode: data.daily.weather_code[index],
       precipitationProbabilityMax: data.daily.precipitation_probability_max?.[index],
-      precipitationSum: data.daily.precipitation_sum?.[index],
-      windSpeedMax: data.daily.wind_speed_10m_max?.[index],
       icon: getWeatherIcon(data.daily.weather_code[index]),
     })),
   };
-
-  writeCachedForecast(url, result);
-  return result;
 }

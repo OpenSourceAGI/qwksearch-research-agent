@@ -404,41 +404,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     router.push('/');
   }, [handleStopStreaming, router]);
 
-  /**
-   * Starts a brand-new chat session with a caller-supplied ID, without
-   * navigating away from the current route (`newChat` pushes to `/`).
-   * Skips the message-loading fetch entirely since the ID is known to be
-   * unused, avoiding a spurious "not found" round-trip.
-   */
-  const handleStartNewChat = useCallback((id: string) => {
-    handleStopStreaming();
-    setters.setMessages([]);
-    setters.setChatHistory([]);
-    setters.setFiles([]);
-    setters.setFileIds([]);
-    setters.setNotFound(false);
-    setters.setNewChatCreated(true);
-    setters.setIsMessagesLoaded(true);
-    setters.setChatId(id);
-  }, [handleStopStreaming]);
-
-  /**
-   * Switches the active chat to an existing chat ID and loads its messages,
-   * without navigating away from the current route.
-   */
-  const handleSwitchToChat = useCallback((id: string) => {
-    if (id === state.chatId) return;
-    handleStopStreaming();
-    setters.setMessages([]);
-    setters.setChatHistory([]);
-    setters.setFiles([]);
-    setters.setFileIds([]);
-    setters.setIsMessagesLoaded(false);
-    setters.setNotFound(false);
-    setters.setNewChatCreated(false);
-    setters.setChatId(id);
-  }, [handleStopStreaming, state.chatId]);
-
   // ============ Context Value ============
 
   /** The complete context value provided to consumers */
@@ -474,8 +439,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setChatModelProvider: setters.setChatModelProvider,
     stopStreaming: handleStopStreaming,
     newChat: handleNewChat,
-    startNewChat: handleStartNewChat,
-    switchToChat: handleSwitchToChat,
     setIncognito,
   };
 

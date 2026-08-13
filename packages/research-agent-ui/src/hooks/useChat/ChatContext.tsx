@@ -130,22 +130,6 @@ export interface ChatContextValue {
   newChat: () => void;
 
   /**
-   * Starts a brand-new chat session with a caller-supplied ID, without
-   * navigating away from the current route. Unlike `newChat`, this does not
-   * push to `/` — useful for hosts that render `ChatWindow` inline (e.g. as
-   * a tab) and want to control the new chat's ID up front.
-   * @param id - The ID to assign to the new chat session.
-   */
-  startNewChat: (id: string) => void;
-
-  /**
-   * Switches the active chat to an existing chat ID and loads its messages,
-   * without navigating away from the current route.
-   * @param id - The ID of the existing chat session to switch to.
-   */
-  switchToChat: (id: string) => void;
-
-  /**
    * Whether incognito mode is active.
    * When true, messages are not saved to history or cloud.
    */
@@ -200,8 +184,6 @@ export const chatContext = createContext<ChatContextValue>({
   setChatModelProvider: () => { },
   stopStreaming: () => { },
   newChat: () => { },
-  startNewChat: () => { },
-  switchToChat: () => { },
   incognito: false,
   setIncognito: () => { },
 });

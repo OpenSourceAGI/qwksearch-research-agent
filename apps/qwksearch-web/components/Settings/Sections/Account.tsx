@@ -676,7 +676,7 @@ export default function Account() {
                     <span className="font-medium">{provider.name}</span>
                     {linkedAccount && (
                       <span className="text-[10px] text-black/50 dark:text-white/50">
-                        {profile?.email ?? linkedAccount.accountId}
+                        {linkedAccount.accountId}
                       </span>
                     )}
                   </div>
@@ -846,6 +846,4 @@ export default function Account() {
           Delete Account
         </button>
       </SectionCard>
-    </div>
-  );
-}
+   

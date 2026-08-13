@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Settings, LogIn, LogOut, Link2, FileText } from "lucide-react"
+import { Settings, LogIn, LogOut, Link2 } from "lucide-react"
 import * as LucideIcons from "lucide-react"
 import {
   CategoryDock as BaseCategoryDock,
@@ -37,7 +37,7 @@ export function CategoryDock() {
   const { isAuthenticated, signIn, signOut } = useSession()
   const { newChat } = useChat()
   const { openSettings } = useSettingsModal()
-  const { activeView, setActiveView, requestFilesSidebar } = useMainView()
+  const { activeView, setActiveView } = useMainView()
 
   const isOnResearch = pathname === "/" || pathname.startsWith("/c")
 
@@ -62,15 +62,6 @@ export function CategoryDock() {
         setActiveView("docs")
       },
     })),
-    {
-      key: "files",
-      label: "Files",
-      icon: <FileText className="w-full h-full p-1" />,
-      onClick: () => {
-        setActiveView("docs")
-        requestFilesSidebar()
-      },
-    },
     {
       key: "settings",
       label: "Settings",
@@ -135,28 +126,9 @@ export function CategoryDock() {
     },
   ]
 
-  // The "Files" shortcut only makes sense on mobile, where REASON's file
-  // sidebar isn't otherwise reachable at a glance — on desktop it's always
-  // visible in the persistent sidebar, so the dock icon would be redundant.
-  const desktopItems = items.filter((item) => item.key !== "files")
-  const renderImage = (src: string, alt: string, size: number) => (
-    <Image src={src} alt={alt} width={size} height={size} unoptimized className="w-full h-full" />
-  )
-
   return (
-    <>
-      <BaseCategoryDock
-        items={desktopItems}
-        enableKeyboardShortcuts
-        placements={{ desktop: true, mobile: false }}
-        renderImage={renderImage}
-      />
-      <BaseCategoryDock
-        items={items}
-        placements={{ desktop: false, mobile: true }}
-        mobileAlign={activeView === "docs" ? "end" : "center"}
-        renderImage={renderImage}
-      />
-    </>
-  )
-}
+    <BaseCategoryDock
+      items={items}
+      enableKeyboardShortcuts
+      renderImage={(src, alt, size) => (
+        <Image src={src} alt={alt} width={size}

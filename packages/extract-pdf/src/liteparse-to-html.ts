@@ -6,13 +6,16 @@
  * and requires the optional `@llamaindex/liteparse` dependency to be installed.
  */
 import { grab } from "./utils/grab";
-import { escapeHtml } from "./utils/string-functions";
 import type { LiteParseConfig } from "@llamaindex/liteparse";
 
 export interface LiteParseHTMLOptions {
   addPageNumbers?: boolean;
   addCitation?: boolean;
   liteParseOptions?: Partial<LiteParseConfig>;
+}
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 /**

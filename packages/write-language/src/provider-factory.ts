@@ -71,12 +71,6 @@ export function createLLMProvider(
     case "openrouter":
       return createOpenRouter({ apiKey }).chat(model);
 
-    case "anyapi":
-      return createOpenAI({
-        apiKey,
-        baseURL: "https://api.anyapi.ai/v1",
-      })(model);
-
     case "perplexity":
       return createOpenAI({
         apiKey,

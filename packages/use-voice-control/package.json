@@ -15,14 +15,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./client": {
-      "types": "./dist/client/index.d.ts",
-      "import": "./dist/client.js"
-    },
-    "./react": {
-      "types": "./dist/react/index.d.ts",
-      "import": "./dist/react.js"
-    },
     "./api-client": {
       "types": "./speech/api-client.ts",
       "import": "./speech/api-client.ts"
@@ -36,30 +28,25 @@
   "scripts": {
     "build": "tsc && vite build",
     "dev": "vite build --watch",
-    "type-check": "tsc --noEmit",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@huggingface/transformers": "^3.8.1",
     "lucide-react": "^0.344.0",
-    "@moonshine-ai/moonshine-js": "^0.1.29"
+    "@moonshine-ai/moonshine-js": "^0.1.29",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
   "devDependencies": {
-    "@types/react": "^19.2.17",
-    "@vitejs/plugin-react": "^4.3.4",
-    "@types/react-dom": "^19.2.3",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
-    "@vitest/coverage-v8": "^4.0.18",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
     "typescript": "^5.3.3",
     "vite": "^5.0.0",
-    "vite-plugin-dts": "^5.0.0",
-    "vitest": "^4.0.18"
+    "vite-plugin-dts": "^5.0.0"
   },
   "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0"
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
   "optionalDependencies": {
     "@huggingface/transformers": "^3.0.0"

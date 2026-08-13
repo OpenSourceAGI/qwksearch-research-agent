@@ -13,17 +13,23 @@ import { Toaster } from 'sonner';
 import { authClient } from '@/lib/auth/client';
 import { CategoryDock } from '@/components/layout/CategoryDock';
 import { CookieConsent } from '@/components/layout/CookieConsent';
-import { useChunkErrorReload } from '@/components/layout/useChunkErrorReload';
 import { SettingsModalProvider } from '@/components/Settings/SettingsModal';
 import { MainViewProvider } from '@/components/layout/MainViewProvider';
-import { config, listFooterLinks } from '@/lib/config/site';
+import {
+  APP_NAME,
+  DEFAULT_SUMMARIZE_PROMPT,
+  MAX_ARTICLE_LENGTH,
+  DOWNLOAD_CHROME_URL,
+  DOWNLOAD_WINDOWS_STORE_ID,
+  listFooterLinks,
+} from '@/lib/config/site';
 
 configureResearchAgentUI({
-  appName: config.appName,
-  defaultSummarizePrompt: config.defaultSummarizePrompt,
-  maxArticleLength: config.maxArticleLength,
-  downloadChromeUrl: config.downloadChromeUrl,
-  downloadWindowsStoreId: config.downloadWindowsStoreId,
+  appName: APP_NAME,
+  defaultSummarizePrompt: DEFAULT_SUMMARIZE_PROMPT,
+  maxArticleLength: MAX_ARTICLE_LENGTH,
+  downloadChromeUrl: DOWNLOAD_CHROME_URL,
+  downloadWindowsStoreId: DOWNLOAD_WINDOWS_STORE_ID,
   footerLinks: listFooterLinks,
   googleApiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY || '',
   getAutoMediaSearch: () => true,
@@ -34,8 +40,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
   // Google provider configured — otherwise the prompt can only fail (a
   // sign-in with no provider to complete it against).
   const [googleOneTapEnabled, setGoogleOneTapEnabled] = useState(false);
-
-  useChunkErrorReload();
 
   useEffect(() => {
     fetch('/api/auth/providers')

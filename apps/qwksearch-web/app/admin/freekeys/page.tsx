@@ -55,7 +55,6 @@ interface TestAllResult {
 interface FreeKeysData {
   nvidia: ProviderData;
   openrouter: ProviderData;
-  anyapi: ProviderData;
   guestProviders: {
     note: string;
     providers: { name: string; type: string; modelCount: number }[];
@@ -64,10 +63,8 @@ interface FreeKeysData {
   guestLogic: {
     note: string;
     openrouterKeySet: boolean;
-    anyapiKeySet: boolean;
     nvidiaWillBeLoaded: boolean;
     openrouterWillBeLoaded: boolean;
-    anyapiWillBeLoaded: boolean;
   };
   auth: {
     betterAuthSecretSet: boolean;
@@ -103,7 +100,7 @@ function ProviderCard({
   data,
 }: {
   name: string;
-  slug: "nvidia" | "openrouter" | "anyapi";
+  slug: "nvidia" | "openrouter";
   data: ProviderData;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -393,7 +390,6 @@ export default function FreeKeysPage() {
 
           <ProviderCard name="NVIDIA" slug="nvidia" data={data.nvidia} />
           <ProviderCard name="OpenRouter" slug="openrouter" data={data.openrouter} />
-          <ProviderCard name="AnyAPI" slug="anyapi" data={data.anyapi} />
 
           <div className="border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 bg-yellow-50 dark:bg-yellow-950 text-sm space-y-2">
             <h2 className="font-semibold text-yellow-800 dark:text-yellow-200">
@@ -402,14 +398,10 @@ export default function FreeKeysPage() {
             <div className="grid grid-cols-2 gap-1 text-xs">
               <span className="text-gray-600 dark:text-gray-400">OpenRouter key set</span>
               <StatusBadge ok={data.guestLogic.openrouterKeySet} />
-              <span className="text-gray-600 dark:text-gray-400">AnyAPI key set</span>
-              <StatusBadge ok={data.guestLogic.anyapiKeySet} />
               <span className="text-gray-600 dark:text-gray-400">NVIDIA will be loaded for guests</span>
               <StatusBadge ok={data.guestLogic.nvidiaWillBeLoaded} />
               <span className="text-gray-600 dark:text-gray-400">OpenRouter will be loaded for guests</span>
               <StatusBadge ok={data.guestLogic.openrouterWillBeLoaded} />
-              <span className="text-gray-600 dark:text-gray-400">AnyAPI will be loaded for guests</span>
-              <StatusBadge ok={data.guestLogic.anyapiWillBeLoaded} />
             </div>
             <p className="text-yellow-700 dark:text-yellow-300 text-xs mt-2">
               {data.guestLogic.note}
