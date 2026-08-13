@@ -305,6 +305,9 @@
     "packages/extract-pdf": {
       "name": "extract-pdf",
       "version": "0.1.104",
+      "dependencies": {
+        "grab-url": "^1.6.22",
+      },
       "devDependencies": {
         "terser": "^5.46.0",
         "typescript": "^5.9.3",
