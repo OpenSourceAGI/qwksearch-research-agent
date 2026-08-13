@@ -2,9 +2,32 @@
  * Toolbar control (React) for the Zoom extension, which adds zooming the editor content. Renders the button and dispatches the matching editor command when activated.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ZoomIn, ZoomOut } from 'lucide-react';
 import { createPortal } from 'react-dom';
+import { useLocalStorage } from '../../../app-hooks/useLocalStorage';
+
+/** Zoom applied to the editor content the first time a session opens it. */
+export const DEFAULT_ZOOM = 1.25;
+const ZOOM_STEP = 0.25;
+const MIN_ZOOM = 0.5;
+const MAX_ZOOM = 2;
+const ZOOM_STORAGE_KEY = 'REASON-zoom';
+
+/** Clamps `scale` to the [MIN_ZOOM, MAX_ZOOM] range supported by the zoom controls. */
+export function clampZoom(scale: number): number {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, scale));
+}
+
+/** Returns the zoom level after zooming in one step from `scale`. */
+export function zoomIn(scale: number): number {
+  return clampZoom(scale + ZOOM_STEP);
+}
+
+/** Returns the zoom level after zooming out one step from `scale`. */
+export function zoomOut(scale: number): number {
+  return clampZoom(scale - ZOOM_STEP);
+}
 
 function Toast({ message }: { message: string }) {
   const [isVisible, setIsVisible] = useState(true);
@@ -27,25 +50,11 @@ function Toast({ message }: { message: string }) {
 }
 
 export function RichTextZoom() {
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useLocalStorage(ZOOM_STORAGE_KEY, DEFAULT_ZOOM);
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (message: string) => {
     setToast(message);
-  };
-
-  const handleZoomIn = () => {
-    const newScale = Math.min(scale + 0.25, 2);
-    setScale(newScale);
-    applyZoom(newScale);
-    showToast(`Zoom: ${Math.round(newScale * 100)}%`);
-  };
-
-  const handleZoomOut = () => {
-    const newScale = Math.max(scale - 0.25, 0.5);
-    setScale(newScale);
-    applyZoom(newScale);
-    showToast(`Zoom: ${Math.round(newScale * 100)}%`);
   };
 
   const applyZoom = (zoomLevel: number) => {
@@ -54,6 +63,27 @@ export function RichTextZoom() {
       (editor as HTMLElement).style.transform = `scale(${zoomLevel})`;
       (editor as HTMLElement).style.transformOrigin = 'top left';
     }
+  };
+
+  // Re-apply the persisted (or default) zoom to the editor on mount, since
+  // it's a DOM style rather than something React renders declaratively.
+  useEffect(() => {
+    applyZoom(scale);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleZoomIn = () => {
+    const newScale = zoomIn(scale);
+    setScale(newScale);
+    applyZoom(newScale);
+    showToast(`Zoom: ${Math.round(newScale * 100)}%`);
+  };
+
+  const handleZoomOut = () => {
+    const newScale = zoomOut(scale);
+    setScale(newScale);
+    applyZoom(newScale);
+    showToast(`Zoom: ${Math.round(newScale * 100)}%`);
   };
 
   return (

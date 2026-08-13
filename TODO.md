@@ -4,17 +4,21 @@ ext - dl to reason dl folswe
 2. Chat with open tabs as context.
 3. Show Vals scores for all models; example Kimi K2.5 page lists Vals Index 51.70%, latency 807.18s, and cost/test $0.29.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override)
 4. Outline tree should reuse Fumadocs page tree/sidebar patterns.
-6. Find/replace across all docs.
 7. Option to start talking automatically on first visit, or via a button from anywhere on the site.
 8. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings.
-9. Reasoning view zoom default at 125%.
 10. common typoes
 11. https://github.com/cloudflare/moltworker
 
 
 ## Completed
 
-5. Filter outline — fixed: filtering already existed in the sidebar outline panel, but it dropped headings that matched only via body text and mis-hid items when a filter was active (index mismatch between the filtered list and the full outline). See packages/react-reason-editor/src/search/OutlineView.tsx and SidebarContent.tsx. PR: https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/185
+5. Filter outline — fixed: filtering already existed in the sidebar outline panel, but it dropped headings that matched only via body text and mis-hid items when a filter was active (index mismatch between the filtered list and the full outline). See packages/react-reason-editor/src/search/OutlineView.tsx and SidebarContent.tsx.
+
+9. Reasoning view zoom default at 125% — fixed: the zoom control defaulted to 100% and reset on every reload since it wasn't persisted. Default is now 125% and the chosen zoom level persists across sessions via localStorage (`REASON-zoom`), applied on mount. See packages/react-reason-editor/src/extensions/Zoom/components/RichTextZoom.tsx. PR: https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/189
+
+6. Find/replace across all docs — added: a "Find & Replace in All Docs" dialog, reachable from the ⌘K/Ctrl+K command palette, searches every document's content and lets you replace all occurrences across every matching document in one action (with a per-document match preview and an explicit confirmation step), including the document currently open in the editor. See packages/react-reason-editor/src/search/findReplaceAllDocs.ts, FindReplaceAllDialog.tsx, and the wiring in useReasonDocsState.ts/ReasonDocs.tsx/ReasonDocsDialogs.tsx/SearchModal.tsx. PR: https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/192
+
+38. Follow-up to #6 (Find/replace across all docs) — fixed: a confirmed replace now also applies to the document currently open in the editor, instead of skipping it. `TiptapEditorWrapper` accepts a `reloadToken` prop (independent of `contentKey`/document id) that forces its reload effect to re-sync `content` into the editor; `useReasonDocsState`'s `handleReplaceInAllDocuments` bumps that token whenever the active document is among the replaced ones, via the new pure `shouldReloadOpenDocument` helper. See packages/react-reason-editor/src/editor/computeStableKey.ts, TiptapEditorWrapper.tsx, EditorArea.tsx, useReasonDocsState.ts, and packages/react-reason-editor/src/search/findReplaceAllDocs.ts. Tests: computeStableKey.test.ts, findReplaceAllDocs.test.ts. Known unrelated pre-existing gap: `packages/react-reason-editor`'s `build:lib`/`tsc --noEmit` were already broken on master before this change — see #39.
 
 ## Longterm
 
@@ -43,3 +47,4 @@ ext - dl to reason dl folswe
 35. Release on HN, YouTube, and Product Hunt.
 36. https://21st.dev/community/agents
 37. from the drodpown menu have tit  insret to as about tabstion ...` to show where the warning was created)
+39. `packages/react-reason-editor`'s `build:lib` script (`vite build`) fails on master independent of any TODO work: `src/extensions/Zoom/Zoom.ts` is referenced as a build entry but doesn't exist, and there are several pre-existing TypeScript errors (`src/dialogs/InviteModal.tsx`, `src/editor-views/components/Toolbar.tsx` and `config/pluginRegistry.tsx` importing a nonexistent `react-reason-editor/wordcount` subpath, `src/extensions/Pagination/Pagination.ts`, `src/file-tree/filetree.tsx`, `src/types/constants.types.ts` — the last one also breaks plain `tsc --noEmit`). `bun run test` (Vitest) is unaffected and passes. Repro: `cd packages/react-reason-editor && bun run build:lib`.

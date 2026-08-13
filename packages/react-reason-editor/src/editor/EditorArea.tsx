@@ -19,6 +19,8 @@ interface EditorAreaProps {
   documents: Document[];
   splitViewDocId: string | null;
   activeDocId: string | null;
+  /** Bump to force the active document's editor to reload its content, e.g. after an external update. */
+  reloadToken?: string | number;
   isMobile: boolean;
   editorRef?: React.RefObject<TiptapEditorHandle | null>;
   onUpdateDocument: (id: string, updates: Partial<Document>) => void;
@@ -50,6 +52,7 @@ export function EditorArea({
   documents,
   splitViewDocId,
   activeDocId,
+  reloadToken,
   isMobile,
   editorRef,
   onUpdateDocument,
@@ -93,6 +96,7 @@ export function EditorArea({
                 <TiptapEditorWrapper
                   ref={editorRef}
                   contentKey={activeDocument.id}
+                  reloadToken={reloadToken}
                   content={activeDocument.content}
                   onChange={(content: string) => onUpdateDocument(activeDocument.id, { content })}
                   title={activeDocument.title}
@@ -156,6 +160,7 @@ export function EditorArea({
       <TiptapEditorWrapper
         ref={editorRef}
         contentKey={activeDocument.id}
+        reloadToken={reloadToken}
         content={activeDocument.content}
         onChange={(content: string) => onUpdateDocument(activeDocument.id, { content })}
         title={activeDocument.title}

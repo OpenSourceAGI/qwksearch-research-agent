@@ -98,6 +98,7 @@ const Index = () => {
     documents: state.documents,
     splitViewDocId: state.splitViewDocId,
     activeDocId: state.activeDocId,
+    reloadToken: state.activeDocReloadToken,
     isMobile: state.isMobile,
     editorRef: state.editorRef,
     onUpdateDocument: state.handleUpdateDocument,
@@ -193,6 +194,8 @@ const Index = () => {
       <ReasonDocsDialogs
         isSearchModalOpen={state.isSearchModalOpen}
         setIsSearchModalOpen={state.setIsSearchModalOpen}
+        isFindReplaceAllOpen={state.isFindReplaceAllOpen}
+        setIsFindReplaceAllOpen={state.setIsFindReplaceAllOpen}
         isSettingsOpen={state.isSettingsOpen}
         setIsSettingsOpen={state.setIsSettingsOpen}
         settingsInitialSection={settingsInitialSection}
@@ -204,6 +207,7 @@ const Index = () => {
         setIsTagDialogOpen={state.setIsTagDialogOpen}
         documents={state.documents}
         activeDocument={state.activeDocument}
+        activeDocId={state.activeDocId}
         tagManagementDocId={state.tagManagementDocId}
         defaultSidebarView={state.defaultSidebarView}
         setDefaultSidebarView={state.setDefaultSidebarView}
@@ -211,6 +215,7 @@ const Index = () => {
         setEnableDatabaseSync={state.setEnableDatabaseSync}
         setDocuments={state.setDocuments}
         onSelectDocument={state.handleSelectDocument}
+        onReplaceInAllDocuments={state.handleReplaceInAllDocuments}
         onToggleTheme={handleToggleTheme}
         currentTheme={theme}
         onUpdateTags={state.handleUpdateTags}
