@@ -4,7 +4,6 @@ ext - dl to reason dl folswe
 2. Chat with open tabs as context.
 3. Show Vals scores for all models; example Kimi K2.5 page lists Vals Index 51.70%, latency 807.18s, and cost/test $0.29.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override)
 4. Outline tree should reuse Fumadocs page tree/sidebar patterns.
-5. Filter outline.
 6. Find/replace across all docs.
 7. Option to start talking automatically on first visit, or via a button from anywhere on the site.
 8. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings.
@@ -12,6 +11,10 @@ ext - dl to reason dl folswe
 10. common typoes
 11. https://github.com/cloudflare/moltworker
 
+
+## Completed
+
+5. Filter outline — fixed: filtering already existed in the sidebar outline panel, but it dropped headings that matched only via body text and mis-hid items when a filter was active (index mismatch between the filtered list and the full outline). See packages/react-reason-editor/src/search/OutlineView.tsx and SidebarContent.tsx.
 
 ## Longterm
 

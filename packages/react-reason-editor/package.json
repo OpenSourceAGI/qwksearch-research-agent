@@ -749,7 +749,8 @@
     "build:lib": "vite build",
     "build:demo": "vite build --config demo/vite.config.ts",
     "preview": "wrangler dev",
-    "deploy": "pnpm build:lib && pnpm build:demo && wrangler deploy"
+    "deploy": "pnpm build:lib && pnpm build:demo && wrangler deploy",
+    "test": "vitest run"
   },
   "dependencies": {
     "@floating-ui/dom": "^1.7.6",
@@ -892,6 +893,7 @@
     "typescript": "^6.0.3",
     "unplugin-dts": "1.0.2",
     "vite": "^8.0.16",
+    "vitest": "^4.0.18",
     "wrangler": "^4.107.0"
   },
   "engines": {
