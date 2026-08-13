@@ -7,7 +7,6 @@ ext - dl to reason dl folswe
 6. Find/replace across all docs.
 7. Option to start talking automatically on first visit, or via a button from anywhere on the site.
 8. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings.
-9. Reasoning view zoom default at 125%.
 10. common typoes
 11. https://github.com/cloudflare/moltworker
 
@@ -15,6 +14,8 @@ ext - dl to reason dl folswe
 ## Completed
 
 5. Filter outline — fixed: filtering already existed in the sidebar outline panel, but it dropped headings that matched only via body text and mis-hid items when a filter was active (index mismatch between the filtered list and the full outline). See packages/react-reason-editor/src/search/OutlineView.tsx and SidebarContent.tsx.
+
+9. Reasoning view zoom default at 125% — fixed: the zoom control defaulted to 100% and reset on every reload since it wasn't persisted. Default is now 125% and the chosen zoom level persists across sessions via localStorage (`REASON-zoom`), applied on mount. See packages/react-reason-editor/src/extensions/Zoom/components/RichTextZoom.tsx.
 
 ## Longterm
 
