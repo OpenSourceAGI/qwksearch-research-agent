@@ -33,6 +33,8 @@ function buildUrl(latitude: number, longitude: number, options: WeatherForecastO
       'temperature_2m_min',
       'weather_code',
       'precipitation_probability_max',
+      'precipitation_sum',
+      'wind_speed_10m_max',
     ].join(','),
   });
 
@@ -68,7 +70,9 @@ export async function getWeatherForecast(
   }
 
   return {
-    location,
+    // Open-Meteo resolves "auto" to the location's real IANA zone; keep it so
+    // the widget can show the local clock.
+    location: { ...location, timezone: data.timezone || location.timezone },
     current: {
       time: data.current.time,
       temperature: Math.round(data.current.temperature_2m),
@@ -96,6 +100,8 @@ export async function getWeatherForecast(
       max: Math.round(data.daily.temperature_2m_max[index]),
       weatherCode: data.daily.weather_code[index],
       precipitationProbabilityMax: data.daily.precipitation_probability_max?.[index],
+      precipitationSum: data.daily.precipitation_sum?.[index],
+      windSpeedMax: data.daily.wind_speed_10m_max?.[index],
       icon: getWeatherIcon(data.daily.weather_code[index]),
     })),
   };
