@@ -98,6 +98,7 @@ const Index = () => {
     documents: state.documents,
     splitViewDocId: state.splitViewDocId,
     activeDocId: state.activeDocId,
+    reloadToken: state.activeDocReloadToken,
     isMobile: state.isMobile,
     editorRef: state.editorRef,
     onUpdateDocument: state.handleUpdateDocument,

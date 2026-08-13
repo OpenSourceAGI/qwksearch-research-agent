@@ -44,7 +44,7 @@ interface ReasonDocsDialogsProps {
   documents: Document[];
   /** Currently active document, used by the invite modal for context. */
   activeDocument: Document | undefined;
-  /** ID of the currently active/open document, excluded from cross-document replace. */
+  /** ID of the currently active/open document, included in cross-document replace. */
   activeDocId: string | null;
   /** ID of the document whose tags are currently being managed; null if none. */
   tagManagementDocId: string | null;
@@ -54,7 +54,7 @@ interface ReasonDocsDialogsProps {
   setEnableDatabaseSync: (enabled: boolean) => void;
   setDocuments: (docs: Document[] | ((prev: Document[]) => Document[])) => void;
   onSelectDocument: (id: string) => void;
-  /** Replaces `query` with `replacement` across all documents except the active one. */
+  /** Replaces `query` with `replacement` across all documents, including the active one. */
   onReplaceInAllDocuments: (
     query: string,
     replacement: string,

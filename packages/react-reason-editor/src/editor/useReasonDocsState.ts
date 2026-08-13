@@ -18,7 +18,11 @@ import { useLocalStorage } from "../app-hooks/useLocalStorage";
 import { useIsMobile } from "../app-hooks/use-mobile";
 import { useDocumentSync } from "../app-hooks/useDocumentSync";
 import { defaultDocuments } from "../documents/defaultDocuments";
-import { replaceInAllDocuments, type ReplaceAllResult } from "../search/findReplaceAllDocs";
+import {
+  replaceInAllDocuments,
+  shouldReloadOpenDocument,
+  type ReplaceAllResult,
+} from "../search/findReplaceAllDocs";
 import { toast } from "sonner";
 
 /**
@@ -75,6 +79,10 @@ export function useReasonDocsState() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const editorRef = useRef<TiptapEditorHandle | null>(null);
   const [headings, setHeadings] = useState<TocEntry[]>([]);
+  // Bumped whenever a cross-document replace externally updates the content
+  // of the document currently open in the editor, forcing TiptapEditorWrapper
+  // to reload it even though the document id (contentKey) hasn't changed.
+  const [activeDocReloadToken, setActiveDocReloadToken] = useState(0);
 
   const [documents, setDocuments] = useLocalStorage<Document[]>(
     "REASON-documents",
@@ -329,9 +337,11 @@ export function useReasonDocsState() {
 
   /**
    * Replaces every occurrence of `query` with `replacement` across all
-   * documents except the one currently open in the editor (whose in-memory
-   * Tiptap state would otherwise overwrite the replacement on its next
-   * autosave). Queues each changed document for database sync when enabled.
+   * documents, including the one currently open in the editor. When the open
+   * document is among the changed ones, bumps `activeDocReloadToken` so its
+   * editor reloads the freshly replaced content instead of silently
+   * overwriting it with stale in-memory state on its next autosave. Queues
+   * each changed document for database sync when enabled.
    *
    * @param query - Text to search for.
    * @param replacement - Text to replace matches with.
@@ -343,15 +353,15 @@ export function useReasonDocsState() {
     replacement: string,
     options: { caseSensitive?: boolean } = {},
   ): ReplaceAllResult => {
-    const excludeIds = activeDocId ? [activeDocId] : [];
-    const result = replaceInAllDocuments(documents, query, replacement, {
-      ...options,
-      excludeIds,
-    });
+    const result = replaceInAllDocuments(documents, query, replacement, options);
 
     if (result.changedIds.length === 0) return result;
 
     setDocuments(result.documents);
+
+    if (shouldReloadOpenDocument(activeDocId, result.changedIds)) {
+      setActiveDocReloadToken((token) => token + 1);
+    }
 
     if (enableDatabaseSync) {
       const changedIds = new Set(result.changedIds);
@@ -812,6 +822,7 @@ export function useReasonDocsState() {
     editorRef,
     headings,
     setHeadings,
+    activeDocReloadToken,
     isFindReplaceAllOpen,
     setIsFindReplaceAllOpen,
     documents,
