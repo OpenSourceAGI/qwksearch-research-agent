@@ -21,7 +21,17 @@ function forecast(overrides: Partial<WeatherForecastData> = {}): WeatherForecast
     ],
     daily: [
       { date: '2024-01-01', min: 55, max: 79, weatherCode: 0, icon: 'sun', precipitationProbabilityMax: 10 },
-      { date: '2024-01-02', min: 58, max: 80, weatherCode: 95, icon: 'cloud-bolt', precipitationProbabilityMax: 70 },
+      {
+        date: '2024-01-02',
+        min: 58,
+        max: 80,
+        weatherCode: 95,
+        icon: 'cloud-bolt',
+        precipitationProbabilityMax: 70,
+        precipitationSum: 0.5,
+        windSpeedMax: 4.5,
+      },
+      { date: '2024-01-03', min: 57, max: 77, weatherCode: 3, icon: 'clouds', precipitationSum: 0, windSpeedMax: 3.5 },
     ],
     ...overrides,
   } as WeatherForecastData;
@@ -127,6 +137,35 @@ describe('<WeatherForecast />', () => {
     expect(screen.getByText('8 mph')).toBeTruthy();
     // The compact layout omits the full hour/day breakdown.
     expect(screen.queryByText('Next hours')).toBeNull();
+  });
+
+  it('lists the upcoming days with precipitation and peak wind', async () => {
+    vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
+
+    render(<WeatherForecast latitude={1} longitude={2} compact />);
+
+    // The day after today is labelled "Tomorrow"; later days use their weekday.
+    expect(await screen.findByText('Tomorrow')).toBeTruthy();
+    expect(screen.getByText('Wednesday')).toBeTruthy();
+    expect(screen.getByText('0.5 mm')).toBeTruthy();
+    expect(screen.getByText('0.0 mm')).toBeTruthy();
+    expect(screen.getByText('4.5 mph')).toBeTruthy();
+  });
+
+  it('shows placeholders for upcoming days without precipitation or wind data', async () => {
+    vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(
+      forecast({
+        daily: [
+          { date: '2024-01-01', min: 55, max: 79, weatherCode: 0, icon: 'sun' },
+          { date: '2024-01-02', min: 58, max: 80, weatherCode: 0, icon: 'sun' },
+        ],
+      })
+    );
+
+    render(<WeatherForecast latitude={1} longitude={2} compact />);
+
+    await screen.findByText('Tomorrow');
+    expect(screen.getAllByText('—').length).toBe(2);
   });
 
   it('shows a wind placeholder when wind speed is missing', async () => {
