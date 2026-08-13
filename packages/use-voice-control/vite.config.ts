@@ -1,13 +1,24 @@
 import { resolve } from "node:path";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
-// Library build for the published TTS entry point. The source lives under
-// `speech/`; `speech/index.ts` is the public API (`generateSpeech` + types).
+// Library build for the published entry points. The source lives under `speech/`:
+// `speech/index.ts` is the server-side TTS API (`generateSpeech` + types),
+// `speech/client` the framework-agnostic browser engines (read-aloud playback,
+// live dictation), and `speech/react` the hooks and overlay that wrap them.
 export default defineConfig({
   plugins: [
+    react(),
     dts({
-      include: ["speech/index.ts", "speech/core", "speech/types"],
+      include: [
+        "speech/index.ts",
+        "speech/core",
+        "speech/types",
+        "speech/client",
+        "speech/react",
+        "speech/utils/*.d.ts",
+      ],
     }),
   ],
   // Several modules under `speech/core` ship both a `.ts` source and a stray
@@ -18,9 +29,13 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: resolve(__dirname, "speech/index.ts"),
+      entry: {
+        index: resolve(__dirname, "speech/index.ts"),
+        client: resolve(__dirname, "speech/client/index.ts"),
+        react: resolve(__dirname, "speech/react/index.ts"),
+      },
       formats: ["es"],
-      fileName: () => "index.js",
+      fileName: (_format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
       // Keep runtime/optional peers out of the bundle so consumers provide them.

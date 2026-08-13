@@ -310,6 +310,16 @@ export default defineConfig(async ({ mode }) => {
           // use-sync-external-store shim above (same dynamic-require issue),
           // so it must stay external too rather than get re-bundled here.
           'grab-url',
+          // The voice engines behind the ReadAloud/Transcribe extensions. Left
+          // external so the host resolves the real package: bundling them drags
+          // in Moonshine's on-device speech model runtime as a 2 MB chunk, and
+          // that recognizer is only ever a fallback for browsers with no native
+          // one. `@moonshine-ai/moonshine-js` is named too so the lazy import
+          // inside it stays a runtime resolution even if the engines are reached
+          // by some other path.
+          'use-voice-control/client',
+          'use-voice-control/react',
+          '@moonshine-ai/moonshine-js',
           'katex',
           'docx',
           '@radix-ui/react-dropdown-menu',

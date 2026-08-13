@@ -68,7 +68,9 @@ import { Drawio } from '@/extensions/Drawio';
 import { Harper } from '@/extensions/Harper';
 import { OfficePaste } from '@/extensions/OfficePaste';
 import { Pagination } from '@/extensions/Pagination';
+import { ReadAloud } from '@/extensions/ReadAloud';
 import { SelectSimilar } from '@/extensions/SelectSimilar';
+import { Transcribe } from '@/extensions/Transcribe';
 
 import { EMOJI_LIST } from '../emojis';
 import { convertBase64ToBlob, MOCK_USERS } from '../components/constants';
@@ -553,6 +555,55 @@ export const PLUGIN_REGISTRY: PluginDefinition[] = [
     category: 'Tools',
     defaultEnabled: true,
     create: () => ExportPdf,
+  },
+  {
+    key: 'readAloud',
+    label: 'Read Aloud',
+    description:
+      'Speak the selected text, or the whole document when nothing is selected.',
+    category: 'Tools',
+    defaultEnabled: true,
+    settings: [
+      {
+        key: 'voice',
+        label: 'Voice',
+        type: 'text',
+        default: 'af_heart',
+        placeholder: 'af_heart',
+        help: 'Kokoro voice id, e.g. af_heart (warm) or am_michael (clear).',
+      },
+      {
+        key: 'endpoint',
+        label: 'Speech endpoint',
+        type: 'text',
+        default: '/api/speech/tts',
+        help: "Route that synthesizes text. Falls back to the browser's own voice when unreachable.",
+      },
+    ],
+    create: (s) =>
+      ReadAloud.configure({
+        voice: s.voice || 'af_heart',
+        endpoint: s.endpoint || '/api/speech/tts',
+      }),
+  },
+  {
+    key: 'transcribe',
+    label: 'Dictate',
+    description:
+      'Type what you say into the document, with each phrase shown on screen as it lands.',
+    category: 'Tools',
+    defaultEnabled: true,
+    settings: [
+      {
+        key: 'language',
+        label: 'Language',
+        type: 'text',
+        default: 'en-US',
+        placeholder: 'en-US',
+        help: 'BCP-47 tag used by the browser recognizer, e.g. en-US or es-ES.',
+      },
+    ],
+    create: (s) => Transcribe.configure({ language: s.language || 'en-US' }),
   },
   {
     key: 'pagination',

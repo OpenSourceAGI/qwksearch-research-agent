@@ -50,6 +50,7 @@ import {
   ListTodo,
   LoaderCircle,
   Maximize,
+  Mic,
   Minimize,
   Minus,
   PaintRoller,
@@ -79,6 +80,7 @@ import {
   Undo2,
   Unlink,
   Video,
+  Volume2,
   ZoomIn,
   ZoomOut,
   PencilRuler,
@@ -231,4 +233,6 @@ export const icons = {
   Html,
   ExternalLink,
   Callout: NotebookPen,
+  Mic,
+  Volume2,
 } as any;

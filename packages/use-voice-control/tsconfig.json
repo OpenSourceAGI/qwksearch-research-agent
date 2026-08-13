@@ -14,6 +14,15 @@
     "noEmit": true,
     "types": []
   },
-  "include": ["speech/index.ts", "speech/core", "speech/types", "vite.config.ts"],
+  "include": [
+    "speech/index.ts",
+    "speech/core",
+    "speech/types",
+    "speech/client",
+    "speech/react",
+    "speech/utils/semantic-split.d.ts",
+    "speech/utils/sentence-detector.d.ts",
+    "vite.config.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

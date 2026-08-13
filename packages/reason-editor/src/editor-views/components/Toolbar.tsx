@@ -59,6 +59,12 @@ import { RichTextPagination } from '@/extensions/Pagination/components/RichTextP
 import { RichTextTableOfContentsPanel } from '@/extensions/TableOfContents';
 import { RichTextHarper } from '@/extensions/Harper';
 import { RichTextDrawio } from '@/extensions/Drawio';
+import { getReadAloudText, useReadAloudState } from '@/extensions/ReadAloud';
+import {
+  TranscribeOverlay,
+  isTranscriptionSupported,
+  useTranscribeState,
+} from '@/extensions/Transcribe';
 import { selectSimilarPluginKey, type SelectSimilarMode } from '@/extensions/SelectSimilar';
 import { shouldDismissPanel, shouldKeepEditorFocus } from './toolbarOverlays';
 import {
@@ -92,6 +98,9 @@ import {
   Users,
   MessageSquare,
   MessageSquarePlus,
+  Mic,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 interface ToolbarProps {
@@ -1154,6 +1163,16 @@ export const RichTextToolbar = ({
     }
   }, [harperOn, editor, hasHarper]);
 
+  // Voice tools: both are optional extensions, so surface each entry only when
+  // its extension is registered. Their live state (speaking / listening) comes
+  // from the extension storage rather than the transaction stream, since neither
+  // changes the document while it runs.
+  const readAloud = useReadAloudState(editor ?? null);
+  const transcribe = useTranscribeState(editor ?? null);
+  // Recomputed per render so the label follows the selection as it changes.
+  const readAloudScope = editor && !editor.state.selection.empty ? 'selection' : 'document';
+  const canReadAloud = !!editor && getReadAloudText(editor).length > 0;
+
   // Page layout: only surface the Web ↔ A4 switch when the Pagination
   // extension is registered on the current editor.
   const hasPagination = !!editor?.extensionManager.extensions.some(
@@ -1568,6 +1587,44 @@ export const RichTextToolbar = ({
                   onChange={setHarperOn}
                 />
               )}
+              {(readAloud.available || transcribe.available) && (
+                <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
+              )}
+              {readAloud.available && (
+                <MenuAction
+                  disabled={!readAloud.isActive && !canReadAloud}
+                  icon={readAloud.isActive ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                  label={
+                    readAloud.isActive
+                      ? 'Stop reading'
+                      : readAloudScope === 'selection'
+                        ? 'Read selection aloud'
+                        : 'Read document aloud'
+                  }
+                  shortcut="Ctrl+Shift+S"
+                  onClick={() => {
+                    close();
+                    editor?.commands.toggleReadAloud();
+                  }}
+                />
+              )}
+              {transcribe.available && (
+                <MenuToggle
+                  icon={<Mic size={14} />}
+                  label={
+                    isTranscriptionSupported()
+                      ? transcribe.isListening
+                        ? 'Dictating — click to stop'
+                        : 'Dictate into the document'
+                      : 'Dictation unavailable in this browser'
+                  }
+                  checked={transcribe.isListening}
+                  onChange={() => {
+                    if (!isTranscriptionSupported()) return;
+                    editor?.commands.toggleTranscribe();
+                  }}
+                />
+              )}
               <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
               {hasPagination && (
                 <MenuToggle
@@ -1685,6 +1742,8 @@ export const RichTextToolbar = ({
         <RichTextTableOfContentsPanel editor={editor} onClose={() => setShowToc(false)} />
       )}
       {hasHarper && harperOn && editor && <RichTextHarper editor={editor} />}
+      {/* Echoes each dictated phrase in the middle of the screen while listening. */}
+      {transcribe.available && <TranscribeOverlay editor={editor ?? null} />}
       {showRename && <FileRenameModal onClose={() => setShowRename(false)} currentName={documentTitle} />}
       {detailsTab && (
         <DocumentDetailsModal
