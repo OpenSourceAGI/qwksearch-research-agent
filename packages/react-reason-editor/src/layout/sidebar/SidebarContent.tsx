@@ -331,10 +331,12 @@ export const SidebarContent = ({
         </div>
       </div>
       <div className="flex-1 overflow-auto">
+        {/* filteredHeadings already matches outlineFilter against heading and body text;
+            don't also pass searchQuery, or OutlineView would re-filter by heading text only
+            and drop headings that matched via body text. */}
         <OutlineView
           ref={effectiveOutlineRef}
           headings={filteredHeadings}
-          searchQuery={outlineFilter}
           onNavigate={onNavigate}
         />
       </div>

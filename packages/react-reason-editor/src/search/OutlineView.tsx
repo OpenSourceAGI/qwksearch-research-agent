@@ -21,7 +21,7 @@ import {
 } from '../app-ui/context-menu';
 
 /** Internal flattened representation of a single heading in the document. */
-interface OutlineItem {
+export interface OutlineItem {
   /** Stable identifier (from TocEntry) used for navigation and collapse state. */
   id: string;
   /** Heading level (1–6) corresponding to H1–H6. */
@@ -30,6 +30,44 @@ interface OutlineItem {
   text: string;
   /** Sequential index in the original heading list. */
   line: number;
+}
+
+/**
+ * Returns the subset of `outline` whose heading text contains `query`
+ * (case-insensitive). Returns `outline` unchanged when `query` is blank.
+ */
+export function filterOutline(outline: OutlineItem[], query: string): OutlineItem[] {
+  const trimmed = query.trim();
+  if (!trimmed) return outline;
+  const q = trimmed.toLowerCase();
+  return outline.filter((item) => item.text.toLowerCase().includes(q));
+}
+
+/**
+ * Returns whether the item at `itemIndex` within the full (unfiltered)
+ * `outline` is hidden because one of its ancestors is collapsed.
+ *
+ * @param outline - The full, unfiltered heading list.
+ * @param collapsedIds - IDs of currently collapsed headings.
+ * @param itemIndex - Index of the item within `outline` (not a filtered subset).
+ */
+export function isHiddenByCollapsedAncestor(
+  outline: OutlineItem[],
+  collapsedIds: Set<string>,
+  itemIndex: number
+): boolean {
+  const currentLevel = outline[itemIndex].level;
+
+  for (let i = itemIndex - 1; i >= 0; i--) {
+    if (outline[i].level < currentLevel) {
+      if (collapsedIds.has(outline[i].id)) {
+        return true;
+      }
+      if (outline[i].level === 1) break;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -126,11 +164,14 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
    * Returns the memoized, filtered subset of `outline`.
    * When `searchQuery` is empty the full list is returned.
    */
-  const filteredOutline = useMemo(() => {
-    if (!searchQuery.trim()) return outline;
-    const query = searchQuery.toLowerCase();
-    return outline.filter(item => item.text.toLowerCase().includes(query));
-  }, [outline, searchQuery]);
+  const filteredOutline = useMemo(() => filterOutline(outline, searchQuery), [outline, searchQuery]);
+
+  /** Maps each heading's ID to its index within the full (unfiltered) `outline`. */
+  const outlineIndexById = useMemo(() => {
+    const map = new Map<string, number>();
+    outline.forEach((item, index) => map.set(item.id, index));
+    return map;
+  }, [outline]);
 
   /**
    * Returns the IDs of all headings that are direct or indirect children
@@ -175,28 +216,6 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
   };
 
   /**
-   * Returns whether the heading at `itemIndex` is hidden because one of its
-   * ancestors is currently collapsed.
-   *
-   * @param itemIndex - Zero-based index in the flat `outline` array.
-   * @returns `true` if hidden, `false` if visible.
-   */
-  const isHiddenByParent = (itemIndex: number): boolean => {
-    const currentLevel = outline[itemIndex].level;
-
-    for (let i = itemIndex - 1; i >= 0; i--) {
-      if (outline[i].level < currentLevel) {
-        if (collapsedIds.has(outline[i].id)) {
-          return true;
-        }
-        if (outline[i].level === 1) break;
-      }
-    }
-
-    return false;
-  };
-
-  /**
    * Collapses all headings at the specified level and re-applies the
    * collapsed-IDs set.
    *
@@ -230,12 +249,13 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      {filteredOutline.map((item, index) => {
-        const nextItem = outline[index + 1];
+      {filteredOutline.map((item) => {
+        const actualIndex = outlineIndexById.get(item.id) ?? -1;
+        const nextItem = outline[actualIndex + 1];
         const hasChildren = nextItem && nextItem.level > item.level;
         const isCollapsed = collapsedIds.has(item.id);
 
-        if (isHiddenByParent(index)) {
+        if (actualIndex !== -1 && isHiddenByCollapsedAncestor(outline, collapsedIds, actualIndex)) {
           return null;
         }
 
