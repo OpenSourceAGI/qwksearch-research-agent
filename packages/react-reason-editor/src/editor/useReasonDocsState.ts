@@ -18,6 +18,7 @@ import { useLocalStorage } from "../app-hooks/useLocalStorage";
 import { useIsMobile } from "../app-hooks/use-mobile";
 import { useDocumentSync } from "../app-hooks/useDocumentSync";
 import { defaultDocuments } from "../documents/defaultDocuments";
+import { replaceInAllDocuments, type ReplaceAllResult } from "../search/findReplaceAllDocs";
 import { toast } from "sonner";
 
 /**
@@ -30,6 +31,7 @@ export function useReasonDocsState() {
   const isMobile = useIsMobile();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isFindReplaceAllOpen, setIsFindReplaceAllOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTeamsOpen, setIsTeamsOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -323,6 +325,46 @@ export function useReasonDocsState() {
         return doc;
       });
     });
+  };
+
+  /**
+   * Replaces every occurrence of `query` with `replacement` across all
+   * documents except the one currently open in the editor (whose in-memory
+   * Tiptap state would otherwise overwrite the replacement on its next
+   * autosave). Queues each changed document for database sync when enabled.
+   *
+   * @param query - Text to search for.
+   * @param replacement - Text to replace matches with.
+   * @param options - Case-sensitivity option.
+   * @returns A summary of how many occurrences/documents were changed.
+   */
+  const handleReplaceInAllDocuments = (
+    query: string,
+    replacement: string,
+    options: { caseSensitive?: boolean } = {},
+  ): ReplaceAllResult => {
+    const excludeIds = activeDocId ? [activeDocId] : [];
+    const result = replaceInAllDocuments(documents, query, replacement, {
+      ...options,
+      excludeIds,
+    });
+
+    if (result.changedIds.length === 0) return result;
+
+    setDocuments(result.documents);
+
+    if (enableDatabaseSync) {
+      const changedIds = new Set(result.changedIds);
+      result.documents.forEach((doc) => {
+        if (changedIds.has(doc.id)) queueDocumentForSync(doc);
+      });
+    }
+
+    toast.success(
+      `Replaced ${result.replacedCount} occurrence${result.replacedCount === 1 ? "" : "s"} in ${result.changedIds.length} document${result.changedIds.length === 1 ? "" : "s"}`,
+    );
+
+    return result;
   };
 
   /**
@@ -770,6 +812,8 @@ export function useReasonDocsState() {
     editorRef,
     headings,
     setHeadings,
+    isFindReplaceAllOpen,
+    setIsFindReplaceAllOpen,
     documents,
     setDocuments,
     activeDocId,
@@ -797,6 +841,7 @@ export function useReasonDocsState() {
     handleDeleteDocument,
     handleDuplicateDocument,
     handleUpdateDocument,
+    handleReplaceInAllDocuments,
     handleToggleExpand,
     handleMoveDocument,
     handleAddTag,

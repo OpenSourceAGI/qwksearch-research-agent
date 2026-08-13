@@ -5,6 +5,8 @@
  */
 import type { Document } from '../documents/DocumentTree';
 import { SearchModal } from '../search/SearchModal';
+import { FindReplaceAllDialog } from '../search/FindReplaceAllDialog';
+import type { ReplaceAllResult } from '../search/findReplaceAllDocs';
 import { Settings } from '../features/settings/Settings';
 import { TeamManagement } from '../features/team/TeamManagement';
 import { InviteModal } from '../dialogs/InviteModal';
@@ -16,6 +18,10 @@ interface ReasonDocsDialogsProps {
   isSearchModalOpen: boolean;
   /** Setter for `isSearchModalOpen`. */
   setIsSearchModalOpen: (open: boolean) => void;
+  /** Controls visibility of the cross-document find & replace dialog. */
+  isFindReplaceAllOpen: boolean;
+  /** Setter for `isFindReplaceAllOpen`. */
+  setIsFindReplaceAllOpen: (open: boolean) => void;
   /** Controls visibility of the settings dialog. */
   isSettingsOpen: boolean;
   /** Setter for `isSettingsOpen`. */
@@ -38,6 +44,8 @@ interface ReasonDocsDialogsProps {
   documents: Document[];
   /** Currently active document, used by the invite modal for context. */
   activeDocument: Document | undefined;
+  /** ID of the currently active/open document, excluded from cross-document replace. */
+  activeDocId: string | null;
   /** ID of the document whose tags are currently being managed; null if none. */
   tagManagementDocId: string | null;
   defaultSidebarView: 'split' | 'tree' | 'outline' | 'last-used';
@@ -46,6 +54,12 @@ interface ReasonDocsDialogsProps {
   setEnableDatabaseSync: (enabled: boolean) => void;
   setDocuments: (docs: Document[] | ((prev: Document[]) => Document[])) => void;
   onSelectDocument: (id: string) => void;
+  /** Replaces `query` with `replacement` across all documents except the active one. */
+  onReplaceInAllDocuments: (
+    query: string,
+    replacement: string,
+    options: { caseSensitive?: boolean }
+  ) => ReplaceAllResult;
   onToggleTheme: () => void;
   currentTheme: string | undefined;
   onUpdateTags: (tags: string[]) => void;
@@ -58,6 +72,8 @@ interface ReasonDocsDialogsProps {
 export function ReasonDocsDialogs({
   isSearchModalOpen,
   setIsSearchModalOpen,
+  isFindReplaceAllOpen,
+  setIsFindReplaceAllOpen,
   isSettingsOpen,
   setIsSettingsOpen,
   settingsInitialSection,
@@ -69,6 +85,7 @@ export function ReasonDocsDialogs({
   setIsTagDialogOpen,
   documents,
   activeDocument,
+  activeDocId,
   tagManagementDocId,
   defaultSidebarView,
   setDefaultSidebarView,
@@ -76,6 +93,7 @@ export function ReasonDocsDialogs({
   setEnableDatabaseSync,
   setDocuments,
   onSelectDocument,
+  onReplaceInAllDocuments,
   onToggleTheme,
   currentTheme,
   onUpdateTags,
@@ -89,8 +107,17 @@ export function ReasonDocsDialogs({
         onSelectDocument={onSelectDocument}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenTeams={() => setIsTeamsOpen(true)}
+        onOpenFindReplaceAll={() => setIsFindReplaceAllOpen(true)}
         onToggleTheme={onToggleTheme}
         currentTheme={currentTheme}
+      />
+
+      <FindReplaceAllDialog
+        open={isFindReplaceAllOpen}
+        onOpenChange={setIsFindReplaceAllOpen}
+        documents={documents}
+        activeDocId={activeDocId}
+        onReplaceAll={onReplaceInAllDocuments}
       />
 
       <Settings
