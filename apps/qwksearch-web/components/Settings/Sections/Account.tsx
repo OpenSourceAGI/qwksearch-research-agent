@@ -846,4 +846,6 @@ export default function Account() {
           Delete Account
         </button>
       </SectionCard>
-   
+    </div>
+  );
+}
