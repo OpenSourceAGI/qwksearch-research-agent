@@ -14,8 +14,8 @@
     "build:firefox": "bun x wxt build -b firefox",
     "zip": "bun x wxt zip",
     "zip:firefox": "bun x wxt zip -b firefox",
-    "compile": "tsc --noEmit",
-    "postinstall": "bun x wxt prepare"
+    "compile": "bun x wxt prepare && tsc --noEmit",
+    "prepare:types": "bun x wxt prepare"
   },
   "dependencies": {
     "clsx": "^2.1.1",
