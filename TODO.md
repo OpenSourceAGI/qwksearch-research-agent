@@ -1,13 +1,146 @@
 ## In Progress
 
-## Article panel: Share button (native Web Share API with clipboard fallback)
+## Test coverage for the follow-up-suggestions pipeline
 
 **Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 17 ("Follow-up suggestions."). This
+feature is already fully implemented (inherited from an early bulk-import
+commit, `e21b8fc`) end-to-end for the chat conversation surface — LLM call,
+API route, client fetch, and UI render — but has zero test coverage anywhere
+in the pipeline. This task closes that gap; it does not add new
+user-visible behavior.
+**Branch:** `claude/adoring-mayer-zic4bl`
+**PR:** Not created yet
+**Started:** 2026-08-14
+
+### Goal
+Add Vitest coverage for the existing follow-up-suggestions backend pipeline
+(LLM generator → API handler → client fetch helper) so a future change to
+any of these files gets a regression signal, matching the existing test
+pattern used for the sibling autocomplete handler
+(`apps/qwksearch-web/app/api/agent/__tests__/autocomplete.test.ts`).
+
+### Scope
+- `packages/chat-agent-toolkit/test/suggestionGeneratorAgent.test.ts`:
+  unit tests for `generateSuggestions`
+  (`packages/chat-agent-toolkit/src/tools/search/suggestionGeneratorAgent.ts`),
+  mocking the `ai` package's `generateText` (same mocking pattern as
+  `packages/write-language/test/generate-response.attachments.test.ts`) to
+  assert the prompt is built from chat history, the parsed
+  `<suggestions>`-tagged output is returned, and malformed/missing-tag
+  output yields an empty array (via the existing `LineListOutputParser`).
+- `apps/qwksearch-web/app/api/agent/__tests__/suggestions.test.ts`: unit
+  tests for `createSuggestionsHandler`
+  (`packages/research-agent-ui/src/api/handlers/suggestions.ts`), mocking
+  `chat-agent-toolkit/tools/search/suggestionGeneratorAgent` and
+  `chat-agent-toolkit/models/registry`, asserting: non-user/assistant
+  messages (e.g. `source`) are filtered out of the chat history sent
+  upstream, a returned suggestion containing multiple `?`-terminated
+  questions is split into separate standalone suggestions, and the response
+  shape/status code.
+- `packages/research-agent-ui/test/suggestions.test.ts`: unit tests for
+  `getSuggestions` (`packages/research-agent-ui/src/lib/suggestions.ts`),
+  mocking the `grab-url` default export, asserting: localStorage-backed
+  model/provider/`maxFollowupQuestions` settings are read and sent, only
+  user/assistant messages are forwarded, a non-array `suggestions` response
+  yields `[]`, and a rejected fetch is swallowed and yields `[]`.
+
+### Non-goals
+- A UI/DOM test for `FollowUpSuggestions.tsx` — `research-agent-ui`'s test
+  suite has no existing `@testing-library/react`-style component test to
+  mirror (all current tests are logic/hook tests), and standing that up is
+  a separate, larger piece of work; left as a follow-up.
+- Any behavior change to the suggestions pipeline itself — this is a
+  test-only change.
+- The parallel article-reader follow-up-questions pipeline
+  (`ArticleFollowupQuestions.tsx`, `article-followups/route.ts`,
+  `api/handlers/article-followups.ts`) — same gap, but a separate surface;
+  left as a follow-up.
+
+### Acceptance criteria
+- [x] `generateSuggestions` returns the parsed list of suggestions from a
+      well-formed `<suggestions>`-tagged LLM response.
+- [x] `generateSuggestions` returns `[]` when the LLM response has no
+      `<suggestions>` tags.
+- [x] `createSuggestionsHandler`'s `POST` filters non-user/assistant
+      messages out of the chat history before calling `generateSuggestions`.
+- [x] `createSuggestionsHandler`'s `POST` splits a suggestion containing
+      multiple questions into separate standalone questions.
+- [x] `getSuggestions` sends the localStorage-backed model/provider/
+      max-questions settings and filtered chat history to the API.
+- [x] `getSuggestions` returns `[]` (not a throw) when the fetch rejects or
+      the response shape is unexpected.
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `chat-agent-toolkit`,
+      `research-agent-ui`, or `qwksearch-web` (no ESLint config found);
+      nothing to run
+- [x] Typecheck passes — `bun run type-check` in `research-agent-ui`
+      surfaces the same 5 **pre-existing** `TS2307` errors documented in
+      prior TODO.md tasks (`ChatHomepage.tsx`, `ChatWindow.tsx`,
+      `MessageSources.tsx`, `WebCitationBadge.tsx` — missing built `dist/`
+      output for workspace packages in a fresh checkout), none of which this
+      change touches. No `typecheck`/`tsc` script exists for
+      `chat-agent-toolkit` or `qwksearch-web` directly (typechecked as part
+      of `research-agent-ui`'s and the build's checks).
+- [x] Tests pass — `bunx vitest run test/suggestionGeneratorAgent.test.ts`
+      in `chat-agent-toolkit`: 4/4 passed. `bunx vitest run
+      app/api/agent/__tests__/suggestions.test.ts` in `qwksearch-web`: 5/5
+      passed. `bunx vitest run test/suggestions.test.ts` in
+      `research-agent-ui`: 4/4 passed. Full `chat-agent-toolkit` suite:
+      51/54 passed (3 pre-existing failures in
+      `openrouter-default-model.test.js`, documented in prior TODO.md
+      tasks, unrelated to this change). Full `research-agent-ui` suite:
+      75/75 passed (71 pre-existing + 4 new). Full workspace `bun run
+      test`: 169/179 files, 2417/2471 tests pass (4 skipped); the 54
+      failures across the same 10 files documented repeatedly in prior
+      TODO.md tasks (`search-web-api` engine tests hitting real external
+      APIs, the `qwksearch-web` config route test, `shadcn-settings`,
+      `jsdom-scraper` missing its `jsdom` dependency, `chat-agent-toolkit`'s
+      `openrouter-default-model.test.js`) are pre-existing and unrelated —
+      none touch the 3 new test files.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded, including `qwksearch-web`'s full `vinext build`.
+- [x] Documentation is updated if behavior or configuration changes — n/a,
+      test-only change
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm mocking patterns for `ai`'s `generateText`, `grab-url`, and
+      handler-level module mocks (mirrored from
+      `write-language/test/generate-response.attachments.test.ts` and
+      `apps/qwksearch-web/app/api/agent/__tests__/autocomplete.test.ts`)
+- [x] Run `bun install` (workspace had no installed `node_modules` yet)
+- [x] Add `suggestionGeneratorAgent.test.ts`
+- [x] Add `suggestions.test.ts` (API handler)
+- [x] Add `suggestions.test.ts` (client lib helper)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` diff produced by `bun install` — pure
+      version-number sync to already-committed `package.json` bumps, out of
+      scope, matching prior tasks' precedent)
+- [ ] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Commit, push, and open the PR; then flip Status to Completed with the PR
+  link recorded.
+
+## Completed
+
+## Article panel: Share button (native Web Share API with clipboard fallback)
+
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 22 ("Share button; email to friends;
 social actions.")
 **Branch:** `claude/adoring-mayer-jn1xra`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/233 (merged)
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ### Goal
 Add a "Share" action to the article extract panel's toolbar
@@ -105,15 +238,12 @@ link to the clipboard.
       unrelated `bun.lock` diff produced by `bun install` — pure
       version-number sync to already-committed `package.json` bumps, out
       of scope, matching prior tasks' precedent)
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #233, merged)
+- [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Commit, push, and open the PR; then flip Status to Completed with the PR
-  link recorded.
-
-## Completed
+- None for this task. PR #233 merged.
 
 ## Autocomplete: recognize a typed bare domain even when it's outside the ranked dataset
 
@@ -959,8 +1089,8 @@ ext - dl to reason dl folswe
 18. Browser sidebar results.
 19. Use open tabs as context.
 20. Preload page results for common questions with SSR.
-21. If autocomplete matches something like red.com, go there directly.
-22. Share button; email to friends; social actions.
+21. If autocomplete matches something like red.com, go there directly. — **done, see "Autocomplete: recognize a typed bare domain even when it's outside the ranked dataset" above**
+22. Share button; email to friends; social actions. — **done, see "Article panel: Share button (native Web Share API with clipboard fallback)" above**
 23. Suggest the next page from the sidebar on each page.
 24. For each topic, next-word prediction in model.
 25. Auto-search for topics in sidebar.
