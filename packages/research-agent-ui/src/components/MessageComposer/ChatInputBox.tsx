@@ -14,6 +14,7 @@ import { FilePreviewCard } from "../FileUpload/FilePreviewCard";
 import { PastedContentCard } from "./PastedContentCard";
 import { useChat } from '../../hooks/useChat';
 import { useSpeechInput } from '../../hooks/voice/useSpeechToTranscript';
+import { useVoiceAutoStart } from '../../hooks/voice/useVoiceAutoStart';
 import { SpokenPhraseOverlay } from 'use-voice-control/react';
 import { useFileHandling } from '../FileUpload/useFileHandling';
 import FileUploadDropdown from '../FileUpload/FileUploadDropdown';
@@ -139,6 +140,8 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
         // Only when listening starts — `message` changes constantly while dictating.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isListening]);
+
+    useVoiceAutoStart({ isSpeechSupported, isListening, toggleSpeech });
 
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const [showPlaceholder, setShowPlaceholder] = useState(true);

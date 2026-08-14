@@ -6,6 +6,7 @@ import KokoroVoiceSelector from './KokoroVoiceSelector';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../../ui/tooltip';
 import { Volume2, Settings2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { isVoiceAutoStartEnabled, setVoiceAutoStartEnabled } from '../../lib/voiceAutoStart';
 
 export default function VoiceSettingsPanel() {
   const [showSettings, setShowSettings] = useState(false);
@@ -15,6 +16,7 @@ export default function VoiceSettingsPanel() {
   const [ttsSpeaker, setTtsSpeaker] = useState(() =>
     localStorage.getItem('ttsSpeaker') || 'angus'
   );
+  const [autoStartVoice, setAutoStartVoice] = useState(() => isVoiceAutoStartEnabled());
 
   const { start: previewStart, speechStatus } = useTextToSpeech(
     'This is a preview of the selected voice.',
@@ -29,6 +31,11 @@ export default function VoiceSettingsPanel() {
   const handleSpeakerChange = (speaker: string) => {
     setTtsSpeaker(speaker);
     localStorage.setItem('ttsSpeaker', speaker);
+  };
+
+  const handleToggleAutoStart = (enabled: boolean) => {
+    setAutoStartVoice(enabled);
+    setVoiceAutoStartEnabled(enabled);
   };
 
   return (
@@ -117,6 +124,28 @@ export default function VoiceSettingsPanel() {
                 </button>
               </div>
             )}
+          </div>
+
+          {/* Voice input auto-start */}
+          <div className="space-y-2 pt-2 border-t border-white/10 dark:border-black/10">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoStartVoice}
+                onChange={(e) => handleToggleAutoStart(e.target.checked)}
+                className="rounded"
+              />
+              <span className="font-medium text-sm">Start talking automatically on first visit</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs text-muted-foreground cursor-help">ⓘ</span>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-xs">
+                  Opens the mic the first time you load the chat composer in this browser, so you can start
+                  talking right away instead of clicking the mic button.
+                </TooltipContent>
+              </Tooltip>
+            </label>
           </div>
 
           <div className="text-xs text-muted-foreground pt-2 border-t border-white/10 dark:border-black/10">
