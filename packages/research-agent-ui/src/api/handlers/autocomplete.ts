@@ -3,11 +3,13 @@
  *
  * Combines multi-backend autocomplete (with a word-dropping fallback when the
  * full query yields no results) with a Fuse.js fuzzy index over a ranked
- * domain dataset to surface site suggestions as the user types.
+ * domain dataset to surface site suggestions as the user types. A typo-corrected
+ * version of the query, when one exists, is surfaced as the first suggestion.
  */
 import { searchAutocompleteMulti } from "extract-webpage/suggest-next-words/autocomplete-search-engines";
 import Fuse from "fuse.js";
 import domainData from "domain-rank/data/domain-rank-merged.json";
+import { correctTypos } from "../../lib/typo-correction";
 
 const DEFAULT_BACKENDS = ["google", "duckduckgo", "wikipedia"];
 const MAX_FALLBACK_WORDS = 3;
@@ -124,8 +126,14 @@ export function createAutocompleteHandler() {
     try {
       const suggestions = await autocompleteWithFallback(backends, query, locale);
       const domains = searchDomains(query);
+      const { corrected, hasCorrection } = correctTypos(query);
+      const withTypoCorrection =
+        hasCorrection && !suggestions.some((s) => s.toLowerCase() === corrected.toLowerCase())
+          ? [corrected, ...suggestions]
+          : suggestions;
+
       return Response.json({
-        suggestions: suggestions.slice(0, limit),
+        suggestions: withTypoCorrection.slice(0, limit),
         domains,
       });
     } catch (err) {
