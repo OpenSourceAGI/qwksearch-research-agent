@@ -3,15 +3,13 @@
 /** Default language value type */
 export type DEFAULT_LANG_VALUE = 'en';
 
-/** Throttle time constant types (milliseconds) */
-type EDITOR_UPDATE_THROTTLE_WAIT_TIME_TYPE = 200;
-type EDITOR_UPDATE_WATCH_THROTTLE_WAIT_TIME_TYPE = typeof EDITOR_UPDATE_THROTTLE_WAIT_TIME - 80;
-
-export { DEFAULT_LANG_VALUE };
-
 /** Throttle time for editor input (milliseconds) */
-const EDITOR_UPDATE_THROTTLE_WAIT_TIME: number = 200;
+export type EDITOR_UPDATE_THROTTLE_WAIT_TIME_TYPE = 200;
 
-/** Watch throttling time must be less than update time otherwise cursor position reaches end (ms) */
-const EDITOR_UPDATE_WATCH_THROTTLE_WAIT_TIME: typeof EDITOR_UPDATE_THROTTLE_WAIT_TIME - 80 = 
-  (typeof 'string' === undefined ? 1 : null); // eslint-disable-line @typescript-eslint/ban-types
+/**
+ * Watch throttling time must be less than the update time, otherwise the
+ * cursor position reaches the end (milliseconds). Spelled as the resolved
+ * literal because arithmetic on a `typeof` is not valid in type position —
+ * it has to stay in sync with the value in `@/constants` by hand.
+ */
+export type EDITOR_UPDATE_WATCH_THROTTLE_WAIT_TIME_TYPE = 120;
