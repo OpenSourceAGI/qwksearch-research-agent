@@ -94,6 +94,129 @@ fuzzy match against known top domains works.
 
 ## Completed
 
+## Autocomplete: recognize a typed bare domain even when it's outside the ranked dataset
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 21 ("If autocomplete matches
+something like red.com, go there directly.")
+**Branch:** `claude/adoring-mayer-va3awu`
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/231
+**Started:** 2026-08-14
+**Completed:** 2026-08-14
+
+### Goal
+When the user types a string that looks like a real domain (e.g.
+`red.com`), offer a "go there directly" suggestion in the chat composer's
+autocomplete dropdown — even when that domain isn't one of the ~10k
+domains in the `domain-rank` ranked dataset the existing fuzzy domain
+search (`searchDomains` in
+`packages/research-agent-ui/src/api/handlers/autocomplete.ts`) matches
+against. Confirmed via a direct check that `red.com` itself is absent from
+`packages/domain-rank/data/domain-rank-merged.json` (10,020 entries), so
+today typing it produces zero domain suggestions — only the existing
+fuzzy match against known top domains works.
+
+### Scope
+- `packages/research-agent-ui/src/api/handlers/autocomplete.ts`:
+  `searchDomains` gains a literal-domain check on the last typed word using
+  `tldts` (already a dependency of `domain-rank`/`search-web-api`/
+  `qwksearch-web`, added here too) to validate the string has a real,
+  recognized public suffix (e.g. `.com`, `.io`, `.co.uk`) — this avoids
+  false positives on filename-like strings (`note.txt`, `script.js`) that a
+  naive `\w+\.\w+` regex would wrongly treat as domains, since `tldts`
+  checks against the actual public-suffix list rather than an arbitrary
+  extension pattern.
+- When the last word is a valid, ranked-dataset-independent domain and
+  isn't already present in the fuzzy results, prepend a synthetic
+  `DomainSuggestion` for it (unranked, so no rank badge renders — same
+  convention already used for dataset entries lacking a rank) ahead of the
+  fuzzy matches, still capped at `MAX_DOMAIN_SUGGESTIONS`.
+- No frontend (`ChatInputBox.tsx`) changes needed — it already renders
+  `domainSuggestions` generically and `goToDomain` already navigates
+  straight to `https://{domain}` on selection.
+
+### Non-goals
+- IP-address literals (e.g. `192.168.1.1`) or `localhost` — out of scope;
+  `tldts` won't recognize these as having a public suffix, and typing an
+  address is a different, less common flow than typing a memorable domain
+  name.
+- Auto-navigating without an explicit selection (e.g. on Enter with no
+  dropdown interaction) — this task only adds the *suggestion*; selecting
+  it (click, Tab, Enter-while-highlighted, or number key) already works via
+  the existing `goToDomain`/`chooseOption` wiring.
+- Changing the existing fuzzy ranked-domain matching behavior in any way
+  when the typed text does *not* look like a full domain.
+
+### Acceptance criteria
+- [x] Typing a real-looking domain not present in the ranked dataset (e.g.
+      `red.com`) surfaces it as a domain suggestion.
+- [x] Filename-like strings with non-TLD extensions (e.g. `note.txt`,
+      `script.js`) do NOT spuriously appear as domain suggestions.
+- [x] A literal domain match that's already found via fuzzy search isn't
+      duplicated in the suggestion list.
+- [x] The existing ranked-domain fuzzy-match behavior is unchanged for
+      queries that aren't themselves a full valid domain.
+- [x] Selecting the synthetic suggestion navigates to `https://<domain>`,
+      matching existing dataset-backed domain suggestions (unchanged
+      `goToDomain`/`chooseOption` wiring, exercised by existing
+      `ChatInputBox` behavior — no new frontend code needed).
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `research-agent-ui`,
+      `qwksearch-web`, or at the repo root (no ESLint config found);
+      nothing to run
+- [x] Typecheck passes — `bun run type-check` in `research-agent-ui`
+      surfaces the same 5 **pre-existing** `TS2307` errors documented in
+      prior TODO.md tasks (`ChatHomepage.tsx`, `ChatWindow.tsx`,
+      `MessageSources.tsx`, `WebCitationBadge.tsx` — missing built `dist/`
+      output for workspace packages in a fresh checkout), none of which
+      this change touches. No new errors from this change's files
+      (confirmed the `tldts` import itself resolves cleanly once `bun
+      install` links the newly added dependency).
+- [x] Tests pass — `bunx vitest run app/api/agent/__tests__/autocomplete.test.ts`
+      in `qwksearch-web` (this handler's actual test suite): 11/11 passed
+      (8 pre-existing + 3 new). `bun run test` in `research-agent-ui`:
+      67/67 passed. Full workspace `bun run test`: 165/175 files,
+      2402/2454 tests pass (4 skipped); the 52 failures across the same 10
+      files documented in prior TODO.md tasks (`search-web-api` engine
+      tests hitting real external APIs, the `qwksearch-web` config route
+      test, `shadcn-settings`, `jsdom-scraper` missing its `jsdom`
+      dependency, `settings-field.test.tsx`) are pre-existing and
+      unrelated — none touch the changed files.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded, including `qwksearch-web`'s full `vinext build`.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry and inline comments (no user-facing docs
+      describe individual autocomplete-suggestion behaviors)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm API, schema, data-flow, or interface requirements (`tldts`
+      already used elsewhere in the repo for the same "is this a real
+      domain suffix" question; `research-agent-ui` doesn't yet depend on it)
+- [x] Add `tldts` as a dependency of `research-agent-ui`
+- [x] Implement the smallest useful vertical slice in `autocomplete.ts`
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (filename false positives,
+      dedupe against fuzzy results)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint
+      is not actionable for this change)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` diff produced by `bun install` — pure
+      version-number sync to already-committed `package.json` bumps, out
+      of scope, matching prior tasks' precedent — keeping only the new
+      `tldts` dependency line for `research-agent-ui`)
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #231)
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task. PR #231 open, CI/build/tests verified locally.
+
+## Completed
+
 ## Related panel: rank by shared tags as well as keyword overlap
 
 **Status:** Completed
