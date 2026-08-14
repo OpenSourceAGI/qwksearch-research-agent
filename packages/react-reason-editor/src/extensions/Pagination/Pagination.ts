@@ -30,9 +30,9 @@ export interface PaginationOptions extends GeneralOptions<PaginationOptions> {
 }
 
 export const Pagination = PaginationPlus.extend({
-  //@ts-expect-error - this.parent typing from the extended pagination plugin
   addOptions() {
     return {
+      //@ts-expect-error - this.parent typing from the extended pagination plugin
       ...this.parent?.(),
       pageHeight: 1056,
       pageWidth: 816,
