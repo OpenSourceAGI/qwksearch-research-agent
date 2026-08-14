@@ -41,6 +41,7 @@ import {
 } from "../app-ui/alert-dialog";
 import { cn } from "../app-utils/utils";
 import { FileTreeContextMenu } from "./FileTreeContextMenu";
+import { getRenameTypoSuggestion } from "./renameTypoSuggestion";
 
 interface FileTreeItem {
   children?: string[];
@@ -295,10 +296,28 @@ const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
                         className="w-full text-left"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <input
-                          {...item.getRenameInputProps()}
-                          className="flex-1 w-full rounded border bg-background px-1 text-sm outline-none focus:ring-2 focus:ring-ring"
-                        />
+                        <div className="flex w-full flex-col gap-0.5">
+                          <input
+                            {...item.getRenameInputProps()}
+                            className="flex-1 w-full rounded border bg-background px-1 text-sm outline-none focus:ring-2 focus:ring-ring"
+                          />
+                          {(() => {
+                            const suggestion = getRenameTypoSuggestion(tree.getRenamingValue());
+                            if (!suggestion) return null;
+                            return (
+                              <button
+                                type="button"
+                                className="w-fit truncate rounded px-1 text-left text-xs text-muted-foreground hover:text-foreground hover:underline"
+                                // Applying the suggestion must not blur the input first, since
+                                // blur aborts the rename (see renamingFeature's onBlur handler).
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => tree.applySubStateUpdate("renamingValue", suggestion)}
+                              >
+                                Did you mean &ldquo;{suggestion}&rdquo;?
+                              </button>
+                            );
+                          })()}
+                        </div>
                       </TreeItemLabel>
                     ) : (
                       <TreeItemLabel
