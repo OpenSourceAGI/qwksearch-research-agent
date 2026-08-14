@@ -1,6 +1,6 @@
 {
   "name": "extract-pdf",
-  "version": "0.1.212",
+  "version": "0.1.215",
   "description": "Convert a PDF (URL or ArrayBuffer) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic. Works in Node.js, Cloudflare Workers, and browser environments.",
   "author": "vtempest <grokthiscontact@gmail.com>",
   "license": "rights.institute/PROSPER",
