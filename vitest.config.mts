@@ -10,6 +10,8 @@ export default defineConfig({
       'packages/html-renderer-api',
       'packages/qwksearch-api-client',
       'packages/react-reason-editor',
+      'packages/render-url-to-html/scraper-jsdom',
+      'packages/render-url-to-html/scraper-puppeteer',
       'packages/research-agent-ui',
       'packages/search-web-api',
       'packages/shadcn-app-dock',
