@@ -2,12 +2,13 @@
 
 ## Article panel: Share button (native Web Share API with clipboard fallback)
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 22 ("Share button; email to friends;
 social actions.")
 **Branch:** `claude/adoring-mayer-jn1xra`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/233
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ### Goal
 Add a "Share" action to the article extract panel's toolbar
@@ -105,13 +106,15 @@ link to the clipboard.
       unrelated `bun.lock` diff produced by `bun install` — pure
       version-number sync to already-committed `package.json` bumps, out
       of scope, matching prior tasks' precedent)
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #233)
+- [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Commit, push, and open the PR; then flip Status to Completed with the PR
-  link recorded.
+- None for this task. PR #233 open, CI/build/tests verified locally.
+- Natural follow-up (left for a future run, per Ideas Backlog item 22's
+  broader scope): bespoke per-platform share intents (Twitter/X, Facebook,
+  LinkedIn, WhatsApp) for browsers without Web Share API support.
 
 ## Completed
 
@@ -960,7 +963,10 @@ ext - dl to reason dl folswe
 19. Use open tabs as context.
 20. Preload page results for common questions with SSR.
 21. If autocomplete matches something like red.com, go there directly.
-22. Share button; email to friends; social actions.
+22. Share button; email to friends; social actions. — **first slice done, see
+    "Article panel: Share button (native Web Share API with clipboard
+    fallback)" above** (bespoke per-platform share intents remain a
+    follow-up)
 23. Suggest the next page from the sidebar on each page.
 24. For each topic, next-word prediction in model.
 25. Auto-search for topics in sidebar.
