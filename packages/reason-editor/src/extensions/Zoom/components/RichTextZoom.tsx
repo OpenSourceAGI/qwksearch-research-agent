@@ -26,8 +26,11 @@ function Toast({ message }: { message: string }) {
   );
 }
 
+/** Default zoom applied to the editor content on mount. */
+export const DEFAULT_ZOOM_SCALE = 1.25;
+
 export function RichTextZoom() {
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(DEFAULT_ZOOM_SCALE);
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (message: string) => {
@@ -55,6 +58,10 @@ export function RichTextZoom() {
       (editor as HTMLElement).style.transformOrigin = 'top left';
     }
   };
+
+  useEffect(() => {
+    applyZoom(DEFAULT_ZOOM_SCALE);
+  }, []);
 
   return (
     <>

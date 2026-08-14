@@ -8,7 +8,6 @@ ext - dl to reason dl folswe
 6. Find/replace across all docs.
 7. Option to start talking automatically on first visit, or via a button from anywhere on the site.
 8. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings.
-9. Reasoning view zoom default at 125%.
 10. common typoes
 11. https://github.com/cloudflare/moltworker
 
