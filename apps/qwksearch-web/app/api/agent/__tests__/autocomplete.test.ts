@@ -99,4 +99,33 @@ describe('createAutocompleteHandler GET', () => {
     const data = await res.json()
     expect(data.suggestions).toEqual([])
   })
+
+  it('prepends a typo-corrected query as the first suggestion', async () => {
+    mockAutoComplete.mockResolvedValue(['recieve emails', 'recieve package'])
+    const res = await handler.GET(getRequest({ q: 'recieve' }))
+    const data = await res.json()
+    expect(data.suggestions[0]).toBe('receive')
+    expect(data.suggestions).toEqual(['receive', 'recieve emails', 'recieve package'])
+  })
+
+  it('does not duplicate the corrected query when a backend already suggested it', async () => {
+    mockAutoComplete.mockResolvedValue(['Receive', 'recieve emails'])
+    const res = await handler.GET(getRequest({ q: 'recieve' }))
+    const data = await res.json()
+    expect(data.suggestions).toEqual(['Receive', 'recieve emails'])
+  })
+
+  it('leaves suggestions untouched when the query has no known typo', async () => {
+    mockAutoComplete.mockResolvedValue(['hello world'])
+    const res = await handler.GET(getRequest({ q: 'hello' }))
+    const data = await res.json()
+    expect(data.suggestions).toEqual(['hello world'])
+  })
+
+  it('respects the limit parameter when a typo correction is prepended', async () => {
+    mockAutoComplete.mockResolvedValue(['recieve a', 'recieve b', 'recieve c'])
+    const res = await handler.GET(getRequest({ q: 'recieve', limit: '2' }))
+    const data = await res.json()
+    expect(data.suggestions).toEqual(['receive', 'recieve a'])
+  })
 })
