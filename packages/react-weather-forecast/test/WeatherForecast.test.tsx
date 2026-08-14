@@ -32,6 +32,8 @@ function forecast(overrides: Partial<WeatherForecastData> = {}): WeatherForecast
         windSpeedMax: 4.5,
       },
       { date: '2024-01-03', min: 57, max: 77, weatherCode: 3, icon: 'clouds', precipitationSum: 0, windSpeedMax: 3.5 },
+      { date: '2024-01-04', min: 51, max: 75, weatherCode: 3, icon: 'clouds' },
+      { date: '2024-01-05', min: 50, max: 74, weatherCode: 3, icon: 'clouds' },
     ],
     ...overrides,
   } as WeatherForecastData;
@@ -126,46 +128,51 @@ describe('<WeatherForecast />', () => {
     expect(spy.mock.calls.length).toBe(callsBefore);
   });
 
-  it('renders the compact layout with today, tomorrow and wind', async () => {
+  it('renders the compact card with the location, today and wind', async () => {
     vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
 
     render(<WeatherForecast latitude={1} longitude={2} compact />);
 
-    expect(await screen.findByText('Austin')).toBeTruthy();
-    expect(screen.getAllByText(/Tomorrow/).length).toBeGreaterThan(0);
+    expect(await screen.findByText('Austin, Texas')).toBeTruthy();
     // windSpeed 8.4 mph, rounded, with the default unit label.
     expect(screen.getByText('8 mph')).toBeTruthy();
     // The compact layout omits the full hour/day breakdown.
     expect(screen.queryByText('Next hours')).toBeNull();
   });
 
-  it('lists the upcoming days with precipitation and peak wind', async () => {
+  it('shows the next three days, by abbreviated weekday, along the bottom', async () => {
     vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
 
     render(<WeatherForecast latitude={1} longitude={2} compact />);
 
-    // The day after today is labelled "Tomorrow"; later days use their weekday.
-    expect(await screen.findByText('Tomorrow')).toBeTruthy();
-    expect(screen.getByText('Wednesday')).toBeTruthy();
-    expect(screen.getByText('0.5 mm')).toBeTruthy();
-    expect(screen.getByText('0.0 mm')).toBeTruthy();
-    expect(screen.getByText('4.5 mph')).toBeTruthy();
+    // Today (Monday) is summarised above; the row starts at the day after.
+    expect(await screen.findByText('Tue')).toBeTruthy();
+    expect(screen.getByText('Wed')).toBeTruthy();
+    expect(screen.getByText('Thu')).toBeTruthy();
+    // Only three days fit the bottom row, so the fifth day is dropped.
+    expect(screen.queryByText('Fri')).toBeNull();
+    expect(screen.queryByText('Mon')).toBeNull();
   });
 
-  it('shows placeholders for upcoming days without precipitation or wind data', async () => {
-    vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(
-      forecast({
-        daily: [
-          { date: '2024-01-01', min: 55, max: 79, weatherCode: 0, icon: 'sun' },
-          { date: '2024-01-02', min: 58, max: 80, weatherCode: 0, icon: 'sun' },
-        ],
-      })
-    );
+  it('keeps daily precipitation and peak wind as hover text on each day', async () => {
+    vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
 
     render(<WeatherForecast latitude={1} longitude={2} compact />);
 
-    await screen.findByText('Tomorrow');
-    expect(screen.getAllByText('—').length).toBe(2);
+    const tuesday = (await screen.findByText('Tue')).parentElement;
+    expect(tuesday?.getAttribute('title')).toBe('0.5 mm · 4.5 mph wind');
+    // Days without those totals carry no hover text at all.
+    expect(screen.getByText('Thu').parentElement?.getAttribute('title')).toBeNull();
+  });
+
+  it('shows the precipitation chance for upcoming days only when non-zero', async () => {
+    vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
+
+    render(<WeatherForecast latitude={1} longitude={2} compact />);
+
+    // Tomorrow's 70% chance is shown; Wednesday has no chance recorded.
+    expect(await screen.findByText('70%')).toBeTruthy();
+    expect(screen.queryByText('0%')).toBeNull();
   });
 
   it('shows a wind placeholder when wind speed is missing', async () => {
