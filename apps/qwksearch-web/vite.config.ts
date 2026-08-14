@@ -72,6 +72,18 @@ export default defineConfig(({ command }) => ({
       external: ["fsevents", /^@mastra\//, "@llamaindex/liteparse"],
     },
   },
+  environments: {
+    // Cloudflare rejects a Worker upload whose source maps total more than
+    // 15MB gzipped ("total sourcemap size is too large", API error 10021).
+    // The unminified rsc/ssr bundles blow past that on their own (~68MB raw /
+    // ~15.4MB gzipped), so `wrangler deploy` fails after the whole build has
+    // run. Since `minify` is off, the deployed Worker chunks are already
+    // readable source and the maps buy very little there, so don't emit them
+    // for the two Worker environments. The client build keeps its maps: those
+    // ship as static assets and don't count toward the Worker limit.
+    rsc: { build: { sourcemap: false } },
+    ssr: { build: { sourcemap: false } },
+  },
   ssr: {
     // Bundle workspace packages into the standalone output instead of treating
     // them as external dependencies (which vinext can't resolve at deploy time)
