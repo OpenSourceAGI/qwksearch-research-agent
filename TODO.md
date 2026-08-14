@@ -1,5 +1,118 @@
 ## In Progress
 
+## Article panel: Share button (native Web Share API with clipboard fallback)
+
+**Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 22 ("Share button; email to friends;
+social actions.")
+**Branch:** `claude/adoring-mayer-jn1xra`
+**PR:** Not created yet
+**Started:** 2026-08-14
+
+### Goal
+Add a "Share" action to the article extract panel's toolbar
+(`ArticleActionButtons.tsx`) so a user can share the article they're
+reading — via the OS-native share sheet (which already surfaces Mail and
+installed social apps as targets on supporting browsers/devices) or, as a
+fallback on browsers without the Web Share API, by copying the article
+link to the clipboard.
+
+### Scope
+- New pure helper `packages/research-agent-ui/src/lib/shareArticle.ts`:
+  given `{ title, text, url }` and injected `share`/`writeText`
+  dependencies, calls `share()` when provided (returns `'shared'`), falls
+  back to `writeText(url)` when `share` is undefined or when `share()`
+  rejects with anything other than a user-cancellation `AbortError`
+  (returns `'copied'`), and returns `'cancelled'` without copying when the
+  user dismisses the native share sheet.
+- `ArticleActionButtons.tsx`: new `Share2`-icon toolbar button (tooltip
+  "Share article", no keyboard shortcut — see Non-goals) calling a new
+  `onShareClick` prop, placed next to the existing Copy button.
+- `ArticleExtractPanel.tsx`: wires `onShareClick` to a handler that calls
+  `shareArticle` with `navigator.share`/`navigator.clipboard.writeText`
+  (feature-detecting `navigator.share`), and shows a brief "Link copied!"
+  confirmation (mirroring the existing `showCopiedMessage` banner) when the
+  result is `'copied'`.
+
+### Non-goals
+- Bespoke share-intent URLs for individual platforms (Twitter/X, Facebook,
+  LinkedIn, WhatsApp, etc.) — the native Web Share API's share sheet
+  already lists installed apps (including Mail) as targets on supporting
+  browsers; dedicated per-platform intents are a follow-up if ever needed
+  for browsers without Web Share support.
+- A keyboard shortcut for the new action — every existing toolbar letter
+  shortcut is taken by an unrelated action (share's natural "s" is already
+  "Suggest"); left unbound rather than picking a non-mnemonic key.
+- Sharing from the chat conversation view (`ChatConversation`) — scoped to
+  the article extract panel only, matching where the existing Copy/
+  Favorite/Highlight toolbar actions already live.
+
+### Acceptance criteria
+- [x] Clicking Share on a browser with the Web Share API invokes
+      `navigator.share` with the article's title/cite/url.
+- [x] Clicking Share on a browser without the Web Share API copies the
+      article URL to the clipboard and shows a brief confirmation.
+- [x] If the user cancels the native share sheet (`AbortError`), nothing is
+      copied and no error is shown.
+- [x] If `navigator.share` rejects for any other reason, the clipboard
+      fallback still runs so the user isn't left without a way to share.
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for this package or at the repo
+      root (no ESLint config found); nothing to run
+- [x] Typecheck passes — `bun run type-check` in `research-agent-ui`
+      surfaces the same 5 **pre-existing** `TS2307` errors documented in
+      prior TODO.md tasks (`ChatHomepage.tsx`, `ChatWindow.tsx`,
+      `MessageSources.tsx`, `WebCitationBadge.tsx` — missing built `dist/`
+      output for workspace packages in a fresh checkout), none of which
+      this change touches. No new errors from this change's files
+      (`navigator.share` type-checks cleanly against the installed DOM lib).
+- [x] Tests pass — `bunx vitest run test/shareArticle.test.ts` in
+      `research-agent-ui`: 4/4 passed. `bun run test` in `research-agent-ui`:
+      71/71 passed (67 pre-existing + 4 new). Full workspace `bun run test`:
+      166/176 files, 2404/2458 tests pass (4 skipped); the 50 failures
+      across the same 10 files documented repeatedly in prior TODO.md tasks
+      (`search-web-api` engine tests hitting real external APIs, the
+      `qwksearch-web` config route test, `shadcn-settings`, `jsdom-scraper`
+      missing its `jsdom` dependency, `chat-agent-toolkit`'s
+      `openrouter-default-model.test.js`) are pre-existing and unrelated —
+      none touch the changed files.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded, including `qwksearch-web`'s full `vinext build`.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry and inline comments (no user-facing docs
+      describe individual article-toolbar actions); the component's
+      file-level doc comment and Storybook description were updated to
+      mention the new Share button.
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm API, schema, data-flow, or interface requirements
+      (`Article.url`/`.title`/`.cite` already populated in
+      `ArticleExtractPanel`; `Share2` icon confirmed present in the
+      installed `lucide-react` version)
+- [x] Implement `shareArticle.ts`
+- [x] Add the Share button to `ArticleActionButtons.tsx`
+- [x] Wire the handler into `ArticleExtractPanel.tsx`
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (unsupported browser,
+      user-cancelled share, share() rejecting for another reason)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` diff produced by `bun install` — pure
+      version-number sync to already-committed `package.json` bumps, out
+      of scope, matching prior tasks' precedent)
+- [ ] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Commit, push, and open the PR; then flip Status to Completed with the PR
+  link recorded.
+
 ## Completed
 
 ## Autocomplete: recognize a typed bare domain even when it's outside the ranked dataset
