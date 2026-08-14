@@ -1,7 +1,7 @@
 {
   "name": "research-agent-ui",
   "description": "Chat research agent UI: conversation window, article reader, search config, file uploads, and chat history",
-  "version": "0.1.107",
+  "version": "0.1.108",
   "author": "vtempest",
   "repository": {
     "type": "git",
