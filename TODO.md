@@ -14,7 +14,7 @@ related by keywords"), continuing the follow-up explicitly deferred in the
 work ("incorporating document tags (`Document.tags`) into the relevance
 score alongside keyword overlap").
 **Branch:** `claude/adoring-mayer-0mn2j7`
-**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/229 (pending)
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/229 (merged)
 **Started:** 2026-08-14
 **Completed:** 2026-08-14
 
