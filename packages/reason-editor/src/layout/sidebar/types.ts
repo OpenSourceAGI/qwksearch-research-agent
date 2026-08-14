@@ -10,7 +10,7 @@ import type { TocEntry } from "../../app-types/toc";
 import type { ActiveHeadingEditorHandle } from "../../search/useActiveHeading";
 
 /** A single togglable panel kind that can appear in the left or right sidebar. */
-export type SidebarPanelType = "ai" | "files" | "outline" | "openTabs";
+export type SidebarPanelType = "ai" | "files" | "outline" | "openTabs" | "related";
 
 /** The kind of resource a tab in the "Open Tabs" panel represents. */
 export type OpenTabKind = "file" | "chat";
