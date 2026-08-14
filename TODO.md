@@ -1,8 +1,10 @@
 ## In Progress
 
+## Completed
+
 ## Test coverage for the follow-up-suggestions pipeline
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 17 ("Follow-up suggestions."). This
 feature is already fully implemented (inherited from an early bulk-import
 commit, `e21b8fc`) end-to-end for the chat conversation surface — LLM call,
@@ -10,8 +12,9 @@ API route, client fetch, and UI render — but has zero test coverage anywhere
 in the pipeline. This task closes that gap; it does not add new
 user-visible behavior.
 **Branch:** `claude/adoring-mayer-zic4bl`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/235 (merged)
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ### Goal
 Add Vitest coverage for the existing follow-up-suggestions backend pipeline
@@ -122,15 +125,16 @@ pattern used for the sibling autocomplete handler
       unrelated `bun.lock` diff produced by `bun install` — pure
       version-number sync to already-committed `package.json` bumps, out of
       scope, matching prior tasks' precedent)
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #235)
+- [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Commit, push, and open the PR; then flip Status to Completed with the PR
-  link recorded.
-
-## Completed
+- None for this task. PR #235 merged.
+- Follow-ups (left for a future run, per this task's Non-goals): a
+  `FollowUpSuggestions.tsx` component/DOM test once `research-agent-ui`
+  has a `@testing-library/react` test to model it on; the same test-coverage
+  gap in the parallel article-reader follow-up-questions pipeline.
 
 ## Article panel: Share button (native Web Share API with clipboard fallback)
 
