@@ -1,7 +1,96 @@
 ## In Progress
 
-_(none — see Completed below; a new task will be selected from the Ideas
-Backlog on the next run)_
+## Autocomplete: recognize a typed bare domain even when it's outside the ranked dataset
+
+**Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 21 ("If autocomplete matches
+something like red.com, go there directly.")
+**Branch:** `claude/adoring-mayer-va3awu`
+**PR:** Not created yet
+**Started:** 2026-08-14
+
+### Goal
+When the user types a string that looks like a real domain (e.g.
+`red.com`), offer a "go there directly" suggestion in the chat composer's
+autocomplete dropdown — even when that domain isn't one of the ~10k
+domains in the `domain-rank` ranked dataset the existing fuzzy domain
+search (`searchDomains` in
+`packages/research-agent-ui/src/api/handlers/autocomplete.ts`) matches
+against. Confirmed via a direct check that `red.com` itself is absent from
+`packages/domain-rank/data/domain-rank-merged.json` (10,020 entries), so
+today typing it produces zero domain suggestions — only the existing
+fuzzy match against known top domains works.
+
+### Scope
+- `packages/research-agent-ui/src/api/handlers/autocomplete.ts`:
+  `searchDomains` gains a literal-domain check on the last typed word using
+  `tldts` (already a dependency of `domain-rank`/`search-web-api`/
+  `qwksearch-web`, added here too) to validate the string has a real,
+  recognized public suffix (e.g. `.com`, `.io`, `.co.uk`) — this avoids
+  false positives on filename-like strings (`note.txt`, `script.js`) that a
+  naive `\w+\.\w+` regex would wrongly treat as domains, since `tldts`
+  checks against the actual public-suffix list rather than an arbitrary
+  extension pattern.
+- When the last word is a valid, ranked-dataset-independent domain and
+  isn't already present in the fuzzy results, prepend a synthetic
+  `DomainSuggestion` for it (unranked, so no rank badge renders — same
+  convention already used for dataset entries lacking a rank) ahead of the
+  fuzzy matches, still capped at `MAX_DOMAIN_SUGGESTIONS`.
+- No frontend (`ChatInputBox.tsx`) changes needed — it already renders
+  `domainSuggestions` generically and `goToDomain` already navigates
+  straight to `https://{domain}` on selection.
+
+### Non-goals
+- IP-address literals (e.g. `192.168.1.1`) or `localhost` — out of scope;
+  `tldts` won't recognize these as having a public suffix, and typing an
+  address is a different, less common flow than typing a memorable domain
+  name.
+- Auto-navigating without an explicit selection (e.g. on Enter with no
+  dropdown interaction) — this task only adds the *suggestion*; selecting
+  it (click, Tab, Enter-while-highlighted, or number key) already works via
+  the existing `goToDomain`/`chooseOption` wiring.
+- Changing the existing fuzzy ranked-domain matching behavior in any way
+  when the typed text does *not* look like a full domain.
+
+### Acceptance criteria
+- [ ] Typing a real-looking domain not present in the ranked dataset (e.g.
+      `red.com`) surfaces it as a domain suggestion.
+- [ ] Filename-like strings with non-TLD extensions (e.g. `note.txt`,
+      `script.js`) do NOT spuriously appear as domain suggestions.
+- [ ] A literal domain match that's already found via fuzzy search isn't
+      duplicated in the suggestion list.
+- [ ] The existing ranked-domain fuzzy-match behavior is unchanged for
+      queries that aren't themselves a full valid domain.
+- [ ] Selecting the synthetic suggestion navigates to `https://<domain>`,
+      matching existing dataset-backed domain suggestions.
+- [ ] Vitest coverage is added or updated
+- [ ] Lint passes
+- [ ] Typecheck passes
+- [ ] Tests pass
+- [ ] Production/web build passes
+- [ ] Documentation is updated if behavior or configuration changes
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm API, schema, data-flow, or interface requirements (`tldts`
+      already used elsewhere in the repo for the same "is this a real
+      domain suffix" question; `research-agent-ui` doesn't yet depend on it)
+- [ ] Add `tldts` as a dependency of `research-agent-ui`
+- [ ] Implement the smallest useful vertical slice in `autocomplete.ts`
+- [ ] Add focused Vitest success-path coverage
+- [ ] Add focused failure/edge-case coverage (filename false positives,
+      dedupe against fuzzy results, short/invalid input)
+- [ ] Run focused tests and fix failures
+- [ ] Run linting and typechecking
+- [ ] Run the full relevant test suite
+- [ ] Run the production/web build
+- [ ] Review the final diff for scope and quality
+- [ ] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Implementation not yet started — see Implementation plan above.
 
 ## Completed
 

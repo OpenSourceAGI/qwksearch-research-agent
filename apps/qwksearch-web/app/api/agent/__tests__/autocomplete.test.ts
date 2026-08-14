@@ -92,6 +92,33 @@ describe('createAutocompleteHandler GET', () => {
     expect(data.suggestions.length).toBeGreaterThan(0)
   })
 
+  it('recognizes a real domain not present in the ranked dataset', async () => {
+    mockAutoComplete.mockResolvedValue([])
+    const res = await handler.GET(getRequest({ q: 'red.com' }))
+    const data = await res.json()
+    const domains: Array<{ domain: string; rank: number }> = data.domains
+    const match = domains.find((d) => d.domain === 'red.com')
+    expect(match).toBeDefined()
+    expect(match!.rank).toBe(Number.MAX_SAFE_INTEGER)
+  })
+
+  it('does not treat a filename-like string as a domain', async () => {
+    mockAutoComplete.mockResolvedValue([])
+    const res = await handler.GET(getRequest({ q: 'note.txt' }))
+    const data = await res.json()
+    const domains: Array<{ domain: string }> = data.domains
+    expect(domains.some((d) => d.domain === 'note.txt')).toBe(false)
+  })
+
+  it('does not duplicate a domain already found via the ranked-dataset fuzzy match', async () => {
+    mockAutoComplete.mockResolvedValue([])
+    const res = await handler.GET(getRequest({ q: 'example.com' }))
+    const data = await res.json()
+    const domains: Array<{ domain: string }> = data.domains
+    const matches = domains.filter((d) => d.domain === 'example.com')
+    expect(matches).toHaveLength(1)
+  })
+
   it('returns 500 on unexpected autocomplete error', async () => {
     mockAutoComplete.mockRejectedValue(new Error('network failure'))
     const res = await handler.GET(getRequest({ q: 'error case' }))
