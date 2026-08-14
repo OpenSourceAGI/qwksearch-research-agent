@@ -8,7 +8,13 @@
   // entered in the CF dashboard (API keys, BETTER_AUTH_SECRET, …) because
   // this config defines no `vars`. Secrets survive either way.
   "keep_vars": true,
-  "upload_source_maps": true,
+  // Uploading Worker source maps (for prettier stack traces in the CF
+  // dashboard) is capped at 15MB gzipped; this app's unminified rsc/ssr
+  // bundles produced ~15.4MB and the deploy was rejected with API error
+  // 10021. The Worker chunks ship unminified, so the maps add little.
+  // Source-map *emission* is also off for the rsc/ssr environments — see
+  // `environments` in vite.config.ts. Inherited by the `production` env.
+  "upload_source_maps": false,
   "assets": {
     "directory": "dist/client",
     "not_found_handling": "none",
