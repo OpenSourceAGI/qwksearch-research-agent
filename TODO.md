@@ -71,7 +71,6 @@ model reads on every request — not just cosmetic.
 
 ## Outline sidebar: auto-scroll to reveal the active heading
 
-
 **Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 4 ("Outline tree should reuse
 Fumadocs page tree/sidebar patterns."), continuing the follow-up explicitly
@@ -80,7 +79,7 @@ scrolling" task below (PR #220's Non-goals / Remaining work: "auto-scroll
 the sidebar panel itself to reveal the active heading when it scrolls out of
 the panel's own viewport").
 **Branch:** `claude/adoring-mayer-ldfe0q`
-**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/224
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/224 (merged)
 **Started:** 2026-08-14
 **Completed:** 2026-08-14
 
@@ -166,7 +165,7 @@ completing the Fumadocs-style TOC behavior that PR #220 explicitly deferred.
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task. PR #224 is open and CI/review will be monitored.
+- None for this task. PR #224 merged.
 
 ## Outline sidebar: highlight the active heading while scrolling
 
