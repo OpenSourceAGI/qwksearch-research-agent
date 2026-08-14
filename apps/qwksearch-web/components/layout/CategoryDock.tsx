@@ -131,4 +131,8 @@ export function CategoryDock() {
       items={items}
       enableKeyboardShortcuts
       renderImage={(src, alt, size) => (
-        <Image src={src} alt={alt} width={size}
+        <Image src={src} alt={alt} width={size} height={size} unoptimized className="w-full h-full" />
+      )}
+    />
+  )
+}

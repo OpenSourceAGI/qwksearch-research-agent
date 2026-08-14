@@ -4,9 +4,12 @@ React weather forecast component using Open-Meteo for current, hourly, and daily
 
 ## Features
 
-- Current weather.
+- Current weather, with a live clock in the location's own timezone.
+- Click the `°F` / `°C` letter to switch temperature units.
+- A calendar dropdown on the date for browsing months and years.
 - Next hours forecast.
-- Next days forecast.
+- Next days forecast, labelled by short weekday.
+- Rain and wind are only shown once they are above a marginal amount.
 - IP geolocation fallback.
 - Latitude/longitude override.
 - Split SVG weather icon components.

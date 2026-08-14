@@ -55,6 +55,10 @@ export type DailyWeather = {
   max: number;
   weatherCode: number;
   precipitationProbabilityMax?: number;
+  /** Total precipitation for the day, in millimetres. */
+  precipitationSum?: number;
+  /** Peak wind speed for the day, in the requested wind speed unit. */
+  windSpeedMax?: number;
   icon: WeatherCondition;
 };
 

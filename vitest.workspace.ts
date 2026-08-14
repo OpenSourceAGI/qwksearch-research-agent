@@ -5,6 +5,7 @@ export default defineWorkspace([
   'packages/chat-agent-toolkit',
   'packages/extract-webpage',
   'packages/qwksearch-api-client',
+  'packages/react-reason-editor',
   'packages/render-url-to-html-cloudflare',
   'packages/research-agent-ui',
   'packages/search-web-api',

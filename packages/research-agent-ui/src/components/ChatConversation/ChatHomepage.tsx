@@ -135,7 +135,10 @@ export default function ChatHomepage() {
                 border: '1px solid rgba(255,255,255,0.15)',
                 color: 'inherit',
                 backdropFilter: 'blur(8px)',
-                maxWidth: '100%',
+                // The widget is a narrow card now, centred rather than stretched
+                // across the full width of the input column.
+                maxWidth: 420,
+                margin: '0 auto',
               }}
             />
             <ChatInputBox />

@@ -8,7 +8,18 @@
   // entered in the CF dashboard (API keys, BETTER_AUTH_SECRET, …) because
   // this config defines no `vars`. Secrets survive either way.
   "keep_vars": true,
-  "upload_source_maps": true,
+  // Cloudflare caps uploaded Worker source maps at 15 MB gzipped across the
+  // whole deploy; this app's server bundle produces ~68 MB gzipped of maps
+  // (the AI SDK providers, pdf/youtube extractors and the editor packages are
+  // all bundled into the rsc/ssr worker), so every deploy failed validation
+  // with error 10021 "total sourcemap size ... exceeds limit".
+  //
+  // The maps only affect how readable a stack trace is in Cloudflare's log
+  // viewer — they are not part of the Worker's runtime bundle and do not
+  // change behaviour or startup time. Re-enabling this requires getting the
+  // compressed maps under 15 MB first (e.g. dropping embedded sources), not
+  // just flipping the flag back.
+  "upload_source_maps": false,
   "assets": {
     "directory": "dist/client",
     "not_found_handling": "none",

@@ -5,7 +5,7 @@
  * for settings, teams, and theme toggling.
  */
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Search, FileText, X, Settings, Users, Moon, Sun, Command } from 'lucide-react';
+import { Search, FileText, X, Settings, Users, Moon, Sun, Command, Replace } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,8 @@ interface SearchModalProps {
   onOpenSettings?: () => void;
   /** Opens the teams/organization management dialog. */
   onOpenTeams?: () => void;
+  /** Opens the cross-document find & replace dialog. */
+  onOpenFindReplaceAll?: () => void;
   /** Toggles the active UI theme. */
   onToggleTheme?: () => void;
   /** Currently active theme name; used to label the toggle action. */
@@ -72,6 +74,7 @@ export const SearchModal = ({
   onSelectDocument,
   onOpenSettings,
   onOpenTeams,
+  onOpenFindReplaceAll,
   onToggleTheme,
   currentTheme = 'light',
 }: SearchModalProps) => {
@@ -108,6 +111,19 @@ export const SearchModal = ({
       });
     }
 
+    if (onOpenFindReplaceAll) {
+      actions.push({
+        id: 'find-replace-all',
+        label: 'Find & Replace in All Docs',
+        icon: <Replace className="h-4 w-4" />,
+        action: () => {
+          onOpenFindReplaceAll();
+          onOpenChange(false);
+        },
+        keywords: ['find', 'replace', 'search', 'all', 'documents', 'bulk'],
+      });
+    }
+
     if (onToggleTheme) {
       actions.push({
         id: 'theme',
@@ -121,7 +137,7 @@ export const SearchModal = ({
     }
 
     return actions;
-  }, [onOpenSettings, onOpenTeams, onToggleTheme, currentTheme, onOpenChange]);
+  }, [onOpenSettings, onOpenTeams, onOpenFindReplaceAll, onToggleTheme, currentTheme, onOpenChange]);
 
   const searchResults = useMemo(() => {
     if (!query.trim()) return [];
