@@ -1,6 +1,106 @@
 ## In Progress
 
-(none)
+## Outline sidebar: highlight the active heading while scrolling
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 4 ("Outline tree should reuse
+Fumadocs page tree/sidebar patterns.")
+**Branch:** `claude/adoring-mayer-ntjy99`
+**PR:** Not created yet (not requested this run)
+**Started:** 2026-08-14
+**Completed:** 2026-08-14
+
+### Goal
+Make the main outline sidebar (`packages/reason-editor/src/search/OutlineView.tsx`,
+shown in both the left and right sidebar panels) highlight whichever heading
+is currently in view as the user scrolls the document — the scroll-spy
+behavior Fumadocs' page/TOC sidebar is known for, and which this repo's
+`reason-editor` already implements in two *other*, less-used TOC widgets
+(`DynamicIslandTOC.tsx`'s floating island, and the unused
+`RichTextTableOfContents.tsx`) but not in the actual sidebar outline panel
+users see day to day.
+
+### Scope
+- A small, reusable `useActiveHeading` hook + pure `computeActiveHeadingKey`
+  helper in `packages/reason-editor/src/search/useActiveHeading.ts`, modeled
+  on `DynamicIslandTOC`'s existing scroll-spy logic (find the heading whose
+  top is at/above a viewport threshold; fall back to the first heading).
+- Wire an optional `editorRef` prop through `OutlineView` so it can resolve
+  heading DOM elements via `TiptapEditorHandle.getElementByKey` (same
+  mechanism `DynamicIslandTOC` already uses) and compute the active heading
+  as the user scrolls the editor.
+- Thread `editorRef` from `ReasonDocs.tsx` (`state.editorRef`, already
+  exists) down through `Sidebar`/`RightPanel` → `SidebarContent` →
+  `OutlineView`, mirroring how `headings`/`onNavigate` are already threaded.
+- Highlight the active row using the same `bg-sidebar-accent` active-state
+  convention already used for the active document row in `DocumentTree.tsx`.
+
+### Non-goals
+- Auto-scrolling the *sidebar itself* to reveal an active item that has
+  scrolled out of the panel's own viewport (a further Fumadocs page-tree
+  behavior) — left as a follow-up; this slice covers highlighting only.
+- Refactoring `DynamicIslandTOC.tsx` or `RichTextTableOfContents.tsx` to
+  reuse the new shared hook — left untouched to avoid regressing a shipped
+  floating widget; only `OutlineView` (the sidebar panel) gains the hook.
+
+### Acceptance criteria
+- [x] Scrolling the document highlights the heading whose row is currently
+      the "active" one in the sidebar outline panel.
+- [x] With no `editorRef` supplied (or no headings), the outline renders
+      exactly as before — no active highlight, no runtime errors.
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for this package or at the repo
+      root (no ESLint config found); nothing to run
+- [x] Typecheck passes — `npx tsc --noEmit -p tsconfig.json` in
+      `reason-editor` surfaces 5 **pre-existing** errors in
+      `InviteModal.tsx`, `Pagination.ts`, and `filetree.tsx` (none of which
+      this change touches); confirmed identical with `git stash` applied
+      (unmodified code produces the exact same 5 errors). No new errors from
+      this change's files.
+- [x] Tests pass — `bun run test` in `reason-editor`: 453/453 passed
+      (42/42 files, including the 14 new/updated tests in
+      `useActiveHeading.test.ts` and `OutlineView.test.tsx`). Full workspace
+      `bun run test`: 164/174 files, 2371/2433 tests pass; the 58 failures
+      across the same 10 files documented in the prior "Unblock
+      `bun run build:web`" task entry (`search-web-api` engine tests hitting
+      real external APIs, the `qwksearch-web` config route test,
+      `shadcn-settings`, `jsdom-scraper`) are pre-existing and unrelated —
+      none touch `reason-editor`.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded, including `react-reason-editor#build` and
+      `qwksearch-web#build`'s full `vinext` pipeline.
+- [x] Documentation is updated if behavior or configuration changes (this
+      tracker entry + inline comments where non-obvious)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm API, schema, data-flow, or interface requirements
+- [x] Implement the smallest useful vertical slice
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (no editorRef, no headings)
+- [x] Run focused tests and fix failures (also fixed a pre-existing latent
+      bug in the `OutlineView.test.tsx` `headingRow` test helper — it
+      resolved to the shared outline container `<div>` instead of the
+      individual row `<div>` whenever more than one row was present, masked
+      until now because every prior assertion only ever exercised a single
+      visible row)
+- [x] Run linting and typechecking
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` diff produced by `bun install` — pure
+      version-number sync to an already-committed `package.json` bump, out
+      of scope for this change)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's implementation. A PR was not opened this run (not
+  requested); open one when ready to merge.
+- Follow-up (optional, out of scope here): auto-scroll the sidebar panel
+  itself to reveal the active heading when it scrolls out of the panel's own
+  viewport (see Non-goals above).
 
 ## Completed
 

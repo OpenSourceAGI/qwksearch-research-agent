@@ -202,6 +202,7 @@ const Index = ({
     activeFileSourceId: state.activeFileSourceId,
     onFileSourceChange: state.handleFileSourceChange,
     onNavigate: (key: string) => state.editorRef.current?.scrollToHeading(key),
+    editorRef: state.editorRef,
     openTabs: state.openTabs,
     activeTab: activeTabId,
     onTabChange: handleTabChange,
@@ -258,6 +259,7 @@ const Index = ({
       onRename={(id: string, title: string) => state.handleUpdateDocument(id, { title })}
       headings={state.headings}
       onNavigate={(key) => state.editorRef.current?.scrollToHeading(key)}
+      editorRef={state.editorRef}
       openTabs={state.openTabs}
       activeTab={activeTabId}
       onTabChange={handleTabChange}

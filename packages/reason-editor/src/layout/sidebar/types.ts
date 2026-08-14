@@ -4,8 +4,10 @@
  * the panel-based view configuration used across SidebarContent,
  * SidebarToolbar, SidebarFooter, SidebarViewMenu, and Sidebar.
  */
+import type { RefObject } from "react";
 import { Document } from "../../documents/DocumentTree";
 import type { TocEntry } from "../../app-types/toc";
+import type { ActiveHeadingEditorHandle } from "../../search/useActiveHeading";
 
 /** A single togglable panel kind that can appear in the left or right sidebar. */
 export type SidebarPanelType = "ai" | "files" | "outline" | "openTabs";
@@ -92,6 +94,8 @@ export interface SidebarProps {
   headings?: TocEntry[];
   // Jumps the editor to a heading (used by the "outline" panel)
   onNavigate?: (key: string) => void;
+  // Editor handle used by the "outline" panel to scroll-spy the active heading
+  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
   // Open tabs (for all-tabs dropdown and open files list)
   openTabs?: string[];
   activeTab?: string | null;

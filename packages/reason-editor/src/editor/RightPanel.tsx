@@ -13,6 +13,7 @@ import { SidebarContent } from '../layout/sidebar/SidebarContent';
 import { PANEL_OPTIONS } from '../layout/sidebar/panelOptions';
 import type { SidebarPanelType, SidebarAiProps, OpenTabItem } from '../layout/sidebar/types';
 import type { OutlineViewHandle } from '../search/OutlineView';
+import type { ActiveHeadingEditorHandle } from '../search/useActiveHeading';
 import type { TocEntry } from '../app-types/toc';
 import type { Document } from '../documents/DocumentTree';
 import { Button } from '../app-ui/button';
@@ -51,6 +52,7 @@ interface RightPanelProps {
   onReopenLastClosed?: () => void;
   canReopenLastClosed?: boolean;
   outlineRef?: RefObject<OutlineViewHandle | null>;
+  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
   tabItems?: OpenTabItem[];
   onNewChat?: () => void;
   aiProps: SidebarAiProps;
@@ -108,6 +110,7 @@ export function RightPanel({
   onReopenLastClosed,
   canReopenLastClosed,
   outlineRef,
+  editorRef,
   tabItems,
   onNewChat,
   aiProps,
@@ -150,6 +153,7 @@ export function RightPanel({
           onManageTags={onManageTags}
           onRename={onRename}
           outlineRef={outlineRef}
+          editorRef={editorRef}
           openTabs={openTabs}
           activeTab={activeTab}
           onTabChange={onTabChange}
