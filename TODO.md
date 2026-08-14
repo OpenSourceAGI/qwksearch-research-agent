@@ -6,7 +6,7 @@
 **Source:** TODO.md — Ideas Backlog item 4 ("Outline tree should reuse
 Fumadocs page tree/sidebar patterns.")
 **Branch:** `claude/adoring-mayer-ntjy99`
-**PR:** Not created yet (not requested this run)
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/220
 **Started:** 2026-08-14
 **Completed:** 2026-08-14
 
@@ -92,12 +92,11 @@ users see day to day.
       version-number sync to an already-committed `package.json` bump, out
       of scope for this change)
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task's implementation. A PR was not opened this run (not
-  requested); open one when ready to merge.
+- None for this task. PR #220 is open and CI/review will be monitored.
 - Follow-up (optional, out of scope here): auto-scroll the sidebar panel
   itself to reveal the active heading when it scrolls out of the panel's own
   viewport (see Non-goals above).
