@@ -2,6 +2,136 @@
 
 ## Completed
 
+## Fix `qwksearch-ext`'s Tailwind v4 PostCSS plugin mismatch
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 29b (discovered as a follow-up while
+verifying item 29, "Default search provider support in the browser
+extension").
+**Branch:** `claude/adoring-mayer-bg8yg9`
+**PR:** Not created yet
+**Started:** 2026-08-14
+**Completed:** 2026-08-14
+
+### Goal
+Fix the specific error item 29b documented — `apps/qwksearch-ext`'s
+PostCSS config still using the Tailwind v3-style `tailwindcss: {}` plugin
+entry against the installed Tailwind v4, which fails immediately with
+"It looks like you're trying to use tailwindcss directly as a PostCSS
+plugin." Note: fixing this turned out to be necessary but **not
+sufficient** to make `bun run build`/`zip` fully succeed — see "Remaining
+work" below for the distinct, deeper blocker discovered once this one was
+cleared, filed as new Ideas Backlog item 29c.
+
+### Scope
+- `apps/qwksearch-ext/postcss.config.js`: replace the old-style
+  `tailwindcss: {}` PostCSS plugin entry with `'@tailwindcss/postcss': {}`,
+  matching the pattern already used by `apps/qwksearch-web/postcss.config.cjs`
+  and `packages/reason-editor/postcss.config.js` for Tailwind v4.
+- `apps/qwksearch-ext/package.json`: add `@tailwindcss/postcss` as a
+  devDependency (matching the `tailwindcss` version already pinned there).
+- `apps/qwksearch-ext/styles/globals.css`: add `@config
+  "../tailwind.config.ts";` — once the plugin itself resolved, Tailwind v4's
+  stricter CSS-first engine no longer picked up the legacy JS
+  `tailwind.config.ts` (`theme.extend.colors.border` etc.) implicitly, so
+  `@apply border-border` failed with "Cannot apply unknown utility class
+  border-border". The `@config` directive is Tailwind v4's documented
+  compatibility mechanism for keeping a v3-style JS config alongside the
+  `@tailwind base/components/utilities` directives already in this file.
+
+### Non-goals
+- Any change to Tailwind utility classes, theme config, or generated styles
+  beyond what's needed to keep the existing v3-style config working under
+  v4 — this is a PostCSS/build wiring fix only.
+- Rebuilding `packages/reason-editor/demo/` (item 0b) — unrelated.
+- Wiring up `research-agent-ui` (and its own ~9 transitive workspace-package
+  build chain) as a dependency of `qwksearch-ext` — this is the distinct,
+  much larger blocker discovered below and filed as item 29c; out of scope
+  for this PostCSS-only fix.
+
+### Acceptance criteria
+- [x] The specific "trying to use tailwindcss directly as a PostCSS plugin"
+      error is gone — confirmed via `bun run build` and `bun run
+      build:firefox`, both of which now get past the PostCSS/CSS
+      compilation step entirely (verified by the error class changing to an
+      unrelated, later-stage module-resolution error — see Remaining work).
+- [ ] `bun run build` (Chrome target) fully succeeds, producing
+      `.output/chrome-mv3/` — **not achieved**; blocked by the separate,
+      pre-existing issue documented under Remaining work/item 29c.
+- [ ] `bun run build:firefox` fully succeeds — **not achieved**, same
+      blocker (confirmed it is not Chrome-specific).
+- [x] Vitest coverage is added or updated — n/a; this is a build-tooling
+      config fix with no testable runtime behavior (matches item 29's
+      precedent of leaving static config changes untested).
+- [x] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run.
+- [x] Typecheck passes — `bun run compile` surfaces the same pre-existing
+      `TS2304`/`TS2493`/`TS2769` errors documented in item 29's TODO entry
+      (missing global `chrome` types, a tuple-index error in
+      `test/message-api.test.ts`, an `OxcOptions` overload mismatch in
+      `vitest.config.ts`); none touch the files this task changed, and none
+      are new.
+- [x] Tests pass — `bun run test` in `qwksearch-ext`: 42/42 passed (5/5
+      files), same as before this change. Full workspace `bun run test`:
+      169/179 files, 2414/2471 tests pass (4 skipped); the 53 failures
+      across the same 10 files documented repeatedly in prior TODO.md tasks
+      (`search-web-api` hitting real external APIs, the `qwksearch-web`
+      config route test, `shadcn-settings`, `jsdom-scraper` missing `jsdom`,
+      `chat-agent-toolkit`'s `openrouter-default-model.test.js`) are
+      pre-existing and unrelated — none touch `qwksearch-ext`.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry.
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm the fix pattern against sibling Tailwind v4 configs
+      (`qwksearch-web`, `reason-editor`, `scraper-jsdom/demo`)
+- [x] Reproduce the failure on a clean `bun install`
+- [x] Implement the smallest useful vertical slice (`postcss.config.js` +
+      `package.json` devDependency)
+- [x] Run `bun run build`/`build:firefox`, discover the fix is necessary but
+      not sufficient (new `@apply border-border` error), add the `@config`
+      directive to `globals.css` to resolve it, then discover the further,
+      distinct `research-agent-ui` module-resolution blocker (filed as item
+      29c rather than expanded into this task's scope)
+- [x] Run focused tests and fix failures — `qwksearch-ext`'s own suite
+      (42/42) unaffected
+- [x] Run linting and typechecking — no new failures
+- [x] Run the full relevant test suite — no new failures (53 pre-existing,
+      unrelated)
+- [x] Run the production/web build — 14/14 turbo tasks passed
+- [x] Review the final diff for scope and quality (reverted the unrelated
+      `bun.lock` package-version-sync diff produced by `bun install`,
+      keeping only the one line adding `@tailwindcss/postcss` to
+      `qwksearch-extension-wxt`'s devDependencies, matching item 29's
+      precedent)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope (the item 29b PostCSS mismatch is fixed
+  and verified).
+- Filed as new Ideas Backlog item 29c: once the PostCSS/CSS-config issue is
+  fixed, `apps/qwksearch-ext`'s build fails at a later, unrelated step —
+  `components/ResearchTab.tsx` imports `research-agent-ui`, but
+  `qwksearch-ext/package.json` never declares it as a dependency (unlike
+  `apps/qwksearch-web`, which does via `"research-agent-ui": "workspace:*"`
+  plus a `prebuild` script that builds `research-agent-ui` and ~8 other
+  workspace packages first). `research-agent-ui` itself has no `dist/`
+  output in a fresh checkout and depends on ~30 packages including several
+  more workspace packages (`chat-agent-toolkit`, `domain-rank`,
+  `extract-webpage`, `trending-news-api`, `use-voice-control`, etc.) plus a
+  peer dependency on `next` (already partly worked around via
+  `qwksearch-ext/lib/next-navigation-shim.tsx`). Fully unblocking
+  `qwksearch-ext`'s build requires wiring up this dependency chain — a
+  materially larger, separate task from a PostCSS config fix, so it's left
+  as its own dedicated follow-up rather than folded into this one.
+
+## Completed
+
 ## Default search provider support in the browser extension (chrome_settings_overrides)
 
 **Status:** Completed
@@ -1245,7 +1375,20 @@ ext - dl to reason dl folswe
      `tailwindcss@4.3.3`, which requires the separate `@tailwindcss/postcss`
      package instead. Discovered while verifying item 29 above (pre-existing,
      confirmed via `git stash`); blocks building or zipping the Chrome
-     extension at all, independent of any other change.
+     extension at all, independent of any other change. — **done, see "Fix
+     `qwksearch-ext`'s Tailwind v4 PostCSS plugin mismatch" above** (fixing
+     this surfaced a further, distinct blocker — see item 29c)
+29c. `qwksearch-ext`'s build still fails after 29b is fixed:
+     `components/ResearchTab.tsx` imports `research-agent-ui`, but it's
+     never declared as a dependency in `qwksearch-ext/package.json` (unlike
+     `qwksearch-web`, which declares `"research-agent-ui": "workspace:*"`
+     plus a `prebuild` script building it and ~8 other workspace packages
+     first). `research-agent-ui` has no `dist/` output in a fresh checkout
+     and itself depends on ~30 packages (several more workspace packages,
+     plus a peer dependency on `next`, partly worked around already via
+     `qwksearch-ext/lib/next-navigation-shim.tsx`). Discovered while fixing
+     29b; needs its own dedicated task to wire up the dependency and
+     prebuild chain.
 31. Agents that scrape the web and work with datasets like LinkedIn.
 32. Auto-generate keyphrase completions for on-page Ctrl+F search.
 33. Markdown/file tree view inspiration: [ld246.com/guide/markdown](https://ld246.com/guide/markdown).
