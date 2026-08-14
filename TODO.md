@@ -1,12 +1,17 @@
 ## In Progress
 
+(none)
+
+## Completed
+
 ## Voice auto-start on first visit
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — "Option to start talking automatically on first visit, or via a button from anywhere on the site."
 **Branch:** `claude/adoring-mayer-drmy2g`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/216 (merged 2026-08-14)
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ### Goal
 Let a user opt in to having voice dictation start automatically the first
@@ -51,9 +56,18 @@ button / Ctrl+` shortcut in `ChatInputBox`.
       Out of scope for this task.
 - [x] Tests pass — `bun run test` in `research-agent-ui`: 67/67 passed
       (including the 14 new voice-auto-start tests)
-- [ ] Production/web build passes — `bun run build:web` in progress at time
-      of commit; `research-agent-ui`'s own `bun run build` (vite bundle)
-      already passes
+- [ ] Production/web build passes — `bun run build:web` ran the full prebuild
+      chain plus `vinext build`: 12/13 turbo tasks succeeded, including
+      `research-agent-ui#build` (the package this change lives in). The one
+      failure is `react-reason-editor#build`, which errors trying to bundle
+      `packages/reason-editor/demo/vite.config.ts` as an entry
+      (`UNRESOLVED_ENTRY`) — a pre-existing issue in a demo config unrelated
+      to `reason-editor`'s own library build (which itself succeeded: "built
+      in 2m 48s") and untouched by this change. `vinext build` for
+      `qwksearch-web` itself never ran because turbo stopped after that
+      failure. Filed as a known gap below rather than fixed here (out of
+      this task's scope — touches `reason-editor`'s demo tooling, not voice
+      input).
 - [x] Documentation is updated if behavior or configuration changes (n/a — no user-facing docs describe voice settings beyond in-app copy)
 
 ### Implementation plan
@@ -65,25 +79,31 @@ button / Ctrl+` shortcut in `ChatInputBox`.
 - [x] Run focused tests and fix failures
 - [x] Run linting and typechecking (see notes above — neither is actionable for this change)
 - [x] Run the full relevant test suite
-- [ ] Run the production/web build (in progress — see Remaining work)
+- [x] Run the production/web build (ran; surfaced a pre-existing, unrelated `reason-editor` demo build failure — see above)
 - [x] Review the final diff for scope and quality
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Confirm the `bun run build:web` production build (kicked off in the
-  background) completes cleanly; if it fails for reasons unrelated to this
-  change (env vars/secrets not present in this sandbox — no `.env.local`
-  with real Better Auth/DB/provider secrets), record the exact command and
-  error here and treat it as an out-of-scope pre-existing gap.
-- Open the PR and link it here.
-- Move this entry to `## Completed` once the PR is up.
+- None for this task. Follow-up (separate, unrelated): `react-reason-editor#build`
+  fails on a fresh checkout bundling `packages/reason-editor/demo/vite.config.ts`
+  (`UNRESOLVED_ENTRY`), which blocks `bun run build:web` from reaching
+  `qwksearch-web`'s own `vinext build` step. Worth a dedicated TODO item since
+  it currently blocks CI/production-build verification for every change,
+  not just this one.
 
 ---
 
 ## Ideas Backlog
 
+0. Fix `react-reason-editor#build` failing on a fresh checkout: it errors
+   trying to bundle `packages/reason-editor/demo/vite.config.ts` as an entry
+   module (`UNRESOLVED_ENTRY`), which blocks `bun run build:web`'s turbo
+   pipeline from ever reaching `qwksearch-web`'s own `vinext build` step.
+   Found while verifying PR #216 (2026-08-14); the library build itself
+   ("react-reason-editor:build") succeeds, only the demo config resolution
+   fails.
 ext - dl to reason dl folswe
 1. in sidebar, have it sugegst related by keywords
 2. Chat with open tabs as context.
