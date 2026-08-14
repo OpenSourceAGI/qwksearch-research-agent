@@ -70,7 +70,11 @@ export default defineConfig(async ({ mode }) => {
   ];
 
   const files = await globbySync('src/extensions/**/*.ts', {
-    ignore: ['src/**/*/index.ts', 'src/**/*.spec.ts'], // Exclude .spec.ts files
+    // Exclude test files (this repo uses *.test.ts, not *.spec.ts) so a
+    // test file nested under an extension dir that has no top-level
+    // <Name>/<Name>.ts (e.g. Zoom, which is UI-only) doesn't falsely
+    // register that dir as needing one, breaking the build entry list.
+    ignore: ['src/**/*/index.ts', 'src/**/*.spec.ts', 'src/**/*.test.ts'],
   });
 
   const exports = {};

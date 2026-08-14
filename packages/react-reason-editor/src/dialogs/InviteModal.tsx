@@ -134,7 +134,7 @@ export const InviteModal = ({
         ...sharingInfo,
         isPublic: checked,
         sharedWith,
-        shareLink,
+        shareLink: shareLink ?? undefined,
       });
     }
 

@@ -64,7 +64,8 @@
       "react-reason-editor/textdirection": ["./src/extensions/TextDirection/index.ts"],
       "react-reason-editor/textunderline": ["./src/extensions/TextUnderline/index.ts"],
       "react-reason-editor/twitter": ["./src/extensions/Twitter/index.ts"],
-      "react-reason-editor/video": ["./src/extensions/Video/index.ts"]
+      "react-reason-editor/video": ["./src/extensions/Video/index.ts"],
+      "react-reason-editor/wordcount": ["./src/extensions/WordCount/index.ts"]
     }
   },
   "include": ["src"]
