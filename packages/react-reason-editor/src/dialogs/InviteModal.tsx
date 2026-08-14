@@ -56,7 +56,7 @@ export const InviteModal = ({
   const [newRole, setNewRole] = useState<'viewer' | 'commentor' | 'editor'>('editor');
   const [isPublic, setIsPublic] = useState(sharingInfo?.isPublic || false);
   const [sharedWith, setSharedWith] = useState(sharingInfo?.sharedWith || []);
-  const [shareLink, setShareLink] = useState<string | null>(sharingInfo?.shareLink || null);
+  const [shareLink, setShareLink] = useState<string | undefined>(sharingInfo?.shareLink);
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
 
   const handleInvite = () => {

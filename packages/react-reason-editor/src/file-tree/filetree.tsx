@@ -67,8 +67,6 @@ interface FileTreeProps {
   onAddSiblingFolder?: (itemId: string) => void;
   onCopy?: (id: string) => void;
   onPaste?: (targetId: string | null) => void;
-  onNewFile?: (parentId: string | null) => void;
-  onNewFolder?: (parentId: string | null) => void;
   onManageTags?: (id: string) => void;
 }
 
@@ -110,7 +108,7 @@ function buildItems(documents: Document[]): Record<string, FileTreeItem> {
 }
 
 const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
-  ({ activeId, documents, onMove, onRename, onSelect, onDelete, onDuplicate, onAddChild, onAddChildFolder, onAddSibling, onAddSiblingFolder, onCopy, onPaste, _onNewFile, _onNewFolder, onManageTags }, ref) => {
+  ({ activeId, documents, onMove, onRename, onSelect, onDelete, onDuplicate, onAddChild, onAddChildFolder, onAddSibling, onAddSiblingFolder, onCopy, onPaste, onManageTags }, ref) => {
     const items = useMemo(() => {
       const built = buildItems(documents);
       return built;
