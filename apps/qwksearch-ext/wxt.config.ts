@@ -38,7 +38,7 @@ export default defineConfig({
       },
     },
   }),
-  manifest: {
+  manifest: (env) => ({
     name: 'QwkSearch Tab Manager AI',
     version: '6.0.0',
     permissions: [
@@ -71,5 +71,23 @@ export default defineConfig({
         matches: ['<all_urls>'],
       },
     ],
-  },
+    // homepage/startup_pages/search_provider aren't part of Firefox's
+    // supported chrome_settings_overrides subset, so only offer this on Chrome.
+    ...(env.browser === 'chrome'
+      ? {
+          chrome_settings_overrides: {
+            homepage: 'https://qwksearch.com',
+            startup_pages: ['https://qwksearch.com'],
+            search_provider: {
+              name: 'QwkSearch',
+              keyword: 'qwk',
+              search_url: 'https://qwksearch.com?q={searchTerms}',
+              favicon_url: 'https://qwksearch.com/favicon.ico',
+              encoding: 'UTF-8',
+              is_default: true,
+            },
+          },
+        }
+      : {}),
+  }),
 });
