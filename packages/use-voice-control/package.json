@@ -35,6 +35,7 @@
   ],
   "scripts": {
     "build": "tsc && vite build",
+    "prepare": "tsc && vite build",
     "dev": "vite build --watch",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
