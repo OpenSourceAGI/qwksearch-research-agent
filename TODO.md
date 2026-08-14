@@ -13,8 +13,7 @@ scrolling" task below (PR #220's Non-goals / Remaining work: "auto-scroll
 the sidebar panel itself to reveal the active heading when it scrolls out of
 the panel's own viewport").
 **Branch:** `claude/adoring-mayer-ldfe0q`
-**PR:** Not created yet — will be created and linked immediately after this
-commit is pushed.
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/224
 **Started:** 2026-08-14
 **Completed:** 2026-08-14
 
@@ -100,8 +99,7 @@ completing the Fumadocs-style TOC behavior that PR #220 explicitly deferred.
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task. PR will be linked above once created; CI/review will
-  be monitored.
+- None for this task. PR #224 is open and CI/review will be monitored.
 
 ## Outline sidebar: highlight the active heading while scrolling
 
