@@ -7,6 +7,7 @@
  */
 import { searchAutocompleteMulti } from "extract-webpage/suggest-next-words/autocomplete-search-engines";
 import Fuse from "fuse.js";
+import { parse as parseHostname } from "tldts";
 import domainData from "domain-rank/data/domain-rank-merged.json";
 
 const DEFAULT_BACKENDS = ["google", "duckduckgo", "wikipedia"];
@@ -55,25 +56,49 @@ function getDomainIndex(): Fuse<DomainEntry> {
   return fuseIndex;
 }
 
+function toDomainSuggestion(domain: string, name: string, rank: number): DomainSuggestion {
+  return {
+    domain,
+    name,
+    favicon: `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`,
+    rank,
+  };
+}
+
+// Recognizes a typed word as a real, navigable domain (real registered TLD)
+// even when it's outside the ranked `domain-rank` dataset, e.g. "red.com".
+// Uses tldts's public-suffix check rather than a naive `\w+\.\w+` regex so
+// filename-like strings ("note.txt", "script.js") aren't mistaken for domains.
+function matchLiteralDomain(word: string): string | null {
+  const parsed = parseHostname(word);
+  return parsed.domain && parsed.isIcann ? parsed.hostname : null;
+}
+
 function searchDomains(query: string): DomainSuggestion[] {
   const words = query.split(/\s+/).filter(Boolean);
   const lastWord = words[words.length - 1] || "";
   if (lastWord.length < 3) return [];
 
-  return getDomainIndex()
+  const fuzzyMatches = getDomainIndex()
     .search(lastWord, { limit: 12 })
     .sort(
       (a, b) =>
         Math.round((a.score ?? 1) * 10) - Math.round((b.score ?? 1) * 10) ||
         a.item.rank - b.item.rank,
     )
-    .slice(0, MAX_DOMAIN_SUGGESTIONS)
-    .map(({ item }) => ({
-      domain: item.domain,
-      name: item.name,
-      favicon: `https://www.google.com/s2/favicons?domain=${encodeURIComponent(item.domain)}&sz=64`,
-      rank: item.rank,
-    }));
+    .map(({ item }) => toDomainSuggestion(item.domain, item.name, item.rank));
+
+  const literalDomain = matchLiteralDomain(lastWord);
+  if (
+    literalDomain &&
+    !fuzzyMatches.some((d) => d.domain === literalDomain)
+  ) {
+    fuzzyMatches.unshift(
+      toDomainSuggestion(literalDomain, "", Number.MAX_SAFE_INTEGER),
+    );
+  }
+
+  return fuzzyMatches.slice(0, MAX_DOMAIN_SUGGESTIONS);
 }
 
 async function autocompleteWithFallback(
