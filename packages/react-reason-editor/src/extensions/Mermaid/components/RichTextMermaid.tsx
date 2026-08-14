@@ -141,7 +141,7 @@ export function RichTextMermaid() {
       <DialogContent className='richtext-z-[99999] !richtext-max-w-[1300px]'>
         <DialogTitle>Mermaid</DialogTitle>
 
-        <div ref={loadMermaid} style={{ height: '100%', border: '1px solid hsl(var(--border))' }}>
+        <div ref={loadMermaid} style={{ height: '100%', border: '1px solid var(--border)' }}>
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -156,7 +156,7 @@ export function RichTextMermaid() {
                   rows={10}
                   value={mermaidCode}
                   style={{
-                    color: 'hsl(var(--foreground))',
+                    color: 'var(--foreground)',
                   }}
                 />
 

@@ -29,11 +29,16 @@ export function ThemeColorReactive() {
       div[data-richtext-portal], div[data-richtext-portal] * {
         ${Object.entries(themeObject)
           .map(([key, value]) => {
-            if (typeof borderRadius === 'string' && key === 'radius') {
-              return `--${key}: ${borderRadius};`;
+            if (key === 'radius') {
+              return `--${key}: ${typeof borderRadius === 'string' ? borderRadius : value};`;
             }
 
-            return `--${key}: ${value};`;
+            // THEME stores palettes as bare HSL channel triplets. Emit them as
+            // whole `hsl()` colors so the variables match the shadcn token
+            // format every consumer's Tailwind expects — a bare triplet in a
+            // `background-color: var(--popover)` is invalid and drops the
+            // declaration, leaving portalled surfaces unstyled.
+            return `--${key}: hsl(${value});`;
           })
           .join('\n')}
       }

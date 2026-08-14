@@ -107,7 +107,7 @@ export function RichTextKatex() {
       <DialogContent className='richtext-z-[99999] !richtext-max-w-[1300px]'>
         <DialogTitle>{t('editor.formula.dialog.text')}</DialogTitle>
 
-        <div style={{ height: '100%', border: '1px solid hsl(var(--border))' }}>
+        <div style={{ height: '100%', border: '1px solid var(--border)' }}>
           <div className='richtext-flex richtext-gap-[10px] richtext-rounded-[10px] richtext-p-[10px]'>
             <div className='richtext-flex-1'>
               <Label className='mb-[6px]'>Expression</Label>
@@ -121,7 +121,7 @@ export function RichTextKatex() {
                 rows={10}
                 value={currentValue}
                 style={{
-                  color: 'hsl(var(--foreground))',
+                  color: 'var(--foreground)',
                 }}
               />
 
@@ -136,7 +136,7 @@ export function RichTextKatex() {
                   setCurrentMacros(e.target.value);
                 }}
                 style={{
-                  color: 'hsl(var(--foreground))',
+                  color: 'var(--foreground)',
                 }}
               />
             </div>

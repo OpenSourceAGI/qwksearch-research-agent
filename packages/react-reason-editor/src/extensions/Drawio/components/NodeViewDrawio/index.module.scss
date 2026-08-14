@@ -5,7 +5,7 @@
   line-height: 0;
 
   .renderWrap {
-    border: 1px dashed hsl(var(--border)) !important;
+    border: 1px dashed var(--border) !important;
     border-radius: 6px;
 
     &::after {
@@ -37,7 +37,7 @@
     bottom: 10px;
     z-index: 2;
     padding: 2px 4px;
-    border: 1px solid hsl(var(--border));
+    border: 1px solid var(--border);
     border-radius: 6px;
   }
 }
@@ -48,7 +48,7 @@
 
 .active {
   .renderWrap {
-    border-color: hsl(var(--primary)) !important;
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.1);
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--primary) 10%, transparent);
   }
 }
