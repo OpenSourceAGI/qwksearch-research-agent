@@ -85,4 +85,56 @@ describe('findRelatedDocuments', () => {
 
     expect(findRelatedDocuments(docs, active)).toEqual([]);
   });
+
+  it('includes documents that share a tag but no keywords', () => {
+    const active = makeDoc({ id: 'active', title: 'Budget Plan', content: '<p>budget finances</p>', tags: ['finance'] });
+    const docs = [
+      active,
+      makeDoc({ id: 'tagged', title: 'Unrelated Title', content: '<p>completely different words</p>', tags: ['Finance'] }),
+      makeDoc({ id: 'untagged', title: 'Other Title', content: '<p>completely different words</p>' }),
+    ];
+
+    const results = findRelatedDocuments(docs, active);
+
+    expect(results.map((r) => r.document.id)).toEqual(['tagged']);
+    expect(results[0].sharedTagCount).toBe(1);
+    expect(results[0].sharedKeywordCount).toBe(0);
+  });
+
+  it('ranks a shared tag above a larger keyword-only overlap', () => {
+    const active = makeDoc({
+      id: 'active',
+      title: 'Sprint Planning',
+      content: '<p>backlog grooming velocity</p>',
+      tags: ['sprint'],
+    });
+    const docs = [
+      active,
+      makeDoc({
+        id: 'many-keywords',
+        title: 'Sprint Retro',
+        content: '<p>backlog grooming velocity notes extra words</p>',
+      }),
+      makeDoc({
+        id: 'tag-match',
+        title: 'Unrelated',
+        content: '<p>nothing shared here</p>',
+        tags: ['sprint'],
+      }),
+    ];
+
+    const results = findRelatedDocuments(docs, active);
+
+    expect(results[0].document.id).toBe('tag-match');
+  });
+
+  it('matches tags case-insensitively and ignores blank tags', () => {
+    const active = makeDoc({ id: 'active', title: 'Notes', content: '<p>notes</p>', tags: [' Work ', ''] });
+    const docs = [active, makeDoc({ id: 'other', title: 'Other', content: '<p>different</p>', tags: ['work'] })];
+
+    const results = findRelatedDocuments(docs, active);
+
+    expect(results.map((r) => r.document.id)).toEqual(['other']);
+    expect(results[0].sharedTagCount).toBe(1);
+  });
 });

@@ -4,7 +4,8 @@
  * Related panel. Scores every other document by how many significant
  * keywords it shares with the active document's title and plain-text
  * content — the same plain-text approach {@link searchDocuments} uses, no
- * server calls or embeddings involved.
+ * server calls or embeddings involved — boosted by any shared user-assigned
+ * tags, a more deliberate relatedness signal than incidental keyword overlap.
  */
 import type { Document } from '../documents/DocumentTree';
 import { stripHtmlToText } from './searchDocuments';
@@ -15,10 +16,14 @@ export interface RelatedDocumentResult {
   document: Document;
   /** Number of significant keywords shared with the active document. */
   sharedKeywordCount: number;
+  /** Number of tags shared with the active document (case-insensitive). */
+  sharedTagCount: number;
 }
 
 const MIN_KEYWORD_LENGTH = 4;
 const DEFAULT_LIMIT = 10;
+/** Weight applied to each shared tag when ranking, relative to a single shared keyword. */
+const TAG_MATCH_WEIGHT = 5;
 
 /** Common English words excluded from keyword extraction as too generic to signal relevance. */
 const STOPWORDS = new Set([
@@ -46,10 +51,24 @@ function extractKeywords(doc: Document): Set<string> {
   return keywords;
 }
 
+/** Extracts the set of trimmed, lower-cased tags assigned to a document. */
+function extractTags(doc: Document): Set<string> {
+  const tags = new Set<string>();
+  for (const tag of doc.tags ?? []) {
+    const normalized = tag.trim().toLowerCase();
+    if (normalized) tags.add(normalized);
+  }
+  return tags;
+}
+
 /**
- * Ranks candidate documents by how many significant keywords they share with
- * `activeDocument`'s title and content. Folders, soft-deleted documents, and
- * the active document itself are never suggested.
+ * Ranks candidate documents by how many significant keywords and tags they
+ * share with `activeDocument`. Each shared tag counts as {@link
+ * TAG_MATCH_WEIGHT} shared keywords when ranking, since a user-assigned tag
+ * is a more deliberate relatedness signal than incidental keyword overlap. A
+ * document with no shared keywords but at least one shared tag still
+ * qualifies. Folders, soft-deleted documents, and the active document itself
+ * are never suggested.
  *
  * @param documents - Candidate documents to search (typically all documents).
  * @param activeDocument - The currently open document, or `undefined`/`null` when none is active.
@@ -63,7 +82,8 @@ export function findRelatedDocuments(
   if (!activeDocument) return [];
 
   const activeKeywords = extractKeywords(activeDocument);
-  if (activeKeywords.size === 0) return [];
+  const activeTags = extractTags(activeDocument);
+  if (activeKeywords.size === 0 && activeTags.size === 0) return [];
 
   const results: RelatedDocumentResult[] = [];
 
@@ -76,15 +96,21 @@ export function findRelatedDocuments(
       if (docKeywords.has(keyword)) sharedKeywordCount++;
     }
 
-    if (sharedKeywordCount > 0) {
-      results.push({ document: doc, sharedKeywordCount });
+    const docTags = extractTags(doc);
+    let sharedTagCount = 0;
+    for (const tag of activeTags) {
+      if (docTags.has(tag)) sharedTagCount++;
+    }
+
+    if (sharedKeywordCount > 0 || sharedTagCount > 0) {
+      results.push({ document: doc, sharedKeywordCount, sharedTagCount });
     }
   }
 
   results.sort((a, b) => {
-    if (b.sharedKeywordCount !== a.sharedKeywordCount) {
-      return b.sharedKeywordCount - a.sharedKeywordCount;
-    }
+    const scoreA = a.sharedKeywordCount + a.sharedTagCount * TAG_MATCH_WEIGHT;
+    const scoreB = b.sharedKeywordCount + b.sharedTagCount * TAG_MATCH_WEIGHT;
+    if (scoreB !== scoreA) return scoreB - scoreA;
     return a.document.title.localeCompare(b.document.title);
   });
 
