@@ -9,7 +9,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { OutlineView } from '@/search/OutlineView';
+import { OutlineView, computeScrollIntoViewOffset } from '@/search/OutlineView';
 import type { ActiveHeadingEditorHandle } from '@/search/useActiveHeading';
 import type { TocEntry } from '@/app-types/toc';
 
@@ -88,6 +88,22 @@ function headingRow(text: string) {
 
 function toggleButton(text: string) {
   return headingRow(text)?.querySelector('button') as HTMLButtonElement | undefined;
+}
+
+/**
+ * jsdom's `offsetTop`/`offsetHeight`/`clientHeight`/`scrollTop` are always 0
+ * (no real layout engine), so tests that exercise the outline panel's
+ * auto-scroll-into-view effect stub them per-element with `defineProperty`
+ * (plain assignment throws on the getter-only layout properties).
+ */
+function stubLayout(el: HTMLElement, props: Record<string, number>) {
+  for (const [key, value] of Object.entries(props)) {
+    Object.defineProperty(el, key, { value, writable: true, configurable: true });
+  }
+}
+
+function outlineContainer(): HTMLDivElement {
+  return container.querySelector('.overflow-auto') as HTMLDivElement;
 }
 
 function collapseFirstHeading() {
@@ -177,5 +193,77 @@ describe('OutlineView', () => {
     mount({ editorRef });
 
     expect(headingRow('Introduction')?.getAttribute('data-active')).toBe('true');
+  });
+
+  it('scrolls the panel down when the newly active row is below the visible area', () => {
+    mount();
+    stubLayout(outlineContainer(), { clientHeight: 100, scrollTop: 0 });
+    stubLayout(headingRow('Details')!, { offsetTop: 150, offsetHeight: 20 });
+
+    // threshold = 768 * 0.3 = 230.4; h1/h2/h2b are all <= threshold, h3 is
+    // not, so "Details" (h2b) is the active heading.
+    const editorRef = mockEditorRef({ h1: -300, h2: -100, h2b: 50, h3: 600 });
+    mount({ editorRef });
+
+    expect(outlineContainer().scrollTop).toBe(70);
+  });
+
+  it('scrolls the panel up when the newly active row is above the visible area', () => {
+    mount();
+    stubLayout(outlineContainer(), { clientHeight: 100, scrollTop: 70 });
+    stubLayout(headingRow('Introduction')!, { offsetTop: 0, offsetHeight: 20 });
+
+    const editorRef = mockEditorRef({ h1: 400, h2: 500, h2b: 600, h3: 700 });
+    mount({ editorRef });
+
+    expect(outlineContainer().scrollTop).toBe(0);
+  });
+
+  it('does not scroll the panel when the newly active row is already fully visible', () => {
+    mount();
+    stubLayout(outlineContainer(), { clientHeight: 100, scrollTop: 20 });
+    stubLayout(headingRow('Setup')!, { offsetTop: 30, offsetHeight: 20 });
+
+    const editorRef = mockEditorRef({ h1: -50, h2: 100, h2b: 300, h3: 600 });
+    mount({ editorRef });
+
+    expect(outlineContainer().scrollTop).toBe(20);
+  });
+
+  it('does not scroll when no editorRef is supplied (no active heading)', () => {
+    mount();
+    const el = outlineContainer();
+    stubLayout(el, { clientHeight: 100, scrollTop: 42 });
+
+    // Re-render without changing anything active-heading related.
+    mount();
+
+    expect(el.scrollTop).toBe(42);
+  });
+});
+
+describe('computeScrollIntoViewOffset', () => {
+  const container = { scrollTop: 50, clientHeight: 100 };
+
+  it('scrolls up to the row’s top when the row starts above the visible area', () => {
+    const offset = computeScrollIntoViewOffset(container, { offsetTop: 20, offsetHeight: 20 });
+    expect(offset).toBe(20);
+  });
+
+  it('scrolls down just enough to reveal the row’s bottom when it ends below the visible area', () => {
+    // viewport bottom = 150; row bottom = 160 + 20 = 180; needed scrollTop = 180 - 100 = 80.
+    const offset = computeScrollIntoViewOffset(container, { offsetTop: 160, offsetHeight: 20 });
+    expect(offset).toBe(80);
+  });
+
+  it('returns null when the row is already fully visible', () => {
+    const offset = computeScrollIntoViewOffset(container, { offsetTop: 60, offsetHeight: 20 });
+    expect(offset).toBeNull();
+  });
+
+  it('returns null when the row exactly fills the visible area’s edges', () => {
+    // row spans [50, 150), exactly the container's visible [scrollTop, scrollTop + clientHeight) range.
+    const offset = computeScrollIntoViewOffset(container, { offsetTop: 50, offsetHeight: 100 });
+    expect(offset).toBeNull();
   });
 });
