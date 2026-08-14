@@ -148,6 +148,107 @@ model reads on every request — not just cosmetic.
 
 ## Completed
 
+## Sidebar: suggest related documents by keyword overlap
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 1 ("in sidebar, have it sugegst
+related by keywords")
+**Branch:** `claude/adoring-mayer-vnisju`
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/226 (merged)
+**Started:** 2026-08-14
+**Completed:** 2026-08-14
+
+### Goal
+Add a new "Related" sidebar panel to the REASON editor that suggests other
+documents related to the currently active document, ranked by shared
+significant keywords — a small, independently useful first slice of Ideas
+Backlog item 1.
+
+### Scope
+- Pure `findRelatedDocuments` helper in
+  `packages/reason-editor/src/search/relatedDocuments.ts`: extracts
+  significant keywords (stopword- and length-filtered) from the active
+  document's title + plain-text content (reusing the existing
+  `stripHtmlToText` from `searchDocuments.ts`), scores every other
+  non-folder, non-deleted document by shared-keyword overlap, and returns
+  the top-N ranked matches.
+- New `'related'` `SidebarPanelType`, registered in `panelOptions.ts`
+  (`PANEL_OPTIONS`) so it's toggleable from the existing "Split View
+  Options" dropdown (`SidebarViewMenu`) exactly like the
+  `outline`/`files`/`ai`/`openTabs` panels.
+- A `renderRelated()` view added to `SidebarContent.tsx` (mirrors
+  `renderOutline`/`renderFiles`) showing the ranked related-document titles;
+  clicking one calls the existing `onSelect`.
+
+### Non-goals
+- Any server-side/embedding-based semantic similarity — this slice is pure
+  client-side keyword overlap, matching the existing `searchDocuments.ts`
+  approach (plain substring/keyword matching, no ML).
+- Related suggestions in the chat/search UI (`research-agent-ui`) or based
+  on open browser tabs — scoped to the REASON editor's document sidebar
+  only, matching where the Fumadocs-style outline/file-tree panels already
+  live.
+- Automatically opening/expanding a related document — this slice only
+  lists related documents and lets the user click through via the existing
+  `onSelect` callback.
+
+### Acceptance criteria
+- [x] With an active document sharing keywords with other documents, the
+      "Related" panel lists them ranked by shared-keyword count, most
+      related first.
+- [x] The active document itself is never included in its own related list.
+- [x] Folders and soft-deleted documents are excluded from related
+      suggestions.
+- [x] With no active document, or no keyword overlap with any other
+      document, the panel shows an empty state rather than throwing.
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for this package or at the repo
+      root (no ESLint config found); nothing to run
+- [x] Typecheck passes — `npx tsc --noEmit -p tsconfig.json` in
+      `reason-editor` surfaces the same 5 **pre-existing** errors as prior
+      tasks (`InviteModal.tsx`, `Pagination.ts`, `filetree.tsx`), none of
+      which this change touches. No new errors from this change's files.
+- [x] Tests pass — `bun run test` in `reason-editor`: 468/468 passed
+      (43/43 files, including 6 new tests in `relatedDocuments.test.ts`).
+      Full workspace `bun run test`: 165/175 files, 2391/2448 tests pass
+      (4 skipped); the 53 failures across the same 10 files documented in
+      prior TODO.md tasks (`search-web-api` engine tests hitting real
+      external APIs, the `qwksearch-web` config route test,
+      `shadcn-settings`, `jsdom-scraper`) are pre-existing and unrelated —
+      none touch `reason-editor`.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded, including `react-reason-editor#build` and
+      `qwksearch-web#build`'s full `vinext` pipeline.
+- [x] Documentation is updated if behavior or configuration changes (this
+      tracker entry + inline comments where non-obvious)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm API, schema, data-flow, or interface requirements
+- [x] Implement the smallest useful vertical slice
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (no active document; active
+      document excluded from its own results; folders/soft-deleted
+      documents excluded; no keyword overlap; result limit; stopword
+      filtering)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task. PR #226 merged.
+- Natural follow-ups (left for a future run, per Ideas Backlog item 1's
+  broader scope): surfacing related-document suggestions in the
+  chat/search UI (`research-agent-ui`) rather than just the REASON editor
+  sidebar; incorporating document tags (`Document.tags`) into the
+  relevance score alongside keyword overlap.
+
 ## Outline sidebar: auto-scroll to reveal the active heading
 
 **Status:** Completed
@@ -559,7 +660,10 @@ button / Ctrl+` shortcut in `ChatInputBox`.
     reason-editor demo site all remain broken (the main library build/tests
     are unaffected — see item 0).
 ext - dl to reason dl folswe
-1. in sidebar, have it sugegst related by keywords
+1. in sidebar, have it sugegst related by keywords — **first slice done, see
+   "Sidebar: suggest related documents by keyword overlap" above** (further
+   surfaces — chat/search UI, open-tab context, tag-aware scoring — remain
+   as follow-ups)
 2. Chat with open tabs as context.
 3. Show Vals scores for all models; example Kimi K2.5 page lists Vals Index 51.70%, latency 807.18s, and cost/test $0.29.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override)
 4. Outline tree should reuse Fumadocs page tree/sidebar patterns. — **done, see "Outline sidebar: highlight the active heading while scrolling" above**
