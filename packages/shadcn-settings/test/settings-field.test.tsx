@@ -24,6 +24,39 @@ describe("SettingsField", () => {
     expect(onCommit).toHaveBeenCalledWith("http://localhost:4000");
   });
 
+  it("keeps typed text visible when the host doesn't wire onChange", () => {
+    // `onChange` is documented as optional. Without it, `value` never changes,
+    // so the input must track edits locally instead of reverting on every
+    // keystroke (a controlled input with a static `value` would otherwise
+    // snap back, dropping whatever the user typed before blur).
+    const field: SettingsFieldSchema = {
+      name: "SearXNG URL",
+      key: "searxngURL",
+      type: "string",
+    };
+    render(<SettingsField field={field} value="" onCommit={vi.fn()} />);
+
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "http://localhost:4000" } });
+    expect(input.value).toBe("http://localhost:4000");
+  });
+
+  it("syncs the field when the external value changes", () => {
+    const field: SettingsFieldSchema = {
+      name: "SearXNG URL",
+      key: "searxngURL",
+      type: "string",
+    };
+    const { rerender } = render(
+      <SettingsField field={field} value="a" onCommit={vi.fn()} />,
+    );
+    const input = screen.getByRole("textbox") as HTMLInputElement;
+    expect(input.value).toBe("a");
+
+    rerender(<SettingsField field={field} value="b" onCommit={vi.fn()} />);
+    expect(input.value).toBe("b");
+  });
+
   it("renders a switch field and commits on toggle", () => {
     const field: SettingsFieldSchema = {
       name: "Background Art",
