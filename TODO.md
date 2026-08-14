@@ -1,91 +1,18 @@
 ## In Progress
 
-## Sidebar: suggest related documents by keyword overlap
+_(none — see Completed below; a new task will be selected from the Ideas
+Backlog on the next run)_
 
-**Status:** In Progress
-**Source:** TODO.md — Ideas Backlog item 1 ("in sidebar, have it sugegst
-related by keywords")
-**Branch:** `claude/adoring-mayer-vnisju`
-**PR:** Not created yet
-**Started:** 2026-08-14
-
-### Goal
-Add a new "Related" sidebar panel to the REASON editor that suggests other
-documents related to the currently active document, ranked by shared
-significant keywords — a small, independently useful first slice of Ideas
-Backlog item 1.
-
-### Scope
-- Pure `findRelatedDocuments` helper in
-  `packages/reason-editor/src/search/relatedDocuments.ts`: extracts
-  significant keywords (stopword- and length-filtered) from the active
-  document's title + plain-text content (reusing the existing
-  `stripHtmlToText` from `searchDocuments.ts`), scores every other
-  non-folder, non-deleted document by shared-keyword overlap, and returns
-  the top-N ranked matches.
-- New `'related'` `SidebarPanelType`, registered in `panelOptions.ts`
-  (`PANEL_OPTIONS`) so it's toggleable from the existing "Split View
-  Options" dropdown (`SidebarViewMenu`) exactly like the
-  `outline`/`files`/`ai`/`openTabs` panels.
-- A `renderRelated()` view added to `SidebarContent.tsx` (mirrors
-  `renderOutline`/`renderFiles`) showing the ranked related-document titles;
-  clicking one calls the existing `onSelect`.
-
-### Non-goals
-- Any server-side/embedding-based semantic similarity — this slice is pure
-  client-side keyword overlap, matching the existing `searchDocuments.ts`
-  approach (plain substring/keyword matching, no ML).
-- Related suggestions in the chat/search UI (`research-agent-ui`) or based
-  on open browser tabs — scoped to the REASON editor's document sidebar
-  only, matching where the Fumadocs-style outline/file-tree panels already
-  live.
-- Automatically opening/expanding a related document — this slice only
-  lists related documents and lets the user click through via the existing
-  `onSelect` callback.
-
-### Acceptance criteria
-- [ ] With an active document sharing keywords with other documents, the
-      "Related" panel lists them ranked by shared-keyword count, most
-      related first.
-- [ ] The active document itself is never included in its own related list.
-- [ ] Folders and soft-deleted documents are excluded from related
-      suggestions.
-- [ ] With no active document, or no keyword overlap with any other
-      document, the panel shows an empty state rather than throwing.
-- [ ] Vitest coverage is added or updated
-- [ ] Lint passes
-- [ ] Typecheck passes
-- [ ] Tests pass
-- [ ] Production/web build passes
-- [ ] Documentation is updated if behavior or configuration changes — n/a
-      beyond this tracker entry (no user-facing docs describe individual
-      sidebar panels)
-
-### Implementation plan
-- [ ] Inspect affected modules, local instructions, and existing tests
-- [ ] Confirm API, schema, data-flow, or interface requirements
-- [ ] Implement the smallest useful vertical slice
-- [ ] Add focused Vitest success-path coverage
-- [ ] Add focused failure, validation, or edge-case coverage
-- [ ] Run focused tests and fix failures
-- [ ] Run linting and typechecking
-- [ ] Run the full relevant test suite
-- [ ] Run the production/web build
-- [ ] Review the final diff for scope and quality
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
-
-### Remaining work
-- Everything above; implementation not yet started.
+## Completed
 
 ## Fix common typos in AI prompt templates
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 7 ("common typoes")
 **Branch:** `claude/adoring-mayer-du2vzr`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/222 (merged)
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ### Goal
 Fix real, user-visible typos found by a repo-wide sweep, focusing on the
@@ -118,12 +45,25 @@ model reads on every request — not just cosmetic.
 - [x] No test asserts on the exact pre-fix typo'd text (confirmed via
       grep of `packages/write-language/test/` and
       `packages/chat-agent-toolkit/test/`)
-- [ ] Vitest coverage is added or updated — n/a, pure prompt-copy text
+- [x] Vitest coverage is added or updated — n/a, pure prompt-copy text
       change with no test asserting exact wording either before or after
-- [ ] Lint passes
-- [ ] Typecheck passes
-- [ ] Tests pass
-- [ ] Production/web build passes
+- [ ] Lint passes — no `lint` script exists for this package or at the
+      repo root (no ESLint config found); nothing to run
+- [ ] Typecheck passes — no `typecheck`/`tsc` script exists for
+      `chat-agent-toolkit` or `write-language`; nothing to run
+- [x] Tests pass — `bunx vitest run packages/chat-agent-toolkit/test/`:
+      47/50 pass (the 3 failures in `openrouter-default-model.test.js` are
+      pre-existing and unrelated — they assert on OpenRouter's default
+      free-model id/metadata, a file untouched by this change).
+      `bunx vitest run packages/write-language/test/`: 78/78 pass. Full
+      workspace `bun run test`: 165/175 files, 2387/2448 tests pass (4
+      skipped); the 57 failures across the same 10 files documented in
+      prior TODO.md tasks (`search-web-api` engine tests hitting real
+      external APIs, the `qwksearch-web` config route test,
+      `shadcn-settings`, `jsdom-scraper` missing its `jsdom` dependency)
+      are pre-existing and unrelated — none touch the two changed files.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded.
 - [x] Documentation is updated if behavior or configuration changes (n/a —
       no behavior change; this tracker entry documents the change)
 
@@ -133,20 +73,23 @@ model reads on every request — not just cosmetic.
 - [x] Implement the smallest useful vertical slice (fix the 4 typo
       instances across the 2 files)
 - [x] Add focused Vitest coverage — n/a, see acceptance criteria note
-- [ ] Run focused tests and fix failures
-- [ ] Run linting and typechecking
-- [ ] Run the full relevant test suite
-- [ ] Run the production/web build
-- [ ] Review the final diff for scope and quality
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — neither
+      is actionable for this change)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #222, already merged before
+      this tracker-only follow-up)
+- [x] Update tracker status, completed checkboxes, and remaining work
+      (also removed a stale duplicate "In Progress" entry for the
+      already-merged "Sidebar: suggest related documents" task left behind
+      by a prior run, and fixed this entry's section nesting — it had been
+      left outside the `## Completed` heading)
 
 ### Remaining work
-- Run verification (tests/typecheck/build), commit, push, open PR, and
-  move this entry to Completed.
-
-## Completed
+- None for this task. PR #222 merged; this run only finalized the tracker.
 
 ## Sidebar: suggest related documents by keyword overlap
 
