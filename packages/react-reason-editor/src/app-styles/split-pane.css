@@ -25,21 +25,21 @@
   transform: translateX(-50%);
   width: 2px;
   height: 100%;
-  background-color: hsl(var(--border));
+  background-color: var(--border);
   border-radius: 2px;
   transition: width 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .split-pane-divider.horizontal:hover,
 .split-pane-divider.horizontal.dragging {
-  background-color: hsl(var(--primary) / 0.08);
+  background-color: color-mix(in oklab, var(--primary) 8%, transparent);
 }
 
 .split-pane-divider.horizontal:hover::before,
 .split-pane-divider.horizontal.dragging::before {
   width: 3px;
-  background-color: hsl(var(--primary));
-  box-shadow: 0 0 8px hsl(var(--primary) / 0.45);
+  background-color: var(--primary);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--primary) 45%, transparent);
 }
 
 /* ── Vertical split (top/bottom panes) ── horizontal bar ── */
@@ -56,19 +56,19 @@
   transform: translateY(-50%);
   height: 2px;
   width: 100%;
-  background-color: hsl(var(--border));
+  background-color: var(--border);
   border-radius: 2px;
   transition: height 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .split-pane-divider.vertical:hover,
 .split-pane-divider.vertical.dragging {
-  background-color: hsl(var(--primary) / 0.08);
+  background-color: color-mix(in oklab, var(--primary) 8%, transparent);
 }
 
 .split-pane-divider.vertical:hover::before,
 .split-pane-divider.vertical.dragging::before {
   height: 3px;
-  background-color: hsl(var(--primary));
-  box-shadow: 0 0 8px hsl(var(--primary) / 0.45);
+  background-color: var(--primary);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--primary) 45%, transparent);
 }

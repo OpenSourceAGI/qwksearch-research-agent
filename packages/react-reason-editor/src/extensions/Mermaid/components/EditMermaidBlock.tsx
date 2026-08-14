@@ -126,7 +126,7 @@ export const EditMermaidBlock: React.FC<IProps> = ({ editor, attrs, extension })
       <DialogContent className='richtext-z-[99999] !richtext-max-w-[1300px]'>
         <DialogTitle>Edit Mermaid</DialogTitle>
 
-        <div ref={loadMermaid} style={{ height: '100%', border: '1px solid hsl(var(--border))' }}>
+        <div ref={loadMermaid} style={{ height: '100%', border: '1px solid var(--border)' }}>
           <div className='richtext-flex richtext-gap-[10px] richtext-rounded-[10px] richtext-p-[10px]'>
             <Textarea
               autoFocus
@@ -138,7 +138,7 @@ export const EditMermaidBlock: React.FC<IProps> = ({ editor, attrs, extension })
               rows={10}
               value={mermaidCode}
               style={{
-                color: 'hsl(var(--foreground))',
+                color: 'var(--foreground)',
               }}
             />
 
@@ -148,7 +148,7 @@ export const EditMermaidBlock: React.FC<IProps> = ({ editor, attrs, extension })
               ref={mermaidRef as any}
               style={{
                 height: '100%',
-                border: '1px solid hsl(var(--border))',
+                border: '1px solid var(--border)',
                 minHeight: 500,
               }}
             />
