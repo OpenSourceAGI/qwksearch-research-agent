@@ -31,6 +31,7 @@ import { ARTICLE_TOOLBAR_SHORTCUTS } from './ArticleActionButtons';
 import { researchAgentUIConfig } from '../../config';
 import { useSession } from '../../hooks/useSession';
 import { useChat } from '../../hooks/useChat';
+import { shareArticle } from '../../lib/shareArticle';
 
 const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   const {
@@ -53,6 +54,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   const [extractedArticle, setExtractedArticle] = useState<Article | null>(null);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
+  const [showLinkCopiedMessage, setShowLinkCopiedMessage] = useState(false);
   const [userPrompt, setUserPrompt] = useState(researchAgentUIConfig.defaultSummarizePrompt);
   const [isLoadingExtract, setIsLoadingExtract] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
@@ -413,6 +415,30 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     }
   };
 
+  const handleShareArticle = async () => {
+    const targetUrl = extractedArticle?.url || url;
+    if (!targetUrl) return;
+
+    try {
+      const result = await shareArticle(
+        { title: extractedArticle?.title, text: extractedArticle?.cite, url: targetUrl },
+        {
+          share:
+            typeof navigator !== 'undefined' && navigator.share
+              ? (data) => navigator.share(data)
+              : undefined,
+          writeText: (text) => navigator.clipboard.writeText(text),
+        },
+      );
+      if (result === 'copied') {
+        setShowLinkCopiedMessage(true);
+        setTimeout(() => setShowLinkCopiedMessage(false), 2000);
+      }
+    } catch (error) {
+      console.error('Failed to share article:', error);
+    }
+  };
+
   // Keep the shortcut handler map pointing at the freshest closures every render.
   shortcutActionsRef.current = {
     ask: () => callLanguageAPI('question'),
@@ -500,6 +526,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
           onAskClick={() => callLanguageAPI('question')}
           onSuggestClick={() => callLanguageAPI('suggest-followups')}
           onCopyClick={handleCopyHTMLToClipboard}
+          onShareClick={handleShareArticle}
           onFavoriteClick={toggleFavorite}
           onHighlightToggle={() => setIsHighlightMode(!isHighlightMode)}
           onZoomIn={handleZoomIn}
@@ -515,6 +542,12 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
               {showCopiedMessage && (
                 <div className="bg-blue-500 text-white text-sm font-medium px-3 py-2 rounded-md shadow-lg">
                   Copied!
+                </div>
+              )}
+
+              {showLinkCopiedMessage && (
+                <div className="bg-blue-500 text-white text-sm font-medium px-3 py-2 rounded-md shadow-lg">
+                  Link copied!
                 </div>
               )}
 
