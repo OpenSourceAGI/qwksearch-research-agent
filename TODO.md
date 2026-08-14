@@ -5,6 +5,108 @@ Backlog on the next run)_
 
 ## Completed
 
+## Related panel: rank by shared tags as well as keyword overlap
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 1 ("in sidebar, have it sugegst
+related by keywords"), continuing the follow-up explicitly deferred in the
+"Sidebar: suggest related documents by keyword overlap" task's Remaining
+work ("incorporating document tags (`Document.tags`) into the relevance
+score alongside keyword overlap").
+**Branch:** `claude/adoring-mayer-0mn2j7`
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/229 (pending)
+**Started:** 2026-08-14
+**Completed:** 2026-08-14
+
+### Goal
+Make the sidebar's "Related" panel also rank documents by shared
+user-assigned tags (`Document.tags`), not just incidental keyword overlap —
+a deliberate relatedness signal the user themselves created via the existing
+tag-management UI, which the first slice's PR (#226) explicitly deferred.
+
+### Scope
+- `findRelatedDocuments` in `packages/reason-editor/src/search/relatedDocuments.ts`:
+  extract each document's tags (trimmed, lower-cased for case-insensitive
+  matching), count shared tags with the active document, and weight each
+  shared tag as `TAG_MATCH_WEIGHT` (5) shared keywords when ranking — tags
+  are a stronger, more deliberate signal than incidental keyword overlap.
+- A document with shared tags but zero shared keywords now qualifies for
+  the Related list (previously required at least one shared keyword).
+- `RelatedDocumentResult` gains a `sharedTagCount` field alongside the
+  existing `sharedKeywordCount`.
+- `SidebarContent.tsx`'s `renderRelated()`: show a small tag icon + count
+  next to the existing keyword-count badge when `sharedTagCount > 0`.
+
+### Non-goals
+- Any change to how tags are created/edited (`TagManagementDialog`,
+  `useReasonDocsState`) — this task only consumes the existing `tags`
+  field for scoring.
+- Weighting by tag *rarity* (e.g. TF-IDF-style boosts for uncommon tags) —
+  a flat per-tag weight is sufficient for this slice.
+- The other follow-ups noted in PR #226's Remaining work (surfacing
+  related-document suggestions in the chat/search UI, open-tab context) —
+  out of scope here, tag-aware scoring only.
+
+### Acceptance criteria
+- [x] A document sharing at least one tag with the active document appears
+      in the Related list even with zero shared keywords.
+- [x] A document with a shared tag ranks above a document with only a
+      larger keyword-only overlap.
+- [x] Tag matching is case-insensitive and ignores blank/whitespace-only
+      tags.
+- [x] Existing keyword-overlap-only ranking behavior is unchanged when
+      neither document has tags.
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for this package or at the
+      repo root (no ESLint config found); nothing to run
+- [x] Typecheck passes — `npx tsc --noEmit -p tsconfig.json` in
+      `reason-editor` surfaces the same 5 **pre-existing** errors as prior
+      tasks (`InviteModal.tsx`, `Pagination.ts`, `filetree.tsx`), none of
+      which this change touches. No new errors from this change's files.
+- [x] Tests pass — `bunx vitest run test/search/relatedDocuments.test.ts`
+      in `reason-editor`: 10/10 passed. Full `reason-editor` suite
+      (`bunx vitest run`): 471/471 passed (43/43 files). Full workspace
+      `bun run test`: 165/175 files, 2393/2451 tests pass (4 skipped); the
+      54 failures across the same 10 files documented in prior TODO.md
+      tasks (`search-web-api` engine tests hitting real external APIs, the
+      `qwksearch-web` config route test, `shadcn-settings`,
+      `jsdom-scraper` missing its `jsdom` dependency,
+      `settings-field.test.tsx`) are pre-existing and unrelated — none
+      touch `reason-editor`.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry and updated inline docs (no user-facing
+      docs describe individual sidebar panels)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm API, schema, data-flow, or interface requirements
+      (`Document.tags?: string[]`, already populated via
+      `TagManagementDialog`/`useReasonDocsState`)
+- [x] Implement the smallest useful vertical slice
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (tag-only match, tag beats
+      larger keyword overlap, case-insensitive/blank-tag handling)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task.
+- Natural follow-ups (left for a future run, per Ideas Backlog item 1's
+  broader scope): surfacing related-document suggestions in the
+  chat/search UI (`research-agent-ui`) rather than just the REASON editor
+  sidebar; open-tab context.
+
+## Completed
+
 ## Fix common typos in AI prompt templates
 
 **Status:** Completed
@@ -604,15 +706,16 @@ button / Ctrl+` shortcut in `ChatInputBox`.
     are unaffected — see item 0).
 ext - dl to reason dl folswe
 1. in sidebar, have it sugegst related by keywords — **first slice done, see
-   "Sidebar: suggest related documents by keyword overlap" above** (further
-   surfaces — chat/search UI, open-tab context, tag-aware scoring — remain
-   as follow-ups)
+   "Sidebar: suggest related documents by keyword overlap" above; tag-aware
+   scoring done, see "Related panel: rank by shared tags as well as
+   keyword overlap" above** (further surfaces — chat/search UI, open-tab
+   context — remain as follow-ups)
 2. Chat with open tabs as context.
 3. Show Vals scores for all models; example Kimi K2.5 page lists Vals Index 51.70%, latency 807.18s, and cost/test $0.29.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override)
 4. Outline tree should reuse Fumadocs page tree/sidebar patterns. — **done, see "Outline sidebar: highlight the active heading while scrolling" above**
 5. Option to start talking automatically on first visit, or via a button from anywhere on the site. — **done, see "Voice auto-start on first visit" above**
 6. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings.
-7. common typoes — **in progress, see "Fix common typos in AI prompt templates" above**
+7. common typoes — **done, see "Fix common typos in AI prompt templates" above**
 8. https://github.com/cloudflare/moltworker
 
 
