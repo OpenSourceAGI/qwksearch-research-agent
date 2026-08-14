@@ -4,7 +4,7 @@ This guide explains how to generate a static Vitest HTML test report from all mo
 
 ## How It Works
 
-1. **Vitest workspace** (`vitest.workspace.ts`) aggregates all packages with tests
+1. **Vitest projects** (`vitest.config.mts`'s `test.projects`) aggregate all packages with tests
 2. **`@vitest/ui` HTML reporter** generates a self-contained SPA (Vue app + gzipped test results JSON)
 3. **Cloudflare Workers** serves the static assets with SPA fallback routing
 
@@ -36,7 +36,7 @@ bun run deploy:test-reports
 ## Project Structure
 
 ```
-├── vitest.workspace.ts          # Workspace aggregating all test packages
+├── vitest.config.mts             # Root config aggregating all test packages (test.projects)
 ├── apps/test-reports/
 │   ├── wrangler.jsonc           # CF Workers config (static assets)
 │   ├── package.json             # Generate/deploy scripts
@@ -49,12 +49,16 @@ bun run deploy:test-reports
 ## Adding a New Package to the Report
 
 1. Ensure the package has a `vitest.config.ts`
-2. Add the package path to `vitest.workspace.ts`:
+2. Add the package path to `vitest.config.mts`'s `test.projects`:
    ```ts
-   export default defineWorkspace([
-     // ...existing packages
-     'packages/your-new-package',
-   ])
+   export default defineConfig({
+     test: {
+       projects: [
+         // ...existing packages
+         'packages/your-new-package',
+       ],
+     },
+   })
    ```
 3. Run `bun run test:report` to verify it appears in the dashboard
 
@@ -109,7 +113,7 @@ To make the test dashboard private, add [Cloudflare Access](https://developers.c
 
 **"Cannot find module @vitest/ui"** — Run `bun install` from the repo root to install workspace devDependencies.
 
-**Empty report** — Ensure `vitest.workspace.ts` lists the correct package paths and each has a valid `vitest.config.ts`.
+**Empty report** — Ensure `vitest.config.mts`'s `test.projects` lists the correct package paths and each has a valid `vitest.config.ts`.
 
 **404 on sub-routes after deploy** — Verify `not_found_handling` is set to `"single-page-application"` in `wrangler.jsonc`.
 
