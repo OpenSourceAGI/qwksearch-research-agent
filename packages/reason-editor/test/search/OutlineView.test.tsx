@@ -10,6 +10,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { OutlineView } from '@/search/OutlineView';
+import type { ActiveHeadingEditorHandle } from '@/search/useActiveHeading';
 import type { TocEntry } from '@/app-types/toc';
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
@@ -39,14 +40,50 @@ const HEADINGS: TocEntry[] = [
   ['h3', 'Conclusion', 'h1'],
 ];
 
-function mount(props: { headings?: TocEntry[]; searchQuery?: string } = {}) {
+function mount(
+  props: {
+    headings?: TocEntry[];
+    searchQuery?: string;
+    editorRef?: { current: ActiveHeadingEditorHandle | null };
+  } = {},
+) {
   act(() => {
-    root.render(<OutlineView headings={props.headings ?? HEADINGS} searchQuery={props.searchQuery} />);
+    root.render(
+      <OutlineView
+        headings={props.headings ?? HEADINGS}
+        searchQuery={props.searchQuery}
+        editorRef={props.editorRef}
+      />,
+    );
   });
 }
 
+/**
+ * Builds a fake `editorRef` whose `getElementByKey` resolves each heading key
+ * to a detached element with a stubbed `getBoundingClientRect`, so scroll-spy
+ * math can be exercised without a real scrollable document.
+ */
+function mockEditorRef(tops: Record<string, number>): { current: ActiveHeadingEditorHandle | null } {
+  const elements = new Map<string, HTMLElement>();
+  for (const [key, top] of Object.entries(tops)) {
+    const el = document.createElement('div');
+    el.getBoundingClientRect = () => ({ top, bottom: top + 20, left: 0, right: 0, height: 20, width: 0, x: 0, y: top, toJSON() {} });
+    elements.set(key, el);
+  }
+  return { current: { getElementByKey: (key: string) => elements.get(key) ?? null } };
+}
+
 function headingRow(text: string) {
-  return Array.from(container.querySelectorAll('span')).find((el) => el.textContent === text)?.closest('div');
+  // Each row is wrapped in a `ContextMenuTrigger`-rendered `<span>` whose
+  // aggregated textContent also equals the row's heading text, so matching
+  // on textContent alone can resolve to that wrapper instead of the row's
+  // own `<div>` (walking `.closest('div')` up from the wrapper span skips
+  // right past the row div to the shared outline container div). Restricting
+  // to leaf spans (no element children) targets the actual `{item.text}`
+  // span, whose immediate parent is the row's own div.
+  return Array.from(container.querySelectorAll('span'))
+    .find((el) => el.children.length === 0 && el.textContent === text)
+    ?.closest('div');
 }
 
 function toggleButton(text: string) {
@@ -115,5 +152,30 @@ describe('OutlineView', () => {
     mount({ headings: [] });
 
     expect(container.textContent).toContain('No headings found in this document');
+  });
+
+  it('does not mark any row active when no editorRef is supplied', () => {
+    mount();
+
+    expect(container.querySelector('[data-active]')).toBeFalsy();
+  });
+
+  it('highlights the heading the reader has scrolled to as active', () => {
+    // jsdom's default window.innerHeight is 768, so the scroll-spy threshold
+    // is 768 * 0.3 = 230.4. "Setup" (top: 100) has scrolled past it while
+    // "Details" (top: 300) has not, so "Setup" is the active heading.
+    const editorRef = mockEditorRef({ h1: -50, h2: 100, h2b: 300, h3: 600 });
+    mount({ editorRef });
+
+    expect(headingRow('Setup')?.getAttribute('data-active')).toBe('true');
+    expect(headingRow('Introduction')?.hasAttribute('data-active')).toBe(false);
+    expect(headingRow('Details')?.hasAttribute('data-active')).toBe(false);
+  });
+
+  it('falls back to the first heading when the reader has not scrolled past any heading', () => {
+    const editorRef = mockEditorRef({ h1: 400, h2: 500, h2b: 600, h3: 700 });
+    mount({ editorRef });
+
+    expect(headingRow('Introduction')?.getAttribute('data-active')).toBe('true');
   });
 });

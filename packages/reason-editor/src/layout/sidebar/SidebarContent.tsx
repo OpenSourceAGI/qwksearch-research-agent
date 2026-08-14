@@ -9,6 +9,7 @@
 import { RefObject, useState, useCallback, useMemo, useRef } from 'react';
 import { FileTree } from '../../file-tree';
 import { OutlineView, type OutlineViewHandle } from '../../search/OutlineView';
+import type { ActiveHeadingEditorHandle } from '../../search/useActiveHeading';
 import { AIRewriteSuggestion } from '../../features/ai-rewrite/AIRewriteSuggestion';
 import { Input } from '../../app-ui/input';
 import { Document } from '../../documents/DocumentTree';
@@ -77,6 +78,8 @@ interface SidebarContentProps {
   treeRef?: RefObject<DocumentTreeHandle | null>;
   /** Ref forwarded to the `OutlineView` component for imperative control. */
   outlineRef?: RefObject<OutlineViewHandle | null>;
+  /** Editor handle passed to `OutlineView` to scroll-spy the active heading. */
+  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
   /** Currently open tab IDs shown in the top pane. */
   openTabs?: string[];
   /** ID of the currently active tab. */
@@ -126,6 +129,7 @@ export const SidebarContent = ({
   onOpenChange,
   treeRef,
   outlineRef,
+  editorRef,
   openTabs = [],
   activeTab,
   onTabChange,
@@ -372,6 +376,7 @@ export const SidebarContent = ({
           ref={effectiveOutlineRef}
           headings={filteredHeadings}
           onNavigate={onNavigate}
+          editorRef={editorRef}
         />
       </div>
     </div>

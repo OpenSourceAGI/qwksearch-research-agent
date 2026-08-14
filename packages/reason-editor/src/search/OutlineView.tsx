@@ -6,8 +6,9 @@
  */
 import { HashIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '../app-utils/utils';
-import { useMemo, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
+import { useMemo, useState, useEffect, useImperativeHandle, forwardRef, type RefObject } from 'react';
 import type { TocEntry } from '../app-types/toc';
+import { useActiveHeading, type ActiveHeadingEditorHandle } from './useActiveHeading';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -53,6 +54,12 @@ interface OutlineViewProps {
   onReorder?: (fromIndex: number, toIndex: number) => void;
   /** Filters the heading list to items whose text contains this query. */
   searchQuery?: string;
+  /**
+   * Ref to the editor's imperative handle, used to resolve heading DOM
+   * elements for scroll-spy active-heading highlighting. When omitted, no
+   * heading is ever highlighted as active.
+   */
+  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
 }
 
 /** `localStorage` key for persisting default collapse-level preference. */
@@ -63,9 +70,10 @@ const STORAGE_KEY = 'outline-collapse-preferences';
  * `headings` with click-to-navigate, expand/collapse, drag-to-reorder,
  * search filtering, and a context menu for bulk collapse-level controls.
  */
-export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ headings = [], onNavigate, onReorder: _onReorder, searchQuery = '' }, ref) => {
+export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ headings = [], onNavigate, onReorder: _onReorder, searchQuery = '', editorRef }, ref) => {
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
   const [defaultCollapseLevel, setDefaultCollapseLevel] = useState<number | null>(null);
+  const activeHeadingId = useActiveHeading(headings, editorRef);
 
   // Derive flat outline from TocEntry list: [key, text, tag]
   const outline = useMemo<OutlineItem[]>(() => {
@@ -250,6 +258,7 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
         const nextItem = outline[realIndex + 1];
         const hasChildren = nextItem && nextItem.level > item.level;
         const isCollapsed = collapsedIds.has(item.id);
+        const isActive = item.id === activeHeadingId;
 
         if (isHiddenByParent(realIndex)) {
           return null;
@@ -259,11 +268,13 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
           <ContextMenu key={item.id}>
             <ContextMenuTrigger>
               <div
+                data-active={isActive || undefined}
                 className={cn(
                   'flex items-center gap-1 rounded-md cursor-pointer transition-colors hover:bg-sidebar-accent',
                   item.level === 1 && 'py-1.5 mt-0.5',
                   item.level === 2 && 'py-1',
-                  item.level >= 3 && 'py-0.5'
+                  item.level >= 3 && 'py-0.5',
+                  isActive && 'bg-sidebar-accent'
                 )}
                 style={{ paddingLeft: `${(item.level - 1) * 12 + 4}px`, paddingRight: '4px' }}
                 onClick={() => onNavigate?.(item.id)}
@@ -300,7 +311,8 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
                     item.level === 1 && 'text-sm font-semibold text-foreground',
                     item.level === 2 && 'text-sm font-medium text-foreground/90',
                     item.level === 3 && 'text-xs text-foreground/80',
-                    item.level >= 4 && 'text-xs text-muted-foreground'
+                    item.level >= 4 && 'text-xs text-muted-foreground',
+                    isActive && 'font-medium text-foreground'
                   )}
                 >
                   {item.text}
