@@ -77,6 +77,15 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
     }));
   }, [headings]);
 
+  // Maps a heading id back to its position in the unfiltered `outline`
+  // array, needed because `filteredOutline` (below) is a subset whose
+  // render-loop positions no longer match `outline`'s document order.
+  const outlineIndexById = useMemo(() => {
+    const map = new Map<string, number>();
+    outline.forEach((item, index) => map.set(item.id, index));
+    return map;
+  }, [outline]);
+
   useImperativeHandle(ref, () => ({
     expandAll: () => {
       setCollapsedIds(new Set());
@@ -175,8 +184,9 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
   };
 
   /**
-   * Returns whether the heading at `itemIndex` is hidden because one of its
-   * ancestors is currently collapsed.
+   * Returns whether the heading at `itemIndex` (an index into the unfiltered
+   * `outline` array) is hidden because one of its ancestors is currently
+   * collapsed.
    *
    * @param itemIndex - Zero-based index in the flat `outline` array.
    * @returns `true` if hidden, `false` if visible.
@@ -230,12 +240,18 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
 
   return (
     <div className="flex h-full flex-col overflow-auto">
-      {filteredOutline.map((item, index) => {
-        const nextItem = outline[index + 1];
+      {filteredOutline.map((item) => {
+        // `filteredOutline` is a subset of `outline`, so its position in the
+        // rendered list does not match `item`'s position in the unfiltered
+        // outline. Look up the real index for the sibling/ancestor checks
+        // below, which rely on `outline`'s original document order. `item`
+        // always originates from `outline`, so the lookup always succeeds.
+        const realIndex = outlineIndexById.get(item.id) as number;
+        const nextItem = outline[realIndex + 1];
         const hasChildren = nextItem && nextItem.level > item.level;
         const isCollapsed = collapsedIds.has(item.id);
 
-        if (isHiddenByParent(index)) {
+        if (isHiddenByParent(realIndex)) {
           return null;
         }
 

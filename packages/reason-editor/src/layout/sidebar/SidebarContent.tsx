@@ -371,7 +371,6 @@ export const SidebarContent = ({
         <OutlineView
           ref={effectiveOutlineRef}
           headings={filteredHeadings}
-          searchQuery={outlineFilter}
           onNavigate={onNavigate}
         />
       </div>
