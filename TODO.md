@@ -111,7 +111,7 @@ link to the clipboard.
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task. PR #233 open, CI/build/tests verified locally.
+- None for this task. PR #233 merged.
 - Natural follow-up (left for a future run, per Ideas Backlog item 22's
   broader scope): bespoke per-platform share intents (Twitter/X, Facebook,
   LinkedIn, WhatsApp) for browsers without Web Share API support.
