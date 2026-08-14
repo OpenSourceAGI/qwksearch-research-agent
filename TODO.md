@@ -8,7 +8,7 @@ refresh, undo close, new tab."), scoped down to its smallest independently
 useful piece: undo-close-tab. (Downloads tab, back/refresh/new-tab remain
 separate follow-ups — see Non-goals.)
 **Branch:** `claude/adoring-mayer-803j75`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/241
 **Started:** 2026-08-14
 **Completed:** 2026-08-14
 
@@ -103,11 +103,12 @@ browser's own Ctrl+Shift+T, but reachable from the extension's own UI.
       version-number sync to already-committed `package.json` bumps, out of
       scope, matching prior tasks' precedent)
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #241)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task's own scope.
+- None for this task's own scope. PR #241 open, CI/build/tests verified
+  locally.
 - Follow-ups noted above remain open: a "Downloads" tab/panel using
   `chrome.downloads`, and browser-chrome-style back/refresh/new-tab
   buttons — both separate, independently useful slices of Ideas Backlog
