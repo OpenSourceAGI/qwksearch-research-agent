@@ -1,12 +1,17 @@
 ## In Progress
 
+(none)
+
+## Completed
+
 ## Unblock `bun run build:web` from the missing reason-editor demo app
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 0 ("Fix `react-reason-editor#build` failing on a fresh checkout...")
 **Branch:** `claude/adoring-mayer-3njvjx`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/218
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ### Goal
 Let `bun run build:web` (turbo's full build pipeline) complete on a fresh
@@ -95,15 +100,13 @@ verification is possible for every future change again.
 - [x] Run the production/web build
 - [x] Review the final diff for scope and quality
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Open the PR (this run's last step).
-- Follow-up backlog item filed as item "0b" in the Ideas Backlog below for
-  reconstructing the actual `packages/reason-editor/demo` app source.
-
-## Completed
+- None for this task. Follow-up backlog item filed as item "0b" in the
+  Ideas Backlog below for reconstructing the actual
+  `packages/reason-editor/demo` app source.
 
 ## Voice auto-start on first visit
 
