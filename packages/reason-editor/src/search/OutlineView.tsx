@@ -6,7 +6,7 @@
  */
 import { HashIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '../app-utils/utils';
-import { useMemo, useState, useEffect, useImperativeHandle, forwardRef, type RefObject } from 'react';
+import { useMemo, useState, useEffect, useRef, useImperativeHandle, forwardRef, type RefObject } from 'react';
 import type { TocEntry } from '../app-types/toc';
 import { useActiveHeading, type ActiveHeadingEditorHandle } from './useActiveHeading';
 import {
@@ -66,6 +66,28 @@ interface OutlineViewProps {
 const STORAGE_KEY = 'outline-collapse-preferences';
 
 /**
+ * Given the outline panel's own scroll container (`scrollTop`/`clientHeight`)
+ * and the active row's offset within it (`offsetTop`/`offsetHeight`), returns
+ * the `scrollTop` needed to bring the row fully into view — scrolling up if
+ * it's above the visible area, down if it's below — or `null` if the row is
+ * already fully visible and no scrolling is needed.
+ */
+export function computeScrollIntoViewOffset(
+  container: { scrollTop: number; clientHeight: number },
+  row: { offsetTop: number; offsetHeight: number },
+): number | null {
+  if (row.offsetTop < container.scrollTop) {
+    return row.offsetTop;
+  }
+  const rowBottom = row.offsetTop + row.offsetHeight;
+  const viewportBottom = container.scrollTop + container.clientHeight;
+  if (rowBottom > viewportBottom) {
+    return rowBottom - container.clientHeight;
+  }
+  return null;
+}
+
+/**
  * Collapsible document outline panel. Renders a heading tree built from
  * `headings` with click-to-navigate, expand/collapse, drag-to-reorder,
  * search filtering, and a context menu for bulk collapse-level controls.
@@ -74,6 +96,23 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
   const [defaultCollapseLevel, setDefaultCollapseLevel] = useState<number | null>(null);
   const activeHeadingId = useActiveHeading(headings, editorRef);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // Auto-scroll the outline panel itself so the active row stays visible as
+  // scroll-spy advances, mirroring Fumadocs' TOC sidebar behavior. No-ops
+  // when the active row isn't currently rendered (e.g. hidden by a
+  // collapsed ancestor) or already fully visible.
+  useEffect(() => {
+    if (!activeHeadingId) return;
+    const container = containerRef.current;
+    const row = rowRefs.current.get(activeHeadingId);
+    if (!container || !row) return;
+    const offset = computeScrollIntoViewOffset(container, row);
+    if (offset !== null) {
+      container.scrollTop = offset;
+    }
+  }, [activeHeadingId]);
 
   // Derive flat outline from TocEntry list: [key, text, tag]
   const outline = useMemo<OutlineItem[]>(() => {
@@ -247,7 +286,7 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
   }
 
   return (
-    <div className="flex h-full flex-col overflow-auto">
+    <div ref={containerRef} className="flex h-full flex-col overflow-auto">
       {filteredOutline.map((item) => {
         // `filteredOutline` is a subset of `outline`, so its position in the
         // rendered list does not match `item`'s position in the unfiltered
@@ -268,6 +307,10 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
           <ContextMenu key={item.id}>
             <ContextMenuTrigger>
               <div
+                ref={(el) => {
+                  if (el) rowRefs.current.set(item.id, el);
+                  else rowRefs.current.delete(item.id);
+                }}
                 data-active={isActive || undefined}
                 className={cn(
                   'flex items-center gap-1 rounded-md cursor-pointer transition-colors hover:bg-sidebar-accent',

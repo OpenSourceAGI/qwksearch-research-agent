@@ -69,13 +69,112 @@ model reads on every request — not just cosmetic.
 
 ## Completed
 
+## Outline sidebar: auto-scroll to reveal the active heading
+
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 4 ("Outline tree should reuse
+Fumadocs page tree/sidebar patterns."), continuing the follow-up explicitly
+deferred in the "Outline sidebar: highlight the active heading while
+scrolling" task below (PR #220's Non-goals / Remaining work: "auto-scroll
+the sidebar panel itself to reveal the active heading when it scrolls out of
+the panel's own viewport").
+**Branch:** `claude/adoring-mayer-ldfe0q`
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/224
+**Started:** 2026-08-14
+**Completed:** 2026-08-14
+
+### Goal
+When scroll-spy (`useActiveHeading`) marks a new heading "active" in the
+`OutlineView` sidebar panel, and that row is scrolled out of the panel's own
+viewport, automatically scroll the panel so the active row becomes visible —
+completing the Fumadocs-style TOC behavior that PR #220 explicitly deferred.
+
+### Scope
+- A small, pure `computeScrollIntoViewOffset` helper in
+  `packages/reason-editor/src/search/OutlineView.tsx` (or a co-located
+  module) that, given the outline panel's own scroll container
+  (`scrollTop`/`clientHeight`) and the active row's offset
+  (`offsetTop`/`offsetHeight`), returns the `scrollTop` needed to bring the
+  row fully into view, or `null` if it's already fully visible.
+- Wire a container ref onto `OutlineView`'s own scrollable root div and a
+  per-row ref map (heading id → row `<div>`), then an effect keyed on the
+  active heading id that applies the computed offset.
+- No-op (no scrolling) when there is no active heading, no `editorRef`, or
+  the active row isn't currently rendered (e.g. hidden by a collapsed
+  ancestor).
+
+### Non-goals
+- Automatically expanding a collapsed ancestor so a hidden active row
+  becomes visible — out of scope; this slice only scrolls rows that are
+  already rendered.
+- Smooth/animated scrolling — an instant `scrollTop` jump is sufficient for
+  this slice and keeps the behavior simple to test in jsdom.
+- Touching `DynamicIslandTOC.tsx` or `RichTextTableOfContents.tsx` — only
+  the sidebar `OutlineView` panel is in scope, matching PR #220's scoping.
+
+### Acceptance criteria
+- [x] When the active heading changes to a row that is scrolled above the
+      panel's visible area, the panel scrolls up just enough to reveal it.
+- [x] When the active heading changes to a row that is scrolled below the
+      panel's visible area, the panel scrolls down just enough to reveal it.
+- [x] When the active row is already fully visible, the panel's scroll
+      position is left untouched.
+- [x] With no `editorRef`/no active heading, no scrolling occurs and nothing
+      throws.
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for this package or at the repo
+      root (no ESLint config found); nothing to run
+- [x] Typecheck passes — `npx tsc --noEmit -p tsconfig.json` in
+      `reason-editor` surfaces the same 5 **pre-existing** errors as the
+      prior task (`InviteModal.tsx`, `Pagination.ts`, `filetree.tsx`), none
+      of which this change touches. No new errors from this change's files.
+- [x] Tests pass — `bun run test` in `reason-editor`: 461/461 passed
+      (42/42 files, including 8 new/updated tests in `OutlineView.test.tsx`
+      covering `computeScrollIntoViewOffset` directly plus the
+      mount-triggered auto-scroll behavior). Full workspace `bun run test`:
+      164/174 files, 2385/2441 tests pass (4 skipped); the 52 failures
+      across the same 10 files documented in the prior "Unblock
+      `bun run build:web`"/"highlight the active heading" task entries
+      (`search-web-api` engine tests hitting real external APIs, the
+      `qwksearch-web` config route test, `shadcn-settings`, `jsdom-scraper`)
+      are pre-existing and unrelated — none touch `reason-editor`.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded, including `react-reason-editor#build` and
+      `qwksearch-web#build`'s full `vinext` pipeline.
+- [x] Documentation is updated if behavior or configuration changes (this
+      tracker entry + inline comments where non-obvious)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm API, schema, data-flow, or interface requirements
+- [x] Implement the smallest useful vertical slice
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (no editorRef; row already
+      visible; boundary case where the row exactly fills the viewport)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — neither
+      is actionable for this change)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` diff produced by `bun install` — pure
+      version-number sync, out of scope, matching the prior task's
+      precedent)
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task. PR #224 is open and CI/review will be monitored.
+
 ## Outline sidebar: highlight the active heading while scrolling
 
 **Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 4 ("Outline tree should reuse
 Fumadocs page tree/sidebar patterns.")
 **Branch:** `claude/adoring-mayer-ntjy99`
-**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/220
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/220 (merged)
 **Started:** 2026-08-14
 **Completed:** 2026-08-14
 
@@ -165,10 +264,9 @@ users see day to day.
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task. PR #220 is open and CI/review will be monitored.
-- Follow-up (optional, out of scope here): auto-scroll the sidebar panel
-  itself to reveal the active heading when it scrolls out of the panel's own
-  viewport (see Non-goals above).
+- None for this task. PR #220 merged.
+- Follow-up now in progress above: "Outline sidebar: auto-scroll to reveal
+  the active heading" (see Non-goals above).
 
 ## Unblock `bun run build:web` from the missing reason-editor demo app
 
