@@ -1,5 +1,84 @@
 ## In Progress
 
+## Sidebar: suggest related documents by keyword overlap
+
+**Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 1 ("in sidebar, have it sugegst
+related by keywords")
+**Branch:** `claude/adoring-mayer-vnisju`
+**PR:** Not created yet
+**Started:** 2026-08-14
+
+### Goal
+Add a new "Related" sidebar panel to the REASON editor that suggests other
+documents related to the currently active document, ranked by shared
+significant keywords — a small, independently useful first slice of Ideas
+Backlog item 1.
+
+### Scope
+- Pure `findRelatedDocuments` helper in
+  `packages/reason-editor/src/search/relatedDocuments.ts`: extracts
+  significant keywords (stopword- and length-filtered) from the active
+  document's title + plain-text content (reusing the existing
+  `stripHtmlToText` from `searchDocuments.ts`), scores every other
+  non-folder, non-deleted document by shared-keyword overlap, and returns
+  the top-N ranked matches.
+- New `'related'` `SidebarPanelType`, registered in `panelOptions.ts`
+  (`PANEL_OPTIONS`) so it's toggleable from the existing "Split View
+  Options" dropdown (`SidebarViewMenu`) exactly like the
+  `outline`/`files`/`ai`/`openTabs` panels.
+- A `renderRelated()` view added to `SidebarContent.tsx` (mirrors
+  `renderOutline`/`renderFiles`) showing the ranked related-document titles;
+  clicking one calls the existing `onSelect`.
+
+### Non-goals
+- Any server-side/embedding-based semantic similarity — this slice is pure
+  client-side keyword overlap, matching the existing `searchDocuments.ts`
+  approach (plain substring/keyword matching, no ML).
+- Related suggestions in the chat/search UI (`research-agent-ui`) or based
+  on open browser tabs — scoped to the REASON editor's document sidebar
+  only, matching where the Fumadocs-style outline/file-tree panels already
+  live.
+- Automatically opening/expanding a related document — this slice only
+  lists related documents and lets the user click through via the existing
+  `onSelect` callback.
+
+### Acceptance criteria
+- [ ] With an active document sharing keywords with other documents, the
+      "Related" panel lists them ranked by shared-keyword count, most
+      related first.
+- [ ] The active document itself is never included in its own related list.
+- [ ] Folders and soft-deleted documents are excluded from related
+      suggestions.
+- [ ] With no active document, or no keyword overlap with any other
+      document, the panel shows an empty state rather than throwing.
+- [ ] Vitest coverage is added or updated
+- [ ] Lint passes
+- [ ] Typecheck passes
+- [ ] Tests pass
+- [ ] Production/web build passes
+- [ ] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      sidebar panels)
+
+### Implementation plan
+- [ ] Inspect affected modules, local instructions, and existing tests
+- [ ] Confirm API, schema, data-flow, or interface requirements
+- [ ] Implement the smallest useful vertical slice
+- [ ] Add focused Vitest success-path coverage
+- [ ] Add focused failure, validation, or edge-case coverage
+- [ ] Run focused tests and fix failures
+- [ ] Run linting and typechecking
+- [ ] Run the full relevant test suite
+- [ ] Run the production/web build
+- [ ] Review the final diff for scope and quality
+- [ ] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Everything above; implementation not yet started.
+
 ## Fix common typos in AI prompt templates
 
 **Status:** In Progress

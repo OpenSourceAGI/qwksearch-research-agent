@@ -10,6 +10,7 @@ import { RefObject, useState, useCallback, useMemo, useRef } from 'react';
 import { FileTree } from '../../file-tree';
 import { OutlineView, type OutlineViewHandle } from '../../search/OutlineView';
 import type { ActiveHeadingEditorHandle } from '../../search/useActiveHeading';
+import { findRelatedDocuments } from '../../search/relatedDocuments';
 import { AIRewriteSuggestion } from '../../features/ai-rewrite/AIRewriteSuggestion';
 import { Input } from '../../app-ui/input';
 import { Document } from '../../documents/DocumentTree';
@@ -18,7 +19,7 @@ import type { TocEntry } from '../../app-types/toc';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../../utils/storage';
-import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus } from 'lucide-react';
+import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2 } from 'lucide-react';
 import { FileTypeIcon } from '../../app-ui/FileTypeIcon';
 import { cn } from '../../app-utils/utils';
 import {
@@ -38,6 +39,7 @@ const PANEL_TITLES: Record<SidebarPanelType, string> = {
   files: 'Files',
   outline: 'Outline',
   openTabs: 'Open Tabs',
+  related: 'Related',
 };
 
 /** Props for the {@link SidebarContent} component. */
@@ -382,6 +384,36 @@ export const SidebarContent = ({
     </div>
   );
 
+  const relatedResults = useMemo(
+    () => findRelatedDocuments(activeDocuments, activeDocument),
+    [activeDocuments, activeDocument],
+  );
+
+  const renderRelated = () => (
+    <div className="h-full overflow-hidden flex flex-col">
+      <div className="px-3 py-2 border-b border-sidebar-border shrink-0">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Related</p>
+      </div>
+      <div className="flex-1 overflow-auto px-1 py-1">
+        {relatedResults.length === 0 ? (
+          <div className="px-2 py-3 text-xs text-muted-foreground">No related documents found</div>
+        ) : (
+          relatedResults.map(({ document: doc, sharedKeywordCount }) => (
+            <div
+              key={doc.id}
+              className="group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-sidebar-accent"
+              onClick={() => handleSelect(doc.id)}
+            >
+              <Link2 className="shrink-0 h-4 w-4 text-muted-foreground" />
+              <span className="flex-1 truncate text-sm">{doc.title}</span>
+              <span className="shrink-0 text-xs text-muted-foreground">{sharedKeywordCount}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
   const renderAi = () => (
     <div className="h-full overflow-hidden flex flex-col">
       <div className="px-3 py-2 border-b border-sidebar-border shrink-0">
@@ -419,6 +451,7 @@ export const SidebarContent = ({
       case 'files': return renderFiles();
       case 'openTabs': return renderOpenTabs();
       case 'outline': return renderOutline();
+      case 'related': return renderRelated();
       case 'ai': return renderAi();
     }
   };
