@@ -105,8 +105,6 @@ tag-management UI, which the first slice's PR (#226) explicitly deferred.
   chat/search UI (`research-agent-ui`) rather than just the REASON editor
   sidebar; open-tab context.
 
-## Completed
-
 ## Fix common typos in AI prompt templates
 
 **Status:** Completed
