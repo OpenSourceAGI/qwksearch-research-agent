@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import Sortable from "sortablejs"
-import { X } from "lucide-react"
+import { Undo2, X } from "lucide-react"
 import { Button } from "./ui/button"
+import findMostRecentClosedTabSessionId from "@/lib/undo-close-tab"
 
 // Extend Window interface for legacy find() method
 declare global {
@@ -41,6 +42,24 @@ const OPTION_HIGHLIGHT_RESULT = 0
 export default function TabList({ results, setResults, fetchAllTabs }: TabListProps) {
   const listRef = useRef<HTMLDivElement>(null)
   const sortableRef = useRef<Sortable | null>(null)
+  const [closedTabSessionId, setClosedTabSessionId] = useState<string | undefined>(undefined)
+
+  const refreshClosedTabs = useCallback(() => {
+    chrome.sessions.getRecentlyClosed((sessions) => {
+      setClosedTabSessionId(findMostRecentClosedTabSessionId(sessions))
+    })
+  }, [])
+
+  useEffect(() => {
+    refreshClosedTabs()
+    chrome.sessions.onChanged.addListener(refreshClosedTabs)
+    return () => chrome.sessions.onChanged.removeListener(refreshClosedTabs)
+  }, [refreshClosedTabs])
+
+  function undoCloseTab() {
+    if (!closedTabSessionId) return
+    chrome.sessions.restore(closedTabSessionId)
+  }
 
   useEffect(() => {
     fetchAllTabs()
@@ -127,6 +146,19 @@ export default function TabList({ results, setResults, fetchAllTabs }: TabListPr
 
   return (
     <>
+      <div className="flex justify-end mb-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 hover:bg-slate-200 disabled:opacity-30"
+          disabled={!closedTabSessionId}
+          onClick={undoCloseTab}
+          title="Restore closed tab"
+        >
+          <Undo2 size={14} className="text-gray-600" />
+        </Button>
+      </div>
+
       <div ref={listRef} className="list-group col">
         {results.map((result) => (
           <div

@@ -51,6 +51,7 @@ export default defineConfig({
       'webRequest',
       'declarativeNetRequest',
       'offscreen',
+      'sessions',
     ],
     host_permissions: ['<all_urls>'],
     commands: {
