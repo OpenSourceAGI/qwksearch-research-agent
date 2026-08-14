@@ -69,8 +69,14 @@ export default defineConfig(async ({ mode }) => {
     path.resolve(__dirname, 'src/reason-docs.ts'),
   ];
 
+  // Only the extension directory name is read off each match, so any stray
+  // .ts anywhere under an extension is enough to declare an entry at
+  // src/extensions/<Name>/<Name>.ts. Colocated tests must therefore be
+  // ignored alongside index.ts: a test file in a component-only extension
+  // (Subscript, Superscript) would otherwise demand an entry module that
+  // does not exist and fail the build with UNRESOLVED_ENTRY.
   const files = await globbySync('src/extensions/**/*.ts', {
-    ignore: ['src/**/*/index.ts', 'src/**/*.spec.ts'], // Exclude .spec.ts files
+    ignore: ['src/**/*/index.ts', 'src/**/*.spec.ts', 'src/**/*.test.ts'],
   });
 
   const exports = {};

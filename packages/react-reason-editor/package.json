@@ -190,6 +190,9 @@
       ],
       "./officepaste": [
         "./dist/extensions/OfficePaste/index.d.ts"
+      ],
+      "./zoom": [
+        "./dist/extensions/Zoom/index.d.ts"
       ]
     }
   },
@@ -739,6 +742,16 @@
       "import": {
         "types": "./dist/extensions/OfficePaste/index.d.ts",
         "default": "./dist/OfficePaste.js"
+      }
+    },
+    "./zoom": {
+      "require": {
+        "types": "./dist/extensions/Zoom/index.d.ts",
+        "default": "./dist/Zoom.cjs"
+      },
+      "import": {
+        "types": "./dist/extensions/Zoom/index.d.ts",
+        "default": "./dist/Zoom.js"
       }
     }
   },
