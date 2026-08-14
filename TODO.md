@@ -1,5 +1,118 @@
 ## In Progress
 
+## Browser extension: "Undo close tab" button
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 28 ("Add downloads tab; also back,
+refresh, undo close, new tab."), scoped down to its smallest independently
+useful piece: undo-close-tab. (Downloads tab, back/refresh/new-tab remain
+separate follow-ups — see Non-goals.)
+**Branch:** `claude/adoring-mayer-803j75`
+**PR:** Not created yet
+**Started:** 2026-08-14
+**Completed:** 2026-08-14
+
+### Goal
+Let a user reopen the most recently closed tab from `apps/qwksearch-ext`'s
+side panel "Tabs" view, via Chrome's `chrome.sessions` API — mirroring the
+browser's own Ctrl+Shift+T, but reachable from the extension's own UI.
+
+### Scope
+- `apps/qwksearch-ext/wxt.config.ts`: add the `sessions` permission to the
+  manifest.
+- New pure helper `apps/qwksearch-ext/lib/undo-close-tab.ts`: given a list of
+  `chrome.sessions.Session`-shaped objects (as returned by
+  `chrome.sessions.getRecentlyClosed()`), returns the `sessionId` of the most
+  recently closed *tab* (ignoring closed-window entries, since this button is
+  specifically "undo close tab"), or `undefined` if there is none.
+- `apps/qwksearch-ext/components/TabList.tsx`: a small "Undo close tab"
+  icon button (Undo2 icon) above the tab list — disabled when there's
+  nothing to restore, calling `chrome.sessions.restore(sessionId)` on click.
+  Kept in sync via `chrome.sessions.onChanged` (re-fetches recently-closed
+  tabs whenever the list changes, e.g. after a tab closes or is restored).
+
+### Non-goals
+- A "Downloads" tab/panel (`chrome.downloads`) — a separate, independently
+  useful slice of the same backlog item; left as a follow-up.
+- Back/refresh/new-tab browser-chrome-style buttons — the side panel isn't a
+  browser-chrome surface (no navigable history of its own); out of scope for
+  this slice, and the parent idea doesn't specify where these would live.
+- Restoring a closed *window* (as opposed to a tab) — `chrome.sessions`
+  conflates both into one recency-ordered list, but this button intentionally
+  only offers to restore the most recent closed tab, per the backlog item's
+  literal "undo close" wording.
+
+### Acceptance criteria
+- [x] Closing a tab makes the "Undo close tab" button enabled; clicking it
+      reopens that tab via `chrome.sessions.restore`.
+- [x] With no recently-closed tabs (only recently-closed windows, or
+      nothing closed at all), the button is disabled.
+- [x] A closed window entry in the recently-closed list is skipped in favor
+      of the most recent closed *tab* entry, even if the window entry is
+      more recent.
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run
+- [x] Typecheck passes — `bun run compile` (after clearing the stale
+      `tsconfig.tsbuildinfo` incremental cache to get an accurate signal)
+      surfaces the same **pre-existing** `TS2304: Cannot find name 'chrome'`
+      class of error already present throughout this file and others
+      (`TabSearch.tsx`, `background.ts`, `sidepanel/App.tsx`, etc. —
+      confirmed via `git stash` that `TabList.tsx` already had this error at
+      its pre-existing `chrome.tabs.*` call sites before this change); the
+      new `chrome.sessions.*` call sites this change adds are additional
+      instances of that same pre-existing error class, not a new category.
+      Also the same pre-existing `TS2493`/`TS2769` errors documented in
+      prior TODO.md tasks.
+- [x] Tests pass — `bunx vitest run test/undo-close-tab.test.ts`: 5/5
+      passed. `bun run test` in `qwksearch-ext`: 47/47 passed (6/6 files,
+      41 pre-existing + 6 new). Full workspace `bun run test`: 170/180
+      files, 2420/2476 tests pass (4 skipped); the 52 failures across the
+      same 10 files documented repeatedly in prior TODO.md tasks
+      (`search-web-api` engine tests hitting real external APIs, the
+      `qwksearch-web` config route test, `shadcn-settings`, `jsdom-scraper`
+      missing its `jsdom` dependency, `chat-agent-toolkit`'s
+      `openrouter-default-model.test.js`) are pre-existing and unrelated —
+      none touch `qwksearch-ext`.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded (verified on a clean, single build run; an earlier attempt
+      that overlapped with a leftover backgrounded build process from the
+      same session produced a spurious "module not found" failure in
+      `reason-editor`'s output due to two concurrent builds racing on the
+      same `dist/` directory — confirmed unrelated to this change by
+      re-running a single build cleanly, which succeeded).
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar actions)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm `chrome.sessions` API shape against the installed `@types/chrome`
+- [x] Implement the smallest useful vertical slice (`sessions` permission,
+      `lib/undo-close-tab.ts` pure helper, `TabList.tsx` button + wiring)
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (no closed tabs, closed-window-only,
+      multiple entries, missing sessionId)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change; typecheck failures are pre-existing)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` diff produced by `bun install` — pure
+      version-number sync to already-committed `package.json` bumps, out of
+      scope, matching prior tasks' precedent)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope.
+- Follow-ups noted above remain open: a "Downloads" tab/panel using
+  `chrome.downloads`, and browser-chrome-style back/refresh/new-tab
+  buttons — both separate, independently useful slices of Ideas Backlog
+  item 28.
+
 ## Completed
 
 ## Fix `qwksearch-ext`'s Tailwind v4 PostCSS plugin mismatch
@@ -1367,7 +1480,9 @@ ext - dl to reason dl folswe
 25. Auto-search for topics in sidebar.
 26. Prioritize sidebar with AI tips about the current page.
 27. Cache questions and use them to build connections.
-28. Add downloads tab; also back, refresh, undo close, new tab.
+28. Add downloads tab; also back, refresh, undo close, new tab. — **"Undo
+    close tab" slice done, see "Browser extension: \"Undo close tab\"
+    button" above** (downloads tab, back/refresh/new-tab remain follow-ups)
 29. Default search support; Chrome extensions can override homepage, startup pages, and search provider via `chrome_settings_overrides`.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override) — **done, see "Default search provider support in the browser extension (chrome_settings_overrides)" above**
 29b. `qwksearch-ext`'s own `bun run build`/`zip` (Chrome target) fails on a
      fresh checkout: `postcss.config.js` still uses the old
