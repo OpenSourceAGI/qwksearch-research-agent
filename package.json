@@ -5,7 +5,8 @@
   "packageManager": "bun@1.3.11",
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "apps/qwk-vscode-ext/webview-ui"
   ],
   "scripts": {
     "dev": "turbo dev --filter=qwksearch-web",

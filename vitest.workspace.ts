@@ -1,6 +1,7 @@
 import { defineWorkspace } from 'vitest/config'
 
 export default defineWorkspace([
+  'apps/qwk-vscode-ext/webview-ui',
   'apps/qwksearch-web',
   'packages/chat-agent-toolkit',
   'packages/extract-webpage',
