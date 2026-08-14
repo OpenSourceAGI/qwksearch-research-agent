@@ -1,5 +1,72 @@
 ## In Progress
 
+## Fix common typos in AI prompt templates
+
+**Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 7 ("common typoes")
+**Branch:** `claude/adoring-mayer-du2vzr`
+**PR:** Not created yet
+**Started:** 2026-08-14
+
+### Goal
+Fix real, user-visible typos found by a repo-wide sweep, focusing on the
+literal "common typoes" backlog item. The actual typo instances are
+inside the LLM system-prompt templates that ship to production — text the
+model reads on every request — not just cosmetic.
+
+### Scope
+- `packages/chat-agent-toolkit/src/prompts/search-prompts.ts`: "relevent"
+  → "relevant" (Writing Assistant prompt's citation instructions).
+- `packages/write-language/src/prompt-templates.ts` (`answer-cite-sources`
+  prompt): "relevent" → "relevant", "consits" → "consists", "unbaised" →
+  "unbiased".
+
+### Non-goals
+- Broad automated spellchecking tooling (no `codespell`/`cspell` available
+  offline in this environment) — this is a manual, targeted sweep, not an
+  attempt at exhaustive coverage.
+- `packages/*/misspelled-typos-8k.json` and any other intentional
+  misspelling datasets used by the autocomplete/typo-suggestion features —
+  those files' contents are supposed to contain misspellings; left
+  untouched.
+- Superficial regex false positives confirmed during the sweep (e.g.
+  "successfull" only ever appearing as a substring of "successfully";
+  "grammer" only ever as a substring of "programmer") — not real typos.
+
+### Acceptance criteria
+- [x] The two prompt-template files no longer contain "relevent",
+      "consits", or "unbaised"
+- [x] No test asserts on the exact pre-fix typo'd text (confirmed via
+      grep of `packages/write-language/test/` and
+      `packages/chat-agent-toolkit/test/`)
+- [ ] Vitest coverage is added or updated — n/a, pure prompt-copy text
+      change with no test asserting exact wording either before or after
+- [ ] Lint passes
+- [ ] Typecheck passes
+- [ ] Tests pass
+- [ ] Production/web build passes
+- [x] Documentation is updated if behavior or configuration changes (n/a —
+      no behavior change; this tracker entry documents the change)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm no test/schema depends on the exact typo'd wording
+- [x] Implement the smallest useful vertical slice (fix the 4 typo
+      instances across the 2 files)
+- [x] Add focused Vitest coverage — n/a, see acceptance criteria note
+- [ ] Run focused tests and fix failures
+- [ ] Run linting and typechecking
+- [ ] Run the full relevant test suite
+- [ ] Run the production/web build
+- [ ] Review the final diff for scope and quality
+- [ ] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Run verification (tests/typecheck/build), commit, push, open PR, and
+  move this entry to Completed.
+
 ## Completed
 
 ## Outline sidebar: auto-scroll to reveal the active heading
@@ -417,10 +484,10 @@ ext - dl to reason dl folswe
 1. in sidebar, have it sugegst related by keywords
 2. Chat with open tabs as context.
 3. Show Vals scores for all models; example Kimi K2.5 page lists Vals Index 51.70%, latency 807.18s, and cost/test $0.29.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override)
-4. Outline tree should reuse Fumadocs page tree/sidebar patterns.
-5. Option to start talking automatically on first visit, or via a button from anywhere on the site. — **in progress, see above**
+4. Outline tree should reuse Fumadocs page tree/sidebar patterns. — **done, see "Outline sidebar: highlight the active heading while scrolling" above**
+5. Option to start talking automatically on first visit, or via a button from anywhere on the site. — **done, see "Voice auto-start on first visit" above**
 6. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings.
-7. common typoes
+7. common typoes — **in progress, see "Fix common typos in AI prompt templates" above**
 8. https://github.com/cloudflare/moltworker
 
 
