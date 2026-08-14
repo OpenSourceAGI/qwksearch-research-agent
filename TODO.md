@@ -1,6 +1,107 @@
 ## In Progress
 
-(none)
+## Unblock `bun run build:web` from the missing reason-editor demo app
+
+**Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 0 ("Fix `react-reason-editor#build` failing on a fresh checkout...")
+**Branch:** `claude/adoring-mayer-3njvjx`
+**PR:** Not created yet
+**Started:** 2026-08-14
+
+### Goal
+Let `bun run build:web` (turbo's full build pipeline) complete on a fresh
+checkout instead of failing partway through, so CI/production-build
+verification is possible for every future change again.
+
+### Scope
+- Root-cause: `packages/reason-editor/demo/` is listed in the root
+  `.gitignore` (line 56) and has **never been committed** in this repo's
+  history (confirmed via `git log --all -- 'packages/reason-editor/demo/**'`
+  returning zero commits), even though `README.md`, `EXTENSIONS.md`, and
+  `wrangler.jsonc` extensively document a real demo app living there
+  (`demo/vite.config.ts`, `demo/src/tabs/*`, `demo/alternatives.html`,
+  etc). In a fresh checkout the directory simply doesn't exist.
+- `react-reason-editor`'s `package.json` `"build"` script
+  (`vite build && vite build --config demo/vite.config.ts`) is what turbo's
+  `build` task runs for this package, and `qwksearch-web` depends on
+  `react-reason-editor` as a workspace package, so turbo's `^build` graph
+  always tries (and fails) to build the nonexistent demo before it can even
+  reach `qwksearch-web`'s own build step.
+- Fix: decouple the turbo-pipeline `"build"` script (needed by *consumers*
+  of the published library, i.e. `dist/index.js` etc.) from the demo-site
+  build, so `"build"` only runs `vite build` (== today's `"build:lib"`).
+  `"build:demo"` and `"deploy"` (which already composes `build:lib` +
+  `build:demo` directly, not `"build"`) are untouched — they already fail
+  today for an unrelated, larger reason (the demo source doesn't exist) and
+  are out of scope here.
+- Remove the stale `packages/reason-editor/demo` line from `.gitignore`
+  since it incorrectly ignores real, documented source code (not a build
+  output dir) — a no-op today since the directory is absent, but prevents
+  the same trap if/when the demo app is reconstructed.
+- Document the deeper gap (demo app source was never committed; `pnpm dev`,
+  `pnpm build:demo`, and `wrangler deploy` for the reason-editor demo site
+  remain broken) as a new, separate Ideas Backlog follow-up — reconstructing
+  a 6-view demo app from README description alone is a much larger task
+  than this build-pipeline fix.
+
+### Non-goals
+- Reconstructing/authoring the actual `packages/reason-editor/demo/` app
+  source (6 tab views + alternatives page) — tracked as a new backlog
+  follow-up instead, since it's a substantial, separately-scoped effort.
+- Any other pre-existing build/typecheck gaps unrelated to this specific
+  failure (e.g. `TS2307` errors noted in the prior voice-auto-start task).
+
+### Acceptance criteria
+- [x] `bun run build:web` (turbo's full filtered build for `qwksearch-web`)
+      no longer fails on `react-reason-editor#build`
+- [x] `react-reason-editor`'s own library build (`vite build`) still runs
+      and still produces `dist/` output as before
+- [x] `deploy`/demo-focused scripts still exist for when the demo app is
+      reconstructed later (not silently deleted)
+- [x] Vitest coverage is added or updated (n/a — build-script/config change,
+      no runtime logic to unit test; verified by running the actual build)
+- [ ] Lint passes — no `lint` script exists for this package or at the repo
+      root (no ESLint config found); nothing to run
+- [ ] Typecheck passes — pre-existing unrelated `TS2307` failures (see prior
+      voice-auto-start task notes); out of scope for this change
+- [x] Tests pass — `bun run test` from repo root: 163/173 files, 2365/2425
+      tests pass; the 56 failures across 10 files (`search-web-api` engine
+      tests hitting real external APIs, a `qwksearch-web` config route test,
+      `chat-agent-toolkit`, `jsdom-scraper`, `shadcn-settings`) are
+      **pre-existing and unrelated** — confirmed by running
+      `apps/qwksearch-web/app/api/config/__tests__/route.test.ts` in
+      isolation (10/10 pass) and by re-running the full suite with this
+      change `git stash`ed (same failures reproduce on unmodified code).
+      None of the failing files touch `reason-editor` or its build scripts.
+- [x] Production/web build passes (the specific failure this task targets):
+      `bun run build:web` — 14/14 turbo tasks succeed, including
+      `react-reason-editor#build` and `qwksearch-web#build`'s full `vinext`
+      pipeline (previously stopped at 12/13 with `react-reason-editor#build`
+      failing on `UNRESOLVED_ENTRY`)
+- [x] Documentation is updated if behavior or configuration changes (this
+      tracker entry + inline comments where non-obvious)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm root cause (`git log` showing demo was never committed;
+      turbo dependency graph showing `qwksearch-web` pulls in
+      `react-reason-editor#build`)
+- [x] Implement the smallest useful vertical slice (split `build` script,
+      update `.gitignore`, update `deploy`/related scripts to keep working)
+- [x] Add focused Vitest coverage — n/a, see acceptance criteria note
+- [x] Run focused verification (`bun run build:web`)
+- [x] Run linting and typechecking (see notes — neither actionable here)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Open the PR (this run's last step).
+- Follow-up backlog item filed as item "0b" in the Ideas Backlog below for
+  reconstructing the actual `packages/reason-editor/demo` app source.
 
 ## Completed
 
@@ -97,13 +198,21 @@ button / Ctrl+` shortcut in `ChatInputBox`.
 
 ## Ideas Backlog
 
-0. Fix `react-reason-editor#build` failing on a fresh checkout: it errors
-   trying to bundle `packages/reason-editor/demo/vite.config.ts` as an entry
-   module (`UNRESOLVED_ENTRY`), which blocks `bun run build:web`'s turbo
-   pipeline from ever reaching `qwksearch-web`'s own `vinext build` step.
-   Found while verifying PR #216 (2026-08-14); the library build itself
-   ("react-reason-editor:build") succeeds, only the demo config resolution
-   fails.
+0. ~~Fix `react-reason-editor#build` failing on a fresh checkout~~ —
+   **resolved, see "Unblock `bun run build:web`..." above.** Root cause
+   turned out to be that `packages/reason-editor/demo/` was gitignored and
+   had never been committed at all (not a config-resolution bug); the
+   `"build"` script now only builds the library, matching what
+   `qwksearch-web` actually needs from it.
+0b. Reconstruct the `packages/reason-editor/demo/` app source. It has never
+    been committed to this repo (confirmed via `git log --all`), yet
+    `README.md`/`EXTENSIONS.md`/`wrangler.jsonc` document a real 6-view demo
+    app living there (`demo/vite.config.ts`, `demo/src/tabs/*` — Full,
+    Toolbar, Small toolbar, Input box, Table of contents, Harper proofing —
+    plus a second `/alternatives.html` entry point). Until it's rebuilt,
+    `pnpm dev`/`dev:editor`, `pnpm build:demo`, and `wrangler deploy` for the
+    reason-editor demo site all remain broken (the main library build/tests
+    are unaffected — see item 0).
 ext - dl to reason dl folswe
 1. in sidebar, have it sugegst related by keywords
 2. Chat with open tabs as context.
