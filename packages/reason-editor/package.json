@@ -1,6 +1,6 @@
 {
   "name": "react-reason-editor",
-  "version": "1.0.39",
+  "version": "1.0.40",
   "description": "A modern WYSIWYG rich text editor based on tiptap and shadcn ui for React",
   "repository": {
     "type": "git",
