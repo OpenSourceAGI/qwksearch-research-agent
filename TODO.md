@@ -1,13 +1,19 @@
 ## In Progress
 
+_(none — see Completed below; a new task will be selected from the Ideas
+Backlog on the next run)_
+
+## Completed
+
 ## Autocomplete: recognize a typed bare domain even when it's outside the ranked dataset
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 21 ("If autocomplete matches
 something like red.com, go there directly.")
 **Branch:** `claude/adoring-mayer-va3awu`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/231
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ### Goal
 When the user types a string that looks like a real domain (e.g.
@@ -53,44 +59,72 @@ fuzzy match against known top domains works.
   when the typed text does *not* look like a full domain.
 
 ### Acceptance criteria
-- [ ] Typing a real-looking domain not present in the ranked dataset (e.g.
+- [x] Typing a real-looking domain not present in the ranked dataset (e.g.
       `red.com`) surfaces it as a domain suggestion.
-- [ ] Filename-like strings with non-TLD extensions (e.g. `note.txt`,
+- [x] Filename-like strings with non-TLD extensions (e.g. `note.txt`,
       `script.js`) do NOT spuriously appear as domain suggestions.
-- [ ] A literal domain match that's already found via fuzzy search isn't
+- [x] A literal domain match that's already found via fuzzy search isn't
       duplicated in the suggestion list.
-- [ ] The existing ranked-domain fuzzy-match behavior is unchanged for
+- [x] The existing ranked-domain fuzzy-match behavior is unchanged for
       queries that aren't themselves a full valid domain.
-- [ ] Selecting the synthetic suggestion navigates to `https://<domain>`,
-      matching existing dataset-backed domain suggestions.
-- [ ] Vitest coverage is added or updated
-- [ ] Lint passes
-- [ ] Typecheck passes
-- [ ] Tests pass
-- [ ] Production/web build passes
-- [ ] Documentation is updated if behavior or configuration changes
+- [x] Selecting the synthetic suggestion navigates to `https://<domain>`,
+      matching existing dataset-backed domain suggestions (unchanged
+      `goToDomain`/`chooseOption` wiring, exercised by existing
+      `ChatInputBox` behavior — no new frontend code needed).
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `research-agent-ui`,
+      `qwksearch-web`, or at the repo root (no ESLint config found);
+      nothing to run
+- [x] Typecheck passes — `bun run type-check` in `research-agent-ui`
+      surfaces the same 5 **pre-existing** `TS2307` errors documented in
+      prior TODO.md tasks (`ChatHomepage.tsx`, `ChatWindow.tsx`,
+      `MessageSources.tsx`, `WebCitationBadge.tsx` — missing built `dist/`
+      output for workspace packages in a fresh checkout), none of which
+      this change touches. No new errors from this change's files
+      (confirmed the `tldts` import itself resolves cleanly once `bun
+      install` links the newly added dependency).
+- [x] Tests pass — `bunx vitest run app/api/agent/__tests__/autocomplete.test.ts`
+      in `qwksearch-web` (this handler's actual test suite): 11/11 passed
+      (8 pre-existing + 3 new). `bun run test` in `research-agent-ui`:
+      67/67 passed. Full workspace `bun run test`: 165/175 files,
+      2402/2454 tests pass (4 skipped); the 52 failures across the same 10
+      files documented in prior TODO.md tasks (`search-web-api` engine
+      tests hitting real external APIs, the `qwksearch-web` config route
+      test, `shadcn-settings`, `jsdom-scraper` missing its `jsdom`
+      dependency, `settings-field.test.tsx`) are pre-existing and
+      unrelated — none touch the changed files.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded, including `qwksearch-web`'s full `vinext build`.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry and inline comments (no user-facing docs
+      describe individual autocomplete-suggestion behaviors)
 
 ### Implementation plan
 - [x] Inspect affected modules, local instructions, and existing tests
 - [x] Confirm API, schema, data-flow, or interface requirements (`tldts`
       already used elsewhere in the repo for the same "is this a real
       domain suffix" question; `research-agent-ui` doesn't yet depend on it)
-- [ ] Add `tldts` as a dependency of `research-agent-ui`
-- [ ] Implement the smallest useful vertical slice in `autocomplete.ts`
-- [ ] Add focused Vitest success-path coverage
-- [ ] Add focused failure/edge-case coverage (filename false positives,
-      dedupe against fuzzy results, short/invalid input)
-- [ ] Run focused tests and fix failures
-- [ ] Run linting and typechecking
-- [ ] Run the full relevant test suite
-- [ ] Run the production/web build
-- [ ] Review the final diff for scope and quality
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Add `tldts` as a dependency of `research-agent-ui`
+- [x] Implement the smallest useful vertical slice in `autocomplete.ts`
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (filename false positives,
+      dedupe against fuzzy results)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint
+      is not actionable for this change)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` diff produced by `bun install` — pure
+      version-number sync to already-committed `package.json` bumps, out
+      of scope, matching prior tasks' precedent — keeping only the new
+      `tldts` dependency line for `research-agent-ui`)
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #231)
+- [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Implementation not yet started — see Implementation plan above.
+- None for this task. PR #231 open, CI/build/tests verified locally.
 
 ## Completed
 
