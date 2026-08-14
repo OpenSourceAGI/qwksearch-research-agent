@@ -2,7 +2,7 @@
   "name": "search-web-api",
   "description": "70+ search engines across 10 categories and Scrape Extract API",
   "type": "module",
-  "version": "1.0.91",
+  "version": "1.0.92",
   "author": "vtempest",
   "license": "rights.institute/PROSPER",
   "repository": {
