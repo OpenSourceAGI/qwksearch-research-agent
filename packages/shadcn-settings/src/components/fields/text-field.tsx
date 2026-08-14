@@ -34,10 +34,21 @@ function TextControl({
   const { committing, commit } = useCommit(onCommit);
   const [showSecret, setShowSecret] = React.useState(false);
   const fallback = typeof field.default === "string" ? field.default : "";
-  const current = (value as string | undefined) ?? fallback;
+  const external = (value as string | undefined) ?? fallback;
+  // Tracks in-progress edits locally so typed input isn't lost when the host
+  // doesn't wire `onChange` back into `value` (a controlled `value` prop that
+  // never updates would otherwise snap the DOM input back on every keystroke).
+  const [draft, setDraft] = React.useState(external);
+  React.useEffect(() => {
+    setDraft(external);
+  }, [external]);
+  const current = draft;
   const isDisabled = disabled || committing;
 
-  const handleChange = (next: string) => onChange?.(next as SettingsValue);
+  const handleChange = (next: string) => {
+    setDraft(next);
+    onChange?.(next as SettingsValue);
+  };
   const handleBlur = (next: string) => commit(next as SettingsValue);
 
   return (
