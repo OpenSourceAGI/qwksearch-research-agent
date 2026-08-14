@@ -1,12 +1,15 @@
 ## In Progress
 
+## Completed
+
 ## Fix common typos in AI prompt templates
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 7 ("common typoes")
 **Branch:** `claude/adoring-mayer-du2vzr`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/222
 **Started:** 2026-08-14
+**Completed:** 2026-08-14
 
 ### Goal
 Fix real, user-visible typos found by a repo-wide sweep, focusing on the
@@ -39,12 +42,24 @@ model reads on every request — not just cosmetic.
 - [x] No test asserts on the exact pre-fix typo'd text (confirmed via
       grep of `packages/write-language/test/` and
       `packages/chat-agent-toolkit/test/`)
-- [ ] Vitest coverage is added or updated — n/a, pure prompt-copy text
+- [x] Vitest coverage is added or updated — n/a, pure prompt-copy text
       change with no test asserting exact wording either before or after
-- [ ] Lint passes
-- [ ] Typecheck passes
-- [ ] Tests pass
-- [ ] Production/web build passes
+- [ ] Lint passes — no `lint` script exists for either affected package or
+      at the repo root (no ESLint config found); nothing to run
+- [ ] Typecheck passes — no `typecheck`/`tsc` script exists for either
+      affected package; nothing to run
+- [x] Tests pass — `bun run test:coverage` in `packages/write-language`:
+      78/78 tests pass (6/6 files). `bun run test:coverage` in
+      `packages/chat-agent-toolkit`: 47/50 tests pass; the 3 failures in
+      `test/openrouter-default-model.test.js` are pre-existing and
+      unrelated (confirmed identical via `git stash` of this change's
+      files). Full workspace `bun run test`: 164/174 files, 2374/2433
+      tests pass; the 59 failures across the same 10 files documented in
+      the prior "Outline sidebar" task entry (plus `chat-agent-toolkit`'s
+      unrelated OpenRouter test) are pre-existing and unrelated — none
+      touch the 2 files this change modifies.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo
+      tasks succeeded.
 - [x] Documentation is updated if behavior or configuration changes (n/a —
       no behavior change; this tracker entry documents the change)
 
@@ -54,20 +69,22 @@ model reads on every request — not just cosmetic.
 - [x] Implement the smallest useful vertical slice (fix the 4 typo
       instances across the 2 files)
 - [x] Add focused Vitest coverage — n/a, see acceptance criteria note
-- [ ] Run focused tests and fix failures
-- [ ] Run linting and typechecking
-- [ ] Run the full relevant test suite
-- [ ] Run the production/web build
-- [ ] Review the final diff for scope and quality
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Run focused tests and fix failures (none needed; pre-existing
+      failures confirmed unrelated via `git stash`)
+- [x] Run linting and typechecking (see notes above — neither is
+      actionable for these packages)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` diff produced by `bun install` — pure
+      version-number sync, out of scope for this change, same as the
+      prior "Outline sidebar" task)
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Run verification (tests/typecheck/build), commit, push, open PR, and
-  move this entry to Completed.
-
-## Completed
+- None for this task. PR #222 was merged 2026-08-14.
 
 ## Outline sidebar: highlight the active heading while scrolling
 
