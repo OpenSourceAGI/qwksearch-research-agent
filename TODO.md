@@ -16,7 +16,7 @@ whole Ideas Backlog/Longterm list found five more items in the same state:
 before in "Update TODO.md backlog annotations for accuracy" (PR #273) — a
 documentation-only accuracy pass, not a new feature.
 **Branch:** `claude/adoring-mayer-lhzc9q` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/278
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -97,13 +97,12 @@ already-shipped work.
       was reverted, matching prior tasks' precedent; final
       `git status --short` shows exactly `TODO.md`)
 - [x] Commit and push the branch
-- [ ] Create the pull request
+- [x] Create the pull request (PR #278)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task's own scope. All acceptance criteria verified locally
-  on this commit; PR creation is the only remaining step (see GitHub
-  updates in this run's report).
+- None for this task's own scope. PR #278 merged; all verification passed
+  locally on this commit.
 - A full re-audit of the remaining open backlog items (0b, 13, 15, 20, 24,
   27, 31, 33-37) found no further mis-annotated *completed* items — those
   are either genuinely open, too vague/large for a first slice, or already
