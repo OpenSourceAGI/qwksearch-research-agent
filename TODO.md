@@ -2,7 +2,7 @@
 
 ## Test coverage for the article-reader follow-up-questions pipeline
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Non-goals of the "Test coverage for the
 follow-up-suggestions pipeline" task (PR #235): "The parallel article-reader
 follow-up-questions pipeline (`ArticleFollowupQuestions.tsx`,
@@ -14,8 +14,9 @@ gap for the article-reader surface, whose
 article-followups.ts`) has zero test coverage today (confirmed via a repo
 search — no `article-followups.test.ts` exists anywhere).
 **Branch:** `claude/adoring-mayer-l9v228` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/276
 **Started:** 2026-08-15
+**Completed:** 2026-08-15
 
 ### Goal
 Add Vitest coverage for `createArticleFollowupsHandler` — the article-reader
@@ -118,13 +119,26 @@ existing test pattern already proven for the structurally-identical
       package-version-sync diff was reverted, matching prior tasks'
       precedent; final `git status --short` shows exactly the 1 new test
       file beyond this tracker entry)
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #276, merged)
+- [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Commit, push, and open a PR — implementation and all local verification
-  are complete.
+- None for this task's own scope. PR #276 merged; all verification passed
+  locally on this commit.
+- The PR's "Workers Builds: qwksearch-research-agent" Cloudflare deploy
+  check failed — the same recurring, pre-existing, unrelated-to-code
+  infrastructure issue already conclusively documented as Ideas Backlog item
+  39 (a further occurrence, on a PR whose diff again touches only
+  `apps/qwksearch-web/app/api/agent/__tests__/article-followups.test.ts`
+  plus `TODO.md`, with `bun run build:web` passing 14/14 tasks locally on
+  this exact commit before merging, and the PR merging within seconds
+  regardless). Per that item's own note, this is not appended as a new
+  numbered occurrence there.
+- The deferred follow-up noted above remains open: a UI/DOM test for
+  `ArticleFollowupQuestions.tsx`/`ArticleExtractPanel.tsx`, which would
+  first require standing up `@testing-library/react`-style component test
+  infra in `research-agent-ui` (none exists today).
 
 ## OpenRouter: send app-attribution headers (HTTP-Referer, X-Title)
 
