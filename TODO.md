@@ -129,7 +129,7 @@ used for the title in `apps/qwksearch-ext`'s side panel Favorites tab, via
 
 ## Browser extension: Browse bookmarks by folder in the Favorites tab
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 14 (Favorites tab), continuing the
 follow-up explicitly deferred as a Non-goal in the original "Browser
 extension: Favorites (bookmarks) tab" task ("Browsing the full bookmark
@@ -139,8 +139,9 @@ tasks' Remaining work ("Bookmark-folder-tree editing/moving remains an open,
 separate follow-up"). This slice covers the "browsing" half only — view-only
 folder navigation, no move/reorder/create.
 **Branch:** `claude/adoring-mayer-0cef78` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/261 (merged)
 **Started:** 2026-08-15
+**Completed:** 2026-08-15
 
 ### Goal
 Let a user switch the Favorites tab from the existing flat "most recent 20"
@@ -258,11 +259,20 @@ the panel.
       tasks' precedent; final `git diff --stat` shows only the 4 intended
       files)
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #261, merged)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task's own scope beyond opening the PR (next step).
+- None for this task's own scope. PR #261 merged; all verification passed
+  locally on this commit.
+- The PR's "Workers Builds: qwksearch-research-agent" Cloudflare deploy check
+  failed — this is the same recurring, pre-existing, unrelated-to-code
+  infrastructure issue already conclusively documented as Ideas Backlog item
+  39 (11 consecutive occurrences across every PR regardless of content,
+  including pure-documentation PRs). Per that item's own note, this is not
+  appended as a new numbered occurrence there — the pattern is already fully
+  established and it's exclusively actionable by a human with Cloudflare
+  dashboard access.
 - Follow-ups noted above remain open: creating new bookmarks/folders,
   moving/reordering bookmarks between folders, and a full multi-level
   breadcrumb trail beyond the single "Back" button.
