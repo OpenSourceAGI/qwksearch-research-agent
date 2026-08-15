@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { formatOpenTabsMessage, isContextableTab } from "../lib/open-tabs-context"
+import {
+  MAX_TAB_CONTENT_CHARS,
+  formatOpenTabsMessage,
+  isContextableTab,
+  truncateTabContent,
+} from "../lib/open-tabs-context"
 
 describe("isContextableTab", () => {
   it("returns true for an http URL", () => {
@@ -103,5 +108,72 @@ describe("formatOpenTabsMessage", () => {
         "Please use these as context for my next questions.",
       ].join("\n")
     )
+  })
+
+  it("includes a truncated content excerpt indented under a tab's line when present", () => {
+    const message = formatOpenTabsMessage([
+      { title: "Example Site", url: "https://example.com", content: "Some page text." },
+    ])
+
+    expect(message).toBe(
+      [
+        "Here are my currently open browser tabs:",
+        "1. Example Site — https://example.com",
+        "   Some page text.",
+        "",
+        "Please use these as context for my next questions.",
+      ].join("\n")
+    )
+  })
+
+  it("omits the content line when content is blank or whitespace-only", () => {
+    const message = formatOpenTabsMessage([
+      { title: "Example Site", url: "https://example.com", content: "   " },
+    ])
+
+    expect(message).toBe(
+      [
+        "Here are my currently open browser tabs:",
+        "1. Example Site — https://example.com",
+        "",
+        "Please use these as context for my next questions.",
+      ].join("\n")
+    )
+  })
+
+  it("mixes tabs with and without content", () => {
+    const message = formatOpenTabsMessage([
+      { title: "With Content", url: "https://example.com/a", content: "Body text" },
+      { title: "No Content", url: "https://example.com/b" },
+    ])
+
+    expect(message).toBe(
+      [
+        "Here are my currently open browser tabs:",
+        "1. With Content — https://example.com/a",
+        "   Body text",
+        "2. No Content — https://example.com/b",
+        "",
+        "Please use these as context for my next questions.",
+      ].join("\n")
+    )
+  })
+})
+
+describe("truncateTabContent", () => {
+  it("returns trimmed content unchanged when at or under the max length", () => {
+    expect(truncateTabContent("  hello world  ", 20)).toBe("hello world")
+  })
+
+  it("truncates content over the max length and appends an ellipsis", () => {
+    const content = "a".repeat(MAX_TAB_CONTENT_CHARS + 50)
+    const result = truncateTabContent(content)
+
+    expect(result).toBe(`${"a".repeat(MAX_TAB_CONTENT_CHARS)}…`)
+    expect(result.length).toBe(MAX_TAB_CONTENT_CHARS + 1)
+  })
+
+  it("respects a custom max length", () => {
+    expect(truncateTabContent("abcdefghij", 5)).toBe("abcde…")
   })
 })
