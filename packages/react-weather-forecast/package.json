@@ -1,6 +1,6 @@
 {
   "name": "use-weather-forecast",
-  "version": "0.1.79",
+  "version": "0.1.81",
   "description": "React weather forecast component using Open-Meteo and IP geolocation",
   "keywords": ["react", "weather", "forecast", "open-meteo", "cloudflare", "ipapi", "component-library"],
   "repository": {
