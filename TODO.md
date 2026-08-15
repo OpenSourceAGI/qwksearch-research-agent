@@ -18,7 +18,7 @@ installs their dependencies, and a root `bun run test`/`vitest run` fails on the
 with module-resolution errors — not an actually-missing `jsdom` entry in their own
 `package.json` (it's already declared there).
 **Branch:** `claude/adoring-mayer-o372r8` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/257
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -2763,3 +2763,16 @@ ext - dl to reason dl folswe
     code change whatsoever, continues to rule out this repo's source as the
     cause. Still needs a human with Cloudflare dashboard access to
     diagnose — this environment has no credentials for it.
+
+    **Update: it recurred a tenth time, on PR #257 (commit `cfcdbf8`, the
+    "Add render-url-to-html sub-packages to bun workspaces" task), build ID
+    `35066b2d-2947-4500-a235-ec0840810463`. Same pattern as every prior
+    occurrence: `bun run build:web` passed 14/14 turbo tasks locally on this
+    exact commit before the check ran (and before merging), and this PR
+    changed only `package.json`'s `workspaces` array, `bun.lock`, and
+    `TODO.md` — again nothing in `apps/qwksearch-web` or any other
+    Cloudflare-deployed app. Ten consecutive failures across ten different
+    PRs/commits, including four carrying no application code change
+    whatsoever, continues to rule out this repo's source as the cause. Still
+    needs a human with Cloudflare dashboard access to diagnose — this
+    environment has no credentials for it.
