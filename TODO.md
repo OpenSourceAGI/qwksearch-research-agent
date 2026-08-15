@@ -2310,6 +2310,15 @@ ext - dl to reason dl folswe
     build:web` passed 14/14 turbo tasks locally on this exact commit before
     the check ran (and before merging). Five consecutive failures across
     five different PRs/commits confirms this is not transient and not
-    caused by this repo's source. Still needs a human with
+    caused by this repo's source.
+
+    **Update: it recurred a sixth time, on PR #252 (commit `91c1fb0`, the
+    TODO.md tracker-sync-only follow-up to PR #251), build ID
+    `01c74939-2faa-46b9-8f5d-41b4c9f7130b`. This PR's diff touches only
+    `TODO.md` — zero code — the second time a pure-documentation PR has
+    triggered the identical failure (the first being PR #249, see the third
+    occurrence above), reconfirming this is entirely a Cloudflare-side/
+    Workers-Build infrastructure issue with no code-level trigger in this
+    repo whatsoever. Still needs a human with
     Cloudflare dashboard access to diagnose — this environment has no
     credentials for it.
