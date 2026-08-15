@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest"
 import {
+  folderDisplayTitle,
   hostnameFromUrl,
   isBookmarkNode,
+  isFolderNode,
   sanitizeBookmarkTitle,
   sanitizeBookmarkUrl,
   titleOrHostname
@@ -50,6 +52,34 @@ describe("isBookmarkNode", () => {
 
   it("returns false for a node with an empty-string url", () => {
     expect(isBookmarkNode({ title: "Odd node", url: "" })).toBe(false)
+  })
+})
+
+describe("isFolderNode", () => {
+  it("returns false for a node with a url", () => {
+    expect(isFolderNode({ title: "Example", url: "https://example.com" })).toBe(false)
+  })
+
+  it("returns true for a folder node with no url", () => {
+    expect(isFolderNode({ title: "My Folder" })).toBe(true)
+  })
+
+  it("returns true for a node with an empty-string url", () => {
+    expect(isFolderNode({ title: "Odd node", url: "" })).toBe(true)
+  })
+})
+
+describe("folderDisplayTitle", () => {
+  it("returns the trimmed title when present", () => {
+    expect(folderDisplayTitle({ title: "  Work Bookmarks  " })).toBe("Work Bookmarks")
+  })
+
+  it("falls back to a placeholder when the title is blank", () => {
+    expect(folderDisplayTitle({ title: "   " })).toBe("Untitled folder")
+  })
+
+  it("falls back to a placeholder when the title is missing", () => {
+    expect(folderDisplayTitle({})).toBe("Untitled folder")
   })
 })
 
