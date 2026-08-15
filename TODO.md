@@ -1,5 +1,131 @@
 ## In Progress
 
+## Test coverage for the article-reader follow-up-questions pipeline
+
+**Status:** In Progress
+**Source:** TODO.md — Non-goals of the "Test coverage for the
+follow-up-suggestions pipeline" task (PR #235): "The parallel article-reader
+follow-up-questions pipeline (`ArticleFollowupQuestions.tsx`,
+`article-followups/route.ts`, `api/handlers/article-followups.ts`) — same
+gap, but a separate surface; left as a follow-up." That chat-suggestions
+pipeline now has full backend test coverage; this task closes the identical
+gap for the article-reader surface, whose
+`createArticleFollowupsHandler` (`packages/research-agent-ui/src/api/handlers/
+article-followups.ts`) has zero test coverage today (confirmed via a repo
+search — no `article-followups.test.ts` exists anywhere).
+**Branch:** `claude/adoring-mayer-l9v228` (this session's designated branch)
+**PR:** Not created yet
+**Started:** 2026-08-15
+
+### Goal
+Add Vitest coverage for `createArticleFollowupsHandler` — the article-reader
+follow-up-questions LLM handler — so a future change to its prompt-building,
+parsing, or error-handling logic gets a regression signal, matching the
+existing test pattern already proven for the structurally-identical
+`createPageTipsHandler`
+(`apps/qwksearch-web/app/api/agent/__tests__/page-tips.test.ts`).
+
+### Scope
+- `apps/qwksearch-web/app/api/agent/__tests__/article-followups.test.ts`:
+  unit tests for `createArticleFollowupsHandler`
+  (`packages/research-agent-ui/src/api/handlers/article-followups.ts`),
+  mocking the `ai` package's `generateText` and
+  `chat-agent-toolkit/models/registry`'s `ModelRegistry` (identical mocking
+  pattern to `page-tips.test.ts`), asserting: a missing `article` body field
+  returns 400; the loaded chat model is requested with the given
+  `providerId`/`key`; prior `chatHistory` user messages are folded into the
+  prompt; the LLM response is parsed into a cleaned list of questions
+  (numbering/bullets stripped, blank/short (`<=10`-char) lines dropped);
+  article content is truncated to 15000 characters in the prompt; the parsed
+  list is sliced to `maxQuestions`; a model-load failure returns 500 with the
+  error message.
+
+### Non-goals
+- A UI/DOM test for `ArticleFollowupQuestions.tsx` or `ArticleExtractPanel.tsx`
+  — same reasoning as the sibling chat-suggestions task: `research-agent-ui`
+  has no existing `@testing-library/react`-style component test to mirror,
+  and the actual client-side fetch call
+  (`callLanguageAPI('suggest-followups')` in `ArticleExtractPanel.tsx`) is
+  inline in a large component rather than a standalone lib helper like
+  `getSuggestions`, so there is no small isolated client-fetch unit to test
+  here the way `research-agent-ui/test/suggestions.test.ts` tests
+  `getSuggestions` — standing up component-level test infra is a separate,
+  larger piece of work, left as a further follow-up.
+- Any behavior change to `article-followups.ts`, its route, or
+  `ArticleFollowupQuestions.tsx` — this is a test-only change.
+- `apps/qwksearch-web/app/api/agent/article-followups/route.ts` itself —
+  trivial dependency-injection wiring, same as every other untested route.ts
+  in this codebase (route.ts files are never directly tested; only the
+  handler factories they wire up are).
+
+### Acceptance criteria
+- [x] `createArticleFollowupsHandler`'s handler returns a 400 when `article`
+      is missing from the request body.
+- [x] The handler loads the chat model via the requested `providerId`/`key`.
+- [x] Prior `chatHistory` user messages are included in the prompt sent to
+      `generateText`.
+- [x] A well-formed multi-line LLM response is parsed into a cleaned list of
+      questions (numbering/bullet prefixes stripped, blank/short lines
+      dropped).
+- [x] Article content is truncated to 15000 characters in the prompt.
+- [x] The parsed question list is sliced down to `maxQuestions`.
+- [x] A model-load failure returns a 500 with the error message.
+- [x] Vitest coverage is added or updated — 7 new cases in
+      `apps/qwksearch-web/app/api/agent/__tests__/article-followups.test.ts`,
+      mirroring `page-tips.test.ts`'s mocking pattern exactly, all passing.
+- [x] Lint passes — no `lint` script exists at the repo root or in
+      `qwksearch-web`/`research-agent-ui`; nothing to run (same as every
+      prior task touching these packages).
+- [x] Typecheck passes — `bun run build` in `packages/research-agent-ui`
+      surfaces the same 9 pre-existing errors documented in prior TODO.md
+      tasks (`unified-markdown.tsx` x3, `ChatWindow.tsx`,
+      `MessageInputIconSet.tsx`, `MessageSources.tsx`,
+      `WebCitationBadge.tsx`), none referencing `article-followups.ts` or
+      the new test file.
+- [x] Tests pass — focused suite (`bunx vitest run
+      apps/qwksearch-web/app/api/agent/__tests__/article-followups.test.ts`):
+      7/7 passed. Full workspace `bun run test`: 185/194 files, 2553/2608
+      tests pass (51 failed, 4 skipped) — confirmed via a full `grep "^
+      FAIL"` over the captured run that the 9 failing files are exactly the
+      documented pre-existing set (`chat-agent-toolkit/test/
+      openrouter-default-model.test.js`, `qwksearch-web/app/api/config/
+      __tests__/route.test.ts`, `search-web-api/test/{api,
+      autocomplete-engines,engine-health-suite,search,sources-unit,
+      sources}.test.ts`, `shadcn-settings/test/settings-field.test.tsx`),
+      none touching this task's new test file.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded (5m42s).
+- [x] Documentation is updated if behavior or configuration changes — n/a;
+      test-only change.
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (`article-followups.ts`, `article-followups/route.ts`,
+      `page-tips.test.ts`'s mocking pattern) — done, see Source/Scope above
+- [x] Confirm the exact mocking pattern for `ai`'s `generateText` and
+      `ModelRegistry` (mirrored from `page-tips.test.ts`)
+- [x] Add `article-followups.test.ts` with success-path coverage
+- [x] Add failure/edge-case coverage (missing article, model-load failure,
+      truncation, maxQuestions slicing)
+- [x] Run focused tests and fix failures (none needed — 7/7 passed first run)
+- [x] Run linting and typechecking (lint n/a; typecheck baseline unchanged
+      at the same 9 pre-existing `research-agent-ui` errors)
+- [x] Run the full relevant test suite (focused suite and full workspace
+      `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` was
+      required in this fresh checkout; the resulting `bun.lock`
+      package-version-sync diff was reverted, matching prior tasks'
+      precedent; final `git status --short` shows exactly the 1 new test
+      file beyond this tracker entry)
+- [ ] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Commit, push, and open a PR — implementation and all local verification
+  are complete.
+
 ## OpenRouter: send app-attribution headers (HTTP-Referer, X-Title)
 
 **Status:** Completed
