@@ -1811,6 +1811,190 @@ without leaving the panel or manually typing/copy-pasting each tab.
 
 ## Completed
 
+## Reconstruct the `packages/reason-editor/demo/` app source
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 0b ("Reconstruct the
+`packages/reason-editor/demo/` app source. It has never been committed to
+this repo... yet README.md/EXTENSIONS.md/wrangler.jsonc document a real
+6-view demo app living there."). Confirmed via `git log --all` that the
+directory was in fact committed once, under the package's pre-rename path
+`packages/react-reason-editor/demo/`, and was deleted wholesale in commit
+`fa97446` (the same commit that renamed `packages/react-reason-editor` to
+`packages/reason-editor`) — the package's own name (`react-reason-editor`
+in `package.json`) never changed, only the containing directory, so the
+deleted demo's file contents apply unmodified at the new location. This
+task restores that exact original content (recovered in full from
+`git show fa97446 -- packages/react-reason-editor/demo`) rather than
+reinventing it, then fixes the one thing that had genuinely gone stale
+since the deletion: the library's own `vite.config.ts` picked up a
+`novelTiptapV3Compat` fix for a Tiptap-v2-vs-v3 incompatibility in the
+`novel` dependency sometime after the demo was deleted, and the demo
+(which bundles straight from `src/`, not the library's compiled `dist/`)
+needed the identical fix, which it never had.
+**Branch:** `claude/adoring-mayer-17926k` (this session's designated branch)
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/280
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Restore `packages/reason-editor/demo/` so the six documented demo views
+(full organizer app, editor w/ full toolbar, small toolbar, input box,
+table of contents, Harper proofing) actually exist and run, matching what
+`README.md`, `EXTENSIONS.md`, and `wrangler.jsonc` already document and
+depend on — unblocking `bun run dev`/`dev:editor`, `bun run build:demo`,
+and `wrangler deploy` for the reason-editor demo site, none of which
+worked on a fresh checkout before this task (the main library build/tests
+were never affected — see Ideas Backlog item 0).
+
+### Scope
+- Restored, verbatim from the pre-deletion commit, at their original
+  relative paths under `packages/reason-editor/demo/`: `index.html`,
+  `alternatives.html`, `postcss.config.js`, `tsconfig.json`,
+  `vite.config.ts`, and `src/{main.tsx, App.tsx, alternatives-main.tsx,
+  AlternativesApp.tsx, styles.css, tabs/{TabFull,TabEditorOnly,
+  TabInputBox,TabSmallToolbar,TabWithHarper,TabWithToc,shared}.{tsx,ts}}`.
+- `demo/vite.config.ts`: added a `novelTiptapV3Compat` plugin (transform
+  hook rewriting `novel/dist/*`'s two Tiptap-v2-only imports) plus
+  `optimizeDeps.exclude: ['novel']`, both copied verbatim from the
+  library's own `packages/reason-editor/vite.config.ts`, which already
+  carries this exact fix for the same underlying incompatibility — the
+  demo bundles the same `novel` dependency straight from source and hit
+  the identical `MISSING_EXPORT` failures (`BubbleMenu`,
+  `@tiptap/extension-text-style`'s default export) both in `vite build`
+  and in the dev server's dependency pre-bundling until this was added.
+- `demo/tsconfig.json`: added the one subpath missing even from the
+  original file's own `paths` map, `react-reason-editor/harper` (used by
+  `TabWithHarper.tsx`) — a pre-existing gap in the original that only
+  affected editor/IDE typechecking of the demo folder in isolation, never
+  the running app (the demo's own `reasonEditorResolver` Vite plugin
+  resolves that subpath independently of `tsconfig.json`'s `paths`).
+- Removed `packages/reason-editor/index.html` (root-level, tracked since
+  PR #241's "Add an Undo close tab button" — an unrelated qwksearch-ext
+  task whose diff otherwise touches nothing in `reason-editor`). It
+  referenced `./demo/src/main.tsx` but used a different `<title>`,
+  different `<script src>` path, and none of the original's Google-Fonts
+  preconnect/stylesheet links — inconsistent with, and unreachable by, the
+  restored `demo/vite.config.ts` (which sets its own Vite `root` to
+  `demo/` and therefore serves `demo/index.html`, never this file). It was
+  dead weight left over from an incomplete prior attempt at this same
+  task, not a real integration point.
+
+### Non-goals
+- Any change to the six demo views' own behavior/content, or to the
+  restored `vite.config.ts`'s resolver logic beyond the one Novel/Tiptap
+  compat addition above — this is a faithful restoration of previously
+  working, previously shipped code, not a redesign.
+- `packages/reason-editor/EXTENSIONS.md`'s or `README.md`'s own demo
+  documentation — both already accurately describe the restored structure
+  (confirmed by reading them before starting); no updates needed.
+- Verifying `wrangler dev`/`wrangler deploy` end-to-end against a real
+  Cloudflare account — this environment has no Cloudflare credentials
+  (see Ideas Backlog items 38/39); `bun run build:demo` (the same build
+  step `wrangler deploy` itself runs via `wrangler.jsonc`'s
+  `build.command`) was verified instead, which is the actually testable
+  surface here.
+- A Vitest suite for the demo app itself — the original never had one
+  (it's a thin composition of already-tested library pieces, mirroring
+  the convention that `route.ts`/demo-entry files are never directly
+  tested elsewhere in this repo), and this task doesn't introduce new
+  behavior to cover.
+
+### Acceptance criteria
+- [x] `bun run build:lib && bun run build:demo` in `packages/reason-editor`
+      succeeds, producing `dist/demo/{index.html,alternatives.html,assets/}`
+      with both the `main` (full app) and `alternatives` (5 lighter-weight
+      views) entries bundled.
+- [x] `bun run dev` in `packages/reason-editor` starts a working Vite dev
+      server: `GET /` and `GET /src/main.tsx` both return `200`, and no
+      dependency-optimization or module-resolution error appears in the
+      server log (verified after adding the `novelTiptapV3Compat` +
+      `optimizeDeps.exclude` fix above; reproduced and confirmed fixed via
+      before/after runs).
+- [x] Vitest coverage: n/a — restoring pre-existing, already-covered
+      library code plus a thin, never-previously-tested demo composition
+      layer; see Non-goals.
+- [x] Lint passes — no `lint` script exists at the repo root or in
+      `reason-editor`; nothing to run (same as every prior task touching
+      this package).
+- [x] Typecheck passes — `bun run build` in `packages/reason-editor`
+      (`unplugin-dts`-driven type-check as part of the Vite lib build)
+      succeeds with zero errors, identical to its pre-existing warning-only
+      output (confirmed the `demo/` folder is out of scope for this
+      pipeline: `tsconfig.json`'s `"include": ["src"]` and the lib
+      `vite.config.ts`'s `entryRoot`/`rootDir` are both scoped to `src/`
+      only).
+- [x] Tests pass — `packages/reason-editor`'s own suite (`bunx vitest run`):
+      43/43 files, 474/474 tests passed, unchanged by this task. Full
+      workspace `bun run test`: 185/194 files, 2551/2608 tests pass (53
+      failed, 4 skipped) — confirmed via a full `grep "^ FAIL"` over the
+      captured run that the 9 failing files are exactly the documented
+      pre-existing set (`chat-agent-toolkit/test/
+      openrouter-default-model.test.js`, `qwksearch-web/app/api/config/
+      __tests__/route.test.ts`, `search-web-api/test/{api,
+      autocomplete-engines,engine-health-suite,search,sources-unit,
+      sources}.test.ts`, `shadcn-settings/test/settings-field.test.tsx`),
+      none touching `reason-editor` or this task's restored files.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded (6m56s).
+- [x] Documentation is updated if behavior or configuration changes — n/a;
+      `README.md`/`EXTENSIONS.md` already accurately describe the restored
+      demo structure (they were the specification this task implemented
+      against), and no behavior changed from what they already document.
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (`README.md`'s "Editor Views"/"Alternative demo views" sections,
+      `package.json`'s `dev`/`build:demo`/`deploy` scripts, `wrangler.jsonc`)
+- [x] Locate the exact pre-deletion demo source via `git log --all` /
+      `git show` on the package's pre-rename path, rather than
+      reimplementing six views from the README's abbreviated examples
+- [x] Restore all 17 original files verbatim at their equivalent paths
+      under `packages/reason-editor/demo/`
+- [x] Remove the stale, inconsistent, unreachable root-level
+      `packages/reason-editor/index.html` left over from an incomplete
+      prior attempt
+- [x] Run `bun run build:lib` then `bun run build:demo`; diagnose and fix
+      the resulting `novel`/Tiptap-v3 `MISSING_EXPORT` build failure by
+      porting the library config's existing `novelTiptapV3Compat` fix
+- [x] Run `bun run dev` and confirm the dev server serves `200` for `/`
+      and `/src/main.tsx` with no resolution/optimization errors (required
+      porting the same fix's `optimizeDeps.exclude: ['novel']` half, which
+      the production build path doesn't need but the dev pre-bundler does)
+- [x] Add the one missing `react-reason-editor/harper` tsconfig path entry
+- [x] Run focused tests (`packages/reason-editor`'s own suite) and fix
+      failures (none needed — 474/474 passed unchanged)
+- [x] Run linting and typechecking (lint n/a; `bun run build` type-checks
+      cleanly)
+- [x] Run the full relevant test suite (`reason-editor` focused suite and
+      full workspace `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` was
+      required in this fresh checkout; the resulting `bun.lock`
+      package-version-sync diff was reverted, matching prior tasks'
+      precedent; final `git status --short` shows exactly the 17 restored
+      demo files, the 1 removed stray `index.html`, and this tracker entry)
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #280)
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. PR #280 opened; all acceptance criteria
+  verified locally on this commit.
+- Not independently verified: `wrangler dev`/`wrangler deploy` against a
+  real Cloudflare Workers account (no credentials in this environment —
+  see Non-goals above and Ideas Backlog items 38/39 for the unrelated,
+  already-documented Cloudflare Workers Build infrastructure issue
+  affecting this repo's deploy checks generally).
+- No automated end-to-end/visual verification that the six views render
+  pixel-correct in a real browser (a headless-browser check was
+  considered but would have required adding Playwright as a new
+  dependency to this monorepo purely for one-off manual verification,
+  out of scope for a restoration task) — verified instead via clean
+  production builds of both demo entries and a clean dev-server boot
+  serving both the HTML shell and the entry module with no console/build
+  errors.
+
 ## Browser extension: Edit a bookmark's URL from the Favorites tab
 
 **Status:** Completed
@@ -4115,7 +4299,12 @@ button / Ctrl+` shortcut in `ChatInputBox`.
     plus a second `/alternatives.html` entry point). Until it's rebuilt,
     `pnpm dev`/`dev:editor`, `pnpm build:demo`, and `wrangler deploy` for the
     reason-editor demo site all remain broken (the main library build/tests
-    are unaffected — see item 0).
+    are unaffected — see item 0). — **done, see "Reconstruct the
+    `packages/reason-editor/demo/` app source" above** (turned out the demo
+    *had* been committed once, under the package's pre-rename path, and was
+    deleted in the same commit that renamed the package; restored verbatim
+    from that commit plus one dev-only Tiptap-v3 compat fix that had gone
+    stale since)
 ext - dl to reason dl folswe
 1. in sidebar, have it sugegst related by keywords — **first slice done, see
    "Sidebar: suggest related documents by keyword overlap" above; tag-aware
