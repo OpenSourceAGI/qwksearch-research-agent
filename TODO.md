@@ -14,7 +14,7 @@ rendered as a block inside the existing "related" panel (the same way
 "Page tips" is a block inside the existing "ai" panel), the smallest
 independently-useful first slice per this task's own scoping rules.
 **Branch:** `claude/adoring-mayer-syrh5u` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/270
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
