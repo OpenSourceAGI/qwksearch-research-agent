@@ -1833,7 +1833,7 @@ since the deletion: the library's own `vite.config.ts` picked up a
 (which bundles straight from `src/`, not the library's compiled `dist/`)
 needed the identical fix, which it never had.
 **Branch:** `claude/adoring-mayer-17926k` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/280
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -1975,13 +1975,12 @@ were never affected — see Ideas Backlog item 0).
       precedent; final `git status --short` shows exactly the 17 restored
       demo files, the 1 removed stray `index.html`, and this tracker entry)
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #280)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task's own scope beyond opening the PR (see GitHub updates
-  in this run's report). All acceptance criteria verified locally on this
-  commit.
+- None for this task's own scope. PR #280 opened; all acceptance criteria
+  verified locally on this commit.
 - Not independently verified: `wrangler dev`/`wrangler deploy` against a
   real Cloudflare Workers account (no credentials in this environment —
   see Non-goals above and Ideas Backlog items 38/39 for the unrelated,
