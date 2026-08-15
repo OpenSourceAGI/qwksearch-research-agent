@@ -1,8 +1,154 @@
 ## In Progress
 
+## Completed
+
+## Wire `research-agent-ui` into `qwksearch-ext`'s build (item 29c)
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 29c, filed by the "Fix
+`qwksearch-ext`'s Tailwind v4 PostCSS plugin mismatch" task: once the
+PostCSS/CSS-config blocker was fixed, `qwksearch-ext`'s build failed at a
+later step because `components/ResearchTab.tsx` imports `research-agent-ui`,
+which is never declared as a dependency in `qwksearch-ext/package.json`
+(unlike `apps/qwksearch-web`, which declares it via `workspace:*` plus a
+`prebuild` script). Confirmed by re-running `bun run build` in
+`qwksearch-ext` at the start of this task: it fails immediately with
+`[vite]: Rolldown failed to resolve import "research-agent-ui" from
+".../ResearchTab.tsx"`. The `next/navigation` and `grab-url` shims this
+integration needs (`lib/next-navigation-shim.tsx`, `lib/grab-url-shim.ts`)
+and their Vite aliases in `wxt.config.ts` already existed from earlier
+work — only the dependency declaration/build-ordering was missing.
+**Branch:** `claude/adoring-mayer-wmhmlr`
+**PR:** Not created yet
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Let `bun run build`/`bun run build:firefox`/`bun run zip` in
+`apps/qwksearch-ext` succeed on a fresh checkout, so the "Research" tab
+(already coded in `ResearchTab.tsx`, wired into `sidepanel/App.tsx`) is
+actually buildable/shippable in the extension, matching how
+`apps/qwksearch-web` already builds `research-agent-ui` successfully via
+turbo's `^build` dependency graph.
+
+### Scope
+- `apps/qwksearch-ext/package.json`: declare `"research-agent-ui":
+  "workspace:*"` as a dependency, so turbo's `build` task (`dependsOn:
+  ["^build"]` in root `turbo.json`) builds `research-agent-ui` (and its own
+  transitive workspace deps: `chat-agent-toolkit`, `domain-rank`,
+  `extract-webpage`, `qwksearch-api-client`, `trending-news-api`,
+  `use-weather-forecast`, `search-web-api`) before `qwksearch-ext`'s own
+  `wxt build` runs.
+- Verify `bunx turbo build --filter=qwksearch-extension-wxt` (turbo-driven,
+  not plain `bun run build` inside the package, since only turbo knows the
+  `^build` dependency ordering) succeeds end-to-end on a fresh checkout.
+- Fix whatever further build errors surface once module resolution gets
+  past `research-agent-ui` itself (peer deps, browser-vs-Node built-ins used
+  by `research-agent-ui`'s own dependency chain, additional Next.js-only
+  APIs beyond `next/navigation` that need shimming, etc.) — the scope of
+  "whatever it actually takes to get a working build," not a predetermined
+  list, since the real blockers are only discoverable by attempting the
+  build.
+- If a further blocker turns out to be large/separate in nature (e.g. a
+  whole new browser-only reimplementation of something `research-agent-ui`
+  assumes is server-side), document it precisely as a new backlog follow-up
+  rather than silently expanding this task's scope.
+
+### Non-goals
+- Making the Research tab's *runtime behavior* fully functional inside the
+  extension (e.g. verifying every API call the chat UI makes actually
+  resolves against `https://qwksearch.com` correctly at runtime) — this
+  task is scoped to getting the **build** to succeed; manual/runtime
+  verification of the shipped extension is out of scope (matches this
+  repo's precedent of build/test/typecheck-level verification, not manual
+  QA, for `qwksearch-ext` tasks).
+- Any UI/feature change to `ResearchTab.tsx`, `ChatWindow`, or any other
+  `research-agent-ui` component.
+- Rebuilding `packages/reason-editor/demo/` (item 0b) — unrelated.
+
+### Acceptance criteria
+- [x] `bunx turbo build --filter=qwksearch-extension-wxt` succeeds,
+      producing `.output/chrome-mv3/` — 11/11 turbo tasks succeeded on the
+      first attempt once the dependency was declared; no further blockers
+      surfaced (the `next/navigation`/`grab-url` shims from earlier work
+      were already sufficient).
+- [x] The Firefox build succeeds, producing `.output/firefox-mv2/` — via
+      `bun run build:firefox` inside `qwksearch-ext` (not
+      `turbo build -- -b firefox`: turbo forwards trailing args after `--`
+      to *every* task in the dependency graph, not just the filtered
+      package, which broke unrelated packages' `tsup`-based build scripts
+      that don't understand `-b`; this is a pre-existing turbo/CLI
+      limitation unrelated to this task, not a bug introduced here — once
+      `research-agent-ui` and its deps were already built via the prior
+      Chrome-target turbo run, plain `bun run build:firefox` in the package
+      itself picked them up correctly).
+- [x] Vitest coverage is added or updated — n/a; this ended up being a pure
+      dependency-declaration fix with no new logic (no new shim was
+      needed), matching the "n/a" expectation noted when this task started.
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run.
+- [x] Typecheck passes — `bun run compile` in `qwksearch-ext` (after
+      clearing `tsconfig.tsbuildinfo`) surfaces only the same pre-existing
+      `TS2304`/`TS2493`/`TS2769` error classes documented in prior TODO.md
+      tasks; no new categories, and nothing referencing `ResearchTab.tsx`
+      or `research-agent-ui`.
+- [x] Tests pass — `bun run test` in `qwksearch-ext`: 72/72 passed (8/8
+      files, unchanged from before this task). Full workspace `bun run
+      test`: 172/182 files, 2442/2501 tests pass (4 skipped); the 10
+      failing files (`search-web-api` engine tests hitting real external
+      APIs, the `qwksearch-web` config route test, `shadcn-settings`,
+      `jsdom-scraper` missing its `jsdom` dependency, `chat-agent-toolkit`'s
+      `openrouter-default-model.test.js`) are the same pre-existing,
+      documented-in-prior-TODO.md-tasks set — none touch `qwksearch-ext` or
+      `research-agent-ui`.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded, confirming this change doesn't regress
+      `qwksearch-web`'s build.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry; no new shim was needed.
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (confirmed `next/navigation`/`grab-url` shims and their `wxt.config.ts`
+      aliases already exist; only the dependency + build ordering is
+      missing)
+- [x] Reproduce the exact failure on a fresh `bun install` (`[vite]: Rolldown
+      failed to resolve import "research-agent-ui"`)
+- [x] Add `research-agent-ui: workspace:*` to `qwksearch-ext/package.json`
+- [x] Run `bun install` and confirm the workspace link resolves
+- [x] Attempt `bunx turbo build --filter=qwksearch-extension-wxt` — succeeded
+      immediately (11/11 tasks); no further errors to iterate on
+- [x] Attempt the Firefox build target (`bun run build:firefox`) — succeeded
+- [x] Add focused Vitest coverage for any new logic — n/a, no new logic was
+      added
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change; typecheck failures are pre-existing)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build (`bun run build:web` at repo root)
+- [x] Review the final diff for scope and quality (also reverted the
+      unrelated `bun.lock` package-version-sync diff produced by `bun
+      install` — pure version-number sync to already-committed
+      `package.json` bumps, out of scope, matching prior tasks' precedent —
+      keeping only the new `research-agent-ui: workspace:*` dependency line)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Create the pull request for this branch's commit(s).
+- The Research tab's actual *runtime* behavior inside the shipped extension
+  (whether every `research-agent-ui` API call correctly resolves against
+  `https://qwksearch.com`, whether the bundled voice/ONNX assets work in
+  the extension's sandboxed pages, etc.) has not been manually verified —
+  out of scope per this task's Non-goals, but worth a manual QA pass before
+  relying on the Research tab in production.
+
+## Completed
+
 ## Browser extension: History tab
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 14 ("Main nav: Tabs | AI chat | Web
 search | Favorites | History."), scoped to its next independently useful
 piece: a History list view in the side panel, mirroring the pattern already
@@ -10,9 +156,9 @@ established by the Downloads tab and "Undo close tab" button (both slices
 of the related item 28). (Favorites/bookmarks and any main-nav restructuring
 remain separate follow-ups — see Non-goals.)
 **Branch:** `claude/adoring-mayer-t17vkx`
-**PR:** Not created yet (implementation pushed; PR creation is the only
-remaining step)
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/244 (merged)
 **Started:** 2026-08-15
+**Completed:** 2026-08-15
 
 ### Goal
 Let a user see and act on their recent browsing history from
@@ -112,13 +258,14 @@ existing "Tabs", "Research", and "Downloads" tabs, using Chrome's
 - [x] Run the production/web build
 - [x] Review the final diff for scope and quality
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #244, merged)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Create the pull request for this branch's commit(s).
-
-## Completed
+- None for this task. PR #244 merged.
+- Follow-ups noted above remain open: a "Favorites"/bookmarks tab
+  (`chrome.bookmarks`), and any main-nav restructuring toward the backlog
+  item's literal "Tabs | AI chat | Web search | Favorites | History" layout.
 
 ## Browser extension: Downloads tab
 
@@ -1698,7 +1845,9 @@ ext - dl to reason dl folswe
 
 12. Use CRX/extension to open tabs and scrape them.
 13. Custom AI agent monitors topics and generates a news feed.
-14. Main nav: Tabs | AI chat | Web search | Favorites | History.
+14. Main nav: Tabs | AI chat | Web search | Favorites | History. — **History
+    tab slice done, see "Browser extension: History tab" above** (Favorites
+    tab and any main-nav restructuring remain follow-ups)
 15. Queries should run on cached pages that belong to topic outlines.
 16. Research agents should queue the next video.
 17. Follow-up suggestions. — **feature already implemented; test coverage
@@ -1737,7 +1886,11 @@ ext - dl to reason dl folswe
      plus a peer dependency on `next`, partly worked around already via
      `qwksearch-ext/lib/next-navigation-shim.tsx`). Discovered while fixing
      29b; needs its own dedicated task to wire up the dependency and
-     prebuild chain.
+     prebuild chain. — **done, see "Wire `research-agent-ui` into
+     `qwksearch-ext`'s build (item 29c)" above** (turned out to need only
+     the dependency declaration itself — turbo's existing `^build` graph
+     handled the rest; the Research tab's runtime behavior in the shipped
+     extension remains unverified, see that task's Remaining work)
 31. Agents that scrape the web and work with datasets like LinkedIn.
 32. Auto-generate keyphrase completions for on-page Ctrl+F search.
 33. Markdown/file tree view inspiration: [ld246.com/guide/markdown](https://ld246.com/guide/markdown).
