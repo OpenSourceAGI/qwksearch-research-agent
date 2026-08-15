@@ -62,6 +62,7 @@ export const Sidebar = ({
   canReopenLastClosed = false,
   aiProps,
   tipsProps,
+  topicsProps,
   tabItems,
   onNewChat,
 }: SidebarProps) => {
@@ -247,6 +248,7 @@ export const Sidebar = ({
     onNavigate,
     aiProps,
     tipsProps,
+    topicsProps,
     tabItems,
     onNewChat,
   };
