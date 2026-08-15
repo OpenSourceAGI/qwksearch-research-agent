@@ -3,6 +3,8 @@ import { Search, X, Maximize, ChevronDown } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
 import findInTabContent from "@/lib/find-in-tab-content"
+import extractTabContent from "@/lib/extract-tab-content"
+import { extractKeyphrases, filterKeyphraseCompletions } from "@/lib/keyphrase-completions"
 
 interface TabResult {
   id: number
@@ -29,12 +31,22 @@ export default function TabSearch({ results, setResults, fetchAllTabs, searchEng
   const [isOpen, setIsOpen] = useState(false)
   const [autocompleteResults, setAutocompleteResults] = useState<any[]>([])
   const [arrowCounter, setArrowCounter] = useState(-1)
+  const [pageKeyphrases, setPageKeyphrases] = useState<string[]>([])
   const searchTextRef = useRef(searchText)
 
   // Keep ref in sync for use in chrome listener
   useEffect(() => {
     searchTextRef.current = searchText
   }, [searchText])
+
+  // Fetch the active tab's page content once, to power keyphrase autocomplete.
+  useEffect(() => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async ([tab]) => {
+      if (!tab?.id) return
+      const content = await extractTabContent(tab.id)
+      if (content) setPageKeyphrases(extractKeyphrases(content))
+    })
+  }, [])
 
   useEffect(() => {
     const listener = (request: any) => {
@@ -87,13 +99,16 @@ export default function TabSearch({ results, setResults, fetchAllTabs, searchEng
   async function onSearchType(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value
     setSearchText(value)
+    setArrowCounter(-1)
 
     if (value === "") {
+      setAutocompleteResults([])
       await fetchAllTabs()
       setIsOpen(false)
       return
     }
 
+    setAutocompleteResults(filterKeyphraseCompletions(pageKeyphrases, value))
     setIsOpen(true)
     setResults([])
 
@@ -127,7 +142,9 @@ export default function TabSearch({ results, setResults, fetchAllTabs, searchEng
       setArrowCounter((c) => c - 1)
     } else if (e.key === "Enter") {
       e.preventDefault()
-      if (arrowCounter === -1) {
+      if (arrowCounter !== -1 && autocompleteResults[arrowCounter]) {
+        selectAutocomplete(autocompleteResults[arrowCounter])
+      } else {
         searchSelected()
       }
     } else if (e.key === "Escape") {
@@ -136,8 +153,17 @@ export default function TabSearch({ results, setResults, fetchAllTabs, searchEng
     }
   }
 
+  function selectAutocomplete(keyphrase: string) {
+    const words = searchText.split(/(\s+)/)
+    words[words.length - 1] = keyphrase
+    setSearchText(words.join(""))
+    setAutocompleteResults([])
+    setArrowCounter(-1)
+  }
+
   function closeAutocomplete() {
     setIsOpen(false)
+    setAutocompleteResults([])
     setArrowCounter(-1)
   }
 
@@ -173,6 +199,23 @@ export default function TabSearch({ results, setResults, fetchAllTabs, searchEng
             >
               <X size={16} />
             </button>
+          )}
+          {autocompleteResults.length > 0 && (
+            <ul className="absolute left-0 right-0 z-10 mt-1 rounded-md bg-white shadow-lg ring-1 ring-slate-400 ring-opacity-5">
+              {autocompleteResults.map((keyphrase, index) => (
+                <li key={keyphrase}>
+                  <button
+                    type="button"
+                    className={`block w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 ${
+                      index === arrowCounter ? "bg-gray-100" : ""
+                    }`}
+                    onClick={() => selectAutocomplete(keyphrase)}
+                  >
+                    {keyphrase}
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       </div>
