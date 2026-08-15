@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Layers, BrainCircuit } from "lucide-react"
+import { Layers, BrainCircuit, Download } from "lucide-react"
 import TabSearch from "@/components/TabSearch"
 import TabList from "@/components/TabList"
 import ResearchTab from "@/components/ResearchTab"
+import DownloadsList from "@/components/DownloadsList"
 import { searchEngines } from "../../content/shortcut-search-web";
 
 interface TabResult {
@@ -53,6 +54,10 @@ export default function SidePanel() {
             <BrainCircuit size={16} />
             <span>Research</span>
           </TabsTrigger>
+          <TabsTrigger value="downloads" className="flex items-center gap-2">
+            <Download size={16} />
+            <span>Downloads</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tabs">
@@ -71,6 +76,10 @@ export default function SidePanel() {
 
         <TabsContent value="research">
           <ResearchTab />
+        </TabsContent>
+
+        <TabsContent value="downloads">
+          <DownloadsList />
         </TabsContent>
       </Tabs>
     </div>
