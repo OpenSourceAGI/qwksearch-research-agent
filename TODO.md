@@ -1,5 +1,100 @@
 ## In Progress
 
+## Browser extension: History tab
+
+**Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 14 ("Main nav: Tabs | AI chat | Web
+search | Favorites | History."), scoped to its next independently useful
+piece: a History list view in the side panel, mirroring the pattern already
+established by the Downloads tab and "Undo close tab" button (both slices
+of the related item 28). (Favorites/bookmarks and any main-nav restructuring
+remain separate follow-ups — see Non-goals.)
+**Branch:** `claude/adoring-mayer-t17vkx`
+**PR:** Not created yet
+**Started:** 2026-08-15
+
+### Goal
+Let a user see and act on their recent browsing history from
+`apps/qwksearch-ext`'s side panel, via a new "History" tab alongside the
+existing "Tabs", "Research", and "Downloads" tabs, using Chrome's
+`chrome.history` API.
+
+### Scope
+- `apps/qwksearch-ext/wxt.config.ts`: add the `history` manifest permission.
+- New pure helper module `apps/qwksearch-ext/lib/history.ts`:
+  - `hostnameFromUrl(url)`: extracts the hostname from a URL string,
+    falling back to the raw string if it fails to parse.
+  - `titleOrHostname(item)`: returns a `chrome.history.HistoryItem`-shaped
+    object's title, trimmed, falling back to its URL's hostname when the
+    title is blank/missing.
+  - `formatLastVisit(lastVisitTime, now)`: renders a short relative-time
+    label ("Just now", "`N`m ago", "`N`h ago", "`N`d ago", falling back to a
+    locale date string beyond a week) from a last-visit timestamp and an
+    injected current time (kept injectable, not `Date.now()`-internal, so
+    the helper is deterministically testable).
+- New component `apps/qwksearch-ext/components/HistoryList.tsx`: lists the
+  most recent 20 history entries (`chrome.history.search({text: '',
+  maxResults: 20, startTime: 0})`, already most-recent-first), each row
+  showing favicon + title/hostname + relative last-visit time, with
+  click-to-open (`chrome.tabs.create({url})`) and a "remove from history"
+  icon button (`chrome.history.deleteUrl`). Kept in sync via
+  `chrome.history.onVisited`/`onVisitRemoved`.
+- `apps/qwksearch-ext/entrypoints/sidepanel/App.tsx`: add a "History" tab
+  (`History` icon) alongside "Tabs", "Research", and "Downloads", rendering
+  `HistoryList`.
+
+### Non-goals
+- A "Favorites"/bookmarks tab (`chrome.bookmarks`) — a separate,
+  independently useful slice of the same backlog item; left as a follow-up.
+- Any main-nav restructuring (the backlog item's literal "Tabs | AI chat |
+  Web search | Favorites | History" layout) — out of scope; this task only
+  adds a History tab to the existing side-panel tab strip, matching how the
+  Downloads tab was added.
+- Full-text search/filtering within history, or browsing by date range —
+  out of scope for this first read/act-on-history slice (matches the
+  Downloads tab's precedent of not being a full download manager).
+- Clearing all history, or deleting more than one URL at a time — only
+  single-item removal via `chrome.history.deleteUrl`.
+
+### Acceptance criteria
+- [ ] The History tab lists the most recent history entries, most recent
+      first, with title (or hostname fallback) and a relative last-visit
+      time.
+- [ ] Clicking a history entry opens it in a new tab.
+- [ ] "Remove from history" erases that URL from Chrome's history and the
+      panel's list.
+- [ ] The list stays in sync with new/removed history entries without a
+      manual refresh (via `chrome.history.onVisited`/`onVisitRemoved`).
+- [ ] Vitest coverage is added or updated
+- [ ] Lint passes
+- [ ] Typecheck passes
+- [ ] Tests pass
+- [ ] Production/web build passes
+- [ ] Documentation is updated if behavior or configuration changes
+
+### Implementation plan
+- [ ] Inspect affected modules, local instructions, and existing tests
+      (mirror `DownloadsList.tsx`/`lib/downloads.ts`'s pattern)
+- [ ] Confirm `chrome.history` API shape against the installed
+      `@types/chrome`
+- [ ] Implement the smallest useful vertical slice (`history` permission,
+      `lib/history.ts` pure helpers, `HistoryList.tsx`, `sidepanel/App.tsx`
+      wiring)
+- [ ] Add focused Vitest success-path coverage
+- [ ] Add focused failure/edge-case coverage (blank title, unparseable URL,
+      missing lastVisitTime, each relative-time bucket boundary)
+- [ ] Run focused tests and fix failures
+- [ ] Run linting and typechecking
+- [ ] Run the full relevant test suite
+- [ ] Run the production/web build
+- [ ] Review the final diff for scope and quality
+- [ ] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Full implementation not yet started — see Implementation plan above.
+
 ## Completed
 
 ## Browser extension: Downloads tab
