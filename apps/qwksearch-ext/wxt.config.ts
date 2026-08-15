@@ -55,6 +55,7 @@ export default defineConfig({
       'downloads',
       'downloads.open',
       'history',
+      'bookmarks',
     ],
     host_permissions: ['<all_urls>'],
     commands: {
