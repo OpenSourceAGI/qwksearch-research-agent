@@ -33,3 +33,19 @@ export function isBookmarkNode(node: BookmarkNodeLike): boolean {
 export function sanitizeBookmarkTitle(input: string): string {
   return input.trim()
 }
+
+/**
+ * Trims a proposed new bookmark URL and validates it before saving via
+ * `chrome.bookmarks.update`. Returns `null` when the trimmed result is empty
+ * or doesn't parse as a URL (a bookmark must have a valid URL).
+ */
+export function sanitizeBookmarkUrl(input: string): string | null {
+  const trimmed = input.trim()
+  if (!trimmed) return null
+  try {
+    new URL(trimmed)
+    return trimmed
+  } catch {
+    return null
+  }
+}

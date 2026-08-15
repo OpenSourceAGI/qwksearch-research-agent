@@ -2,7 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Pencil, X } from "lucide-react"
 import { Button } from "./ui/button"
 import { Input } from "./ui/input"
-import { isBookmarkNode, sanitizeBookmarkTitle, titleOrHostname } from "@/lib/bookmarks"
+import {
+  isBookmarkNode,
+  sanitizeBookmarkTitle,
+  sanitizeBookmarkUrl,
+  titleOrHostname
+} from "@/lib/bookmarks"
 
 interface BookmarkResult {
   id: string
@@ -18,6 +23,7 @@ export default function BookmarksList() {
   const [bookmarks, setBookmarks] = useState<BookmarkResult[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValue, setEditValue] = useState("")
+  const [editUrlValue, setEditUrlValue] = useState("")
   const cancellingEditRef = useRef(false)
 
   const fetchBookmarks = useCallback(() => {
@@ -63,25 +69,38 @@ export default function BookmarksList() {
     e.stopPropagation()
     setEditingId(bookmark.id)
     setEditValue(bookmark.rawTitle)
+    setEditUrlValue(bookmark.url)
   }
 
   function cancelEditing() {
     cancellingEditRef.current = true
     setEditingId(null)
     setEditValue("")
+    setEditUrlValue("")
   }
 
   function saveEdit(id: string) {
     const title = sanitizeBookmarkTitle(editValue)
-    chrome.bookmarks.update(id, { title }, () => {
+    const url = sanitizeBookmarkUrl(editUrlValue)
+    if (url === null) {
+      // Invalid URL: keep edit mode open so the user can fix it, don't save.
+      return
+    }
+    chrome.bookmarks.update(id, { title, url }, () => {
       fetchBookmarks()
       setEditingId(null)
     })
   }
 
-  function handleEditBlur(id: string) {
+  function handleEditBlur(id: string, e: React.FocusEvent<HTMLDivElement>) {
     if (cancellingEditRef.current) {
       cancellingEditRef.current = false
+      return
+    }
+    const nextFocused = e.relatedTarget as Node | null
+    if (nextFocused && e.currentTarget.contains(nextFocused)) {
+      // Focus is moving between the title and URL inputs within the same
+      // edit session — don't save/exit yet.
       return
     }
     saveEdit(id)
@@ -111,21 +130,34 @@ export default function BookmarksList() {
 
               <div className="grow flex flex-col justify-center overflow-hidden">
                 {editingId === bookmark.id ? (
-                  <Input
-                    autoFocus
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    onKeyDown={(e) => handleEditKeyDown(bookmark.id, e)}
-                    onBlur={() => handleEditBlur(bookmark.id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="h-6 px-1 py-0 text-sm"
-                  />
+                  <div
+                    className="flex flex-col gap-0.5"
+                    onBlur={(e) => handleEditBlur(bookmark.id, e)}
+                  >
+                    <Input
+                      autoFocus
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => handleEditKeyDown(bookmark.id, e)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-6 px-1 py-0 text-sm"
+                    />
+                    <Input
+                      value={editUrlValue}
+                      onChange={(e) => setEditUrlValue(e.target.value)}
+                      onKeyDown={(e) => handleEditKeyDown(bookmark.id, e)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-5 px-1 py-0 text-xs"
+                    />
+                  </div>
                 ) : (
-                  <p className="text-sm font-medium text-gray-900 truncate" title={bookmark.title}>
-                    {bookmark.title}
-                  </p>
+                  <>
+                    <p className="text-sm font-medium text-gray-900 truncate" title={bookmark.title}>
+                      {bookmark.title}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">{bookmark.url}</p>
+                  </>
                 )}
-                <p className="text-xs text-gray-500 truncate">{bookmark.url}</p>
               </div>
 
               <Button
@@ -133,7 +165,7 @@ export default function BookmarksList() {
                 size="icon"
                 className="shrink-0 h-6 w-6 hover:bg-slate-300"
                 onClick={(e) => startEditing(bookmark, e)}
-                title="Edit bookmark title"
+                title="Edit bookmark"
               >
                 <Pencil size={14} className="text-gray-500" />
               </Button>

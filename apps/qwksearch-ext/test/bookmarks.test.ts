@@ -3,6 +3,7 @@ import {
   hostnameFromUrl,
   isBookmarkNode,
   sanitizeBookmarkTitle,
+  sanitizeBookmarkUrl,
   titleOrHostname
 } from "../lib/bookmarks"
 
@@ -67,5 +68,29 @@ describe("sanitizeBookmarkTitle", () => {
 
   it("returns an empty string for empty input", () => {
     expect(sanitizeBookmarkTitle("")).toBe("")
+  })
+})
+
+describe("sanitizeBookmarkUrl", () => {
+  it("returns the trimmed URL unchanged when it's already valid", () => {
+    expect(sanitizeBookmarkUrl("  https://example.com/path  ")).toBe(
+      "https://example.com/path"
+    )
+  })
+
+  it("leaves an already-trimmed valid URL unchanged", () => {
+    expect(sanitizeBookmarkUrl("https://example.com")).toBe("https://example.com")
+  })
+
+  it("returns null for an unparseable string", () => {
+    expect(sanitizeBookmarkUrl("not a url")).toBeNull()
+  })
+
+  it("returns null for an empty string", () => {
+    expect(sanitizeBookmarkUrl("")).toBeNull()
+  })
+
+  it("returns null for whitespace-only input", () => {
+    expect(sanitizeBookmarkUrl("   ")).toBeNull()
   })
 })

@@ -1,5 +1,132 @@
 ## In Progress
 
+## Browser extension: Edit a bookmark's URL from the Favorites tab
+
+**Status:** In Progress
+**Source:** TODO.md — the "Browser extension: Edit a bookmark's title from the
+Favorites tab" task (PR #251, completed) explicitly deferred this as a
+Non-goal/follow-up: "Editing a bookmark's URL — only the title, matching the
+smallest independently useful slice of the deferred Non-goal." This is that
+next slice.
+**Branch:** `claude/adoring-mayer-ie5a52` (this session's designated branch)
+**PR:** Not created yet
+**Started:** 2026-08-15
+
+### Goal
+Let a user also edit a bookmark's URL inline from the same edit mode already
+used for the title in `apps/qwksearch-ext`'s side panel Favorites tab, via
+`chrome.bookmarks.update(id, { title, url })`, without leaving the panel.
+
+### Scope
+- `apps/qwksearch-ext/lib/bookmarks.ts`: add `sanitizeBookmarkUrl(input)`, a
+  pure helper that trims a proposed new URL and returns `null` when the
+  trimmed result isn't a syntactically valid URL (using the same `new
+  URL(...)` try/catch pattern already used by `hostnameFromUrl` in this
+  file), including for an empty/whitespace-only string.
+- `apps/qwksearch-ext/components/BookmarksList.tsx`: extend the existing edit
+  mode so the URL line is also an `<Input>` when editing, prefilled with the
+  bookmark's raw URL. Enter/blur on either field saves both title and URL
+  together via one `chrome.bookmarks.update(id, { title, url })` call. If the
+  sanitized URL is invalid, the save is blocked (no `chrome.bookmarks.update`
+  call) and edit mode stays open so the user can correct it. Escape still
+  cancels both fields without saving, reusing the existing
+  `cancellingEditRef` guard.
+
+### Non-goals
+- Any bookmark-folder-tree editing/moving, or creating new bookmarks — out of
+  scope, unchanged from the original task's Non-goals.
+- Any URL normalization/rewriting beyond trim + validity check (e.g.
+  auto-prepending `https://` to a bare domain) — out of scope; if invalid,
+  block save and let the user fix it themselves.
+- Any change to `lib/history.ts`, `HistoryList.tsx`, `DownloadsList.tsx`, or
+  any other tab — this touches only the Favorites/bookmarks feature.
+
+### Acceptance criteria
+- [x] Clicking "Edit" on a bookmark shows inline inputs for both title and
+      URL, prefilled with current values (`editValue`/`editUrlValue` seeded
+      from `bookmark.rawTitle`/`bookmark.url` in `startEditing`).
+- [x] Saving (Enter or blur) with a valid URL calls `chrome.bookmarks.update`
+      with both the sanitized title and sanitized URL, and exits edit mode.
+      A shared `onBlur` on the wrapping `<div>` (checking
+      `e.relatedTarget`/`currentTarget.contains`) also ensures Tab-ing
+      between the title and URL inputs doesn't prematurely save/exit — only
+      a blur to somewhere outside both inputs triggers `saveEdit`.
+- [x] Saving with an invalid/empty URL does NOT call `chrome.bookmarks.update`
+      and does NOT exit edit mode — `saveEdit` returns early when
+      `sanitizeBookmarkUrl` returns `null`, leaving `editingId` set.
+- [x] Escape cancels both fields without calling `chrome.bookmarks.update`,
+      reusing the existing `cancellingEditRef` guard (now also resets
+      `editUrlValue`).
+- [x] Vitest coverage is added or updated — 5 new focused cases for
+      `sanitizeBookmarkUrl` (valid w/ trim, already-trimmed valid,
+      unparseable string, empty string, whitespace-only) in
+      `apps/qwksearch-ext/test/bookmarks.test.ts`. No pre-existing
+      `BookmarksList.tsx` component test file exists in
+      `apps/qwksearch-ext/test/` (checked directly — only pure-helper test
+      files like `bookmarks.test.ts` exist there), so component-level
+      coverage isn't available as a test surface here, matching the
+      precedent noted in the "Edit a bookmark's title" task.
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run
+- [x] Typecheck passes — `bun run compile` in `apps/qwksearch-ext` (after
+      clearing the stale `tsconfig.tsbuildinfo` incremental cache) surfaces
+      exactly 123 errors both before and after this change (confirmed via
+      `git stash push` on just the three touched files, re-running
+      `bun run compile`, then `git stash pop`). A line-by-line `diff` of the
+      two runs shows the only differences are the 11
+      `components/BookmarksList.tsx` `TS2304: Cannot find name 'chrome'`
+      lines shifting line numbers (e.g. `(24,5)` → `(30,5)`, `(76,5)` →
+      `(89,5)`) because the diff adds lines above them — the error count and
+      class are identical, no new error category introduced.
+- [x] Tests pass — `bunx vitest run test/bookmarks.test.ts`: 18/18 passed (13
+      pre-existing + 5 new). `bun run test` in `qwksearch-ext`: 12/12 files,
+      115/115 tests passed (97 pre-existing + 18 in bookmarks.test.ts).
+      Full workspace `bun run test`: 177/186 files, 2489/2544 tests pass (51
+      failed, 4 skipped). The 9 failing files are exactly the documented
+      pre-existing set: `chat-agent-toolkit/test/openrouter-default-model.test.js`,
+      `qwksearch-web/app/api/config/__tests__/route.test.ts`,
+      `search-web-api/test/{api,autocomplete-engines,engine-health-suite,
+      search,sources-unit,sources}.test.ts` (external-API-dependent engine
+      tests), `shadcn-settings/test/settings-field.test.tsx` — confirmed via
+      a full `grep -E "^ (❯|FAIL)"` over the captured run output, none touch
+      `qwksearch-ext` or bookmarks-related files.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded (9m0s).
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar actions)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (`lib/bookmarks.ts`, `components/BookmarksList.tsx`,
+      `test/bookmarks.test.ts`, checked `test/` for an existing
+      `BookmarksList` component test — none found)
+- [x] Implement the smallest useful vertical slice (`sanitizeBookmarkUrl`,
+      dual title/URL inline-edit UI in `BookmarksList.tsx` with a shared
+      save/blur/escape flow)
+- [x] Add focused Vitest coverage (5 new `sanitizeBookmarkUrl` cases)
+- [x] Run focused tests and fix failures (none needed — passed first run)
+- [x] Run linting and typechecking (lint n/a; typecheck error count
+      unchanged at 123, same pre-existing `TS2304` class, confirmed via
+      `git stash`-based before/after diff)
+- [x] Run the full relevant test suite (`qwksearch-ext` and full workspace
+      `bun run test`, run synchronously to completion twice for a clean
+      captured log)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` at the repo
+      root reported "Checked 3009 installs across 3339 packages (no
+      changes)" — no `bun.lock` diff was produced this run, so there was
+      nothing incidental to revert; final `git diff --stat` shows only the
+      4 intended files)
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope.
+- Bookmark-folder-tree editing/moving remains an open, separate follow-up
+  (unchanged from the original title-edit task's Remaining work).
+
 ## Fix `render-url-to-html/scraper-jsdom` and `scraper-puppeteer` missing from bun workspaces
 
 **Status:** Completed
