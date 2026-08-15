@@ -1,5 +1,126 @@
 ## In Progress
 
+## OpenRouter: send app-attribution headers (HTTP-Referer, X-Title)
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 6 ("OpenRouter apps inspiration/
+reference: openrouter.ai/apps ... OpenRouter also documents app attribution
+plus public app rankings."). OpenRouter's documented API convention is that
+requests carrying `HTTP-Referer` and `X-Title` headers get attributed to the
+calling app on its public app-rankings page. `ModelRegistry.loadChatModel` in
+`packages/chat-agent-toolkit/src/config/model-registry.ts` builds every
+OpenAI-compatible provider (including OpenRouter) via
+`createOpenAI({apiKey, baseURL})` with no headers today, so none of
+QwkSearch's OpenRouter requests are ever attributed to this app. This
+converts item 6's inspiration link into a small, concrete, testable slice.
+**Branch:** `claude/adoring-mayer-nanna6` (this session's designated branch —
+its prior PR #273 was already merged and the remote branch deleted before
+this run started; confirmed via GitHub that local HEAD already matched
+master's true tip, so work continued directly on this branch)
+**PR:** Not created yet
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+When `ModelRegistry.loadChatModel` builds a chat model for an `openrouter`-
+type provider, send `HTTP-Referer` and `X-Title` headers with every request
+so QwkSearch's usage is attributed to this app in OpenRouter's public app
+rankings, instead of appearing unattributed.
+
+### Scope
+- `packages/chat-agent-toolkit/src/config/model-registry.ts`: when
+  `type === "openrouter"`, pass an additional `headers` option to
+  `createOpenAI` containing `HTTP-Referer` (from `process.env.QWKSEARCH_URL`,
+  falling back to `https://qwksearch.com` — the same default already used by
+  this package's `qwksearch-api-tools.ts`) and `X-Title` (from
+  `process.env.QWKSEARCH_APP_NAME`, falling back to `"QwkSearch"`).
+
+### Non-goals
+- No new UI setting to configure the title/referer per-provider — env-var
+  overrides match this file's existing environment-driven-defaults
+  precedent, and let any app in the monorepo (web/ext/desktop/vscode)
+  override without new cross-package config plumbing.
+- No `headers` change for any other OpenAI-compatible provider type (openai,
+  togetherai, perplexity, nvidia, anyapi, deepseek, xai) — `HTTP-Referer`/
+  `X-Title` are an OpenRouter-specific attribution convention, not a shared
+  one.
+- No attempt to register/verify the app in OpenRouter's public rankings
+  dashboard itself — that's an OpenRouter-side, non-code step outside this
+  repo's control.
+- Ideas Backlog item 3 ("show Vals scores for all models") remains separate
+  and already investigated as blocked (no reliable data source) — untouched
+  by this task.
+
+### Acceptance criteria
+- [x] `loadChatModel` for an `openrouter`-type provider calls `createOpenAI`
+      with a `headers` option containing `HTTP-Referer` and `X-Title`.
+- [x] Other OpenAI-compatible provider types are unaffected — no `headers`
+      option is added for them.
+- [x] `HTTP-Referer`/`X-Title` values respect `QWKSEARCH_URL`/
+      `QWKSEARCH_APP_NAME` env vars when set, falling back to
+      `https://qwksearch.com`/`QwkSearch` otherwise.
+- [x] Vitest coverage is added for `loadChatModel`'s OpenRouter header
+      behavior (mocking `@ai-sdk/openai`'s `createOpenAI`), including a
+      non-OpenRouter provider case showing no extra headers are added — 3
+      new cases in `packages/chat-agent-toolkit/test/model-registry.test.ts`
+      (default headers, env-var overrides, non-OpenRouter provider omits
+      headers), all passing.
+- [x] Lint passes — no `lint` script exists at the repo root or in
+      `chat-agent-toolkit`; nothing to run (same as every prior task).
+- [x] Typecheck passes — `bun run build` in `packages/chat-agent-toolkit`
+      (which runs `unplugin-dts` type-checking as part of the Vite build)
+      completes with zero errors.
+- [x] Tests pass — focused suite (`bunx vitest run
+      packages/chat-agent-toolkit/test/model-registry.test.ts`): 3/3 passed.
+      Full workspace `bun run test`: 184/193 files, 2544/2601 tests pass (53
+      failed, 4 skipped) — the 9 failing files are exactly the documented
+      pre-existing set (`chat-agent-toolkit/test/
+      openrouter-default-model.test.js`, `qwksearch-web/app/api/config/
+      __tests__/route.test.ts`, `search-web-api/test/{api,
+      autocomplete-engines,engine-health-suite,search,sources-unit,
+      sources}.test.ts`, `shadcn-settings/test/settings-field.test.tsx`),
+      none touching `model-registry.ts` or this task's new test file.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded (7m11s).
+- [x] Documentation is updated if behavior or configuration changes — n/a;
+      no README documents `ModelRegistry`'s internal provider-header
+      behavior, and the two env vars reuse an existing, already-undocumented
+      convention (`QWKSEARCH_URL`, already used the same way in
+      `qwksearch-api-tools.ts`).
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (`model-registry.ts`, `config-types.ts`'s `ConfigModelProvider` shape,
+      `config-manager.ts`'s singleton export, `qwksearch-api-tools.ts`'s
+      `QWKSEARCH_URL` env-var precedent)
+- [x] Confirm `@ai-sdk/openai`'s `createOpenAI` accepts a `headers` option
+      (confirmed via the successful `bun run build` type-check and the
+      passing mocked-header assertions in the new test)
+- [x] Implement the OpenRouter-only `headers` addition in `loadChatModel`
+- [x] Add focused Vitest success-path coverage (OpenRouter provider gets the
+      headers; env-var overrides are respected)
+- [x] Add focused failure/edge-case coverage (non-OpenRouter providers get
+      no extra headers)
+- [x] Run focused tests and fix failures (none needed — passed first run)
+- [x] Run linting and typechecking (lint n/a; `bun run build` type-checks
+      cleanly)
+- [x] Run the full relevant test suite (`chat-agent-toolkit` focused suite
+      and full workspace `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` was
+      required in this fresh checkout; the resulting `bun.lock`
+      package-version-sync diff was reverted, matching prior tasks'
+      precedent; final `git status --short` shows exactly the 2 intended
+      source files beyond this tracker entry)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. All acceptance criteria verified locally
+  on this commit; PR creation is the only remaining step (see GitHub updates
+  in this run's report).
+
 ## Browser extension: Forward button for the active tab
 
 **Status:** Completed
