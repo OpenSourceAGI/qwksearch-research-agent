@@ -70,6 +70,19 @@ interface ReasonDocsProps {
    * the section is hidden entirely in that case.
    */
   onGenerateTips?: (title: string, contentHtml: string) => Promise<string[]>;
+  /**
+   * Generates short suggested search queries ("topics") related to the
+   * active document's content, given its title and HTML content. Powers
+   * the sidebar "related" panel's "Search topics" section. Omitted when
+   * the host app has no topics-generation capability to offer.
+   */
+  onGenerateTopics?: (title: string, contentHtml: string) => Promise<string[]>;
+  /**
+   * Runs a search for a generated topic (e.g. opens a new chat seeded with
+   * it as the first message). Omitted when the host app has no search
+   * capability to offer, hiding the "Search topics" section's click action.
+   */
+  onSearchTopic?: (topic: string) => void;
 }
 
 /**
@@ -90,12 +103,16 @@ const Index = ({
   initialDocId,
   onActiveDocumentChange,
   onGenerateTips,
+  onGenerateTopics,
+  onSearchTopic,
 }: ReasonDocsProps) => {
   const { theme, setTheme } = useTheme();
   const state = useReasonDocsState(openFilesSidebarSignal);
   const [settingsInitialSection, setSettingsInitialSection] = useState<string | undefined>(undefined);
   const [tips, setTips] = useState<string[]>([]);
   const [isTipsLoading, setIsTipsLoading] = useState(false);
+  const [topics, setTopics] = useState<string[]>([]);
+  const [isTopicsLoading, setIsTopicsLoading] = useState(false);
 
   // Restore the active document from a host-supplied ID (e.g. a `?docs=`
   // URL param) once, the first time it resolves to a real document.
@@ -115,10 +132,11 @@ const Index = ({
     onActiveDocumentChange?.(state.activeDocId);
   }, [state.activeDocId, onActiveDocumentChange]);
 
-  // Clear any previously generated page tips when the active document
-  // changes, so stale tips from the last document are never shown.
+  // Clear any previously generated page tips/topics when the active
+  // document changes, so stale results from the last document are never shown.
   useEffect(() => {
     setTips([]);
+    setTopics([]);
   }, [state.activeDocId]);
 
   const handleGenerateTips = async () => {
@@ -136,6 +154,23 @@ const Index = ({
 
   const tipsProps = onGenerateTips
     ? { tips, isTipsLoading, onGenerateTips: handleGenerateTips }
+    : undefined;
+
+  const handleGenerateTopics = async () => {
+    if (!onGenerateTopics || !state.activeDocument) return;
+    setIsTopicsLoading(true);
+    try {
+      const generated = await onGenerateTopics(state.activeDocument.title, state.activeDocument.content || '');
+      setTopics(generated);
+    } catch {
+      setTopics([]);
+    } finally {
+      setIsTopicsLoading(false);
+    }
+  };
+
+  const topicsProps = onGenerateTopics
+    ? { topics, isTopicsLoading, onGenerateTopics: handleGenerateTopics, onSearchTopic }
     : undefined;
 
   // Use persistence hook for sidebar sizes
@@ -254,6 +289,7 @@ const Index = ({
       onAiRegenerate: state.handleAIRegenerate,
     },
     tipsProps,
+    topicsProps,
   };
 
   const editorProps = {
@@ -312,6 +348,7 @@ const Index = ({
         onAiRegenerate: state.handleAIRegenerate,
       }}
       tipsProps={tipsProps}
+      topicsProps={topicsProps}
       onClose={() => state.setRightPanels([])}
       isMobile={state.isMobile}
       isOpen={state.isRightSidebarOpen}

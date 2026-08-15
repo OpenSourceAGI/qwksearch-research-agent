@@ -1,5 +1,180 @@
 ## In Progress
 
+## Sidebar: Search topics for the current page
+
+**Status:** Completed
+**Source:** TODO.md — Longterm item 25 ("Auto-search for topics in sidebar.").
+No existing "topics"/"topic outline" concept exists anywhere in the repo
+(confirmed via search — `extract-webpage/src/seektopic/*` is unrelated
+scraped-content keyword extraction, not a UI feature). Follows the exact
+same pattern as the just-completed "Sidebar: AI tips about the current
+page" task (item 26, PR #269): a new LLM-prompt/parse handler mirroring
+`page-tips.ts`, threaded into the sidebar via a new `topicsProps` prop bag,
+rendered as a block inside the existing "related" panel (the same way
+"Page tips" is a block inside the existing "ai" panel), the smallest
+independently-useful first slice per this task's own scoping rules.
+**Branch:** `claude/adoring-mayer-syrh5u` (this session's designated branch)
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/270
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Let a user click a "Generate" button in the sidebar's "Related" panel to
+get a short list of AI-generated suggested search queries (topics) related
+to the currently active document, and clicking one of those topics opens a
+new chat tab pre-seeded with that query as its first message — so the user
+can dig deeper into a page-adjacent topic without leaving the editor or
+typing a query themselves.
+
+### Scope
+- New handler `packages/research-agent-ui/src/api/handlers/topic-searches.ts`
+  (`createTopicSearchesHandler`), mirroring `page-tips.ts`'s
+  prompt-and-parse pattern exactly: loads a chat model via `ModelRegistry`,
+  prompts with the page title + content (truncated to 15000 chars), parses
+  the response into up to `maxTopics` short search-query strings. Exported
+  via the package's existing `./api` barrel.
+- New route `apps/qwksearch-web/app/api/agent/topic-searches/route.ts`,
+  mirroring `page-tips/route.ts`'s dependency wiring exactly.
+- New client helper `apps/qwksearch-web/lib/reason-docs/topic-searches.ts`:
+  `getTopicSearches(title, content)` (mirrors `getPageTips` — POSTs via
+  `grab-url`, returns `[]` on any failure).
+- `packages/reason-editor/src/layout/sidebar/types.ts`: new
+  `SidebarTopicsProps` (`topics`, `isTopicsLoading`, `onGenerateTopics`,
+  `onSearchTopic`) and a `topicsProps?: SidebarTopicsProps` field on
+  `SidebarProps`, threaded through `Sidebar.tsx` and `RightPanel.tsx` into
+  `SidebarContent`'s existing `renderRelated()`, exactly like `tipsProps` is
+  threaded into `renderAi()` — hidden entirely when the host doesn't supply
+  `topicsProps`.
+- `packages/reason-editor/src/editor/ReasonDocs.tsx`: new optional
+  `onGenerateTopics?: (title: string, contentHtml: string) => Promise<string[]>`
+  and `onSearchTopic?: (topic: string) => void` props; local
+  `topics`/`isTopicsLoading` state, a `handleGenerateTopics` mirroring
+  `handleGenerateTips`, and a reset of `topics` whenever the active document
+  changes (reusing the existing tips-reset effect).
+- `apps/qwksearch-web/components/layout/MainWorkspaceView.tsx`: wires
+  `onGenerateTopics` to `getTopicSearches(title, htmlToPlainText(html))`,
+  and `onSearchTopic` to open a new chat tab (`newChat()` +
+  `toggleToResearch()`) and send the topic as that chat's first message
+  once the new chat becomes active (via a `pendingTopicQuery` state +
+  effect keyed on `activeChatId`, avoiding a stale-closure race where
+  `sendMessage` would otherwise fire against the *previous* chat's ID in
+  the same synchronous handler as `newChat()`).
+
+### Non-goals
+- A new `SidebarPanelType` / sidebar-view-menu toggle for topics — this
+  slice adds topics as a block inside the existing "related" panel, not as
+  a new togglable panel (same convention as "Page tips" inside "ai").
+- Automatically generating topics on every document switch — generation is
+  manually triggered via the panel's "Generate" button, matching the
+  existing "Page tips" feature's manual-trigger convention.
+- Letting the user edit the generated query before it's sent, or preview
+  results inline in the sidebar — clicking a topic sends it immediately as
+  a new chat message, matching the "Suggested next" related-document row's
+  one-click-navigates convention.
+- Persisting generated topics across sessions/reloads.
+- Any change to backlog item 15 ("Queries should run on cached pages that
+  belong to topic outlines") or item 24 ("next-word prediction for
+  topics") — both remain open, separate, unrelated backlog items; "topic
+  outline" there refers to a different, larger, still-undesigned concept.
+
+### Acceptance criteria
+- [x] Clicking "Generate" in the "Related" panel's topics section calls
+      `onGenerateTopics` for the active document and shows a loading state.
+- [x] On success, up to `maxTopics` short suggested-search topics render as
+      a clickable list.
+- [x] On failure (rejected fetch, non-2xx response), the topics list is
+      empty and no error is thrown to the user (matches `getPageTips`'s
+      swallow-and-return-`[]` convention).
+- [x] Clicking a rendered topic opens a new chat tab and sends that topic
+      as the chat's first message (via `newChat()` + a `pendingTopicQuery`
+      effect keyed on `activeChatId` in `MainWorkspaceView.tsx`).
+- [x] The topics section is not rendered at all when the host doesn't
+      supply `topicsProps` (backward compatible with existing
+      `reason-editor` consumers — `{topicsProps && renderTopics()}`,
+      identical guard to `tipsProps`).
+- [x] Switching the active document clears any previously generated topics
+      (reuses the existing `useEffect` keyed on `state.activeDocId`, now
+      clearing both `tips` and `topics`).
+- [x] Vitest coverage is added for `getTopicSearches` (success, non-array
+      response, rejected fetch) in
+      `apps/qwksearch-web/lib/reason-docs/__tests__/topic-searches.test.ts`,
+      mirroring `page-tips.test.ts` — 3 new cases, all passing.
+- [x] Vitest coverage is added for `createTopicSearchesHandler` (model
+      loading, prompt truncation/parsing, `maxTopics` slicing, error
+      responses) in
+      `apps/qwksearch-web/app/api/agent/__tests__/topic-searches.test.ts`,
+      mirroring `app/api/agent/__tests__/page-tips.test.ts` — 6 new cases,
+      all passing.
+- [x] Lint passes — no `lint` script exists at the repo root or in
+      `qwksearch-web`, `reason-editor`, or `research-agent-ui`; nothing to
+      run (same as every prior task touching these packages).
+- [x] Typecheck passes — `bun run build` in `packages/reason-editor`
+      surfaces exactly 96 errors (stripped of ANSI codes before counting),
+      identical to the baseline documented in the prior "Sidebar: AI tips"
+      task, none referencing any file touched by this task.
+      `packages/research-agent-ui`'s `bun run build` (vite bundle + trailing
+      `tsc --project tsconfig.build.json || true`) surfaces the same 9
+      pre-existing errors in unrelated modules (`unified-markdown.tsx`,
+      `ChatHomepage.tsx`, `ChatWindow.tsx`, `MessageInputIconSet.tsx`,
+      `MessageSources.tsx`, `WebCitationBadge.tsx`), none referencing
+      `topic-searches.ts`.
+- [x] Tests pass — focused suites (`bunx vitest run
+      apps/qwksearch-web/lib/reason-docs/__tests__/topic-searches.test.ts
+      apps/qwksearch-web/app/api/agent/__tests__/topic-searches.test.ts
+      apps/qwksearch-web/lib/reason-docs/__tests__/page-tips.test.ts
+      apps/qwksearch-web/app/api/agent/__tests__/page-tips.test.ts`):
+      22/22 passed. Full workspace `bun run test`: 183/192 files,
+      2537/2595 tests pass (54 failed, 4 skipped) — the 9 failing files are
+      exactly the documented pre-existing set (`app/api/config/__tests__/
+      route.test.ts`, `search-web-api` engine tests, `shadcn-settings`'s
+      `settings-field.test.tsx`, `chat-agent-toolkit`'s
+      `openrouter-default-model.test.js`), none touching any file changed
+      by this task.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      sidebar panel sections).
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (done — see Source/Scope above; explored via a background agent that
+      confirmed no "topics" concept exists yet and mapped the exact
+      page-tips-task file order to follow)
+- [x] Implement `createTopicSearchesHandler` in `research-agent-ui`
+- [x] Implement the `topic-searches` API route in `qwksearch-web`
+- [x] Implement `getTopicSearches` client helper in `qwksearch-web`
+- [x] Extend `reason-editor`'s `SidebarProps`/`SidebarContentProps` with
+      `topicsProps` and render the topics block in `renderRelated()`
+- [x] Wire `topicsProps` through `Sidebar.tsx` and `RightPanel.tsx`
+- [x] Wire `onGenerateTopics`/`onSearchTopic` state/handlers into
+      `ReasonDocs.tsx`
+- [x] Wire `MainWorkspaceView.tsx` to supply `onGenerateTopics` and
+      `onSearchTopic` (including the new-chat-then-send-once-active effect)
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage
+- [x] Run focused tests and fix failures (none needed — passed first run)
+- [x] Run linting and typechecking (lint n/a; typecheck error counts
+      unchanged for both `reason-editor` and `research-agent-ui`)
+- [x] Run the full relevant test suite (focused suites and full workspace
+      `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` was
+      required in this fresh checkout; the resulting `bun.lock`
+      package-version-sync diff was reverted, matching prior tasks'
+      precedent; final `git status --short` shows exactly the 8 intended
+      source files beyond this tracker entry)
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. All acceptance criteria verified locally
+  on this commit.
+- Follow-up ideas noted in Non-goals remain open: letting the user edit a
+  generated query before it's sent, and previewing search results inline
+  in the sidebar instead of always opening a new chat tab.
+
 ## Sidebar: AI tips about the current page
 
 **Status:** Completed

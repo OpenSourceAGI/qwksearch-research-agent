@@ -54,6 +54,23 @@ export interface SidebarTipsProps {
   onGenerateTips?: () => void;
 }
 
+/**
+ * AI-generated suggested search queries ("topics") related to the currently
+ * active document, shown as a section of the "related" panel. Omitted
+ * entirely (and the section hidden) when the host app has no
+ * topics-generation capability to offer.
+ */
+export interface SidebarTopicsProps {
+  /** Suggested search queries generated for the active document by the most recent request. */
+  topics?: string[];
+  /** Whether a topics-generation request is in flight. */
+  isTopicsLoading?: boolean;
+  /** Requests (re)generation of topics for the active document. */
+  onGenerateTopics?: () => void;
+  /** Runs a search for the given topic (e.g. opens a new chat seeded with it). */
+  onSearchTopic?: (topic: string) => void;
+}
+
 export interface SidebarProps {
   documents: Document[];
   activeId: string | null;
@@ -130,4 +147,6 @@ export interface SidebarProps {
   aiProps?: SidebarAiProps;
   // AI-generated page tips (used by the "ai" panel)
   tipsProps?: SidebarTipsProps;
+  // AI-generated search topics (used by the "related" panel)
+  topicsProps?: SidebarTopicsProps;
 }

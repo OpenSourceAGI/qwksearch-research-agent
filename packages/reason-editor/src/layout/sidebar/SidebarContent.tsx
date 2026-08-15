@@ -14,7 +14,7 @@ import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } 
 import { AIRewriteSuggestion } from '../../features/ai-rewrite/AIRewriteSuggestion';
 import { Input } from '../../app-ui/input';
 import { Document } from '../../documents/DocumentTree';
-import type { SidebarPanelType, SidebarAiProps, SidebarTipsProps, OpenTabItem } from './types';
+import type { SidebarPanelType, SidebarAiProps, SidebarTipsProps, SidebarTopicsProps, OpenTabItem } from './types';
 import type { TocEntry } from '../../app-types/toc';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
@@ -104,6 +104,8 @@ interface SidebarContentProps {
   aiProps?: SidebarAiProps;
   /** AI-generated page tips state/handlers (used by the "ai" panel). */
   tipsProps?: SidebarTipsProps;
+  /** AI-generated search topics state/handlers (used by the "related" panel). */
+  topicsProps?: SidebarTopicsProps;
   /** Unified tab list (files + chats). Overrides file-only tab derivation when set. */
   tabItems?: OpenTabItem[];
   /** Opens a new chat tab from the "Open Tabs" panel header. */
@@ -145,6 +147,7 @@ export const SidebarContent = ({
   onNavigate,
   aiProps,
   tipsProps,
+  topicsProps,
   tabItems,
   onNewChat,
 }: SidebarContentProps) => {
@@ -446,9 +449,51 @@ export const SidebarContent = ({
             </>
           )}
         </div>
+        {topicsProps && renderTopics()}
       </div>
     );
   };
+
+  const renderTopics = () => (
+    <div className="px-3 py-3 border-t border-sidebar-border shrink-0">
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <Search className="h-3.5 w-3.5 text-primary" />
+          Search topics
+        </p>
+        {topicsProps?.onGenerateTopics && (
+          <button
+            className="shrink-0 text-xs font-medium text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+            onClick={topicsProps.onGenerateTopics}
+            disabled={topicsProps.isTopicsLoading}
+          >
+            {topicsProps.isTopicsLoading ? 'Generating…' : topicsProps.topics?.length ? 'Regenerate' : 'Generate'}
+          </button>
+        )}
+      </div>
+      {topicsProps?.isTopicsLoading ? (
+        <p className="text-xs text-muted-foreground">Finding related searches…</p>
+      ) : topicsProps?.topics && topicsProps.topics.length > 0 ? (
+        <ul className="space-y-1">
+          {topicsProps.topics.map((topic, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                className="w-full flex items-start gap-1.5 text-left text-xs text-muted-foreground rounded-md px-1 py-1 -mx-1 transition-colors hover:bg-sidebar-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => topicsProps.onSearchTopic?.(topic)}
+                disabled={!topicsProps.onSearchTopic}
+              >
+                <Search className="shrink-0 h-3 w-3 mt-0.5 text-primary" />
+                <span>{topic}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-muted-foreground">Click "Generate" for suggested searches about this page.</p>
+      )}
+    </div>
+  );
 
   const renderTips = () => (
     <div className="px-3 py-3 border-t border-sidebar-border shrink-0">
