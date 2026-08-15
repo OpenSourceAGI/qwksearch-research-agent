@@ -12,7 +12,7 @@ TabSearch.tsx` already has dead scaffolding for this — `autocompleteResults`/
 dropdown is ever rendered — confirmed via a direct grep of the file. This
 task is the first slice that actually populates and renders that dropdown.
 **Branch:** `claude/adoring-mayer-r6s5vt` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/263
 **Started:** 2026-08-15
 
 ### Goal
