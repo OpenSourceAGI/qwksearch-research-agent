@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Document } from '@/documents/DocumentTree';
-import { findRelatedDocuments } from '@/search/relatedDocuments';
+import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } from '@/search/relatedDocuments';
 
 function makeDoc(overrides: Partial<Document> & { id: string }): Document {
   return {
@@ -136,5 +136,32 @@ describe('findRelatedDocuments', () => {
 
     expect(results.map((r) => r.document.id)).toEqual(['other']);
     expect(results[0].sharedTagCount).toBe(1);
+  });
+});
+
+describe('splitTopSuggestion', () => {
+  function makeResult(id: string): RelatedDocumentResult {
+    return { document: makeDoc({ id }), sharedKeywordCount: 1, sharedTagCount: 0 };
+  }
+
+  it('returns a null suggestion and an empty others list for an empty input', () => {
+    expect(splitTopSuggestion([])).toEqual({ suggested: null, others: [] });
+  });
+
+  it('returns the single result as the suggestion with no others', () => {
+    const only = makeResult('only');
+
+    expect(splitTopSuggestion([only])).toEqual({ suggested: only, others: [] });
+  });
+
+  it('splits the first (highest-ranked) result out from the rest, preserving order', () => {
+    const first = makeResult('first');
+    const second = makeResult('second');
+    const third = makeResult('third');
+
+    expect(splitTopSuggestion([first, second, third])).toEqual({
+      suggested: first,
+      others: [second, third],
+    });
   });
 });

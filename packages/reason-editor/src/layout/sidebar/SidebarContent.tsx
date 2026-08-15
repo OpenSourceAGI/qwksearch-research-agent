@@ -10,7 +10,7 @@ import { RefObject, useState, useCallback, useMemo, useRef } from 'react';
 import { FileTree } from '../../file-tree';
 import { OutlineView, type OutlineViewHandle } from '../../search/OutlineView';
 import type { ActiveHeadingEditorHandle } from '../../search/useActiveHeading';
-import { findRelatedDocuments } from '../../search/relatedDocuments';
+import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } from '../../search/relatedDocuments';
 import { AIRewriteSuggestion } from '../../features/ai-rewrite/AIRewriteSuggestion';
 import { Input } from '../../app-ui/input';
 import { Document } from '../../documents/DocumentTree';
@@ -19,7 +19,7 @@ import type { TocEntry } from '../../app-types/toc';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../../utils/storage';
-import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2, Tag } from 'lucide-react';
+import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2, Tag, Sparkles } from 'lucide-react';
 import { FileTypeIcon } from '../../app-ui/FileTypeIcon';
 import { cn } from '../../app-utils/utils';
 import {
@@ -389,36 +389,63 @@ export const SidebarContent = ({
     [activeDocuments, activeDocument],
   );
 
-  const renderRelated = () => (
-    <div className="h-full overflow-hidden flex flex-col">
-      <div className="px-3 py-2 border-b border-sidebar-border shrink-0">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Related</p>
-      </div>
-      <div className="flex-1 overflow-auto px-1 py-1">
-        {relatedResults.length === 0 ? (
-          <div className="px-2 py-3 text-xs text-muted-foreground">No related documents found</div>
-        ) : (
-          relatedResults.map(({ document: doc, sharedKeywordCount, sharedTagCount }) => (
-            <div
-              key={doc.id}
-              className="group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-sidebar-accent"
-              onClick={() => handleSelect(doc.id)}
-            >
-              <Link2 className="shrink-0 h-4 w-4 text-muted-foreground" />
-              <span className="flex-1 truncate text-sm">{doc.title}</span>
-              {sharedTagCount > 0 && (
-                <span className="shrink-0 flex items-center gap-0.5 text-xs text-muted-foreground" title={`${sharedTagCount} shared tag${sharedTagCount === 1 ? '' : 's'}`}>
-                  <Tag className="h-3 w-3" />
-                  {sharedTagCount}
-                </span>
-              )}
-              <span className="shrink-0 text-xs text-muted-foreground" title={`${sharedKeywordCount} shared keyword${sharedKeywordCount === 1 ? '' : 's'}`}>{sharedKeywordCount}</span>
-            </div>
-          ))
-        )}
-      </div>
+  const renderRelatedRow = ({ document: doc, sharedKeywordCount, sharedTagCount }: RelatedDocumentResult) => (
+    <div
+      key={doc.id}
+      className="group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-sidebar-accent"
+      onClick={() => handleSelect(doc.id)}
+    >
+      <Link2 className="shrink-0 h-4 w-4 text-muted-foreground" />
+      <span className="flex-1 truncate text-sm">{doc.title}</span>
+      {sharedTagCount > 0 && (
+        <span className="shrink-0 flex items-center gap-0.5 text-xs text-muted-foreground" title={`${sharedTagCount} shared tag${sharedTagCount === 1 ? '' : 's'}`}>
+          <Tag className="h-3 w-3" />
+          {sharedTagCount}
+        </span>
+      )}
+      <span className="shrink-0 text-xs text-muted-foreground" title={`${sharedKeywordCount} shared keyword${sharedKeywordCount === 1 ? '' : 's'}`}>{sharedKeywordCount}</span>
     </div>
   );
+
+  const renderRelated = () => {
+    const { suggested, others } = splitTopSuggestion(relatedResults);
+
+    return (
+      <div className="h-full overflow-hidden flex flex-col">
+        <div className="px-3 py-2 border-b border-sidebar-border shrink-0">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Related</p>
+        </div>
+        <div className="flex-1 overflow-auto px-1 py-1">
+          {relatedResults.length === 0 ? (
+            <div className="px-2 py-3 text-xs text-muted-foreground">No related documents found</div>
+          ) : (
+            <>
+              {suggested && (
+                <div
+                  className="group flex items-center gap-2 px-2 py-2 mb-1 rounded-md cursor-pointer border border-primary/30 bg-accent/30 transition-all hover:border-primary hover:bg-primary/10"
+                  onClick={() => handleSelect(suggested.document.id)}
+                >
+                  <Sparkles className="shrink-0 h-4 w-4 text-primary" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-semibold text-primary uppercase tracking-wide">Suggested next</p>
+                    <span className="block truncate text-sm font-semibold">{suggested.document.title}</span>
+                  </div>
+                  {suggested.sharedTagCount > 0 && (
+                    <span className="shrink-0 flex items-center gap-0.5 text-xs text-muted-foreground" title={`${suggested.sharedTagCount} shared tag${suggested.sharedTagCount === 1 ? '' : 's'}`}>
+                      <Tag className="h-3 w-3" />
+                      {suggested.sharedTagCount}
+                    </span>
+                  )}
+                  <span className="shrink-0 text-xs text-muted-foreground" title={`${suggested.sharedKeywordCount} shared keyword${suggested.sharedKeywordCount === 1 ? '' : 's'}`}>{suggested.sharedKeywordCount}</span>
+                </div>
+              )}
+              {others.map(renderRelatedRow)}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const renderAi = () => (
     <div className="h-full overflow-hidden flex flex-col">

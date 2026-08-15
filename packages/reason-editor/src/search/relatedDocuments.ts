@@ -116,3 +116,22 @@ export function findRelatedDocuments(
 
   return results.slice(0, limit);
 }
+
+/** The single top-ranked suggestion, split from the rest, returned by {@link splitTopSuggestion}. */
+export interface RelatedDocumentsSplit {
+  /** The highest-ranked related document, or `null` when there are no results. */
+  suggested: RelatedDocumentResult | null;
+  /** The remaining results, in their existing rank order. */
+  others: RelatedDocumentResult[];
+}
+
+/**
+ * Splits an already-ranked {@link findRelatedDocuments} result list into its
+ * single top match — the "suggested next" document — and the rest, so the
+ * sidebar can render the top match more prominently than the flat list.
+ */
+export function splitTopSuggestion(results: RelatedDocumentResult[]): RelatedDocumentsSplit {
+  if (results.length === 0) return { suggested: null, others: [] };
+  const [suggested, ...others] = results;
+  return { suggested, others };
+}

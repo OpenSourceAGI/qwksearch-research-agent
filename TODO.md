@@ -1,5 +1,139 @@
 ## In Progress
 
+## Sidebar: highlight the top related document as "Suggested next"
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog / Longterm item 23 ("Suggest the next
+page from the sidebar on each page."), the smallest independently useful
+first slice of that item, building directly on the already-completed
+"Sidebar: suggest related documents by keyword overlap" and "Related panel:
+rank by shared tags as well as keyword overlap" tasks. `findRelatedDocuments`
+in `packages/reason-editor/src/search/relatedDocuments.ts` already returns
+its results sorted best-match-first, but the Related panel in
+`SidebarContent.tsx` renders every result with identical styling — there is
+no "suggested next page" concept yet, just a flat ranked list.
+**Branch:** `claude/adoring-mayer-i2vsxv` (this session's designated branch)
+**PR:** Not created yet (will be created and this line updated on push)
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+When the Related panel has at least one match, visually promote the
+single top-ranked related document as a "Suggested next" entry above the
+rest of the flat list, so a user reading the active document gets one clear
+suggestion for what to read next, instead of an undifferentiated ranked
+list they have to scan themselves.
+
+### Scope
+- `packages/reason-editor/src/search/relatedDocuments.ts`: add a small pure
+  helper, `splitTopSuggestion(results: RelatedDocumentResult[])`, returning
+  `{ suggested: RelatedDocumentResult | null; others: RelatedDocumentResult[] }`
+  — `suggested` is `results[0]` (or `null` when `results` is empty), `others`
+  is the remaining results in their existing order. `findRelatedDocuments`
+  itself is unchanged (already sorted correctly).
+- `packages/reason-editor/src/layout/sidebar/SidebarContent.tsx`'s
+  `renderRelated()`: call `splitTopSuggestion(relatedResults)` and render
+  `suggested` (when present) in a visually distinct block above the existing
+  flat list — mirroring the "prominent first entry" pattern already
+  established in `packages/research-agent-ui/src/components/ArticleReader/
+  ArticleFollowupQuestions.tsx` (bold text, `border-primary/30`/accent
+  background vs. the plain-list `border-border` styling) — labelled
+  "Suggested next", using a `Sparkles` icon. `others` renders exactly as the
+  full list does today (same row markup, same badges, same `handleSelect`
+  wiring).
+
+### Non-goals
+- Any change to `findRelatedDocuments`'s ranking algorithm itself — this
+  slice only changes how the already-correctly-sorted results are rendered.
+- Any "next page" concept outside the existing Related panel (e.g. an
+  article-reader-level "up next" banner, or per-document manual pinning of
+  a preferred "next" document) — that's a larger, separate follow-up; this
+  slice reuses the existing keyword/tag-overlap ranking as the sole signal.
+- Persisting or dismissing the suggestion, or any settings/toggle to turn
+  it off — the promoted top match is always shown whenever the panel has at
+  least one related document.
+- Any change to `renderOutline`, `renderFiles`, `renderAi`, or any other
+  sidebar panel.
+
+### Acceptance criteria
+- [x] When the Related panel has one or more matches, the single top-ranked
+      match renders in a visually distinct "Suggested next" block above the
+      rest of the list.
+- [x] When the Related panel has exactly one match, only the "Suggested
+      next" block renders (no separate, redundant one-item list below it) —
+      `others` is `[]` when `results.length === 1`.
+- [x] Clicking the "Suggested next" block navigates to that document via the
+      existing `handleSelect`, identically to clicking any other row.
+- [x] The remaining (non-top) matches still render exactly as today —
+      same row markup, same shared-tag/shared-keyword badges (extracted
+      unchanged into `renderRelatedRow`).
+- [x] The empty state ("No related documents found") is unchanged when
+      there are zero matches.
+- [x] Vitest coverage is added or updated for `splitTopSuggestion` — 3 new
+      focused cases in `packages/reason-editor/test/search/
+      relatedDocuments.test.ts` (empty input, single result, multi-result
+      order-preserving split).
+- [x] Lint passes — no `lint` script exists for `reason-editor` or the repo
+      root; nothing to run.
+- [x] Typecheck passes — `bun run build` in `packages/reason-editor` (which
+      runs `unplugin-dts` type-checking as part of the Vite build) surfaces
+      exactly 22 pre-existing errors both before and after this change,
+      confirmed via `git stash push` on just the three touched files,
+      re-running the build, then `git stash pop`. None reference
+      `relatedDocuments.ts` or `SidebarContent.tsx` — all 22 are in unrelated
+      `docs-agent/plate/*` files, `RichTextBubbleTwitter.tsx`,
+      `InviteModal.tsx`, `resize-handle.tsx`, and `table-icons.tsx`.
+- [x] Tests pass — `bunx vitest run packages/reason-editor/test/search/
+      relatedDocuments.test.ts`: 13/13 passed (10 pre-existing + 3 new).
+      Full workspace `bun run test`: 179/188 files, 2515/2573 tests pass (54
+      failed, 4 skipped). The 9 failing files are exactly the documented
+      pre-existing set (`chat-agent-toolkit/test/
+      openrouter-default-model.test.js`, `qwksearch-web/app/api/config/
+      __tests__/route.test.ts`, `search-web-api/test/{api,
+      autocomplete-engines,engine-health-suite,search,sources-unit,
+      sources}.test.ts`, `shadcn-settings/test/settings-field.test.tsx`) —
+      none touch `reason-editor` or related-documents code.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      sidebar panel rows).
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (`relatedDocuments.ts`/`relatedDocuments.test.ts`, `SidebarContent.tsx`'s
+      `renderRelated()`, `ArticleFollowupQuestions.tsx`'s prominent-first-item
+      styling precedent)
+- [x] Implement `splitTopSuggestion` in `relatedDocuments.ts`
+- [x] Wire the "Suggested next" block + remaining list into
+      `SidebarContent.tsx`'s `renderRelated()` (extracting the existing row
+      markup into a shared `renderRelatedRow` used by both the "Suggested
+      next" block's sibling rows and the plain list)
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (empty results, single result)
+- [x] Run focused tests and fix failures (none needed — passed first run)
+- [x] Run linting and typechecking (lint n/a; typecheck error count
+      unchanged at 22, confirmed via `git stash`-based before/after diff)
+- [x] Run the full relevant test suite (`reason-editor` focused suite and
+      full workspace `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` was
+      required in this fresh checkout — the resulting `bun.lock`
+      package-version-sync diff was reverted, matching prior tasks'
+      precedent; final `git diff --stat` shows only the 3 intended source
+      files beyond this tracker entry)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. All acceptance criteria verified locally
+  on this commit.
+- A larger, separate follow-up remains open: any "next page" concept beyond
+  the existing Related panel (e.g. an article-reader-level "up next"
+  banner, or manual pinning of a preferred "next" document) — see
+  Non-goals above.
+
 ## Browser extension: Back and Refresh buttons for the active tab
 
 **Status:** Completed
