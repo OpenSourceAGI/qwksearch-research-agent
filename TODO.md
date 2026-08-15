@@ -2776,3 +2776,19 @@ ext - dl to reason dl folswe
     whatsoever, continues to rule out this repo's source as the cause. Still
     needs a human with Cloudflare dashboard access to diagnose — this
     environment has no credentials for it.
+
+    **Update: it recurred an eleventh time, on PR #258 itself (commit
+    `a92ac91`, the tracker-sync-only follow-up to PR #257 that added the
+    tenth-occurrence note above), build ID
+    `8b8a70b5-dfc1-4a33-a330-3ac0403a62c8`. This PR's diff touches only
+    `TODO.md` — zero code — the fourth pure-documentation PR to trigger the
+    identical failure. Eleven consecutive failures across eleven different
+    PRs/commits, on every single PR raised against this repo regardless of
+    content (including PRs that change nothing but backlog prose),
+    conclusively confirms this Cloudflare Workers Build check is failing
+    unconditionally at the infrastructure/configuration level, not in
+    response to anything in this repo's source or history. Per this task's
+    Non-goals, future runs should not keep appending an occurrence count
+    here — the pattern is fully established — and should not attempt a
+    code-level fix; this is exclusively actionable by a human with Cloudflare
+    dashboard access to the `qwksearch-research-agent` Workers project.
