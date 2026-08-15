@@ -2,6 +2,105 @@
 
 ## Completed
 
+## Browser extension: Edit a bookmark's title from the Favorites tab
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 14 (main-nav Favorites), continuing
+the follow-up explicitly deferred as a Non-goal in the "Browser extension:
+Favorites (bookmarks) tab" task below ("Editing a bookmark's title/URL —
+only viewing, opening, and removing" for the first slice).
+**Branch:** `claude/adoring-mayer-c9coc7`
+**PR:** Not created yet
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Let a user rename a bookmark's title inline from
+`apps/qwksearch-ext`'s side panel Favorites tab, via `chrome.bookmarks.update`,
+without leaving the panel.
+
+### Scope
+- `apps/qwksearch-ext/lib/bookmarks.ts`: add `sanitizeBookmarkTitle(input)`,
+  a pure helper that trims a proposed new title (kept separate/testable per
+  this codebase's per-feature pure-helper-module convention).
+- `apps/qwksearch-ext/components/BookmarksList.tsx`: an "Edit" (pencil icon)
+  button per bookmark row that swaps the title into an inline `<Input>`;
+  Enter or blur saves via `chrome.bookmarks.update(id, {title})`, Escape
+  cancels without saving.
+
+### Non-goals
+- Editing a bookmark's URL — only the title, matching the smallest
+  independently useful slice of the deferred Non-goal.
+- Any bookmark-folder-tree editing/moving — out of scope, matches the
+  Favorites tab's existing flat-list precedent.
+
+### Acceptance criteria
+- [x] Clicking "Edit" on a bookmark shows an inline input pre-filled with
+      its current raw title (empty when it was previously falling back to
+      the hostname).
+- [x] Pressing Enter or blurring the input saves the trimmed title via
+      `chrome.bookmarks.update` and exits edit mode.
+- [x] Pressing Escape cancels the edit without calling
+      `chrome.bookmarks.update` (guarded against the native `blur` event
+      that fires when the still-focused `<input>` unmounts on cancel, via a
+      `cancellingEditRef` flag checked in the blur handler).
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run
+- [x] Typecheck passes — `bun run compile` (after clearing the stale
+      `tsconfig.tsbuildinfo` incremental cache) surfaces exactly 120 errors,
+      one more than the 119 on `git stash -u`-ed (unmodified) code —
+      confirmed via a direct before/after comparison. The one new error
+      (`components/BookmarksList.tsx(76,5): error TS2304: Cannot find name
+      'chrome'` at the new `chrome.bookmarks.update` call) is a further
+      instance of the same **pre-existing** `TS2304` class already present
+      throughout this app's `chrome.*`-using files, not a new category.
+- [x] Tests pass — `bunx vitest run test/bookmarks.test.ts`: 13/13 passed
+      (9 pre-existing + 4 new). `bun run test` in `qwksearch-ext`: 86/86
+      passed (10/10 files, 82 pre-existing + 4 new). Full workspace `bun run
+      test`: 174/184 files, 2458/2515 tests pass (4 skipped); the 53
+      failures across the same 5 packages documented repeatedly in prior
+      TODO.md tasks (`search-web-api` engine tests hitting real external
+      APIs, the `qwksearch-web` config route test, `shadcn-settings`,
+      `jsdom-scraper` missing its `jsdom` dependency, `chat-agent-toolkit`'s
+      `openrouter-default-model.test.js`) are pre-existing and unrelated —
+      none touch `qwksearch-ext`.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar actions)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (mirrored `BookmarksList.tsx`/`lib/bookmarks.ts`'s existing pattern)
+- [x] Confirm `chrome.bookmarks.update` API shape against `@types/chrome`
+- [x] Implement the smallest useful vertical slice (`sanitizeBookmarkTitle`,
+      inline-edit UI in `BookmarksList.tsx`)
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (whitespace-only input, empty
+      input, already-trimmed no-op)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change; typecheck error count is +1, the same
+      pre-existing error class)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` package-version-sync diff produced by `bun
+      install` — pure version-number sync to already-committed
+      `package.json` bumps, out of scope, matching prior tasks' precedent —
+      keeping only this task's own files)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope.
+- Follow-ups noted above remain open: editing a bookmark's URL, and
+  bookmark-folder-tree editing/moving — separate, independently useful
+  slices of the same Favorites tab area.
+
 ## Browser extension: "New tab" button
 
 **Status:** Completed

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest"
-import { hostnameFromUrl, isBookmarkNode, titleOrHostname } from "../lib/bookmarks"
+import {
+  hostnameFromUrl,
+  isBookmarkNode,
+  sanitizeBookmarkTitle,
+  titleOrHostname
+} from "../lib/bookmarks"
 
 describe("hostnameFromUrl", () => {
   it("returns the hostname for a well-formed URL", () => {
@@ -44,5 +49,23 @@ describe("isBookmarkNode", () => {
 
   it("returns false for a node with an empty-string url", () => {
     expect(isBookmarkNode({ title: "Odd node", url: "" })).toBe(false)
+  })
+})
+
+describe("sanitizeBookmarkTitle", () => {
+  it("trims leading and trailing whitespace", () => {
+    expect(sanitizeBookmarkTitle("  My Bookmark  ")).toBe("My Bookmark")
+  })
+
+  it("leaves an already-trimmed title unchanged", () => {
+    expect(sanitizeBookmarkTitle("My Bookmark")).toBe("My Bookmark")
+  })
+
+  it("returns an empty string for whitespace-only input", () => {
+    expect(sanitizeBookmarkTitle("   ")).toBe("")
+  })
+
+  it("returns an empty string for empty input", () => {
+    expect(sanitizeBookmarkTitle("")).toBe("")
   })
 })

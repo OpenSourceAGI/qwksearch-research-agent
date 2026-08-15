@@ -28,3 +28,8 @@ export function titleOrHostname(item: BookmarkNodeLike): string {
 export function isBookmarkNode(node: BookmarkNodeLike): boolean {
   return !!node.url
 }
+
+/** Trims a proposed new bookmark title before saving via `chrome.bookmarks.update`. */
+export function sanitizeBookmarkTitle(input: string): string {
+  return input.trim()
+}

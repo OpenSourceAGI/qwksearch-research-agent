@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useState } from "react"
-import { X } from "lucide-react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { Pencil, X } from "lucide-react"
 import { Button } from "./ui/button"
-import { isBookmarkNode, titleOrHostname } from "@/lib/bookmarks"
+import { Input } from "./ui/input"
+import { isBookmarkNode, sanitizeBookmarkTitle, titleOrHostname } from "@/lib/bookmarks"
 
 interface BookmarkResult {
   id: string
   url: string
   title: string
+  rawTitle: string
   favIconUrl: string
 }
 
@@ -14,6 +16,9 @@ const MAX_BOOKMARKS = 20
 
 export default function BookmarksList() {
   const [bookmarks, setBookmarks] = useState<BookmarkResult[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState("")
+  const cancellingEditRef = useRef(false)
 
   const fetchBookmarks = useCallback(() => {
     chrome.bookmarks.getRecent(MAX_BOOKMARKS, (nodes) => {
@@ -24,6 +29,7 @@ export default function BookmarksList() {
             id: node.id,
             url: node.url!,
             title: titleOrHostname(node),
+            rawTitle: node.title ?? "",
             favIconUrl:
               `chrome-extension://${chrome.runtime.id}` +
               `/_favicon/?pageUrl=${encodeURIComponent(node.url!)}&size=16`
@@ -53,6 +59,44 @@ export default function BookmarksList() {
     chrome.bookmarks.remove(id, () => fetchBookmarks())
   }
 
+  function startEditing(bookmark: BookmarkResult, e: React.MouseEvent) {
+    e.stopPropagation()
+    setEditingId(bookmark.id)
+    setEditValue(bookmark.rawTitle)
+  }
+
+  function cancelEditing() {
+    cancellingEditRef.current = true
+    setEditingId(null)
+    setEditValue("")
+  }
+
+  function saveEdit(id: string) {
+    const title = sanitizeBookmarkTitle(editValue)
+    chrome.bookmarks.update(id, { title }, () => {
+      fetchBookmarks()
+      setEditingId(null)
+    })
+  }
+
+  function handleEditBlur(id: string) {
+    if (cancellingEditRef.current) {
+      cancellingEditRef.current = false
+      return
+    }
+    saveEdit(id)
+  }
+
+  function handleEditKeyDown(id: string, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      saveEdit(id)
+    } else if (e.key === "Escape") {
+      e.preventDefault()
+      cancelEditing()
+    }
+  }
+
   return (
     <>
       <div className="list-group col">
@@ -66,11 +110,33 @@ export default function BookmarksList() {
               <img src={bookmark.favIconUrl} alt="" className="w-4 h-4 shrink-0" />
 
               <div className="grow flex flex-col justify-center overflow-hidden">
-                <p className="text-sm font-medium text-gray-900 truncate" title={bookmark.title}>
-                  {bookmark.title}
-                </p>
+                {editingId === bookmark.id ? (
+                  <Input
+                    autoFocus
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={(e) => handleEditKeyDown(bookmark.id, e)}
+                    onBlur={() => handleEditBlur(bookmark.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-6 px-1 py-0 text-sm"
+                  />
+                ) : (
+                  <p className="text-sm font-medium text-gray-900 truncate" title={bookmark.title}>
+                    {bookmark.title}
+                  </p>
+                )}
                 <p className="text-xs text-gray-500 truncate">{bookmark.url}</p>
               </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="shrink-0 h-6 w-6 hover:bg-slate-300"
+                onClick={(e) => startEditing(bookmark, e)}
+                title="Edit bookmark title"
+              >
+                <Pencil size={14} className="text-gray-500" />
+              </Button>
 
               <Button
                 variant="ghost"
