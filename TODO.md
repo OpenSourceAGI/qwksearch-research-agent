@@ -2,14 +2,15 @@
 
 ## Browser extension: Downloads tab
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 28 ("Add downloads tab; also back,
 refresh, undo close, new tab."), scoped to its next independently useful
 piece: a Downloads list view. (Back/refresh/new-tab browser-chrome-style
 buttons remain a separate follow-up — see Non-goals.)
 **Branch:** `claude/adoring-mayer-ddv3jg`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/242 (merged)
 **Started:** 2026-08-14
+**Completed:** 2026-08-15
 
 ### Goal
 Let a user see and act on their recent downloads from
@@ -103,11 +104,12 @@ existing "Tabs" and "Research" tabs, using Chrome's `chrome.downloads` API.
 - [x] Run the production/web build
 - [x] Review the final diff for scope and quality
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #242, merged)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Create the pull request for this branch's commit(s).
+- None for this task's own scope. PR #242 merged, CI/build/tests verified
+  locally.
 - Follow-ups noted above remain open: browser-chrome-style
   back/refresh/new-tab buttons, removing files from disk
   (`chrome.downloads.removeFile`), and accepting dangerous downloads
@@ -1594,8 +1596,9 @@ ext - dl to reason dl folswe
 26. Prioritize sidebar with AI tips about the current page.
 27. Cache questions and use them to build connections.
 28. Add downloads tab; also back, refresh, undo close, new tab. — **"Undo
-    close tab" slice done, see "Browser extension: \"Undo close tab\"
-    button" above** (downloads tab, back/refresh/new-tab remain follow-ups)
+    close tab" and "Downloads tab" slices done, see "Browser extension:
+    \"Undo close tab\" button" and "Browser extension: Downloads tab"
+    above** (back/refresh/new-tab remain follow-ups)
 29. Default search support; Chrome extensions can override homepage, startup pages, and search provider via `chrome_settings_overrides`.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override) — **done, see "Default search provider support in the browser extension (chrome_settings_overrides)" above**
 29b. `qwksearch-ext`'s own `bun run build`/`zip` (Chrome target) fails on a
      fresh checkout: `postcss.config.js` still uses the old
