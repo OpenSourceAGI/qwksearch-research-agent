@@ -2,6 +2,120 @@
 
 ## Completed
 
+## Inline video playback for video search results
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog/Longterm item 16, "Research agents should
+queue the next video," investigated 2026-08-15 and found to need an inline
+video player built first (there is currently no inline player and no
+queue/autoplay concept anywhere in the repo). This task is that prerequisite
+first slice — inline playback only, no queueing/autoplay yet.
+**Branch:** `claude/adoring-mayer-xc2s1c`
+**PR:** Not created yet
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+When a video search result carries an embeddable `iframe_src` (already
+returned by the `invidious`/`peertube`/searxng video sources and threaded
+through `Document.metadata`, but currently ignored by the UI), clicking its
+card plays the video inline in a modal instead of navigating away in a new
+tab.
+
+### Scope
+- `packages/research-agent-ui/src/components/SearchResults/MessageSources.tsx`'s
+  video card: use `iframe_src` when present to open an inline `<iframe>`
+  player in a `Dialog`, instead of always `<a target="_blank">`.
+- Fall back to the existing new-tab link behavior when `iframe_src` is
+  missing or not a safe embeddable URL.
+- Fix `loadMoreResults` (infinite-scroll pagination) to also carry
+  `iframe_src` through into `Document.metadata`, matching
+  `handleCategoryChange`'s mapping — currently it's dropped, so paginated
+  video results silently lose inline playback after page 1.
+- A small pure helper (`getVideoPlaybackTarget`) with its own Vitest
+  coverage, since the routing decision (inline vs. external, and URL safety
+  validation) is exactly the kind of logic this package already extracts
+  into `src/lib/*.ts` and unit-tests directly (see `shareArticle.ts`).
+
+### Non-goals
+- Autoplay / "queue the next video" (the rest of Longterm item 16) —
+  explicit follow-up, not this slice.
+- A custom video player UI (controls, progress bar) — the embedded iframe
+  provides the source site's own player.
+- Changing which video sources set `iframe_src` on the backend
+  (`search-web-api`) — this task only consumes the field that already
+  exists.
+
+### Acceptance criteria
+- [x] Video cards with a valid `iframe_src` open an inline player dialog on
+      click instead of navigating away
+- [x] Video cards without `iframe_src` (or with an unsafe/malformed one)
+      keep the existing new-tab link behavior
+- [x] Paginated ("load more") video results also get inline playback when
+      available
+- [x] Vitest coverage is added or updated
+- [x] Lint passes (no dedicated lint script in this repo; see verification)
+- [x] Typecheck passes (via the full `bun run build:web` turbo pipeline; see
+      verification — the package's own standalone `tsc` step is pre-existing
+      best-effort/non-blocking, see Remaining work)
+- [x] Tests pass
+- [x] Production/web build passes
+- [x] Documentation is updated if behavior or configuration changes (no
+      README/docs describe this level of UI detail; none needed updating)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm API, schema, data-flow, or interface requirements
+- [x] Implement the smallest useful vertical slice
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure, validation, or edge-case coverage
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Verification
+- `bun run test packages/research-agent-ui` — 8 test files, 82 tests, all
+  passed (includes the new `test/videoPlayback.test.ts`, 7 tests).
+- `bun run build:web` — 14/14 turbo tasks succeeded (build+test across the
+  full dependency graph including `research-agent-ui`).
+- `bun run test` (full root Vitest workspace) — pre-existing failures only,
+  all in packages this task never touches: `search-web-api`'s
+  `sources.test.ts`/`sources-unit.test.ts`/`engine-health-suite.test.ts`/
+  `api.test.ts`/`autocomplete-engines.test.ts` (live network calls to real
+  search engines — e.g. `youtube returns valid JSON results` fails with
+  "expected 0 to be greater than 0", consistent with no outbound network
+  access to those third-party sites in this environment), `qwksearch-web`'s
+  `app/api/config/__tests__/route.test.ts` (500s unrelated to search/video
+  config), `chat-agent-toolkit`'s `test/openrouter-default-model.test.js`,
+  and `shadcn-settings`'s `test/settings-field.test.tsx`. None import or
+  exercise `MessageSources.tsx` or `src/lib/videoPlayback.ts`.
+
+### Remaining work
+- None for this slice. Follow-ups explicitly out of scope (see Non-goals):
+  autoplay/queue-the-next-video, and a custom in-app video player UI.
+- Minor, separately-discovered gap not part of this task's scope: the same
+  `loadMoreResults` pagination mapping this task fixed for `iframe_src` also
+  omits `img_src` (present in `handleCategoryChange`'s mapping but not
+  here), so paginated Images-category "load more" results may be missing
+  `img_src`. Left unfixed to keep this PR scoped to video playback; worth a
+  small dedicated follow-up if it's confirmed to affect real Images
+  pagination.
+- `packages/research-agent-ui`'s standalone `bun run build` (`tsc --project
+  tsconfig.build.json`) reports pre-existing `TS2307: Cannot find module
+  'chat-agent-toolkit'` (and similar) errors in this file and several others
+  (`ChatWindow.tsx`, `WebCitationBadge.tsx`, `ChatHomepage.tsx`,
+  `unified-markdown.tsx`) — caused by sibling workspace packages not having
+  been built yet (no `dist/` for `chat-agent-toolkit`) when the package is
+  built standalone outside the turbo dependency graph; the script already
+  swallows these (`tsc ... || true`) and they do not occur in the real
+  `bun run build:web` pipeline, which builds dependencies first and passed
+  cleanly.
+
 ## Move completed tasks out of the `In Progress` section
 
 **Status:** Completed
