@@ -25,6 +25,7 @@
     "lucide-react": "^1.25.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "research-agent-ui": "workspace:*",
     "sortablejs": "^1.15.7",
     "tailwind-merge": "^3.6.0"
   },
