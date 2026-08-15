@@ -1898,3 +1898,21 @@ ext - dl to reason dl folswe
 35. Release on HN, YouTube, and Product Hunt.
 36. https://21st.dev/community/agents
 37. from the drodpown menu have tit  insret to as about tabstion ...` to show where the warning was created)
+38. The "Workers Builds: qwksearch-research-agent" Cloudflare deploy check
+    failed on the merge of "Wire `research-agent-ui` into `qwksearch-ext`'s
+    build" (PR #246, commit `104821a`), the only failure among the ~10
+    consecutive same-session PR merges preceding it (#238–#244 all show
+    that check succeeding). PR #246's diff only touches
+    `apps/qwksearch-ext/package.json` (+1 dependency line), `bun.lock`
+    (+1 line), and `TODO.md` — nothing in `apps/qwksearch-web` or any other
+    Cloudflare-deployed app — and `bun run build:web` (the exact command
+    that deploys `qwksearch-web`) passed 14/14 tasks locally on that same
+    commit before merging. This points away from a real code regression and
+    toward a transient Cloudflare-side issue (plausibly a deploy-rate/
+    concurrency limit, given ~10 rapid consecutive deploys to the same
+    Workers project within a few hours), but the actual build logs live
+    behind Cloudflare's dashboard
+    (https://dash.cloudflare.com/a5b587533d090f419224d2bc3f04ecc7/workers/services/view/qwksearch-research-agent/production/builds/2452c794-afe3-4680-b92f-2cd7ff020260),
+    which this environment has no credentials for. Worth a human check with
+    dashboard access, or re-triggering the deploy, to confirm whether
+    production is actually affected.
