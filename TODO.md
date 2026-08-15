@@ -1,5 +1,7 @@
 ## In Progress
 
+## Completed
+
 ## Browser extension: "New tab" button
 
 **Status:** Completed
@@ -12,7 +14,7 @@ already done; the "Undo close tab" task's Non-goals explicitly deferred
 since the side panel isn't a browser-chrome surface with its own navigable
 history.)
 **Branch:** `claude/adoring-mayer-36m7gr`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/250
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -98,18 +100,20 @@ and style.
       an unrelated `bun.lock` package-version-sync diff, reverted per prior
       tasks' precedent — kept only this task's own files)
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #250)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task's own scope. Verified locally; PR not yet created (see
-  below).
+- None for this task's own scope. PR #250 open; `bun run build:web` passed
+  14/14 locally on this commit. The PR's "Workers Builds:
+  qwksearch-research-agent" Cloudflare deploy check failed — this is the
+  same recurring, pre-existing, unrelated-to-code infrastructure issue
+  already documented as Ideas Backlog items 38/39 (this is now a 4th
+  occurrence; see the updated item 39 note below).
 - Follow-ups noted above remain open: browser-chrome-style back/refresh
   buttons — a separate, independently useful slice of Ideas Backlog item
   28, if it's ever given a concrete design for a side panel that has no
   navigable history of its own.
-
-## Completed
 
 ## Browser extension: Favorites (bookmarks) tab
 
@@ -2105,9 +2109,10 @@ ext - dl to reason dl folswe
 26. Prioritize sidebar with AI tips about the current page.
 27. Cache questions and use them to build connections.
 28. Add downloads tab; also back, refresh, undo close, new tab. — **"Undo
-    close tab" and "Downloads tab" slices done, see "Browser extension:
-    \"Undo close tab\" button" and "Browser extension: Downloads tab"
-    above** (back/refresh/new-tab remain follow-ups)
+    close tab", "Downloads tab", and "New tab" slices done, see "Browser
+    extension: \"Undo close tab\" button", "Browser extension: Downloads
+    tab", and "Browser extension: \"New tab\" button" above** (back/refresh
+    remain follow-ups)
 29. Default search support; Chrome extensions can override homepage, startup pages, and search provider via `chrome_settings_overrides`.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override) — **done, see "Default search provider support in the browser extension (chrome_settings_overrides)" above**
 29b. `qwksearch-ext`'s own `bun run build`/`zip` (Chrome target) fails on a
      fresh checkout: `postcss.config.js` still uses the old
@@ -2189,3 +2194,14 @@ ext - dl to reason dl folswe
     a human with dashboard access to investigate the Workers Build
     pipeline itself (e.g. build-environment/quota/billing issue on
     Cloudflare's side), not this repo's source.
+
+    **Update: it recurred a fourth time, on PR #250 (commit `d6394e2`,
+    the "New tab" button task), build ID
+    `874bf8e0-7b64-40bd-a5f3-d526ab3e1ed9`. Same pattern as all three prior
+    occurrences: the diff only touches `apps/qwksearch-ext/` plus
+    `TODO.md`, and `bun run build:web` passed 14/14 turbo tasks locally on
+    this exact commit before the check ran. Four consecutive failures
+    across four different PRs/commits, including a markdown-only one,
+    rules out this repo's source as the cause. Still needs a human with
+    Cloudflare dashboard access to diagnose — this environment has no
+    credentials for it.
