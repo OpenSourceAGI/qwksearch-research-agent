@@ -11,7 +11,7 @@ video player built first (there is currently no inline player and no
 queue/autoplay concept anywhere in the repo). This task is that prerequisite
 first slice — inline playback only, no queueing/autoplay yet.
 **Branch:** `claude/adoring-mayer-xc2s1c`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/282
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
