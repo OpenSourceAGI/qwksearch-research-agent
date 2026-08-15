@@ -1,5 +1,109 @@
 ## In Progress
 
+## Browser extension: include page content in "Chat about my open tabs"
+
+**Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 12 ("Use CRX/extension to open
+tabs and scrape them.") and item 19 ("Use open tabs as context."),
+continuing the follow-up explicitly deferred as a Non-goal in the "Chat
+about my open tabs" button task above ("Extracting each tab's full page
+text/content (mirroring `TabSearch.tsx`'s `chrome.scripting.executeScript`
+pattern) — this first slice only sends title + URL per tab; full-page-content
+context is a separate, larger follow-up"). Reuses the exact
+`chrome.scripting.executeScript` pattern already established in
+`apps/qwksearch-ext/components/TabSearch.tsx` for in-tab content search, so
+no new Chrome API/permission is needed (`scripting` is already granted in
+`wxt.config.ts`).
+**Branch:** `claude/adoring-mayer-g3uiuf`
+**PR:** Not created yet
+**Started:** 2026-08-15
+
+### Goal
+Let a user click a second button in `apps/qwksearch-ext`'s side panel
+Research tab that seeds the chat with their open tabs' title + URL **and**
+a truncated excerpt of each tab's visible page text, so follow-up questions
+can be answered from actual page content, not just titles/URLs.
+
+### Scope
+- `apps/qwksearch-ext/lib/open-tabs-context.ts`:
+  - Extend `OpenTabLike` with an optional `content?: string` field.
+  - Add `truncateTabContent(content, maxChars = 2000)`: trims and truncates
+    a content string to a max length, appending an ellipsis when truncated
+    (keeps the chat message payload bounded across many/large tabs).
+  - Update `formatOpenTabsMessage` to append a truncated, indented content
+    excerpt under a tab's line when `content` is present — unchanged output
+    when `content` is absent, so this stays backward compatible with the
+    existing title/URL-only button and its tests.
+  - Add `extractTabContent(tabId)`: wraps
+    `chrome.scripting.executeScript({ target: { tabId }, func: () =>
+    document.body.innerText })`, returning the extracted text or `undefined`
+    on any failure (e.g. Chrome Web Store / restricted pages that reject
+    script injection) — caught, not thrown, so one tab's failure doesn't
+    block the others.
+- `apps/qwksearch-ext/components/ResearchTab.tsx`: add a second button
+  ("Chat with page content" or similar) that queries open tabs, runs
+  `extractTabContent` across all contextable tabs in parallel
+  (`Promise.all`/`allSettled`), then calls `sendMessage` with the resulting
+  content-enriched message. Disabled while chat is sending (`loading`) and
+  while its own extraction is in flight.
+
+### Non-goals
+- Any change to `packages/research-agent-ui` — same constraint as the prior
+  task; only the already-public `useChat().sendMessage` API is used.
+- Removing or changing the existing title/URL-only button — this is an
+  additive second action, not a replacement.
+- Any settings/toggle to auto-include page content on every message, or to
+  persist a preference — a one-shot action only, matching the prior task's
+  precedent.
+- Manifest/permission changes — `scripting` is already granted.
+- Summarizing/chunking beyond a flat per-tab character truncation — no
+  smarter compression of long pages in this first slice.
+
+### Acceptance criteria
+- [ ] Clicking the new button when there's at least one contextable open
+      tab sends a chat message listing those tabs (title/hostname + URL)
+      with a truncated page-content excerpt per tab, via
+      `useChat().sendMessage`.
+- [ ] Clicking the new button when there are zero contextable open tabs
+      does not call `sendMessage`.
+- [ ] A tab whose content extraction fails (e.g. a restricted page) is
+      still included with title/URL only (no content line), rather than
+      aborting the whole action.
+- [ ] Content longer than the max length is truncated with an ellipsis;
+      content at or under the max length is included in full.
+- [ ] The new button is disabled while a chat message is already sending
+      or while extraction is in flight.
+- [ ] Vitest coverage is added or updated
+- [ ] Lint passes
+- [ ] Typecheck passes
+- [ ] Tests pass
+- [ ] Production/web build passes
+- [ ] Documentation is updated if behavior or configuration changes
+
+### Implementation plan
+- [ ] Inspect affected modules, local instructions, and existing tests
+      (`TabSearch.tsx`'s `chrome.scripting.executeScript` pattern,
+      `open-tabs-context.ts`/`ResearchTab.tsx` from the prior task)
+- [ ] Implement `truncateTabContent` and `extractTabContent` in
+      `lib/open-tabs-context.ts`
+- [ ] Update `formatOpenTabsMessage` to include per-tab content when present
+- [ ] Implement the `ResearchTab.tsx` second button + wiring
+- [ ] Add focused Vitest success-path coverage
+- [ ] Add focused failure/edge-case coverage (extraction failure,
+      truncation boundary, no contextable tabs, mixed content/no-content
+      tabs)
+- [ ] Run focused tests and fix failures
+- [ ] Run linting and typechecking
+- [ ] Run the full relevant test suite
+- [ ] Run the production/web build
+- [ ] Review the final diff for scope and quality
+- [ ] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Everything above — just started.
+
 ## Browser extension: "Chat about my open tabs" button
 
 **Status:** Completed
