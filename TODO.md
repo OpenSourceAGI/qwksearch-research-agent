@@ -9,7 +9,7 @@ piece: a Favorites list view using `chrome.bookmarks`, explicitly called out
 as a remaining follow-up in the "Browser extension: History tab" task below,
 mirroring that task's and the Downloads tab's established pattern.
 **Branch:** `claude/adoring-mayer-fcxcmd`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/248
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -115,11 +115,16 @@ existing "Tabs", "Research", "Downloads", and "History" tabs, using Chrome's
       install` — pure version-number sync to already-committed
       `package.json` bumps, out of scope, matching prior tasks' precedent)
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #248)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Create the pull request for this branch's commit(s).
+- None for this task's own scope. PR #248 open, CI/build/tests verified
+  locally.
+- Follow-ups noted above remain open: any main-nav restructuring toward the
+  backlog item's literal "Tabs | AI chat | Web search | Favorites | History"
+  layout, creating new bookmarks from the panel, and browsing/filtering the
+  full bookmark folder tree.
 
 ## Completed
 
@@ -2044,3 +2049,34 @@ ext - dl to reason dl folswe
     which this environment has no credentials for. Worth a human check with
     dashboard access, or re-triggering the deploy, to confirm whether
     production is actually affected.
+39. The "Workers Builds: qwksearch-research-agent" Cloudflare deploy check
+    failed a second time, on the merge of "Add a Favorites tab to the
+    qwksearch-ext side panel" (PR #248, commit `a023649`) — the same check
+    documented failing once before in item 38 above (PR #246). As with item
+    38, PR #248's diff only touches files under `apps/qwksearch-ext/` plus
+    `TODO.md` — nothing in `apps/qwksearch-web` or any other
+    Cloudflare-deployed app — and `bun run build:web` (the exact command
+    that deploys `qwksearch-web`) passed 14/14 tasks locally on that commit
+    before merging. This second occurrence weakens the "transient
+    deploy-rate/concurrency limit" theory from item 38 (this merge wasn't
+    part of a rapid run of consecutive deploys) and makes a recurring,
+    non-transient Cloudflare-side or Workers-config issue more plausible —
+    but the actual build logs still live behind Cloudflare's dashboard
+    (https://dash.cloudflare.com/a5b587533d090f419224d2bc3f04ecc7/workers/services/view/qwksearch-research-agent/production/builds/6c05326f-77df-42ed-8f3e-7465fa61a464),
+    which this environment has no credentials for. Worth a human check with
+    dashboard access to determine root cause — if it recurs a third time,
+    that would confirm it's not transient.
+
+    **Update: it recurred a third time, on PR #249 (commit `500d85d`) —
+    the very PR that added this item 39 entry, whose diff touches only
+    `TODO.md` (a pure documentation change, zero code). A markdown-only PR
+    triggering the identical deploy failure conclusively rules out any
+    code-level regression in this repo across all three occurrences (PRs
+    #246, #248, #249) and confirms this is a Cloudflare-side/Workers-Build
+    infrastructure or configuration issue unrelated to what's being
+    deployed. This environment still has no Cloudflare dashboard
+    credentials to identify the actual root cause (build ID
+    `6b4c022e-0707-4947-a22f-b5c2422ae223` for this third failure) — needs
+    a human with dashboard access to investigate the Workers Build
+    pipeline itself (e.g. build-environment/quota/billing issue on
+    Cloudflare's side), not this repo's source.
