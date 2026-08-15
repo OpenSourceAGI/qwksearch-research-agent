@@ -15,7 +15,7 @@ already binds that same key two-way to a user-facing "custom instructions"
 settings field, so writing tab context into it would silently clobber a
 user's saved custom instructions. `sendMessage` avoids that entirely.)
 **Branch:** `claude/adoring-mayer-1sn4od`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/253
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -2458,3 +2458,24 @@ ext - dl to reason dl folswe
     repo whatsoever. Still needs a human with
     Cloudflare dashboard access to diagnose — this environment has no
     credentials for it.
+
+    **Update: it recurred a seventh time, on PR #253 (commit `11dce04`, the
+    "Chat about my open tabs" button task), build ID
+    `e683a94c-497a-40fc-bc29-26536b87fd1f`. Same pattern as every prior
+    occurrence: the diff only touches `apps/qwksearch-ext/` plus `TODO.md`,
+    and `bun run build:web` passed 14/14 turbo tasks locally on this exact
+    commit before the check ran (and before merging). Seven consecutive
+    failures across seven different PRs/commits, including two
+    pure-documentation ones, continues to rule out this repo's source as
+    the cause. Still needs a human with Cloudflare dashboard access to
+    diagnose — this environment has no credentials for it.
+
+    **Update: it recurred an eighth time, on PR #254 (commit `6145234`, the
+    TODO.md tracker-sync-only follow-up to PR #253), build ID
+    `f644dbac-6f0e-4fe5-a26d-e1b637203ea4`. This PR's diff touches only
+    `TODO.md` — zero code — the third pure-documentation PR to trigger the
+    identical failure (after PRs #249 and #252). Eight consecutive failures
+    across eight different PRs/commits, including three carrying no code
+    change whatsoever, conclusively rules out this repo's source across
+    every occurrence so far. Still needs a human with Cloudflare dashboard
+    access to diagnose — this environment has no credentials for it.
