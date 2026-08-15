@@ -1,5 +1,103 @@
 ## In Progress
 
+## Fix `render-url-to-html/scraper-jsdom` and `scraper-puppeteer` missing from bun workspaces
+
+**Status:** In Progress
+**Source:** TODO.md — recurring, documented pre-existing test failure (`jsdom-scraper`
+missing its `jsdom` dependency) called out in the "Tests pass" acceptance-criteria
+notes of at least 9 prior completed tasks in this tracker (e.g. the "include page
+content in Chat about my open tabs", "Chat about my open tabs button", "Edit a
+bookmark's title", "New tab button" entries above). Root-caused during this run:
+`packages/render-url-to-html/` contains two sub-packages, `scraper-jsdom` and
+`scraper-puppeteer`, neither of which is matched by the root `package.json`
+`workspaces` glob (`["packages/*", "apps/*"]` only matches immediate children of
+`packages/`, and `packages/render-url-to-html/` itself has no `package.json` so
+isn't a workspace member itself either). Both sub-packages are nonetheless listed
+as `vitest` projects in the root `vitest.config.ts`, so a root `bun install` never
+installs their dependencies, and a root `bun run test`/`vitest run` fails on them
+with module-resolution errors — not an actually-missing `jsdom` entry in their own
+`package.json` (it's already declared there).
+**Branch:** `claude/adoring-mayer-o372r8` (this session's designated branch)
+**PR:** Not created yet
+**Started:** 2026-08-15
+
+### Goal
+Make `packages/render-url-to-html/scraper-jsdom` and
+`packages/render-url-to-html/scraper-puppeteer` proper bun workspace members, so
+a fresh `bun install` at the repo root installs their dependencies and their
+vitest suites (already registered as projects in root `vitest.config.ts`) run
+and pass as part of `bun run test`, instead of failing with unresolved-module
+errors on every run.
+
+### Scope
+- Root `package.json`: extend `workspaces` to also match
+  `packages/render-url-to-html/*` (in addition to the existing `packages/*` and
+  `apps/*` patterns), so both sub-packages become real workspace members.
+- Run `bun install` at the repo root to hoist/install both sub-packages'
+  dependencies and regenerate `bun.lock`.
+- Verify both packages' own `vitest run` and the root `bun run test` now pick
+  them up successfully.
+
+### Non-goals
+- Fixing any of the *other* pre-existing failing test files documented in prior
+  tasks (`search-web-api` engine tests hitting real external APIs, the
+  `qwksearch-web` config route test, `shadcn-settings`, `chat-agent-toolkit`'s
+  `openrouter-default-model.test.js`) — separate, unrelated root causes; out of
+  scope for this task.
+- Any change to `scraper-jsdom`/`scraper-puppeteer`'s own source code, tests, or
+  dependency versions beyond what's needed to make them installable/runnable as
+  workspace members.
+- Restructuring `packages/render-url-to-html/` itself (e.g. merging the two
+  sub-packages, adding a parent `package.json`) — the flat `packages/*/*`
+  workspace glob is the smallest fix.
+
+### Acceptance criteria
+- [ ] A fresh `bun install` at the repo root installs dependencies for both
+      `scraper-jsdom` and `scraper-puppeteer` (their `node_modules` exist and
+      resolve `vitest/config` etc.).
+- [ ] `bunx vitest run` (or the package's own `bun run test`) in
+      `packages/render-url-to-html/scraper-jsdom` passes.
+- [ ] `bunx vitest run` (or the package's own `bun run test`) in
+      `packages/render-url-to-html/scraper-puppeteer` passes.
+- [ ] Root `bun run test` no longer reports `jsdom-scraper`/`scraper-puppeteer`
+      module-resolution failures.
+- [ ] Vitest coverage is added or updated — n/a; this is a workspace-wiring fix,
+      no new logic.
+- [ ] Lint passes (if a `lint` script exists for either affected package or the
+      repo root; otherwise document that none exists, matching prior tasks'
+      precedent).
+- [ ] Typecheck passes (no new/worse errors than the pre-existing baseline).
+- [ ] Tests pass (full workspace `bun run test`, documenting any still-remaining
+      pre-existing unrelated failures by name).
+- [ ] Production/web build passes (`bun run build:web`).
+- [ ] Documentation is updated if behavior or configuration changes — n/a beyond
+      this tracker entry.
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests (root
+      `package.json` workspaces glob, root `vitest.config.ts` projects list,
+      both sub-packages' `package.json`/`vitest.config.ts`)
+- [x] Confirm root cause via `bunx turbo test --filter=jsdom-scraper` ("No
+      package found with name 'jsdom-scraper' in workspace") and a standalone
+      `bunx vitest run` inside the sub-package failing on `vitest/config`
+      resolution
+- [ ] Update root `package.json` `workspaces` to include
+      `packages/render-url-to-html/*`
+- [ ] Run `bun install` at the repo root and confirm both sub-packages get
+      `node_modules`
+- [ ] Run focused tests for both sub-packages and fix any further failures
+- [ ] Run linting and typechecking
+- [ ] Run the full relevant test suite
+- [ ] Run the production/web build
+- [ ] Review the final diff for scope and quality
+- [ ] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Apply the `workspaces` glob change and re-run `bun install`, then verify both
+  sub-packages' tests pass.
+
 ## Browser extension: include page content in "Chat about my open tabs"
 
 **Status:** Completed
