@@ -1,8 +1,127 @@
 ## In Progress
 
-## Browser extension: Auto-generate keyphrase completions for on-page/tab search
+## Browser extension: Back and Refresh buttons for the active tab
 
 **Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 28 ("Add downloads tab; also back,
+refresh, undo close, new tab."). The Undo-close-tab, Downloads tab, and New
+tab slices are already done (see their completed tasks below); item 28's
+note explicitly calls out "back/refresh remain follow-ups." This task
+completes that remaining pair.
+**Branch:** `claude/adoring-mayer-c8x02n` (this session's designated branch)
+**PR:** Not created yet
+**Started:** 2026-08-15
+
+### Goal
+Let a user navigate the active tab's history back and reload it, via two new
+toolbar buttons in the side panel's Tabs view (`TabList.tsx`), next to the
+existing "Restore closed tab" and "New tab" buttons — without switching to
+the tab itself.
+
+### Scope
+- New pure-ish helper module `apps/qwksearch-ext/lib/tab-navigation.ts`:
+  - `goBackActiveTab(): void` — queries the active tab in the current window
+    (`chrome.tabs.query({active: true, currentWindow: true})`) and calls
+    `chrome.tabs.goBack(tabId)` when a tab with an `id` is found; no-ops
+    otherwise.
+  - `refreshActiveTab(): void` — same active-tab lookup, calling
+    `chrome.tabs.reload(tabId)`.
+- `apps/qwksearch-ext/components/TabList.tsx`: add "Back" (`ArrowLeft` icon)
+  and "Refresh" (`RotateCw` icon) buttons to the existing toolbar row
+  (alongside "Restore closed tab" and "New tab"), wired to
+  `goBackActiveTab`/`refreshActiveTab`.
+
+### Non-goals
+- A "Forward" button — item 28 only calls out "back, refresh" as the
+  remaining follow-ups; forward navigation is a separate, smaller follow-up
+  if ever requested.
+- Disabling the Back button when the active tab has no history to go back to
+  — `chrome.tabs.goBack` itself is a no-op/harmless when there's nothing to
+  go back to (matches the existing "New tab"/"Restore closed tab" buttons'
+  precedent of not doing extra state-tracking for enablement beyond what's
+  already available, e.g. `closedTabSessionId`).
+- Any change to `TabSearch.tsx`, `HistoryList.tsx`, `DownloadsList.tsx`,
+  `BookmarksList.tsx`, or any other tab.
+
+### Acceptance criteria
+- [x] Clicking "Back" calls `chrome.tabs.goBack` with the active tab's id.
+- [x] Clicking "Refresh" calls `chrome.tabs.reload` with the active tab's id.
+- [x] Neither function throws or calls the chrome API when there is no
+      active tab in the query result.
+- [x] Vitest coverage is added or updated — 5 new focused cases in
+      `apps/qwksearch-ext/test/tab-navigation.test.ts` (goBack with an
+      active tab, goBack with no active tab, goBack with a tab that has no
+      id, reload with an active tab, reload with no active tab).
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run (same as every prior `qwksearch-ext` task)
+- [x] Typecheck passes — `bun run compile` in `apps/qwksearch-ext` (after
+      clearing the stale `tsconfig.tsbuildinfo` incremental cache) surfaces
+      exactly 130 errors, three more than the 127-error baseline confirmed
+      via `git stash -u -- apps/qwksearch-ext/components/TabList.tsx
+      apps/qwksearch-ext/lib/tab-navigation.ts
+      apps/qwksearch-ext/test/tab-navigation.test.ts`, re-running
+      `bun run compile`, then `git stash pop`. A line-by-line `diff` of the
+      two sorted error lists shows the 15 pre-existing
+      `components/TabList.tsx` `TS2304: Cannot find name 'chrome'` lines
+      just shifted line numbers, and the 3 new errors are further instances
+      of that same pre-existing class at the new
+      `chrome.tabs.query`/`goBack`/`reload` call sites in
+      `lib/tab-navigation.ts` — not a new error category.
+- [x] Tests pass — `bunx vitest run test/tab-navigation.test.ts`: 5/5
+      passed. `bun run test` in `qwksearch-ext`: 14/14 files, 141/141 tests
+      passed (136 pre-existing + 5 new). Full workspace `bun run test`:
+      179/188 files, 2514/2570 tests pass (52 failed, 4 skipped) — confirmed
+      via a full untruncated log that the 9 failing files are exactly the
+      documented pre-existing set (`chat-agent-toolkit/test/
+      openrouter-default-model.test.js`, `qwksearch-web/app/api/config/
+      __tests__/route.test.ts`, `search-web-api/test/{api,
+      autocomplete-engines,engine-health-suite,search,sources-unit,
+      sources}.test.ts`, `shadcn-settings/test/settings-field.test.tsx`),
+      none touching `qwksearch-ext` or tab-navigation-related files.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar buttons)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (`TabList.tsx`'s existing toolbar/button pattern, `lib/new-tab.ts`,
+      `lib/undo-close-tab.ts`, and their tests)
+- [x] Confirm `chrome.tabs.goBack`/`chrome.tabs.reload`/`chrome.tabs.query`
+      API shapes against the installed `@types/chrome` and the `tabs`
+      permission already granted in `wxt.config.ts`
+- [x] Implement `goBackActiveTab`/`refreshActiveTab` in
+      `lib/tab-navigation.ts`
+- [x] Wire the two new toolbar buttons into `TabList.tsx`
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (no active tab found; active
+      tab with no `id`)
+- [x] Run focused tests and fix failures (none needed — passed first run)
+- [x] Run linting and typechecking (lint n/a; typecheck error count is +3,
+      the same pre-existing `TS2304` class, confirmed via `git stash`-based
+      before/after diff)
+- [x] Run the full relevant test suite (`qwksearch-ext` and full workspace
+      `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` was
+      required in this fresh checkout — the resulting `bun.lock`
+      package-version-sync diff was reverted, matching prior tasks'
+      precedent; final `git diff --stat` shows only `TabList.tsx` plus the 2
+      new files, beyond the separate `TODO.md` tracker-sync change)
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. All acceptance criteria verified locally
+  on this commit.
+- A "Forward" button remains an open, explicitly out-of-scope follow-up (see
+  Non-goals above), should it ever be requested.
+
+## Browser extension: Auto-generate keyphrase completions for on-page/tab search
+
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 32 ("Auto-generate keyphrase
 completions for on-page Ctrl+F search."). `apps/qwksearch-ext/components/
 TabSearch.tsx` already has dead scaffolding for this — `autocompleteResults`/
@@ -11,9 +130,10 @@ TabSearch.tsx` already has dead scaffolding for this — `autocompleteResults`/
 `setAutocompleteResults` is never called anywhere and no autocomplete
 dropdown is ever rendered — confirmed via a direct grep of the file. This
 task is the first slice that actually populates and renders that dropdown.
-**Branch:** `claude/adoring-mayer-r6s5vt` (this session's designated branch)
-**PR:** Not created yet
+**Branch:** `claude/adoring-mayer-r6s5vt`
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/263 (merged)
 **Started:** 2026-08-15
+**Completed:** 2026-08-15
 
 ### Goal
 As the user types in the side panel's "Search tab text or web" box
@@ -161,12 +281,15 @@ a query blind and finding zero matches.
       unrelated `bun.lock` package-version-sync diff, reverted per prior
       tasks' precedent; final `git diff --stat` shows only the 2 intended
       source files plus the 2 new files)
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [x] Update tracker status, completed checkboxes, and remaining work
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #263, merged)
+- [x] Update tracker status, completed checkboxes, and remaining work (this
+      run — 2026-08-15 — found PR #263 already merged into master, commit
+      `cc8c5e9`; this tracker entry was left stale at "In Progress" by the
+      prior session, corrected here)
 
 ### Remaining work
-- Commit the changes, push the branch, and open the pull request.
+- None for this task's own scope. PR #263 merged into master.
 
 ## Browser extension: Browse bookmarks by folder in the Favorites tab
 

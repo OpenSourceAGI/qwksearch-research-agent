@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import Sortable from "sortablejs"
-import { Plus, Undo2, X } from "lucide-react"
+import { ArrowLeft, Plus, RotateCw, Undo2, X } from "lucide-react"
 import { Button } from "./ui/button"
 import findMostRecentClosedTabSessionId from "@/lib/undo-close-tab"
 import openNewTab from "@/lib/new-tab"
+import { goBackActiveTab, refreshActiveTab } from "@/lib/tab-navigation"
 
 // Extend Window interface for legacy find() method
 declare global {
@@ -148,6 +149,24 @@ export default function TabList({ results, setResults, fetchAllTabs }: TabListPr
   return (
     <>
       <div className="flex justify-end mb-1 space-x-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 hover:bg-slate-200"
+          onClick={goBackActiveTab}
+          title="Back"
+        >
+          <ArrowLeft size={14} className="text-gray-600" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 hover:bg-slate-200"
+          onClick={refreshActiveTab}
+          title="Refresh"
+        >
+          <RotateCw size={14} className="text-gray-600" />
+        </Button>
         <Button
           variant="ghost"
           size="icon"
