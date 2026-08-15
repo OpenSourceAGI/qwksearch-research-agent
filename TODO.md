@@ -1,5 +1,7 @@
 ## In Progress
 
+## Completed
+
 ## Browser extension: Downloads tab
 
 **Status:** Completed
@@ -115,8 +117,6 @@ existing "Tabs" and "Research" tabs, using Chrome's `chrome.downloads` API.
   (`chrome.downloads.removeFile`), and accepting dangerous downloads
   (`chrome.downloads.acceptDanger`) — all separate, independently useful
   slices of Ideas Backlog item 28.
-
-## Completed
 
 ## Browser extension: "Undo close tab" button
 
