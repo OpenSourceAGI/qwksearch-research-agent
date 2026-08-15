@@ -2,15 +2,16 @@
 
 ## Browser extension: Back and Refresh buttons for the active tab
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 28 ("Add downloads tab; also back,
 refresh, undo close, new tab."). The Undo-close-tab, Downloads tab, and New
 tab slices are already done (see their completed tasks below); item 28's
 note explicitly calls out "back/refresh remain follow-ups." This task
 completes that remaining pair.
 **Branch:** `claude/adoring-mayer-c8x02n` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/265
 **Started:** 2026-08-15
+**Completed:** 2026-08-15
 
 ### Goal
 Let a user navigate the active tab's history back and reload it, via two new
