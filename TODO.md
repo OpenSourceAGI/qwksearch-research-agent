@@ -2469,3 +2469,13 @@ ext - dl to reason dl folswe
     pure-documentation ones, continues to rule out this repo's source as
     the cause. Still needs a human with Cloudflare dashboard access to
     diagnose — this environment has no credentials for it.
+
+    **Update: it recurred an eighth time, on PR #254 (commit `6145234`, the
+    TODO.md tracker-sync-only follow-up to PR #253), build ID
+    `f644dbac-6f0e-4fe5-a26d-e1b637203ea4`. This PR's diff touches only
+    `TODO.md` — zero code — the third pure-documentation PR to trigger the
+    identical failure (after PRs #249 and #252). Eight consecutive failures
+    across eight different PRs/commits, including three carrying no code
+    change whatsoever, conclusively rules out this repo's source across
+    every occurrence so far. Still needs a human with Cloudflare dashboard
+    access to diagnose — this environment has no credentials for it.
