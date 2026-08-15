@@ -1,5 +1,111 @@
 ## In Progress
 
+## Browser extension: Forward button for the active tab
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 28 ("Add downloads tab; also back,
+refresh, undo close, new tab."). The Undo-close-tab, Downloads tab, New tab,
+Back, and Refresh slices are all already done (see their completed tasks
+below); the just-completed "Browser extension: Back and Refresh buttons for
+the active tab" task's own Non-goals explicitly deferred a "Forward" button
+as a follow-up ("item 28 only calls out 'back, refresh' as the remaining
+follow-ups; forward navigation is a separate, smaller follow-up if ever
+requested"). This task completes that final remaining piece by mirroring
+`goBackActiveTab`/`refreshActiveTab` exactly.
+**Branch:** `claude/adoring-mayer-4tsafm` (this session's designated branch)
+**PR:** Not created yet
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Let a user navigate the active tab's history forward, via a third toolbar
+button in the side panel's Tabs view (`TabList.tsx`), next to the existing
+"Back" and "Refresh" buttons — without switching to the tab itself.
+
+### Scope
+- `apps/qwksearch-ext/lib/tab-navigation.ts`: add `goForwardActiveTab(): void`
+  — same active-tab lookup as `goBackActiveTab`/`refreshActiveTab`, calling
+  `chrome.tabs.goForward(tabId)`.
+- `apps/qwksearch-ext/components/TabList.tsx`: add a "Forward" button
+  (`ArrowRight` icon) to the existing toolbar row, positioned right after
+  "Back", wired to `goForwardActiveTab`.
+
+### Non-goals
+- Disabling the Forward button when the active tab has no forward history —
+  `chrome.tabs.goForward` is a no-op/harmless when there's nothing to go
+  forward to, matching the existing Back button's precedent of not adding
+  extra enablement state-tracking.
+- Any change to `TabSearch.tsx`, `HistoryList.tsx`, `DownloadsList.tsx`,
+  `BookmarksList.tsx`, or any other tab.
+
+### Acceptance criteria
+- [x] Clicking "Forward" calls `chrome.tabs.goForward` with the active tab's
+      id.
+- [x] The function does not throw or call the chrome API when there is no
+      active tab in the query result, or when the active tab has no id.
+- [x] Vitest coverage is added for `goForwardActiveTab` — 3 new focused cases
+      in `apps/qwksearch-ext/test/tab-navigation.test.ts`, mirroring
+      `goBackActiveTab`'s existing three cases exactly.
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run (same as every prior `qwksearch-ext` task)
+- [x] Typecheck passes — `bun run compile` in `apps/qwksearch-ext` (after
+      clearing the stale `tsconfig.tsbuildinfo` incremental cache) surfaces
+      exactly 131 errors, one more than the 130-error baseline confirmed via
+      `git stash push -u` on this task's three touched files, re-running
+      `bun run compile`, then `git stash pop`. The one new error
+      (`lib/tab-navigation.ts(17,30): error TS2304: Cannot find name
+      'chrome'`, at the new `chrome.tabs.goForward` call site) is a further
+      instance of the same pre-existing `TS2304` class already present
+      throughout this app's `chrome.*`-using files, not a new category.
+- [x] Tests pass — `bunx vitest run test/tab-navigation.test.ts`: 8/8 passed.
+      `bun run test` in `qwksearch-ext`: 14/14 files, 144/144 tests passed
+      (141 pre-existing + 3 new). Full workspace `bun run test`: 183/192
+      files, 2538/2598 tests pass (56 failed, 4 skipped) — confirmed via a
+      full `grep -E "^ FAIL"` over the captured run output that the 9 failing
+      files are exactly the documented pre-existing set
+      (`chat-agent-toolkit/test/openrouter-default-model.test.js`,
+      `qwksearch-web/app/api/config/__tests__/route.test.ts`,
+      `search-web-api/test/{api,autocomplete-engines,engine-health-suite,
+      search,sources-unit,sources}.test.ts`,
+      `shadcn-settings/test/settings-field.test.tsx`), none touching
+      `qwksearch-ext` or tab-navigation-related files.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded (7m8s).
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar buttons)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (`tab-navigation.ts`/`tab-navigation.test.ts`, `TabList.tsx`'s existing
+      Back/Refresh toolbar pattern)
+- [x] Implement `goForwardActiveTab` in `lib/tab-navigation.ts`
+- [x] Wire the new toolbar button into `TabList.tsx`
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (no active tab; active tab with
+      no id)
+- [x] Run focused tests and fix failures (none needed — passed first run)
+- [x] Run linting and typechecking (lint n/a; typecheck error count is +1,
+      the same pre-existing `TS2304` class, confirmed via `git stash`-based
+      before/after diff)
+- [x] Run the full relevant test suite (`qwksearch-ext` and full workspace
+      `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` was
+      required in this fresh checkout; the resulting `bun.lock`
+      package-version-sync diff was reverted, matching prior tasks'
+      precedent; final `git status --short` shows exactly the 3 intended
+      source files beyond this tracker entry)
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. All acceptance criteria verified locally
+  on this commit.
+- Item 28 is now fully complete — every named follow-up (downloads, back,
+  refresh, undo close, new tab) has a merged slice.
+
 ## Sidebar: Search topics for the current page
 
 **Status:** Completed
@@ -3672,11 +3778,14 @@ ext - dl to reason dl folswe
 25. Auto-search for topics in sidebar.
 26. Prioritize sidebar with AI tips about the current page.
 27. Cache questions and use them to build connections.
-28. Add downloads tab; also back, refresh, undo close, new tab. — **"Undo
-    close tab", "Downloads tab", and "New tab" slices done, see "Browser
-    extension: \"Undo close tab\" button", "Browser extension: Downloads
-    tab", and "Browser extension: \"New tab\" button" above** (back/refresh
-    remain follow-ups)
+28. Add downloads tab; also back, refresh, undo close, new tab. — **done in
+    full: "Undo close tab", "Downloads tab", "New tab", and "Back and
+    Refresh" slices, see "Browser extension: \"Undo close tab\" button",
+    "Browser extension: Downloads tab", "Browser extension: \"New tab\"
+    button", and "Browser extension: Back and Refresh buttons for the
+    active tab" above** (a "Forward" button, not named in the original
+    item, was added as a small follow-up, see "Browser extension: Forward
+    button for the active tab" above)
 29. Default search support; Chrome extensions can override homepage, startup pages, and search provider via `chrome_settings_overrides`.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override) — **done, see "Default search provider support in the browser extension (chrome_settings_overrides)" above**
 29b. `qwksearch-ext`'s own `bun run build`/`zip` (Chrome target) fails on a
      fresh checkout: `postcss.config.js` still uses the old

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { goBackActiveTab, refreshActiveTab } from '../lib/tab-navigation';
+import { goBackActiveTab, goForwardActiveTab, refreshActiveTab } from '../lib/tab-navigation';
 
 describe('goBackActiveTab', () => {
   it('calls chrome.tabs.goBack with the active tab id', () => {
@@ -35,6 +35,43 @@ describe('goBackActiveTab', () => {
     goBackActiveTab();
 
     expect(goBack).not.toHaveBeenCalled();
+  });
+});
+
+describe('goForwardActiveTab', () => {
+  it('calls chrome.tabs.goForward with the active tab id', () => {
+    const goForward = vi.fn();
+    const query = vi.fn((_queryInfo, callback) => callback([{ id: 13 }]));
+    vi.stubGlobal('chrome', { tabs: { query, goForward } });
+
+    goForwardActiveTab();
+
+    expect(query).toHaveBeenCalledWith(
+      { active: true, currentWindow: true },
+      expect.any(Function)
+    );
+    expect(goForward).toHaveBeenCalledTimes(1);
+    expect(goForward).toHaveBeenCalledWith(13);
+  });
+
+  it('does not call chrome.tabs.goForward when there is no active tab', () => {
+    const goForward = vi.fn();
+    const query = vi.fn((_queryInfo, callback) => callback([]));
+    vi.stubGlobal('chrome', { tabs: { query, goForward } });
+
+    goForwardActiveTab();
+
+    expect(goForward).not.toHaveBeenCalled();
+  });
+
+  it('does not call chrome.tabs.goForward when the active tab has no id', () => {
+    const goForward = vi.fn();
+    const query = vi.fn((_queryInfo, callback) => callback([{}]));
+    vi.stubGlobal('chrome', { tabs: { query, goForward } });
+
+    goForwardActiveTab();
+
+    expect(goForward).not.toHaveBeenCalled();
   });
 });
 

@@ -9,6 +9,10 @@ export function goBackActiveTab(): void {
   withActiveTabId((tabId) => chrome.tabs.goBack(tabId))
 }
 
+export function goForwardActiveTab(): void {
+  withActiveTabId((tabId) => chrome.tabs.goForward(tabId))
+}
+
 export function refreshActiveTab(): void {
   withActiveTabId((tabId) => chrome.tabs.reload(tabId))
 }
