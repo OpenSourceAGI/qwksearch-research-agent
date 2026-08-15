@@ -2066,3 +2066,17 @@ ext - dl to reason dl folswe
     which this environment has no credentials for. Worth a human check with
     dashboard access to determine root cause — if it recurs a third time,
     that would confirm it's not transient.
+
+    **Update: it recurred a third time, on PR #249 (commit `500d85d`) —
+    the very PR that added this item 39 entry, whose diff touches only
+    `TODO.md` (a pure documentation change, zero code). A markdown-only PR
+    triggering the identical deploy failure conclusively rules out any
+    code-level regression in this repo across all three occurrences (PRs
+    #246, #248, #249) and confirms this is a Cloudflare-side/Workers-Build
+    infrastructure or configuration issue unrelated to what's being
+    deployed. This environment still has no Cloudflare dashboard
+    credentials to identify the actual root cause (build ID
+    `6b4c022e-0707-4947-a22f-b5c2422ae223` for this third failure) — needs
+    a human with dashboard access to investigate the Workers Build
+    pipeline itself (e.g. build-environment/quota/billing issue on
+    Cloudflare's side), not this repo's source.
