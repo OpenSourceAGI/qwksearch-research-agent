@@ -63,6 +63,13 @@ interface ReasonDocsProps {
   initialDocId?: string | null;
   /** Called whenever the active document changes, so the host can mirror it (e.g. into a URL param). */
   onActiveDocumentChange?: (docId: string | null) => void;
+  /**
+   * Generates short AI tips about the active document's content, given its
+   * title and HTML content. Powers the sidebar "ai" panel's "Page tips"
+   * section. Omitted when the host app has no tips-generation capability —
+   * the section is hidden entirely in that case.
+   */
+  onGenerateTips?: (title: string, contentHtml: string) => Promise<string[]>;
 }
 
 /**
@@ -82,10 +89,13 @@ const Index = ({
   onFileTabSelect,
   initialDocId,
   onActiveDocumentChange,
+  onGenerateTips,
 }: ReasonDocsProps) => {
   const { theme, setTheme } = useTheme();
   const state = useReasonDocsState(openFilesSidebarSignal);
   const [settingsInitialSection, setSettingsInitialSection] = useState<string | undefined>(undefined);
+  const [tips, setTips] = useState<string[]>([]);
+  const [isTipsLoading, setIsTipsLoading] = useState(false);
 
   // Restore the active document from a host-supplied ID (e.g. a `?docs=`
   // URL param) once, the first time it resolves to a real document.
@@ -104,6 +114,29 @@ const Index = ({
   useEffect(() => {
     onActiveDocumentChange?.(state.activeDocId);
   }, [state.activeDocId, onActiveDocumentChange]);
+
+  // Clear any previously generated page tips when the active document
+  // changes, so stale tips from the last document are never shown.
+  useEffect(() => {
+    setTips([]);
+  }, [state.activeDocId]);
+
+  const handleGenerateTips = async () => {
+    if (!onGenerateTips || !state.activeDocument) return;
+    setIsTipsLoading(true);
+    try {
+      const generated = await onGenerateTips(state.activeDocument.title, state.activeDocument.content || '');
+      setTips(generated);
+    } catch {
+      setTips([]);
+    } finally {
+      setIsTipsLoading(false);
+    }
+  };
+
+  const tipsProps = onGenerateTips
+    ? { tips, isTipsLoading, onGenerateTips: handleGenerateTips }
+    : undefined;
 
   // Use persistence hook for sidebar sizes
   const [sidebarSizes, setSidebarSizes] = usePersistence({
@@ -220,6 +253,7 @@ const Index = ({
       onAiReject: state.handleAIReject,
       onAiRegenerate: state.handleAIRegenerate,
     },
+    tipsProps,
   };
 
   const editorProps = {
@@ -277,6 +311,7 @@ const Index = ({
         onAiReject: state.handleAIReject,
         onAiRegenerate: state.handleAIRegenerate,
       }}
+      tipsProps={tipsProps}
       onClose={() => state.setRightPanels([])}
       isMobile={state.isMobile}
       isOpen={state.isRightSidebarOpen}
