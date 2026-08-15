@@ -29,6 +29,17 @@ export function isBookmarkNode(node: BookmarkNodeLike): boolean {
   return !!node.url
 }
 
+/** True for a folder node (no URL) — the inverse of `isBookmarkNode`. */
+export function isFolderNode(node: BookmarkNodeLike): boolean {
+  return !isBookmarkNode(node)
+}
+
+/** A folder's trimmed title, falling back to a placeholder when blank/missing. */
+export function folderDisplayTitle(node: { title?: string }): string {
+  const title = node.title?.trim()
+  return title || "Untitled folder"
+}
+
 /** Trims a proposed new bookmark title before saving via `chrome.bookmarks.update`. */
 export function sanitizeBookmarkTitle(input: string): string {
   return input.trim()

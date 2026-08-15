@@ -127,6 +127,146 @@ used for the title in `apps/qwksearch-ext`'s side panel Favorites tab, via
 - Bookmark-folder-tree editing/moving remains an open, separate follow-up
   (unchanged from the original title-edit task's Remaining work).
 
+## Browser extension: Browse bookmarks by folder in the Favorites tab
+
+**Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 14 (Favorites tab), continuing the
+follow-up explicitly deferred as a Non-goal in the original "Browser
+extension: Favorites (bookmarks) tab" task ("Browsing the full bookmark
+folder tree, or filtering/searching bookmarks — out of scope for this first
+read/act-on-favorites slice") and echoed as still-open in later Favorites
+tasks' Remaining work ("Bookmark-folder-tree editing/moving remains an open,
+separate follow-up"). This slice covers the "browsing" half only — view-only
+folder navigation, no move/reorder/create.
+**Branch:** `claude/adoring-mayer-0cef78` (this session's designated branch)
+**PR:** Not created yet
+**Started:** 2026-08-15
+
+### Goal
+Let a user switch the Favorites tab from the existing flat "most recent 20"
+list to a folder-tree view, so they can navigate into their actual Chrome
+bookmark folders (Bookmarks bar, Other bookmarks, and any user-created
+subfolders) and open/edit/remove bookmarks from within them, without leaving
+the panel.
+
+### Scope
+- `apps/qwksearch-ext/lib/bookmarks.ts`: add `isFolderNode(node)` (the
+  inverse of the existing `isBookmarkNode`) and `folderDisplayTitle(node)` (a
+  folder's trimmed title, falling back to a placeholder when blank).
+- `apps/qwksearch-ext/components/BookmarksList.tsx`:
+  - Add a small "Recent" / "Folders" view toggle at the top of the tab
+    (default: "Recent", preserving today's behavior unchanged).
+  - In "Folders" mode, list the current folder's immediate children via
+    `chrome.bookmarks.getChildren(folderId)`, starting at the bookmarks root
+    (`"0"`, whose children are Chrome's top-level folders). Folders render as
+    clickable rows (folder icon + title) that navigate in; bookmarks render
+    with the existing row markup (favicon, open-on-click, edit, remove —
+    refactored into a small shared row renderer so both views reuse the same
+    edit/remove/open logic).
+  - A "Back" button (enabled once inside a folder) navigates to the parent
+    folder, tracked via a simple in-memory folder stack (no need to persist
+    across panel reloads).
+  - Re-fetch the active view's data on
+    `chrome.bookmarks.onCreated`/`onRemoved`/`onChanged`/`onMoved`, mirroring
+    the existing sync behavior.
+
+### Non-goals
+- Creating new bookmarks or folders, or moving/reordering bookmarks between
+  folders (drag-and-drop or otherwise) — view/open/edit-title-and-url/remove
+  only, matching the existing per-bookmark actions.
+- Any breadcrumb UI beyond a single "Back" button — a full multi-level
+  breadcrumb trail is a possible follow-up, not required for this first
+  browsing slice.
+- Any change to the "Recent" view's existing behavior, `lib/history.ts`,
+  `HistoryList.tsx`, `DownloadsList.tsx`, or any other tab.
+
+### Acceptance criteria
+- [x] The Favorites tab defaults to the existing "Recent" flat list
+      (unchanged behavior) with a new "Folders" toggle.
+- [x] Switching to "Folders" shows the top-level bookmark folders (Bookmarks
+      bar, Other bookmarks, etc.) as clickable rows (`chrome.bookmarks.
+      getChildren("0", ...)`).
+- [x] Clicking a folder navigates into it and shows its immediate child
+      folders and bookmarks (`folderStack` push, re-fetches via
+      `getChildren(currentFolderId)`).
+- [x] Clicking a bookmark row (in either view) still opens it via
+      `chrome.tabs.create`; Edit/Remove still work identically in Folders
+      view (shared `renderBookmarkRow`, `removeBookmark`/`saveEdit` refresh
+      whichever view is active).
+- [x] "Back" returns to the parent folder; it's the top-level list when the
+      stack is empty (`folderStack.slice(0, -1)`).
+- [x] An empty folder shows a "This folder is empty" message, mirroring the
+      existing "No favorites yet" message.
+- [x] Vitest coverage is added or updated — 6 new focused cases for
+      `isFolderNode` (has url / no url / empty-string url) and
+      `folderDisplayTitle` (trimmed title / blank title / missing title) in
+      `apps/qwksearch-ext/test/bookmarks.test.ts`. No pre-existing
+      `BookmarksList.tsx` component test file exists (checked directly),
+      matching the precedent from every prior Favorites-tab task.
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run (same as every prior `qwksearch-ext` task)
+- [x] Typecheck passes — `bun run compile` (after clearing the stale
+      `tsconfig.tsbuildinfo` incremental cache) surfaces exactly 126 errors,
+      3 more than the 123-error baseline confirmed via `git stash` on just
+      this task's three touched files, re-running `bun run compile`, then
+      `git stash pop`. A line-by-line `diff` of the two runs shows the 11
+      pre-existing `components/BookmarksList.tsx` `TS2304: Cannot find name
+      'chrome'` lines became 14 (the 3 new `chrome.bookmarks.getChildren`/
+      `onMoved.addListener`/`onMoved.removeListener` call sites) — same
+      pre-existing error class, no new category introduced.
+- [x] Tests pass — `bunx vitest run test/bookmarks.test.ts`: 24/24 passed (18
+      pre-existing + 6 new). `bun run test` in `qwksearch-ext`: 121/121
+      passed (12/12 files). Full workspace `bun run test`: 177/186 files,
+      2493/2550 tests pass (53 failed, 4 skipped). The 9 failing files are
+      exactly the documented pre-existing set (`chat-agent-toolkit/test/
+      openrouter-default-model.test.js`, `qwksearch-web/app/api/config/
+      __tests__/route.test.ts`, `search-web-api/test/{api,
+      autocomplete-engines,engine-health-suite,search,sources-unit,
+      sources}.test.ts`, `shadcn-settings/test/settings-field.test.tsx`) —
+      confirmed via a full `grep -E "^ (❯|FAIL)"` over the captured run
+      output, none touch `qwksearch-ext` or bookmarks-related files.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded. Also verified `bunx turbo build
+      --filter=qwksearch-extension-wxt` (Chrome target): 11/11 tasks
+      succeeded, producing `.output/chrome-mv3/`.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar actions)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (`lib/bookmarks.ts`, `components/BookmarksList.tsx`,
+      `test/bookmarks.test.ts`)
+- [x] Confirm `chrome.bookmarks.getChildren`/`onMoved` API shape
+- [x] Implement `isFolderNode`/`folderDisplayTitle` in `lib/bookmarks.ts`
+- [x] Implement the Folders view + toggle + back navigation in
+      `BookmarksList.tsx`, refactoring the bookmark row into a shared
+      `renderBookmarkRow` renderer used by both the Recent and Folders views
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (empty-string url edge case for
+      `isFolderNode`; blank/missing title for `folderDisplayTitle`)
+- [x] Run focused tests and fix failures (none needed — passed first run)
+- [x] Run linting and typechecking (lint n/a; typecheck error count is +3,
+      the same pre-existing `TS2304` class, confirmed via `git stash`-based
+      before/after diff)
+- [x] Run the full relevant test suite (`qwksearch-ext` and full workspace
+      `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks;
+      also verified the Chrome extension build itself, 11/11 tasks)
+- [x] Review the final diff for scope and quality (`bun install` produced an
+      unrelated `bun.lock` package-version-sync diff, reverted per prior
+      tasks' precedent; final `git diff --stat` shows only the 4 intended
+      files)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope beyond opening the PR (next step).
+- Follow-ups noted above remain open: creating new bookmarks/folders,
+  moving/reordering bookmarks between folders, and a full multi-level
+  breadcrumb trail beyond the single "Back" button.
+
 ## Fix `render-url-to-html/scraper-jsdom` and `scraper-puppeteer` missing from bun workspaces
 
 **Status:** Completed
