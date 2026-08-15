@@ -52,6 +52,8 @@ export default defineConfig({
       'declarativeNetRequest',
       'offscreen',
       'sessions',
+      'downloads',
+      'downloads.open',
     ],
     host_permissions: ['<all_urls>'],
     commands: {

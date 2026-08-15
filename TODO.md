@@ -1,5 +1,121 @@
 ## In Progress
 
+## Browser extension: Downloads tab
+
+**Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 28 ("Add downloads tab; also back,
+refresh, undo close, new tab."), scoped to its next independently useful
+piece: a Downloads list view. (Back/refresh/new-tab browser-chrome-style
+buttons remain a separate follow-up — see Non-goals.)
+**Branch:** `claude/adoring-mayer-ddv3jg`
+**PR:** Not created yet
+**Started:** 2026-08-14
+
+### Goal
+Let a user see and act on their recent downloads from
+`apps/qwksearch-ext`'s side panel, via a new "Downloads" tab alongside the
+existing "Tabs" and "Research" tabs, using Chrome's `chrome.downloads` API.
+
+### Scope
+- `apps/qwksearch-ext/wxt.config.ts`: add the `downloads` and
+  `downloads.open` manifest permissions (`downloads.open` is required by
+  `chrome.downloads.open()` in addition to `downloads`).
+- New pure helper module `apps/qwksearch-ext/lib/downloads.ts`:
+  - `basenameFromPath(path)`: extracts the filename from an absolute local
+    path, handling both `/`- and `\`-separated paths.
+  - `formatDownloadStatus(item)`: renders a short human-readable status
+    label (`"Downloading NN%"`, `"Downloading"` when size is unknown,
+    `"Paused"`, `"Complete"`, `"Failed"`/`"Failed: <reason>"`) from a
+    `DownloadItem`-shaped object.
+- New component `apps/qwksearch-ext/components/DownloadsList.tsx`: lists
+  the most recent 20 downloads
+  (`chrome.downloads.search({orderBy: ['-startTime'], limit: 20})`), each
+  row showing filename + status, with "show in folder"
+  (`chrome.downloads.show`) and "remove from list" (`chrome.downloads.erase`)
+  icon buttons, and click-to-open (`chrome.downloads.open`) once complete.
+  Kept in sync via `chrome.downloads.onCreated`/`onChanged`/`onErased`.
+- `apps/qwksearch-ext/entrypoints/sidepanel/App.tsx`: add a "Downloads" tab
+  (`Download` icon) alongside "Tabs" and "Research", rendering
+  `DownloadsList`.
+
+### Non-goals
+- Back/refresh/new-tab browser-chrome-style buttons — remains a separate
+  follow-up, per the "Undo close tab" task's precedent below.
+- Removing the downloaded file from disk (`chrome.downloads.removeFile`)
+  or accepting dangerous downloads (`chrome.downloads.acceptDanger`) — out
+  of scope for this first read/act-on-history slice.
+- Initiating new downloads from the panel — this view is for the browser's
+  existing download history, not a download manager UI.
+
+### Acceptance criteria
+- [x] The Downloads tab lists the most recent downloads, most recent
+      first, with filename and status.
+- [x] Clicking a completed download opens it; clicking an
+      in-progress/interrupted one does nothing.
+- [x] "Show in folder" reveals the file; "remove from list" erases it from
+      Chrome's download history and the panel's list.
+- [x] The list stays in sync with new/changed/erased downloads without a
+      manual refresh (via `chrome.downloads.onCreated`/`onChanged`/`onErased`).
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run
+- [x] Typecheck passes — `bun run compile` (after clearing the stale
+      `tsconfig.tsbuildinfo` incremental cache) surfaces only the same
+      **pre-existing** `TS2304: Cannot find name 'chrome'` class of error
+      already present throughout this app's `chrome.*`-using files (this
+      task's `DownloadsList.tsx` and `sidepanel/App.tsx` additions are
+      further instances of that same class, not a new category); also the
+      same pre-existing `TS2493`/`TS2769` errors documented in prior
+      TODO.md tasks.
+- [x] Tests pass — `bunx vitest run test/downloads.test.ts`: 13/13 passed.
+      `bun run test` in `qwksearch-ext`: 60/60 passed (7/7 files, 47
+      pre-existing + 13 new). Full workspace `bun run test`: 171/181 files,
+      2434/2489 tests pass (4 skipped); the 51 failures across the same 10
+      files documented repeatedly in prior TODO.md tasks (`search-web-api`
+      engine tests hitting real external APIs, the `qwksearch-web` config
+      route test, `shadcn-settings`, `jsdom-scraper` missing its `jsdom`
+      dependency, `chat-agent-toolkit`'s `openrouter-default-model.test.js`)
+      are pre-existing and unrelated — none touch `qwksearch-ext`.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar actions)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (mirrored `TabList.tsx`'s `chrome.sessions` wiring pattern from the
+      "Undo close tab" task below)
+- [x] Confirm `chrome.downloads` API shape against the installed
+      `@types/chrome`
+- [x] Implement the smallest useful vertical slice (`downloads`/
+      `downloads.open` permissions, `lib/downloads.ts` pure helpers,
+      `DownloadsList.tsx`, `sidepanel/App.tsx` wiring)
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (unknown size, paused,
+      interrupted with/without error reason, over-100% clamping, path
+      separators, no-slash filenames)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint
+      is not actionable for this change; typecheck failures are
+      pre-existing)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Create the pull request for this branch's commit(s).
+- Follow-ups noted above remain open: browser-chrome-style
+  back/refresh/new-tab buttons, removing files from disk
+  (`chrome.downloads.removeFile`), and accepting dangerous downloads
+  (`chrome.downloads.acceptDanger`) — all separate, independently useful
+  slices of Ideas Backlog item 28.
+
+## Completed
+
 ## Browser extension: "Undo close tab" button
 
 **Status:** Completed
@@ -8,7 +124,7 @@ refresh, undo close, new tab."), scoped down to its smallest independently
 useful piece: undo-close-tab. (Downloads tab, back/refresh/new-tab remain
 separate follow-ups — see Non-goals.)
 **Branch:** `claude/adoring-mayer-803j75`
-**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/241
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/241 (merged)
 **Started:** 2026-08-14
 **Completed:** 2026-08-14
 
@@ -107,14 +223,12 @@ browser's own Ctrl+Shift+T, but reachable from the extension's own UI.
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task's own scope. PR #241 open, CI/build/tests verified
+- None for this task's own scope. PR #241 merged, CI/build/tests verified
   locally.
-- Follow-ups noted above remain open: a "Downloads" tab/panel using
-  `chrome.downloads`, and browser-chrome-style back/refresh/new-tab
-  buttons — both separate, independently useful slices of Ideas Backlog
-  item 28.
-
-## Completed
+- Follow-ups noted above remain open: browser-chrome-style
+  back/refresh/new-tab buttons — a separate, independently useful slice of
+  Ideas Backlog item 28. (The "Downloads" tab/panel follow-up is now
+  underway — see "Browser extension: Downloads tab" above.)
 
 ## Fix `qwksearch-ext`'s Tailwind v4 PostCSS plugin mismatch
 
@@ -243,8 +357,6 @@ cleared, filed as new Ideas Backlog item 29c.
   `qwksearch-ext`'s build requires wiring up this dependency chain — a
   materially larger, separate task from a PostCSS config fix, so it's left
   as its own dedicated follow-up rather than folded into this one.
-
-## Completed
 
 ## Default search provider support in the browser extension (chrome_settings_overrides)
 
