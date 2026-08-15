@@ -2,15 +2,16 @@
 
 ## Browser extension: Edit a bookmark's URL from the Favorites tab
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — the "Browser extension: Edit a bookmark's title from the
 Favorites tab" task (PR #251, completed) explicitly deferred this as a
 Non-goal/follow-up: "Editing a bookmark's URL — only the title, matching the
 smallest independently useful slice of the deferred Non-goal." This is that
 next slice.
 **Branch:** `claude/adoring-mayer-ie5a52` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/259
 **Started:** 2026-08-15
+**Completed:** 2026-08-15
 
 ### Goal
 Let a user also edit a bookmark's URL inline from the same edit mode already
