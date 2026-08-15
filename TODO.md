@@ -1,5 +1,119 @@
 ## In Progress
 
+## Fix stale Ideas Backlog / Longterm annotations for already-completed items
+
+**Status:** Completed
+**Source:** TODO.md — self-inspection. While scoping this run's next task, a
+research pass into backlog item 32 ("Auto-generate keyphrase completions for
+on-page Ctrl+F search") almost treated it as fresh, unimplemented work — it
+is in fact fully implemented (`apps/qwksearch-ext/lib/keyphrase-completions.ts`,
+wired into `TabSearch.tsx`, with its own completed task "Browser extension:
+Auto-generate keyphrase completions for on-page/tab search" above), but the
+Ideas Backlog entry itself carries no `**done, see "..." above**` annotation,
+unlike items 1, 2, 19, 28, 29, 29b, 29c which do. A follow-up sweep of the
+whole Ideas Backlog/Longterm list found five more items in the same state:
+6, 12, 23, 25, and 26. This mirrors the exact task type already done once
+before in "Update TODO.md backlog annotations for accuracy" (PR #273) — a
+documentation-only accuracy pass, not a new feature.
+**Branch:** `claude/adoring-mayer-lhzc9q` (this session's designated branch)
+**PR:** Not created yet
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Annotate every Ideas Backlog / Longterm item that is already fully
+implemented with a `**done, see "..." above**` note pointing at its
+completed task, so future runs don't re-investigate or risk re-implementing
+already-shipped work.
+
+### Scope
+- TODO.md's `## Ideas Backlog` section: item 6 (OpenRouter app-attribution
+  headers) and item 32 (keyphrase completions for on-page/tab search).
+- TODO.md's `## Longterm` section: item 12 (open tabs and scrape them —
+  covered by the same "Chat about my open tabs" work that already closed
+  items 2 and 19), item 23 (suggest the next page from the sidebar), item 25
+  (auto-search for topics in sidebar), item 26 (prioritize sidebar with AI
+  tips).
+
+### Non-goals
+- Any code change — this is a tracker-accuracy-only pass, matching PR #273's
+  precedent.
+- Re-verifying or changing the behavior of any of the six referenced
+  completed features.
+- Auditing every other backlog item beyond the six identified above (a full
+  re-audit of items 0b/13/15/20/24/27/31/33-37 was done as part of scoping
+  this run and found no further mis-annotated *completed* items — those
+  remaining items are either genuinely open, vague, or already correctly
+  marked "investigated"/blocked).
+
+### Acceptance criteria
+- [x] Backlog item 6 is annotated done, citing "OpenRouter: send
+      app-attribution headers (HTTP-Referer, X-Title)".
+- [x] Longterm item 12 is annotated done, citing the same "Chat about my
+      open tabs" / "include page content" tasks already cited by items 2
+      and 19.
+- [x] Longterm item 23 is annotated done, citing "Sidebar: highlight the
+      top related document as \"Suggested next\"".
+- [x] Longterm item 25 is annotated done, citing "Sidebar: Search topics
+      for the current page".
+- [x] Longterm item 26 is annotated done, citing "Sidebar: AI tips about
+      the current page".
+- [x] Backlog item 32 is annotated done, citing "Browser extension:
+      Auto-generate keyphrase completions for on-page/tab search".
+- [x] No code, test, or non-TODO.md file is touched — `git status --short`
+      shows exactly `TODO.md` after reverting the incidental
+      `bun install` lockfile sync diff.
+- [x] Vitest coverage: n/a — documentation-only change, no code path to
+      cover (same as PR #273's precedent).
+- [x] Lint passes — n/a, no code touched.
+- [x] Typecheck passes — n/a, no code touched.
+- [x] Tests pass — full workspace `bun run test`: 185/194 files,
+      2550/2608 tests pass (54 failed, 4 skipped) — confirmed via a full
+      `grep "^ FAIL"` over the captured run that the 9 failing files are
+      exactly the documented pre-existing set (`chat-agent-toolkit/test/
+      openrouter-default-model.test.js`, `qwksearch-web/app/api/config/
+      __tests__/route.test.ts`, `search-web-api/test/{api,
+      autocomplete-engines,engine-health-suite,search,sources-unit,
+      sources}.test.ts`, `shadcn-settings/test/settings-field.test.tsx`),
+      none touching `TODO.md`.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded (6m23s).
+- [x] Documentation is updated — this task *is* the documentation update.
+
+### Implementation plan
+- [x] Inspect `IDEAS.md` (none exists in this repo — TODO.md's own "Ideas
+      Backlog"/"Longterm" sections are the canonical backlog) and the TODO
+      tracker's `In Progress` section (empty at run start)
+- [x] Identify the six mis-annotated already-completed items via a research
+      pass over TODO.md's Ideas Backlog/Longterm sections and their citing
+      completed tasks
+- [x] Edit each of the six backlog lines to add a `**done, see "..." above**`
+      annotation, matching the existing style used by items 1/2/19/28
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Run the full test suite (`bun run test`, same 9 pre-existing failing
+      files as documented in the most recent prior task)
+- [x] Review the final diff for scope (`bun install` was required in this
+      fresh checkout; the resulting `bun.lock` package-version-sync diff
+      was reverted, matching prior tasks' precedent; final
+      `git status --short` shows exactly `TODO.md`)
+- [x] Commit and push the branch
+- [ ] Create the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. All acceptance criteria verified locally
+  on this commit; PR creation is the only remaining step (see GitHub
+  updates in this run's report).
+- A full re-audit of the remaining open backlog items (0b, 13, 15, 20, 24,
+  27, 31, 33-37) found no further mis-annotated *completed* items — those
+  are either genuinely open, too vague/large for a first slice, or already
+  correctly marked "investigated"/blocked. The most concrete unimplemented
+  candidate found was item 27 ("Cache questions and use them to build
+  connections"), but it lacks enough elaboration for a testable first slice
+  (no existing "connections" UI or "cached questions" concept to mirror) —
+  left open for a future run that either gets human clarification or
+  designs the concept from scratch.
+
 ## Test coverage for the article-reader follow-up-questions pipeline
 
 **Status:** Completed
@@ -4030,14 +4144,17 @@ ext - dl to reason dl folswe
    this can be implemented.
 4. Outline tree should reuse Fumadocs page tree/sidebar patterns. — **done, see "Outline sidebar: highlight the active heading while scrolling" above**
 5. Option to start talking automatically on first visit, or via a button from anywhere on the site. — **done, see "Voice auto-start on first visit" above**
-6. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings.
+6. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings. — **done, see "OpenRouter: send app-attribution headers (HTTP-Referer, X-Title)" above**
 7. common typoes — **done, see "Fix common typos in AI prompt templates" above**
 8. https://github.com/cloudflare/moltworker
 
 
 ## Longterm
 
-12. Use CRX/extension to open tabs and scrape them.
+12. Use CRX/extension to open tabs and scrape them. — **done, see "Browser
+    extension: \"Chat about my open tabs\" button" and "Browser extension:
+    include page content in \"Chat about my open tabs\"" above** (same
+    underlying work that also closed items 2 and 19 below)
 13. Custom AI agent monitors topics and generates a news feed.
 14. Main nav: Tabs | AI chat | Web search | Favorites | History. — **History
     tab and Favorites tab slices both done, see "Browser extension: History
@@ -4076,10 +4193,14 @@ ext - dl to reason dl folswe
 20. Preload page results for common questions with SSR.
 21. If autocomplete matches something like red.com, go there directly. — **done, see "Autocomplete: recognize a typed bare domain even when it's outside the ranked dataset" above**
 22. Share button; email to friends; social actions. — **done, see "Article panel: Share button (native Web Share API with clipboard fallback)" above**
-23. Suggest the next page from the sidebar on each page.
+23. Suggest the next page from the sidebar on each page. — **done, see
+    "Sidebar: highlight the top related document as \"Suggested next\""
+    above**
 24. For each topic, next-word prediction in model.
-25. Auto-search for topics in sidebar.
-26. Prioritize sidebar with AI tips about the current page.
+25. Auto-search for topics in sidebar. — **done, see "Sidebar: Search
+    topics for the current page" above**
+26. Prioritize sidebar with AI tips about the current page. — **done, see
+    "Sidebar: AI tips about the current page" above**
 27. Cache questions and use them to build connections.
 28. Add downloads tab; also back, refresh, undo close, new tab. — **done in
     full: "Undo close tab", "Downloads tab", "New tab", and "Back and
@@ -4115,7 +4236,9 @@ ext - dl to reason dl folswe
      handled the rest; the Research tab's runtime behavior in the shipped
      extension remains unverified, see that task's Remaining work)
 31. Agents that scrape the web and work with datasets like LinkedIn.
-32. Auto-generate keyphrase completions for on-page Ctrl+F search.
+32. Auto-generate keyphrase completions for on-page Ctrl+F search. — **done,
+    see "Browser extension: Auto-generate keyphrase completions for
+    on-page/tab search" above**
 33. Markdown/file tree view inspiration: [ld246.com/guide/markdown](https://ld246.com/guide/markdown).
 34. Reuse Fumadocs multi-tree/root-toggle ideas for docs organization.
 35. Release on HN, YouTube, and Product Hunt.
