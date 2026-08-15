@@ -13,7 +13,7 @@ its results sorted best-match-first, but the Related panel in
 `SidebarContent.tsx` renders every result with identical styling — there is
 no "suggested next page" concept yet, just a flat ranked list.
 **Branch:** `claude/adoring-mayer-i2vsxv` (this session's designated branch)
-**PR:** Not created yet (will be created and this line updated on push)
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/267
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -123,12 +123,19 @@ list they have to scan themselves.
       precedent; final `git diff --stat` shows only the 3 intended source
       files beyond this tracker entry)
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #267, merged)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task's own scope. All acceptance criteria verified locally
-  on this commit.
+- None for this task's own scope. PR #267 merged; all verification passed
+  locally on this commit.
+- The PR's "Workers Builds: qwksearch-research-agent" Cloudflare deploy check
+  failed — the same recurring, pre-existing, unrelated-to-code
+  infrastructure issue already conclusively documented as Ideas Backlog item
+  39 (a 12th occurrence, on a PR whose diff again touches only
+  `packages/reason-editor/` plus `TODO.md`, with `bun run build:web` passing
+  14/14 tasks locally on this exact commit before merging). Per that item's
+  own note, this is not appended as a new numbered occurrence there.
 - A larger, separate follow-up remains open: any "next page" concept beyond
   the existing Related panel (e.g. an article-reader-level "up next"
   banner, or manual pinning of a preferred "next" document) — see
