@@ -1,7 +1,7 @@
 {
   "name": "shadcn-app-dock",
   "description": "Prop-driven macOS-style category dock with magnification, a custom dropdown menu, and a built-in shadcn theme switcher",
-  "version": "0.1.110",
+  "version": "0.1.113",
   "author": "vtempest",
   "repository": {
     "type": "git",
