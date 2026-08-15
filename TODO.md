@@ -3748,8 +3748,25 @@ ext - dl to reason dl folswe
    scoring done, see "Related panel: rank by shared tags as well as
    keyword overlap" above** (further surfaces — chat/search UI, open-tab
    context — remain as follow-ups)
-2. Chat with open tabs as context.
+2. Chat with open tabs as context. — **done, see "Browser extension:
+   \"Chat about my open tabs\" button" and "Browser extension: include page
+   content in \"Chat about my open tabs\"" above**
 3. Show Vals scores for all models; example Kimi K2.5 page lists Vals Index 51.70%, latency 807.18s, and cost/test $0.29.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override)
+   — **investigated 2026-08-15, not yet actionable: the model list lives in
+   `packages/chat-agent-toolkit/src/config/language-models-database.ts`
+   (a per-provider `models: [{name, id, contextLength, ...}]` array), and an
+   optional `benchmarkScore`/`latency`/`costPerTest` field could be added
+   there cleanly and rendered conditionally in
+   `apps/qwksearch-web/components/Settings/Sections/Models/ModelSelect.tsx`
+   (after also threading the field through `model-registry.ts`'s
+   `mergeChatModels`, which currently strips models down to `{name, key}`).
+   The blocker is data, not code: this environment has no reliable access to
+   real Vals Index scores per model, and the one example figure given here
+   ("Kimi K2.5") doesn't match any entry in the database (`grep Kimi` only
+   finds `"Kimi K2 0711"`) — populating this would mean fabricating numbers.
+   Needs a human to supply a real data source (e.g. a Vals.ai API/export) or
+   confirm which model IDs the example figures actually correspond to before
+   this can be implemented.
 4. Outline tree should reuse Fumadocs page tree/sidebar patterns. — **done, see "Outline sidebar: highlight the active heading while scrolling" above**
 5. Option to start talking automatically on first visit, or via a button from anywhere on the site. — **done, see "Voice auto-start on first visit" above**
 6. OpenRouter apps inspiration/reference: [openrouter.ai/apps](https://openrouter.ai/apps), and OpenRouter also documents app attribution plus public app rankings.
@@ -3762,14 +3779,39 @@ ext - dl to reason dl folswe
 12. Use CRX/extension to open tabs and scrape them.
 13. Custom AI agent monitors topics and generates a news feed.
 14. Main nav: Tabs | AI chat | Web search | Favorites | History. — **History
-    tab slice done, see "Browser extension: History tab" above** (Favorites
-    tab and any main-nav restructuring remain follow-ups)
+    tab and Favorites tab slices both done, see "Browser extension: History
+    tab" and "Browser extension: Favorites (bookmarks) tab" above** (any
+    further main-nav restructuring, e.g. a persistent top-level nav bar
+    instead of the current tab switcher, remains an open, unscoped
+    follow-up)
 15. Queries should run on cached pages that belong to topic outlines.
-16. Research agents should queue the next video.
+16. Research agents should queue the next video. — **investigated
+    2026-08-15, not yet a small slice: video search results
+    (`packages/research-agent-ui/src/components/SearchResults/
+    MessageSources.tsx`'s "Videos" category) currently just link out to the
+    source URL with `target="_blank"` — there is no inline video player and
+    no "queue"/"autoplay next" concept anywhere in the repo (confirmed via a
+    repo-wide grep for `queue.*video`/`nextVideo`/`videoQueue`/`autoplay`).
+    A "queue the next video" feature needs an inline player built first;
+    that's a separate, larger prerequisite task, not something this slice
+    can absorb.
 17. Follow-up suggestions. — **feature already implemented; test coverage
     added, see "Test coverage for the follow-up-suggestions pipeline" above**
-18. Browser sidebar results.
-19. Use open tabs as context.
+18. Browser sidebar results. — **investigated 2026-08-15: this item has no
+    elaboration and is never cited as the source of any completed task
+    (unlike items 1, 23, 25, 26, which each explicitly cite the sidebar work
+    that closed them). The completed sidebar features ("Sidebar: Search
+    topics...", "Sidebar: AI tips...", "Sidebar: highlight the top related
+    document...") are all in the REASON editor's document sidebar
+    (`packages/reason-editor/src/layout/sidebar/SidebarContent.tsx`), not
+    the browser extension's side panel — so this item most plausibly means
+    showing live web-search results inside the extension's side panel
+    (`apps/qwksearch-ext`), which doesn't exist today. Needs a human to
+    confirm the intended scope before it can be turned into a concrete
+    implementation task.**
+19. Use open tabs as context. — **done, see "Browser extension: \"Chat about
+    my open tabs\" button" and "Browser extension: include page content in
+    \"Chat about my open tabs\"" above**
 20. Preload page results for common questions with SSR.
 21. If autocomplete matches something like red.com, go there directly. — **done, see "Autocomplete: recognize a typed bare domain even when it's outside the ranked dataset" above**
 22. Share button; email to friends; social actions. — **done, see "Article panel: Share button (native Web Share API with clipboard fallback)" above**
