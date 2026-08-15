@@ -1,8 +1,10 @@
 ## In Progress
 
+## Completed
+
 ## Browser extension: History tab
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 14 ("Main nav: Tabs | AI chat | Web
 search | Favorites | History."), scoped to its next independently useful
 piece: a History list view in the side panel, mirroring the pattern already
@@ -10,9 +12,9 @@ established by the Downloads tab and "Undo close tab" button (both slices
 of the related item 28). (Favorites/bookmarks and any main-nav restructuring
 remain separate follow-ups — see Non-goals.)
 **Branch:** `claude/adoring-mayer-t17vkx`
-**PR:** Not created yet (implementation pushed; PR creation is the only
-remaining step)
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/244 (merged)
 **Started:** 2026-08-15
+**Completed:** 2026-08-15
 
 ### Goal
 Let a user see and act on their recent browsing history from
@@ -112,13 +114,14 @@ existing "Tabs", "Research", and "Downloads" tabs, using Chrome's
 - [x] Run the production/web build
 - [x] Review the final diff for scope and quality
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #244, merged)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Create the pull request for this branch's commit(s).
-
-## Completed
+- None for this task. PR #244 merged.
+- Follow-ups noted above remain open: a "Favorites"/bookmarks tab
+  (`chrome.bookmarks`), and any main-nav restructuring toward the backlog
+  item's literal "Tabs | AI chat | Web search | Favorites | History" layout.
 
 ## Browser extension: Downloads tab
 
@@ -1698,7 +1701,9 @@ ext - dl to reason dl folswe
 
 12. Use CRX/extension to open tabs and scrape them.
 13. Custom AI agent monitors topics and generates a news feed.
-14. Main nav: Tabs | AI chat | Web search | Favorites | History.
+14. Main nav: Tabs | AI chat | Web search | Favorites | History. — **History
+    tab slice done, see "Browser extension: History tab" above** (Favorites
+    tab and any main-nav restructuring remain follow-ups)
 15. Queries should run on cached pages that belong to topic outlines.
 16. Research agents should queue the next video.
 17. Follow-up suggestions. — **feature already implemented; test coverage
