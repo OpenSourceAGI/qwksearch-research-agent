@@ -17,7 +17,7 @@ converts item 6's inspiration link into a small, concrete, testable slice.
 its prior PR #273 was already merged and the remote branch deleted before
 this run started; confirmed via GitHub that local HEAD already matched
 master's true tip, so work continued directly on this branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/274
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
