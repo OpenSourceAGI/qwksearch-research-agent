@@ -40,6 +40,20 @@ export interface SidebarAiProps {
   onAiRegenerate?: (mode: any) => void;
 }
 
+/**
+ * AI-generated tips about the currently active document, shown as a section
+ * of the "ai" panel. Omitted entirely (and the section hidden) when the
+ * host app has no tips-generation capability to offer.
+ */
+export interface SidebarTipsProps {
+  /** Tips generated for the active document by the most recent request. */
+  tips?: string[];
+  /** Whether a tips-generation request is in flight. */
+  isTipsLoading?: boolean;
+  /** Requests (re)generation of tips for the active document. */
+  onGenerateTips?: () => void;
+}
+
 export interface SidebarProps {
   documents: Document[];
   activeId: string | null;
@@ -114,4 +128,6 @@ export interface SidebarProps {
   onNewChat?: () => void;
   // AI panel data (used by the "ai" panel)
   aiProps?: SidebarAiProps;
+  // AI-generated page tips (used by the "ai" panel)
+  tipsProps?: SidebarTipsProps;
 }

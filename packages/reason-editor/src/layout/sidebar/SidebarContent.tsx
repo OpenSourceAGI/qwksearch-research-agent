@@ -14,12 +14,12 @@ import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } 
 import { AIRewriteSuggestion } from '../../features/ai-rewrite/AIRewriteSuggestion';
 import { Input } from '../../app-ui/input';
 import { Document } from '../../documents/DocumentTree';
-import type { SidebarPanelType, SidebarAiProps, OpenTabItem } from './types';
+import type { SidebarPanelType, SidebarAiProps, SidebarTipsProps, OpenTabItem } from './types';
 import type { TocEntry } from '../../app-types/toc';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../../utils/storage';
-import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2, Tag, Sparkles } from 'lucide-react';
+import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb } from 'lucide-react';
 import { FileTypeIcon } from '../../app-ui/FileTypeIcon';
 import { cn } from '../../app-utils/utils';
 import {
@@ -102,6 +102,8 @@ interface SidebarContentProps {
   onNavigate?: (key: string) => void;
   /** AI suggestion state/handlers (used by the "ai" panel). */
   aiProps?: SidebarAiProps;
+  /** AI-generated page tips state/handlers (used by the "ai" panel). */
+  tipsProps?: SidebarTipsProps;
   /** Unified tab list (files + chats). Overrides file-only tab derivation when set. */
   tabItems?: OpenTabItem[];
   /** Opens a new chat tab from the "Open Tabs" panel header. */
@@ -142,6 +144,7 @@ export const SidebarContent = ({
   canReopenLastClosed = false,
   onNavigate,
   aiProps,
+  tipsProps,
   tabItems,
   onNewChat,
 }: SidebarContentProps) => {
@@ -447,34 +450,71 @@ export const SidebarContent = ({
     );
   };
 
+  const renderTips = () => (
+    <div className="px-3 py-3 border-t border-sidebar-border shrink-0">
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <Lightbulb className="h-3.5 w-3.5 text-primary" />
+          Page tips
+        </p>
+        {tipsProps?.onGenerateTips && (
+          <button
+            className="shrink-0 text-xs font-medium text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+            onClick={tipsProps.onGenerateTips}
+            disabled={tipsProps.isTipsLoading}
+          >
+            {tipsProps.isTipsLoading ? 'Generating…' : tipsProps.tips?.length ? 'Regenerate' : 'Generate'}
+          </button>
+        )}
+      </div>
+      {tipsProps?.isTipsLoading ? (
+        <p className="text-xs text-muted-foreground">Generating tips about this page…</p>
+      ) : tipsProps?.tips && tipsProps.tips.length > 0 ? (
+        <ul className="space-y-1.5">
+          {tipsProps.tips.map((tip, i) => (
+            <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+              <span className="text-primary">•</span>
+              <span>{tip}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-muted-foreground">Click "Generate" for AI tips about this page.</p>
+      )}
+    </div>
+  );
+
   const renderAi = () => (
     <div className="h-full overflow-hidden flex flex-col">
       <div className="px-3 py-2 border-b border-sidebar-border shrink-0">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">AI Suggestions</p>
       </div>
-      <div className="flex-1 overflow-hidden">
-        {aiProps?.isAiLoading ? (
-          <div className="h-full flex items-center justify-center p-6">
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Generating AI suggestion...</p>
+      <div className="flex-1 overflow-auto flex flex-col">
+        <div className={tipsProps ? 'shrink-0' : 'flex-1'}>
+          {aiProps?.isAiLoading ? (
+            <div className="h-full flex items-center justify-center p-6">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">Generating AI suggestion...</p>
+              </div>
             </div>
-          </div>
-        ) : aiProps?.aiSuggestion ? (
-          <AIRewriteSuggestion
-            originalText={aiProps.aiSuggestion.originalText}
-            suggestedText={aiProps.aiSuggestion.suggestedText}
-            onApprove={() => aiProps.onAiApprove?.()}
-            onReject={() => aiProps.onAiReject?.()}
-            onRegenerate={(mode) => aiProps.onAiRegenerate?.(mode)}
-            currentMode={aiProps.aiSuggestion.mode}
-            isLoading={false}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center p-6 text-center">
-            <p className="text-sm text-muted-foreground">Select text and click the AI button to get suggestions</p>
-          </div>
-        )}
+          ) : aiProps?.aiSuggestion ? (
+            <AIRewriteSuggestion
+              originalText={aiProps.aiSuggestion.originalText}
+              suggestedText={aiProps.aiSuggestion.suggestedText}
+              onApprove={() => aiProps.onAiApprove?.()}
+              onReject={() => aiProps.onAiReject?.()}
+              onRegenerate={(mode) => aiProps.onAiRegenerate?.(mode)}
+              currentMode={aiProps.aiSuggestion.mode}
+              isLoading={false}
+            />
+          ) : (
+            <div className="flex items-center justify-center p-6 text-center">
+              <p className="text-sm text-muted-foreground">Select text and click the AI button to get suggestions</p>
+            </div>
+          )}
+        </div>
+        {tipsProps && renderTips()}
       </div>
     </div>
   );

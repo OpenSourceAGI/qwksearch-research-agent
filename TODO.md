@@ -1,5 +1,167 @@
 ## In Progress
 
+## Sidebar: AI tips about the current page
+
+**Status:** Completed
+**Source:** TODO.md — Longterm item 26 ("Prioritize sidebar with AI tips
+about the current page."). Builds on the same sidebar "ai" panel
+(`renderAi()` in `packages/reason-editor/src/layout/sidebar/
+SidebarContent.tsx`) already used for the AI rewrite-suggestion feature, and
+mirrors the existing LLM-prompt/parse pattern already used by
+`packages/research-agent-ui/src/api/handlers/article-followups.ts` (article
+follow-up questions) and `.../handlers/suggestions.ts` (chat follow-up
+questions).
+**Branch:** `claude/adoring-mayer-42m3zi` (this session's designated branch)
+**PR:** Not created yet — will be opened on push.
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Let a user click a "Generate" button in the sidebar's "AI Suggestions" panel
+to get a short list of AI-generated tips/insights about the currently active
+document, so they get useful, page-specific takeaways without leaving the
+editor or writing a prompt themselves.
+
+### Scope
+- New handler `packages/research-agent-ui/src/api/handlers/page-tips.ts`
+  (`createPageTipsHandler`), mirroring `article-followups.ts`'s
+  prompt-and-parse pattern: loads a chat model via `ModelRegistry`, prompts
+  with the page title + content (truncated to 15000 chars), parses the
+  response into up to `maxTips` short one-line tips. Exported via the
+  package's existing `./api` barrel.
+- New route `apps/qwksearch-web/app/api/agent/page-tips/route.ts`, mirroring
+  `article-followups/route.ts`'s dependency wiring exactly.
+- New client helpers in `apps/qwksearch-web/lib/reason-docs/page-tips.ts`:
+  `getPageTips(title, content)` (mirrors `research-agent-ui`'s
+  `getSuggestions` — POSTs via `grab-url`, returns `[]` on any failure) and
+  `htmlToPlainText(html)` (strips tags/script/style content and collapses
+  whitespace, since document content is stored as HTML).
+- `packages/reason-editor/src/layout/sidebar/types.ts`: new
+  `SidebarTipsProps` (`tips`, `isTipsLoading`, `onGenerateTips`) and a
+  `tipsProps?: SidebarTipsProps` field on `SidebarProps`, threaded through
+  `Sidebar.tsx` and `RightPanel.tsx` into `SidebarContent`'s existing
+  `renderAi()`, exactly like `aiProps` already is — hidden entirely when the
+  host doesn't supply `tipsProps` (same optional-feature convention as
+  `onNewChat`).
+- `packages/reason-editor/src/editor/ReasonDocs.tsx`: new optional
+  `onGenerateTips?: (title: string, contentHtml: string) => Promise<string[]>`
+  prop; local `tips`/`isTipsLoading` state, a `handleGenerateTips` that
+  calls it for the active document, and a reset of `tips` whenever the
+  active document changes.
+- `apps/qwksearch-web/components/layout/MainWorkspaceView.tsx`: wires
+  `onGenerateTips` to `getPageTips(title, htmlToPlainText(html))`.
+
+### Non-goals
+- Automatically generating tips on every document switch — generation is
+  manually triggered via the panel's "Generate" button, matching the
+  existing AI rewrite feature's manual-trigger convention (no background
+  LLM calls on every keystroke/tab switch).
+- A new `SidebarPanelType` / sidebar-view-menu toggle for tips — this slice
+  adds tips as a block inside the existing "ai" panel, the same way
+  "Suggested next" was added as a block inside the existing "related" panel,
+  not as a new togglable panel.
+- Persisting generated tips across sessions/reloads.
+- Wiring the *existing* AI rewrite feature's own stubbed `handleAIRewrite`/
+  `handleAIRegenerate` (which just show a "not yet available" toast) — that
+  is unrelated pre-existing scaffolding, out of scope here.
+
+### Acceptance criteria
+- [x] Clicking "Generate" in the "AI Suggestions" panel's tips section calls
+      `onGenerateTips` for the active document and shows a loading state.
+- [x] On success, up to `maxTips` short tips render as a bulleted list.
+- [x] On failure (rejected fetch, non-2xx response), the tips list is empty
+      and no error is thrown to the user (matches `getSuggestions`'s
+      swallow-and-return-`[]` convention).
+- [x] The tips section is not rendered at all when the host doesn't supply
+      `tipsProps` (backward compatible with existing `reason-editor`
+      consumers).
+- [x] Switching the active document clears any previously generated tips.
+- [x] Vitest coverage is added for `htmlToPlainText` (tag stripping,
+      script/style removal, whitespace collapsing) and `getPageTips`
+      (success, non-array response, rejected fetch) in
+      `apps/qwksearch-web/lib/reason-docs/__tests__/page-tips.test.ts`,
+      mirroring `research-agent-ui`'s `suggestions.test.ts` — 8 new cases,
+      all passing.
+- [x] Vitest coverage is added for `createPageTipsHandler` (model loading,
+      prompt truncation/parsing, `maxTips` slicing, error responses) in
+      `apps/qwksearch-web/app/api/agent/__tests__/page-tips.test.ts`,
+      mirroring `app/api/agent/__tests__/suggestions.test.ts`'s
+      `vi.mock`-based handler test (a pattern `article-followups.ts` itself
+      lacks today) — 6 new cases, all passing.
+- [x] Lint passes — no `lint` script exists at the repo root or in
+      `qwksearch-web`, `reason-editor`, or `research-agent-ui`; nothing to
+      run (same as every prior task touching these packages).
+- [x] Typecheck passes — `bun run build` in `packages/reason-editor`
+      surfaces exactly 96 errors both before and after this change,
+      confirmed via `git stash push -u` on the five touched
+      `reason-editor` files, re-running the build, then `git stash pop`;
+      none of the 96 reference any touched file. `packages/research-agent-ui`'s
+      `bun run build` (vite bundle + trailing `tsc --project
+      tsconfig.build.json || true`) also succeeds, with the pre-existing
+      `tsc` errors (unrelated modules: `unified-markdown.tsx`,
+      `ChatHomepage.tsx`, `ChatWindow.tsx`, `MessageInputIconSet.tsx`,
+      `MessageSources.tsx`, `WebCitationBadge.tsx`) unchanged and not
+      referencing `page-tips.ts`.
+- [x] Tests pass — focused suites (`bunx vitest run
+      apps/qwksearch-web/lib/reason-docs/__tests__/page-tips.test.ts
+      apps/qwksearch-web/app/api/agent/__tests__/page-tips.test.ts`):
+      14/14 passed. Full workspace `bun run test`: 181/190 files,
+      2532/2586 tests pass (50 failed, 4 skipped) — the 9 failing files are
+      exactly the documented pre-existing set (`chat-agent-toolkit/test/
+      openrouter-default-model.test.js`, `qwksearch-web/app/api/config/
+      __tests__/route.test.ts`, `search-web-api/test/{api,
+      autocomplete-engines,engine-health-suite,search,sources-unit,
+      sources}.test.ts`, `shadcn-settings/test/settings-field.test.tsx`),
+      none touching any file changed by this task.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      sidebar panel sections).
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (done — see Source/Scope above)
+- [x] Implement `createPageTipsHandler` in `research-agent-ui`
+- [x] Implement the `page-tips` API route in `qwksearch-web`
+- [x] Implement `getPageTips`/`htmlToPlainText` client helpers in
+      `qwksearch-web`
+- [x] Extend `reason-editor`'s `SidebarProps`/`SidebarContentProps` with
+      `tipsProps` and render the tips block in `renderAi()`
+- [x] Wire `tipsProps` through `Sidebar.tsx` and `RightPanel.tsx`
+- [x] Wire `onGenerateTips` state/handler into `ReasonDocs.tsx`
+- [x] Wire `MainWorkspaceView.tsx` to supply `onGenerateTips`
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage
+- [x] Run focused tests and fix failures (none needed — passed first run)
+- [x] Run linting and typechecking (lint n/a; typecheck error count
+      unchanged, confirmed via `git stash`-based before/after diff)
+- [x] Run the full relevant test suite (focused suites and full workspace
+      `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` was
+      required in this fresh checkout — the resulting `bun.lock`
+      package-version-sync diff was reverted, matching prior tasks'
+      precedent; final `git diff --stat` shows exactly the 7 intended
+      source files beyond this tracker entry)
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. All acceptance criteria verified locally
+  on this commit.
+- The "Suggested next" precedent's PR noted a recurring, pre-existing,
+  unrelated Cloudflare "Workers Builds" deploy-check failure (Ideas Backlog
+  item 39, an 11+-occurrence infrastructure issue this environment cannot
+  diagnose without dashboard credentials) — if it recurs again on this PR,
+  it is not appended as a new occurrence there per that item's own note.
+- A larger, separate follow-up remains open: wiring the *existing* AI
+  rewrite feature's own stubbed `handleAIRewrite`/`handleAIRegenerate`
+  handlers (which currently just show a "not yet available" toast) to a
+  real LLM call — unrelated pre-existing scaffolding, out of scope here
+  (see Non-goals above).
+
 ## Sidebar: highlight the top related document as "Suggested next"
 
 **Status:** Completed

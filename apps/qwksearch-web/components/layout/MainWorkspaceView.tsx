@@ -8,6 +8,7 @@ import { themeActions } from 'react-reason-editor/theme';
 import { localeActions } from 'react-reason-editor/locale-bundle';
 import { useMainView } from '@/components/layout/MainViewProvider';
 import { useChatTabs } from '@/components/layout/useChatTabs';
+import { getPageTips, htmlToPlainText } from '@/lib/reason-docs/page-tips';
 
 import 'katex/dist/katex.min.css';
 import 'easydrawer/styles.css';
@@ -98,6 +99,10 @@ export function MainWorkspaceView() {
     return () => configureResearchAgentUI({ onOpenChat: undefined });
   }, [handleOpenChat]);
 
+  const handleGenerateTips = async (title: string, contentHtml: string) => {
+    return getPageTips(title, htmlToPlainText(contentHtml));
+  };
+
   const extraTabProps = {
     extraTabs,
     activeExtraTabId: activeView === 'research' ? activeChatId ?? undefined : undefined,
@@ -107,6 +112,7 @@ export function MainWorkspaceView() {
     onFileTabSelect: toggleToDocs,
     initialDocId,
     onActiveDocumentChange: setActiveDocId,
+    onGenerateTips: handleGenerateTips,
   };
 
   return activeView === 'docs' ? (
