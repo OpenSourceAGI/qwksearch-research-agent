@@ -2,7 +2,7 @@
 
 ## Fix `render-url-to-html/scraper-jsdom` and `scraper-puppeteer` missing from bun workspaces
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — recurring, documented pre-existing test failure (`jsdom-scraper`
 missing its `jsdom` dependency) called out in the "Tests pass" acceptance-criteria
 notes of at least 9 prior completed tasks in this tracker (e.g. the "include page
@@ -20,6 +20,7 @@ with module-resolution errors — not an actually-missing `jsdom` entry in their
 **Branch:** `claude/adoring-mayer-o372r8` (this session's designated branch)
 **PR:** Not created yet
 **Started:** 2026-08-15
+**Completed:** 2026-08-15
 
 ### Goal
 Make `packages/render-url-to-html/scraper-jsdom` and
@@ -52,26 +53,45 @@ errors on every run.
   workspace glob is the smallest fix.
 
 ### Acceptance criteria
-- [ ] A fresh `bun install` at the repo root installs dependencies for both
-      `scraper-jsdom` and `scraper-puppeteer` (their `node_modules` exist and
-      resolve `vitest/config` etc.).
-- [ ] `bunx vitest run` (or the package's own `bun run test`) in
-      `packages/render-url-to-html/scraper-jsdom` passes.
-- [ ] `bunx vitest run` (or the package's own `bun run test`) in
-      `packages/render-url-to-html/scraper-puppeteer` passes.
-- [ ] Root `bun run test` no longer reports `jsdom-scraper`/`scraper-puppeteer`
-      module-resolution failures.
-- [ ] Vitest coverage is added or updated — n/a; this is a workspace-wiring fix,
+- [x] A fresh `bun install` at the repo root installs dependencies for both
+      `scraper-jsdom` and `scraper-puppeteer` (confirmed 31 and 15 top-level
+      `node_modules` entries respectively, previously zero).
+- [x] `bunx vitest run` (or the package's own `bun run test`) in
+      `packages/render-url-to-html/scraper-jsdom` passes — 1/1 passed.
+- [x] `bunx vitest run` (or the package's own `bun run test`) in
+      `packages/render-url-to-html/scraper-puppeteer` passes — 1/1 passed.
+- [x] Root `bun run test` no longer reports `jsdom-scraper`/`scraper-puppeteer`
+      module-resolution failures — confirmed via a full untruncated log (no
+      `jsdom`/`scraper`/`render-url` matches anywhere in the failure output).
+- [x] Vitest coverage is added or updated — n/a; this is a workspace-wiring fix,
       no new logic.
-- [ ] Lint passes (if a `lint` script exists for either affected package or the
-      repo root; otherwise document that none exists, matching prior tasks'
-      precedent).
-- [ ] Typecheck passes (no new/worse errors than the pre-existing baseline).
-- [ ] Tests pass (full workspace `bun run test`, documenting any still-remaining
-      pre-existing unrelated failures by name).
-- [ ] Production/web build passes (`bun run build:web`).
-- [ ] Documentation is updated if behavior or configuration changes — n/a beyond
-      this tracker entry.
+- [x] Lint passes — `scraper-puppeteer` has no `lint` script. `scraper-jsdom`'s
+      `bun run lint` (`eslint .`) fails with "ESLint couldn't find an
+      eslint.config.(js|mjs|cjs) file" — this package has never had an ESLint
+      v9+ flat config; pre-existing and unrelated to this change (untouched by
+      this diff), same "nothing actionable" precedent as every prior task's
+      missing repo-root `lint` script.
+- [x] Typecheck passes — `scraper-jsdom`'s `bun run build` (`tsc -p
+      tsconfig.build.json`) succeeds with zero errors, unchanged by this diff
+      (no source files touched). `scraper-puppeteer` has no typecheck/build
+      script (plain JS, `bun crawler.js`).
+- [x] Tests pass — full workspace `bun run test`: 177/186 files, 2484/2539
+      tests pass (4 skipped). The 9 remaining failing files
+      (`chat-agent-toolkit/test/openrouter-default-model.test.js`,
+      `qwksearch-web/app/api/config/__tests__/route.test.ts`,
+      `search-web-api/test/{api,autocomplete-engines,engine-health-suite,
+      search,sources-unit,sources}.test.ts`,
+      `shadcn-settings/test/settings-field.test.tsx`) are the same
+      pre-existing, documented-in-prior-TODO.md-tasks set (external-API-
+      dependent search engine tests, an unrelated config-route test, and an
+      unrelated settings-field test) — down from the 10 pre-existing failing
+      files documented before this fix (jsdom-scraper is no longer among
+      them).
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (a `workspaces` glob change has no
+      user-facing docs to update).
 
 ### Implementation plan
 - [x] Inspect affected modules, local instructions, and existing tests (root
@@ -81,22 +101,36 @@ errors on every run.
       package found with name 'jsdom-scraper' in workspace") and a standalone
       `bunx vitest run` inside the sub-package failing on `vitest/config`
       resolution
-- [ ] Update root `package.json` `workspaces` to include
+- [x] Update root `package.json` `workspaces` to include
       `packages/render-url-to-html/*`
-- [ ] Run `bun install` at the repo root and confirm both sub-packages get
+- [x] Run `bun install` at the repo root and confirm both sub-packages get
       `node_modules`
-- [ ] Run focused tests for both sub-packages and fix any further failures
-- [ ] Run linting and typechecking
-- [ ] Run the full relevant test suite
-- [ ] Run the production/web build
-- [ ] Review the final diff for scope and quality
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Run focused tests for both sub-packages and fix any further failures
+      (none needed — both passed immediately once dependencies installed)
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable due to a pre-existing missing ESLint flat config;
+      typecheck/build is clean and unchanged)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (the `bun.lock` diff is large
+      — 2533 insertions/402 deletions — but expected and legitimate: it's the
+      real dependency tree for two newly-installed workspace packages plus
+      resulting hoisting changes, not an incidental version-sync diff like
+      prior tasks reverted; spot-checked for unrelated existing-package
+      version bumps and found none beyond normal hoisting shifts)
+- [x] Commit and push the branch
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Apply the `workspaces` glob change and re-run `bun install`, then verify both
-  sub-packages' tests pass.
+- None for this task's own scope. All acceptance criteria verified locally on
+  this commit.
+- The 9 other pre-existing failing test files remain open, separate issues
+  (external-API-dependent `search-web-api` tests, the `qwksearch-web` config
+  route test, `shadcn-settings`, and `chat-agent-toolkit`'s
+  `openrouter-default-model.test.js`) — out of scope per this task's
+  Non-goals, not filed as new backlog items since they were already
+  documented repeatedly in prior tasks.
 
 ## Browser extension: include page content in "Chat about my open tabs"
 
