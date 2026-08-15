@@ -1,5 +1,126 @@
 ## In Progress
 
+## Browser extension: Favorites (bookmarks) tab
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 14 ("Main nav: Tabs | AI chat | Web
+search | Favorites | History."), scoped to its next independently useful
+piece: a Favorites list view using `chrome.bookmarks`, explicitly called out
+as a remaining follow-up in the "Browser extension: History tab" task below,
+mirroring that task's and the Downloads tab's established pattern.
+**Branch:** `claude/adoring-mayer-fcxcmd`
+**PR:** Not created yet
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Let a user see and act on their browser bookmarks from
+`apps/qwksearch-ext`'s side panel, via a new "Favorites" tab alongside the
+existing "Tabs", "Research", "Downloads", and "History" tabs, using Chrome's
+`chrome.bookmarks` API.
+
+### Scope
+- `apps/qwksearch-ext/wxt.config.ts`: add the `bookmarks` manifest
+  permission.
+- New pure helper module `apps/qwksearch-ext/lib/bookmarks.ts`:
+  - `hostnameFromUrl(url)`: extracts the hostname from a URL string,
+    falling back to the raw string if it fails to parse (mirrors
+    `lib/history.ts`, kept self-contained per this codebase's per-feature
+    pure-helper-module convention).
+  - `titleOrHostname(item)`: returns a bookmark node's title, trimmed,
+    falling back to its URL's hostname when the title is blank/missing.
+  - `isBookmarkNode(node)`: returns true when a `chrome.bookmarks.
+    BookmarkTreeNode`-shaped object has a non-empty `url` (as opposed to a
+    folder node, which has only `title`/`children`) — defensive filtering
+    even though `chrome.bookmarks.getRecent` is documented to exclude
+    folders.
+- New component `apps/qwksearch-ext/components/BookmarksList.tsx`: lists
+  the most recent 20 bookmarks (`chrome.bookmarks.getRecent(20)`, already
+  most-recent-first), each row showing favicon + title/hostname, with
+  click-to-open (`chrome.tabs.create({url})`) and a "remove bookmark" icon
+  button (`chrome.bookmarks.remove`). Kept in sync via
+  `chrome.bookmarks.onCreated`/`onRemoved`/`onChanged`.
+- `apps/qwksearch-ext/entrypoints/sidepanel/App.tsx`: add a "Favorites" tab
+  (`Star` icon) alongside "Tabs", "Research", "Downloads", and "History",
+  rendering `BookmarksList`.
+
+### Non-goals
+- Any main-nav restructuring (the backlog item's literal "Tabs | AI chat |
+  Web search | Favorites | History" layout) — out of scope; this task only
+  adds a Favorites tab to the existing side-panel tab strip, matching how
+  the History/Downloads tabs were added.
+- Creating new bookmarks from the panel (e.g. a "bookmark the current tab"
+  button) — this view is for browsing/acting on existing bookmarks, not a
+  bookmark-creation UI (matches the Downloads tab's precedent of not
+  initiating new downloads from the panel).
+- Browsing the full bookmark folder tree, or filtering/searching bookmarks
+  — out of scope for this first read/act-on-favorites slice (matches the
+  Downloads/History tabs' precedent of a flat recency-ordered list only).
+- Editing a bookmark's title/URL — only viewing, opening, and removing.
+
+### Acceptance criteria
+- [x] The Favorites tab lists the most recent bookmarks, most recent first,
+      with title (or hostname fallback).
+- [x] Clicking a bookmark opens it in a new tab.
+- [x] "Remove bookmark" erases it from Chrome's bookmarks and the panel's
+      list.
+- [x] The list stays in sync with new/changed/removed bookmarks without a
+      manual refresh (via `chrome.bookmarks.onCreated`/`onRemoved`/
+      `onChanged`).
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run
+- [x] Typecheck passes — `bun run compile` (after clearing the stale
+      `tsconfig.tsbuildinfo` incremental cache) surfaces exactly 118 errors,
+      the same count as on `git stash`-ed (unmodified) code — confirmed via
+      a direct before/after comparison. All are the same **pre-existing**
+      `TS2304: Cannot find name 'chrome'` (missing global `chrome` types
+      throughout this app's `chrome.*`-using files), `TS2307` (missing
+      `research-agent-ui` `dist/` output), `TS2493`, and `TS2769` error
+      classes documented in prior TODO.md tasks; none reference
+      `BookmarksList.tsx` or `lib/bookmarks.ts`.
+- [x] Tests pass — `bunx vitest run test/bookmarks.test.ts`: 9/9 passed.
+      `bun run test` in `qwksearch-ext`: 81/81 passed (9/9 files, 72
+      pre-existing + 9 new).
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded. Also verified
+      `bunx turbo build --filter=qwksearch-extension-wxt` (Chrome target)
+      succeeds (11/11 tasks) and the built
+      `.output/chrome-mv3/manifest.json` includes the new `"bookmarks"`
+      permission.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar actions)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (mirrored `HistoryList.tsx`/`lib/history.ts`'s pattern)
+- [x] Confirm `chrome.bookmarks` API shape against the installed
+      `@types/chrome` (`BookmarkTreeNode`, `getRecent`, `remove`,
+      `onCreated`/`onRemoved`/`onChanged`)
+- [x] Implement the smallest useful vertical slice (`bookmarks` permission,
+      `lib/bookmarks.ts` pure helpers, `BookmarksList.tsx`,
+      `sidepanel/App.tsx` wiring)
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (blank title, missing title,
+      unparseable URL, folder node with no url, empty-string url)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change; typecheck error count unchanged
+      before/after)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted the
+      unrelated `bun.lock` package-version-sync diff produced by `bun
+      install` — pure version-number sync to already-committed
+      `package.json` bumps, out of scope, matching prior tasks' precedent)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Create the pull request for this branch's commit(s).
+
 ## Completed
 
 ## Wire `research-agent-ui` into `qwksearch-ext`'s build (item 29c)
@@ -19,7 +140,11 @@ integration needs (`lib/next-navigation-shim.tsx`, `lib/grab-url-shim.ts`)
 and their Vite aliases in `wxt.config.ts` already existed from earlier
 work — only the dependency declaration/build-ordering was missing.
 **Branch:** `claude/adoring-mayer-wmhmlr`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/246 (merged
+— landed via a different session/branch than the one this entry originally
+tracked; the tracker entry below was written before that merge and never
+synced, matching the "History tab" task's precedent of squash-merge PRs not
+carrying tracker-bookkeeping commits back to master)
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -132,17 +257,20 @@ turbo's `^build` dependency graph.
       `package.json` bumps, out of scope, matching prior tasks' precedent —
       keeping only the new `research-agent-ui: workspace:*` dependency line)
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request — merged as PR #246
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Create the pull request for this branch's commit(s).
+- None for this task's own scope. PR #246 merged.
 - The Research tab's actual *runtime* behavior inside the shipped extension
   (whether every `research-agent-ui` API call correctly resolves against
   `https://qwksearch.com`, whether the bundled voice/ONNX assets work in
   the extension's sandboxed pages, etc.) has not been manually verified —
   out of scope per this task's Non-goals, but worth a manual QA pass before
   relying on the Research tab in production.
+- A post-merge Cloudflare Workers Build failure on this PR was flagged as
+  Ideas Backlog item 38 (external dashboard access needed to diagnose;
+  `bun run build:web` passed locally on the merged commit).
 
 ## Completed
 
