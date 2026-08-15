@@ -1,5 +1,141 @@
 ## In Progress
 
+## Browser extension: "Chat about my open tabs" button
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog items 2 ("Chat with open tabs as
+context.") and 19 ("Use open tabs as context."), scoped to the smallest
+independently useful first slice: a button that seeds the Research tab's
+chat with the list of the user's currently open tabs, using the
+`research-agent-ui` `useChat().sendMessage` API that's already exposed to
+consumers — no changes to the shared `research-agent-ui` package needed.
+(A prior investigation ruled out reusing the existing `systemInstructions`
+`localStorage` key: `apps/qwksearch-ext/components/SearchSettings.tsx`
+already binds that same key two-way to a user-facing "custom instructions"
+settings field, so writing tab context into it would silently clobber a
+user's saved custom instructions. `sendMessage` avoids that entirely.)
+**Branch:** `claude/adoring-mayer-1sn4od`
+**PR:** Not created yet
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Let a user click a button in `apps/qwksearch-ext`'s side panel Research tab
+that lists their currently open browser tabs (title + URL) as the first
+message in the chat, so they can immediately ask follow-up questions about
+them (e.g. "summarize these" or "which of these is most relevant to X"),
+without leaving the panel or manually typing/copy-pasting each tab.
+
+### Scope
+- New pure helper module `apps/qwksearch-ext/lib/open-tabs-context.ts`:
+  - `isContextableTab(tab)`: true when a tab-like object has an `http(s)://`
+    URL (excludes internal `chrome://`/`chrome-extension://`/`about:`/
+    `file://` pages, which aren't meaningful chat context and may be
+    extension/browser-internal).
+  - `formatOpenTabsMessage(tabs)`: filters to contextable tabs, returns
+    `undefined` when there are none, otherwise a numbered
+    title/hostname-fallback + URL list message (reusing
+    `hostnameFromUrl` from `lib/history.ts`) ending with a short prompt line,
+    ready to hand straight to `sendMessage`.
+- `apps/qwksearch-ext/components/ResearchTab.tsx`: add a small button
+  (rendered inside the existing `ChatProvider` tree, above `ChatWindow`)
+  that on click calls `chrome.tabs.query({currentWindow: true})`, formats
+  the result via `formatOpenTabsMessage`, and calls the chat's
+  `sendMessage(message)` — disabled while a message is already sending
+  (`useChat().loading`).
+
+### Non-goals
+- Any change to `packages/research-agent-ui` — this slice deliberately uses
+  only its already-public `useChat().sendMessage` API.
+- Extracting each tab's full page text/content (mirroring `TabSearch.tsx`'s
+  `chrome.scripting.executeScript` pattern) — this first slice only sends
+  title + URL per tab; full-page-content context is a separate, larger
+  follow-up (would need per-tab content-script injection and is a much
+  bigger payload).
+- Letting the user edit the generated message before it's sent (e.g.
+  prefilling the chat input box instead of sending immediately) — no setter
+  for the chat input's text is exposed by `research-agent-ui`'s public API
+  today; out of scope for this slice.
+- Any settings/toggle to auto-include tabs on every message, or to persist
+  which tabs were included — this is a one-shot "seed the conversation"
+  action only.
+- Tabs from other windows (`chrome.tabs.query({currentWindow: true})` only)
+  — matches the likely user intent of "the tabs I'm looking at right now"
+  and avoids potentially large/irrelevant context from unrelated windows.
+
+### Acceptance criteria
+- [x] Clicking the button when there's at least one contextable open tab
+      sends a chat message listing those tabs (title/hostname + URL) via
+      `useChat().sendMessage`.
+- [x] Clicking the button when there are zero contextable open tabs (e.g.
+      only `chrome://` pages) does not call `sendMessage`.
+- [x] The button is disabled while a chat message is already sending
+      (`loading` from `useChat()`).
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run
+- [x] Typecheck passes — `bun run compile` (after clearing the stale
+      `tsconfig.tsbuildinfo` incremental cache) surfaces exactly 121 errors,
+      one more than the 120 on `git stash -u`-ed (unmodified) code —
+      confirmed via a direct before/after diff of the full error list. The
+      one new error (`components/ResearchTab.tsx(25,5): error TS2304:
+      Cannot find name 'chrome'` at the new `chrome.tabs.query` call) is a
+      further instance of the same **pre-existing** `TS2304` class already
+      present throughout this app's `chrome.*`-using files, not a new
+      category; the two `research-agent-ui`-module-resolution `TS2307`
+      errors are the same pre-existing pair (just shifted one line by the
+      new `useChat` import).
+- [x] Tests pass — `bunx vitest run test/open-tabs-context.test.ts`: 14/14
+      passed. `bun run test` in `qwksearch-ext`: 100/100 passed (11/11
+      files, 86 pre-existing + 14 new). Full workspace `bun run test`:
+      175/185 files, 2474/2529 tests pass (4 skipped); the 51 failures
+      across the same 10 files documented repeatedly in prior TODO.md tasks
+      (`search-web-api` engine tests hitting real external APIs, the
+      `qwksearch-web` config route test, `shadcn-settings`, `jsdom-scraper`
+      missing its `jsdom` dependency, `chat-agent-toolkit`'s
+      `openrouter-default-model.test.js`) are pre-existing and unrelated —
+      none touch `qwksearch-ext`.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded. Also verified
+      `bunx turbo build --filter=qwksearch-extension-wxt` (Chrome target)
+      succeeds (11/11 tasks).
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar actions)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (mirrored `lib/history.ts`/`lib/new-tab.ts`'s pure-helper-module
+      pattern; confirmed `useChat().sendMessage` and `ChatProvider` are
+      public `research-agent-ui` exports; ruled out reusing
+      `systemInstructions` localStorage — see Source above)
+- [x] Implement `lib/open-tabs-context.ts` (`isContextableTab`,
+      `formatOpenTabsMessage`)
+- [x] Implement the `ResearchTab.tsx` button + wiring
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (no tabs, only
+      internal-scheme tabs, blank/missing titles falling back to hostname,
+      mixed contextable/non-contextable tabs with contiguous renumbering)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change; typecheck error count is +1, the same
+      pre-existing error class)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (also reverted an
+      unrelated `bun.lock` package-version-sync diff produced by `bun
+      install` — pure version-number sync to already-committed
+      `package.json` bumps, out of scope, matching prior tasks' precedent)
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope.
+- Follow-ups noted above remain open: full page-content extraction as
+  context (not just title/URL), letting the user edit the generated message
+  before sending, and any settings/toggle for auto-including tabs.
+
 ## Completed
 
 ## Browser extension: Edit a bookmark's title from the Favorites tab
