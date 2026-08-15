@@ -12,7 +12,7 @@ mirrors the existing LLM-prompt/parse pattern already used by
 follow-up questions) and `.../handlers/suggestions.ts` (chat follow-up
 questions).
 **Branch:** `claude/adoring-mayer-42m3zi` (this session's designated branch)
-**PR:** Not created yet — will be opened on push.
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/269
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
