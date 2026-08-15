@@ -13,7 +13,7 @@ follow-ups; forward navigation is a separate, smaller follow-up if ever
 requested"). This task completes that final remaining piece by mirroring
 `goBackActiveTab`/`refreshActiveTab` exactly.
 **Branch:** `claude/adoring-mayer-4tsafm` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/271
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
