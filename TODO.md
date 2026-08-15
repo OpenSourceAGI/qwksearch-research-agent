@@ -1,5 +1,120 @@
 ## In Progress
 
+## Completed
+
+## Browser extension: "New tab" button
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 28 ("Add downloads tab; also back,
+refresh, undo close, new tab."), scoped to its next independently useful
+piece: a "New tab" button in the side panel's Tabs view, using
+`chrome.tabs.create`. ("Undo close tab" and "Downloads tab" slices are
+already done; the "Undo close tab" task's Non-goals explicitly deferred
+"new tab" as a separate follow-up, and back/refresh remain out of scope
+since the side panel isn't a browser-chrome surface with its own navigable
+history.)
+**Branch:** `claude/adoring-mayer-36m7gr`
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/250
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+Let a user open a new blank browser tab directly from
+`apps/qwksearch-ext`'s side panel "Tabs" view, via Chrome's
+`chrome.tabs.create({})`, mirroring the "Undo close tab" button's placement
+and style.
+
+### Scope
+- New pure helper module `apps/qwksearch-ext/lib/new-tab.ts`: a small
+  `openNewTab()` function wrapping `chrome.tabs.create({})`, kept as a
+  separate testable unit per this codebase's per-feature pure-helper-module
+  convention (even though it has no branching logic, this keeps the chrome
+  call mockable/testable in isolation, matching the acceptance criteria's
+  Vitest requirement).
+- `apps/qwksearch-ext/components/TabList.tsx`: a "New tab" icon button
+  (`Plus` icon from `lucide-react`) placed next to the existing "Undo close
+  tab" button, calling `openNewTab()` on click. Always enabled (no
+  disabled-state logic needed, unlike undo-close-tab).
+
+### Non-goals
+- Back/refresh browser-chrome-style buttons — the side panel isn't a
+  browser-chrome surface (no navigable history of its own); out of scope,
+  per the "Undo close tab" task's precedent.
+- Any option to open the new tab with a specific URL, pinned state, or in a
+  specific window — this is a plain "open a blank new tab" action only,
+  matching Ctrl+T/the browser's own new-tab button.
+- Any manifest/permissions change — `tabs` permission is already granted in
+  `wxt.config.ts`, and `chrome.tabs.create` doesn't require additional
+  permissions beyond it.
+
+### Acceptance criteria
+- [x] Clicking the "New tab" button opens a new blank browser tab via
+      `chrome.tabs.create({})`.
+- [x] The button is always enabled (no closed-tab-availability dependency,
+      unlike "Undo close tab").
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run
+- [x] Typecheck passes — `bun run compile` (after clearing the stale
+      `tsconfig.tsbuildinfo` incremental cache) surfaces exactly 119 errors,
+      one more than the 118 on `git stash -u`-ed (unmodified) code —
+      confirmed via a direct before/after comparison. The one new error
+      (`lib/new-tab.ts(2,3): error TS2304: Cannot find name 'chrome'`) is a
+      further instance of the same **pre-existing** `TS2304` class already
+      present throughout this app's `chrome.*`-using files, not a new
+      category; the rest are the same pre-existing `TS2304`/`TS2307`/
+      `TS2493`/`TS2769` classes documented in prior TODO.md tasks.
+- [x] Tests pass — `bunx vitest run test/new-tab.test.ts`: 1/1 passed.
+      `bun run test` in `qwksearch-ext`: 82/82 passed (10/10 files, 81
+      pre-existing + 1 new). Full workspace `bun run test`: 174/184 files,
+      2455/2511 tests pass (4 skipped); the 52 failures across the same 10
+      files documented repeatedly in prior TODO.md tasks (`search-web-api`
+      engine tests hitting real external APIs, the `qwksearch-web` config
+      route test, `shadcn-settings`, `jsdom-scraper` missing its `jsdom`
+      dependency, `chat-agent-toolkit`'s `openrouter-default-model.test.js`)
+      are pre-existing and unrelated — none touch `qwksearch-ext`.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar actions)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (mirrored `lib/undo-close-tab.ts` + `TabList.tsx`'s established
+      pattern)
+- [x] Confirm `chrome.tabs.create` API shape against the installed
+      `@types/chrome`
+- [x] Implement the smallest useful vertical slice (`lib/new-tab.ts`,
+      `TabList.tsx` button + wiring)
+- [x] Add focused Vitest coverage (mocks the `chrome` global via
+      `vi.stubGlobal`, asserts `openNewTab()` calls `chrome.tabs.create`
+      with `{}`)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint is
+      not actionable for this change; typecheck error count is +1, the same
+      pre-existing error class)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality (`bun install` produced
+      an unrelated `bun.lock` package-version-sync diff, reverted per prior
+      tasks' precedent — kept only this task's own files)
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #250)
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. PR #250 open; `bun run build:web` passed
+  14/14 locally on this commit. The PR's "Workers Builds:
+  qwksearch-research-agent" Cloudflare deploy check failed — this is the
+  same recurring, pre-existing, unrelated-to-code infrastructure issue
+  already documented as Ideas Backlog items 38/39 (this is now a 4th
+  occurrence; see the updated item 39 note below).
+- Follow-ups noted above remain open: browser-chrome-style back/refresh
+  buttons — a separate, independently useful slice of Ideas Backlog item
+  28, if it's ever given a concrete design for a side panel that has no
+  navigable history of its own.
+
 ## Browser extension: Favorites (bookmarks) tab
 
 **Status:** Completed
@@ -9,7 +124,7 @@ piece: a Favorites list view using `chrome.bookmarks`, explicitly called out
 as a remaining follow-up in the "Browser extension: History tab" task below,
 mirroring that task's and the Downloads tab's established pattern.
 **Branch:** `claude/adoring-mayer-fcxcmd`
-**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/248
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/248 (merged)
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -119,14 +234,12 @@ existing "Tabs", "Research", "Downloads", and "History" tabs, using Chrome's
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- None for this task's own scope. PR #248 open, CI/build/tests verified
+- None for this task's own scope. PR #248 merged, CI/build/tests verified
   locally.
 - Follow-ups noted above remain open: any main-nav restructuring toward the
   backlog item's literal "Tabs | AI chat | Web search | Favorites | History"
   layout, creating new bookmarks from the panel, and browsing/filtering the
   full bookmark folder tree.
-
-## Completed
 
 ## Wire `research-agent-ui` into `qwksearch-ext`'s build (item 29c)
 
@@ -1996,9 +2109,10 @@ ext - dl to reason dl folswe
 26. Prioritize sidebar with AI tips about the current page.
 27. Cache questions and use them to build connections.
 28. Add downloads tab; also back, refresh, undo close, new tab. — **"Undo
-    close tab" and "Downloads tab" slices done, see "Browser extension:
-    \"Undo close tab\" button" and "Browser extension: Downloads tab"
-    above** (back/refresh/new-tab remain follow-ups)
+    close tab", "Downloads tab", and "New tab" slices done, see "Browser
+    extension: \"Undo close tab\" button", "Browser extension: Downloads
+    tab", and "Browser extension: \"New tab\" button" above** (back/refresh
+    remain follow-ups)
 29. Default search support; Chrome extensions can override homepage, startup pages, and search provider via `chrome_settings_overrides`.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override) — **done, see "Default search provider support in the browser extension (chrome_settings_overrides)" above**
 29b. `qwksearch-ext`'s own `bun run build`/`zip` (Chrome target) fails on a
      fresh checkout: `postcss.config.js` still uses the old
@@ -2080,3 +2194,14 @@ ext - dl to reason dl folswe
     a human with dashboard access to investigate the Workers Build
     pipeline itself (e.g. build-environment/quota/billing issue on
     Cloudflare's side), not this repo's source.
+
+    **Update: it recurred a fourth time, on PR #250 (commit `d6394e2`,
+    the "New tab" button task), build ID
+    `874bf8e0-7b64-40bd-a5f3-d526ab3e1ed9`. Same pattern as all three prior
+    occurrences: the diff only touches `apps/qwksearch-ext/` plus
+    `TODO.md`, and `bun run build:web` passed 14/14 turbo tasks locally on
+    this exact commit before the check ran. Four consecutive failures
+    across four different PRs/commits, including a markdown-only one,
+    rules out this repo's source as the cause. Still needs a human with
+    Cloudflare dashboard access to diagnose — this environment has no
+    credentials for it.
