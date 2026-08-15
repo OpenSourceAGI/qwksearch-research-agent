@@ -18,7 +18,7 @@ installs their dependencies, and a root `bun run test`/`vitest run` fails on the
 with module-resolution errors — not an actually-missing `jsdom` entry in their own
 `package.json` (it's already declared there).
 **Branch:** `claude/adoring-mayer-o372r8` (this session's designated branch)
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/257
 **Started:** 2026-08-15
 **Completed:** 2026-08-15
 
@@ -2763,3 +2763,32 @@ ext - dl to reason dl folswe
     code change whatsoever, continues to rule out this repo's source as the
     cause. Still needs a human with Cloudflare dashboard access to
     diagnose — this environment has no credentials for it.
+
+    **Update: it recurred a tenth time, on PR #257 (commit `cfcdbf8`, the
+    "Add render-url-to-html sub-packages to bun workspaces" task), build ID
+    `35066b2d-2947-4500-a235-ec0840810463`. Same pattern as every prior
+    occurrence: `bun run build:web` passed 14/14 turbo tasks locally on this
+    exact commit before the check ran (and before merging), and this PR
+    changed only `package.json`'s `workspaces` array, `bun.lock`, and
+    `TODO.md` — again nothing in `apps/qwksearch-web` or any other
+    Cloudflare-deployed app. Ten consecutive failures across ten different
+    PRs/commits, including four carrying no application code change
+    whatsoever, continues to rule out this repo's source as the cause. Still
+    needs a human with Cloudflare dashboard access to diagnose — this
+    environment has no credentials for it.
+
+    **Update: it recurred an eleventh time, on PR #258 itself (commit
+    `a92ac91`, the tracker-sync-only follow-up to PR #257 that added the
+    tenth-occurrence note above), build ID
+    `8b8a70b5-dfc1-4a33-a330-3ac0403a62c8`. This PR's diff touches only
+    `TODO.md` — zero code — the fourth pure-documentation PR to trigger the
+    identical failure. Eleven consecutive failures across eleven different
+    PRs/commits, on every single PR raised against this repo regardless of
+    content (including PRs that change nothing but backlog prose),
+    conclusively confirms this Cloudflare Workers Build check is failing
+    unconditionally at the infrastructure/configuration level, not in
+    response to anything in this repo's source or history. Per this task's
+    Non-goals, future runs should not keep appending an occurrence count
+    here — the pattern is fully established — and should not attempt a
+    code-level fix; this is exclusively actionable by a human with Cloudflare
+    dashboard access to the `qwksearch-research-agent` Workers project.
