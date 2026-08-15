@@ -1,15 +1,136 @@
 ## In Progress
 
-## Browser extension: Downloads tab
+## Browser extension: History tab
 
 **Status:** In Progress
+**Source:** TODO.md — Ideas Backlog item 14 ("Main nav: Tabs | AI chat | Web
+search | Favorites | History."), scoped to its next independently useful
+piece: a History list view in the side panel, mirroring the pattern already
+established by the Downloads tab and "Undo close tab" button (both slices
+of the related item 28). (Favorites/bookmarks and any main-nav restructuring
+remain separate follow-ups — see Non-goals.)
+**Branch:** `claude/adoring-mayer-t17vkx`
+**PR:** Not created yet (implementation pushed; PR creation is the only
+remaining step)
+**Started:** 2026-08-15
+
+### Goal
+Let a user see and act on their recent browsing history from
+`apps/qwksearch-ext`'s side panel, via a new "History" tab alongside the
+existing "Tabs", "Research", and "Downloads" tabs, using Chrome's
+`chrome.history` API.
+
+### Scope
+- `apps/qwksearch-ext/wxt.config.ts`: add the `history` manifest permission.
+- New pure helper module `apps/qwksearch-ext/lib/history.ts`:
+  - `hostnameFromUrl(url)`: extracts the hostname from a URL string,
+    falling back to the raw string if it fails to parse.
+  - `titleOrHostname(item)`: returns a `chrome.history.HistoryItem`-shaped
+    object's title, trimmed, falling back to its URL's hostname when the
+    title is blank/missing.
+  - `formatLastVisit(lastVisitTime, now)`: renders a short relative-time
+    label ("Just now", "`N`m ago", "`N`h ago", "`N`d ago", falling back to a
+    locale date string beyond a week) from a last-visit timestamp and an
+    injected current time (kept injectable, not `Date.now()`-internal, so
+    the helper is deterministically testable).
+- New component `apps/qwksearch-ext/components/HistoryList.tsx`: lists the
+  most recent 20 history entries (`chrome.history.search({text: '',
+  maxResults: 20, startTime: 0})`, already most-recent-first), each row
+  showing favicon + title/hostname + relative last-visit time, with
+  click-to-open (`chrome.tabs.create({url})`) and a "remove from history"
+  icon button (`chrome.history.deleteUrl`). Kept in sync via
+  `chrome.history.onVisited`/`onVisitRemoved`.
+- `apps/qwksearch-ext/entrypoints/sidepanel/App.tsx`: add a "History" tab
+  (`History` icon) alongside "Tabs", "Research", and "Downloads", rendering
+  `HistoryList`.
+
+### Non-goals
+- A "Favorites"/bookmarks tab (`chrome.bookmarks`) — a separate,
+  independently useful slice of the same backlog item; left as a follow-up.
+- Any main-nav restructuring (the backlog item's literal "Tabs | AI chat |
+  Web search | Favorites | History" layout) — out of scope; this task only
+  adds a History tab to the existing side-panel tab strip, matching how the
+  Downloads tab was added.
+- Full-text search/filtering within history, or browsing by date range —
+  out of scope for this first read/act-on-history slice (matches the
+  Downloads tab's precedent of not being a full download manager).
+- Clearing all history, or deleting more than one URL at a time — only
+  single-item removal via `chrome.history.deleteUrl`.
+
+### Acceptance criteria
+- [x] The History tab lists the most recent history entries, most recent
+      first, with title (or hostname fallback) and a relative last-visit
+      time.
+- [x] Clicking a history entry opens it in a new tab.
+- [x] "Remove from history" erases that URL from Chrome's history and the
+      panel's list.
+- [x] The list stays in sync with new/removed history entries without a
+      manual refresh (via `chrome.history.onVisited`/`onVisitRemoved`).
+- [x] Vitest coverage is added or updated
+- [ ] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run
+- [x] Typecheck passes — `bun run compile` (after clearing the stale
+      `tsconfig.tsbuildinfo` incremental cache) surfaces only the same
+      **pre-existing** `TS2304: Cannot find name 'chrome'` class of error
+      already present throughout this app's `chrome.*`-using files
+      (confirmed via `git stash`); this task's `HistoryList.tsx` addition is
+      a further instance of that same class, not a new category. Also the
+      same pre-existing `TS2493`/`TS2769` errors documented in prior
+      TODO.md tasks.
+- [x] Tests pass — `bunx vitest run test/history.test.ts`: 12/12 passed.
+      `bun run test` in `qwksearch-ext`: 72/72 passed (8/8 files, 60
+      pre-existing + 12 new). Full workspace `bun run test`: 172/182 files,
+      2445/2501 tests pass (4 skipped); the 52 failures across the same 10
+      files documented repeatedly in prior TODO.md tasks (`search-web-api`
+      engine tests hitting real external APIs, the `qwksearch-web` config
+      route test, `shadcn-settings`, `jsdom-scraper` missing its `jsdom`
+      dependency, `chat-agent-toolkit`'s `openrouter-default-model.test.js`)
+      are pre-existing and unrelated — none touch `qwksearch-ext`.
+- [x] Production/web build passes — `bun run build:web`: 14/14 turbo tasks
+      succeeded.
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar actions)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (mirrored `DownloadsList.tsx`/`lib/downloads.ts`'s pattern)
+- [x] Confirm `chrome.history` API shape against the installed
+      `@types/chrome`
+- [x] Implement the smallest useful vertical slice (`history` permission,
+      `lib/history.ts` pure helpers, `HistoryList.tsx`, `sidepanel/App.tsx`
+      wiring)
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage (blank title, missing title,
+      unparseable URL, missing lastVisitTime, each relative-time bucket
+      boundary)
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking (see acceptance-criteria notes — lint
+      is not actionable for this change; typecheck failures are
+      pre-existing)
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Create the pull request for this branch's commit(s).
+
+## Completed
+
+## Browser extension: Downloads tab
+
+**Status:** Completed
 **Source:** TODO.md — Ideas Backlog item 28 ("Add downloads tab; also back,
 refresh, undo close, new tab."), scoped to its next independently useful
 piece: a Downloads list view. (Back/refresh/new-tab browser-chrome-style
 buttons remain a separate follow-up — see Non-goals.)
 **Branch:** `claude/adoring-mayer-ddv3jg`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/242 (merged)
 **Started:** 2026-08-14
+**Completed:** 2026-08-15
 
 ### Goal
 Let a user see and act on their recent downloads from
@@ -103,18 +224,17 @@ existing "Tabs" and "Research" tabs, using Chrome's `chrome.downloads` API.
 - [x] Run the production/web build
 - [x] Review the final diff for scope and quality
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
+- [x] Create or update the pull request (PR #242, merged)
 - [x] Update tracker status, completed checkboxes, and remaining work
 
 ### Remaining work
-- Create the pull request for this branch's commit(s).
+- None for this task's own scope. PR #242 merged, CI/build/tests verified
+  locally.
 - Follow-ups noted above remain open: browser-chrome-style
   back/refresh/new-tab buttons, removing files from disk
   (`chrome.downloads.removeFile`), and accepting dangerous downloads
   (`chrome.downloads.acceptDanger`) — all separate, independently useful
   slices of Ideas Backlog item 28.
-
-## Completed
 
 ## Browser extension: "Undo close tab" button
 
@@ -1594,8 +1714,9 @@ ext - dl to reason dl folswe
 26. Prioritize sidebar with AI tips about the current page.
 27. Cache questions and use them to build connections.
 28. Add downloads tab; also back, refresh, undo close, new tab. — **"Undo
-    close tab" slice done, see "Browser extension: \"Undo close tab\"
-    button" above** (downloads tab, back/refresh/new-tab remain follow-ups)
+    close tab" and "Downloads tab" slices done, see "Browser extension:
+    \"Undo close tab\" button" and "Browser extension: Downloads tab"
+    above** (back/refresh/new-tab remain follow-ups)
 29. Default search support; Chrome extensions can override homepage, startup pages, and search provider via `chrome_settings_overrides`.[developer.chrome](https://developer.chrome.com/docs/extensions/reference/manifest/chrome-settings-override) — **done, see "Default search provider support in the browser extension (chrome_settings_overrides)" above**
 29b. `qwksearch-ext`'s own `bun run build`/`zip` (Chrome target) fails on a
      fresh checkout: `postcss.config.js` still uses the old
