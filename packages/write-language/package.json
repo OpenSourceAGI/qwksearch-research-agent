@@ -1,6 +1,6 @@
 {
   "name": "write-language",
-  "version": "0.1.133",
+  "version": "0.1.136",
   "description": "Multi-provider language generation toolkit using Vercel AI SDK - generate responses with 10+ LLM providers including OpenAI, Anthropic, Google, and more.",
   "author": "vtempest <grokthiscontact@gmail.com>",
   "license": "rights.institute/PROSPER",
