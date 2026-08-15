@@ -1,173 +1,5 @@
 ## In Progress
 
-## Browser extension: Auto-generate keyphrase completions for on-page/tab search
-
-**Status:** In Progress
-**Source:** TODO.md — Ideas Backlog item 32 ("Auto-generate keyphrase
-completions for on-page Ctrl+F search."). `apps/qwksearch-ext/components/
-TabSearch.tsx` already has dead scaffolding for this — `autocompleteResults`/
-`setAutocompleteResults` state and `arrowCounter` keyboard-navigation logic
-(`ArrowUp`/`ArrowDown`/`Enter`) are declared and wired into `onKeyDown`, but
-`setAutocompleteResults` is never called anywhere and no autocomplete
-dropdown is ever rendered — confirmed via a direct grep of the file. This
-task is the first slice that actually populates and renders that dropdown.
-**Branch:** `claude/adoring-mayer-r6s5vt` (this session's designated branch)
-**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/263
-**Started:** 2026-08-15
-
-### Goal
-As the user types in the side panel's "Search tab text or web" box
-(`TabSearch.tsx`), show a dropdown of keyphrase completions generated from
-the currently active tab's page content, so the user can quickly complete a
-search term that actually matches vocabulary on the page, instead of typing
-a query blind and finding zero matches.
-
-### Scope
-- New pure helper module `apps/qwksearch-ext/lib/keyphrase-completions.ts`:
-  - `extractKeyphrases(content: string, maxKeyphrases = 50): string[]` —
-    lower-cases the input, extracts alphanumeric words via `/[a-z0-9]+/g`,
-    filters out a stopword list (mirroring the pattern already established
-    in `packages/reason-editor/src/search/relatedDocuments.ts`'s
-    `STOPWORDS`/`extractKeywords`, kept local to this app rather than a new
-    cross-package dependency) and words shorter than a minimum length,
-    counts frequency, and returns up to `maxKeyphrases` unique words ranked
-    by frequency (ties broken by first-appearance order).
-  - `filterKeyphraseCompletions(keyphrases: string[], query: string,
-    maxResults = 8): string[]` — given the already-extracted keyphrase list
-    and the current search box text, takes the last whitespace-separated
-    word of `query` as the prefix to complete, returns up to `maxResults`
-    keyphrases that start with that prefix (case-insensitive) and aren't
-    already an exact match for it, preserving the frequency-ranked order.
-    Returns `[]` when the query's last word is empty (e.g. query is blank
-    or ends in a space).
-- `apps/qwksearch-ext/components/TabSearch.tsx`:
-  - On mount, find the active tab (`chrome.tabs.query({active: true,
-    currentWindow: true})`) and fetch its content via the existing
-    `extractTabContent(tabId)` helper (`lib/extract-tab-content.ts`,
-    already used by the Research tab's "Chat with page content" feature),
-    then cache `extractKeyphrases(content)` in state.
-  - In `onSearchType`, additionally call `filterKeyphraseCompletions` with
-    the cached keyphrases and the new value, and call the existing
-    (currently-dead) `setAutocompleteResults` with the result.
-  - Render a dropdown list under the input when `autocompleteResults.length
-    > 0`, highlighting the entry at `arrowCounter` (reusing the existing
-    keyboard-navigation state). Clicking or pressing Enter on a highlighted
-    entry replaces the last word of `searchText` with the chosen keyphrase
-    and closes the dropdown (matching the existing `onKeyDown`'s `Enter`
-    branch, extended to check `arrowCounter !== -1` first before falling
-    back to `searchSelected()`).
-
-### Non-goals
-- Any server-side/ML-based phrase extraction, bigrams/trigrams, or TF-IDF
-  weighting — a flat single-word frequency count is sufficient for this
-  first slice, matching `relatedDocuments.ts`'s precedent of starting with
-  plain keyword overlap before any smarter scoring.
-- Multi-tab keyphrase aggregation — only the single active tab's content is
-  used, not every open tab (keeps the extraction cheap and avoids injecting
-  a content script into every tab on every keystroke).
-- Live-refreshing keyphrases as the user switches to a different tab while
-  the panel stays open (e.g. via `chrome.tabs.onActivated`) — no other
-  component in this app currently listens for live active-tab changes;
-  keyphrases are fetched once, when `TabSearch` mounts. Refreshing them on
-  tab switch is a natural follow-up, not required for this first slice.
-- Any change to `findInTabContent`/`lib/find-in-tab-content.ts`'s existing
-  full multi-tab search behavior — this is purely an additive autocomplete
-  layer above the existing search box.
-- A literal in-page Ctrl+F-style highlight-and-jump overlay on the visited
-  page itself — the backlog item's title mentions "Ctrl+F search" but the
-  existing `TabSearch.tsx` search box (not a real find-in-page overlay) is
-  the only on-page/tab search surface this app has; that's the surface this
-  slice augments.
-
-### Acceptance criteria
-- [x] Typing a prefix that matches words appearing on the active tab's page
-      shows a dropdown of up to 8 matching keyphrases, most-frequent first.
-- [x] Typing a prefix with no matching page vocabulary shows no dropdown.
-- [x] ArrowDown/ArrowUp navigate the dropdown (reusing existing
-      `arrowCounter` state); Enter on a highlighted entry completes the
-      last word of the search box with that keyphrase instead of triggering
-      `searchSelected()`; Enter with nothing highlighted still searches as
-      today.
-- [x] Clicking a dropdown entry has the same effect as Enter-selecting it.
-- [x] Common stopwords and very short words are excluded from suggestions.
-- [x] Vitest coverage is added or updated for `extractKeyphrases` and
-      `filterKeyphraseCompletions` — 15 focused cases in
-      `apps/qwksearch-ext/test/keyphrase-completions.test.ts` (frequency
-      ranking, stopword exclusion, short-word exclusion, case-insensitivity,
-      empty content, tie-breaking, `maxKeyphrases` truncation, prefix
-      matching, multi-word query, case-insensitive prefix, exact-match
-      exclusion alongside other prefix matches, blank query, query ending in
-      a space, no-match, `maxResults` truncation). Two of the first-drafted
-      cases initially failed against the real implementation — "and" wasn't
-      yet in the local stopword list, and one fixture asserted an incorrect
-      prefix relationship ("apple" is not a prefix of "application") — both
-      were fixed (stopword list expanded; the fixture corrected) before this
-      checkbox was marked done.
-- [x] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
-      root; nothing to run (same as every prior `qwksearch-ext` task)
-- [x] Typecheck passes — `bun run compile` in `apps/qwksearch-ext` (after
-      clearing the stale `tsconfig.tsbuildinfo` incremental cache) surfaces
-      exactly 127 errors, one more than the 126-error baseline confirmed via
-      `git stash -u -- apps/qwksearch-ext`, re-running `bun run compile`,
-      then `git stash pop`. A line-by-line `diff` of the two runs shows the
-      one new error is `components/TabSearch.tsx(44,5): error TS2304:
-      Cannot find name 'chrome'` at the new `chrome.tabs.query` call in the
-      mount effect — the same pre-existing `TS2304` class already present
-      throughout this app's `chrome.*`-using files, not a new category; the
-      other 8 `chrome`-related lines in this file just shifted line numbers.
-- [x] Tests pass — `bunx vitest run test/keyphrase-completions.test.ts`:
-      15/15 passed. `bun run test` in `qwksearch-ext`: 13/13 files, 136/136
-      tests passed (121 pre-existing + 15 new). Full workspace
-      `bun run test`: 178/187 files, 2509/2565 tests pass (52 failed, 4
-      skipped). The 9 failing files are exactly the documented pre-existing
-      set: `chat-agent-toolkit/test/openrouter-default-model.test.js`,
-      `qwksearch-web/app/api/config/__tests__/route.test.ts`,
-      `search-web-api/test/{api,autocomplete-engines,engine-health-suite,
-      search,sources-unit,sources}.test.ts` (external-API-dependent engine
-      tests), `shadcn-settings/test/settings-field.test.tsx` — confirmed via
-      a full `grep -E "^ (❯|FAIL)"` over the captured run output, none touch
-      `qwksearch-ext` or keyphrase-related files.
-- [x] Production/web build passes — `bun run build:web` at the repo root:
-      14/14 turbo tasks succeeded (7m1s).
-- [x] Documentation is updated if behavior or configuration changes — n/a
-      beyond this tracker entry (no user-facing docs describe individual
-      side-panel toolbar behavior)
-
-### Implementation plan
-- [x] Inspect affected modules, local instructions, and existing tests
-      (`TabSearch.tsx`'s dead `autocompleteResults`/`arrowCounter`
-      scaffolding, `lib/find-in-tab-content.ts`, `relatedDocuments.ts`'s
-      stopword-filtering precedent in `reason-editor`, existing `lib/`
-      pure-helper + `test/` conventions in `qwksearch-ext`)
-- [x] Confirm `chrome.tabs.query({active, currentWindow})` API shape against
-      the installed `@types/chrome` and `extractTabContent`'s existing
-      signature (mirrored `ResearchTab.tsx`'s existing `chrome.tabs.query`
-      call shape)
-- [x] Implement `extractKeyphrases`/`filterKeyphraseCompletions` in
-      `lib/keyphrase-completions.ts`
-- [x] Wire active-tab content fetching + caching and the dropdown UI into
-      `TabSearch.tsx`
-- [x] Add focused Vitest success-path coverage
-- [x] Add focused failure/edge-case coverage
-- [x] Run focused tests and fix failures (2 of 15 initially failed; fixed —
-      see the Vitest-coverage acceptance-criteria note above)
-- [x] Run linting and typechecking (lint n/a; typecheck error count is +1,
-      the same pre-existing `TS2304` class, confirmed via `git stash
-      -u`-based before/after diff)
-- [x] Run the full relevant test suite (`qwksearch-ext` and full workspace
-      `bun run test`)
-- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
-- [x] Review the final diff for scope and quality (`bun install` produced an
-      unrelated `bun.lock` package-version-sync diff, reverted per prior
-      tasks' precedent; final `git diff --stat` shows only the 2 intended
-      source files plus the 2 new files)
-- [ ] Commit and push the branch
-- [ ] Create or update the pull request
-- [x] Update tracker status, completed checkboxes, and remaining work
-
-### Remaining work
-- Commit the changes, push the branch, and open the pull request.
-
 ## Browser extension: Browse bookmarks by folder in the Favorites tab
 
 **Status:** Completed
@@ -728,6 +560,180 @@ without leaving the panel or manually typing/copy-pasting each tab.
   before sending, and any settings/toggle for auto-including tabs.
 
 ## Completed
+
+## Browser extension: Auto-generate keyphrase completions for on-page/tab search
+
+**Status:** Completed
+**Source:** TODO.md — Ideas Backlog item 32 ("Auto-generate keyphrase
+completions for on-page Ctrl+F search."). `apps/qwksearch-ext/components/
+TabSearch.tsx` already has dead scaffolding for this — `autocompleteResults`/
+`setAutocompleteResults` state and `arrowCounter` keyboard-navigation logic
+(`ArrowUp`/`ArrowDown`/`Enter`) are declared and wired into `onKeyDown`, but
+`setAutocompleteResults` is never called anywhere and no autocomplete
+dropdown is ever rendered — confirmed via a direct grep of the file. This
+task is the first slice that actually populates and renders that dropdown.
+**Branch:** `claude/adoring-mayer-r6s5vt` (this session's designated branch)
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/263 (merged)
+**Started:** 2026-08-15
+**Completed:** 2026-08-15
+
+### Goal
+As the user types in the side panel's "Search tab text or web" box
+(`TabSearch.tsx`), show a dropdown of keyphrase completions generated from
+the currently active tab's page content, so the user can quickly complete a
+search term that actually matches vocabulary on the page, instead of typing
+a query blind and finding zero matches.
+
+### Scope
+- New pure helper module `apps/qwksearch-ext/lib/keyphrase-completions.ts`:
+  - `extractKeyphrases(content: string, maxKeyphrases = 50): string[]` —
+    lower-cases the input, extracts alphanumeric words via `/[a-z0-9]+/g`,
+    filters out a stopword list (mirroring the pattern already established
+    in `packages/reason-editor/src/search/relatedDocuments.ts`'s
+    `STOPWORDS`/`extractKeywords`, kept local to this app rather than a new
+    cross-package dependency) and words shorter than a minimum length,
+    counts frequency, and returns up to `maxKeyphrases` unique words ranked
+    by frequency (ties broken by first-appearance order).
+  - `filterKeyphraseCompletions(keyphrases: string[], query: string,
+    maxResults = 8): string[]` — given the already-extracted keyphrase list
+    and the current search box text, takes the last whitespace-separated
+    word of `query` as the prefix to complete, returns up to `maxResults`
+    keyphrases that start with that prefix (case-insensitive) and aren't
+    already an exact match for it, preserving the frequency-ranked order.
+    Returns `[]` when the query's last word is empty (e.g. query is blank
+    or ends in a space).
+- `apps/qwksearch-ext/components/TabSearch.tsx`:
+  - On mount, find the active tab (`chrome.tabs.query({active: true,
+    currentWindow: true})`) and fetch its content via the existing
+    `extractTabContent(tabId)` helper (`lib/extract-tab-content.ts`,
+    already used by the Research tab's "Chat with page content" feature),
+    then cache `extractKeyphrases(content)` in state.
+  - In `onSearchType`, additionally call `filterKeyphraseCompletions` with
+    the cached keyphrases and the new value, and call the existing
+    (currently-dead) `setAutocompleteResults` with the result.
+  - Render a dropdown list under the input when `autocompleteResults.length
+    > 0`, highlighting the entry at `arrowCounter` (reusing the existing
+    keyboard-navigation state). Clicking or pressing Enter on a highlighted
+    entry replaces the last word of `searchText` with the chosen keyphrase
+    and closes the dropdown (matching the existing `onKeyDown`'s `Enter`
+    branch, extended to check `arrowCounter !== -1` first before falling
+    back to `searchSelected()`).
+
+### Non-goals
+- Any server-side/ML-based phrase extraction, bigrams/trigrams, or TF-IDF
+  weighting — a flat single-word frequency count is sufficient for this
+  first slice, matching `relatedDocuments.ts`'s precedent of starting with
+  plain keyword overlap before any smarter scoring.
+- Multi-tab keyphrase aggregation — only the single active tab's content is
+  used, not every open tab (keeps the extraction cheap and avoids injecting
+  a content script into every tab on every keystroke).
+- Live-refreshing keyphrases as the user switches to a different tab while
+  the panel stays open (e.g. via `chrome.tabs.onActivated`) — no other
+  component in this app currently listens for live active-tab changes;
+  keyphrases are fetched once, when `TabSearch` mounts. Refreshing them on
+  tab switch is a natural follow-up, not required for this first slice.
+- Any change to `findInTabContent`/`lib/find-in-tab-content.ts`'s existing
+  full multi-tab search behavior — this is purely an additive autocomplete
+  layer above the existing search box.
+- A literal in-page Ctrl+F-style highlight-and-jump overlay on the visited
+  page itself — the backlog item's title mentions "Ctrl+F search" but the
+  existing `TabSearch.tsx` search box (not a real find-in-page overlay) is
+  the only on-page/tab search surface this app has; that's the surface this
+  slice augments.
+
+### Acceptance criteria
+- [x] Typing a prefix that matches words appearing on the active tab's page
+      shows a dropdown of up to 8 matching keyphrases, most-frequent first.
+- [x] Typing a prefix with no matching page vocabulary shows no dropdown.
+- [x] ArrowDown/ArrowUp navigate the dropdown (reusing existing
+      `arrowCounter` state); Enter on a highlighted entry completes the
+      last word of the search box with that keyphrase instead of triggering
+      `searchSelected()`; Enter with nothing highlighted still searches as
+      today.
+- [x] Clicking a dropdown entry has the same effect as Enter-selecting it.
+- [x] Common stopwords and very short words are excluded from suggestions.
+- [x] Vitest coverage is added or updated for `extractKeyphrases` and
+      `filterKeyphraseCompletions` — 15 focused cases in
+      `apps/qwksearch-ext/test/keyphrase-completions.test.ts` (frequency
+      ranking, stopword exclusion, short-word exclusion, case-insensitivity,
+      empty content, tie-breaking, `maxKeyphrases` truncation, prefix
+      matching, multi-word query, case-insensitive prefix, exact-match
+      exclusion alongside other prefix matches, blank query, query ending in
+      a space, no-match, `maxResults` truncation). Two of the first-drafted
+      cases initially failed against the real implementation — "and" wasn't
+      yet in the local stopword list, and one fixture asserted an incorrect
+      prefix relationship ("apple" is not a prefix of "application") — both
+      were fixed (stopword list expanded; the fixture corrected) before this
+      checkbox was marked done.
+- [x] Lint passes — no `lint` script exists for `qwksearch-ext` or the repo
+      root; nothing to run (same as every prior `qwksearch-ext` task)
+- [x] Typecheck passes — `bun run compile` in `apps/qwksearch-ext` (after
+      clearing the stale `tsconfig.tsbuildinfo` incremental cache) surfaces
+      exactly 127 errors, one more than the 126-error baseline confirmed via
+      `git stash -u -- apps/qwksearch-ext`, re-running `bun run compile`,
+      then `git stash pop`. A line-by-line `diff` of the two runs shows the
+      one new error is `components/TabSearch.tsx(44,5): error TS2304:
+      Cannot find name 'chrome'` at the new `chrome.tabs.query` call in the
+      mount effect — the same pre-existing `TS2304` class already present
+      throughout this app's `chrome.*`-using files, not a new category; the
+      other 8 `chrome`-related lines in this file just shifted line numbers.
+- [x] Tests pass — `bunx vitest run test/keyphrase-completions.test.ts`:
+      15/15 passed. `bun run test` in `qwksearch-ext`: 13/13 files, 136/136
+      tests passed (121 pre-existing + 15 new). Full workspace
+      `bun run test`: 178/187 files, 2509/2565 tests pass (52 failed, 4
+      skipped). The 9 failing files are exactly the documented pre-existing
+      set: `chat-agent-toolkit/test/openrouter-default-model.test.js`,
+      `qwksearch-web/app/api/config/__tests__/route.test.ts`,
+      `search-web-api/test/{api,autocomplete-engines,engine-health-suite,
+      search,sources-unit,sources}.test.ts` (external-API-dependent engine
+      tests), `shadcn-settings/test/settings-field.test.tsx` — confirmed via
+      a full `grep -E "^ (❯|FAIL)"` over the captured run output, none touch
+      `qwksearch-ext` or keyphrase-related files.
+- [x] Production/web build passes — `bun run build:web` at the repo root:
+      14/14 turbo tasks succeeded (7m1s).
+- [x] Documentation is updated if behavior or configuration changes — n/a
+      beyond this tracker entry (no user-facing docs describe individual
+      side-panel toolbar behavior)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+      (`TabSearch.tsx`'s dead `autocompleteResults`/`arrowCounter`
+      scaffolding, `lib/find-in-tab-content.ts`, `relatedDocuments.ts`'s
+      stopword-filtering precedent in `reason-editor`, existing `lib/`
+      pure-helper + `test/` conventions in `qwksearch-ext`)
+- [x] Confirm `chrome.tabs.query({active, currentWindow})` API shape against
+      the installed `@types/chrome` and `extractTabContent`'s existing
+      signature (mirrored `ResearchTab.tsx`'s existing `chrome.tabs.query`
+      call shape)
+- [x] Implement `extractKeyphrases`/`filterKeyphraseCompletions` in
+      `lib/keyphrase-completions.ts`
+- [x] Wire active-tab content fetching + caching and the dropdown UI into
+      `TabSearch.tsx`
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure/edge-case coverage
+- [x] Run focused tests and fix failures (2 of 15 initially failed; fixed —
+      see the Vitest-coverage acceptance-criteria note above)
+- [x] Run linting and typechecking (lint n/a; typecheck error count is +1,
+      the same pre-existing `TS2304` class, confirmed via `git stash
+      -u`-based before/after diff)
+- [x] Run the full relevant test suite (`qwksearch-ext` and full workspace
+      `bun run test`)
+- [x] Run the production/web build (`bun run build:web`, 14/14 turbo tasks)
+- [x] Review the final diff for scope and quality (`bun install` produced an
+      unrelated `bun.lock` package-version-sync diff, reverted per prior
+      tasks' precedent; final `git diff --stat` shows only the 2 intended
+      source files plus the 2 new files)
+- [x] Commit and push the branch
+- [x] Create or update the pull request (PR #263, merged; tracker sync
+      follow-up PR #264)
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- None for this task's own scope. PR #263 merged into master; tracker-sync
+  follow-up PR #264 fills in this entry's final PR link/status.
+- Follow-ups noted above remain open: live-refreshing keyphrases on tab
+  switch, multi-tab aggregation, and smarter phrase extraction (bigrams/
+  TF-IDF) beyond flat single-word frequency counting.
 
 ## Browser extension: Edit a bookmark's URL from the Favorites tab
 
