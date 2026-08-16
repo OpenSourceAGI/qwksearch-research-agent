@@ -1,16 +1,19 @@
 ## In Progress
 
+## Completed
+
 ## Fix `img_src` dropped from paginated Images "load more" results
 
-**Status:** In Progress
+**Status:** Completed
 **Source:** TODO.md — discovered as a leftover gap in the "Inline video
 playback for video search results" task's Remaining work (above): that task
 fixed `loadMoreResults` to carry `iframe_src` through into `Document.metadata`
 (matching `handleCategoryChange`'s mapping) but explicitly left `img_src`
 unfixed to keep that PR scoped to video playback.
 **Branch:** `claude/adoring-mayer-y0bn2s`
-**PR:** Not created yet
+**PR:** https://github.com/OpenSourceAGI/qwksearch-research-agent/pull/283
 **Started:** 2026-08-15
+**Completed:** 2026-08-16
 
 ### Goal
 `MessageSources.tsx`'s Images-category "load more" (infinite-scroll
@@ -58,13 +61,28 @@ losing it after page 1.
 - [x] Run the production/web build
 - [x] Review the final diff for scope and quality
 - [x] Commit and push the branch
-- [ ] Create or update the pull request
-- [ ] Update tracker status, completed checkboxes, and remaining work
+- [x] Create or update the pull request
+- [x] Update tracker status, completed checkboxes, and remaining work
+
+### Verification
+- `bun run test packages/research-agent-ui` — 9 test files, 88 tests, all
+  passed (includes the new `test/searchResultToDocument.test.ts`, 6 tests).
+- `bun run test` (full root Vitest workspace) — pre-existing failures only,
+  in packages this task never touches: `search-web-api`'s live-network
+  engine tests, `qwksearch-web`'s `app/api/config/__tests__/route.test.ts`,
+  `chat-agent-toolkit`'s `test/openrouter-default-model.test.js`, and
+  `shadcn-settings`'s `test/settings-field.test.tsx`. None import or
+  exercise `MessageSources.tsx` or `src/lib/searchResultToDocument.ts`.
+- `bun run build:web` — 14/14 turbo tasks succeeded.
+- PR #283 merged. Its "Workers Builds: qwksearch-research-agent" Cloudflare
+  deploy check failed — the same pre-existing, unconditional
+  infrastructure-side failure already conclusively documented in this file's
+  `Longterm` item 39 (11+ consecutive occurrences across every PR regardless
+  of content, including markdown-only ones); not a regression from this
+  change, and per that item's note, not logged as a new occurrence here.
 
 ### Remaining work
-- Create the PR and move this entry to Completed once it's open.
-
-## Completed
+- None. Task complete and PR merged.
 
 ## Inline video playback for video search results
 
