@@ -17,6 +17,7 @@ import type { SearchCategory, SearchResult } from '../../types/research';
 import { categories } from '../SearchConfig/categories';
 import { Dialog, DialogContent, DialogTitle } from '../../ui/dialog';
 import { getVideoPlaybackTarget } from '../../lib/videoPlayback';
+import { mapSearchResultToDocument } from '../../lib/searchResultToDocument';
 
 const CATEGORY_TABS = categories.filter(c =>
   ['general', 'news', 'videos', 'images', 'science', 'files'].includes(c.code)
@@ -194,17 +195,7 @@ const MessageSources = ({
         }
       }
 
-      return {
-        pageContent: result.snippet || result.content || '',
-        metadata: {
-          title: result.title || '',
-          source: result.source || '',
-          thumbnail: result.thumbnail || '',
-          url: result.url || '',
-          ...(result.thumbnail && { thumbnail: result.thumbnail }),
-          ...(result.iframe_src && { iframe_src: (result as any).iframe_src }),
-        },
-      };
+      return mapSearchResultToDocument(result);
     });
 
     setSources(prev => [...prev, ...newSources]);
@@ -239,18 +230,7 @@ const MessageSources = ({
           }
         }
 
-        return {
-          pageContent: result.snippet || result.content || '',
-          metadata: {
-            title: result.title || '',
-            source: result.source || '',
-            thumbnail: result.thumbnail || '',
-            url: result.url || '',
-            ...(result.img_src && { img_src: (result as any).img_src }),
-            ...(result.thumbnail && { thumbnail: result.thumbnail }),
-            ...(result.iframe_src && { iframe_src: (result as any).iframe_src }),
-          },
-        };
+        return mapSearchResultToDocument(result);
       });
 
       setSources(newSources);
