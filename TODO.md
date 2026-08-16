@@ -1,5 +1,69 @@
 ## In Progress
 
+## Fix `img_src` dropped from paginated Images "load more" results
+
+**Status:** In Progress
+**Source:** TODO.md — discovered as a leftover gap in the "Inline video
+playback for video search results" task's Remaining work (above): that task
+fixed `loadMoreResults` to carry `iframe_src` through into `Document.metadata`
+(matching `handleCategoryChange`'s mapping) but explicitly left `img_src`
+unfixed to keep that PR scoped to video playback.
+**Branch:** `claude/adoring-mayer-y0bn2s`
+**PR:** Not created yet
+**Started:** 2026-08-15
+
+### Goal
+`MessageSources.tsx`'s Images-category "load more" (infinite-scroll
+pagination) results should keep their `img_src` metadata, matching what the
+first page (via `handleCategoryChange`) already gets, instead of silently
+losing it after page 1.
+
+### Scope
+- `packages/research-agent-ui/src/components/SearchResults/MessageSources.tsx`:
+  `loadMoreResults` and `handleCategoryChange` had duplicated, drifted
+  `SearchResult` → `Document` mapping logic (the pagination copy omitted
+  `img_src`). Extract a single shared pure helper,
+  `mapSearchResultToDocument`, and use it from both call sites so the two
+  paths can no longer diverge.
+- New `packages/research-agent-ui/src/lib/searchResultToDocument.ts` with its
+  own Vitest coverage, following the same pattern as `videoPlayback.ts`/
+  `videoPlayback.test.ts`.
+
+### Non-goals
+- The domain-only-URL warning logging at each call site (different log
+  messages per site) — left as-is, not part of the field-mapping bug.
+- Any other pagination field beyond `img_src`/`iframe_src` — no other gaps
+  were found between the two mappings.
+
+### Acceptance criteria
+- [x] Paginated ("load more") Images-category results carry `img_src` through
+      into `Document.metadata`, matching first-page behavior
+- [x] Vitest coverage is added or updated
+- [x] Lint passes (no dedicated lint script in this repo; see verification)
+- [x] Typecheck passes (via the full `bun run build:web` turbo pipeline)
+- [x] Tests pass
+- [x] Production/web build passes
+- [x] Documentation is updated if behavior or configuration changes (no
+      README/docs describe this level of UI detail; none needed updating)
+
+### Implementation plan
+- [x] Inspect affected modules, local instructions, and existing tests
+- [x] Confirm API, schema, data-flow, or interface requirements
+- [x] Implement the smallest useful vertical slice
+- [x] Add focused Vitest success-path coverage
+- [x] Add focused failure, validation, or edge-case coverage
+- [x] Run focused tests and fix failures
+- [x] Run linting and typechecking
+- [x] Run the full relevant test suite
+- [x] Run the production/web build
+- [x] Review the final diff for scope and quality
+- [x] Commit and push the branch
+- [ ] Create or update the pull request
+- [ ] Update tracker status, completed checkboxes, and remaining work
+
+### Remaining work
+- Create the PR and move this entry to Completed once it's open.
+
 ## Completed
 
 ## Inline video playback for video search results
