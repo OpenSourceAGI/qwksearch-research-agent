@@ -1,0 +1,315 @@
+# LobeHub → QwkSearch Integration Plan
+
+Plan for vendoring the useful parts of [lobehub/lobe-chat](https://github.com/lobehub/lobe-chat)
+(v2.2.13, 90 workspace packages) into `packages/lobehub/*` and wiring them into
+`apps/qwksearch-web` + `packages/research-agent-ui`.
+
+Status: **plan only — no code merged yet.**
+
+---
+
+## 0. Read this first: licensing gate
+
+`lobe-chat`'s root `LICENSE` is the **LobeHub Community License** (Apache-2.0 plus
+extra terms). None of the 90 packages carry their own license file; exactly one
+declares `"license"` in its `package.json`. The binding clause:
+
+> b. a commercial license must be obtained from the producer if you want to
+> **develop and distribute a derivative work** based on LobeChat.
+
+Copying `packages/*` source into this repo and shipping it is a derivative work.
+QwkSearch ships under `rights.institute/PROSPER`, so this is not a compatible
+sublicense. **Before Phase 2 lands, someone has to email hello@lobehub.com and
+get a written commercial license, or the vendored-source phases must be dropped.**
+
+That splits the work into two risk tiers, and the phasing below reflects it:
+
+| Tier | What | License | Blocked? |
+|---|---|---|---|
+| **A** | `@lobehub/*` packages published to npm from *separate* repos — `ui`, `icons`, `tts`, `editor`, `charts`, `analytics` | **MIT** (verified on npm registry) | No — safe today |
+| **B** | `@lobechat/*` monorepo packages vendored into `packages/lobehub/` | LobeHub Community | **Yes — needs license** |
+
+Everything in Phase 1 is Tier A. Phases 2+ are Tier B and should not start until
+the license question is answered. If the answer is no, the fallback is
+*reimplement the behavior* from the published API surface rather than copying
+source — noted per-package below where that's realistic.
+
+---
+
+## 1. Triage: what's actually worth taking
+
+I profiled all 90 packages by LOC, dependency coupling, and overlap with what
+QwkSearch already has. Three buckets.
+
+### 1a. ADOPT — high value, low coupling, real gap in QwkSearch
+
+| Package | LOC | Why it's worth it | Coupling |
+|---|---|---|---|
+| `web-crawler` | 1,160 | 7 pluggable crawl backends (`naive`, `jina`, `firecrawl`, `exa`, `tavily`, `search1api`, `browserless`) behind one `Crawler` class, **plus `urlRules.ts`** — per-domain routing (YouTube→search1api, PDFs→jina, GitHub blob→raw URL transform, Reddit→markdown). QwkSearch's `extract-webpage` has no fallback chain and no per-domain rules. This is the single best pickup. | `ssrf-safe-fetch`, `utils` only |
+| `file-loaders` | 2,419 | Loaders for pdf/docx/doc/xlsx/pptx/ipynb/text. QwkSearch has `extract-pdf` + `mammoth` and nothing for xlsx/pptx/ipynb. | **Zero internal deps** |
+| `markdown-patch` | 360 | Apply LLM-generated diffs to markdown. Directly useful for REASON's `ai-rewrite`. | **Zero deps** |
+| `ssrf-safe-fetch` | ~50 | SSRF guard on outbound fetch. `/api/scraper` takes user URLs today. | none |
+| `eval-rubric` + `eval-dataset-parser` | 895 | Rubric-based agent eval harness + CSV/XLSX/JSONL dataset parsing. QwkSearch has no eval story. | `types` (trimmable) |
+| `conversation-flow` | 4,523 | Parses flat message arrays into renderable groups (assistant groups, tool chains, compressed history). Solves a problem `ChatConversationThread.tsx` currently hand-rolls. | `const` only |
+| `python-interpreter` | 275 | Pyodide sandbox wrapper. | none |
+
+### 1b. PORT — the logic is good, but the packaging is wrong for us
+
+These carry `antd` + `antd-style` (CSS-in-JS) as peer deps. QwkSearch is
+Tailwind v4 + Radix/shadcn. Do **not** vendor these as-is — that pulls a second
+component library and a second theming system into the bundle. Take the
+*structure and prompts*, rewrite the views against `packages/research-agent-ui/src/ui`.
+
+| Package | LOC | Take | Drop |
+|---|---|---|---|
+| `builtin-tool-web-browsing` | 2,609 | `manifest.ts` (tool JSON schema: `search`/`crawlSinglePage`/`crawlMultiPages`), `systemRole.ts`, `ExecutionRuntime/`, and the *component decomposition* (Inspector / Render / Portal / Placeholder) | every `.tsx` — reskin |
+| `shared-tool-ui` | 5,795 | The `Inspector`/`Render`/`AskUserQuestion` contract for how any tool renders in a message | antd views |
+| `builtin-tool-calculator`, `builtin-tool-knowledge-base` | 3,338 | manifests + prompts | views |
+| `editor-runtime` | 942 | The AI-editing runtime contract | `@lobehub/editor` binding (we're on Tiptap) |
+| `memory-user-memory` | 4,077 | Extractors/converters/schemas for long-term user memory — maps onto the existing Skills & Memory feature (`docs/SKILLS_AND_MEMORY.md`) | its `context-engine` + `database` deps |
+| `builtin-skills` | 1,721 | Skill manifest format (`agent-browser`, `artifacts`, `task`) | `artifact-template` dep |
+
+### 1c. SKIP — overlap, or too entangled to be worth it
+
+| Package | LOC | Why not |
+|---|---|---|
+| `model-runtime` | 38,644 | 80 provider adapters, but QwkSearch already has `write-language` + `chat-agent-toolkit` on the Vercel AI SDK, and `@ai-sdk/*` covers the same providers. Pulls `business-model-bank` (private). |
+| `model-bank` | 49,003 | Model metadata/pricing catalog. Tempting, but pulls `business-const` (private) and would need constant re-syncing. Revisit standalone later if pricing UI is ever needed. |
+| `database` | 421 files | Drizzle **Postgres** schema. QwkSearch is Cloudflare **D1/SQLite**. Non-starter. |
+| `context-engine` | 13,859 | Genuinely good context pipeline, but hard-depends on `@lobechat/database`. Only viable after a D1 port of the storage providers — Phase 6 stretch goal. |
+| `types` | 20,805 | Depends on `@lobehub/market-sdk`, `@lobehub/ui`, `react`. Cherry-pick individual type files instead of taking the package. |
+| `const` | 4,312 | Depends on private `business-const`. Cherry-pick. |
+| `utils` | 4,923 | Mostly duplicates `lodash-es`/`es-toolkit` already in the tree. Cherry-pick ~8 files (`uriParser`, `parseMarkdown`, `detectTruncatedJSON`, `sanitizeToolCallArguments`, `tokenizer/`, `chunkers/`, `pricing`, `promptTemplate`). |
+| `agent-runtime`, `heterogeneous-agents`, `agent-*` (7 pkgs) | ~10k+ | LobeChat's own multi-agent orchestration. Competes head-on with `chat-agent-toolkit`/Mastra. Don't run two orchestrators. |
+| `electron-*`, `desktop-bridge`, `device-*`, `local-file-shell` | — | Electron/desktop IPC. QwkSearch desktop is Tauri. |
+| `chat-adapter-*` (feishu/line/qq/wechat/imessage) | — | Messaging-platform bots. Out of product scope. |
+| `builtin-tool-*` (remaining ~30) | — | Deeply tied to LobeChat's store/tRPC/agent model. Cherry-pick manifests only if a specific tool is wanted. |
+| `business/*`, `openapi`, `trpc`, `locales`, `prompts` | — | Private, or tied to LobeChat's own API/i18n surface. |
+
+**Net:** ~10 packages vendored, ~6 ported, 74 skipped. That's the honest read of
+"most of the packages that are new and useful" — the majority of lobe-chat's
+package count is agent-orchestration and desktop plumbing that duplicates or
+conflicts with what's already here.
+
+---
+
+## 2. Impedance mismatches to plan around
+
+Four of them, all real:
+
+1. **UI stack.** lobe-chat: `antd` + `antd-style` + `@lobehub/ui` (CSS-in-JS,
+   emotion). QwkSearch: Tailwind v4 + Radix + `class-variance-authority`.
+   → Never import an antd-peer package into `research-agent-ui`. `@lobehub/icons`
+   is the exception — it's pure SVG React components, safe to use directly.
+2. **Runtime.** `qwksearch-web` deploys to Cloudflare Workers (`vinext` +
+   `wrangler.jsonc`, `nodejs_compat` on). `file-loaders` (`pdfjs-dist`,
+   `officeparser`, `xlsx`, `word-extractor`, `yauzl`) and `ssrf-safe-fetch`
+   (`node-fetch`, `request-filtering-agent`) are Node-only. `nodejs_compat`
+   covers some of it, not all.
+   → Gate these behind `apps/qwksearch-web/app/api/*` routes and verify each
+   under `bun run dev:cf` (real workerd), not just `next dev`. Anything that
+   won't run goes to a separate Worker or Container.
+3. **Data layer.** lobe-chat: Postgres + tRPC + zustand. QwkSearch: D1 + REST
+   route handlers + React Query.
+   → Take no package that imports `@lobechat/database` or `@lobechat/trpc`.
+4. **Build.** lobe-chat packages are ESM/TS with `exports` maps but no build
+   step in several cases (they rely on the app's bundler transpiling
+   `node_modules`). QwkSearch consumes workspace packages as **built artifacts**
+   (see `apps/qwksearch-web`'s `prebuild` chain).
+   → Every vendored package needs a `tsup`/`vite build` step + `dist/` added,
+   and an entry in the `prebuild` chain and `turbo.json`.
+
+---
+
+## 3. Target layout
+
+```
+packages/lobehub/
+├── README.md            ← provenance: upstream commit SHA, license status, what was modified
+├── web-crawler/         ← vendored, adapted
+├── file-loaders/
+├── markdown-patch/
+├── safe-fetch/          ← from ssrf-safe-fetch, Workers-compatible rewrite
+├── conversation-flow/
+├── eval/                ← eval-rubric + eval-dataset-parser merged
+├── tool-manifests/      ← ported: web-browsing/calculator/knowledge-base manifests + system prompts, no UI
+└── shared/              ← cherry-picked utils + types, ~10 files
+```
+
+Root `package.json` `workspaces` is
+`["packages/*", "packages/render-url-to-html/*", "apps/*"]` — `packages/*` does
+**not** glob nested dirs, so a nested group needs its own entry. `render-url-to-html`
+already establishes that precedent; follow it and add `"packages/lobehub/*"`
+in step 0.2.
+
+Every vendored file keeps a header:
+```ts
+// Vendored from lobehub/lobe-chat@<sha> — packages/web-crawler/src/crawler.ts
+// LobeHub Community License. Modifications: <what changed>
+```
+
+---
+
+## 4. Step-by-step
+
+### Phase 0 — Legal + scaffolding (no product change)
+
+- **0.1** Get the LobeHub commercial-license answer in writing. Record it in
+  `packages/lobehub/README.md`. **Phases 2–6 are blocked on this.**
+- **0.2** Add `"packages/lobehub/*"` to root `package.json` `workspaces`.
+- **0.3** Add `packages/lobehub/README.md` with upstream SHA + license status.
+- **0.4** Add `packages/lobehub/*` build tasks to `turbo.json` and to
+  `apps/qwksearch-web`'s `prebuild` chain (they must build *before*
+  `chat-agent-toolkit` and `research-agent-ui`).
+- ✅ Check: `bun install && bun run build` is green with the empty scaffold.
+
+### Phase 1 — Tier A quick wins (unblocked, ship independently)
+
+These are MIT npm packages. No vendoring, no license question.
+
+- **1.1** `bun add @lobehub/icons` in `packages/research-agent-ui`. Replace the
+  hand-rolled provider logos in `packages/chat-agent-toolkit/src/provider-logos`
+  and the model-picker icons with `@lobehub/icons` — it covers every provider
+  in `app/api/agent/providers` and stays current as new models ship.
+- **1.2** Evaluate `@lobehub/charts` (recharts wrapper, MIT) for the analytics
+  in `app/admin/*`. Low priority.
+- **1.3** Evaluate `@lobehub/tts` against the existing `kokoro-js` +
+  `use-voice-control` path. Likely **skip** — the current stack is on-device and
+  works; note the decision and move on.
+- ✅ Check: `turbo build --filter=qwksearch-web` green; model picker renders
+  correct logos for all providers; bundle size delta measured with `bun run analyze`.
+
+### Phase 2 — `web-crawler` (highest-value pickup) 🔒 needs license
+
+- **2.1** Vendor `packages/web-crawler/src/` → `packages/lobehub/web-crawler/`.
+  Strip `@lobechat/utils` and `@lobechat/ssrf-safe-fetch` imports; replace with
+  local shims (`packages/lobehub/shared`, `packages/lobehub/safe-fetch`).
+- **2.2** Make it Workers-compatible: `happy-dom` and `@mozilla/readability` run
+  in the `naive` impl. Verify under `wrangler dev --local`; if `happy-dom` is too
+  heavy for the Worker, keep `naive` server-side only and default the Worker path
+  to `jina`/`firecrawl`.
+- **2.3** Add a **QwkSearch impl**: `crawImpl/qwksearch.ts` that calls the
+  existing `extract-webpage` pipeline. Register it first in the default impl
+  chain so our own extractor stays primary and lobehub's providers are fallback.
+- **2.4** Merge `urlRules.ts` with QwkSearch's own domain knowledge —
+  `packages/domain-rank` already scores domains; wire rule selection to consult it.
+  Add rules for the extractors we already have: `youtube.com/watch` →
+  `extract-youtube`, `*.pdf` → `extract-pdf`, arXiv → `extract-pdf-docling`.
+- **2.5** Rewire `apps/qwksearch-web/app/api/scraper` to call `Crawler` instead
+  of `extract-webpage` directly, so it inherits the fallback chain.
+- ✅ Check: unit tests from `packages/web-crawler/src/__tests__` ported and green;
+  `/api/scraper` returns content for a paywalled news URL, a GitHub blob URL, a
+  YouTube URL, and a PDF — four cases that fail or degrade today.
+
+### Phase 3 — Search tool contract + UI 🔒 needs license (manifests only; UI is ours)
+
+This is where lobehub's web app design gets grafted onto QwkSearch's search.
+
+**What lobe-chat's web app does well** (from `src/features/`), and where each maps:
+
+| lobe-chat | What it gives | QwkSearch target |
+|---|---|---|
+| `builtin-tool-web-browsing/client/Inspector/` | Collapsed one-line "searched X, got N results" strip inside the message | `research-agent-ui/src/components/SearchResults/SearchProgressIndicator.tsx` — extend, don't replace |
+| `.../client/Render/Search/SearchResult/` + `ShowMore` | Inline result cards with progressive disclosure | `SearchResults/MessageSources.tsx` |
+| `.../client/Render/Search/ConfigForm/` | **Per-query engine + category + time-range editing, re-runnable from inside the message** | `research-agent-ui/src/components/SearchConfig` — currently global-only. This is the biggest UX win. |
+| `.../client/Portal/Search/ResultList/` | Full result list in a **right-hand portal**, with per-result category avatars and video cards | `research-agent-ui/src/components/ArticleReader/ArticleExtractPanel.tsx` (already a right panel — extend it to host search results, not just one article) |
+| `.../client/Render/PageContent/` | Crawled-page preview with loading state | `ArticleReader/ArticleContent.tsx` |
+| `components/EngineAvatar`, `CategoryAvatar` | Per-engine and per-category iconography | `research-agent-ui/src/icons/` (already has academic/files/images/news/tech/videos/web — extend to all 11 categories in `search-web-api/src/category-registry.ts`) |
+| `features/Conversation/Messages/Tool/` | Generic tool-call render slot | New `ChatConversation/MessageBubble/ToolCall.tsx` |
+| `features/ChatInput/ActionBar/` + `TypoBar` | Model label, token count, mention menu in the composer | `ChatConversation/ChatMessageInputBar.tsx` |
+
+Steps:
+
+- **3.1** Port `WebBrowsingManifest` → `packages/lobehub/tool-manifests/web-browsing.ts`,
+  rewriting `searchCategories` from lobehub's 5 values to QwkSearch's 11
+  (`academic`, `general`, `images`, `it`, `maps`, `news`, `shopping`, `social`,
+  `specialized`, `torrents`, `videos`) sourced from
+  `packages/search-web-api/src/category-registry.ts`. Same for `searchTimeRange`.
+- **3.2** Register it as a tool in `packages/chat-agent-toolkit/src/tools/search`
+  so the agent can call `search` / `crawlSinglePage` / `crawlMultiPages` as
+  structured tool calls, backed by our 71 engines in `search-web-api/src/sources`
+  and the Phase-2 `Crawler`.
+- **3.3** Port `systemRole.ts` prompts, adapted to name QwkSearch's categories.
+- **3.4** Build the **Inspector / Render / Portal** triad in `research-agent-ui`
+  using Radix + Tailwind (copy the *decomposition*, none of the antd code):
+  - Inspector → collapsed strip in the message bubble
+  - Render → inline result cards + `ShowMore`
+  - Portal → full list in the right panel
+- **3.5** Build `SearchConfigInline` — the in-message re-run form. Reuse
+  `SearchConfig`'s existing engine/category state, add `onRerun` that re-issues
+  the tool call with edited params.
+- **3.6** Extend `src/icons/` with the missing category icons (`.tsx` + `.svg`
+  both, per existing convention).
+- ✅ Check: Storybook stories for Inspector/Render/Portal/ConfigForm
+  (`bun run storybook` in `research-agent-ui`); an agent turn that searches shows
+  the collapsed strip, expands to cards, opens the portal, and re-runs with a
+  changed category without a new user message.
+
+### Phase 4 — File loading 🔒 needs license
+
+- **4.1** Vendor `file-loaders` → `packages/lobehub/file-loaders/`. Zero internal
+  deps, so this is a near-clean copy.
+- **4.2** Reconcile with what's already here: keep `extract-pdf`/`extract-pdf-docling`
+  as the PDF path (they're better tuned), take **xlsx / pptx / ipynb / doc** — the
+  four formats QwkSearch can't read today. `mammoth` is already a root dep and is
+  what lobehub's docx loader uses, so docx dedupes cleanly.
+- **4.3** Wire into `research-agent-ui/src/components/FileUpload` and the
+  `@svar-ui/react-filemanager` library view.
+- ✅ Check: upload an .xlsx, .pptx, and .ipynb through the composer; each yields
+  text the agent can cite. Verify under `dev:cf` — these are Node-heavy.
+
+### Phase 5 — Conversation rendering + markdown patching 🔒 needs license
+
+- **5.1** Vendor `conversation-flow` → `packages/lobehub/conversation-flow/`
+  (only dep is `@lobechat/const`, cherry-pick the handful of constants used).
+- **5.2** Refactor `ChatConversationThread.tsx` to consume its grouping output
+  (`parse.ts` / `structuring.ts` / `assistantGroupContent.ts`) instead of the
+  current ad-hoc message walk. This is what makes multi-step tool chains render
+  as one coherent block rather than N bubbles.
+- **5.3** Vendor `markdown-patch` (360 LOC, zero deps) and wire it into
+  `packages/reason-editor/src/features/ai-rewrite` so AI edits apply as patches
+  rather than full-document replacements.
+- ✅ Check: a 6-step agent turn (search → crawl ×3 → synthesize) renders as one
+  grouped assistant block; REASON AI-rewrite preserves cursor position and
+  untouched paragraphs.
+
+### Phase 6 — Optional / stretch 🔒 needs license
+
+- **6.1** `eval-rubric` + `eval-dataset-parser` → `packages/lobehub/eval/`. Wire a
+  `bun run eval` script scoring agent answers against a rubric dataset. Genuinely
+  useful and fully independent of everything above — can be done any time after Phase 0.
+- **6.2** `memory-user-memory` extractors → feed the existing Skills & Memory
+  feature. Requires replacing its `context-engine` + `database` deps with D1-backed
+  equivalents. Non-trivial.
+- **6.3** `context-engine` — only if someone ports its storage providers off
+  Postgres. 13.8k LOC. Evaluate separately; do not fold into this effort.
+- **6.4** `python-interpreter` (Pyodide) as a new tool in `chat-agent-toolkit`.
+
+---
+
+## 5. Sequencing summary
+
+```
+Phase 0 (scaffold + LICENSE ANSWER)
+   ├── Phase 1  Tier A / MIT icons          ← unblocked, do now
+   └── 🔒 gate
+        ├── Phase 2  web-crawler            ← highest value
+        │     └── Phase 3  search tool + UI ← biggest UX win, depends on 2
+        ├── Phase 4  file-loaders           ← parallel with 2/3
+        ├── Phase 5  conversation-flow      ← parallel
+        └── Phase 6  eval / memory / stretch
+```
+
+Phases 2, 4, 5 are independent of each other and can run in parallel once the
+gate clears. Phase 3 is the only one with a hard predecessor.
+
+## 6. Definition of done, per phase
+
+Every phase lands as its own PR against `claude/lobehub-packages-integration-kxbkjq` and must:
+
+- keep `bun run build` and `bun run test` green at the repo root,
+- add the new package to `turbo.json` + `apps/qwksearch-web`'s `prebuild` chain,
+- carry vendored-file provenance headers,
+- verify anything Node-touching under `bun run dev:cf` (workerd), not just `next dev`,
+- add Storybook stories for any new `research-agent-ui` component,
+- record the bundle-size delta from `bun run analyze`.
