@@ -1,5 +1,109 @@
 ## In Progress
 
+## Triage the 7 open pull requests: merge or close as superseded
+
+**Status:** In Progress
+**Source:** Direct request — merge the repository's open pull requests and
+resolve their conflicts.
+**Branch:** `claude/merge-open-prs-conflicts-tupoxk`
+**PR:** Not created yet
+**Started:** 2026-08-18
+
+### Goal
+Get the 7 open PRs (#223, #234, #236, #243, #245, #260, #264) off the open
+list by determining, for each, whether it still carries content `master`
+lacks — and merging it if so, or recording it as superseded if not.
+
+### Scope
+- Read-only analysis of every open PR against `master` (`3e67bb4`).
+- This tracker entry recording the finding and the recommended disposition.
+
+### Non-goals
+- Closing the PRs on GitHub — that is an outward-facing, owner-visible
+  action; it is left for explicit approval (see Remaining work).
+- Re-landing any of the PRs' feature work. All of it is already in `master`;
+  see Verification.
+- Repairing the truncated `master` history that orphaned five of the PRs.
+  The truncation predates this task and nothing in the current tree depends
+  on the missing ancestry.
+
+### Finding
+All 7 open PRs are fully superseded by `master`. Every one is a TODO.md
+bookkeeping follow-up whose paired feature commit was already squash-merged,
+and in each case `master`'s TODO.md already carries the same entry in a
+*more* advanced state than the PR would set it to.
+
+The 7 PRs split into two groups:
+
+**Group A — no common ancestor with `master` (#223, #234, #236, #243, #245).**
+`git merge-base master pr-N` is empty for all five; `git merge` refuses with
+`fatal: refusing to merge unrelated histories`. `master`'s history is only 50
+commits deep, rooted at `907aad1f` ("Add a Favorites tab to the qwksearch-ext
+side panel (#248)"), so every commit these five branches descend from is gone
+from `master`'s ancestry. Their apparent 9,000–12,000-line diffs are an
+artifact of that missing base, not real content.
+
+**Group B — shared ancestry, real conflicts (#260, #264).** These merge-base
+cleanly onto `bf8dc7ae` and `245a0533` respectively but conflict in TODO.md
+(both) and `apps/qwksearch-ext/components/BookmarksList.tsx` (#260).
+
+### Per-PR disposition
+| PR | Paired feature | Feature merged as | TODO entry in `master` |
+| --- | --- | --- | --- |
+| #223 | Typo fixes in AI prompt templates | #222 | Completed, `#222 (merged)` |
+| #234 | Article panel Share button | #233 | Completed, `#233 (merged)` |
+| #236 | Follow-up-suggestions test coverage | #235 | Completed, `#235 (merged)` |
+| #243 | Extension Downloads tab | #242 | Completed, `#242 (merged)` |
+| #245 | Extension History tab | #244 | Completed, `#244 (merged)` |
+| #260 | Edit a bookmark's URL | #259 | Completed, `#259 (merged)` |
+| #264 | Keyphrase completions for tab search | #263 | Completed, `#263 (merged)` |
+
+Each PR's own commit would only flip its entry from `In Progress` /
+`PR: Not created yet` to `Completed` with the PR link — a state `master`
+already reached, and then went past by appending the `(merged)` marker.
+
+### Merging any of them would regress `master`
+- **#260 would revert a shipped feature.** `master` gained folder browsing in
+  the Favorites tab via `5a32ab71` ("Browse bookmarks by folder in the
+  Favorites tab (#261)"), which landed *after* #260's branch point. Merging
+  #260's side of the `BookmarksList.tsx` conflict deletes `isFolderNode`,
+  `folderDisplayTitle`, the Recent/Folders view toggle, the folder stack and
+  its Back navigation, and the `onMoved` listener, along with their Vitest
+  coverage in `test/bookmarks.test.ts`.
+- **All 7 would resurrect a deleted file.** `packages/reason-editor/index.html`
+  is the only path present in any PR tree and absent from `master`; `49abcf88`
+  ("Reconstruct the `packages/reason-editor/demo/` app source (#280)")
+  deliberately replaced it with `packages/reason-editor/demo/index.html`.
+- **All 7 would roll back TODO.md**, replacing entries that record the merged
+  PR links with the pre-merge `In Progress` text.
+
+### Verification
+- [x] Fetched all 7 PR heads (`refs/pull/N/head`) and diffed each against
+      `master`.
+- [x] Confirmed Group A's unrelated histories — `git merge-base master pr-N`
+      returns empty for #223, #234, #236, #243 and #245.
+- [x] Confirmed every PR's feature code is present in `master`'s tree, by
+      symbol: `shareArticle`, `relatedDocuments`, `extractKeyphrases`,
+      `sanitizeBookmarkUrl`, `folderDisplayTitle`, `formatLastVisit` — each
+      resolves to 3 files (source, test, and re-export/consumer).
+- [x] Confirmed the #222 typo fix is in `master`: a repo-wide grep for
+      `relevent|consits|unbaised` over `.ts`/`.tsx` returns nothing.
+- [x] Confirmed all 7 TODO.md entries exist exactly once in `master`, each
+      with `**Status:** Completed` and a `(merged)` PR link.
+- [x] Confirmed `packages/reason-editor/index.html` is the sole path in any
+      PR tree missing from `master`, and that its deletion was intentional.
+- [x] No source files changed by this task, so no lint/typecheck/test/build
+      run is applicable — the change is this tracker entry alone.
+
+### Remaining work
+- **Decision needed:** close #223, #234, #236, #243, #245, #260 and #264 as
+  superseded, each with a comment naming the PR that already landed its
+  content. Nothing in them can be merged without reverting `master`.
+- Optional follow-up: the five Group A branches descend from an ancestry
+  `master` no longer has. If those orphaned branches are not needed for
+  history, deleting them alongside closing the PRs would stop future runs
+  from re-triaging them.
+
 ## Completed
 
 ## Fix `img_src` dropped from paginated Images "load more" results
