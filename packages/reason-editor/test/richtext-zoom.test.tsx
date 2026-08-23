@@ -1,6 +1,8 @@
 /**
  * Confirms the REASON editor's zoom toolbar control defaults to 125% on
- * mount and that in/out clicks still step and clamp correctly from there.
+ * mount, that it scales the editable area with `zoom` — which reflows the
+ * layout, so the document still fills its pane — rather than a transform, and
+ * that in/out clicks still step and clamp correctly from there.
  */
 
 import { act } from 'react';
@@ -50,34 +52,35 @@ describe('RichTextZoom', () => {
     mount();
 
     expect(DEFAULT_ZOOM_SCALE).toBe(1.25);
-    expect(proseMirror.style.transform).toBe('scale(1.25)');
+    expect(proseMirror.style.zoom).toBe('1.25');
+    expect(proseMirror.style.transform).toBe('');
     expect(zoomInButton().title).toBe('Zoom In (125%)');
     expect(zoomOutButton().title).toBe('Zoom Out (125%)');
   });
 
-  it('steps up from the 125% default and updates the applied transform', () => {
+  it('steps up from the 125% default and updates the applied zoom', () => {
     mount();
 
     act(() => zoomInButton().click());
 
     expect(zoomInButton().title).toBe('Zoom In (150%)');
-    expect(proseMirror.style.transform).toBe('scale(1.5)');
+    expect(proseMirror.style.zoom).toBe('1.5');
   });
 
   it('steps down from the 125% default and clamps at the 50% floor', () => {
     mount();
 
     act(() => zoomOutButton().click());
-    expect(proseMirror.style.transform).toBe('scale(1)');
+    expect(proseMirror.style.zoom).toBe('1');
 
     act(() => zoomOutButton().click());
-    expect(proseMirror.style.transform).toBe('scale(0.75)');
+    expect(proseMirror.style.zoom).toBe('0.75');
 
     act(() => zoomOutButton().click());
-    expect(proseMirror.style.transform).toBe('scale(0.5)');
+    expect(proseMirror.style.zoom).toBe('0.5');
 
     act(() => zoomOutButton().click());
-    expect(proseMirror.style.transform).toBe('scale(0.5)');
+    expect(proseMirror.style.zoom).toBe('0.5');
     expect(zoomOutButton().title).toBe('Zoom Out (50%)');
   });
 });
