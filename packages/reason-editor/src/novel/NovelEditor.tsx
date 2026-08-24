@@ -215,6 +215,13 @@ export function NovelEditor({
             editable={current.editable}
             immediatelyRender={current.immediatelyRender}
             textDirection={current.textDirection}
+            // Novel's `EditorContent` renders a wrapper div of its own around
+            // the container `@tiptap/react` mounts ProseMirror into, and that
+            // wrapper — not the container — is what the host's layout sizes.
+            // Naming it gives `styles/editor.scss` something to stretch, so an
+            // empty document cannot collapse the editable area to the width of
+            // its placeholder.
+            className="reason-editor-shell"
             // `reason-editor-surface` is the stylesheet's hook for stretching
             // the contenteditable to fill this container (see
             // `styles/editor.scss`); it is always present so the rule does not

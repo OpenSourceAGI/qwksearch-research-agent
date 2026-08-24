@@ -2,9 +2,13 @@
  * Toolbar control (React) for the Pagination extension, which adds paginated page-break layout. Renders the button and dispatches the matching editor command when activated.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useCurrentEditor } from '@tiptap/react';
 import { Settings, ChevronDown } from 'lucide-react';
+
+/** Gutter kept clear between the panel and the menu it opens from, and every viewport edge. */
+const PANEL_GAP = 8;
 
 interface PaginationOptions {
   pageHeight: number;
@@ -87,22 +91,67 @@ export function RichTextPagination() {
     footerRight: '',
   });
   const menuRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({
+    top: 0,
+    left: -9999,
+    visibility: 'hidden',
+  });
+
+  // The panel is a portal of its own (see below), so a press inside it lands
+  // outside `menuRef` and used to close the panel the moment anything in it
+  // was touched — as did a press on a control that re-renders, because React
+  // has already detached the pressed node by the time this handler runs.
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target?.isConnected) return;
+      if (menuRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setIsOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  // Place the panel beside the dropdown it was opened from rather than on top
+  // of it: it is wider than the menu row that owns it, and an absolutely
+  // positioned panel is also clipped by the menu's own scroll box.
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+
+    const place = () => {
+      const panel = panelRef.current;
+      const trigger = menuRef.current;
+      if (!panel || !trigger) return;
+
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const triggerRect = trigger.getBoundingClientRect();
+      // The toolbar dropdown this control is listed in, when there is one.
+      const host = trigger.closest('.dropdown-portal')?.getBoundingClientRect() ?? triggerRect;
+      const { offsetWidth: width, offsetHeight: height } = panel;
+
+      let left = host.right + PANEL_GAP;
+      if (left + width > vw - PANEL_GAP) left = host.left - width - PANEL_GAP;
+      left = Math.max(PANEL_GAP, Math.min(left, vw - width - PANEL_GAP));
+
+      const top = Math.max(PANEL_GAP, Math.min(triggerRect.top, vh - height - PANEL_GAP));
+
+      setPanelStyle({ top, left, maxHeight: vh - top - PANEL_GAP });
+    };
+
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [isOpen, activeTab]);
 
   if (!editor) {
     return null;
   }
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('click', handleClickOutside);
-      return () => document.removeEventListener('click', handleClickOutside);
-    }
-  }, [isOpen]);
 
   const updatePaginationOptions = (partial: Partial<PaginationOptions>) => {
     const nextOptions = { ...options, ...partial };
@@ -170,10 +219,20 @@ export function RichTextPagination() {
         <ChevronDown className="w-3 h-3" />
       </button>
 
-      {isOpen && (
-        <div className="absolute top-full right-0 mt-1 bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-96">
+      {/* Portalled to <body> so the panel sits beside the dropdown it was
+          opened from instead of on top of it, and is not clipped by that
+          menu's scroll box. `dropdown-portal` marks it as part of the toolbar's
+          own overlay stack, which is what keeps the menu underneath open while
+          the panel is being used (see `toolbarOverlays.ts`). */}
+      {isOpen && createPortal(
+        <div
+          ref={panelRef}
+          data-richtext-portal
+          className="dropdown-portal fixed flex flex-col overflow-hidden bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg shadow-2xl z-50 w-96 max-w-[calc(100vw-16px)]"
+          style={panelStyle}
+        >
           {/* Tabs */}
-          <div className="flex border-b dark:border-gray-700">
+          <div className="flex border-b dark:border-gray-700 shrink-0">
             {['page', 'spacing', 'header-footer'].map((tab) => (
               <button
                 key={tab}
@@ -191,7 +250,7 @@ export function RichTextPagination() {
             ))}
           </div>
 
-          <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+          <div className="flex-1 min-h-0 p-4 space-y-4 overflow-y-auto">
             {activeTab === 'page' && (
               <>
                 {/* Presets */}
@@ -488,7 +547,8 @@ export function RichTextPagination() {
               </>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

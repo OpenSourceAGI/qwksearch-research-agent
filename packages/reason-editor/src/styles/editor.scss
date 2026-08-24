@@ -1,25 +1,38 @@
 // ── Editable surface sizing ───────────────────────────────────────────────
 //
-// `.reason-editor-surface` is the container `NovelEditor` puts around the
-// contenteditable. @tiptap/react mounts ProseMirror inside an unclassed
-// wrapper div of its own, so without these rules the editable area is only as
-// tall as its text: a short document leaves dead space below it where clicks
-// do not reach the document and the host background shows through. Making the
-// chain a flex column lets the contenteditable claim the full height and width
-// the host gave the editor, while still growing past it (and scrolling, where
-// the host set `overflow-auto`) once the document is longer.
+// Two nested wrappers sit between the host's layout and the contenteditable:
+// `.reason-editor-shell` is the div Novel's `EditorContent` renders, and
+// `.reason-editor-surface` — the container `@tiptap/react` mounts ProseMirror
+// into — is its child. The host's own classes land on the *inner* one, so the
+// shell is the element the host's flex row/column actually lays out, and
+// without a rule of its own it shrink-wraps its content: an empty document
+// collapses the whole editable area to the width of the placeholder and the
+// height of `min-height`, leaving a small box floating in a large empty pane
+// where clicks do not reach the document. Making the chain a flex column that
+// stretches lets the contenteditable claim the full height and width the host
+// gave the editor, while still growing past it (and scrolling, where the host
+// set `overflow-auto`) once the document is longer.
+.reason-editor-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  // The host may lay the shell out in a row (editor + comments sidebar) or a
+  // column (toolbar + editor); stretch across the cross axis either way.
+  align-self: stretch;
+  width: 100%;
+  // Flex items floor at their content size unless told otherwise, which is
+  // what lets a long line push the editor wider than its pane.
+  min-width: 0;
+  min-height: 0;
+}
+
 .reason-editor-surface {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
   width: 100%;
-
-  > div:has(> .ProseMirror) {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    width: 100%;
-    min-height: 0;
-  }
+  min-width: 0;
+  min-height: 0;
 
   .ProseMirror {
     flex: 1 1 auto;
@@ -28,12 +41,13 @@
 }
 
 // The editable area is focusable, so the browser draws its default focus ring
-// (a solid blue box in Chrome) around the whole document as soon as the caret
-// is placed. A permanent border around the page is not wanted here — the caret
-// already shows focus — so suppress it on the editable surface and on the
-// wrappers that can take focus with it.
+// (a solid black box in Chrome) around the whole document as soon as the caret
+// is placed, and a host page whose reset gives every element a border paints
+// one there too. A permanent frame around the page is not wanted here — the
+// caret already shows focus — so suppress both on the editable surface and on
+// the wrappers that can take focus with it.
+.reason-editor-shell,
 .reason-editor-surface,
-.reason-editor-surface > div,
 .reactjs-tiptap-editor .ProseMirror,
 .reactjs-tiptap-editor .ProseMirror-focused,
 .reactjs-tiptap-editor [contenteditable='true'] {
@@ -41,6 +55,7 @@
   &:focus,
   &:focus-visible,
   &:focus-within {
+    border: 0 !important;
     outline: none !important;
     box-shadow: none;
   }
