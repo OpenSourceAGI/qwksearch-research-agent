@@ -179,6 +179,15 @@ export default class ModelRegistry {
       return createOpenAI({
         apiKey,
         baseURL: config.baseURL || openAICompatibleBaseURLs[type],
+        // OpenRouter attributes usage to the calling app on its public app
+        // rankings page (https://openrouter.ai/apps) when these headers are
+        // present; see https://openrouter.ai/docs for the convention.
+        ...(type === "openrouter" && {
+          headers: {
+            "HTTP-Referer": process.env.QWKSEARCH_URL || "https://qwksearch.com",
+            "X-Title": process.env.QWKSEARCH_APP_NAME || "QwkSearch",
+          },
+        }),
       }).chat(modelName);
     }
 

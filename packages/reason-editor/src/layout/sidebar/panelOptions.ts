@@ -5,7 +5,7 @@
  * sidebar and the right panel, and by the {@link SidebarViewMenu} dropdown
  * that controls them.
  */
-import { Sparkles, FileText, AlignLeft, Layers, type LucideIcon } from 'lucide-react';
+import { Sparkles, FileText, AlignLeft, Layers, Link2, type LucideIcon } from 'lucide-react';
 import type { SidebarPanelType } from './types';
 
 /** Ordered list of togglable panel kinds shown in the view menu, with display metadata. */
@@ -14,6 +14,7 @@ export const PANEL_OPTIONS: { type: SidebarPanelType; label: string; icon: Lucid
   { type: 'files', label: 'Files', icon: FileText },
   { type: 'outline', label: 'Outline', icon: AlignLeft },
   { type: 'openTabs', label: 'Open Tabs', icon: Layers },
+  { type: 'related', label: 'Related', icon: Link2 },
 ];
 
 /**

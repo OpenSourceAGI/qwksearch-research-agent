@@ -3,6 +3,8 @@
  */
 export * from "./types";
 export * from "./handlers/article-followups";
+export * from "./handlers/page-tips";
+export * from "./handlers/topic-searches";
 export * from "./handlers/article-qa";
 export * from "./handlers/chats";
 export * from "./handlers/chat-title";

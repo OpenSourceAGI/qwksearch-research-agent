@@ -2,7 +2,8 @@
  * Toolbar control (React) for the Zoom extension, which adds zooming the editor content. Renders the button and dispatches the matching editor command when activated.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useCurrentEditor } from '@tiptap/react';
 import { ZoomIn, ZoomOut } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
@@ -26,13 +27,40 @@ function Toast({ message }: { message: string }) {
   );
 }
 
+/** Default zoom applied to the editor content on mount. */
+export const DEFAULT_ZOOM_SCALE = 1.25;
+
 export function RichTextZoom() {
-  const [scale, setScale] = useState(1);
+  const { editor } = useCurrentEditor();
+  const [scale, setScale] = useState(DEFAULT_ZOOM_SCALE);
   const [toast, setToast] = useState<string | null>(null);
 
   const showToast = (message: string) => {
     setToast(message);
   };
+
+  /**
+   * Scales the editable area with the `zoom` property rather than a
+   * `transform: scale()`. A transform is applied after layout, so the content
+   * keeps the width it was laid out at and the enlarged text spills past the
+   * right edge of its pane (and past the bottom of the scroll region) instead
+   * of reflowing; `zoom` scales the layout itself, so the document still fills
+   * exactly the space the host gave the editor at any zoom level.
+   *
+   * The element is taken from the editor this toolbar belongs to — a document
+   * open in split view puts more than one `.ProseMirror` on the page, and a
+   * global query would zoom whichever came first.
+   */
+  const applyZoom = useCallback((zoomLevel: number) => {
+    const dom = (editor?.view?.dom as HTMLElement | undefined) ?? document.querySelector('.ProseMirror');
+    if (!dom) return;
+    const el = dom as HTMLElement;
+    el.style.zoom = String(zoomLevel);
+    // Clear the transform this control used to set, so a surface that was
+    // zoomed before an update is not left scaled twice over.
+    el.style.transform = '';
+    el.style.transformOrigin = '';
+  }, [editor]);
 
   const handleZoomIn = () => {
     const newScale = Math.min(scale + 0.25, 2);
@@ -48,13 +76,9 @@ export function RichTextZoom() {
     showToast(`Zoom: ${Math.round(newScale * 100)}%`);
   };
 
-  const applyZoom = (zoomLevel: number) => {
-    const editor = document.querySelector('.ProseMirror');
-    if (editor) {
-      (editor as HTMLElement).style.transform = `scale(${zoomLevel})`;
-      (editor as HTMLElement).style.transformOrigin = 'top left';
-    }
-  };
+  useEffect(() => {
+    applyZoom(scale);
+  }, [applyZoom, scale]);
 
   return (
     <>

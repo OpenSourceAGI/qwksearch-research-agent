@@ -9,15 +9,17 @@
 import { RefObject, useState, useCallback, useMemo, useRef } from 'react';
 import { FileTree } from '../../file-tree';
 import { OutlineView, type OutlineViewHandle } from '../../search/OutlineView';
+import type { ActiveHeadingEditorHandle } from '../../search/useActiveHeading';
+import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } from '../../search/relatedDocuments';
 import { AIRewriteSuggestion } from '../../features/ai-rewrite/AIRewriteSuggestion';
 import { Input } from '../../app-ui/input';
 import { Document } from '../../documents/DocumentTree';
-import type { SidebarPanelType, SidebarAiProps, OpenTabItem } from './types';
+import type { SidebarPanelType, SidebarAiProps, SidebarTipsProps, SidebarTopicsProps, OpenTabItem } from './types';
 import type { TocEntry } from '../../app-types/toc';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../../utils/storage';
-import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus } from 'lucide-react';
+import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb } from 'lucide-react';
 import { FileTypeIcon } from '../../app-ui/FileTypeIcon';
 import { cn } from '../../app-utils/utils';
 import {
@@ -37,6 +39,7 @@ const PANEL_TITLES: Record<SidebarPanelType, string> = {
   files: 'Files',
   outline: 'Outline',
   openTabs: 'Open Tabs',
+  related: 'Related',
 };
 
 /** Props for the {@link SidebarContent} component. */
@@ -77,6 +80,8 @@ interface SidebarContentProps {
   treeRef?: RefObject<DocumentTreeHandle | null>;
   /** Ref forwarded to the `OutlineView` component for imperative control. */
   outlineRef?: RefObject<OutlineViewHandle | null>;
+  /** Editor handle passed to `OutlineView` to scroll-spy the active heading. */
+  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
   /** Currently open tab IDs shown in the top pane. */
   openTabs?: string[];
   /** ID of the currently active tab. */
@@ -97,6 +102,10 @@ interface SidebarContentProps {
   onNavigate?: (key: string) => void;
   /** AI suggestion state/handlers (used by the "ai" panel). */
   aiProps?: SidebarAiProps;
+  /** AI-generated page tips state/handlers (used by the "ai" panel). */
+  tipsProps?: SidebarTipsProps;
+  /** AI-generated search topics state/handlers (used by the "related" panel). */
+  topicsProps?: SidebarTopicsProps;
   /** Unified tab list (files + chats). Overrides file-only tab derivation when set. */
   tabItems?: OpenTabItem[];
   /** Opens a new chat tab from the "Open Tabs" panel header. */
@@ -126,6 +135,7 @@ export const SidebarContent = ({
   onOpenChange,
   treeRef,
   outlineRef,
+  editorRef,
   openTabs = [],
   activeTab,
   onTabChange,
@@ -136,6 +146,8 @@ export const SidebarContent = ({
   canReopenLastClosed = false,
   onNavigate,
   aiProps,
+  tipsProps,
+  topicsProps,
   tabItems,
   onNewChat,
 }: SidebarContentProps) => {
@@ -371,10 +383,149 @@ export const SidebarContent = ({
         <OutlineView
           ref={effectiveOutlineRef}
           headings={filteredHeadings}
-          searchQuery={outlineFilter}
           onNavigate={onNavigate}
+          editorRef={editorRef}
         />
       </div>
+    </div>
+  );
+
+  const relatedResults = useMemo(
+    () => findRelatedDocuments(activeDocuments, activeDocument),
+    [activeDocuments, activeDocument],
+  );
+
+  const renderRelatedRow = ({ document: doc, sharedKeywordCount, sharedTagCount }: RelatedDocumentResult) => (
+    <div
+      key={doc.id}
+      className="group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors hover:bg-sidebar-accent"
+      onClick={() => handleSelect(doc.id)}
+    >
+      <Link2 className="shrink-0 h-4 w-4 text-muted-foreground" />
+      <span className="flex-1 truncate text-sm">{doc.title}</span>
+      {sharedTagCount > 0 && (
+        <span className="shrink-0 flex items-center gap-0.5 text-xs text-muted-foreground" title={`${sharedTagCount} shared tag${sharedTagCount === 1 ? '' : 's'}`}>
+          <Tag className="h-3 w-3" />
+          {sharedTagCount}
+        </span>
+      )}
+      <span className="shrink-0 text-xs text-muted-foreground" title={`${sharedKeywordCount} shared keyword${sharedKeywordCount === 1 ? '' : 's'}`}>{sharedKeywordCount}</span>
+    </div>
+  );
+
+  const renderRelated = () => {
+    const { suggested, others } = splitTopSuggestion(relatedResults);
+
+    return (
+      <div className="h-full overflow-hidden flex flex-col">
+        <div className="px-3 py-2 border-b border-sidebar-border shrink-0">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Related</p>
+        </div>
+        <div className="flex-1 overflow-auto px-1 py-1">
+          {relatedResults.length === 0 ? (
+            <div className="px-2 py-3 text-xs text-muted-foreground">No related documents found</div>
+          ) : (
+            <>
+              {suggested && (
+                <div
+                  className="group flex items-center gap-2 px-2 py-2 mb-1 rounded-md cursor-pointer border border-primary/30 bg-accent/30 transition-all hover:border-primary hover:bg-primary/10"
+                  onClick={() => handleSelect(suggested.document.id)}
+                >
+                  <Sparkles className="shrink-0 h-4 w-4 text-primary" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-semibold text-primary uppercase tracking-wide">Suggested next</p>
+                    <span className="block truncate text-sm font-semibold">{suggested.document.title}</span>
+                  </div>
+                  {suggested.sharedTagCount > 0 && (
+                    <span className="shrink-0 flex items-center gap-0.5 text-xs text-muted-foreground" title={`${suggested.sharedTagCount} shared tag${suggested.sharedTagCount === 1 ? '' : 's'}`}>
+                      <Tag className="h-3 w-3" />
+                      {suggested.sharedTagCount}
+                    </span>
+                  )}
+                  <span className="shrink-0 text-xs text-muted-foreground" title={`${suggested.sharedKeywordCount} shared keyword${suggested.sharedKeywordCount === 1 ? '' : 's'}`}>{suggested.sharedKeywordCount}</span>
+                </div>
+              )}
+              {others.map(renderRelatedRow)}
+            </>
+          )}
+        </div>
+        {topicsProps && renderTopics()}
+      </div>
+    );
+  };
+
+  const renderTopics = () => (
+    <div className="px-3 py-3 border-t border-sidebar-border shrink-0">
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <Search className="h-3.5 w-3.5 text-primary" />
+          Search topics
+        </p>
+        {topicsProps?.onGenerateTopics && (
+          <button
+            className="shrink-0 text-xs font-medium text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+            onClick={topicsProps.onGenerateTopics}
+            disabled={topicsProps.isTopicsLoading}
+          >
+            {topicsProps.isTopicsLoading ? 'Generating…' : topicsProps.topics?.length ? 'Regenerate' : 'Generate'}
+          </button>
+        )}
+      </div>
+      {topicsProps?.isTopicsLoading ? (
+        <p className="text-xs text-muted-foreground">Finding related searches…</p>
+      ) : topicsProps?.topics && topicsProps.topics.length > 0 ? (
+        <ul className="space-y-1">
+          {topicsProps.topics.map((topic, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                className="w-full flex items-start gap-1.5 text-left text-xs text-muted-foreground rounded-md px-1 py-1 -mx-1 transition-colors hover:bg-sidebar-accent hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => topicsProps.onSearchTopic?.(topic)}
+                disabled={!topicsProps.onSearchTopic}
+              >
+                <Search className="shrink-0 h-3 w-3 mt-0.5 text-primary" />
+                <span>{topic}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-muted-foreground">Click "Generate" for suggested searches about this page.</p>
+      )}
+    </div>
+  );
+
+  const renderTips = () => (
+    <div className="px-3 py-3 border-t border-sidebar-border shrink-0">
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <Lightbulb className="h-3.5 w-3.5 text-primary" />
+          Page tips
+        </p>
+        {tipsProps?.onGenerateTips && (
+          <button
+            className="shrink-0 text-xs font-medium text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
+            onClick={tipsProps.onGenerateTips}
+            disabled={tipsProps.isTipsLoading}
+          >
+            {tipsProps.isTipsLoading ? 'Generating…' : tipsProps.tips?.length ? 'Regenerate' : 'Generate'}
+          </button>
+        )}
+      </div>
+      {tipsProps?.isTipsLoading ? (
+        <p className="text-xs text-muted-foreground">Generating tips about this page…</p>
+      ) : tipsProps?.tips && tipsProps.tips.length > 0 ? (
+        <ul className="space-y-1.5">
+          {tipsProps.tips.map((tip, i) => (
+            <li key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+              <span className="text-primary">•</span>
+              <span>{tip}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-muted-foreground">Click "Generate" for AI tips about this page.</p>
+      )}
     </div>
   );
 
@@ -383,29 +534,32 @@ export const SidebarContent = ({
       <div className="px-3 py-2 border-b border-sidebar-border shrink-0">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">AI Suggestions</p>
       </div>
-      <div className="flex-1 overflow-hidden">
-        {aiProps?.isAiLoading ? (
-          <div className="h-full flex items-center justify-center p-6">
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">Generating AI suggestion...</p>
+      <div className="flex-1 overflow-auto flex flex-col">
+        <div className={tipsProps ? 'shrink-0' : 'flex-1'}>
+          {aiProps?.isAiLoading ? (
+            <div className="h-full flex items-center justify-center p-6">
+              <div className="text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">Generating AI suggestion...</p>
+              </div>
             </div>
-          </div>
-        ) : aiProps?.aiSuggestion ? (
-          <AIRewriteSuggestion
-            originalText={aiProps.aiSuggestion.originalText}
-            suggestedText={aiProps.aiSuggestion.suggestedText}
-            onApprove={() => aiProps.onAiApprove?.()}
-            onReject={() => aiProps.onAiReject?.()}
-            onRegenerate={(mode) => aiProps.onAiRegenerate?.(mode)}
-            currentMode={aiProps.aiSuggestion.mode}
-            isLoading={false}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center p-6 text-center">
-            <p className="text-sm text-muted-foreground">Select text and click the AI button to get suggestions</p>
-          </div>
-        )}
+          ) : aiProps?.aiSuggestion ? (
+            <AIRewriteSuggestion
+              originalText={aiProps.aiSuggestion.originalText}
+              suggestedText={aiProps.aiSuggestion.suggestedText}
+              onApprove={() => aiProps.onAiApprove?.()}
+              onReject={() => aiProps.onAiReject?.()}
+              onRegenerate={(mode) => aiProps.onAiRegenerate?.(mode)}
+              currentMode={aiProps.aiSuggestion.mode}
+              isLoading={false}
+            />
+          ) : (
+            <div className="flex items-center justify-center p-6 text-center">
+              <p className="text-sm text-muted-foreground">Select text and click the AI button to get suggestions</p>
+            </div>
+          )}
+        </div>
+        {tipsProps && renderTips()}
       </div>
     </div>
   );
@@ -415,6 +569,7 @@ export const SidebarContent = ({
       case 'files': return renderFiles();
       case 'openTabs': return renderOpenTabs();
       case 'outline': return renderOutline();
+      case 'related': return renderRelated();
       case 'ai': return renderAi();
     }
   };

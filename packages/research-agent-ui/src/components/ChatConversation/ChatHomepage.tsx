@@ -152,18 +152,20 @@ export default function ChatHomepage() {
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
             <div className="flex flex-col md:flex-row gap-2 w-full">
+              {/* The compact weather widget is a fixed-width card, so it sits
+                  beside the trending news column rather than taking its own row
+                  (and stretches to full width once they stack on mobile). */}
               <WeatherForecast
                 compact
                 forecastDays={5}
                 forecastHours={12}
                 locations={weatherLocations.length > 0 ? weatherLocations : undefined}
-                className="rounded-2xl md:flex-1"
+                className="rounded-2xl"
                 style={{
                   background: 'rgba(255,255,255,0.08)',
                   border: '1px solid rgba(255,255,255,0.15)',
                   color: 'inherit',
                   backdropFilter: 'blur(8px)',
-                  maxWidth: '100%',
                 }}
               />
               <TrendingNews

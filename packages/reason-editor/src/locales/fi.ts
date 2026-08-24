@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'Syötä sisältö',
   'editor.fontFamily.tooltip': 'Fontti',
   'editor.fontFamily.default.tooltip': 'Oletus',
+  'editor.fontFamily.search': 'Hae fontteja...',
+  'editor.fontFamily.empty': 'Ei osuvia fontteja',
   'editor.moremark': 'Lisää tekstityylejä',
   'editor.size.small.tooltip': 'Pieni',
   'editor.size.medium.tooltip': 'Keskikokoinen',

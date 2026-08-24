@@ -4,11 +4,13 @@
  * the panel-based view configuration used across SidebarContent,
  * SidebarToolbar, SidebarFooter, SidebarViewMenu, and Sidebar.
  */
+import type { RefObject } from "react";
 import { Document } from "../../documents/DocumentTree";
 import type { TocEntry } from "../../app-types/toc";
+import type { ActiveHeadingEditorHandle } from "../../search/useActiveHeading";
 
 /** A single togglable panel kind that can appear in the left or right sidebar. */
-export type SidebarPanelType = "ai" | "files" | "outline" | "openTabs";
+export type SidebarPanelType = "ai" | "files" | "outline" | "openTabs" | "related";
 
 /** The kind of resource a tab in the "Open Tabs" panel represents. */
 export type OpenTabKind = "file" | "chat";
@@ -36,6 +38,37 @@ export interface SidebarAiProps {
   onAiApprove?: () => void;
   onAiReject?: () => void;
   onAiRegenerate?: (mode: any) => void;
+}
+
+/**
+ * AI-generated tips about the currently active document, shown as a section
+ * of the "ai" panel. Omitted entirely (and the section hidden) when the
+ * host app has no tips-generation capability to offer.
+ */
+export interface SidebarTipsProps {
+  /** Tips generated for the active document by the most recent request. */
+  tips?: string[];
+  /** Whether a tips-generation request is in flight. */
+  isTipsLoading?: boolean;
+  /** Requests (re)generation of tips for the active document. */
+  onGenerateTips?: () => void;
+}
+
+/**
+ * AI-generated suggested search queries ("topics") related to the currently
+ * active document, shown as a section of the "related" panel. Omitted
+ * entirely (and the section hidden) when the host app has no
+ * topics-generation capability to offer.
+ */
+export interface SidebarTopicsProps {
+  /** Suggested search queries generated for the active document by the most recent request. */
+  topics?: string[];
+  /** Whether a topics-generation request is in flight. */
+  isTopicsLoading?: boolean;
+  /** Requests (re)generation of topics for the active document. */
+  onGenerateTopics?: () => void;
+  /** Runs a search for the given topic (e.g. opens a new chat seeded with it). */
+  onSearchTopic?: (topic: string) => void;
 }
 
 export interface SidebarProps {
@@ -92,6 +125,8 @@ export interface SidebarProps {
   headings?: TocEntry[];
   // Jumps the editor to a heading (used by the "outline" panel)
   onNavigate?: (key: string) => void;
+  // Editor handle used by the "outline" panel to scroll-spy the active heading
+  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
   // Open tabs (for all-tabs dropdown and open files list)
   openTabs?: string[];
   activeTab?: string | null;
@@ -110,4 +145,8 @@ export interface SidebarProps {
   onNewChat?: () => void;
   // AI panel data (used by the "ai" panel)
   aiProps?: SidebarAiProps;
+  // AI-generated page tips (used by the "ai" panel)
+  tipsProps?: SidebarTipsProps;
+  // AI-generated search topics (used by the "related" panel)
+  topicsProps?: SidebarTopicsProps;
 }

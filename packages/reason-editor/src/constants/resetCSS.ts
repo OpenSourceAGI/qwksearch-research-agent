@@ -43,6 +43,12 @@ export const RESET_CSS = `
     box-sizing: border-box;
     border-width: 0;
     border-style: solid;
+    /* This reset is injected unlayered, so it beats a host page's own layered
+       reset — including the one that would otherwise supply a border colour.
+       Without a colour of its own, anything inside the editor that ends up
+       with a border width falls back to \`currentColor\` and draws a hard black
+       frame. Zero specificity, so every rule that names a colour still wins. */
+    border-color: var(--richtext-border);
   }
 
 

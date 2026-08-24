@@ -1,12 +1,12 @@
 /**
- * @fileoverview Toolbar with Ask AI, Suggest, Copy, Highlight, Favorite, Open-in-new-tab, and Close buttons shown at the top of the article extract panel.
+ * @fileoverview Toolbar with Ask AI, Suggest, Copy, Share, Highlight, Favorite, Open-in-new-tab, and Close buttons shown at the top of the article extract panel.
  *
  * Each button has a shadcn/Radix tooltip that appears on hover (zero delay) showing the
  * action label and its keyboard shortcut. The shortcut key definitions are exported as
  * {@link ARTICLE_TOOLBAR_SHORTCUTS} so the panel can wire up the matching key handlers.
  */
 import React from 'react';
-import { Bot, MessageCircleQuestion, Clipboard, Star, Highlighter, ExternalLink, ZoomIn, ZoomOut, X } from 'lucide-react';
+import { Bot, MessageCircleQuestion, Clipboard, Star, Highlighter, ExternalLink, Share2, ZoomIn, ZoomOut, X } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../ui/tooltip';
 import { cn } from '../../lib/utils';
@@ -63,6 +63,7 @@ interface ArticleActionButtonsProps {
   onAskClick: () => void;
   onSuggestClick: () => void;
   onCopyClick: () => void;
+  onShareClick: () => void;
   onFavoriteClick: () => void;
   onHighlightToggle: () => void;
   onZoomIn?: () => void;
@@ -110,6 +111,7 @@ const ArticleActionButtons: React.FC<ArticleActionButtonsProps> = ({
   onAskClick,
   onSuggestClick,
   onCopyClick,
+  onShareClick,
   onFavoriteClick,
   onHighlightToggle,
   onZoomIn,
@@ -161,6 +163,17 @@ const ArticleActionButtons: React.FC<ArticleActionButtonsProps> = ({
           className={iconButtonClass}
         >
           <Clipboard className="size-4" />
+        </Button>
+      </ToolbarTip>
+
+      <ToolbarTip label="Share article">
+        <Button
+          onClick={onShareClick}
+          variant="ghost"
+          size="icon"
+          className={iconButtonClass}
+        >
+          <Share2 className="size-4" />
         </Button>
       </ToolbarTip>
 

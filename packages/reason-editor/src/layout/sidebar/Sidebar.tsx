@@ -51,6 +51,7 @@ export const Sidebar = ({
   onFileSourceChange,
   headings = [],
   onNavigate,
+  editorRef,
   openTabs = [],
   activeTab,
   onTabChange,
@@ -60,6 +61,8 @@ export const Sidebar = ({
   onReopenLastClosed,
   canReopenLastClosed = false,
   aiProps,
+  tipsProps,
+  topicsProps,
   tabItems,
   onNewChat,
 }: SidebarProps) => {
@@ -233,6 +236,7 @@ export const Sidebar = ({
     onOpenChange,
     treeRef,
     outlineRef,
+    editorRef,
     openTabs,
     activeTab,
     onTabChange,
@@ -243,6 +247,8 @@ export const Sidebar = ({
     canReopenLastClosed,
     onNavigate,
     aiProps,
+    tipsProps,
+    topicsProps,
     tabItems,
     onNewChat,
   };

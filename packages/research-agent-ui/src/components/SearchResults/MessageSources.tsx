@@ -15,6 +15,9 @@ import { GlowingEffect } from '../../ui/glowing-effect';
 import { useExtractPanel } from '../ArticleReader/ExtractPanelContext';
 import type { SearchCategory, SearchResult } from '../../types/research';
 import { categories } from '../SearchConfig/categories';
+import { Dialog, DialogContent, DialogTitle } from '../../ui/dialog';
+import { getVideoPlaybackTarget } from '../../lib/videoPlayback';
+import { mapSearchResultToDocument } from '../../lib/searchResultToDocument';
 
 const CATEGORY_TABS = categories.filter(c =>
   ['general', 'news', 'videos', 'images', 'science', 'files'].includes(c.code)
@@ -35,6 +38,7 @@ const MessageSources = ({
   const [hasMore, setHasMore] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
   const [glowEnabled, setGlowEnabled] = useState(false);
+  const [playingVideo, setPlayingVideo] = useState<{ src: string; title: string } | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const wasOpenRef = useRef(false);
   const userClosedPanelRef = useRef(false);
@@ -191,16 +195,7 @@ const MessageSources = ({
         }
       }
 
-      return {
-        pageContent: result.snippet || result.content || '',
-        metadata: {
-          title: result.title || '',
-          source: result.source || '',
-          thumbnail: result.thumbnail || '',
-          url: result.url || '',
-          ...(result.thumbnail && { thumbnail: result.thumbnail }),
-        },
-      };
+      return mapSearchResultToDocument(result);
     });
 
     setSources(prev => [...prev, ...newSources]);
@@ -235,18 +230,7 @@ const MessageSources = ({
           }
         }
 
-        return {
-          pageContent: result.snippet || result.content || '',
-          metadata: {
-            title: result.title || '',
-            source: result.source || '',
-            thumbnail: result.thumbnail || '',
-            url: result.url || '',
-            ...(result.img_src && { img_src: (result as any).img_src }),
-            ...(result.thumbnail && { thumbnail: result.thumbnail }),
-            ...(result.iframe_src && { iframe_src: (result as any).iframe_src }),
-          },
-        };
+        return mapSearchResultToDocument(result);
       });
 
       setSources(newSources);
@@ -307,6 +291,27 @@ const MessageSources = ({
     }
 
     if (isVideoCategory && imgSrc) {
+      const playbackTarget = getVideoPlaybackTarget(source.metadata);
+      const thumbnail = (
+        <div className="relative">
+          <img
+            src={imgSrc}
+            alt={source.metadata.title}
+            className="w-full h-24 object-cover"
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-10 h-10 bg-black/60 rounded-full flex items-center justify-center">
+              <Video size={18} className="text-white ml-0.5" />
+            </div>
+          </div>
+        </div>
+      );
+      const title = (
+        <p className="text-xs line-clamp-2 p-2 text-muted-foreground">
+          {convertURLSafeHTMLToHTML(source.metadata.title)}
+        </p>
+      );
+
       return (
         <div key={index} className="relative rounded-xl">
           <GlowingEffect
@@ -317,28 +322,26 @@ const MessageSources = ({
             inactiveZone={0.01}
             borderWidth={2}
           />
-          <a
-            className="relative bg-card text-card-foreground border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer shadow-sm hover:shadow-md transition-all duration-200"
-            href={source.metadata.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <div className="relative">
-              <img
-                src={imgSrc}
-                alt={source.metadata.title}
-                className="w-full h-24 object-cover"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-10 h-10 bg-black/60 rounded-full flex items-center justify-center">
-                  <Video size={18} className="text-white ml-0.5" />
-                </div>
-              </div>
-            </div>
-            <p className="text-xs line-clamp-2 p-2 text-muted-foreground">
-              {convertURLSafeHTMLToHTML(source.metadata.title)}
-            </p>
-          </a>
+          {playbackTarget.type === 'inline' ? (
+            <button
+              type="button"
+              className="relative w-full text-left bg-card text-card-foreground border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer shadow-sm hover:shadow-md transition-all duration-200"
+              onClick={() => setPlayingVideo({ src: playbackTarget.src, title: source.metadata.title })}
+            >
+              {thumbnail}
+              {title}
+            </button>
+          ) : (
+            <a
+              className="relative bg-card text-card-foreground border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer shadow-sm hover:shadow-md transition-all duration-200"
+              href={playbackTarget.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {thumbnail}
+              {title}
+            </a>
+          )}
         </div>
       );
     }
@@ -462,6 +465,21 @@ const MessageSources = ({
           </div>
         )}
       </div>
+
+      <Dialog open={playingVideo !== null} onOpenChange={(open) => !open && setPlayingVideo(null)}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden gap-0">
+          <DialogTitle className="sr-only">{playingVideo?.title || 'Video player'}</DialogTitle>
+          {playingVideo && (
+            <iframe
+              src={playingVideo.src}
+              title={playingVideo.title || 'Video player'}
+              className="w-full aspect-video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

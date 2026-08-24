@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'Пожалуйста, введите содержимое',
   'editor.fontFamily.tooltip': 'Шрифт',
   'editor.fontFamily.default.tooltip': 'По умолчанию',
+  'editor.fontFamily.search': 'Поиск шрифтов...',
+  'editor.fontFamily.empty': 'Подходящих шрифтов нет',
   'editor.moremark': 'Больше стилей текста',
   'editor.size.small.tooltip': 'Маленький',
   'editor.size.medium.tooltip': 'Средний',

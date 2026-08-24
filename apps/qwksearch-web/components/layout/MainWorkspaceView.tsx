@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { ChatInputBox, ChatWindow, configureResearchAgentUI } from 'research-agent-ui';
+import { ChatInputBox, ChatWindow, configureResearchAgentUI, useChat } from 'research-agent-ui';
 import { ReasonDocs } from 'react-reason-editor/reason-docs';
 import { themeActions } from 'react-reason-editor/theme';
 import { localeActions } from 'react-reason-editor/locale-bundle';
 import { useMainView } from '@/components/layout/MainViewProvider';
 import { useChatTabs } from '@/components/layout/useChatTabs';
+import { getPageTips, htmlToPlainText } from '@/lib/reason-docs/page-tips';
+import { getTopicSearches } from '@/lib/reason-docs/topic-searches';
 
 import 'katex/dist/katex.min.css';
 import 'easydrawer/styles.css';
@@ -16,10 +18,12 @@ import 'katex/contrib/mhchem';
 export function MainWorkspaceView() {
   const { activeView, toggleToDocs, toggleToResearch, filesSidebarRequestId } = useMainView();
   const { chatTabs, activeChatId, openChat, newChat, closeChat } = useChatTabs();
+  const { sendMessage } = useChat();
   const searchParams = useSearchParams();
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
   const [initialDocId, setInitialDocId] = useState<string | null>(null);
   const [hasRestoredFromUrl, setHasRestoredFromUrl] = useState(false);
+  const [pendingTopicQuery, setPendingTopicQuery] = useState<string | null>(null);
 
   useEffect(() => {
     localeActions.setLang('en');
@@ -98,6 +102,32 @@ export function MainWorkspaceView() {
     return () => configureResearchAgentUI({ onOpenChat: undefined });
   }, [handleOpenChat]);
 
+  const handleGenerateTips = async (title: string, contentHtml: string) => {
+    return getPageTips(title, htmlToPlainText(contentHtml));
+  };
+
+  const handleGenerateTopics = async (title: string, contentHtml: string) => {
+    return getTopicSearches(title, htmlToPlainText(contentHtml));
+  };
+
+  // Opens a new chat tab for the clicked topic, then sends it as that
+  // chat's first message once the tab becomes active. `sendMessage` reads
+  // the currently active chat ID from context, so it can't run in the same
+  // synchronous handler as `newChat()` without racing against the still-stale
+  // previous chat ID — this effect waits for `activeChatId` to actually
+  // reflect the new chat before sending.
+  const handleSearchTopic = useCallback((topic: string) => {
+    newChat();
+    toggleToResearch();
+    setPendingTopicQuery(topic);
+  }, [newChat, toggleToResearch]);
+
+  useEffect(() => {
+    if (!pendingTopicQuery || !activeChatId) return;
+    sendMessage(pendingTopicQuery);
+    setPendingTopicQuery(null);
+  }, [pendingTopicQuery, activeChatId, sendMessage]);
+
   const extraTabProps = {
     extraTabs,
     activeExtraTabId: activeView === 'research' ? activeChatId ?? undefined : undefined,
@@ -107,6 +137,9 @@ export function MainWorkspaceView() {
     onFileTabSelect: toggleToDocs,
     initialDocId,
     onActiveDocumentChange: setActiveDocId,
+    onGenerateTips: handleGenerateTips,
+    onGenerateTopics: handleGenerateTopics,
+    onSearchTopic: handleSearchTopic,
   };
 
   return activeView === 'docs' ? (

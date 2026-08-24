@@ -102,6 +102,17 @@ describe('NovelEditor', () => {
     expect(scope!.querySelector('.surface .ProseMirror')).not.toBeNull();
   });
 
+  it('names Novel\'s own wrapper so the stylesheet can stretch it', () => {
+    mount();
+
+    // The host's classes land on the inner container, so the outer wrapper
+    // needs a hook of its own — without one it shrink-wraps its content and an
+    // empty document collapses the editable area (see styles/editor.scss).
+    const shell = container.querySelector('.reason-editor-shell');
+    expect(shell).not.toBeNull();
+    expect(shell!.querySelector('.reason-editor-surface .ProseMirror')).not.toBeNull();
+  });
+
   it('loads initialContent and round-trips it back as HTML', () => {
     const { editor } = mount({ initialContent: '<p>hello <strong>novel</strong></p>' });
 

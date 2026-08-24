@@ -1,6 +1,6 @@
 [data-type='mention'] {
-  color: hsl(var(--richtext-primary));
-  background: hsl(var(--richtext-muted));
+  color: var(--richtext-primary);
+  background: var(--richtext-muted);
   padding: 2px 4px;
   border-radius: 6px;
 }

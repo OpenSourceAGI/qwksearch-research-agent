@@ -29,6 +29,8 @@ const locale = {
   'editor.size.small.tooltip': 'Nhỏ',
   'editor.fontFamily.tooltip': 'Phông chữ',
   'editor.fontFamily.default.tooltip': 'Mặc định',
+  'editor.fontFamily.search': 'Tìm phông chữ...',
+  'editor.fontFamily.empty': 'Không có phông chữ phù hợp',
   'editor.size.medium.tooltip': 'Trung bình',
   'editor.size.large.tooltip': 'Lớn',
   'editor.bold.tooltip': 'Đậm',

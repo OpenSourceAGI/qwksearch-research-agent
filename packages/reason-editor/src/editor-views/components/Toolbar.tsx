@@ -59,6 +59,14 @@ import { RichTextPagination } from '@/extensions/Pagination/components/RichTextP
 import { RichTextTableOfContentsPanel } from '@/extensions/TableOfContents';
 import { RichTextHarper } from '@/extensions/Harper';
 import { RichTextDrawio } from '@/extensions/Drawio';
+import { getReadAloudText, useReadAloudState } from '@/extensions/ReadAloud';
+import {
+  TranscribeOverlay,
+  isTranscriptionSupported,
+  useTranscribeState,
+} from '@/extensions/Transcribe';
+import { selectSimilarPluginKey, type SelectSimilarMode } from '@/extensions/SelectSimilar';
+import { shouldDismissPanel, shouldKeepEditorFocus } from './toolbarOverlays';
 import {
   Check,
   SpellCheck,
@@ -83,9 +91,16 @@ import {
   Lock,
   Globe,
   Mail,
+  Palette,
+  TextCursorInput,
+  TextSelect,
+  Type,
   Users,
   MessageSquare,
   MessageSquarePlus,
+  Mic,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 interface ToolbarProps {
@@ -127,6 +142,33 @@ interface StylePreset {
 const STYLE_TAG_ID = 'rte-custom-styles';
 const STYLES_STORAGE_KEY = 'rte-custom-style-presets';
 const ACTIVE_STYLE_KEY = 'rte-active-style-preset';
+
+// ─── Keeping nested surfaces alive ────────────────────────────────────────────
+
+/** Suppresses the focus move a press on a toolbar control would otherwise make. */
+function keepEditorFocus(e: React.MouseEvent) {
+  if (shouldKeepEditorFocus(e.target)) e.preventDefault();
+}
+
+/**
+ * Backdrop dismissal that only fires when the press *started* on the backdrop.
+ * Without this, any drag begun inside the modal — selecting text, sweeping a
+ * colour slider — closes it as soon as the pointer is released past its edge.
+ */
+function useBackdropDismiss(onClose: () => void) {
+  const armed = useRef(false);
+
+  return {
+    onMouseDown: (e: React.MouseEvent) => {
+      armed.current = e.target === e.currentTarget;
+    },
+    onClick: (e: React.MouseEvent) => {
+      if (!armed.current || e.target !== e.currentTarget) return;
+      armed.current = false;
+      onClose();
+    },
+  };
+}
 
 // ─── CSS Editor Modal ─────────────────────────────────────────────────────────
 
@@ -254,9 +296,11 @@ function CssEditorModal({ onClose }: { onClose: () => void }) {
   const updateRule = (id: number, field: keyof Omit<CssRule, 'id'>, val: string) =>
     setRules(prev => prev.map(r => r.id === id ? { ...r, [field]: val } : r));
 
+  const backdrop = useBackdropDismiss(onClose);
+
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" {...backdrop} />
       <div className="relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl w-[640px] max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-700">
           <div className="flex items-center gap-2">
@@ -667,7 +711,7 @@ function MenuPanel({
   }, [top, left, right]);
 
   return (
-    <div className={`${panelCls} ${className}`} ref={ref} style={style}>
+    <div className={`${panelCls} ${className}`} onMouseDown={keepEditorFocus} ref={ref} style={style}>
       {children}
     </div>
   );
@@ -813,9 +857,11 @@ function DocumentDetailsModal({
         : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
     }`;
 
+  const backdrop = useBackdropDismiss(onClose);
+
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" {...backdrop} />
       <div className="relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl w-[600px] max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700">
           <div className="flex items-center gap-3 min-w-0">
@@ -1035,9 +1081,11 @@ function FileRenameModal({ onClose, currentName }: { onClose: () => void; curren
     onClose();
   };
 
+  const backdrop = useBackdropDismiss(onClose);
+
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" {...backdrop} />
       <div className="relative bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl w-[400px]" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-slate-700">
           <h2 className="font-semibold text-gray-900 dark:text-white">Rename document</h2>
@@ -1115,6 +1163,16 @@ export const RichTextToolbar = ({
     }
   }, [harperOn, editor, hasHarper]);
 
+  // Voice tools: both are optional extensions, so surface each entry only when
+  // its extension is registered. Their live state (speaking / listening) comes
+  // from the extension storage rather than the transaction stream, since neither
+  // changes the document while it runs.
+  const readAloud = useReadAloudState(editor ?? null);
+  const transcribe = useTranscribeState(editor ?? null);
+  // Recomputed per render so the label follows the selection as it changes.
+  const readAloudScope = editor && !editor.state.selection.empty ? 'selection' : 'document';
+  const canReadAloud = !!editor && getReadAloudText(editor).length > 0;
+
   // Page layout: only surface the Web ↔ A4 switch when the Pagination
   // extension is registered on the current editor.
   const hasPagination = !!editor?.extensionManager.extensions.some(
@@ -1180,6 +1238,46 @@ export const RichTextToolbar = ({
     editor?.commands.deleteSelection();
   }, [editor]);
 
+  // ─── Selection actions ──────────────────────────────────────────────────────
+
+  const handleSelectAll = useCallback(() => {
+    editor?.chain().focus().selectAll().run();
+  }, [editor]);
+
+  // Multi-selection: only offered when the extension is registered, since the
+  // plugin manager can switch it off.
+  const hasSelectSimilar = !!editor?.extensionManager.extensions.some(
+    (e) => e.name === 'selectSimilar',
+  );
+
+  // How many extra ranges the multi-selection currently holds, so the menu can
+  // report and clear them.
+  const [similarCount, setSimilarCount] = useState(0);
+  useEffect(() => {
+    if (!editor || !hasSelectSimilar) return;
+
+    const update = () =>
+      setSimilarCount(selectSimilarPluginKey.getState(editor.state)?.ranges.length ?? 0);
+
+    update();
+    editor.on('transaction', update);
+
+    return () => {
+      editor.off('transaction', update);
+    };
+  }, [editor, hasSelectSimilar]);
+
+  const handleSelectSimilar = useCallback(
+    (mode: SelectSimilarMode) => {
+      editor?.chain().focus().selectSimilar(mode).run();
+    },
+    [editor],
+  );
+
+  const handleClearSimilar = useCallback(() => {
+    editor?.chain().focus().clearSimilarSelection().run();
+  }, [editor]);
+
   // Re-apply saved CSS on mount
   useEffect(() => {
     try {
@@ -1221,23 +1319,22 @@ export const RichTextToolbar = ({
   const close = () => { setOpen(null); setPos(null); };
 
   useEffect(() => {
+    if (!open) return;
+
     const handler = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      if (
-        open &&
-        !t.closest('.dropdown-container') &&
-        !t.closest('.dropdown-portal') &&
-        !t.closest('[data-radix-popper-content-wrapper]') &&
-        !t.closest('[data-radix-portal]')
-      ) close();
+      if (shouldDismissPanel(e.target)) close();
     };
+
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
   return (
     <>
-      <div className="flex items-center gap-0.5 border-b border-gray-200 dark:border-slate-700 px-2 py-1 flex-wrap">
+      <div
+        className="flex items-center gap-0.5 border-b border-gray-200 dark:border-slate-700 px-2 py-1 flex-wrap"
+        onMouseDown={keepEditorFocus}
+      >
 
         {/* Undo / Redo — only rendered while the command is actually available */}
         <RichTextUndo hideWhenDisabled />
@@ -1248,11 +1345,12 @@ export const RichTextToolbar = ({
           <RichTextZoom />
         </div>
 
-        {/* Text styles — bold, italic, underline directly */}
+        {/* Font family and size, then bold / italic / underline directly */}
+        <RichTextFontFamily />
+        <RichTextFontSize />
         <RichTextBold />
         <RichTextItalic />
         <RichTextUnderline />
-        <RichTextFontSize />
         <RichTextHighlight />
 
         {/* ≡ — Block format */}
@@ -1310,7 +1408,6 @@ export const RichTextToolbar = ({
             <MenuPanel className="min-w-[400px]" left={pos.left} top={pos.top}>
               <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Text Styles</div>
               <div className="grid grid-cols-2 gap-0.5 px-1 py-1">
-                <div className="col-span-2"><ToolbarMenuItem><RichTextFontFamily /></ToolbarMenuItem></div>
                 <div><ToolbarMenuItem label="Strikethrough" shortcut="Ctrl+Shift+S"><RichTextStrike /></ToolbarMenuItem></div>
                 <div><ToolbarMenuItem label="Inline Code" shortcut="Ctrl+E"><RichTextCode /></ToolbarMenuItem></div>
                 <div><ToolbarMenuItem label="Text Color" shortcut="Alt+Shift+C"><RichTextColor /></ToolbarMenuItem></div>
@@ -1369,6 +1466,61 @@ export const RichTextToolbar = ({
           )}
         </div>
 
+        {/* Edit — clipboard and selection, split out of Tools so neither menu runs long */}
+        <div className="dropdown-container">
+          <ToolbarIconBtn name="edit" label="Edit" active={open === 'edit'} onClick={openMenu}>
+            <Clipboard size={16} />
+          </ToolbarIconBtn>
+          {open === 'edit' && pos && createPortal(
+            <MenuPanel left={pos.left} top={pos.top}>
+              <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Clipboard</div>
+              <MenuAction icon={<Scissors size={14} />} label="Cut" shortcut="Ctrl+X" onClick={() => { close(); handleCut(); }} />
+              <MenuAction icon={<Clipboard size={14} />} label="Copy" shortcut="Ctrl+C" onClick={() => { close(); handleCopy(); }} />
+              <MenuAction icon={<ClipboardPaste size={14} />} label="Paste" shortcut="Ctrl+V" onClick={() => { close(); handlePaste(); }} />
+              <MenuAction icon={<ClipboardType size={14} />} label="Paste Plain" shortcut="Ctrl+Shift+V" onClick={() => { close(); handlePastePlain(); }} />
+              <MenuAction icon={<Trash2 size={14} />} label="Delete" shortcut="Del" onClick={() => { close(); handleDelete(); }} />
+              <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
+              <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Selection</div>
+              <MenuAction
+                icon={<TextCursorInput size={14} />}
+                label="Select All"
+                shortcut="Ctrl+A"
+                onClick={() => { close(); handleSelectAll(); }}
+              />
+              {hasSelectSimilar && (
+                <>
+                  <MenuAction
+                    icon={<Type size={14} />}
+                    label="Select All Similar Fonts"
+                    onClick={() => { close(); handleSelectSimilar('font'); }}
+                  />
+                  <MenuAction
+                    icon={<Palette size={14} />}
+                    label="Select All Similar Styles"
+                    onClick={() => { close(); handleSelectSimilar('style'); }}
+                  />
+                  <MenuAction
+                    icon={<TextSelect size={14} />}
+                    label="Select All Similar Formatting"
+                    onClick={() => { close(); handleSelectSimilar('formatting'); }}
+                  />
+                  <MenuAction
+                    disabled={similarCount === 0}
+                    icon={<X size={14} />}
+                    label={similarCount ? `Clear Multi-Selection (${similarCount})` : 'Clear Multi-Selection'}
+                    shortcut="Esc"
+                    onClick={() => { close(); handleClearSimilar(); }}
+                  />
+                  <div className="px-3 pb-1.5 pt-0.5 text-[10px] leading-snug text-gray-400 dark:text-gray-500">
+                    Formatting applied afterwards lands on every highlighted run at once.
+                  </div>
+                </>
+              )}
+            </MenuPanel>,
+            document.body
+          )}
+        </div>
+
         {/* Tools */}
         <div className="dropdown-container">
           <ToolbarIconBtn name="tools" label="Tools" active={open === 'tools'} onClick={openMenu}>
@@ -1407,12 +1559,6 @@ export const RichTextToolbar = ({
               />
               <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
               <div className="px-2 py-1 text-[10px] font-semibold uppercase text-gray-400 tracking-wide">Tools</div>
-              <MenuAction icon={<Scissors size={14} />} label="Cut" shortcut="Ctrl+X" onClick={() => { close(); handleCut(); }} />
-              <MenuAction icon={<Clipboard size={14} />} label="Copy" shortcut="Ctrl+C" onClick={() => { close(); handleCopy(); }} />
-              <MenuAction icon={<ClipboardPaste size={14} />} label="Paste" shortcut="Ctrl+V" onClick={() => { close(); handlePaste(); }} />
-              <MenuAction icon={<ClipboardType size={14} />} label="Paste Plain" shortcut="Ctrl+Shift+V" onClick={() => { close(); handlePastePlain(); }} />
-              <MenuAction icon={<Trash2 size={14} />} label="Delete" shortcut="Del" onClick={() => { close(); handleDelete(); }} />
-              <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
               {onToggleComments && (
                 <MenuToggle
                   icon={<MessageSquare size={14} />}
@@ -1439,6 +1585,44 @@ export const RichTextToolbar = ({
                   label="Spelling & Grammar"
                   checked={harperOn}
                   onChange={setHarperOn}
+                />
+              )}
+              {(readAloud.available || transcribe.available) && (
+                <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
+              )}
+              {readAloud.available && (
+                <MenuAction
+                  disabled={!readAloud.isActive && !canReadAloud}
+                  icon={readAloud.isActive ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                  label={
+                    readAloud.isActive
+                      ? 'Stop reading'
+                      : readAloudScope === 'selection'
+                        ? 'Read selection aloud'
+                        : 'Read document aloud'
+                  }
+                  shortcut="Ctrl+Shift+S"
+                  onClick={() => {
+                    close();
+                    editor?.commands.toggleReadAloud();
+                  }}
+                />
+              )}
+              {transcribe.available && (
+                <MenuToggle
+                  icon={<Mic size={14} />}
+                  label={
+                    isTranscriptionSupported()
+                      ? transcribe.isListening
+                        ? 'Dictating — click to stop'
+                        : 'Dictate into the document'
+                      : 'Dictation unavailable in this browser'
+                  }
+                  checked={transcribe.isListening}
+                  onChange={() => {
+                    if (!isTranscriptionSupported()) return;
+                    editor?.commands.toggleTranscribe();
+                  }}
                 />
               )}
               <div className="my-1 border-t border-gray-100 dark:border-slate-700" />
@@ -1558,6 +1742,8 @@ export const RichTextToolbar = ({
         <RichTextTableOfContentsPanel editor={editor} onClose={() => setShowToc(false)} />
       )}
       {hasHarper && harperOn && editor && <RichTextHarper editor={editor} />}
+      {/* Echoes each dictated phrase in the middle of the screen while listening. */}
+      {transcribe.available && <TranscribeOverlay editor={editor ?? null} />}
       {showRename && <FileRenameModal onClose={() => setShowRename(false)} currentName={documentTitle} />}
       {detailsTab && (
         <DocumentDetailsModal

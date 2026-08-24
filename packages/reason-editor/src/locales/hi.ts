@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'कृपया सामग्री दर्ज करें',
   'editor.fontFamily.tooltip': 'फ़ॉन्ट परिवार',
   'editor.fontFamily.default.tooltip': 'डिफ़ॉल्ट',
+  'editor.fontFamily.search': 'फ़ॉन्ट खोजें...',
+  'editor.fontFamily.empty': 'कोई मेल खाता फ़ॉन्ट नहीं',
   'editor.moremark': 'और टेक्स्ट स्टाइल',
   'editor.size.small.tooltip': 'छोटा',
   'editor.size.medium.tooltip': 'मध्यम',

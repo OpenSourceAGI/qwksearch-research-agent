@@ -497,3 +497,160 @@ pre[class*="language-"] {
     background-color: transparent;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Marketing page effects (/features)
+   Keyframes used by components/features/effects.tsx. Kept here rather than in
+   the component so Tailwind v4 arbitrary `animation-*` utilities can reference
+   them by name from anywhere in the app.
+--------------------------------------------------------------------------- */
+
+.qs-features {
+  --qs-accent: oklch(0.6 0.19 255);
+  --qs-accent-2: oklch(0.61 0.21 300);
+}
+
+.dark .qs-features {
+  --qs-accent: oklch(0.72 0.16 255);
+  --qs-accent-2: oklch(0.73 0.18 300);
+}
+
+.qs-accent-text {
+  color: var(--qs-accent);
+}
+
+.qs-accent-soft {
+  background: color-mix(in oklab, var(--qs-accent) 12%, transparent);
+  color: var(--qs-accent);
+  border-color: color-mix(in oklab, var(--qs-accent) 28%, transparent);
+}
+
+.qs-chip:hover {
+  color: var(--qs-accent);
+  border-color: color-mix(in oklab, var(--qs-accent) 40%, transparent);
+  background: color-mix(in oklab, var(--qs-accent) 8%, transparent);
+}
+
+.qs-accent-fill {
+  background: linear-gradient(135deg, var(--qs-accent), var(--qs-accent-2));
+  color: white;
+}
+
+@keyframes qs-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - var(--qs-marquee-gap, 1rem) / 2));
+  }
+}
+
+@keyframes qs-aurora {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.55;
+  }
+  33% {
+    transform: translate3d(6%, -4%, 0) scale(1.15);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translate3d(-5%, 5%, 0) scale(0.95);
+    opacity: 0.45;
+  }
+}
+
+@keyframes qs-border-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@keyframes qs-shimmer {
+  0% {
+    background-position: -180% 0;
+  }
+  100% {
+    background-position: 180% 0;
+  }
+}
+
+@keyframes qs-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.qs-marquee-track {
+  animation: qs-marquee var(--qs-marquee-duration, 40s) linear infinite;
+}
+
+.qs-marquee:hover .qs-marquee-track {
+  animation-play-state: paused;
+}
+
+.qs-aurora-blob {
+  animation: qs-aurora 18s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.qs-border-beam::before {
+  content: "";
+  position: absolute;
+  inset: -120%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    var(--qs-accent, var(--primary)) 55deg,
+    var(--qs-accent-2, var(--primary)) 100deg,
+    transparent 175deg
+  );
+  animation: qs-border-spin 5s linear infinite;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.qs-border-beam:hover::before,
+.qs-border-beam:focus-within::before {
+  opacity: 1;
+}
+
+.qs-shimmer-text {
+  background-size: 200% auto;
+  animation: qs-shimmer 6s linear infinite;
+}
+
+/* Scroll reveal — the base state is only applied once JS has marked the
+   element, so no-JS/reduced-motion users still see fully rendered content. */
+[data-qs-reveal="hidden"] {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+[data-qs-reveal="shown"] {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--qs-reveal-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qs-marquee-track,
+  .qs-aurora-blob,
+  .qs-border-beam::before,
+  .qs-shimmer-text {
+    animation: none !important;
+  }
+
+  [data-qs-reveal="hidden"] {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -27,6 +27,8 @@ const locale = {
   'editor.content': '内容を入力してください',
   'editor.fontFamily.tooltip': 'フォント',
   'editor.fontFamily.default.tooltip': 'デフォルト',
+  'editor.fontFamily.search': 'フォントを検索...',
+  'editor.fontFamily.empty': '一致するフォントがありません',
   'editor.moremark': 'その他のテキストスタイル',
   'editor.size.small.tooltip': '小',
   'editor.size.medium.tooltip': '中',

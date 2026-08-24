@@ -27,6 +27,8 @@ const locale = {
   'editor.content': '내용을 입력하세요',
   'editor.fontFamily.tooltip': '글꼴',
   'editor.fontFamily.default.tooltip': '기본값',
+  'editor.fontFamily.search': '글꼴 검색...',
+  'editor.fontFamily.empty': '일치하는 글꼴 없음',
   'editor.moremark': '더 많은 텍스트 스타일',
   'editor.size.small.tooltip': '작게',
   'editor.size.medium.tooltip': '보통',

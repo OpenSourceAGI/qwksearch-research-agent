@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'لطفاً محتوا وارد کنید',
   'editor.fontFamily.tooltip': 'فونت',
   'editor.fontFamily.default.tooltip': 'پیش‌فرض',
+  'editor.fontFamily.search': 'جستجوی فونت...',
+  'editor.fontFamily.empty': 'فونتی یافت نشد',
   'editor.moremark': 'بیشتر',
   'editor.size.small.tooltip': 'کوچک',
   'editor.size.medium.tooltip': 'متوسط',

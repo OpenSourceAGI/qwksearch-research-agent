@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'Bitte Inhalt eingeben',
   'editor.fontFamily.tooltip': 'Schriftart',
   'editor.fontFamily.default.tooltip': 'Standard',
+  'editor.fontFamily.search': 'Schriftarten suchen...',
+  'editor.fontFamily.empty': 'Keine passenden Schriftarten',
   'editor.moremark': 'Weitere Textstile',
   'editor.size.small.tooltip': 'Klein',
   'editor.size.medium.tooltip': 'Mittel',

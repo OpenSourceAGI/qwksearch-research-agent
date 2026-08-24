@@ -11,8 +11,9 @@ import { RefObject, useState } from 'react';
 import { Resizable } from 're-resizable';
 import { SidebarContent } from '../layout/sidebar/SidebarContent';
 import { PANEL_OPTIONS } from '../layout/sidebar/panelOptions';
-import type { SidebarPanelType, SidebarAiProps, OpenTabItem } from '../layout/sidebar/types';
+import type { SidebarPanelType, SidebarAiProps, SidebarTipsProps, SidebarTopicsProps, OpenTabItem } from '../layout/sidebar/types';
 import type { OutlineViewHandle } from '../search/OutlineView';
+import type { ActiveHeadingEditorHandle } from '../search/useActiveHeading';
 import type { TocEntry } from '../app-types/toc';
 import type { Document } from '../documents/DocumentTree';
 import { Button } from '../app-ui/button';
@@ -51,9 +52,14 @@ interface RightPanelProps {
   onReopenLastClosed?: () => void;
   canReopenLastClosed?: boolean;
   outlineRef?: RefObject<OutlineViewHandle | null>;
+  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
   tabItems?: OpenTabItem[];
   onNewChat?: () => void;
   aiProps: SidebarAiProps;
+  /** AI-generated page tips state/handlers (used by the "ai" panel). */
+  tipsProps?: SidebarTipsProps;
+  /** AI-generated search topics state/handlers (used by the "related" panel). */
+  topicsProps?: SidebarTopicsProps;
   /** Closes the panel by clearing the right sidebar's panel list. */
   onClose: () => void;
   /** Renders as a slide-in drawer instead of an inset resizable panel. */
@@ -108,9 +114,12 @@ export function RightPanel({
   onReopenLastClosed,
   canReopenLastClosed,
   outlineRef,
+  editorRef,
   tabItems,
   onNewChat,
   aiProps,
+  tipsProps,
+  topicsProps,
   onClose,
   isMobile,
   isOpen,
@@ -150,6 +159,7 @@ export function RightPanel({
           onManageTags={onManageTags}
           onRename={onRename}
           outlineRef={outlineRef}
+          editorRef={editorRef}
           openTabs={openTabs}
           activeTab={activeTab}
           onTabChange={onTabChange}
@@ -162,6 +172,8 @@ export function RightPanel({
           tabItems={tabItems}
           onNewChat={onNewChat}
           aiProps={aiProps}
+          tipsProps={tipsProps}
+          topicsProps={topicsProps}
         />
       </div>
     </div>

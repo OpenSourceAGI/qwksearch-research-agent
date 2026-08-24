@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'Inserisci il contenuto',
   'editor.fontFamily.tooltip': 'Famiglia di caratteri',
   'editor.fontFamily.default.tooltip': 'Predefinito',
+  'editor.fontFamily.search': 'Cerca caratteri...',
+  'editor.fontFamily.empty': 'Nessun carattere corrispondente',
   'editor.moremark': 'Altri stili di testo',
   'editor.size.small.tooltip': 'Piccolo',
   'editor.size.medium.tooltip': 'Medio',

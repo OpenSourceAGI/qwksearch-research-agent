@@ -27,6 +27,8 @@ const locale = {
   'editor.content': 'Veuillez saisir du contenu',
   'editor.fontFamily.tooltip': 'Police de caractères',
   'editor.fontFamily.default.tooltip': 'Par défaut',
+  'editor.fontFamily.search': 'Rechercher des polices...',
+  'editor.fontFamily.empty': 'Aucune police correspondante',
   'editor.moremark': 'Plus de styles de texte',
   'editor.size.small.tooltip': 'Petit',
   'editor.size.medium.tooltip': 'Moyen',

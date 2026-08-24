@@ -50,6 +50,7 @@ export const listFooterLinks: FooterLink[] = [
     text: "Support",
     icon: "MessageCircle",
   },
+  { url: "/features", text: "Features", icon: "Sparkles" },
   { url: "/#downloads", text: "Downloads", icon: "Download" },
   { url: "/legal/privacy", text: "Privacy", icon: "Lock" },
   { url: "https://rights.institute/ethics", text: "Ethics", icon: "Bot" },

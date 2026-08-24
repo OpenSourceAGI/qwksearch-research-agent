@@ -16,6 +16,7 @@ import { Input } from '../app-ui/input';
 import { ScrollArea } from '../app-ui/scroll-area';
 import { Document } from '../documents/DocumentTree';
 import { VisuallyHidden } from '../app-ui/visually-hidden';
+import { searchDocuments } from './searchDocuments';
 
 /** Props for the {@link SearchModal} component. */
 interface SearchModalProps {
@@ -35,16 +36,6 @@ interface SearchModalProps {
   onToggleTheme?: () => void;
   /** Currently active theme name; used to label the toggle action. */
   currentTheme?: string;
-}
-
-/** A document match returned by the full-text search. */
-interface SearchResult {
-  /** The matched document. */
-  document: Document;
-  /** Whether the match was found in the title or in the body content. */
-  matchType: 'title' | 'content';
-  /** Snippet of surrounding content shown below the title for content matches. */
-  preview?: string;
 }
 
 /** A keyboard-accessible quick action shown in the command palette. */
@@ -123,39 +114,7 @@ export const SearchModal = ({
     return actions;
   }, [onOpenSettings, onOpenTeams, onToggleTheme, currentTheme, onOpenChange]);
 
-  const searchResults = useMemo(() => {
-    if (!query.trim()) return [];
-
-    const results: SearchResult[] = [];
-    const lowerQuery = query.toLowerCase();
-
-    documents.forEach((doc) => {
-      const titleMatch = doc.title.toLowerCase().includes(lowerQuery);
-      const contentMatch = doc.content.toLowerCase().includes(lowerQuery);
-
-      if (titleMatch) {
-        results.push({
-          document: doc,
-          matchType: 'title',
-        });
-      } else if (contentMatch) {
-        // Find the context around the match
-        const contentLower = doc.content.toLowerCase();
-        const matchIndex = contentLower.indexOf(lowerQuery);
-        const start = Math.max(0, matchIndex - 40);
-        const end = Math.min(doc.content.length, matchIndex + query.length + 40);
-        const preview = doc.content.substring(start, end);
-
-        results.push({
-          document: doc,
-          matchType: 'content',
-          preview: (start > 0 ? '...' : '') + preview + (end < doc.content.length ? '...' : ''),
-        });
-      }
-    });
-
-    return results;
-  }, [query, documents]);
+  const searchResults = useMemo(() => searchDocuments(documents, query), [query, documents]);
 
   // Filter command actions based on query
   const filteredCommands = useMemo(() => {
@@ -320,18 +279,19 @@ export const SearchModal = ({
                       <div className="flex items-start gap-3">
                         <FileText className="h-4 w-4 mt-1 flex-shrink-0 text-muted-foreground" />
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-sm mb-1 truncate">
-                            {result.document.title || 'Untitled'}
-                          </h3>
-                          {result.matchType === 'content' && result.preview && (
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-medium text-sm truncate">
+                              {result.document.title || 'Untitled'}
+                            </h3>
+                            {result.matchType === 'content' && result.matchCount > 1 && (
+                              <span className="flex-shrink-0 text-xs text-muted-foreground tabular-nums">
+                                {result.matchCount} matches
+                              </span>
+                            )}
+                          </div>
+                          {result.preview && (
                             <p className="text-xs text-muted-foreground line-clamp-2">
                               {result.preview}
-                            </p>
-                          )}
-                          {result.matchType === 'title' && result.document.content && (
-                            <p className="text-xs text-muted-foreground line-clamp-2">
-                              {result.document.content.substring(0, 120)}
-                              {result.document.content.length > 120 ? '...' : ''}
                             </p>
                           )}
                         </div>

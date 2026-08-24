@@ -6,8 +6,9 @@
  */
 import { HashIcon, ChevronRightIcon } from 'lucide-react';
 import { cn } from '../app-utils/utils';
-import { useMemo, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
+import { useMemo, useState, useEffect, useRef, useImperativeHandle, forwardRef, type RefObject } from 'react';
 import type { TocEntry } from '../app-types/toc';
+import { useActiveHeading, type ActiveHeadingEditorHandle } from './useActiveHeading';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -53,19 +54,65 @@ interface OutlineViewProps {
   onReorder?: (fromIndex: number, toIndex: number) => void;
   /** Filters the heading list to items whose text contains this query. */
   searchQuery?: string;
+  /**
+   * Ref to the editor's imperative handle, used to resolve heading DOM
+   * elements for scroll-spy active-heading highlighting. When omitted, no
+   * heading is ever highlighted as active.
+   */
+  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
 }
 
 /** `localStorage` key for persisting default collapse-level preference. */
 const STORAGE_KEY = 'outline-collapse-preferences';
 
 /**
+ * Given the outline panel's own scroll container (`scrollTop`/`clientHeight`)
+ * and the active row's offset within it (`offsetTop`/`offsetHeight`), returns
+ * the `scrollTop` needed to bring the row fully into view — scrolling up if
+ * it's above the visible area, down if it's below — or `null` if the row is
+ * already fully visible and no scrolling is needed.
+ */
+export function computeScrollIntoViewOffset(
+  container: { scrollTop: number; clientHeight: number },
+  row: { offsetTop: number; offsetHeight: number },
+): number | null {
+  if (row.offsetTop < container.scrollTop) {
+    return row.offsetTop;
+  }
+  const rowBottom = row.offsetTop + row.offsetHeight;
+  const viewportBottom = container.scrollTop + container.clientHeight;
+  if (rowBottom > viewportBottom) {
+    return rowBottom - container.clientHeight;
+  }
+  return null;
+}
+
+/**
  * Collapsible document outline panel. Renders a heading tree built from
  * `headings` with click-to-navigate, expand/collapse, drag-to-reorder,
  * search filtering, and a context menu for bulk collapse-level controls.
  */
-export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ headings = [], onNavigate, onReorder: _onReorder, searchQuery = '' }, ref) => {
+export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ headings = [], onNavigate, onReorder: _onReorder, searchQuery = '', editorRef }, ref) => {
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(new Set());
   const [defaultCollapseLevel, setDefaultCollapseLevel] = useState<number | null>(null);
+  const activeHeadingId = useActiveHeading(headings, editorRef);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // Auto-scroll the outline panel itself so the active row stays visible as
+  // scroll-spy advances, mirroring Fumadocs' TOC sidebar behavior. No-ops
+  // when the active row isn't currently rendered (e.g. hidden by a
+  // collapsed ancestor) or already fully visible.
+  useEffect(() => {
+    if (!activeHeadingId) return;
+    const container = containerRef.current;
+    const row = rowRefs.current.get(activeHeadingId);
+    if (!container || !row) return;
+    const offset = computeScrollIntoViewOffset(container, row);
+    if (offset !== null) {
+      container.scrollTop = offset;
+    }
+  }, [activeHeadingId]);
 
   // Derive flat outline from TocEntry list: [key, text, tag]
   const outline = useMemo<OutlineItem[]>(() => {
@@ -76,6 +123,15 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
       line: index,
     }));
   }, [headings]);
+
+  // Maps a heading id back to its position in the unfiltered `outline`
+  // array, needed because `filteredOutline` (below) is a subset whose
+  // render-loop positions no longer match `outline`'s document order.
+  const outlineIndexById = useMemo(() => {
+    const map = new Map<string, number>();
+    outline.forEach((item, index) => map.set(item.id, index));
+    return map;
+  }, [outline]);
 
   useImperativeHandle(ref, () => ({
     expandAll: () => {
@@ -175,8 +231,9 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
   };
 
   /**
-   * Returns whether the heading at `itemIndex` is hidden because one of its
-   * ancestors is currently collapsed.
+   * Returns whether the heading at `itemIndex` (an index into the unfiltered
+   * `outline` array) is hidden because one of its ancestors is currently
+   * collapsed.
    *
    * @param itemIndex - Zero-based index in the flat `outline` array.
    * @returns `true` if hidden, `false` if visible.
@@ -229,13 +286,20 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
   }
 
   return (
-    <div className="flex h-full flex-col overflow-auto">
-      {filteredOutline.map((item, index) => {
-        const nextItem = outline[index + 1];
+    <div ref={containerRef} className="flex h-full flex-col overflow-auto">
+      {filteredOutline.map((item) => {
+        // `filteredOutline` is a subset of `outline`, so its position in the
+        // rendered list does not match `item`'s position in the unfiltered
+        // outline. Look up the real index for the sibling/ancestor checks
+        // below, which rely on `outline`'s original document order. `item`
+        // always originates from `outline`, so the lookup always succeeds.
+        const realIndex = outlineIndexById.get(item.id) as number;
+        const nextItem = outline[realIndex + 1];
         const hasChildren = nextItem && nextItem.level > item.level;
         const isCollapsed = collapsedIds.has(item.id);
+        const isActive = item.id === activeHeadingId;
 
-        if (isHiddenByParent(index)) {
+        if (isHiddenByParent(realIndex)) {
           return null;
         }
 
@@ -243,11 +307,17 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
           <ContextMenu key={item.id}>
             <ContextMenuTrigger>
               <div
+                ref={(el) => {
+                  if (el) rowRefs.current.set(item.id, el);
+                  else rowRefs.current.delete(item.id);
+                }}
+                data-active={isActive || undefined}
                 className={cn(
                   'flex items-center gap-1 rounded-md cursor-pointer transition-colors hover:bg-sidebar-accent',
                   item.level === 1 && 'py-1.5 mt-0.5',
                   item.level === 2 && 'py-1',
-                  item.level >= 3 && 'py-0.5'
+                  item.level >= 3 && 'py-0.5',
+                  isActive && 'bg-sidebar-accent'
                 )}
                 style={{ paddingLeft: `${(item.level - 1) * 12 + 4}px`, paddingRight: '4px' }}
                 onClick={() => onNavigate?.(item.id)}
@@ -284,7 +354,8 @@ export const OutlineView = forwardRef<OutlineViewHandle, OutlineViewProps>(({ he
                     item.level === 1 && 'text-sm font-semibold text-foreground',
                     item.level === 2 && 'text-sm font-medium text-foreground/90',
                     item.level === 3 && 'text-xs text-foreground/80',
-                    item.level >= 4 && 'text-xs text-muted-foreground'
+                    item.level >= 4 && 'text-xs text-muted-foreground',
+                    isActive && 'font-medium text-foreground'
                   )}
                 >
                   {item.text}
