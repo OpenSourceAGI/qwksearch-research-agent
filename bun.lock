@@ -239,7 +239,7 @@
     },
     "packages/chat-agent-toolkit": {
       "name": "chat-agent-toolkit",
-      "version": "1.2.248",
+      "version": "1.2.273",
       "dependencies": {
         "@ai-sdk/anthropic": "^2.0.0",
         "@ai-sdk/google": "^2.0.0",
@@ -287,7 +287,7 @@
     },
     "packages/domain-rank": {
       "name": "domain-rank",
-      "version": "0.1.237",
+      "version": "0.1.262",
       "dependencies": {
         "fuse.js": "^7.1.0",
         "grab-url": "^1.6.19",
@@ -306,7 +306,7 @@
     },
     "packages/extract-pdf": {
       "name": "extract-pdf",
-      "version": "0.1.235",
+      "version": "0.1.260",
       "devDependencies": {
         "terser": "^5.46.0",
         "typescript": "^5.9.3",
@@ -320,7 +320,7 @@
     },
     "packages/extract-pdf-docling": {
       "name": "pdf-to-html-docling",
-      "version": "1.0.235",
+      "version": "1.0.260",
       "dependencies": {
         "@hono/node-server": "^1.8.2",
         "@hono/swagger-ui": "^0.2.1",
@@ -336,7 +336,7 @@
     },
     "packages/extract-webpage": {
       "name": "extract-webpage",
-      "version": "1.2.248",
+      "version": "1.2.270",
       "dependencies": {
         "@huggingface/transformers": "^3.8.1",
         "ai": "^5.0.0",
@@ -385,7 +385,7 @@
     },
     "packages/extract-youtube": {
       "name": "extract-youtube",
-      "version": "1.0.234",
+      "version": "1.0.256",
       "bin": "dist/cli.js",
       "dependencies": {
         "fast-xml-parser": "^4.2.5",
@@ -406,7 +406,7 @@
     },
     "packages/html-renderer-api": {
       "name": "html-renderer-api",
-      "version": "1.0.118",
+      "version": "1.0.140",
       "dependencies": {
         "@cloudflare/puppeteer": "*",
       },
@@ -417,7 +417,7 @@
     },
     "packages/notebooklm-api-client": {
       "name": "notebooklm-api-client",
-      "version": "0.1.190",
+      "version": "0.1.212",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.0.0",
       },
@@ -431,7 +431,7 @@
     },
     "packages/qwksearch-api-client": {
       "name": "qwksearch-api-client",
-      "version": "0.9.195",
+      "version": "0.9.217",
       "devDependencies": {
         "@hey-api/client-fetch": "^0.13.1",
         "@hey-api/openapi-ts": "^0.88.0",
@@ -445,7 +445,7 @@
     },
     "packages/qwksearch-mcp-server": {
       "name": "qwksearch-mcp-server",
-      "version": "1.0.82",
+      "version": "1.0.104",
       "bin": {
         "qwksearch-mcp": "./bin/qwksearch-mcp.ts",
       },
@@ -462,7 +462,7 @@
     },
     "packages/react-weather-forecast": {
       "name": "use-weather-forecast",
-      "version": "0.1.65",
+      "version": "0.1.87",
       "devDependencies": {
         "@cloudflare/workers-types": "^4.20250115.0",
         "@testing-library/react": "^16.1.0",
@@ -485,7 +485,7 @@
     },
     "packages/reason-editor": {
       "name": "react-reason-editor",
-      "version": "1.0.53",
+      "version": "1.0.75",
       "dependencies": {
         "@ariakit/react": "^0.4.37",
         "@emoji-mart/data": "1.2.1",
@@ -782,7 +782,7 @@
     },
     "packages/research-agent-ui": {
       "name": "research-agent-ui",
-      "version": "0.1.120",
+      "version": "0.1.142",
       "dependencies": {
         "@huggingface/transformers": "^3.8.1",
         "@radix-ui/react-dialog": "^1.1.16",
@@ -852,7 +852,7 @@
     },
     "packages/search-web-api": {
       "name": "search-web-api",
-      "version": "1.0.103",
+      "version": "1.0.125",
       "dependencies": {
         "@huggingface/transformers": "^3.8.1",
         "@scalar/hono-api-reference": "^0.9.26",
@@ -872,7 +872,7 @@
     },
     "packages/shadcn-app-dock": {
       "name": "shadcn-app-dock",
-      "version": "0.1.105",
+      "version": "0.1.127",
       "dependencies": {
         "@radix-ui/react-dropdown-menu": "^2.1.17",
         "@radix-ui/react-slot": "^1.2.5",
@@ -957,7 +957,7 @@
     },
     "packages/use-voice-control": {
       "name": "use-voice-control",
-      "version": "0.1.64",
+      "version": "0.1.86",
       "dependencies": {
         "@huggingface/transformers": "^3.8.1",
         "@moonshine-ai/moonshine-js": "^0.1.29",
@@ -985,7 +985,7 @@
     },
     "packages/write-language": {
       "name": "write-language",
-      "version": "0.1.122",
+      "version": "0.1.144",
       "dependencies": {
         "@ai-sdk/amazon-bedrock": "^3.0.0",
         "@ai-sdk/anthropic": "^2.0.0",
