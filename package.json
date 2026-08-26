@@ -2,7 +2,7 @@
   "name": "qwksearch",
   "private": true,
   "version": "2.2.0",
-  "packageManager": "bun@1.3.11",
+  "packageManager": "bun@1.4.0",
   "workspaces": [
     "packages/*",
     "packages/render-url-to-html/*",
