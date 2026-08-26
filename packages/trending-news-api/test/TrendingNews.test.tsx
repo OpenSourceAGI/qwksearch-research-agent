@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TrendingNews } from '../src/components/TrendingNews';
 import * as trendingApi from '../src/api/trending';
@@ -117,6 +117,36 @@ describe('<TrendingNews />', () => {
     const card = (await screen.findByText('Elections')).closest('a');
     expect(card).not.toBeNull();
     expect(card?.getAttribute('href')).toBeNull();
+  });
+
+  it('does not show an expand toggle in compact mode unless expandable is set', async () => {
+    vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue(data());
+
+    render(<TrendingNews apiEndpoint={ENDPOINT} compact />);
+
+    await screen.findByText('Trending');
+    expect(screen.queryByRole('button')).toBeNull();
+  });
+
+  it('expands a compact card into the full article list on toggle', async () => {
+    vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue(data());
+
+    render(<TrendingNews apiEndpoint={ENDPOINT} compact expandable />);
+
+    await screen.findByText('Trending');
+    const toggle = screen.getByRole('button', { name: 'Expand trending news' });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+
+    fireEvent.click(toggle);
+
+    expect(screen.getByRole('button', { name: 'Collapse trending news' }).getAttribute('aria-expanded')).toBe('true');
+    const link = screen.getByText('Total eclipse crosses North America');
+    expect(link.getAttribute('href')).toBe('https://example.com/a');
+    expect(screen.getByText('2 articles')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse trending news' }));
+
+    expect(screen.getByRole('button', { name: 'Expand trending news' }).getAttribute('aria-expanded')).toBe('false');
   });
 
   it('applies the className and style props', async () => {

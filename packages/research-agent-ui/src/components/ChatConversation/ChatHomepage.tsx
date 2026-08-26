@@ -170,6 +170,7 @@ export default function ChatHomepage() {
               />
               <TrendingNews
                 compact
+                expandable
                 maxTopics={6}
                 apiEndpoint={trendingNewsApiUrl || undefined}
                 className="rounded-2xl md:flex-1"

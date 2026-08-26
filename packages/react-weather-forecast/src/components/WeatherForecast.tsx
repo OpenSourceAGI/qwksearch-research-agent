@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useWeatherForecast } from '../hooks/useWeatherForecast';
-import type { DailyWeather, HourlyWeather, TemperatureUnit, WeatherForecastOptions, WindSpeedUnit } from '../types';
+import type { DailyWeather, TemperatureUnit, WeatherForecastOptions, WindSpeedUnit } from '../types';
 import { WeatherIcon } from '../icons/WeatherIcon';
 import { WindIcon } from '../icons/weather-icons';
 
@@ -16,14 +16,6 @@ const WIND_SPEED_UNIT_LABELS: Record<WindSpeedUnit, string> = {
   ms: 'm/s',
   kn: 'kn',
 };
-
-function closestHour(hourly: HourlyWeather[], targetTime: Date): HourlyWeather | undefined {
-  return hourly.reduce<HourlyWeather | undefined>((closest, hour) => {
-    const diff = Math.abs(new Date(hour.time).getTime() - targetTime.getTime());
-    const closestDiff = closest ? Math.abs(new Date(closest.time).getTime() - targetTime.getTime()) : Infinity;
-    return diff < closestDiff ? hour : closest;
-  }, undefined);
-}
 
 // Format a real instant in a specific IANA timezone, falling back to the
 // browser's local zone if the timezone string is missing or invalid.
@@ -134,8 +126,6 @@ const styles = {
   compactCity: { fontSize: 15, fontWeight: 700, lineHeight: 1.2 } as React.CSSProperties,
   compactHeader: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 } as React.CSSProperties,
   compactTemp: { fontSize: 32, fontWeight: 600, lineHeight: 1 } as React.CSSProperties,
-  // The short-term outlook ("59 deg in 6h") trails the current temperature.
-  compactOutlook: { display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, opacity: 0.75, whiteSpace: 'nowrap' } as React.CSSProperties,
   compactTime: { fontSize: 26, fontWeight: 600, lineHeight: 1.1 } as React.CSSProperties,
   compactSeconds: { fontSize: 13, fontWeight: 500, opacity: 0.6 } as React.CSSProperties,
   compactDate: { fontSize: 11, opacity: 0.7, marginTop: 2 } as React.CSSProperties,
@@ -145,13 +135,13 @@ const styles = {
   upcoming: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: 8,
-    paddingTop: 12,
+    gap: 4,
+    paddingTop: 8,
     borderTop: '1px solid currentColor',
     borderTopColor: 'rgba(128,128,128,0.25)',
-    fontSize: 12,
+    fontSize: 11,
   } as React.CSSProperties,
-  upcomingDay: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, textAlign: 'center' } as React.CSSProperties,
+  upcomingDay: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textAlign: 'center' } as React.CSSProperties,
   upcomingDayName: { opacity: 0.7, whiteSpace: 'nowrap' } as React.CSSProperties,
   upcomingTemps: { whiteSpace: 'nowrap' } as React.CSSProperties,
   compactStat: { display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' } as React.CSSProperties,
@@ -161,9 +151,11 @@ const styles = {
   list: { display: 'flex', flexDirection: 'column' } as React.CSSProperties,
 };
 
-// Precipitation chance is only surfaced when there is a non-zero chance of it.
+// Precipitation chance is only surfaced once it represents a meaningful risk.
+const RAIN_RISK_THRESHOLD = 2;
+
 function RainBadge({ probability, compact }: { probability?: number; compact?: boolean }) {
-  if (probability === undefined || probability === null || probability <= 0) return null;
+  if (probability === undefined || probability === null || probability <= RAIN_RISK_THRESHOLD) return null;
   return <span style={styles.rain}>{compact ? ` · ${probability}%` : ` · ${probability}% rain`}</span>;
 }
 
@@ -230,9 +222,7 @@ function SingleWeatherForecast(props: Props) {
   const currentZone = zoneLabel(now, timezone);
 
   if (props.compact) {
-    const forecastBase = new Date(data.current.time);
     const today = data.daily[0];
-    const in6Hours = closestHour(data.hourly, new Date(forecastBase.getTime() + 6 * 60 * 60 * 1000));
     const windSpeedUnitLabel = WIND_SPEED_UNIT_LABELS[props.windSpeedUnit ?? 'mph'];
     // Today is already summarised in the card's own stats line, so the bottom
     // row starts at tomorrow and shows the next three days.
@@ -250,13 +240,6 @@ function SingleWeatherForecast(props: Props) {
             <WeatherIcon condition={data.current.icon} width={30} height={30} title="Current weather" />
             <strong style={styles.compactTemp}>{data.current.temperature}</strong>
             {renderUnitSwitch(13)}
-            {in6Hours && (
-              <span style={styles.compactOutlook}>
-                <WeatherIcon condition={in6Hours.icon} width={14} height={14} title="In 6 hours" />
-                {in6Hours.temperature}&deg; 6h
-                <RainBadge probability={in6Hours.precipitationProbability} compact />
-              </span>
-            )}
           </div>
 
           <div>
@@ -290,13 +273,13 @@ function SingleWeatherForecast(props: Props) {
             {upcomingDays.map((day) => (
               <div key={day.date} style={styles.upcomingDay} title={upcomingDayDetail(day, windSpeedUnitLabel)}>
                 <span style={styles.upcomingDayName}>{upcomingDayLabel(day.date)}</span>
-                <WeatherIcon condition={day.icon} width={18} height={18} />
+                <WeatherIcon condition={day.icon} width={14} height={14} />
                 <span style={styles.upcomingTemps}>
                   <strong>{day.max}&deg;</strong>
                   <span style={{ opacity: 0.6 }}> / {day.min}&deg;</span>
                 </span>
-                {day.precipitationProbabilityMax !== undefined && day.precipitationProbabilityMax > 0 && (
-                  <span style={{ ...styles.rain, fontSize: 11 }}>{day.precipitationProbabilityMax}%</span>
+                {day.precipitationProbabilityMax !== undefined && day.precipitationProbabilityMax > RAIN_RISK_THRESHOLD && (
+                  <span style={{ ...styles.rain, fontSize: 10 }}>{day.precipitationProbabilityMax}%</span>
                 )}
               </div>
             ))}
@@ -349,7 +332,7 @@ function SingleWeatherForecast(props: Props) {
               <WeatherIcon condition={day.icon} width={20} height={20} />
               <div>
                 {day.min}&deg; / {day.max}&deg;
-                {day.precipitationProbabilityMax !== undefined && day.precipitationProbabilityMax > 0 && (
+                {day.precipitationProbabilityMax !== undefined && day.precipitationProbabilityMax > RAIN_RISK_THRESHOLD && (
                   <span style={styles.rain}> &middot; {day.precipitationProbabilityMax}%</span>
                 )}
               </div>
