@@ -4,8 +4,10 @@
  *
  * The arrangement mirrors `editor-views/components/Toolbar.tsx`: history, the
  * direct inline marks, the Block Format menu, the Text Styles overflow menu, the
- * Insert menu, and the contextual Table menu. Changing the product's toolbar
- * means editing this file — not the Tiptap or Plate components.
+ * Insert menu, the Dictate toggle (the voice-commands plugin, ported from
+ * `src/extensions/Transcribe`), and the contextual Table menu. Changing the
+ * product's toolbar means editing this file — not the Tiptap or Plate
+ * components.
  */
 
 import {
@@ -36,6 +38,7 @@ import {
   List,
   ListChecks,
   ListOrdered,
+  Mic,
   Minus,
   Pilcrow,
   Plus,
@@ -304,6 +307,15 @@ export const REASON_TOOLBAR: ToolbarItem[] = [
       { kind: 'button', id: 'video', label: 'Video', icon: Video },
       { kind: 'button', id: 'math', label: 'Math', icon: Sigma },
     ],
+  },
+
+  { kind: 'separator', id: 'voice-divider' },
+  {
+    kind: 'button',
+    id: 'transcribe',
+    label: 'Dictate',
+    icon: Mic,
+    shortcut: 'Ctrl+Shift+D',
   },
 
   {

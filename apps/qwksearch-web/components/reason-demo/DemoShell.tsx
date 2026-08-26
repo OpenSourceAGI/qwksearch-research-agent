@@ -1,16 +1,21 @@
 /**
- * Chrome shared by both demo routes: the document title, the engine switcher,
- * and the collaboration status line. Deliberately thin — everything that is
- * part of the *editor* (toolbar included) comes from
+ * Chrome shared by both demo routes: the document sidebar, the title, the
+ * engine switcher, and the collaboration status line. Deliberately thin —
+ * everything that is part of the *editor* (toolbar included) comes from
  * `react-reason-editor/docs-agent`, so the only visible difference between the
- * two routes is the editor itself.
+ * two routes is the editor itself. The sidebar is the same
+ * `react-reason-editor/docs-agent` `ReasonSidebar` mounted here rather than
+ * inside either editor, so switching engines never remounts it.
  */
 
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import type { ReactNode } from 'react';
+
+import { ReasonSidebar } from 'react-reason-editor/docs-agent';
 
 export function DemoShell({
   children,
@@ -25,6 +30,7 @@ export function DemoShell({
   title: string;
   collaborative: boolean;
 }) {
+  const router = useRouter();
   const other = engine === 'tiptap' ? 'plate' : 'tiptap';
 
   return (
@@ -46,7 +52,14 @@ export function DemoShell({
           Open {other} version
         </Link>
       </header>
-      <main className="min-h-0 flex-1">{children}</main>
+      <div className="flex min-h-0 flex-1">
+        <ReasonSidebar
+          activeDocumentId={documentId}
+          linkForDocument={(id) => `/docs/demo/${engine}/${id}`}
+          onNavigate={(id) => router.push(`/docs/demo/${engine}/${id}`)}
+        />
+        <main className="min-h-0 flex-1">{children}</main>
+      </div>
     </div>
   );
 }

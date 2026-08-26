@@ -8,6 +8,8 @@
 
 import type { Editor } from '@tiptap/core';
 
+import { getTranscribeStorage, isTranscriptionSupported } from '@/extensions/Transcribe';
+
 import type { ToolbarCommand, ToolbarCommandPayload } from '../shared/editor-types';
 
 /** Commands that map straight onto a Tiptap mark of the same-ish name. */
@@ -104,6 +106,8 @@ function requiredExtension(command: ToolbarCommand): string | undefined {
       return 'callout';
     case 'columns':
       return 'columns';
+    case 'transcribe':
+      return 'transcribe';
     case 'indent':
     case 'outdent':
       return 'indent';
@@ -283,6 +287,10 @@ export function executeTiptapCommand(
       (chain() as any).insertColumns?.({ cols: 2 }).run();
       return;
 
+    case 'transcribe':
+      (commands as any).toggleTranscribe?.();
+      return;
+
     default:
       return;
   }
@@ -303,6 +311,7 @@ export function isTiptapCommandActive(editor: Editor, command: ToolbarCommand): 
   }
 
   if (command === 'link') return editor.isActive('link');
+  if (command === 'transcribe') return !!getTranscribeStorage(editor)?.listening;
 
   return false;
 }
@@ -313,6 +322,7 @@ export function isTiptapCommandEnabled(editor: Editor, command: ToolbarCommand):
 
   if (command === 'undo') return editor.can().undo();
   if (command === 'redo') return editor.can().redo();
+  if (command === 'transcribe') return isTranscriptionSupported();
 
   const tableCommand = TABLE_COMMANDS[command];
   if (tableCommand) {
