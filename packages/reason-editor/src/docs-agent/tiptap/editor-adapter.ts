@@ -7,6 +7,8 @@
 
 import type { Editor } from '@tiptap/core';
 
+import { subscribeTranscribe } from '@/extensions/Transcribe';
+
 import type {
   EditorToolbarAdapter,
   ToolbarCommand,
@@ -42,10 +44,15 @@ export function createTiptapAdapter(editor: Editor): EditorToolbarAdapter {
     subscribe(listener: () => void) {
       editor.on('transaction', listener);
       editor.on('selectionUpdate', listener);
+      // Starting/stopping dictation doesn't always land inside a transaction
+      // (the listening flag flips from the recognizer's own async callback),
+      // so the toolbar needs its own feed to reflect the mic state promptly.
+      const unsubscribeTranscribe = subscribeTranscribe(editor, listener);
 
       return () => {
         editor.off('transaction', listener);
         editor.off('selectionUpdate', listener);
+        unsubscribeTranscribe();
       };
     },
   };

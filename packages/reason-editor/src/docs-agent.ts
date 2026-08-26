@@ -9,10 +9,16 @@
  *
  * Both render the same `REASON_TOOLBAR` schema through the same
  * `ReasonToolbar` renderer, and differ only in which `EditorToolbarAdapter`
- * they hand it. Their Yjs rooms are namespaced per engine
- * (`reason-editor:<engine>:<documentId>`) because a ProseMirror document and a
- * Slate document are not interchangeable; they stay separate until there is an
- * explicit conversion/export pipeline.
+ * they hand it — including the dictation button (`transcribe`), the
+ * voice-commands plugin ported from the Tiptap side's `Transcribe` extension to
+ * a new Plate plugin in `./docs-agent/plate/transcribe-controller.ts`. Their
+ * Yjs rooms are namespaced per engine (`reason-editor:<engine>:<documentId>`)
+ * because a ProseMirror document and a Slate document are not interchangeable;
+ * they stay separate until there is an explicit conversion/export pipeline.
+ *
+ * `ReasonSidebar` (from `./docs-agent/shared`) is the third shared plugin: the
+ * document navigation list both routes mount around their editor, backed by
+ * the same document store the production file-tree uses.
  */
 
 export {
@@ -32,6 +38,16 @@ export {
   ReasonToolbar,
   type ReasonToolbarProps,
 } from './docs-agent/shared/toolbar-renderer';
+export { ReasonSidebar, type ReasonSidebarProps } from './docs-agent/shared/Sidebar';
+export {
+  createSidebarDocument,
+  deleteSidebarDocument,
+  listSidebarDocuments,
+  renameSidebarDocument,
+  subscribeSidebarDocuments,
+  SIDEBAR_DOCUMENTS_STORAGE_KEY,
+  type SidebarDocument,
+} from './docs-agent/shared/sidebar-store';
 
 export {
   collaborationRoom,

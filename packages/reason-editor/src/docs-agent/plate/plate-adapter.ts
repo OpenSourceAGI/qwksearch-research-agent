@@ -19,6 +19,7 @@ import {
   isPlateCommandActive,
   isPlateCommandEnabled,
 } from './toolbar-actions';
+import { getTranscribeController } from './transcribe-controller';
 
 export function createPlateAdapter(editor: PlateEditor): EditorToolbarAdapter {
   return {
@@ -29,6 +30,12 @@ export function createPlateAdapter(editor: PlateEditor): EditorToolbarAdapter {
     },
 
     isActive(command: ToolbarCommand) {
+      // Dictation is a mic state, not a selection-dependent mark/block — it can
+      // be toggled (and stay on) before the editor ever has a selection.
+      if (command === 'transcribe') {
+        return getTranscribeController(editor).getState().listening;
+      }
+
       // A Plate editor with no selection cannot report block/mark state; the
       // toolbar treats that as "nothing active", matching Tiptap's behaviour.
       if (!editor.selection) return false;
@@ -78,8 +85,15 @@ export function createPlateAdapter(editor: PlateEditor): EditorToolbarAdapter {
         });
       }) as typeof editor.apply;
 
+      // The mic starting/stopping doesn't always go through `apply` (the
+      // listening flag flips from the recognizer's own async callback), so the
+      // toolbar needs a second feed to reflect it promptly — same reasoning as
+      // the Tiptap adapter's `subscribeTranscribe` hookup.
+      const unsubscribeTranscribe = getTranscribeController(editor).subscribe(listener);
+
       return () => {
         editor.apply = previousApply;
+        unsubscribeTranscribe();
       };
     },
   };

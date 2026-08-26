@@ -76,7 +76,9 @@ export type ToolbarCommand =
   | 'align-justify'
   | 'indent'
   | 'outdent'
-  | TableCommand;
+  | TableCommand
+  // Voice
+  | 'transcribe';
 
 /**
  * Optional data for commands that need a value (a link URL, an image source, a
