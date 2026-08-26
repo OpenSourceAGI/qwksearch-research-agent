@@ -48,6 +48,7 @@ import { SlashKit } from './kits/slash-kit';
 import { TableKit } from './kits/table-kit';
 import { TocKit } from './kits/toc-kit';
 import { ToggleKit } from './kits/toggle-kit';
+import { TranscribeKit } from './kits/transcribe-kit';
 import { AudioElement } from './ui/media-audio-node';
 import { MediaEmbedElement } from './ui/media-embed-node';
 import { FileElement } from './ui/media-file-node';
@@ -113,6 +114,9 @@ export const platePlugins = [
   ...ExitBreakKit,
   ...BlockPlaceholderKit,
   ...MarkdownKit,
+
+  // 8. Voice commands — the Dictate toggle at the end of the toolbar.
+  ...TranscribeKit,
 ];
 
 /** A single empty paragraph — what a brand-new document starts from. */

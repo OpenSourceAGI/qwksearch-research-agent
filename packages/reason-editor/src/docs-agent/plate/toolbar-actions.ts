@@ -35,6 +35,8 @@ import {
 import { KEYS } from 'platejs';
 import type { PlateEditor } from 'platejs/react';
 
+import { getTranscribeController, isTranscriptionSupported } from './transcribe-controller';
+
 import type { ToolbarCommand, ToolbarCommandPayload } from '../shared/editor-types';
 
 /** Shared toolbar command → Plate mark key. */
@@ -136,6 +138,8 @@ function requiredPlugin(command: ToolbarCommand): string | undefined {
       return KEYS.callout;
     case 'columns':
       return KEYS.columnGroup;
+    case 'transcribe':
+      return 'transcribe';
     case 'emoji':
       return KEYS.emoji;
     case 'code-block':
@@ -314,6 +318,10 @@ export function executePlateCommand(
       insertColumnGroup(editor, { columns: 2, select: true });
       return;
 
+    case 'transcribe':
+      getTranscribeController(editor).toggle();
+      return;
+
     case 'indent':
       indent(editor);
       return;
@@ -380,6 +388,7 @@ export function isPlateCommandActive(editor: PlateEditor, command: ToolbarComman
   if (command === 'callout') return editor.api.some({ match: { type: KEYS.callout } });
   if (command === 'columns') return editor.api.some({ match: { type: KEYS.column } });
   if (command === 'link') return editor.api.some({ match: { type: KEYS.link } });
+  if (command === 'transcribe') return getTranscribeController(editor).getState().listening;
 
   const alignment = ALIGNMENT_BY_COMMAND[command];
   if (alignment) {
@@ -395,6 +404,9 @@ export function isPlateCommandEnabled(editor: PlateEditor, command: ToolbarComma
 
   if (command === 'undo') return editor.history.undos.length > 0;
   if (command === 'redo') return editor.history.redos.length > 0;
+  if (command === 'transcribe') {
+    return isTranscriptionSupported() && !editor.api.isReadOnly?.();
+  }
 
   // Table operations only apply inside a table — the same rule the Tiptap
   // adapter enforces via `editor.isActive('table')`.
