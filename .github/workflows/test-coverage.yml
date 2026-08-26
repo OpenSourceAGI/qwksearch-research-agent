@@ -45,10 +45,18 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
-      # A full install (not --ignore-scripts) so workspace packages that are
-      # consumed through their `dist` are built by their `prepare` scripts.
       - name: Install dependencies
         run: bun install
+
+      # extract-pdf, extract-youtube, react-reason-editor and
+      # use-voice-control are consumed by other workspace packages through
+      # their built `dist` output. They used to get built implicitly by a
+      # `prepare` script that ran on every `bun install`, but that script
+      # name made `bun install --frozen-lockfile` unreliable in unrelated
+      # environments (see https://github.com/oven-sh/bun/issues/19088), so
+      # the build is now explicit here instead.
+      - name: Build workspace libraries consumed via dist
+        run: bunx turbo build --filter=extract-pdf --filter=extract-youtube --filter=react-reason-editor --filter=use-voice-control
 
       - name: Run tests with coverage
         working-directory: ${{ matrix.dir }}

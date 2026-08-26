@@ -15,7 +15,7 @@
     "zip": "bun x wxt zip",
     "zip:firefox": "bun x wxt zip -b firefox",
     "compile": "tsc --noEmit",
-    "postinstall": "bun x wxt prepare",
+    "precompile": "bun x wxt prepare",
     "test": "vitest run",
     "test:coverage": "bun x wxt prepare && vitest run --coverage",
     "pretest": "bun x wxt prepare"

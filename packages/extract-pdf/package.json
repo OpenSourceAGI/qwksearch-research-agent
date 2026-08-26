@@ -21,7 +21,6 @@
   ],
   "scripts": {
     "build": "vite build",
-    "prepare": "vite build",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=lcov --coverage-reporter=text",
     "ship": "npm run build && npx standard-version --release-as patch; rm -f CHANGELOG.md; npm publish"
