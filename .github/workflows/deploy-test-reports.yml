@@ -17,6 +17,12 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      # These are consumed by other workspace packages through their built
+      # `dist` output; see the matching step in test-coverage.yml for why
+      # this is explicit rather than a `prepare` script.
+      - name: Build workspace libraries consumed via dist
+        run: bunx turbo build --filter=extract-pdf --filter=extract-youtube --filter=react-reason-editor --filter=use-voice-control
+
       - name: Run tests with HTML reporter
         run: bun run test:report
         continue-on-error: true

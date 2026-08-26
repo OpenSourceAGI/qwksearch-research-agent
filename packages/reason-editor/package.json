@@ -777,7 +777,6 @@
     "build": "vite build",
     "build:lib": "vite build",
     "build:demo": "vite build --config demo/vite.config.ts",
-    "prepare": "vite build",
     "preview": "wrangler dev",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
