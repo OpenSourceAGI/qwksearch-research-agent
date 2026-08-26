@@ -139,6 +139,15 @@
     "scope": "server"
   },
   {
+    "name": "Show Weather Widget",
+    "key": "showWeatherWidget",
+    "type": "switch",
+    "required": false,
+    "description": "Show the weather widget on the chat homepage.",
+    "default": true,
+    "scope": "client"
+  },
+  {
     "name": "Weather Locations",
     "key": "weatherLocations",
     "type": "textarea",
@@ -149,13 +158,88 @@
     "default": ""
   },
   {
+    "name": "Weather Forecast Days",
+    "key": "weatherForecastDays",
+    "type": "select",
+    "required": false,
+    "description": "Number of upcoming days to show in the weather widget.",
+    "default": "5",
+    "scope": "client",
+    "options": [
+      { "name": "3 days", "value": "3" },
+      { "name": "5 days (default)", "value": "5" },
+      { "name": "7 days", "value": "7" }
+    ]
+  },
+  {
+    "name": "Weather Forecast Hours",
+    "key": "weatherForecastHours",
+    "type": "select",
+    "required": false,
+    "description": "Number of upcoming hours to show in the weather widget.",
+    "default": "12",
+    "scope": "client",
+    "options": [
+      { "name": "6 hours", "value": "6" },
+      { "name": "12 hours (default)", "value": "12" },
+      { "name": "24 hours", "value": "24" }
+    ]
+  },
+  {
+    "name": "Weather Temperature Unit",
+    "key": "weatherTemperatureUnit",
+    "type": "select",
+    "required": false,
+    "description": "Default temperature unit for the weather widget. You can still toggle it directly on the widget.",
+    "default": "fahrenheit",
+    "scope": "client",
+    "options": [
+      { "name": "Fahrenheit (default)", "value": "fahrenheit" },
+      { "name": "Celsius", "value": "celsius" }
+    ]
+  },
+  {
+    "name": "Show Trending News Widget",
+    "key": "showTrendingNewsWidget",
+    "type": "switch",
+    "required": false,
+    "description": "Show the trending news widget on the chat homepage.",
+    "default": true,
+    "scope": "client"
+  },
+  {
     "name": "Trending News API URL",
     "key": "trendingNewsApiUrl",
     "type": "string",
     "required": false,
-    "description": "Show the homepage trending news widget. Enter the URL of your deployed trending-news-api Cloudflare Worker. Leave blank to hide the widget.",
+    "description": "Enter the URL of your deployed trending-news-api Cloudflare Worker. Leave blank to hide the widget.",
     "placeholder": "https://trending-news-api.your-subdomain.workers.dev",
     "scope": "client",
     "default": ""
+  },
+  {
+    "name": "Trending News Topics",
+    "key": "trendingNewsMaxTopics",
+    "type": "select",
+    "required": false,
+    "description": "Number of trending topics to show in the trending news widget.",
+    "default": "6",
+    "scope": "client",
+    "options": [
+      { "name": "4 topics", "value": "4" },
+      { "name": "6 topics (default)", "value": "6" },
+      { "name": "8 topics", "value": "8" },
+      { "name": "10 topics", "value": "10" },
+      { "name": "12 topics", "value": "12" }
+    ]
+  },
+  {
+    "name": "Trending News Images",
+    "key": "trendingNewsShowImages",
+    "type": "switch",
+    "required": false,
+    "description": "Show article thumbnail images in the trending news widget.",
+    "default": true,
+    "scope": "client"
   }
 ]
