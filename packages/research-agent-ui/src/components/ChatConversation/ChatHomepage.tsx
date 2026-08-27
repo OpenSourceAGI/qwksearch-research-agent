@@ -61,7 +61,14 @@ export default function ChatHomepage() {
   const [fading, setFading] = useState(false);
   const [downloadsOpen, setDownloadsOpen] = useState(false);
   const [weatherLocations, setWeatherLocations] = useState<WeatherLocationInput[]>([]);
+  const [showWeatherWidget, setShowWeatherWidget] = useState(true);
+  const [weatherForecastDays, setWeatherForecastDays] = useState(5);
+  const [weatherForecastHours, setWeatherForecastHours] = useState(12);
+  const [weatherTemperatureUnit, setWeatherTemperatureUnit] = useState<'celsius' | 'fahrenheit'>('fahrenheit');
   const [trendingNewsApiUrl, setTrendingNewsApiUrl] = useState<string | null>(null);
+  const [showTrendingNewsWidget, setShowTrendingNewsWidget] = useState(true);
+  const [trendingNewsMaxTopics, setTrendingNewsMaxTopics] = useState(6);
+  const [trendingNewsShowImages, setTrendingNewsShowImages] = useState(true);
   const [orbHoverGlow, setOrbHoverGlow] = useState(false);
   // Off by default; enabled via the "Cursor Glow Trail" setting.
   const [cursorGlowTrail, setCursorGlowTrail] = useState(false);
@@ -71,7 +78,14 @@ export default function ChatHomepage() {
   useEffect(() => {
     const readLocations = () => {
       setWeatherLocations(parseWeatherLocations(localStorage.getItem('weatherLocations')));
+      setShowWeatherWidget(localStorage.getItem('showWeatherWidget') !== 'false');
+      setWeatherForecastDays(Number(localStorage.getItem('weatherForecastDays')) || 5);
+      setWeatherForecastHours(Number(localStorage.getItem('weatherForecastHours')) || 12);
+      setWeatherTemperatureUnit(localStorage.getItem('weatherTemperatureUnit') === 'celsius' ? 'celsius' : 'fahrenheit');
       setTrendingNewsApiUrl(localStorage.getItem('trendingNewsApiUrl'));
+      setShowTrendingNewsWidget(localStorage.getItem('showTrendingNewsWidget') !== 'false');
+      setTrendingNewsMaxTopics(Number(localStorage.getItem('trendingNewsMaxTopics')) || 6);
+      setTrendingNewsShowImages(localStorage.getItem('trendingNewsShowImages') !== 'false');
       setOrbHoverGlow(localStorage.getItem('orbHoverGlow') === 'true');
       setCursorGlowTrail(localStorage.getItem('cursorGlowTrail') === 'true');
     };
@@ -151,38 +165,46 @@ export default function ChatHomepage() {
 
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
-            <div className="flex flex-col md:flex-row gap-2 w-full">
-              {/* The compact weather widget is a fixed-width card, so it sits
-                  beside the trending news column rather than taking its own row
-                  (and stretches to full width once they stack on mobile). */}
-              <WeatherForecast
-                compact
-                forecastDays={5}
-                forecastHours={12}
-                locations={weatherLocations.length > 0 ? weatherLocations : undefined}
-                className="rounded-2xl"
-                style={{
-                  background: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  color: 'inherit',
-                  backdropFilter: 'blur(8px)',
-                }}
-              />
-              <TrendingNews
-                compact
-                expandable
-                maxTopics={6}
-                apiEndpoint={trendingNewsApiUrl || undefined}
-                className="rounded-2xl md:flex-1"
-                style={{
-                  background: 'rgba(255,255,255,0.08)',
-                  border: '1px solid rgba(255,255,255,0.15)',
-                  color: 'inherit',
-                  backdropFilter: 'blur(8px)',
-                  maxWidth: '100%',
-                }}
-              />
-            </div>
+            {(showWeatherWidget || showTrendingNewsWidget) && (
+              <div className="flex flex-col md:flex-row gap-2 w-full">
+                {/* The compact weather widget is a fixed-width card, so it sits
+                    beside the trending news column rather than taking its own row
+                    (and stretches to full width once they stack on mobile). */}
+                {showWeatherWidget && (
+                  <WeatherForecast
+                    compact
+                    forecastDays={weatherForecastDays}
+                    forecastHours={weatherForecastHours}
+                    temperatureUnit={weatherTemperatureUnit}
+                    locations={weatherLocations.length > 0 ? weatherLocations : undefined}
+                    className="rounded-2xl"
+                    style={{
+                      background: 'rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      color: 'inherit',
+                      backdropFilter: 'blur(8px)',
+                    }}
+                  />
+                )}
+                {showTrendingNewsWidget && (
+                  <TrendingNews
+                    compact
+                    expandable
+                    maxTopics={trendingNewsMaxTopics}
+                    showImages={trendingNewsShowImages}
+                    apiEndpoint={trendingNewsApiUrl || undefined}
+                    className="rounded-2xl md:flex-1"
+                    style={{
+                      background: 'rgba(255,255,255,0.08)',
+                      border: '1px solid rgba(255,255,255,0.15)',
+                      color: 'inherit',
+                      backdropFilter: 'blur(8px)',
+                      maxWidth: '100%',
+                    }}
+                  />
+                )}
+              </div>
+            )}
             <ChatInputBox />
           </div>
         </div>

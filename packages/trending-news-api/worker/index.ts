@@ -8,6 +8,7 @@ type NewsApiArticle = {
   source?: string;
   url?: string;
   published_at?: string;
+  image_url?: string;
 };
 
 type WikiTopPage = {
@@ -26,6 +27,7 @@ type TopicPayload = {
     url?: string;
     source?: string;
     published_at?: string;
+    image_url?: string;
   }>;
 };
 
@@ -103,6 +105,7 @@ function toArticlePayload(articles: NewsApiArticle[]) {
     url: a.url,
     source: a.source,
     published_at: a.published_at,
+    image_url: a.image_url,
   }));
 }
 

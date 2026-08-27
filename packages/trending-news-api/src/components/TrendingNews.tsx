@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTrendingNews } from '../hooks/useTrendingNews';
-import type { TrendingNewsOptions } from '../types';
+import type { TrendingNewsOptions, TrendingTopic } from '../types';
 
 type Props = TrendingNewsOptions & {
   className?: string;
@@ -17,6 +17,8 @@ type Props = TrendingNewsOptions & {
   expandable?: boolean;
   /** Max topics to render once expanded (default 15). */
   expandedMaxTopics?: number;
+  /** Show each topic's lead article thumbnail image, when available (default true). */
+  showImages?: boolean;
 };
 
 function ChevronIcon({ up }: { up?: boolean }) {
@@ -80,7 +82,6 @@ const styles = {
   topicCard: {
     minWidth: 160,
     maxWidth: 200,
-    padding: '8px 10px',
     borderRadius: 8,
     background: 'rgba(255,255,255,0.06)',
     display: 'flex',
@@ -88,7 +89,23 @@ const styles = {
     gap: 4,
     textDecoration: 'none',
     color: 'inherit',
+    overflow: 'hidden',
   } as React.CSSProperties,
+  topicCardBody: { padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 4 } as React.CSSProperties,
+  topicThumb: {
+    width: '100%',
+    height: 84,
+    objectFit: 'cover',
+    display: 'block',
+  } as React.CSSProperties,
+  articleThumb: {
+    width: 48,
+    height: 48,
+    objectFit: 'cover',
+    borderRadius: 6,
+    flexShrink: 0,
+  } as React.CSSProperties,
+  fullTopicWithThumb: { display: 'flex', gap: 10, alignItems: 'flex-start' } as React.CSSProperties,
   topicName: {
     fontSize: 12,
     fontWeight: 600,
@@ -112,6 +129,40 @@ const styles = {
   articleLink: { color: 'inherit', textDecoration: 'none' } as React.CSSProperties,
 };
 
+function ArticleLine({ article, showImage }: { article: TrendingTopic['articles'][number]; showImage?: boolean }) {
+  return (
+    <div style={{ ...styles.article, ...(showImage && article.imageUrl ? styles.fullTopicWithThumb : {}) }}>
+      {showImage && article.imageUrl && <img src={article.imageUrl} alt="" style={styles.articleThumb} />}
+      <div>
+        {article.url ? (
+          <a href={article.url} target="_blank" rel="noreferrer" style={styles.articleLink}>
+            {article.title}
+          </a>
+        ) : (
+          article.title
+        )}
+        {article.source && <span style={{ opacity: 0.6 }}> &middot; {article.source}</span>}
+      </div>
+    </div>
+  );
+}
+
+function TopicArticleList({ topic, showImages }: { topic: TrendingTopic; showImages: boolean }) {
+  return (
+    <div style={styles.fullTopic}>
+      <div style={styles.fullTopicHeader}>
+        <strong>{topic.topic}</strong>
+        <span style={styles.count}>
+          {topic.newsCount} article{topic.newsCount === 1 ? '' : 's'}
+        </span>
+      </div>
+      {topic.articles.slice(0, 5).map((article, i) => (
+        <ArticleLine key={article.url ?? i} article={article} showImage={showImages} />
+      ))}
+    </div>
+  );
+}
+
 /**
  * Trending news widget. Requires `apiEndpoint` pointing at a deployed
  * instance of the bundled Cloudflare Worker (`worker/index.ts`) — renders
@@ -119,7 +170,16 @@ const styles = {
  * disrupts the layout it's dropped into.
  */
 export function TrendingNews(props: Props) {
-  const { className, style, compact, maxTopics = 8, expandable, expandedMaxTopics = 15, ...options } = props;
+  const {
+    className,
+    style,
+    compact,
+    maxTopics = 8,
+    expandable,
+    expandedMaxTopics = 15,
+    showImages = true,
+    ...options
+  } = props;
   const { data, loading, error } = useTrendingNews(options);
   const [expanded, setExpanded] = useState(false);
 
@@ -154,45 +214,32 @@ export function TrendingNews(props: Props) {
         {showExpanded ? (
           <div style={styles.expandedList}>
             {expandedTopics.map((topic) => (
-              <div key={topic.topic} style={styles.fullTopic}>
-                <div style={styles.fullTopicHeader}>
-                  <strong>{topic.topic}</strong>
-                  <span style={styles.count}>
-                    {topic.newsCount} article{topic.newsCount === 1 ? '' : 's'}
-                  </span>
-                </div>
-                {topic.articles.slice(0, 5).map((article, i) => (
-                  <div key={article.url ?? i} style={styles.article}>
-                    {article.url ? (
-                      <a href={article.url} target="_blank" rel="noreferrer" style={styles.articleLink}>
-                        {article.title}
-                      </a>
-                    ) : (
-                      article.title
-                    )}
-                    {article.source && <span style={{ opacity: 0.6 }}> &middot; {article.source}</span>}
-                  </div>
-                ))}
-              </div>
+              <TopicArticleList key={topic.topic} topic={topic} showImages={showImages} />
             ))}
           </div>
         ) : (
           <div style={styles.topicRow}>
-            {topics.map((topic) => (
-              <a
-                key={topic.topic}
-                href={topic.articles[0]?.url}
-                target="_blank"
-                rel="noreferrer"
-                style={styles.topicCard}
-              >
-                <div style={styles.topicName}>{topic.topic}</div>
-                {topic.articles[0] && <div style={styles.headline}>{topic.articles[0].title}</div>}
-                <div style={styles.count}>
-                  {topic.newsCount} article{topic.newsCount === 1 ? '' : 's'}
-                </div>
-              </a>
-            ))}
+            {topics.map((topic) => {
+              const thumb = showImages ? topic.articles[0]?.imageUrl : undefined;
+              return (
+                <a
+                  key={topic.topic}
+                  href={topic.articles[0]?.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={styles.topicCard}
+                >
+                  {thumb && <img src={thumb} alt="" style={styles.topicThumb} />}
+                  <div style={styles.topicCardBody}>
+                    <div style={styles.topicName}>{topic.topic}</div>
+                    {topic.articles[0] && <div style={styles.headline}>{topic.articles[0].title}</div>}
+                    <div style={styles.count}>
+                      {topic.newsCount} article{topic.newsCount === 1 ? '' : 's'}
+                    </div>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         )}
       </div>
@@ -202,26 +249,7 @@ export function TrendingNews(props: Props) {
   return (
     <div className={className} style={{ ...styles.root, ...styles.list, ...style }}>
       {topics.map((topic) => (
-        <div key={topic.topic} style={styles.fullTopic}>
-          <div style={styles.fullTopicHeader}>
-            <strong>{topic.topic}</strong>
-            <span style={styles.count}>
-              {topic.newsCount} article{topic.newsCount === 1 ? '' : 's'}
-            </span>
-          </div>
-          {topic.articles.slice(0, 5).map((article, i) => (
-            <div key={article.url ?? i} style={styles.article}>
-              {article.url ? (
-                <a href={article.url} target="_blank" rel="noreferrer" style={styles.articleLink}>
-                  {article.title}
-                </a>
-              ) : (
-                article.title
-              )}
-              {article.source && <span style={{ opacity: 0.6 }}> &middot; {article.source}</span>}
-            </div>
-          ))}
-        </div>
+        <TopicArticleList key={topic.topic} topic={topic} showImages={showImages} />
       ))}
     </div>
   );

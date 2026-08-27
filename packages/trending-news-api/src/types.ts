@@ -3,6 +3,7 @@ export type NewsArticle = {
   url?: string;
   source?: string;
   publishedAt?: string;
+  imageUrl?: string;
 };
 
 export type TrendingTopic = {

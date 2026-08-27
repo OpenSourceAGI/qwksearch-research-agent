@@ -19,6 +19,7 @@ function workerTopics(overrides: Record<string, unknown> = {}) {
             url: 'https://example.com/a',
             source: 'example.com',
             published_at: '2024-01-01T09:00:00Z',
+            image_url: 'https://example.com/a.jpg',
           },
           { title: 'Where to watch' },
         ],
@@ -77,8 +78,15 @@ describe('getTrendingNews', () => {
           url: 'https://example.com/a',
           source: 'example.com',
           publishedAt: '2024-01-01T09:00:00Z',
+          imageUrl: 'https://example.com/a.jpg',
         },
-        { title: 'Where to watch', url: undefined, source: undefined, publishedAt: undefined },
+        {
+          title: 'Where to watch',
+          url: undefined,
+          source: undefined,
+          publishedAt: undefined,
+          imageUrl: undefined,
+        },
       ],
     });
   });

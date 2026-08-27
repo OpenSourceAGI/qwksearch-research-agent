@@ -6,6 +6,7 @@ type WorkerArticle = {
   url?: string;
   source?: string;
   published_at?: string;
+  image_url?: string;
 };
 
 type WorkerTopic = {
@@ -35,6 +36,7 @@ function mapArticles(articles: WorkerArticle[] = []): NewsArticle[] {
     url: a.url,
     source: a.source,
     publishedAt: a.published_at,
+    imageUrl: a.image_url,
   }));
 }
 

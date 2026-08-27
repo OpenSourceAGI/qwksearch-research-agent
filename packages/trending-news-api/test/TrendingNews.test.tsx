@@ -14,7 +14,12 @@ function data(overrides: Partial<TrendingNewsData> = {}): TrendingNewsData {
         topic: 'Eclipse',
         newsCount: 2,
         articles: [
-          { title: 'Total eclipse crosses North America', url: 'https://example.com/a', source: 'example.com' },
+          {
+          title: 'Total eclipse crosses North America',
+          url: 'https://example.com/a',
+          source: 'example.com',
+          imageUrl: 'https://example.com/a.jpg',
+        },
           { title: 'Where to watch' },
         ],
       },
@@ -147,6 +152,24 @@ describe('<TrendingNews />', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Collapse trending news' }));
 
     expect(screen.getByRole('button', { name: 'Expand trending news' }).getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('renders the lead article thumbnail in a compact card by default', async () => {
+    vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue(data());
+
+    render(<TrendingNews apiEndpoint={ENDPOINT} compact />);
+
+    const img = (await screen.findByText('Eclipse')).closest('a')?.querySelector('img');
+    expect(img?.getAttribute('src')).toBe('https://example.com/a.jpg');
+  });
+
+  it('omits thumbnails when showImages is false', async () => {
+    vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue(data());
+
+    render(<TrendingNews apiEndpoint={ENDPOINT} compact showImages={false} />);
+
+    const card = (await screen.findByText('Eclipse')).closest('a');
+    expect(card?.querySelector('img')).toBeNull();
   });
 
   it('applies the className and style props', async () => {

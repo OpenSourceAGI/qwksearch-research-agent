@@ -8,6 +8,7 @@ Cloudflare Worker so the News API key never reaches the browser.
 
 - Daily trending topics, ranked by Wikipedia pageviews.
 - Matching headlines per topic from The News API.
+- Article thumbnail images, shown alongside headlines (toggle off with `showImages={false}`).
 - Single-topic headline lookup.
 - Compact card row or full article-list layouts.
 - `localStorage` response caching (10 minutes).
