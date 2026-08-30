@@ -1,4 +1,4 @@
-name: QwkSearch API
+name: API
 
 on:
   push:
