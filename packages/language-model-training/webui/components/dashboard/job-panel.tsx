@@ -106,6 +106,14 @@ export function JobPanel({ title, description, jobName, fetchStatus, start, stop
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {children}
+        {job?.instance_id && (
+          <p className="text-xs text-muted-foreground">
+            Vast.ai instance {job.instance_id}
+            {job.gpu_name ? ` · ${job.gpu_name}` : ""}
+            {job.cost_per_hour != null ? ` · $${job.cost_per_hour}/hr` : ""}
+            {job.ssh_host ? ` · ${job.ssh_host}:${job.ssh_port}` : ""}
+          </p>
+        )}
         <pre
           ref={logRef}
           className="h-48 overflow-y-auto rounded-md bg-muted p-3 text-xs leading-relaxed text-muted-foreground"

@@ -64,6 +64,26 @@ npm install
 npm run dev   # http://localhost:3000
 ```
 
+The dashboard's **Train transformer** button provisions a GPU on [Vast.ai](https://vast.ai) rather than training inside the control API's own container - see `src/services/vast_job.py`/`src/cloud/vast_utils.py` and **Vast.ai training backend** below before using it.
+
+### 5. Vast.ai training backend
+
+The "Train transformer" job in the web UI rents a GPU on Vast.ai's marketplace, uploads this package to it over SSH, runs the pipeline there, and destroys the instance when it finishes (so you're only billed for the run). Set on the `api` container/service:
+
+| Env var | Default | Meaning |
+|---|---|---|
+| `VAST_API_KEY` | *(required)* | From your [Vast.ai account](https://cloud.vast.ai/manage-keys/) |
+| `VAST_SSH_KEY_PATH` | `~/.ssh/id_rsa` | Private key whose **public** half is already added to your Vast.ai account under Settings -> SSH Keys (Vast has no API to push a one-off key at instance creation) |
+| `VAST_GPU_NAME` | `RTX_4090` | GPU model to search for |
+| `VAST_NUM_GPUS` | `1` | GPUs per instance |
+| `VAST_MAX_HOURLY` | `1.5` | Price cap in $/hr; the cheapest-performance-per-dollar offer under this cap is picked |
+| `VAST_IMAGE` | `pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime` | Docker image Vast boots on the instance |
+| `VAST_DISK_GB` | `64` | Instance disk size |
+| `VAST_TRAIN_CMD` | `pip install -r requirements.txt && python src/training/wikipedia_transformer.py` | Command run on the instance after upload |
+| `VAST_DESTROY_ON_FINISH` | `true` | Destroy (vs. just stop) the instance once the run ends |
+
+`gpu_name`/`num_gpus`/`max_hourly`/`image`/`disk_gb`/`train_cmd` can also be overridden per-run in the `POST /api/jobs/train/start` body (the web UI's GPU/price fields do this). Job status (`GET /api/jobs/train`) includes `instance_id`, `ssh_host`, `gpu_name`, and `cost_per_hour` while the instance is up, and the log stream tails the remote training log over SSH exactly like the local-subprocess jobs.
+
 ## What You'll Learn
 
 - **How language models work**: converting words into high-dimensional vectors and using transformer architecture to capture relationships like "king/queen" and "Paris/France ↔ Tokyo/Japan"

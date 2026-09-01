@@ -23,9 +23,18 @@ services:
     volumes:
       - ./output:/app/logs
       - ./data:/app/data
+      # Private half of an SSH keypair whose public half is already added to
+      # your Vast.ai account (Settings -> SSH Keys) - see src/services/vast_job.py.
+      - ${VAST_SSH_KEY_PATH:-~/.ssh/id_rsa}:/home/transformer/.ssh/id_rsa:ro
     environment:
       - PYTHONUNBUFFERED=1
       - CORS_ORIGINS=http://localhost:3000
+      # Vast.ai training backend - the "Train transformer" button in webui/
+      # provisions a GPU there instead of training in this container.
+      - VAST_API_KEY=${VAST_API_KEY}
+      - VAST_SSH_KEY_PATH=/home/transformer/.ssh/id_rsa
+      - VAST_GPU_NAME=${VAST_GPU_NAME:-RTX_4090}
+      - VAST_MAX_HOURLY=${VAST_MAX_HOURLY:-1.5}
 
   # 🖥️ Next.js control dashboard (webui/) - talks to the `api` service from
   # the browser at NEXT_PUBLIC_API_URL. Dev-mode only; for a production
