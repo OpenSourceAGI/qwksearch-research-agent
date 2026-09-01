@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx open-ready next dev",
-    "prebuild": "cd ../../packages/extract-pdf && bun run build && cd ../shadcn-app-dock && bun run build && cd ../shadcn-settings && bun run build && cd ../react-weather-forecast && bun run build && cd ../trending-news-api && bun run build && cd ../chat-agent-toolkit && bun run build && cd ../use-voice-control && bun run build && cd ../research-agent-ui && bun run build && cd ../reason-editor && bun run build:lib",
+    "prebuild": "cd ../../packages/extract-pdf && bun run build && cd ../shadcn-app-dock && bun run build && cd ../shadcn-settings && bun run build && cd ../react-weather-forecast && bun run build && cd ../trending-news-api && bun run build && cd ../chat-agent-toolkit && bun run build && cd ../use-voice-control && bun run build && cd ../research-agent-ui && bun run build && cd ../reason-editor-sidebar && bun run build && cd ../reason-editor && bun run build:lib",
     "build": "vinext build",
     "deploy": "vinext deploy",
     "start": "next start",
