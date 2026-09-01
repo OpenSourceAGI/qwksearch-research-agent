@@ -7,13 +7,12 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import type { TocEntry } from "../app-types/toc";
 import type { TiptapEditorHandle } from "./TiptapEditorWrapper";
-import type { Document } from "../documents/DocumentTree";
-import type { SidebarPanelType } from "../layout/sidebar/types";
+import type { Document, SidebarPanelType } from "reason-editor-sidebar";
 import {
   getActiveFileSourceId,
   setActiveFileSourceId,
   getActiveFileSource,
-} from "../app-utils/file-sources/sources";
+} from "reason-editor-sidebar";
 import { useLocalStorage } from "../app-hooks/useLocalStorage";
 import { useIsMobile } from "../app-hooks/use-mobile";
 import { useDocumentSync } from "../app-hooks/useDocumentSync";

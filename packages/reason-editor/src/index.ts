@@ -4,6 +4,11 @@
 
 export * from '@/components/RichTextProvider';
 
+// Pulls in the sidebar package's split-pane divider styles so `ReasonDocs`
+// (which renders the `reason-editor-sidebar` Sidebar) keeps its styling
+// without hosts having to import 'reason-editor-sidebar/style.css' themselves.
+import 'reason-editor-sidebar/style.css';
+
 /**
  * The Novel-based editor shell. This is the base mount for the editor: Novel's
  * `EditorRoot`/`EditorContent` create the Tiptap instance, while this package's

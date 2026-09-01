@@ -3,7 +3,7 @@
  * @description Provides the seed document list used to pre-populate the editor
  * in a fresh environment with example content, folders, and nested notes.
  */
-import type { Document } from "./DocumentTree";
+import type { Document } from "reason-editor-sidebar";
 
 /**
  * Initial set of example documents shown to first-time users.

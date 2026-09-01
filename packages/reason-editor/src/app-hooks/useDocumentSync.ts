@@ -12,7 +12,7 @@ import {
   Dispatch,
   SetStateAction,
 } from "react";
-import { Document } from "../documents/DocumentTree";
+import { Document } from "reason-editor-sidebar";
 import { toast } from "sonner";
 import grab from "grab-url";
 

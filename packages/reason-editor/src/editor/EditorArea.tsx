@@ -4,7 +4,7 @@
  * and split-view layouts with optional AI suggestion integration.
  */
 import type { TocEntry } from '../app-types/toc';
-import type { Document } from '../documents/DocumentTree';
+import type { Document } from 'reason-editor-sidebar';
 import { TiptapEditorWrapper, type TiptapEditorHandle } from './TiptapEditorWrapper';
 import { FileText, X } from 'lucide-react';
 import { Button } from '../app-ui/button';

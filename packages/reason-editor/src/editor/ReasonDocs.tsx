@@ -4,7 +4,7 @@
  * Assembles the resizable sidebar, document tabs, editor area, right-panel outline,
  * and all application-level dialogs into a single responsive shell.
  */
-import { Sidebar } from '../layout/Sidebar';
+import { Sidebar, type OpenTabItem } from 'reason-editor-sidebar';
 import { EditorArea } from './EditorArea';
 import { RightPanel } from './RightPanel';
 import { ReasonDocsDialogs } from './ReasonDocsDialogs';
@@ -17,7 +17,6 @@ import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../utils/storage';
 import { Menu, PanelRight } from 'lucide-react';
-import type { OpenTabItem } from '../layout/sidebar/types';
 import '../app-styles/split-pane.css';
 
 /** A non-document tab (e.g. a chat conversation) supplied by the host app. */
