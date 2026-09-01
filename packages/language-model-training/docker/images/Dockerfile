@@ -40,6 +40,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     htop \
     vim \
     ocl-icd-opencl-dev \
+    # ssh/scp: the training job runs on a rented Vast.ai GPU, not in this
+    # container - see src/services/vast_job.py
+    openssh-client \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

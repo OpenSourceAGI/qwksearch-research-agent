@@ -12,6 +12,7 @@ Run directly:
 """
 
 import asyncio
+import dataclasses
 import json
 import os
 import signal
@@ -27,8 +28,12 @@ from pydantic import BaseModel
 
 try:  # `uvicorn src.services.server:app` imports this as part of the `src` package
     from ..training.improve import PROVIDERS, SAMPLE_QA, ImproveError, call_professional_model
+    from ..cloud.vast_utils import VastAPIError
+    from .vast_job import VastJob, VastTrainConfig
 except ImportError:  # `python src/services/server.py` runs it as a standalone script
     from training.improve import PROVIDERS, SAMPLE_QA, ImproveError, call_professional_model
+    from cloud.vast_utils import VastAPIError
+    from services.vast_job import VastJob, VastTrainConfig
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 LOG_DIR = os.environ.get("LOG_DIR", os.path.join(ROOT_DIR, "logs"))
@@ -121,7 +126,7 @@ class Job:
         }
 
 
-_jobs: dict[str, Job] = {}
+_jobs: dict[str, "Job | VastJob"] = {}
 
 
 def _start_job(name: str, cmd: list, env: Optional[dict] = None) -> Job:
@@ -133,7 +138,7 @@ def _start_job(name: str, cmd: list, env: Optional[dict] = None) -> Job:
     return job
 
 
-def _get_job(name: str) -> Job:
+def _get_job(name: str) -> "Job | VastJob":
     job = _jobs.get(name)
     if not job:
         raise HTTPException(404, detail=f"no job named '{name}' has been started")
@@ -155,6 +160,7 @@ def status():
     return {
         "service": "train-next-word-prediction",
         "reference": "https://github.com/tinygrad/tinygrad",
+        "train_backend": "vast.ai",
         "docs": {"scalar": "/scalar", "openapi": "/openapi.json", "swagger": "/docs"},
         "jobs": {name: job.to_dict() for name, job in _jobs.items()},
     }
@@ -229,13 +235,41 @@ def download_status():
 
 
 # --------------------------------------------------------------------------
-# Training job (full pipeline: tokenizer -> dataset -> transformer -> generate)
+# Training job - provisions a GPU on Vast.ai, uploads this package to it, and
+# runs the full pipeline (tokenizer -> dataset -> transformer -> generate)
+# there. See src/services/vast_job.py for the provisioning/upload/log-tail
+# lifecycle and src/cloud/vast_utils.py for the raw Vast.ai REST client.
+# Requires VAST_API_KEY; VAST_GPU_NAME/VAST_MAX_HOURLY/etc set the defaults
+# below and can be overridden per-request.
 # --------------------------------------------------------------------------
 
+class TrainRequest(BaseModel):
+    gpu_name: Optional[str] = None
+    num_gpus: Optional[int] = None
+    max_hourly: Optional[float] = None
+    image: Optional[str] = None
+    disk_gb: Optional[float] = None
+    train_cmd: Optional[str] = None
+
+
 @app.post("/api/jobs/train/start")
-def start_train():
-    script = os.path.join(ROOT_DIR, "src", "training", "wikipedia_transformer.py")
-    job = _start_job("train", [sys.executable, script])
+def start_train(req: TrainRequest = TrainRequest()):
+    if not os.environ.get("VAST_API_KEY"):
+        raise HTTPException(500, detail="VAST_API_KEY is not configured on the control API container")
+
+    existing = _jobs.get("train")
+    if existing and existing.running:
+        raise HTTPException(409, detail="job 'train' is already running")
+
+    config = VastTrainConfig.from_env()
+    overrides = req.model_dump(exclude_none=True)
+    config = dataclasses.replace(config, **overrides)
+
+    try:
+        job = VastJob("train", LOG_DIR, ROOT_DIR, config)
+    except VastAPIError as exc:
+        raise HTTPException(502, detail=str(exc))
+    _jobs["train"] = job
     return job.to_dict()
 
 

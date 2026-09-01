@@ -5,6 +5,10 @@
  * Dockerfile/wrangler.jsonc container exposes). Every job (download,
  * train) follows the same shape: POST .../start, POST .../stop,
  * GET ... for status, GET .../stream for an SSE log tail.
+ *
+ * The train job runs on a rented Vast.ai GPU rather than in-container - see
+ * src/services/vast_job.py. Its JobInfo carries extra instance fields
+ * (instance_id, ssh_host, gpu_name, cost_per_hour) alongside the normal ones.
  */
 
 export const API_URL =
@@ -18,6 +22,22 @@ export interface JobInfo {
   started_at: number;
   finished_at: number | null;
   log_tail: string;
+  /** Present on jobs provisioned on Vast.ai (currently just "train"). */
+  backend?: "vast.ai";
+  instance_id?: number | null;
+  ssh_host?: string | null;
+  ssh_port?: number | null;
+  gpu_name?: string | null;
+  cost_per_hour?: number | null;
+}
+
+export interface StartTrainRequest {
+  gpu_name?: string;
+  num_gpus?: number;
+  max_hourly?: number;
+  image?: string;
+  disk_gb?: number;
+  train_cmd?: string;
 }
 
 export interface StatusResponse {
@@ -80,7 +100,11 @@ export const api = {
     request<{ stopped: boolean }>("/api/jobs/download-wikipedia/stop", { method: "POST" }),
   downloadStatus: () => request<JobInfo>("/api/jobs/download-wikipedia"),
 
-  startTrain: () => request<JobInfo>("/api/jobs/train/start", { method: "POST" }),
+  startTrain: (body?: StartTrainRequest) =>
+    request<JobInfo>("/api/jobs/train/start", {
+      method: "POST",
+      body: JSON.stringify(body ?? {}),
+    }),
   stopTrain: () => request<{ stopped: boolean }>("/api/jobs/train/stop", { method: "POST" }),
   trainStatus: () => request<JobInfo>("/api/jobs/train"),
 };
