@@ -1,13 +1,19 @@
 /**
  * @module sidebar/types
- * @description Shared TypeScript types for the sidebar: SidebarProps and
- * the panel-based view configuration used across SidebarContent,
- * SidebarToolbar, SidebarFooter, SidebarViewMenu, and Sidebar.
+ * @description The sidebar "contract" owned by reason-editor: SidebarProps,
+ * SidebarContentProps, and the panel-based view configuration types. The
+ * actual sidebar UI (Sidebar, SidebarContent, SidebarToolbar, SidebarFooter,
+ * SidebarViewMenu) lives in the separate `react-reason-editor-sidebar`
+ * package and is injected into ReasonDocs/RightPanel via props typed
+ * against these interfaces, so reason-editor never imports that package
+ * directly (avoiding a circular workspace dependency).
  */
 import type { RefObject } from "react";
 import { Document } from "../../documents/DocumentTree";
 import type { TocEntry } from "../../app-types/toc";
 import type { ActiveHeadingEditorHandle } from "../../search/useActiveHeading";
+import type { DocumentTreeHandle } from "../../file-tree/filetree";
+import type { OutlineViewHandle } from "../../search/OutlineView";
 
 /** A single togglable panel kind that can appear in the left or right sidebar. */
 export type SidebarPanelType = "ai" | "files" | "outline" | "openTabs" | "related";
@@ -149,4 +155,74 @@ export interface SidebarProps {
   tipsProps?: SidebarTipsProps;
   // AI-generated search topics (used by the "related" panel)
   topicsProps?: SidebarTopicsProps;
+}
+
+/** Props for the `SidebarContent` component (the shared panel-body renderer used by both the left sidebar and `RightPanel`). */
+export interface SidebarContentProps {
+  /** Which panels are active on this side, in stacking order. */
+  panels: SidebarPanelType[];
+  /** Whether multiple panels may be shown stacked at once. */
+  split: boolean;
+  /** Storage key suffix so left/right panel sizes persist independently. */
+  persistenceKey: string;
+  /** Filtered/flat document list to pass down to the file tree. */
+  activeDocuments: Document[];
+  /** Heading entries from the Tiptap table of contents. */
+  headings?: TocEntry[];
+  /** ID of the currently active/selected document. */
+  activeId: string | null;
+  /** The full `Document` object for `activeId` (used for outline section search). */
+  activeDocument?: Document;
+  /** Whether the sidebar is being displayed in a mobile sheet. */
+  isMobile?: boolean;
+  /** Selects a document by ID; closes the mobile sheet when on mobile. */
+  onSelect: (id: string) => void;
+  /** Creates a new note or folder under `parentId`. */
+  onAdd: (parentId: string | null, isFolder?: boolean) => void;
+  /** Soft-deletes a document by ID. */
+  onDelete: (id: string) => void;
+  /** Duplicates a document by ID. */
+  onDuplicate: (id: string) => void;
+  /** Moves a document in the tree via drag-and-drop. */
+  onMove: (draggedId: string, targetId: string | null, position: 'before' | 'after' | 'child') => void;
+  /** Opens the tag management UI for a document. */
+  onManageTags?: (id: string) => void;
+  /** Renames a document. */
+  onRename?: (id: string, newTitle: string) => void;
+  /** Callback to control the mobile sidebar sheet open state. */
+  onOpenChange?: (open: boolean) => void;
+  /** Ref forwarded to the `FileTree` component for imperative control. */
+  treeRef?: RefObject<DocumentTreeHandle | null>;
+  /** Ref forwarded to the `OutlineView` component for imperative control. */
+  outlineRef?: RefObject<OutlineViewHandle | null>;
+  /** Editor handle passed to `OutlineView` to scroll-spy the active heading. */
+  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
+  /** Currently open tab IDs shown in the top pane. */
+  openTabs?: string[];
+  /** ID of the currently active tab. */
+  activeTab?: string | null;
+  /** Switches to a tab. */
+  onTabChange?: (id: string) => void;
+  /** Closes a tab. */
+  onTabClose?: (id: string) => void;
+  /** Renames a tab's document. */
+  onTabRename?: (id: string, newTitle: string) => void;
+  /** Opens a tab in a split view to the right. */
+  onSplitRight?: (id: string) => void;
+  /** Reopens the last closed tab. */
+  onReopenLastClosed?: () => void;
+  /** Whether there is a closed tab that can be reopened. */
+  canReopenLastClosed?: boolean;
+  /** Navigates the editor to a heading (used by the "outline" panel). */
+  onNavigate?: (key: string) => void;
+  /** AI suggestion state/handlers (used by the "ai" panel). */
+  aiProps?: SidebarAiProps;
+  /** AI-generated page tips state/handlers (used by the "ai" panel). */
+  tipsProps?: SidebarTipsProps;
+  /** AI-generated search topics state/handlers (used by the "related" panel). */
+  topicsProps?: SidebarTopicsProps;
+  /** Unified tab list (files + chats). Overrides file-only tab derivation when set. */
+  tabItems?: OpenTabItem[];
+  /** Opens a new chat tab from the "Open Tabs" panel header. */
+  onNewChat?: () => void;
 }

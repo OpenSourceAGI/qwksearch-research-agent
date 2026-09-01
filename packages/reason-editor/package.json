@@ -267,6 +267,16 @@
         "default": "./dist/editor-kit.js"
       }
     },
+    "./sidebar-kit": {
+      "require": {
+        "types": "./dist/sidebar-kit.d.cts",
+        "default": "./dist/sidebar-kit.cjs"
+      },
+      "import": {
+        "types": "./dist/sidebar-kit.d.ts",
+        "default": "./dist/sidebar-kit.js"
+      }
+    },
     "./dist/*": "./dist/*",
     "./package.json": "./package.json",
     "./*": "./dist/*",
@@ -946,6 +956,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.43.0",
     "@tailwindcss/vite": "^4.3.0",
+    "react-reason-editor-sidebar": "workspace:*",
     "@types/deep-equal": "^1.0.4",
     "@types/html-to-docx": "^1.8.1",
     "@types/katex": "^0.16.8",

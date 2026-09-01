@@ -4,7 +4,6 @@
  * Assembles the resizable sidebar, document tabs, editor area, right-panel outline,
  * and all application-level dialogs into a single responsive shell.
  */
-import { Sidebar } from '../layout/Sidebar';
 import { EditorArea } from './EditorArea';
 import { RightPanel } from './RightPanel';
 import { ReasonDocsDialogs } from './ReasonDocsDialogs';
@@ -12,12 +11,12 @@ import { useReasonDocsState } from './useReasonDocsState';
 import { DynamicIslandTOC } from '../search/DynamicIslandTOC';
 import { Button } from '../app-ui/button';
 import { useTheme } from 'next-themes';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../utils/storage';
 import { Menu, PanelRight } from 'lucide-react';
-import type { OpenTabItem } from '../layout/sidebar/types';
+import type { OpenTabItem, SidebarProps, SidebarContentProps } from '../layout/sidebar/types';
 import '../app-styles/split-pane.css';
 
 /** A non-document tab (e.g. a chat conversation) supplied by the host app. */
@@ -28,6 +27,18 @@ export interface ReasonDocsExtraTab {
 }
 
 interface ReasonDocsProps {
+  /**
+   * Renders the left files/folders sidebar (file tree, open tabs, outline,
+   * AI/related panels, split-view menu). Supply `Sidebar` from
+   * `react-reason-editor-sidebar`.
+   */
+  SidebarComponent: ComponentType<SidebarProps>;
+  /**
+   * Renders the body of the right panel — the same panel set as the
+   * sidebar, stacked and configured independently. Supply `SidebarContent`
+   * from `react-reason-editor-sidebar`.
+   */
+  SidebarContentComponent: ComponentType<SidebarContentProps>;
   mainContent?: ReactNode;
   /**
    * Optional content rendered below `mainContent` (e.g. a compact chat
@@ -91,6 +102,8 @@ interface ReasonDocsProps {
  * Renders a resizable panel layout on desktop and a stacked layout on mobile.
  */
 const Index = ({
+  SidebarComponent,
+  SidebarContentComponent,
   mainContent,
   belowMainContent,
   openFilesSidebarSignal,
@@ -353,6 +366,7 @@ const Index = ({
       isMobile={state.isMobile}
       isOpen={state.isRightSidebarOpen}
       onOpenChange={state.setIsRightSidebarOpen}
+      SidebarContentComponent={SidebarContentComponent}
     />
   );
 
@@ -384,7 +398,7 @@ const Index = ({
             )}
           </div>
           <div className="flex-1 flex overflow-hidden">
-            <Sidebar {...sidebarProps} headings={state.headings} />
+            <SidebarComponent {...sidebarProps} headings={state.headings} />
             <main className="flex-1 overflow-hidden flex flex-col">
               <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                 {mainContent ?? <EditorArea {...editorProps} />}
@@ -404,7 +418,7 @@ const Index = ({
             {/* Sidebar */}
             <Pane size={sidebarSizes?.[0] || '250px'} minSize="0px" maxSize="600px">
               <div className="overflow-y-auto overflow-x-hidden bg-background">
-                <Sidebar {...sidebarProps} headings={state.headings} />
+                <SidebarComponent {...sidebarProps} headings={state.headings} />
               </div>
             </Pane>
 

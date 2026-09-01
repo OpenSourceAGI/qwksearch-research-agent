@@ -5,20 +5,24 @@
  * Right Sidebar — each with a Split View toggle and checkboxes for which
  * panels (AI, Files, Outline, Open Tabs) are visible on that side.
  */
-import { Button } from '../../app-ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../app-ui/tooltip';
 import {
+  Button,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../../app-ui/dropdown-menu';
+  cn,
+  PANEL_OPTIONS,
+  togglePanel,
+  applySplitToggle,
+} from 'react-reason-editor/sidebar-kit';
+import type { SidebarPanelType } from 'react-reason-editor/sidebar-kit';
 import { Columns2 } from 'lucide-react';
-import { cn } from '../../app-utils/utils';
-import { PANEL_OPTIONS, togglePanel, applySplitToggle } from './panelOptions';
-import type { SidebarPanelType } from './types';
 
 /** Props for the {@link SidebarViewMenu} component. */
 interface SidebarViewMenuProps {
