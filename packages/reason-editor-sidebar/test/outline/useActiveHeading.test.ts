@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import { computeActiveHeadingKey } from '@/search/useActiveHeading';
+import { computeActiveHeadingKey } from '@/outline/useActiveHeading';
 
 describe('computeActiveHeadingKey', () => {
   it('returns null when there are no headings', () => {

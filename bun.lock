@@ -713,10 +713,13 @@
         "@types/react": "^19.2.17",
         "@types/react-dom": "^19.2.3",
         "@vitejs/plugin-react": "^6.0.2",
+        "@vitest/coverage-v8": "^4.0.18",
+        "jsdom": "^28.1.0",
         "react": "^19.2.7",
         "react-dom": "^19.2.7",
         "typescript": "^6.0.3",
         "vite": "^8.0.16",
+        "vitest": "^4.0.18",
       },
       "peerDependencies": {
         "react": ">=18",

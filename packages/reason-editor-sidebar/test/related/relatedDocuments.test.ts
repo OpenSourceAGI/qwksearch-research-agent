@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Document } from '@/documents/DocumentTree';
-import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } from '@/search/relatedDocuments';
+import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } from '@/related/relatedDocuments';
 
 function makeDoc(overrides: Partial<Document> & { id: string }): Document {
   return {

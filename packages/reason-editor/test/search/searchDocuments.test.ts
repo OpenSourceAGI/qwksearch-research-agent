@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import type { Document } from '@/documents/DocumentTree';
+import type { Document } from 'reason-editor-sidebar';
 import { searchDocuments, stripHtmlToText } from '@/search/searchDocuments';
 
 function makeDoc(overrides: Partial<Document> & { id: string }): Document {

@@ -32,6 +32,7 @@ jobs:
           - { flag: qwksearch-mcp-server, dir: packages/qwksearch-mcp-server }
           - { flag: react-weather-forecast, dir: packages/react-weather-forecast }
           - { flag: reason-editor, dir: packages/reason-editor }
+          - { flag: reason-editor-sidebar, dir: packages/reason-editor-sidebar }
           - { flag: research-agent-ui, dir: packages/research-agent-ui }
           - { flag: search-web-api, dir: packages/search-web-api }
           - { flag: shadcn-app-dock, dir: packages/shadcn-app-dock }
