@@ -5,19 +5,11 @@
  * file manager, new file/folder, and expand/collapse buttons.
  */
 import { RefObject } from 'react';
-import { Button } from '../../app-ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../app-ui/tooltip';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '../../app-ui/dropdown-menu';
+import type { AnyFileSource, DocumentTreeHandle, OutlineViewHandle, SidebarPanelType, OpenTabItem, Document } from 'react-reason-editor/sidebar-kit';
+import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, cn, FileTypeIcon } from 'react-reason-editor/sidebar-kit';
 import { Search, FilePlus, FolderPlus, ChevronsDownUp, ChevronsUpDown, Check, Folders, Trash2, RotateCcw, MoreHorizontal, X, MessageSquare } from 'lucide-react';
-import { AnyFileSource } from '../../app-types/fileSource';
 import { getSourceIcon, getSourceTypeLabel } from './fileSourceUtils';
-import type { DocumentTreeHandle } from '../../file-tree/filetree';
-import type { OutlineViewHandle } from '../../search/OutlineView';
-import type { SidebarPanelType, OpenTabItem } from './types';
 import { SidebarViewMenu } from './SidebarViewMenu';
-import { cn } from '../../app-utils/utils';
-import { Document } from '../../documents/DocumentTree';
-import { FileTypeIcon } from '../../app-ui/FileTypeIcon';
 
 /** Props for the {@link SidebarToolbar} component. */
 interface SidebarToolbarProps {

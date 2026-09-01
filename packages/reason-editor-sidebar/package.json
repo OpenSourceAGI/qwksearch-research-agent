@@ -1,0 +1,66 @@
+{
+  "name": "react-reason-editor-sidebar",
+  "description": "The REASON editor's file/folder sidebar, open-tabs panel, and split-view menu as a standalone package built on react-reason-editor",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/reason-editor-sidebar"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --project tsconfig.build.json",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "bun run build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "reason-editor",
+    "sidebar",
+    "file-tree",
+    "react"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "react-reason-editor": "workspace:*"
+  },
+  "dependencies": {
+    "lucide-react": "^1.17.0",
+    "react-split-pane": "^3.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "@vitest/coverage-v8": "^4.0.18",
+    "jsdom": "^28.1.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-reason-editor": "workspace:*",
+    "typescript": "^5.7.2",
+    "vite": "^8.1.3",
+    "vitest": "^4.0.18"
+  },
+  "license": "rights.institute/PROSPER"
+}

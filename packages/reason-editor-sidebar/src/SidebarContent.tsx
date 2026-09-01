@@ -7,29 +7,34 @@
  * that side.
  */
 import { RefObject, useState, useCallback, useMemo, useRef } from 'react';
-import { FileTree } from '../../file-tree';
-import { OutlineView, type OutlineViewHandle } from '../../search/OutlineView';
-import type { ActiveHeadingEditorHandle } from '../../search/useActiveHeading';
-import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } from '../../search/relatedDocuments';
-import { AIRewriteSuggestion } from '../../features/ai-rewrite/AIRewriteSuggestion';
-import { Input } from '../../app-ui/input';
-import { Document } from '../../documents/DocumentTree';
-import type { SidebarPanelType, SidebarAiProps, SidebarTipsProps, SidebarTopicsProps, OpenTabItem } from './types';
-import type { TocEntry } from '../../app-types/toc';
-import { SplitPane, Pane } from 'react-split-pane';
-import { usePersistence } from 'react-split-pane/persistence';
-import { ssrSafeLocalStorage } from '../../utils/storage';
-import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb } from 'lucide-react';
-import { FileTypeIcon } from '../../app-ui/FileTypeIcon';
-import { cn } from '../../app-utils/utils';
+import type {
+  OutlineViewHandle,
+  RelatedDocumentResult,
+  SidebarPanelType,
+  SidebarContentProps,
+  OpenTabItem,
+  TocEntry,
+} from 'react-reason-editor/sidebar-kit';
 import {
+  FileTree,
+  OutlineView,
+  findRelatedDocuments,
+  splitTopSuggestion,
+  AIRewriteSuggestion,
+  Input,
+  ssrSafeLocalStorage,
+  FileTypeIcon,
+  cn,
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from '../../app-ui/context-menu';
-import '../../app-styles/split-pane.css';
+} from 'react-reason-editor/sidebar-kit';
+import { SplitPane, Pane } from 'react-split-pane';
+import { usePersistence } from 'react-split-pane/persistence';
+import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb } from 'lucide-react';
+import './split-pane.css';
 
 type DocumentTreeHandle = { collapseAll: () => void; edit: (nodeId: string) => void; expandAll: () => void; expandToLevel: (level: number) => void; cancelExpand: () => void };
 
@@ -41,76 +46,6 @@ const PANEL_TITLES: Record<SidebarPanelType, string> = {
   openTabs: 'Open Tabs',
   related: 'Related',
 };
-
-/** Props for the {@link SidebarContent} component. */
-interface SidebarContentProps {
-  /** Which panels are active on this side, in stacking order. */
-  panels: SidebarPanelType[];
-  /** Whether multiple panels may be shown stacked at once. */
-  split: boolean;
-  /** Storage key suffix so left/right panel sizes persist independently. */
-  persistenceKey: string;
-  /** Filtered/flat document list to pass down to the file tree. */
-  activeDocuments: Document[];
-  /** Heading entries from the Tiptap table of contents. */
-  headings?: TocEntry[];
-  /** ID of the currently active/selected document. */
-  activeId: string | null;
-  /** The full `Document` object for `activeId` (used for outline section search). */
-  activeDocument?: Document;
-  /** Whether the sidebar is being displayed in a mobile sheet. */
-  isMobile?: boolean;
-  /** Selects a document by ID; closes the mobile sheet when on mobile. */
-  onSelect: (id: string) => void;
-  /** Creates a new note or folder under `parentId`. */
-  onAdd: (parentId: string | null, isFolder?: boolean) => void;
-  /** Soft-deletes a document by ID. */
-  onDelete: (id: string) => void;
-  /** Duplicates a document by ID. */
-  onDuplicate: (id: string) => void;
-  /** Moves a document in the tree via drag-and-drop. */
-  onMove: (draggedId: string, targetId: string | null, position: 'before' | 'after' | 'child') => void;
-  /** Opens the tag management UI for a document. */
-  onManageTags?: (id: string) => void;
-  /** Renames a document. */
-  onRename?: (id: string, newTitle: string) => void;
-  /** Callback to control the mobile sidebar sheet open state. */
-  onOpenChange?: (open: boolean) => void;
-  /** Ref forwarded to the `FileTree` component for imperative control. */
-  treeRef?: RefObject<DocumentTreeHandle | null>;
-  /** Ref forwarded to the `OutlineView` component for imperative control. */
-  outlineRef?: RefObject<OutlineViewHandle | null>;
-  /** Editor handle passed to `OutlineView` to scroll-spy the active heading. */
-  editorRef?: RefObject<ActiveHeadingEditorHandle | null>;
-  /** Currently open tab IDs shown in the top pane. */
-  openTabs?: string[];
-  /** ID of the currently active tab. */
-  activeTab?: string | null;
-  /** Switches to a tab. */
-  onTabChange?: (id: string) => void;
-  /** Closes a tab. */
-  onTabClose?: (id: string) => void;
-  /** Renames a tab's document. */
-  onTabRename?: (id: string, newTitle: string) => void;
-  /** Opens a tab in a split view to the right. */
-  onSplitRight?: (id: string) => void;
-  /** Reopens the last closed tab. */
-  onReopenLastClosed?: () => void;
-  /** Whether there is a closed tab that can be reopened. */
-  canReopenLastClosed?: boolean;
-  /** Navigates the editor to a heading (used by the "outline" panel). */
-  onNavigate?: (key: string) => void;
-  /** AI suggestion state/handlers (used by the "ai" panel). */
-  aiProps?: SidebarAiProps;
-  /** AI-generated page tips state/handlers (used by the "ai" panel). */
-  tipsProps?: SidebarTipsProps;
-  /** AI-generated search topics state/handlers (used by the "related" panel). */
-  topicsProps?: SidebarTopicsProps;
-  /** Unified tab list (files + chats). Overrides file-only tab derivation when set. */
-  tabItems?: OpenTabItem[];
-  /** Opens a new chat tab from the "Open Tabs" panel header. */
-  onNewChat?: () => void;
-}
 
 /**
  * Renders the enabled panels for one side of the layout, stacked in a

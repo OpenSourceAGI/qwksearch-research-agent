@@ -7,11 +7,10 @@
  * right side supports the same panels and stacking as the left sidebar.
  * Drag its left edge to resize.
  */
-import { RefObject, useState } from 'react';
+import { RefObject, useState, type ComponentType } from 'react';
 import { Resizable } from 're-resizable';
-import { SidebarContent } from '../layout/sidebar/SidebarContent';
 import { PANEL_OPTIONS } from '../layout/sidebar/panelOptions';
-import type { SidebarPanelType, SidebarAiProps, SidebarTipsProps, SidebarTopicsProps, OpenTabItem } from '../layout/sidebar/types';
+import type { SidebarPanelType, SidebarAiProps, SidebarTipsProps, SidebarTopicsProps, OpenTabItem, SidebarContentProps } from '../layout/sidebar/types';
 import type { OutlineViewHandle } from '../search/OutlineView';
 import type { ActiveHeadingEditorHandle } from '../search/useActiveHeading';
 import type { TocEntry } from '../app-types/toc';
@@ -27,6 +26,8 @@ const SIDEBAR_GLASS_CLASSES =
 
 /** Props for the {@link RightPanel} component. */
 interface RightPanelProps {
+  /** Renders the panel body. Supply `SidebarContent` from `react-reason-editor-sidebar`. */
+  SidebarContentComponent: ComponentType<SidebarContentProps>;
   /** Panels currently visible in the right sidebar. */
   panels: SidebarPanelType[];
   /** Whether the right sidebar allows multiple stacked panels. */
@@ -91,6 +92,7 @@ const PANEL_LABELS: Record<SidebarPanelType, string> = Object.fromEntries(
  * for the right sidebar.
  */
 export function RightPanel({
+  SidebarContentComponent,
   panels,
   split,
   documents,
@@ -143,7 +145,7 @@ export function RightPanel({
         </Button>
       </div>
       <div className="flex-1 min-h-0">
-        <SidebarContent
+        <SidebarContentComponent
           panels={panels}
           split={split}
           persistenceKey="right"

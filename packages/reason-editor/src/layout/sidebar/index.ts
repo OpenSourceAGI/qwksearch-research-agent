@@ -1,12 +1,11 @@
 /**
  * @module sidebar/index
- * @description Barrel export for all sidebar sub-components and types.
+ * @description Barrel export for the sidebar "contract": the shared types
+ * and pure panel-toggle config/helpers reason-editor owns. The sidebar UI
+ * itself (Sidebar, SidebarContent, SidebarToolbar, SidebarFooter,
+ * SidebarViewMenu) lives in the separate `react-reason-editor-sidebar`
+ * package and is injected into ReasonDocs/RightPanel via props typed
+ * against these exports (see `sidebar-kit.ts`).
  */
-export { Sidebar } from './Sidebar';
-export { SidebarToolbar } from './SidebarToolbar';
-export { SidebarFooter } from './SidebarFooter';
-export { SidebarContent } from './SidebarContent';
-export { SidebarViewMenu } from './SidebarViewMenu';
 export * from './types';
 export * from './panelOptions';
-export * from './fileSourceUtils';

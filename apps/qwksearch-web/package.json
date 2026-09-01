@@ -104,6 +104,7 @@
     "react-markdown": "^10.1.0",
     "react-native-app-buttons": "^0.1.4",
     "react-reason-editor": "workspace:*",
+    "react-reason-editor-sidebar": "workspace:*",
     "react-textarea-autosize": "^8.5.9",
     "remark-gfm": "^4.0.1",
     "trending-news-api": "workspace:*",

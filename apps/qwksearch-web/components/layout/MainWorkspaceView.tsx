@@ -6,6 +6,7 @@ import { ChatInputBox, ChatWindow, configureResearchAgentUI, useChat } from 'res
 import { ReasonDocs } from 'react-reason-editor/reason-docs';
 import { themeActions } from 'react-reason-editor/theme';
 import { localeActions } from 'react-reason-editor/locale-bundle';
+import { Sidebar, SidebarContent } from 'react-reason-editor-sidebar';
 import { useMainView } from '@/components/layout/MainViewProvider';
 import { useChatTabs } from '@/components/layout/useChatTabs';
 import { getPageTips, htmlToPlainText } from '@/lib/reason-docs/page-tips';
@@ -144,12 +145,16 @@ export function MainWorkspaceView() {
 
   return activeView === 'docs' ? (
     <ReasonDocs
+      SidebarComponent={Sidebar}
+      SidebarContentComponent={SidebarContent}
       belowMainContent={<ChatInputBox />}
       openFilesSidebarSignal={filesSidebarRequestId}
       {...extraTabProps}
     />
   ) : (
     <ReasonDocs
+      SidebarComponent={Sidebar}
+      SidebarContentComponent={SidebarContent}
       mainContent={<ChatWindow />}
       openFilesSidebarSignal={filesSidebarRequestId}
       {...extraTabProps}
