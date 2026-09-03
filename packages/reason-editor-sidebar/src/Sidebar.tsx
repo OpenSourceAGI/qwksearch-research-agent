@@ -4,8 +4,14 @@
  * inside a Sheet on mobile and directly in the layout on desktop.
  */
 import { useState, useRef, useEffect, useMemo } from 'react';
-import type { DocumentTreeHandle, OutlineViewHandle, AnyFileSource, SidebarProps } from 'react-reason-editor/sidebar-kit';
-import { Sheet, SheetContent, getFileSources, FileManagerModal, cn } from 'react-reason-editor/sidebar-kit';
+import type { DocumentTreeHandle } from './file-tree/filetree';
+import type { OutlineViewHandle } from './search/OutlineView';
+import type { AnyFileSource } from './app-types/fileSource';
+import type { SidebarProps } from './layout/sidebar/types';
+import { Sheet, SheetContent } from './app-ui/sheet';
+import { getFileSources } from './app-utils/file-sources/sources';
+import { FileManagerModal } from './dialogs/FileManagerModal';
+import { cn } from './app-utils/utils';
 import { SidebarToolbar } from './SidebarToolbar';
 import { SidebarContent } from './SidebarContent';
 

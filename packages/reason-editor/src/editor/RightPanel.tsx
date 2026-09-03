@@ -9,12 +9,19 @@
  */
 import { RefObject, useState, type ComponentType } from 'react';
 import { Resizable } from 're-resizable';
-import { PANEL_OPTIONS } from '../layout/sidebar/panelOptions';
-import type { SidebarPanelType, SidebarAiProps, SidebarTipsProps, SidebarTopicsProps, OpenTabItem, SidebarContentProps } from '../layout/sidebar/types';
-import type { OutlineViewHandle } from '../search/OutlineView';
-import type { ActiveHeadingEditorHandle } from '../search/useActiveHeading';
-import type { TocEntry } from '../app-types/toc';
-import type { Document } from '../documents/DocumentTree';
+import {
+  PANEL_OPTIONS,
+  type SidebarPanelType,
+  type SidebarAiProps,
+  type SidebarTipsProps,
+  type SidebarTopicsProps,
+  type OpenTabItem,
+  type SidebarContentProps,
+  type OutlineViewHandle,
+  type ActiveHeadingEditorHandle,
+  type TocEntry,
+  type Document,
+} from 'react-reason-editor-sidebar';
 import { Button } from '../app-ui/button';
 import { Sheet, SheetContent } from '../app-ui/sheet';
 import { cn } from '../app-utils/utils';

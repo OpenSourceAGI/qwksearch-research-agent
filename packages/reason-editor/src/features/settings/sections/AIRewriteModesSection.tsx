@@ -11,7 +11,7 @@ import { Button } from '../../../app-ui/button';
 import { Input } from '../../../app-ui/input';
 import { Textarea } from '../../../app-ui/textarea';
 import { Badge } from '../../../app-ui/badge';
-import { getRewriteModes, saveRewriteModes, resetRewriteModes, RewriteMode } from '../../ai-rewrite/rewriteModes';
+import { getRewriteModes, saveRewriteModes, resetRewriteModes, RewriteMode } from 'react-reason-editor-sidebar';
 import { toast } from 'sonner';
 
 interface AIRewriteModesSectionProps {

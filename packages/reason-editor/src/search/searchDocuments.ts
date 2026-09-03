@@ -6,7 +6,7 @@
  * previewing the raw markup directly would both miscount matches that only
  * occur inside tags/attributes and leak tag soup into the preview snippet.
  */
-import type { Document } from '../documents/DocumentTree';
+import type { Document } from 'react-reason-editor-sidebar';
 
 /** A document match returned by {@link searchDocuments}. */
 export interface DocumentSearchResult {

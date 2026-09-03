@@ -117,7 +117,6 @@ export default defineConfig(async ({ mode }) => {
     path.resolve(__dirname, 'src/theme/theme.ts'),
     path.resolve(__dirname, 'src/reason-docs.ts'),
     path.resolve(__dirname, 'src/editor-kit.ts'),
-    path.resolve(__dirname, 'src/sidebar-kit.ts'),
     path.resolve(__dirname, 'src/docs-agent.ts'),
   ];
 

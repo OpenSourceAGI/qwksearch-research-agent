@@ -16,7 +16,7 @@ import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../utils/storage';
 import { Menu, PanelRight } from 'lucide-react';
-import type { OpenTabItem, SidebarProps, SidebarContentProps } from '../layout/sidebar/types';
+import type { OpenTabItem, SidebarProps, SidebarContentProps } from 'react-reason-editor-sidebar';
 import '../app-styles/split-pane.css';
 
 /** A non-document tab (e.g. a chat conversation) supplied by the host app. */
