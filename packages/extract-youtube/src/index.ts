@@ -8,6 +8,7 @@ export { YouTubeTranscriptApi } from './youtube-transcript-api';
 
 // Transcript utilities
 export { encodeTranscriptSpeeds, getTimestampAtChar, decompressTimestampsArray } from './utils/transcript-utils';
+export { extractVideoId } from './utils/extract-video-id';
 
 // Transcript model classes
 export {

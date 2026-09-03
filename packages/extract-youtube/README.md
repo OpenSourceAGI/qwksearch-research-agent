@@ -244,6 +244,142 @@ extract-youtube --help
 - `--webshare-user <username>` - Webshare proxy username
 - `--webshare-pass <password>` - Webshare proxy password
 
+## React Popout Modal (Video + Synced Subtitles)
+
+`extract-youtube/react` ships a self-contained popout modal component:
+click a trigger, and it opens a YouTube player next to a transcript panel
+that scrolls and highlights in sync with playback — click any line to seek
+the video there. It has no dependency on any particular design system (it
+injects its own minimal, scoped styles), so it drops into any React app.
+It was ported from the video transcript modal used in production on
+[debate-ai.com](https://debate-ai.com). The layout: player on the left,
+a "Transcript" panel on the right (stacks below the player on narrow
+screens) — see the `demo/` app below to try it live.
+
+### Why it's a separate entry point
+
+`extract-youtube` (the main entry) fetches captions server-side with no
+browser dependency at all — that's the whole point of the package.
+`extract-youtube/react` is a second, independent entry point that only
+exports UI: it never imports the transcript-fetching code, and the main
+entry never imports React. Import only the one you need and the other
+never ends up in your bundle. React, ReactDOM, and `lucide-react` (used
+for the modal's icons) are peer dependencies — install them yourself if
+you don't already have them:
+
+```bash
+npm install extract-youtube react react-dom lucide-react
+```
+
+### Setup: video captions still have to be fetched server-side
+
+The modal itself never talks to YouTube's caption endpoints directly —
+browsers can't (no CORS, and it would leak this package's whole fetching
+strategy client-side for no benefit). Instead, you expose one small
+backend endpoint that calls this package's `YouTubeTranscriptApi`, and
+point the modal at it with `transcriptUrl`.
+
+**1. Add a backend endpoint** (any framework works — this is a Next.js
+route handler, following the same pattern as the Vercel Edge example
+above):
+
+```typescript
+// app/api/transcript/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { YouTubeTranscriptApi, extractVideoId } from 'extract-youtube';
+
+const api = new YouTubeTranscriptApi();
+
+export async function GET(req: NextRequest) {
+  const raw = req.nextUrl.searchParams.get('videoId');
+  const videoId = raw ? extractVideoId(raw) : null;
+  if (!videoId) {
+    return NextResponse.json({ error: 'Missing videoId' }, { status: 400 });
+  }
+
+  try {
+    const transcript = await api.fetchTranscript(videoId, { languages: ['en'] });
+    return NextResponse.json({ videoId, snippets: transcript.toRawData() });
+  } catch (error) {
+    // 200 + an `error` field, not a 4xx/5xx — "no captions for this video"
+    // isn't a server failure, and the modal checks this field either way.
+    return NextResponse.json({
+      videoId,
+      snippets: [],
+      error: error instanceof Error ? error.message : 'Failed to fetch transcript',
+    });
+  }
+}
+```
+
+**2. Render the modal**, pointing it at that endpoint:
+
+```tsx
+import { YouTubeTranscriptModal } from 'extract-youtube/react';
+import { extractVideoId } from 'extract-youtube';
+
+function VideoCard({ url, title }: { url: string; title: string }) {
+  const videoId = extractVideoId(url); // handles watch/youtu.be/embed/shorts/live URLs, or a bare ID
+  if (!videoId) return null;
+
+  return (
+    <YouTubeTranscriptModal
+      videoId={videoId}
+      title={title}
+      transcriptUrl="/api/transcript"
+    />
+  );
+}
+```
+
+That's the whole setup — one endpoint, one component. `extractVideoId`
+(exported from the main entry, since it runs fine in Node) also accepts
+any of the URL shapes YouTube uses, so you can pass what a user pastes in
+straight through.
+
+### Props
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `videoId` | `string` | **Required.** The YouTube video ID (not a full URL — run it through `extractVideoId` first if needed). |
+| `title` | `string` | Shown in the modal header and as the iframe's accessible title. |
+| `transcriptUrl` | `string` | URL of your backend endpoint (see above). Fetched with `fetch()` when the modal opens. The `videoId` query param is appended automatically if not already present. |
+| `fetchTranscript` | `(videoId: string) => Promise<{ snippets, error? }>` | Use instead of `transcriptUrl` if you want to load the transcript some other way (e.g. from a React Query cache). |
+| `snippets` | `TranscriptSnippet[]` | Pass transcript data directly to skip fetching entirely — e.g. if you already loaded it server-side. |
+| `trigger` | `ReactNode` | Custom element that opens the modal on click. Defaults to a small captions-icon button. |
+| `onOpenChange` | `(open: boolean) => void` | Called whenever the modal opens or closes. |
+
+### Demo: video player + subtitle sidebar, for any video
+
+The `demo/` folder is a small standalone app — an Express server for the
+transcript endpoint plus a Vite/React page with a "paste any YouTube URL"
+input — that puts the whole flow together end to end.
+
+```bash
+cd packages/extract-youtube
+npm run build          # builds dist/ (main lib + dist/react), which the demo depends on
+npm run demo           # installs the demo's own deps and starts it
+```
+
+`npm run demo` runs `cd demo && npm install && npm run dev`, which starts
+both the Express transcript API (port 8787) and the Vite dev server
+(port 5173, proxying `/api` to 8787) together. Open
+**http://localhost:5173**, paste any YouTube URL (or leave the default),
+click **Load**, then **▶ Open video + subtitles** — the player opens with
+the transcript loading in the side panel, synced to playback.
+
+Run the two halves separately if you'd rather:
+
+```bash
+cd packages/extract-youtube/demo
+npm install
+npm run server   # Express API on :8787
+npm run dev      # in another terminal — Vite dev server on :5173
+```
+
+See `demo/server.js` for the Express endpoint and `demo/src/App.jsx` for
+the page that wires the input box up to the modal.
+
 ## Features
 
 ### Core Functionality
