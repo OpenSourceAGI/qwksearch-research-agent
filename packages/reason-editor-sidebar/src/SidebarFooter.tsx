@@ -3,7 +3,15 @@
  * @description Bottom icon bar of the sidebar. Renders trash, settings,
  * and split-view controls.
  */
-import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from 'react-reason-editor/sidebar-kit';
+import { Button } from './app-ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './app-ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from './app-ui/dropdown-menu';
 import { Settings, Trash2, RotateCcw, Paintbrush, Database, HardDrive, Wand2, Info, LogIn, LogOut } from 'lucide-react';
 
 const settingsNav = [
@@ -13,7 +21,8 @@ const settingsNav = [
   { name: "AI Rewrite Modes", icon: Wand2 },
   { name: "About", icon: Info },
 ];
-import type { Document, SidebarPanelType } from 'react-reason-editor/sidebar-kit';
+import type { Document } from './documents/DocumentTree';
+import type { SidebarPanelType } from './layout/sidebar/types';
 import { SidebarViewMenu } from './SidebarViewMenu';
 
 /** Props for the {@link SidebarFooter} component. */

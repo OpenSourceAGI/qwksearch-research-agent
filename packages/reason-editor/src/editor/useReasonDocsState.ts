@@ -5,19 +5,19 @@
  * AI rewrite state, file-source switching, and optional database synchronisation.
  */
 import { useState, useMemo, useEffect, useRef } from "react";
-import type { TocEntry } from "../app-types/toc";
 import type { TiptapEditorHandle } from "./TiptapEditorWrapper";
-import type { Document } from "../documents/DocumentTree";
-import type { SidebarPanelType } from "../layout/sidebar/types";
 import {
+  type TocEntry,
+  type Document,
+  type SidebarPanelType,
   getActiveFileSourceId,
   setActiveFileSourceId,
   getActiveFileSource,
-} from "../app-utils/file-sources/sources";
+  defaultDocuments,
+} from "react-reason-editor-sidebar";
 import { useLocalStorage } from "../app-hooks/useLocalStorage";
 import { useIsMobile } from "../app-hooks/use-mobile";
 import { useDocumentSync } from "../app-hooks/useDocumentSync";
-import { defaultDocuments } from "../documents/defaultDocuments";
 import { toast } from "sonner";
 
 /**

@@ -7,30 +7,25 @@
  * that side.
  */
 import { RefObject, useState, useCallback, useMemo, useRef } from 'react';
-import type {
-  OutlineViewHandle,
-  RelatedDocumentResult,
-  SidebarPanelType,
-  SidebarContentProps,
-  OpenTabItem,
-  TocEntry,
-} from 'react-reason-editor/sidebar-kit';
+import type { OutlineViewHandle } from './search/OutlineView';
+import type { RelatedDocumentResult } from './search/relatedDocuments';
+import type { SidebarPanelType, SidebarContentProps, OpenTabItem } from './layout/sidebar/types';
+import type { TocEntry } from './app-types/toc';
+import { FileTree } from './file-tree';
+import { OutlineView } from './search/OutlineView';
+import { findRelatedDocuments, splitTopSuggestion } from './search/relatedDocuments';
+import { AIRewriteSuggestion } from './features/ai-rewrite/AIRewriteSuggestion';
+import { Input } from './app-ui/input';
+import { ssrSafeLocalStorage } from './utils/storage';
+import { FileTypeIcon } from './app-ui/FileTypeIcon';
+import { cn } from './app-utils/utils';
 import {
-  FileTree,
-  OutlineView,
-  findRelatedDocuments,
-  splitTopSuggestion,
-  AIRewriteSuggestion,
-  Input,
-  ssrSafeLocalStorage,
-  FileTypeIcon,
-  cn,
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from 'react-reason-editor/sidebar-kit';
+} from './app-ui/context-menu';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb } from 'lucide-react';

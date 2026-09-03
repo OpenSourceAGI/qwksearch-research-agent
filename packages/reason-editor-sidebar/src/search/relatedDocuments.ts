@@ -3,12 +3,30 @@
  * @description Client-side "related documents" suggestions for the sidebar's
  * Related panel. Scores every other document by how many significant
  * keywords it shares with the active document's title and plain-text
- * content — the same plain-text approach {@link searchDocuments} uses, no
- * server calls or embeddings involved — boosted by any shared user-assigned
- * tags, a more deliberate relatedness signal than incidental keyword overlap.
+ * content — no server calls or embeddings involved — boosted by any shared
+ * user-assigned tags, a more deliberate relatedness signal than incidental
+ * keyword overlap.
  */
 import type { Document } from '../documents/DocumentTree';
-import { stripHtmlToText } from './searchDocuments';
+
+const HTML_ENTITIES: Record<string, string> = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&nbsp;': ' ',
+};
+
+/** Strips HTML tags and decodes common entities down to plain, searchable text. */
+function stripHtmlToText(html: string): string {
+  const withoutTags = html.replace(/<[^>]*>/g, ' ');
+  const withoutEntities = withoutTags.replace(
+    /&(?:amp|lt|gt|quot|#39|nbsp);/g,
+    (entity) => HTML_ENTITIES[entity] ?? entity,
+  );
+  return withoutEntities.replace(/\s+/g, ' ').trim();
+}
 
 /** A related-document suggestion returned by {@link findRelatedDocuments}. */
 export interface RelatedDocumentResult {

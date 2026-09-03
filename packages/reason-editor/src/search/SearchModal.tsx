@@ -14,7 +14,7 @@ import {
 } from '../app-ui/dialog';
 import { Input } from '../app-ui/input';
 import { ScrollArea } from '../app-ui/scroll-area';
-import { Document } from '../documents/DocumentTree';
+import { Document } from 'react-reason-editor-sidebar';
 import { VisuallyHidden } from '../app-ui/visually-hidden';
 import { searchDocuments } from './searchDocuments';
 

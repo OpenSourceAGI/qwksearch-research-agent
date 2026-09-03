@@ -33,7 +33,7 @@ import 'easydrawer/styles.css';
 import 'katex/contrib/mhchem';
 
 import type { Editor } from '@tiptap/core';
-import type { TocEntry } from '../app-types/toc';
+import type { TocEntry } from 'react-reason-editor-sidebar';
 import { useSyncStore } from './useSyncStore';
 
 /** Debounce interval (ms) before flushing pending HTML to the parent `onChange` handler. */

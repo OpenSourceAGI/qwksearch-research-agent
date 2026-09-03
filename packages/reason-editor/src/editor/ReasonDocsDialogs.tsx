@@ -3,7 +3,7 @@
  * @description Aggregates all application-level dialog/modal components (search,
  * settings, team management, invite, tag management) into a single portal container.
  */
-import type { Document } from '../documents/DocumentTree';
+import type { Document } from 'react-reason-editor-sidebar';
 import { SearchModal } from '../search/SearchModal';
 import { Settings } from '../features/settings/Settings';
 import { TeamManagement } from '../features/team/TeamManagement';

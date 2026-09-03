@@ -3,8 +3,8 @@
  */
 import { describe, expect, it } from 'vitest';
 
-import type { Document } from '@/documents/DocumentTree';
-import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } from '@/search/relatedDocuments';
+import type { Document } from '../../src/documents/DocumentTree';
+import { findRelatedDocuments, splitTopSuggestion, type RelatedDocumentResult } from '../../src/search/relatedDocuments';
 
 function makeDoc(overrides: Partial<Document> & { id: string }): Document {
   return {

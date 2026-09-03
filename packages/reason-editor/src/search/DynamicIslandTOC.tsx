@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "motion/react";
 import type { Transition } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "../app-utils/utils";
-import type { TocEntry } from "../app-types/toc";
+import type { TocEntry } from "react-reason-editor-sidebar";
 import type { TiptapEditorHandle } from "../editor/TiptapEditorWrapper";
 
 const islandTransition: Transition = {

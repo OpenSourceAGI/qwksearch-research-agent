@@ -139,7 +139,7 @@ function buildItems(documents: Document[]): Record<string, FileTreeItem> {
 }
 
 const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
-  ({ activeId, documents, onMove, onRename, onSelect, onDelete, onDuplicate, onAddChild, onAddChildFolder, onAddSibling, onAddSiblingFolder, onCopy, onPaste, _onNewFile, _onNewFolder, onManageTags }, ref) => {
+  ({ activeId, documents, onMove, onRename, onSelect, onDelete, onDuplicate, onAddChild, onAddChildFolder, onAddSibling, onAddSiblingFolder, onCopy, onPaste, onNewFile: _onNewFile, onNewFolder: _onNewFolder, onManageTags }, ref) => {
     const items = useMemo(() => {
       const built = buildItems(documents);
       return built;

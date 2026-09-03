@@ -12,8 +12,20 @@ import { Button } from '../../../app-ui/button';
 import { Input } from '../../../app-ui/input';
 import { Textarea } from '../../../app-ui/textarea';
 import { Badge } from '../../../app-ui/badge';
-import { getFileSources, addFileSource, updateFileSource, deleteFileSource } from '../../../app-utils/file-sources/sources';
-import { AnyFileSource, FileSourceType, SSHCredentials, S3Credentials, R2Credentials, B2Credentials, GoogleDocsCredentials, TursoDBCredentials } from '../../../app-types/fileSource';
+import {
+  getFileSources,
+  addFileSource,
+  updateFileSource,
+  deleteFileSource,
+  AnyFileSource,
+  FileSourceType,
+  SSHCredentials,
+  S3Credentials,
+  R2Credentials,
+  B2Credentials,
+  GoogleDocsCredentials,
+  TursoDBCredentials,
+} from 'react-reason-editor-sidebar';
 import { toast } from 'sonner';
 
 interface FileSourcesSectionProps {
