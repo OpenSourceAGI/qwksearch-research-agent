@@ -1,0 +1,25 @@
+{
+  "name": "extract-youtube-demo",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Demo app for extract-youtube's React popout modal — plays any YouTube video with synced subtitles in a side panel.",
+  "scripts": {
+    "server": "node server.js",
+    "dev": "concurrently -k -n server,client -c blue,green \"npm run server\" \"vite\"",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "extract-youtube": "file:..",
+    "lucide-react": "^1.17.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "vite": "^6.3.5"
+  }
+}
