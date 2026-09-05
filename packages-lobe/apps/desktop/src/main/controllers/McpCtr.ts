@@ -1,0 +1,731 @@
+import { exec } from 'node:child_process';
+import { createHash, randomUUID } from 'node:crypto';
+import path from 'node:path';
+import { promisify } from 'node:util';
+
+import {
+  deserializeMcpIpcPayload,
+  type McpIpcPayload,
+  serializeMcpIpcPayload,
+} from '@lobechat/utils/mcpIpcPayload';
+
+import FileService from '@/services/fileSrv';
+import { createLogger } from '@/utils/logger';
+
+import type { MCPClient } from '../libs/mcp/client';
+import type {
+  AudioContent,
+  ImageContent,
+  MCPClientParams,
+  ResourceContent,
+  ToolCallContent,
+  ToolCallResult,
+} from '../libs/mcp/types';
+import { ControllerModule, IpcMethod } from './index';
+
+const execPromise = promisify(exec);
+const logger = createLogger('controllers:McpCtr');
+const loadMcpClient = () => import('../libs/mcp/client');
+
+/**
+ * Desktop-only copy of `@lobechat/types`'s `CheckMcpInstallResult`.
+ *
+ * We intentionally keep it local to avoid pulling the web app's path-alias
+ * expectations (e.g. `@/config/*`) into the desktop `tsgo` typecheck.
+ */
+interface CheckMcpInstallResult {
+  allDependenciesMet?: boolean;
+  allOptions?: Array<{
+    allDependenciesMet?: boolean;
+    connection?: {
+      args?: string[];
+      command?: string;
+      installationMethod: string;
+      packageName?: string;
+      repositoryUrl?: string;
+    };
+    isRecommended?: boolean;
+    packageInstalled?: boolean;
+    systemDependencies?: Array<{
+      error?: string;
+      installed: boolean;
+      meetRequirement: boolean;
+      name: string;
+      version?: string;
+    }>;
+  }>;
+  configSchema?: any;
+  connection?: {
+    args?: string[];
+    command?: string;
+    type: 'stdio' | 'http';
+    url?: string;
+  };
+  error?: string;
+  isRecommended?: boolean;
+  needsConfig?: boolean;
+  packageInstalled?: boolean;
+  platform: string;
+  success: boolean;
+  systemDependencies?: Array<{
+    error?: string;
+    installed: boolean;
+    meetRequirement: boolean;
+    name: string;
+    version?: string;
+  }>;
+}
+
+interface CustomPluginMetadata {
+  avatar?: string;
+  description?: string;
+  name?: string;
+}
+
+interface GetStdioMcpServerManifestInput {
+  args?: string[];
+  command: string;
+  env?: Record<string, string>;
+  metadata?: CustomPluginMetadata;
+  name: string;
+  type?: 'stdio';
+}
+
+interface GetStreamableMcpServerManifestInput {
+  auth?: {
+    accessToken?: string;
+    token?: string;
+    type: 'none' | 'bearer' | 'oauth2';
+  };
+  headers?: Record<string, string>;
+  identifier: string;
+  metadata?: CustomPluginMetadata;
+  url: string;
+}
+
+export interface CallToolInput {
+  args: any;
+  env: any;
+  params: GetStdioMcpServerManifestInput;
+  toolName: string;
+}
+
+type SuperJSONSerialized<T = unknown> = McpIpcPayload<T>;
+
+const deserializePayload = deserializeMcpIpcPayload;
+
+const serializePayload = serializeMcpIpcPayload;
+
+const safeParseToRecord = (value: unknown): Record<string, unknown> => {
+  if (value && typeof value === 'object' && !Array.isArray(value))
+    return value as Record<string, unknown>;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed))
+        return parsed as Record<string, unknown>;
+    } catch {
+      // ignore
+    }
+  }
+  return {};
+};
+
+const MEDIA_UPLOAD_CONFIG = {
+  audio: {
+    defaultExtension: 'mp3',
+    defaultMimeType: 'audio/mpeg',
+    pathnameSegment: 'audios',
+  },
+  image: {
+    defaultExtension: 'png',
+    defaultMimeType: 'image/png',
+    pathnameSegment: 'images',
+  },
+} as const;
+
+type MediaContentType = keyof typeof MEDIA_UPLOAD_CONFIG;
+
+const PREFERRED_MIME_EXTENSIONS: Record<string, string> = {
+  'audio/mpeg': 'mp3',
+  'audio/mp3': 'mp3',
+  'image/svg+xml': 'svg',
+};
+
+const normalizeMimeType = (mimeType: string | undefined, mediaType: MediaContentType) => {
+  const normalized = mimeType?.split(';')[0]?.trim().toLowerCase();
+  return normalized || MEDIA_UPLOAD_CONFIG[mediaType].defaultMimeType;
+};
+
+const getMediaContentType = (mimeType: string | undefined): MediaContentType | undefined => {
+  const normalized = mimeType?.split(';')[0]?.trim().toLowerCase();
+  if (normalized?.startsWith('image/')) return 'image';
+  if (normalized?.startsWith('audio/')) return 'audio';
+};
+
+const getFileExtensionFromMimeType = (mimeType: string, mediaType: MediaContentType) => {
+  const [, subtype = ''] = mimeType.split('/');
+  const sanitizedSubtype = subtype
+    .split('+')[0]
+    .replaceAll(/[^a-z0-9]/gi, '')
+    .toLowerCase();
+
+  return (
+    PREFERRED_MIME_EXTENSIONS[mimeType] ||
+    sanitizedSubtype ||
+    MEDIA_UPLOAD_CONFIG[mediaType].defaultExtension
+  );
+};
+
+const todayShard = () => new Date().toISOString().split('T')[0];
+
+const toMarkdown = async (
+  blocks: ToolCallContent[] | null | undefined,
+  getHTTPURL: (key: string) => Promise<string>,
+) => {
+  if (!blocks) return '';
+
+  const parts = await Promise.all(
+    blocks.map(async (item) => {
+      switch (item.type) {
+        case 'text': {
+          return item.text;
+        }
+        case 'image': {
+          const url = await getHTTPURL(item.data);
+          return `![](${url})`;
+        }
+        case 'audio': {
+          const url = await getHTTPURL(item.data);
+          return `<resource type="${item.type}" url="${url}" />`;
+        }
+        case 'resource': {
+          return `<resource type="${item.type}">${JSON.stringify(item.resource)}</resource>`;
+        }
+        default: {
+          return '';
+        }
+      }
+    }),
+  );
+
+  return parts.filter(Boolean).join('\n\n');
+};
+
+/**
+ * MCP Controller (Desktop Main Process)
+ * Implements the same routes as `src/server/routers/desktop/mcp.ts`, but via IPC.
+ */
+export default class McpCtr extends ControllerModule {
+  static override readonly groupName = 'mcp';
+
+  private get fileService() {
+    return this.app.getService(FileService);
+  }
+
+  private async createClient(params: MCPClientParams) {
+    const { MCPClient } = await loadMcpClient();
+    const client = new MCPClient(params);
+    await client.initialize();
+    return client;
+  }
+
+  private async uploadMcpMediaBlock(base64: string, mediaType: MediaContentType, mimeType: string) {
+    const config = MEDIA_UPLOAD_CONFIG[mediaType];
+    const ext = getFileExtensionFromMimeType(mimeType, mediaType);
+    const buffer = Buffer.from(base64, 'base64');
+    const hash = createHash('sha256').update(buffer).digest('hex');
+    const id = randomUUID();
+    const filename = `${id}.${ext}`;
+    const filePath = path.posix.join('mcp', config.pathnameSegment, todayShard(), filename);
+
+    const { metadata } = await this.fileService.uploadFile({
+      content: base64,
+      filename,
+      hash,
+      path: filePath,
+      type: mimeType,
+    });
+
+    return metadata.path;
+  }
+
+  private async processContentBlocks(blocks: ToolCallContent[]): Promise<ToolCallContent[]> {
+    return Promise.all(
+      blocks.map(async (block) => {
+        if (block.type === 'image' || block.type === 'audio') {
+          const mediaType = block.type;
+          const mimeType = normalizeMimeType(block.mimeType, mediaType);
+          const data = await this.uploadMcpMediaBlock(block.data, mediaType, mimeType);
+
+          return { ...block, data, mimeType };
+        }
+
+        if (block.type === 'resource') {
+          const resourceBlock = block as ResourceContent;
+          const resource = resourceBlock.resource;
+          const mediaType = getMediaContentType(resource?.mimeType);
+
+          if (!resource?.blob || !mediaType) return block;
+
+          const mimeType = normalizeMimeType(resource.mimeType, mediaType);
+          const data = await this.uploadMcpMediaBlock(resource.blob, mediaType, mimeType);
+          const metadata = resourceBlock._meta ? { _meta: resourceBlock._meta } : {};
+
+          if (mediaType === 'image') {
+            return { ...metadata, data, mimeType, type: 'image' } as ImageContent;
+          }
+
+          return { ...metadata, data, mimeType, type: 'audio' } as AudioContent;
+        }
+
+        return block;
+      }),
+    );
+  }
+
+  @IpcMethod()
+  async getStdioMcpServerManifest(payload: SuperJSONSerialized<GetStdioMcpServerManifestInput>) {
+    const input = deserializePayload<GetStdioMcpServerManifestInput>(payload);
+    const params: MCPClientParams = {
+      args: input.args || [],
+      command: input.command,
+      env: input.env,
+      name: input.name,
+      type: 'stdio',
+    };
+
+    let client: MCPClient | undefined;
+    try {
+      client = await this.createClient(params);
+      const manifest = await client.listManifests();
+      const identifier = input.name;
+
+      const tools = manifest.tools || [];
+
+      return serializePayload({
+        api: tools.map((item) => ({
+          description: item.description,
+          name: item.name,
+          parameters: item.inputSchema as any,
+        })),
+        identifier,
+        meta: {
+          avatar: input.metadata?.avatar || 'MCP_AVATAR',
+          description:
+            input.metadata?.description ||
+            `${identifier} MCP server has ` +
+              Object.entries(manifest)
+                .filter(([key]) => ['tools', 'prompts', 'resources'].includes(key))
+                .map(([key, item]) => `${(item as Array<any>)?.length} ${key}`)
+                .join(','),
+          title: input.metadata?.name || identifier,
+        },
+        ...manifest,
+        mcpParams: params,
+        type: 'mcp' as any,
+      });
+    } catch (error) {
+      // If it's an MCPConnectionError with stderr logs, enhance the error message
+      const { MCPConnectionError } = await loadMcpClient();
+      if (error instanceof MCPConnectionError && error.stderrLogs.length > 0) {
+        const stderrOutput = error.stderrLogs.join('\n');
+        const enhancedError = new Error(
+          `${error.message}\n\n--- STDIO Process Output ---\n${stderrOutput}`,
+        );
+        enhancedError.name = error.name;
+        logger.error('getStdioMcpServerManifest failed with STDIO logs:', {
+          message: error.message,
+          stderrLogs: error.stderrLogs,
+        });
+        throw enhancedError;
+      }
+      throw error;
+    } finally {
+      if (client) {
+        await client.disconnect();
+      }
+    }
+  }
+
+  @IpcMethod()
+  async getStreamableMcpServerManifest(
+    payload: SuperJSONSerialized<GetStreamableMcpServerManifestInput>,
+  ) {
+    const input = deserializePayload<GetStreamableMcpServerManifestInput>(payload);
+    const params: MCPClientParams = {
+      auth: input.auth,
+      headers: input.headers,
+      name: input.identifier,
+      type: 'http',
+      url: input.url,
+    };
+
+    const client = await this.createClient(params);
+    try {
+      const tools = await client.listTools();
+      const identifier = input.identifier;
+
+      return serializePayload({
+        api: tools.map((item) => ({
+          description: item.description,
+          name: item.name,
+          parameters: item.inputSchema as any,
+        })),
+        identifier,
+        mcpParams: params,
+        meta: {
+          avatar: input.metadata?.avatar || 'MCP_AVATAR',
+          description:
+            input.metadata?.description ||
+            `${identifier} MCP server has ${tools.length} tools, like "${tools[0]?.name}"`,
+          title: identifier,
+        },
+        type: 'mcp' as any,
+      });
+    } finally {
+      await client.disconnect();
+    }
+  }
+
+  @IpcMethod()
+  async callTool(payload: SuperJSONSerialized<CallToolInput>) {
+    const input = deserializePayload<CallToolInput>(payload);
+    return serializePayload(await this.runStdioMcpTool(input));
+  }
+
+  /**
+   * Core stdio MCP tool execution, shared by the renderer IPC path
+   * ({@link callTool}) and the device-gateway tunnel (GatewayConnectionCtr,
+   * which runs MCP calls forwarded from the cloud server). Returns the plain
+   * result envelope; callers serialize as needed. Throws on failure so each
+   * caller can shape its own error response.
+   */
+  async runStdioMcpTool(
+    input: CallToolInput,
+  ): Promise<{ content: string; state: unknown; success: boolean }> {
+    return this.runMcpTool(
+      {
+        args: input.params.args || [],
+        command: input.params.command,
+        env: input.env,
+        name: input.params.name,
+        type: 'stdio',
+      },
+      input.toolName,
+      input.args,
+    );
+  }
+
+  /**
+   * HTTP counterpart of {@link runStdioMcpTool} for the device-gateway tunnel:
+   * the cloud server forwards calls to localhost / LAN MCP endpoints that only
+   * this machine's network can reach, with the (server-decrypted) auth attached.
+   */
+  async runHttpMcpTool(
+    input: {
+      auth?: { accessToken?: string; token?: string; type: 'none' | 'bearer' | 'oauth2' };
+      headers?: Record<string, string>;
+      name: string;
+      url: string;
+    },
+    toolName: string,
+    rawArgs: unknown,
+  ): Promise<{ content: string; state: unknown; success: boolean }> {
+    return this.runMcpTool(
+      {
+        auth: input.auth,
+        headers: input.headers,
+        name: input.name,
+        type: 'http',
+        url: input.url,
+      },
+      toolName,
+      rawArgs,
+    );
+  }
+
+  private async runMcpTool(
+    params: MCPClientParams,
+    toolName: string,
+    rawArgs: unknown,
+  ): Promise<{ content: string; state: unknown; success: boolean }> {
+    let client: MCPClient | undefined;
+    try {
+      client = await this.createClient(params);
+      const args = safeParseToRecord(rawArgs);
+
+      const raw = (await client.callTool(toolName, args)) as ToolCallResult;
+      const processed = raw.isError ? raw.content : await this.processContentBlocks(raw.content);
+
+      const content = await toMarkdown(processed, (key) => this.fileService.getFileHTTPURL(key));
+
+      return {
+        content,
+        state: { ...raw, content: processed },
+        success: true,
+      };
+    } catch (error) {
+      // If it's an MCPConnectionError with stderr logs, enhance the error message
+      const { MCPConnectionError } = await loadMcpClient();
+      if (error instanceof MCPConnectionError && error.stderrLogs.length > 0) {
+        const stderrOutput = error.stderrLogs.join('\n');
+        const enhancedError = new Error(
+          `${error.message}\n\n--- STDIO Process Output ---\n${stderrOutput}`,
+        );
+        enhancedError.name = error.name;
+        logger.error('callTool failed with STDIO logs:', {
+          message: error.message,
+          stderrLogs: error.stderrLogs,
+        });
+        throw enhancedError;
+      }
+      logger.error('callTool failed:', error);
+      throw error;
+    } finally {
+      if (client) {
+        await client.disconnect();
+      }
+    }
+  }
+
+  // ---------- MCP Install Check (local system) ----------
+
+  private getInstallInstructions(installInstructions: any) {
+    if (!installInstructions) return undefined;
+
+    let current: string | undefined;
+
+    switch (process.platform) {
+      case 'darwin': {
+        current = installInstructions.macos;
+        break;
+      }
+      case 'linux': {
+        current = installInstructions.linux_debian || installInstructions.linux;
+        break;
+      }
+      case 'win32': {
+        current = installInstructions.windows;
+        break;
+      }
+    }
+
+    return { current, manual: installInstructions.manual };
+  }
+
+  private async checkSystemDependency(dependency: any) {
+    const checkCommand = dependency.checkCommand || `${dependency.name} --version`;
+
+    try {
+      const { stdout, stderr } = await execPromise(checkCommand);
+
+      if (stderr && !stdout) {
+        return {
+          error: stderr,
+          installInstructions: this.getInstallInstructions(dependency.installInstructions),
+          installed: false,
+          meetRequirement: false,
+          name: dependency.name,
+          requiredVersion: dependency.requiredVersion,
+        };
+      }
+
+      const output = String(stdout || '').trim();
+      let version = output;
+
+      if (dependency.versionParsingRequired) {
+        const versionMatch = output.match(/V?(\d+(\.\d+)*)/i);
+        if (versionMatch) version = versionMatch[0];
+      }
+
+      let meetRequirement = true;
+
+      if (dependency.requiredVersion) {
+        const currentVersion = String(version).replace(/^V/i, '');
+        const currentNum = Number.parseFloat(currentVersion);
+
+        const requirementMatch = String(dependency.requiredVersion).match(/([<=>]+)?(\d+(\.\d+)*)/);
+        if (requirementMatch) {
+          const [, operator = '=', requiredVersion] = requirementMatch;
+          const requiredNum = Number.parseFloat(requiredVersion);
+          switch (operator) {
+            case '>=': {
+              meetRequirement = currentNum >= requiredNum;
+              break;
+            }
+            case '>': {
+              meetRequirement = currentNum > requiredNum;
+              break;
+            }
+            case '<=': {
+              meetRequirement = currentNum <= requiredNum;
+              break;
+            }
+            case '<': {
+              meetRequirement = currentNum < requiredNum;
+              break;
+            }
+            default: {
+              meetRequirement = currentNum === requiredNum;
+              break;
+            }
+          }
+        }
+      }
+
+      return {
+        installInstructions: this.getInstallInstructions(dependency.installInstructions),
+        installed: true,
+        meetRequirement,
+        name: dependency.name,
+        requiredVersion: dependency.requiredVersion,
+        version,
+      };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        installInstructions: this.getInstallInstructions(dependency.installInstructions),
+        installed: false,
+        meetRequirement: false,
+        name: dependency.name,
+        requiredVersion: dependency.requiredVersion,
+      };
+    }
+  }
+
+  private async checkPackageInstalled(installationMethod: string, details: any) {
+    if (installationMethod === 'npm') {
+      const packageName = details?.packageName;
+      if (!packageName) return { installed: false };
+
+      // Only check global npm list - do NOT use npx as it may download packages
+      try {
+        const { stdout } = await execPromise(`npm list -g ${packageName} --depth=0`);
+        if (!stdout.includes('(empty)') && stdout.includes(packageName)) {
+          return { installed: true };
+        }
+      } catch {
+        // ignore - package not found in global list
+      }
+
+      // For npm packages, we don't require pre-installation
+      // npx will handle downloading and running on-demand during actual MCP connection
+      return { installed: false };
+    }
+
+    if (installationMethod === 'python') {
+      const packageName = details?.packageName;
+      if (!packageName) return { installed: false };
+
+      const pythonCommand = details?.pythonCommand || 'python';
+
+      try {
+        const command = `${pythonCommand} -m pip list | grep -i "${packageName}"`;
+        const { stdout } = await execPromise(command);
+        if (stdout.trim() && stdout.toLowerCase().includes(String(packageName).toLowerCase())) {
+          return { installed: true };
+        }
+      } catch {
+        // ignore
+      }
+
+      try {
+        const importCommand = `${pythonCommand} -c "import ${String(packageName).replace('-', '_')}; print('Package installed')"`;
+        const { stdout } = await execPromise(importCommand);
+        if (stdout.includes('Package installed')) return { installed: true };
+      } catch {
+        // ignore
+      }
+
+      return { installed: false };
+    }
+
+    // manual or unknown
+    return { installed: false };
+  }
+
+  private async checkDeployOption(option: any) {
+    const systemDependenciesResults = [];
+
+    if (Array.isArray(option.systemDependencies) && option.systemDependencies.length > 0) {
+      for (const dep of option.systemDependencies) {
+        systemDependenciesResults.push(await this.checkSystemDependency(dep));
+      }
+    }
+
+    const packageResult = await this.checkPackageInstalled(
+      option.installationMethod,
+      option.installationDetails,
+    );
+    const packageInstalled = Boolean((packageResult as any).installed);
+
+    const allDependenciesMet = systemDependenciesResults.every((dep: any) => dep.meetRequirement);
+
+    const configSchema = option.connection?.configSchema;
+    const needsConfig = Boolean(
+      configSchema &&
+      ((Array.isArray(configSchema.required) && configSchema.required.length > 0) ||
+        (configSchema.properties &&
+          Object.values(configSchema.properties).some((prop: any) => prop.required === true))),
+    );
+
+    const connection = option.connection?.url
+      ? { ...option.connection, type: 'http' }
+      : { ...option.connection, type: 'stdio' };
+
+    return {
+      allDependenciesMet,
+      configSchema,
+      connection,
+      isRecommended: option.isRecommended,
+      needsConfig,
+      packageInstalled,
+      systemDependencies: systemDependenciesResults,
+    };
+  }
+
+  @IpcMethod()
+  async validMcpServerInstallable(
+    payload: SuperJSONSerialized<{
+      deploymentOptions: any[];
+    }>,
+  ) {
+    const input = deserializePayload<{ deploymentOptions: any[] }>(payload);
+    try {
+      const options = input.deploymentOptions || [];
+      const results = [];
+
+      for (const option of options) {
+        results.push(await this.checkDeployOption(option));
+      }
+
+      const recommendedResult = results.find((r: any) => r.isRecommended && r.allDependenciesMet);
+      const firstInstallableResult = results.find((r: any) => r.allDependenciesMet);
+      const bestResult = recommendedResult || firstInstallableResult || results[0];
+
+      const checkResult: CheckMcpInstallResult = {
+        ...bestResult,
+        allOptions: results as any,
+        platform: process.platform,
+        success: true,
+      };
+
+      if (bestResult?.needsConfig) {
+        checkResult.needsConfig = true;
+        checkResult.configSchema = bestResult.configSchema;
+      }
+
+      return serializePayload(checkResult);
+    } catch (error) {
+      return serializePayload({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Unknown error when checking MCP plugin installation status',
+        platform: process.platform,
+        success: false,
+      });
+    }
+  }
+}

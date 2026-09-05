@@ -1,0 +1,97 @@
+import { Flexbox } from '@lobehub/ui';
+// import { PencilLineIcon } from 'lucide-react';
+import { type FC } from 'react';
+
+import AsyncBoundary from '@/components/AsyncBoundary';
+import MemorySkeleton from '@/components/Skeleton/Memory';
+import NavHeader from '@/features/NavHeader';
+import WideScreenContainer from '@/features/WideScreenContainer';
+import WideScreenButton from '@/features/WideScreenContainer/WideScreenButton';
+import ActionBar from '@/routes/(main)/memory/features/ActionBar';
+import MemoryAnalysis from '@/routes/(main)/memory/features/MemoryAnalysis';
+import MemoryEmpty from '@/routes/(main)/memory/features/MemoryEmpty';
+import { SCROLL_PARENT_ID } from '@/routes/(main)/memory/features/TimeLineView/useScrollParent';
+import { useUserMemoryStore } from '@/store/userMemory';
+
+import Persona from './features/Persona';
+import PersonaHeader from './features/Persona/PersonaHeader';
+import RoleTagCloud from './features/RoleTagCloud';
+
+const Home: FC = () => {
+  const useFetchTags = useUserMemoryStore((s) => s.useFetchTags);
+  const useFetchPersona = useUserMemoryStore((s) => s.useFetchPersona);
+  const roles = useUserMemoryStore((s) => s.roles);
+  const persona = useUserMemoryStore((s) => s.persona);
+
+  const { isLoading: isTagsLoading, error: tagsError, mutate: mutateTags } = useFetchTags();
+  const {
+    isLoading: isPersonaLoading,
+    error: personaError,
+    mutate: mutatePersona,
+  } = useFetchPersona();
+  // const { EditorModalElement, openEditor } = usePersonaEditor();
+
+  if (isTagsLoading || isPersonaLoading) return <MemorySkeleton />;
+
+  // Persona / tags feed the store, so a failed fetch left the render falling
+  // through to the "analyze to get started" onboarding — telling the user they
+  // have no memories when the load merely errored. Branch error before empty.
+  const hasData = !!persona || roles?.length > 0;
+  const error = tagsError ?? personaError;
+  // Nothing to purge, analyse or widen when the onboarding empty state is the
+  // whole page — and it already offers the analyse action inline.
+  const isEmpty = !hasData && !error;
+
+  return (
+    <Flexbox flex={1} height={'100%'}>
+      <NavHeader
+        right={
+          isEmpty ? undefined : (
+            <ActionBar showAnalysis showPurge>
+              {/* <ActionIcon icon={PencilLineIcon} onClick={openEditor} /> */}
+              <WideScreenButton />
+            </ActionBar>
+          )
+        }
+        style={{
+          zIndex: 1,
+        }}
+      />
+      <Flexbox
+        height={'100%'}
+        id={SCROLL_PARENT_ID}
+        style={{ overflowY: 'auto', paddingBottom: '16vh' }}
+        width={'100%'}
+      >
+        <WideScreenContainer gap={32} paddingBlock={48}>
+          <AsyncBoundary
+            data={persona ?? (roles?.length ? roles : undefined)}
+            error={error}
+            errorVariant={'page'}
+            isEmpty={!hasData}
+            empty={
+              <MemoryEmpty>
+                <MemoryAnalysis />
+              </MemoryEmpty>
+            }
+            onRetry={() => {
+              mutateTags();
+              mutatePersona();
+            }}
+          >
+            {roles?.length > 0 && <RoleTagCloud tags={roles} />}
+            {persona && (
+              <>
+                <PersonaHeader />
+                <Persona />
+              </>
+            )}
+          </AsyncBoundary>
+        </WideScreenContainer>
+      </Flexbox>
+      {/* {EditorModalElement} */}
+    </Flexbox>
+  );
+};
+
+export default Home;

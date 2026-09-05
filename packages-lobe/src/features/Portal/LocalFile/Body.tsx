@@ -1,0 +1,578 @@
+import { isDesktop } from '@lobechat/const';
+import type { MarkdownProps } from '@lobehub/ui';
+import { Center, Empty, Flexbox, Image, Markdown } from '@lobehub/ui';
+import { Text, ToggleGroup } from '@lobehub/ui/base-ui';
+import { createStaticStyles, cssVar } from 'antd-style';
+import { CodeIcon, ExternalLinkIcon, EyeIcon, RefreshCwIcon } from 'lucide-react';
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import CodeEditorPane from '@/components/CodeEditorPane';
+import { applyHtmlPreviewBaseUrl, InlineHtmlPreview, isHtmlFile } from '@/components/HtmlPreview';
+import Loading from '@/components/Loading/CircleLoading';
+import {
+  PublishHtmlArtifactLiveBar,
+  PublishHtmlArtifactProvider,
+  PublishHtmlArtifactTrigger,
+} from '@/features/Portal/LocalFile/PublishHtmlArtifactButton';
+import { useClientDataSWR } from '@/libs/swr';
+import { localFileKeys } from '@/libs/swr/keys';
+import { cloudSandboxService } from '@/services/cloudSandbox';
+import { localFileService } from '@/services/electron/localFileService';
+import { type LocalFilePreview, projectFileService } from '@/services/projectFile';
+import { useChatStore } from '@/store/chat';
+import { chatPortalSelectors } from '@/store/chat/selectors';
+import { createLocalFileTabId } from '@/store/chat/slices/portal/helpers';
+import {
+  parseSkillMarkdownFrontmatter,
+  parseSkillMarkdownMetadata,
+  type SkillMarkdownMetadataItem,
+} from '@/utils/skillMarkdown';
+
+import { extensionToLanguage, getFileExtension } from './Body.helpers';
+import MarkdownImage from './MarkdownImage';
+import PreviewToolbar, { ToolbarActionButton } from './PreviewToolbar';
+
+// Deferred: pulls in react-pdf, only needed once a binary document is opened.
+const DocumentPreview = lazy(() => import('./DocumentPreview'));
+
+interface ImagePreviewProps {
+  blob: Blob;
+  filename: string;
+}
+
+const ImagePreview = memo<ImagePreviewProps>(({ blob, filename }) => {
+  const [imageSrc, setImageSrc] = useState<string>();
+
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(blob);
+    setImageSrc(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [blob]);
+
+  if (!imageSrc) return <Loading />;
+
+  return (
+    <Center height={'100%'} style={{ overflow: 'auto' }} width={'100%'}>
+      <Image
+        alt={filename}
+        objectFit={'contain'}
+        src={imageSrc}
+        style={{ maxWidth: '100%' }}
+        variant={'borderless'}
+      />
+    </Center>
+  );
+});
+
+ImagePreview.displayName = 'ImagePreview';
+
+// ============== TextPreviewPane ==============
+
+const MARKDOWN_EXTS = new Set(['md', 'mdx', 'markdown']);
+
+const frontmatterStyles = createStaticStyles(({ css }) => ({
+  card: css`
+    margin-block: 8px 12px;
+    margin-inline: 12px;
+    border: 1px solid ${cssVar.colorBorderSecondary};
+    border-radius: 8px;
+
+    background: ${cssVar.colorBgContainer};
+  `,
+  key: css`
+    flex-shrink: 0;
+
+    width: 96px;
+
+    font-family: ${cssVar.fontFamilyCode};
+    font-size: 12px;
+    color: ${cssVar.colorTextSecondary};
+  `,
+  row: css`
+    padding-block: 8px;
+    padding-inline: 12px;
+
+    &:not(:last-child) {
+      border-block-end: 1px solid ${cssVar.colorBorderSecondary};
+    }
+  `,
+  value: css`
+    min-width: 0;
+    font-size: 12px;
+    white-space: pre-wrap;
+  `,
+}));
+
+interface SkillFrontmatterPreviewCardProps {
+  metadata: SkillMarkdownMetadataItem[];
+}
+
+const SkillFrontmatterPreviewCard = memo<SkillFrontmatterPreviewCardProps>(({ metadata }) => {
+  if (metadata.length === 0) return null;
+
+  return (
+    <Flexbox className={frontmatterStyles.card} style={{ flexShrink: 0 }}>
+      {metadata.map((item) => (
+        <Flexbox horizontal align={'flex-start'} className={frontmatterStyles.row} key={item.key}>
+          <Text className={frontmatterStyles.key}>{item.key}</Text>
+          <Text className={frontmatterStyles.value}>{item.value}</Text>
+        </Flexbox>
+      ))}
+    </Flexbox>
+  );
+});
+
+SkillFrontmatterPreviewCard.displayName = 'SkillFrontmatterPreviewCard';
+
+type TextPreviewMode = 'render' | 'raw';
+
+const NO_TOPIC_KEY = '__no_topic__';
+
+interface TextPreviewPaneProps {
+  activeTopicId?: string | null;
+  content: string;
+  contentType?: string;
+  deviceId?: string;
+  ext: string;
+  filePath: string;
+  onReload?: () => Promise<unknown> | void;
+  onSaved?: (savedContent: string) => void;
+  readOnly?: boolean;
+  reloading?: boolean;
+  resourceBaseUrl?: string;
+  sandboxTopicId?: string;
+  workingDirectory: string;
+}
+
+const TextPreviewPane = memo<TextPreviewPaneProps>(
+  ({
+    activeTopicId,
+    content,
+    contentType,
+    deviceId,
+    ext,
+    filePath,
+    onReload,
+    onSaved,
+    readOnly = false,
+    reloading = false,
+    resourceBaseUrl,
+    sandboxTopicId,
+    workingDirectory,
+  }) => {
+    const { t } = useTranslation('chat');
+    const isMarkdown = useMemo(() => MARKDOWN_EXTS.has(ext.toLowerCase()), [ext]);
+    const isHtml = useMemo(
+      () => isHtmlFile({ fileType: contentType, path: filePath }),
+      [contentType, filePath],
+    );
+    const canRender = isMarkdown || isHtml;
+    // Edit buffers are scoped by tab identity (device + working directory + path)
+    // so the same path opened on two devices/workspaces keeps independent edits.
+    const tabId = useMemo(
+      () => createLocalFileTabId({ deviceId, filePath, workingDirectory }),
+      [deviceId, filePath, workingDirectory],
+    );
+    const buffer = useChatStore(chatPortalSelectors.localFileBuffer(tabId));
+    const setLocalFileBuffer = useChatStore((s) => s.setLocalFileBuffer);
+    const saveLocalFile = useChatStore((s) => s.saveLocalFile);
+
+    const editingValue = readOnly ? content : (buffer ?? content);
+
+    const handleCodeChange = useCallback(
+      (next: string) => {
+        if (readOnly) return;
+
+        if (next === content) {
+          setLocalFileBuffer(tabId, undefined);
+        } else {
+          setLocalFileBuffer(tabId, next);
+        }
+      },
+      [content, tabId, readOnly, setLocalFileBuffer],
+    );
+
+    const handleSave = useCallback(async () => {
+      if (readOnly) return;
+
+      try {
+        const saved = await saveLocalFile({ deviceId, filePath, workingDirectory });
+        if (saved === undefined) return;
+        // Update SWR cache BEFORE clearing the buffer, otherwise React will
+        // briefly render with buffer cleared but content still stale, causing
+        // CodeMirror to setValue and reset the cursor.
+        onSaved?.(saved);
+        setLocalFileBuffer(tabId, undefined);
+      } catch {
+        /* swallow — surfacing handled elsewhere if needed */
+      }
+    }, [
+      deviceId,
+      filePath,
+      onSaved,
+      readOnly,
+      saveLocalFile,
+      setLocalFileBuffer,
+      tabId,
+      workingDirectory,
+    ]);
+
+    const { body, frontmatter } = useMemo(
+      () => (isMarkdown ? parseSkillMarkdownFrontmatter(editingValue) : { body: editingValue }),
+      [isMarkdown, editingValue],
+    );
+    const frontmatterMetadata = useMemo(
+      () => (frontmatter ? parseSkillMarkdownMetadata(frontmatter) : []),
+      [frontmatter],
+    );
+    const markdownComponents = useMemo(
+      () =>
+        ({
+          img: (props) => (
+            <MarkdownImage
+              {...props}
+              deviceId={deviceId}
+              markdownFilePath={filePath}
+              workingDirectory={workingDirectory}
+            />
+          ),
+        }) satisfies MarkdownProps['components'],
+      [deviceId, filePath, workingDirectory],
+    );
+
+    const [modeByScope, setModeByScope] = useState<Record<string, TextPreviewMode>>({});
+    const modeScopeKey = `${activeTopicId ?? NO_TOPIC_KEY}:${filePath}`;
+    const mode = canRender ? (modeByScope[modeScopeKey] ?? 'render') : 'raw';
+    const setMode = useCallback(
+      (next: TextPreviewMode) => {
+        setModeByScope((prev) => ({ ...prev, [modeScopeKey]: next }));
+      },
+      [modeScopeKey],
+    );
+    const showHtmlPreview = isHtml && mode === 'render';
+    const [htmlPreviewRevision, setHtmlPreviewRevision] = useState(0);
+    const handleReloadPreview = useCallback(async () => {
+      await onReload?.();
+      setHtmlPreviewRevision((prev) => prev + 1);
+    }, [onReload]);
+    // Electron's window-open handler denies blob: URLs, so the blob path only
+    // works on web; desktop hands local files to the system default app instead,
+    // and remote/sandbox files have no external route there.
+    const canOpenExternal = isDesktop ? !deviceId && !sandboxTopicId : true;
+    const handleOpenExternal = useCallback(() => {
+      if (isDesktop) {
+        void localFileService.openLocalFile({ path: filePath });
+        return;
+      }
+
+      // A top-level blob: document inherits this app's origin, so untrusted HTML
+      // must stay inside a sandboxed (no allow-same-origin) iframe wrapper.
+      const html = applyHtmlPreviewBaseUrl(editingValue, resourceBaseUrl);
+      const srcdoc = html.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+      const shell = `<!doctype html><title>${filePath.split(/[/\\]/).at(-1) ?? ''}</title><style>html,body{margin:0;height:100%}iframe{display:block;width:100%;height:100%;border:0}</style><iframe sandbox="allow-scripts allow-modals allow-popups" srcdoc="${srcdoc}"></iframe>`;
+      const url = URL.createObjectURL(new Blob([shell], { type: 'text/html' }));
+      window.open(url, '_blank', 'noopener,noreferrer');
+      // Revoking immediately can abort the new window's document load — defer it.
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    }, [editingValue, filePath, resourceBaseUrl]);
+
+    return (
+      <PublishHtmlArtifactProvider
+        content={editingValue}
+        deviceId={deviceId}
+        filePath={filePath}
+        sandboxTopicId={sandboxTopicId}
+        topicId={activeTopicId}
+        workingDirectory={workingDirectory}
+      >
+        <Flexbox flex={1} height={'100%'} style={{ minHeight: 0, overflow: 'hidden' }}>
+          <PublishHtmlArtifactLiveBar />
+          <PreviewToolbar
+            path={filePath}
+            actions={
+              <>
+                {isHtml && (
+                  <ToolbarActionButton
+                    icon={RefreshCwIcon}
+                    loading={reloading}
+                    title={t('workingPanel.localFile.preview.reload')}
+                    onClick={handleReloadPreview}
+                  />
+                )}
+                {canRender && (
+                  <ToggleGroup
+                    value={mode}
+                    variant={'outlined'}
+                    options={[
+                      {
+                        icon: <EyeIcon size={14} />,
+                        label: t('workingPanel.localFile.preview.render'),
+                        value: 'render',
+                      },
+                      {
+                        icon: <CodeIcon size={14} />,
+                        label: t(
+                          isHtml
+                            ? 'workingPanel.localFile.preview.source'
+                            : 'workingPanel.localFile.preview.raw',
+                        ),
+                        value: 'raw',
+                      },
+                    ]}
+                    onChange={(value) => setMode(value as TextPreviewMode)}
+                  />
+                )}
+                {isHtml && canOpenExternal && (
+                  <ToolbarActionButton
+                    icon={ExternalLinkIcon}
+                    title={t('workingPanel.localFile.preview.openExternal')}
+                    onClick={handleOpenExternal}
+                  />
+                )}
+                <PublishHtmlArtifactTrigger />
+              </>
+            }
+          />
+          <Flexbox flex={1} height={'100%'} style={{ minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ flex: 1, minHeight: 0, overflow: showHtmlPreview ? 'hidden' : 'auto' }}>
+              {isMarkdown && mode === 'render' ? (
+                <>
+                  <SkillFrontmatterPreviewCard metadata={frontmatterMetadata} />
+                  <Markdown
+                    components={markdownComponents}
+                    style={{ paddingBlock: 8, paddingInline: 12 }}
+                  >
+                    {body}
+                  </Markdown>
+                </>
+              ) : showHtmlPreview ? (
+                <InlineHtmlPreview
+                  baseUrl={resourceBaseUrl}
+                  content={editingValue}
+                  key={`${filePath}:${htmlPreviewRevision}`}
+                />
+              ) : (
+                <CodeEditorPane
+                  language={extensionToLanguage(ext)}
+                  readOnly={readOnly}
+                  style={{ fontSize: 12, minHeight: '100%' }}
+                  value={editingValue}
+                  onChange={readOnly ? undefined : handleCodeChange}
+                  onSave={readOnly ? undefined : handleSave}
+                />
+              )}
+            </div>
+          </Flexbox>
+        </Flexbox>
+      </PublishHtmlArtifactProvider>
+    );
+  },
+);
+
+TextPreviewPane.displayName = 'TextPreviewPane';
+
+// ============== ActiveFileView ==============
+
+interface ActiveFileViewProps {
+  activeTopicId?: string | null;
+  allowExternalFilePreview?: boolean;
+  deviceId?: string;
+  filePath: string;
+  /** Read the file live from the topic's cloud sandbox instead of a filesystem. */
+  sandboxTopicId?: string;
+  workingDirectory: string;
+}
+
+/**
+ * Live-read a text file from the topic's cloud sandbox via the `readLocalFile`
+ * sandbox tool. There is no durable copy anywhere — a recycled sandbox (or any
+ * tool failure) rejects, surfacing the sandbox-unavailable empty state.
+ */
+const fetchSandboxFilePreview = async (
+  path: string,
+  topicId: string,
+): Promise<LocalFilePreview> => {
+  // `readLocalFile` defaults an omitted range to the first 200 lines — always
+  // request the whole file for previews so long files don't render truncated.
+  const result = await cloudSandboxService.callTool(
+    'readLocalFile',
+    { fullContent: true, path },
+    { topicId },
+  );
+  if (!result.success || typeof result.result?.content !== 'string')
+    throw new Error(result.error?.message || 'Failed to read sandbox file');
+
+  return {
+    content: result.result.content,
+    contentType: result.result.mimeType || 'text/plain',
+    type: 'text',
+  };
+};
+
+const ActiveFileView = memo<ActiveFileViewProps>(
+  ({
+    activeTopicId,
+    allowExternalFilePreview,
+    deviceId,
+    filePath,
+    sandboxTopicId,
+    workingDirectory,
+  }) => {
+    const { t } = useTranslation('chat');
+
+    const filename = filePath.split('/').at(-1) ?? '';
+    const enabled = sandboxTopicId ? true : Boolean(workingDirectory) && (!!deviceId || isDesktop);
+    const resourceScope =
+      !sandboxTopicId && !deviceId && isHtmlFile({ path: filePath }) ? 'workspace' : undefined;
+    const {
+      data: preview,
+      error,
+      isLoading,
+      isValidating,
+      mutate,
+    } = useClientDataSWR<LocalFilePreview>(
+      enabled
+        ? localFileKeys.preview({
+            allowExternalFile: allowExternalFilePreview,
+            deviceId,
+            filePath,
+            ...(resourceScope && { resourceScope }),
+            ...(sandboxTopicId && { sandboxTopicId }),
+            workingDirectory,
+          })
+        : null,
+      () =>
+        sandboxTopicId
+          ? fetchSandboxFilePreview(filePath, sandboxTopicId)
+          : projectFileService.getLocalFilePreview({
+              allowExternalFile: allowExternalFilePreview,
+              deviceId,
+              path: filePath,
+              ...(resourceScope && { resourceScope }),
+              workingDirectory,
+            }),
+      { revalidateOnFocus: false },
+    );
+
+    const handleSavedContent = useCallback(
+      (saved: string) => {
+        mutate((prev) => (prev && prev.type === 'text' ? { ...prev, content: saved } : prev), {
+          revalidate: false,
+        });
+      },
+      [mutate],
+    );
+
+    const handleReload = useCallback(() => mutate(), [mutate]);
+
+    if (isLoading) return <Loading />;
+
+    if (error || !preview) {
+      return (
+        <Center height={'100%'} width={'100%'}>
+          <Empty
+            description={t(
+              sandboxTopicId
+                ? 'workingPanel.localFile.sandboxUnavailable'
+                : 'workingPanel.localFile.error',
+            )}
+          />
+        </Center>
+      );
+    }
+
+    if (preview.type === 'image') {
+      return <ImagePreview blob={preview.blob} filename={filename} />;
+    }
+
+    if (preview.type === 'document') {
+      return (
+        <Suspense fallback={<Loading />}>
+          {/* Key by source + path: without a remount, switching between two files of
+              the same document type reuses the pane instance, whose local
+              loading/parse state isn't reset on blob change — the previous file's
+              rendered content lingers until the new one finishes. */}
+          <DocumentPreview
+            blob={preview.blob}
+            contentType={preview.contentType}
+            filePath={filePath}
+            isLocalFile={!sandboxTopicId && !deviceId && isDesktop}
+            key={`${sandboxTopicId ?? deviceId ?? 'local'}:${filePath}`}
+          />
+        </Suspense>
+      );
+    }
+
+    if (preview.type !== 'text') {
+      return (
+        <Center height={'100%'} width={'100%'}>
+          <Empty description={t('workingPanel.localFile.binary')} />
+        </Center>
+      );
+    }
+
+    const ext = getFileExtension(filename);
+
+    return (
+      <TextPreviewPane
+        activeTopicId={activeTopicId}
+        content={preview.content}
+        contentType={preview.contentType}
+        deviceId={deviceId}
+        ext={ext}
+        filePath={filePath}
+        // Remote files are now editable: saveLocalFile routes the write to the
+        // device over RPC (writeProjectFile) just as local files go through IPC.
+        // Sandbox files stay read-only — there is no write-back transport.
+        readOnly={!!sandboxTopicId}
+        reloading={isValidating}
+        resourceBaseUrl={preview.resourceBaseUrl}
+        sandboxTopicId={sandboxTopicId}
+        workingDirectory={workingDirectory}
+        onReload={handleReload}
+        onSaved={handleSavedContent}
+      />
+    );
+  },
+);
+
+ActiveFileView.displayName = 'ActiveFileView';
+
+// ============== Body ==============
+
+const Body = memo(() => {
+  const openLocalFiles = useChatStore(chatPortalSelectors.openLocalFiles);
+  const activeFile = useChatStore(chatPortalSelectors.currentLocalFile);
+  const activeTopicId = useChatStore((s) => s.activeTopicId);
+  const clearPortalStack = useChatStore((s) => s.clearPortalStack);
+
+  useEffect(() => {
+    if (openLocalFiles.length > 0 && activeFile) return;
+
+    clearPortalStack();
+  }, [activeFile, clearPortalStack, openLocalFiles.length]);
+
+  if (openLocalFiles.length === 0) return null;
+  if (!activeFile) return null;
+
+  return (
+    <Flexbox flex={1} height={'100%'} style={{ minHeight: 0, overflow: 'hidden' }}>
+      <ActiveFileView
+        activeTopicId={activeTopicId}
+        allowExternalFilePreview={activeFile.allowExternalFilePreview}
+        deviceId={activeFile.deviceId}
+        filePath={activeFile.filePath}
+        sandboxTopicId={activeFile.sandboxTopicId}
+        workingDirectory={activeFile.workingDirectory}
+      />
+    </Flexbox>
+  );
+});
+
+Body.displayName = 'LocalFileBody';
+
+export default Body;

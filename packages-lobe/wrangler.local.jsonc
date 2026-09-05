@@ -1,0 +1,26 @@
+// Local development / smoke-test configuration for `wrangler dev --local`.
+// Uses dummy secrets and local D1/KV so the Worker boots without any Cloudflare
+// account; Postgres calls fail until DATABASE_URL points at a reachable database.
+{
+  "name": "qwksearch-lobehub-local",
+  "main": "./dist/worker/index.js",
+  "compatibility_date": "2026-03-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  // The Vite build emits code-split chunks next to index.js; upload them as ES modules.
+  "find_additional_modules": true,
+  "rules": [{ "type": "ESModule", "globs": ["chunks/**/*.js"] }],
+  "assets": { "directory": "dist/client", "binding": "ASSETS", "html_handling": "none", "not_found_handling": "none" },
+  "vars": {
+    "APP_URL": "http://localhost:8787",
+    "AUTH_SECRET": "smoke-test-secret-smoke-test-secret",
+    "DATABASE_DRIVER": "node",
+    "DATABASE_URL": "postgres://lobe:lobe@127.0.0.1:5999/lobe",
+    "DISABLE_REDIS": "1",
+    "EMAIL_SERVICE_PROVIDER": "cloudflare",
+    "KEY_VAULTS_SECRET": "c21va2UtdGVzdC1rZXktdmF1bHRzLXNlY3JldC0xMjM0NTY=",
+    "SMTP_FROM": "noreply@qwksearch.com"
+  },
+  "kv_namespaces": [{ "binding": "KV", "id": "smoke-kv" }],
+  "d1_databases": [{ "binding": "DB", "database_name": "qwksearch-new", "database_id": "smoke-d1" }]
+}
