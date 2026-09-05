@@ -17,7 +17,10 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 function resolveAllowOrigin(request: Request): string | null {
-  const origin = request.headers.get("origin");
+  // Optional chaining: some route tests call handlers with a minimal
+  // `{ nextUrl, url }` mock (no `.headers`) since the handler itself never
+  // read headers before. Treat that the same as a same-origin request.
+  const origin = request.headers?.get("origin");
   return origin && ALLOWED_ORIGINS.has(origin) ? origin : null;
 }
 
