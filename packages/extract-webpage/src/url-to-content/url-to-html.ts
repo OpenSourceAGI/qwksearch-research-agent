@@ -4,7 +4,10 @@
  * with bot-detection handling and Cloudflare/JINA fallbacks, plus robots.txt checking.
  */
 import { convertHTMLToBasicHTML } from "../html-to-content/html-to-basic-html";
-import { convertMarkdownToFormattedHTML } from "../html-to-content/html-utils";
+import {
+  convertMarkdownToFormattedHTML,
+  removeMarkdownNavigation,
+} from "../html-to-content/html-utils";
 import grab from "../utils/grab";
 
 /**
@@ -312,9 +315,11 @@ export async function scrapeJINA(url) {
   var match = articleExtract.match(/Markdown Content:([\s\S]*)/);
   articleExtract = match ? match[1] : articleExtract;
 
-  // JINA returns the article body as Markdown. Convert it to formatted HTML
-  // using regexp-based Markdown detection so headers, lists, links, emphasis,
+  // JINA returns the article body as Markdown. Strip reader metadata and
+  // navigation-only link blocks first, then convert to formatted HTML using
+  // regexp-based Markdown detection so headers, lists, links, emphasis,
   // and code render correctly downstream.
+  articleExtract = removeMarkdownNavigation(articleExtract);
   articleExtract = convertMarkdownToFormattedHTML(articleExtract);
 
   if (title) articleExtract = "<title>" + title + "</title>" + articleExtract;

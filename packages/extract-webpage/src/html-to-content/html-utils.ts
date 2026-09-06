@@ -209,6 +209,159 @@ export function convertMarkdownToHTML(content, toHtml = true) {
 }
 
 /**
+ * Regexp patterns that identify Markdown syntax. Each entry is a signal that
+ * the text is Markdown rather than plain text or HTML — {@link detectMarkdown}
+ * counts how many distinct signals match.
+ * @private
+ */
+const MARKDOWN_SYNTAX_PATTERNS = [
+  /^#{1,6}\s+\S/m, // ATX header: # Title
+  /^[^\n]{1,120}\n(?:={3,}|-{3,})[ \t]*$/m, // setext header underline
+  /!\[[^\]]*\]\([^)]+\)/, // image: ![alt](src)
+  /(?<!!)\[[^\]]+\]\([^)]+\)/, // link: [text](href)
+  /^\s{0,3}[-*+]\s+\S/m, // unordered list item
+  /^\s{0,3}\d+[.)]\s+\S/m, // ordered list item
+  /^```/m, // fenced code block
+  /^\s{0,3}>\s+\S/m, // blockquote
+  /\*\*[^*\n]+\*\*|__[^_\n]+__/, // bold
+  /^\|?[^\n|]*\|[^\n]*\n\|?[\s:]*-{2,}[\s|:-]*$/m, // pipe table header + separator
+  /^Markdown Content:$/m, // JINA reader preamble
+];
+
+/**
+ * Detect whether a string is Markdown (rather than HTML or plain text) using
+ * regexp checks. Content that is dominated by HTML tags is never treated as
+ * Markdown, so real scraped pages pass through untouched; text needs at least
+ * two distinct Markdown syntax signals (or several links/images in Markdown
+ * form) to qualify. Used to catch scraper responses (e.g. the JINA reader or
+ * proxies wrapping it) that return Markdown in place of HTML, so it can be
+ * converted before main-content extraction — otherwise the article panel
+ * renders raw `[text](url)` syntax.
+ *
+ * @param {string} text - The content to test.
+ * @returns {boolean} True when the content should be parsed as Markdown.
+ * @category HTML Utilities
+ * @example
+ * detectMarkdown("# Title\n\nSome **bold** text.") // true
+ * detectMarkdown("<html><body><p>Hi</p></body></html>") // false
+ */
+export function detectMarkdown(text) {
+  if (!text || typeof text !== "string") return false;
+
+  const sample = text.slice(0, 20000);
+
+  // HTML dominance check: a document skeleton or a meaningful density of
+  // closing tags means this is HTML, not Markdown.
+  if (/<!doctype\s+html|<html[\s>]|<body[\s>]/i.test(sample)) return false;
+  const closingTags = sample.match(
+    /<\/(?:p|div|a|span|h[1-6]|li|ul|ol|table|section|article|nav|em|strong|b|i)>/gi
+  );
+  if (closingTags && closingTags.length >= 3) return false;
+
+  let signals = 0;
+  for (const pattern of MARKDOWN_SYNTAX_PATTERNS)
+    if (pattern.test(sample)) signals++;
+
+  if (signals >= 2) return true;
+
+  // A single signal still counts when Markdown links/images repeat — the
+  // signature of JINA reader output for link-heavy pages.
+  const mdLinks = sample.match(/!?\[[^\]]*\]\([^)]+\)/g);
+  return signals >= 1 && !!mdLinks && mdLinks.length >= 3;
+}
+
+/**
+ * Line-level regexps for boilerplate that JINA-style Markdown extractions
+ * carry along with the article: reader-preamble metadata and common
+ * navigation/chrome phrases rendered as standalone links.
+ * @private
+ */
+const MARKDOWN_NOISE_LINE_PATTERNS = [
+  /^(?:Title|URL Source|Published Time|Markdown Content|Warning|Links\/Buttons):.*$/i, // JINA metadata
+  /^\[?\s*(?:skip to (?:main )?content|main menu|jump to (?:content|navigation)|menu|navigation|sign (?:in|up)|log ?in|register|subscribe(?: now)?|share(?: this)?|tweet|print|download app|open app|back to top|show all|see all|see more|view all|load more|read more|previous|next|home)\s*\]?\s*(?:\([^)]*\))?\s*$/i, // nav phrases, bare or as a single link
+  /^(?:\W*\s*)?(?:accept(?: all)?(?: cookies)?|we use cookies.*|cookie (?:policy|settings|preferences)|privacy policy|terms of (?:use|service))\s*(?:\([^)]*\))?\]?\s*$/i, // cookie/legal chrome
+];
+
+/**
+ * Matches a line that carries no prose of its own — only Markdown links,
+ * images, bullets, pipes and punctuation. Runs of these are navigation menus,
+ * breadcrumbs, and tag/related-content lists.
+ * @private
+ */
+const MARKDOWN_LINK_ONLY_LINE =
+  /^\s*(?:[-*+>|]\s*)?(?:(?:\[!\[[^\]]*\]\([^)]*\)\]\([^)]*\)|!?\[[^\]]*\]\([^)]*\))\s*(?:[|•·,/>-]\s*)?)+[.\s]*$/;
+
+/**
+ * Remove extra non-article content from a Markdown extraction using regexp
+ * checks: JINA reader metadata lines, cookie/consent and navigation phrases,
+ * and runs of consecutive link-only lines (menus, breadcrumbs, "related"
+ * link farms) whose targets are mostly relative site navigation. Standalone
+ * links inside prose are kept.
+ *
+ * @param {string} markdown - The Markdown content to clean.
+ * @returns {string} The cleaned Markdown.
+ * @category HTML Utilities
+ * @example
+ * removeMarkdownNavigation("Title: Page\n[Skip to content](#main)\nReal text")
+ * // => "Real text"
+ */
+export function removeMarkdownNavigation(markdown) {
+  if (!markdown || typeof markdown !== "string") return "";
+
+  const lines = markdown.replace(/\r\n?/g, "\n").split("\n");
+  const kept = [];
+
+  // First pass: drop noise lines outside fenced code blocks.
+  let inFence = false;
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      kept.push(line);
+      continue;
+    }
+    if (
+      !inFence &&
+      MARKDOWN_NOISE_LINE_PATTERNS.some((pattern) => pattern.test(line.trim()))
+    )
+      continue;
+    kept.push(line);
+  }
+
+  // Second pass: drop runs of 3+ consecutive link-only lines when the run's
+  // links point mostly at relative URLs (`/path`, `#anchor`) — the signature
+  // of site navigation rather than cited external sources.
+  const out = [];
+  let run = [];
+  inFence = false;
+  const flushRun = () => {
+    if (!run.length) return;
+    const runText = run.join("\n");
+    const hrefs = [...runText.matchAll(/!?\[[^\]]*\]\(([^)\s]*)/g)].map(
+      (m) => m[1]
+    );
+    const relative = hrefs.filter(
+      (href) => href.startsWith("/") || href.startsWith("#")
+    );
+    const isNavRun =
+      run.length >= 3 && hrefs.length > 0 && relative.length / hrefs.length >= 0.5;
+    if (!isNavRun) out.push(...run);
+    run = [];
+  };
+  for (const line of kept) {
+    if (/^\s*```/.test(line)) inFence = !inFence;
+    if (!inFence && MARKDOWN_LINK_ONLY_LINE.test(line)) {
+      run.push(line);
+      continue;
+    }
+    flushRun();
+    out.push(line);
+  }
+  flushRun();
+
+  return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/**
  * Escape the HTML-significant characters in a raw string so it can be
  * safely embedded inside generated HTML (used for code spans/blocks).
  * @param {string} str
@@ -231,6 +384,19 @@ function escapeHTMLChars(str) {
  */
 function applyInlineMarkdown(text) {
   return text
+    // Linked images: [![alt](src "title")](href) -- JINA emits these for
+    // thumbnail links; must run before both the image and link rules or the
+    // outer link's label swallows the inner image syntax.
+    .replace(
+      /\[!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)\]\(([^)\s]+)\)/g,
+      (_m, alt, src, href) =>
+        `<a href="${href}"><img src="${src}" alt="${alt}" /></a>`
+    )
+    // Autolinks: <https://example.com>
+    .replace(
+      /<(https?:\/\/[^>\s]+)>/g,
+      (_m, href) => `<a href="${href}">${href}</a>`
+    )
     // Images: ![alt](src "title") -- must run before links
     .replace(
       /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g,
@@ -260,11 +426,12 @@ function applyInlineMarkdown(text) {
  * intended for post-processing content returned as Markdown (e.g. from the
  * JINA reader fallback in the scraper).
  *
- * Supported block elements: ATX headers (`#`..`######`), fenced code blocks
- * (```lang), blockquotes (`>`), unordered lists (`-`, `*`, `+`), ordered lists
- * (`1.`, `1)`), horizontal rules (`---`, `***`, `___`) and paragraphs.
- * Supported inline elements: bold, italic, strikethrough, inline code, images
- * and links.
+ * Supported block elements: ATX headers (`#`..`######`), setext headers
+ * (`===`/`---` underlines), fenced code blocks (```lang), blockquotes (`>`),
+ * unordered lists (`-`, `*`, `+`), ordered lists (`1.`, `1)`), pipe tables,
+ * horizontal rules (`---`, `***`, `___`) and paragraphs.
+ * Supported inline elements: bold, italic, strikethrough, inline code, images,
+ * links, linked images (`[![alt](src)](href)`) and autolinks (`<https://…>`).
  *
  * @param {string} markdown - The Markdown content to convert.
  * @returns {string} The resulting formatted HTML string.
@@ -298,6 +465,45 @@ export function convertMarkdownToFormattedHTML(markdown) {
     inlineCodes.push(`<code>${escapeHTMLChars(code)}</code>`);
     return `\u0000IC${inlineCodes.length - 1}\u0000`;
   });
+
+  // 3. Setext headers: a text line underlined with === (h1) or --- (h2).
+  // Converted to ATX form so the line loop below handles them; JINA uses
+  // long === underlines for page titles.
+  text = text
+    .replace(/^(?![\s#>])([^\n]{1,120})\n={3,}[ \t]*$/gm, "# $1")
+    .replace(/^(?![\s#>|-])([^\n]{0,119}[^\s|-])\n-{3,}[ \t]*$/gm, "## $1");
+
+  // 4. Pipe tables: header row, |---| separator row, then body rows. Swapped
+  // out for placeholders (like code blocks) so the line loop skips them.
+  const tables = [];
+  text = text.replace(
+    /(?<=^|\n)([^\n]*\|[^\n]*)\n\|?[ \t:]*-{2,}[ \t|:-]*\n((?:[^\n]*\|[^\n]*(?:\n|$))*)/g,
+    (_m, headerRow, bodyRows) => {
+      const splitRow = (row) =>
+        row
+          .trim()
+          .replace(/^\||\|$/g, "")
+          .split("|")
+          .map((cell) => applyInlineMarkdown(cell.trim()));
+      const header = splitRow(headerRow)
+        .map((cell) => `<th>${cell}</th>`)
+        .join("");
+      const body = bodyRows
+        .split("\n")
+        .filter((row) => row.trim())
+        .map(
+          (row) =>
+            `<tr>${splitRow(row)
+              .map((cell) => `<td>${cell}</td>`)
+              .join("")}</tr>`
+        )
+        .join("");
+      tables.push(
+        `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`
+      );
+      return `\u0000TB${tables.length - 1}\u0000\n`;
+    }
+  );
 
   const lines = text.split("\n");
   const out = [];
@@ -337,6 +543,16 @@ export function convertMarkdownToFormattedHTML(markdown) {
       closeLists();
       closeBlockquote();
       out.push(codeBlocks[Number(cb[1])]);
+      continue;
+    }
+
+    // Standalone table placeholder line
+    const tb = line.match(/^\u0000TB(\d+)\u0000$/);
+    if (tb) {
+      flushParagraph();
+      closeLists();
+      closeBlockquote();
+      out.push(tables[Number(tb[1])]);
       continue;
     }
 
