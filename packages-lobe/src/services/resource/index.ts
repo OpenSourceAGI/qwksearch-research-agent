@@ -1,0 +1,310 @@
+import { CUSTOM_DOCUMENT_FILE_TYPE, DERIVED_DOCUMENT_SOURCE_TYPE } from '@lobechat/const';
+
+import { type FileListItem, type KnowledgeItemStatus } from '@/types/files';
+import {
+  type CreateResourceParams,
+  type ResourceItem,
+  type ResourceQueryParams,
+  type UpdateResourceParams,
+} from '@/types/resource';
+
+import { type CreateDocumentParams } from '../document';
+import { documentService } from '../document';
+import { fileService } from '../file';
+
+/**
+ * Map FileListItem to ResourceItem
+ */
+const mapToResourceItem = (item: FileListItem): ResourceItem => {
+  return {
+    chunkCount: item.chunkCount,
+    chunkTaskId: item.chunkingStatus ? 'placeholder' : null,
+    chunkingError: item.chunkingError,
+    chunkingStatus: item.chunkingStatus,
+    // Document-specific fields
+    content: item.content,
+
+    createdAt: item.createdAt,
+
+    editorData: item.editorData,
+
+    embeddingError: item.embeddingError,
+
+    embeddingStatus: item.embeddingStatus,
+
+    embeddingTaskId: item.embeddingStatus ? 'placeholder' : null,
+
+    fileId: item.fileId,
+
+    fileType: item.fileType,
+
+    finishEmbedding: item.finishEmbedding,
+
+    id: item.id,
+
+    // Metadata
+    metadata: item.metadata || undefined,
+
+    name: item.name,
+
+    parentId: item.parentId,
+
+    size: item.size,
+
+    slug: item.slug,
+
+    sourceType: item.sourceType as 'file' | 'document',
+
+    updatedAt: item.updatedAt,
+
+    uploader: item.uploader ?? null,
+
+    // File-specific fields
+    url: item.url,
+
+    userId: item.userId,
+
+    visibility: item.visibility,
+  };
+};
+
+type ResourceStatusItem = Pick<
+  ResourceItem,
+  | 'chunkCount'
+  | 'chunkingError'
+  | 'chunkingStatus'
+  | 'embeddingError'
+  | 'embeddingStatus'
+  | 'finishEmbedding'
+  | 'id'
+>;
+
+const mapStatusToResourceItem = (item: KnowledgeItemStatus): ResourceStatusItem => {
+  return {
+    chunkCount: item.chunkCount,
+    chunkingError: item.chunkingError,
+    chunkingStatus: item.chunkingStatus,
+    embeddingError: item.embeddingError,
+    embeddingStatus: item.embeddingStatus,
+    finishEmbedding: item.finishEmbedding,
+    id: item.id,
+  };
+};
+
+/**
+ * ResourceService - Unified service for both files and documents
+ * Provides a thin wrapper over FileService and DocumentService
+ * Used by ResourceManager for optimistic updates
+ */
+export class ResourceService {
+  /**
+   * Query resources (unified files + documents)
+   * Uses KnowledgeRepo UNION ALL query
+   */
+  async queryResources(params: ResourceQueryParams): Promise<{
+    hasMore: boolean;
+    items: ResourceItem[];
+    total?: number;
+  }> {
+    // Map frontend parameter names to backend parameter names
+    const backendParams = {
+      ...params,
+      knowledgeBaseId: params.libraryId, // Map libraryId to knowledgeBaseId
+      libraryId: undefined, // Remove the frontend-specific parameter
+    };
+
+    const response = await fileService.getKnowledgeItems(backendParams);
+
+    return {
+      hasMore: response.hasMore,
+      items: response.items.map(mapToResourceItem),
+      total: 'total' in response ? (response.total as number) : undefined,
+    };
+  }
+
+  async resolveSelectionIds(
+    params: ResourceQueryParams,
+  ): Promise<{ ids: string[]; total: number }> {
+    const backendParams = {
+      ...params,
+      knowledgeBaseId: params.libraryId,
+      libraryId: undefined,
+    };
+
+    return fileService.resolveKnowledgeItemIds(backendParams);
+  }
+
+  async deleteResourcesByQuery(
+    params: ResourceQueryParams,
+    excludedIds?: string[],
+  ): Promise<{ count: number }> {
+    const backendParams = {
+      ...params,
+      excludedIds,
+      knowledgeBaseId: params.libraryId,
+      libraryId: undefined,
+    };
+
+    return fileService.deleteKnowledgeItemsByQuery(backendParams);
+  }
+
+  /**
+   * Get a single resource by ID
+   */
+  async getResource(id: string): Promise<ResourceItem | undefined> {
+    const item = await fileService.getKnowledgeItem(id);
+    return item ? mapToResourceItem(item) : undefined;
+  }
+
+  async getKnowledgeItemStatusesByIds(ids: string[]): Promise<ResourceStatusItem[]> {
+    const items = await fileService.getKnowledgeItemStatusesByIds(ids);
+    return items.map(mapStatusToResourceItem);
+  }
+
+  async getResourceStatusesByIds(ids: string[]): Promise<ResourceStatusItem[]> {
+    return this.getKnowledgeItemStatusesByIds(ids);
+  }
+
+  /**
+   * Create a new resource (file or document)
+   */
+  async createResource(params: CreateResourceParams): Promise<ResourceItem> {
+    if (params.sourceType === 'file') {
+      // Create file
+      const result = await fileService.createFile(
+        {
+          fileType: params.fileType,
+          name: params.name,
+          parentId: params.parentId,
+          size: params.size,
+          url: params.url,
+        },
+        params.knowledgeBaseId,
+      );
+
+      // Fetch the created file to get full details
+      const created = await fileService.getKnowledgeItem(result.id);
+      if (!created) throw new Error('Failed to fetch created file');
+
+      return mapToResourceItem(created);
+    } else {
+      // Create document
+      const documentParams: CreateDocumentParams = {
+        content: params.content || '',
+        editorData: JSON.stringify(params.editorData || {}),
+        fileType: params.fileType,
+        knowledgeBaseId: params.knowledgeBaseId,
+        metadata: params.metadata,
+        parentId: params.parentId,
+        slug: params.slug,
+        title: params.title,
+      };
+
+      const created = await documentService.createDocument(documentParams);
+
+      // Map to ResourceItem
+      return {
+        content: created.content,
+        createdAt: created.createdAt ? new Date(created.createdAt) : new Date(),
+        editorData:
+          typeof created.editorData === 'string'
+            ? JSON.parse(created.editorData)
+            : created.editorData,
+        fileType: created.fileType || CUSTOM_DOCUMENT_FILE_TYPE,
+        id: created.id,
+        metadata: created.metadata || undefined,
+        name: created.title || 'Untitled',
+        parentId: created.parentId,
+        size: created.totalCharCount || 0,
+        slug: created.slug || undefined,
+        sourceType: DERIVED_DOCUMENT_SOURCE_TYPE,
+        title: created.title || undefined,
+        updatedAt: created.updatedAt ? new Date(created.updatedAt) : new Date(),
+        url: created.source || '',
+      };
+    }
+  }
+
+  /**
+   * Update a resource
+   */
+  async updateResource(id: string, updates: UpdateResourceParams): Promise<ResourceItem> {
+    // Check if this is a file or document by fetching it first
+    const existing = await this.getResource(id);
+    if (!existing) throw new Error('Resource not found');
+
+    if (existing.sourceType === 'file') {
+      await fileService.updateFile(id, {
+        metadata: updates.metadata,
+        name: updates.name ?? updates.title,
+        parentId: updates.parentId !== undefined ? updates.parentId : undefined,
+      });
+    } else {
+      await documentService.updateDocument({
+        content: updates.content,
+        editorData: updates.editorData ? JSON.stringify(updates.editorData) : undefined,
+        id,
+        metadata: updates.metadata,
+        parentId: updates.parentId !== undefined ? updates.parentId : undefined,
+        title: updates.title || updates.name,
+      });
+    }
+
+    const updated = await fileService.getKnowledgeItem(id);
+    if (!updated) throw new Error('Failed to fetch updated resource');
+
+    return mapToResourceItem(updated);
+  }
+
+  /**
+   * Delete a resource
+   */
+  async deleteResource(id: string): Promise<void> {
+    // Check if this is a file or document
+    const existing = await this.getResource(id);
+    if (!existing) return; // Already deleted
+
+    if (existing.sourceType === 'file') {
+      await fileService.removeFile(id);
+    } else {
+      await documentService.deleteDocument(id);
+    }
+  }
+
+  /**
+   * Batch delete resources
+   */
+  async deleteResources(ids: string[]): Promise<void> {
+    // Separate files and documents
+    const fileIds: string[] = [];
+    const documentIds: string[] = [];
+
+    await Promise.all(
+      ids.map(async (id) => {
+        const item = await this.getResource(id);
+        if (item) {
+          if (item.sourceType === 'file') {
+            fileIds.push(id);
+          } else {
+            documentIds.push(id);
+          }
+        }
+      }),
+    );
+
+    // Batch delete
+    await Promise.all([
+      fileIds.length > 0 ? fileService.removeFiles(fileIds) : Promise.resolve(),
+      documentIds.length > 0 ? documentService.deleteDocuments(documentIds) : Promise.resolve(),
+    ]);
+  }
+
+  /**
+   * Move a resource to a different parent folder
+   */
+  async moveResource(id: string, parentId: string | null): Promise<ResourceItem> {
+    return this.updateResource(id, { parentId });
+  }
+}
+
+export const resourceService = new ResourceService();

@@ -1,0 +1,306 @@
+/**
+ * Agent Management Executor
+ *
+ * Handles all agent management tool calls for creating, updating,
+ * deleting, searching, and calling AI agents.
+ * Delegates to AgentManagerRuntime for actual implementation.
+ */
+import { AgentManagerRuntime } from '@lobechat/agent-manager-runtime';
+import {
+  BaseExecutor,
+  type BuiltinToolContext,
+  type BuiltinToolResult,
+  type ConversationContext,
+} from '@lobechat/types';
+
+import { agentService } from '@/services/agent';
+import { discoverService } from '@/services/discover';
+import { getAgentStoreState, useAgentStore } from '@/store/agent';
+import { agentSelectors } from '@/store/agent/selectors';
+import { useChatStore } from '@/store/chat';
+import { dispatchNonHeteroSubAgent } from '@/store/chat/slices/agentRun/actions/dispatch/nonHeteroSubAgentDispatcher';
+import { dbMessageSelectors } from '@/store/chat/slices/message/selectors';
+import { messageMapKey } from '@/store/chat/utils/messageMapKey';
+
+import {
+  AgentManagementApiName,
+  AgentManagementIdentifier,
+  type CallAgentParams,
+  type CallAgentState,
+  type CreateAgentParams,
+  type DeleteAgentParams,
+  type DuplicateAgentParams,
+  type GetAgentDetailParams,
+  type InstallPluginParams,
+  type SearchAgentParams,
+  type UpdateAgentParams,
+  type UpdatePromptParams,
+} from './types';
+
+const runtime = new AgentManagerRuntime({
+  agentService,
+  discoverService,
+});
+
+class AgentManagementExecutor extends BaseExecutor<typeof AgentManagementApiName> {
+  readonly identifier = AgentManagementIdentifier;
+  protected readonly apiEnum = AgentManagementApiName;
+
+  // ==================== Agent CRUD ====================
+
+  createAgent = async (params: CreateAgentParams): Promise<BuiltinToolResult> => {
+    return runtime.createAgent(params);
+  };
+
+  updateAgent = async (params: UpdateAgentParams): Promise<BuiltinToolResult> => {
+    const { agentId } = params;
+    // LLMs sometimes double-encode JSON, sending config/meta as stringified JSON
+    // instead of objects. Parse them defensively before passing to runtime.
+    let { config, meta } = params;
+    if (typeof config === 'string') {
+      try {
+        config = JSON.parse(config);
+      } catch {
+        /* ignore */
+      }
+    }
+    if (typeof meta === 'string') {
+      try {
+        meta = JSON.parse(meta);
+      } catch {
+        /* ignore */
+      }
+    }
+    return runtime.updateAgentConfig(agentId, { config, meta });
+  };
+
+  deleteAgent = async (params: DeleteAgentParams): Promise<BuiltinToolResult> => {
+    return runtime.deleteAgent(params.agentId);
+  };
+
+  getAgentDetail = async (params: GetAgentDetailParams): Promise<BuiltinToolResult> => {
+    return runtime.getAgentDetail(params.agentId);
+  };
+
+  duplicateAgent = async (params: DuplicateAgentParams): Promise<BuiltinToolResult> => {
+    return runtime.duplicateAgent(params.agentId, params.newTitle);
+  };
+
+  updatePrompt = async (params: UpdatePromptParams): Promise<BuiltinToolResult> => {
+    return runtime.updatePrompt(params.agentId, { prompt: params.prompt });
+  };
+
+  installPlugin = async (params: InstallPluginParams): Promise<BuiltinToolResult> => {
+    return runtime.installPlugin(params.agentId, {
+      identifier: params.identifier,
+      source: params.source,
+    });
+  };
+
+  // ==================== Search ====================
+
+  searchAgent = async (params: SearchAgentParams): Promise<BuiltinToolResult> => {
+    return runtime.searchAgents(params);
+  };
+
+  // ==================== Execution ====================
+
+  callAgent = async (
+    params: CallAgentParams,
+    ctx: BuiltinToolContext,
+  ): Promise<BuiltinToolResult> => {
+    const {
+      agentId,
+      instruction,
+      runAsTask,
+      taskTitle,
+      timeout,
+      skipCallSupervisor = false,
+    } = params;
+
+    if (runAsTask) {
+      // Dispatch as a legacy async agent invocation.
+      // Pre-load target agent config to ensure it exists
+      const targetAgentExists = useAgentStore.getState().agentMap[agentId];
+      if (!targetAgentExists) {
+        try {
+          const config = await agentService.getAgentConfigById(agentId);
+          if (!config) {
+            return {
+              content: `Agent "${agentId}" not found in your workspace. Please check the agent ID and try again.`,
+              success: false,
+            };
+          }
+          useAgentStore.getState().internal_dispatchAgentMap(agentId, config);
+        } catch (error) {
+          console.error('[callAgent] Failed to load agent config:', error);
+          return {
+            content: `Failed to load agent "${agentId}": ${(error as Error).message}`,
+            success: false,
+          };
+        }
+      }
+
+      // Return special state recognized by AgentRuntime's exec_sub_agent executor.
+      // callAgent keeps this alias until it is redesigned as an explicit agent invocation.
+      return {
+        content: `🚀 Triggered async task to call agent "${agentId}"${taskTitle ? `: ${taskTitle}` : ''}`,
+        state: {
+          parentMessageId: ctx.messageId,
+          task: {
+            description: taskTitle || `Call agent ${agentId}`,
+            instruction,
+            targetAgentId: agentId, // Special field for callAgent - indicates target agent
+            timeout: timeout || 1_800_000,
+          },
+          type: 'execSubAgent',
+        },
+        stop: true,
+        success: true,
+      };
+    }
+
+    // Execute as synchronous speak
+    // Two modes: Group vs Agents
+
+    // Mode 1: Group environment - use group orchestration
+    if (ctx.groupId && ctx.groupOrchestration && ctx.agentId && ctx.registerAfterCompletion) {
+      // Register afterCompletion callback to trigger group orchestration
+      ctx.registerAfterCompletion(() =>
+        ctx.groupOrchestration!.triggerSpeak({
+          agentId,
+          instruction,
+          skipCallSupervisor,
+          supervisorAgentId: ctx.agentId!,
+        }),
+      );
+
+      return {
+        content: `Triggered agent "${agentId}" to respond.`,
+        state: {
+          agentId,
+          instruction,
+          mode: 'speak',
+          skipCallSupervisor,
+        } as CallAgentState,
+        stop: true,
+        success: true,
+      };
+    }
+
+    // Mode 2: Agents mode (non-group) - execute directly with subAgentId
+    if (ctx.registerAfterCompletion) {
+      // Pre-load target agent config if not already loaded (before registerAfterCompletion)
+      // This ensures we fail fast with a clear error message if agent doesn't exist
+      const targetAgentExists = useAgentStore.getState().agentMap[agentId];
+      if (!targetAgentExists) {
+        try {
+          const config = await agentService.getAgentConfigById(agentId);
+          if (!config) {
+            return {
+              content: `Agent "${agentId}" not found in your workspace. Please check the agent ID and try again.`,
+              success: false,
+            };
+          }
+          useAgentStore.getState().internal_dispatchAgentMap(agentId, config);
+        } catch (error) {
+          console.error('[callAgent] Failed to load agent config:', error);
+          return {
+            content: `Failed to load agent "${agentId}": ${(error as Error).message}`,
+            success: false,
+          };
+        }
+      }
+
+      // Register afterCompletion to execute the agent.
+      // Runtime routing is fully delegated to dispatchNonHeteroSubAgent ().
+      ctx.registerAfterCompletion(async () => {
+        const get = useChatStore.getState;
+
+        const conversationContext: ConversationContext = {
+          agentId: ctx.agentId || '',
+          topicId: ctx.topicId || null,
+        };
+
+        // Get current messages for client-mode runner (gateway loads from DB).
+        const chatKey = messageMapKey(conversationContext);
+        const messages = dbMessageSelectors.getDbMessagesByKey(chatKey)(get());
+
+        if (messages.length === 0) {
+          console.error('[callAgent] No messages found in current conversation');
+          return;
+        }
+
+        // Inject a virtual instruction message so the sub-agent has clear direction.
+        // Only used by the client runner; gateway mode sends `instruction` as a real
+        // user message via dispatchNonHeteroSubAgent.
+        const now = Date.now();
+        const messagesWithInstruction = instruction
+          ? [
+              ...messages,
+              {
+                content: `<speaker name="Supervisor" />\n${instruction}`,
+                createdAt: now,
+                id: `virtual_speak_instruction_${now}`,
+                role: 'user' as const,
+                updatedAt: now,
+              },
+            ]
+          : messages;
+
+        const parentAgentConfig = conversationContext.agentId
+          ? agentSelectors.getAgentConfigById(conversationContext.agentId)(getAgentStoreState())
+          : undefined;
+
+        try {
+          await dispatchNonHeteroSubAgent(
+            {
+              kind: 'callAgent',
+              targetAgentId: agentId,
+              instruction,
+              parentMessageId: ctx.messageId,
+            },
+            {
+              conversationContext,
+              heterogeneousProvider: parentAgentConfig?.agencyConfig?.heterogeneousProvider,
+              isGatewayMode: get().isGatewayModeEnabled(),
+              messages: messagesWithInstruction,
+            },
+            get(),
+          );
+        } catch (error) {
+          console.error('[callAgent] dispatchNonHeteroSubAgent failed:', error);
+          throw error;
+        }
+      });
+
+      return {
+        content: `Called agent "${agentId}" to respond.`,
+        state: {
+          agentId,
+          instruction,
+          mode: 'speak',
+          skipCallSupervisor,
+        } as CallAgentState,
+        stop: true,
+        success: true,
+      };
+    }
+
+    // Fallback if registerAfterCompletion not available
+    console.warn('[callAgent] registerAfterCompletion not available in context');
+    return {
+      content: `Called agent "${agentId}" but execution may not complete properly.`,
+      state: {
+        agentId,
+        instruction,
+        mode: 'speak',
+        skipCallSupervisor,
+      } as CallAgentState,
+      stop: true,
+      success: false,
+    };
+  };
+}
+
+export const agentManagementExecutor = new AgentManagementExecutor();

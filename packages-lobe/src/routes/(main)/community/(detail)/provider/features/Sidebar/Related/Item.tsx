@@ -1,0 +1,59 @@
+import { ProviderIcon } from '@lobehub/icons';
+import { Block, Flexbox } from '@lobehub/ui';
+import { Text } from '@lobehub/ui/base-ui';
+import { createStaticStyles } from 'antd-style';
+import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
+
+import { type DiscoverProviderItem } from '@/types/discover';
+
+const styles = createStaticStyles(({ css, cssVar }) => {
+  return {
+    desc: css`
+      flex: 1;
+      margin: 0 !important;
+      font-size: 14px !important;
+      color: ${cssVar.colorTextSecondary};
+    `,
+    title: css`
+      margin: 0 !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+
+      &:hover {
+        color: ${cssVar.colorLink};
+      }
+    `,
+  };
+});
+
+const RelatedItem = memo<DiscoverProviderItem>(({ description, identifier, name }) => {
+  const { t } = useTranslation('providers');
+  return (
+    <Block horizontal gap={12} key={identifier} padding={12} variant={'outlined'}>
+      <ProviderIcon provider={identifier} size={40} style={{ flex: 'none' }} type={'avatar'} />
+      <Flexbox
+        flex={1}
+        gap={6}
+        style={{
+          overflow: 'hidden',
+        }}
+      >
+        <Text ellipsis as={'h2'} className={styles.title}>
+          {name}
+        </Text>
+        <Text
+          as={'p'}
+          className={styles.desc}
+          ellipsis={{
+            rows: 2,
+          }}
+        >
+          {description && t(`${identifier}.description`, { defaultValue: description })}
+        </Text>
+      </Flexbox>
+    </Block>
+  );
+});
+
+export default RelatedItem;

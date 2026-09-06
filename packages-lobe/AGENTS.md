@@ -1,0 +1,146 @@
+# LobeHub Development Guidelines
+
+Guidelines for using AI coding agents in this opensource LobeHub repository.
+
+## Tech Stack
+
+- Next.js 16 + React 19 + TypeScript
+- SPA inside Next.js with `react-router-dom`
+- `@lobehub/ui`, antd, and antd-style for UI implementation
+- react-i18next for i18n; zustand for state management
+- SWR for data fetching; TRPC for type-safe backend
+- Drizzle ORM with PostgreSQL; Vitest for testing
+
+## Agent Skills
+
+`AGENTS.md` owns repository-wide architecture and workflow. Keep detailed implementation rules in skills so they have one source of truth.
+
+- **React and TSX**: Before editing components, component state, render boundaries, or memoization, read [`.agents/skills/react/SKILL.md`](.agents/skills/react/SKILL.md). It owns component selection, styling, state locality, and render-performance rules.
+- **Heavy domain features**: When splitting a fat Viewer/Page into reusable pieces (page vs portal vs share vs micro-app), read [`.agents/skills/compose-atoms/SKILL.md`](.agents/skills/compose-atoms/SKILL.md). Split on mountable capabilities, not visual sections, and do not hide unused work behind `readOnly` / `mode` flags.
+
+## Project Structure
+
+```plaintext
+lobehub/
+├── apps/
+│   ├── desktop/            # Electron desktop app
+│   ├── cli/                # LobeHub CLI
+│   └── server/             # Backend service (Hono app + server routers/services)
+├── packages/               # Shared packages (@lobechat/*)
+│   ├── database/           # Database schemas, models, repositories
+│   ├── agent-runtime/      # Agent runtime
+│   ├── locales/            # i18n source: packages/locales/src/default/
+│   ├── env/                # env schemas (@/envs/* → packages/env/src/*)
+│   └── ...
+├── src/
+│   ├── app/                # Next.js App Router (route shell + auth)
+│   │   ├── (backend)/      # Backend route shells
+│   │   ├── spa/            # SPA HTML template service
+│   │   └── spa-auth/       # Auth HTML shell (SSR)
+│   ├── routes/             # SPA page segments (thin — delegate to features/)
+│   │   ├── (main)/ (mobile)/ (desktop)/ (popup)/
+│   │   ├── auth/           # Auth page segments (signin, signup, …)
+│   │   ├── onboarding/ share/
+│   ├── spa/                # SPA entry points and router config
+│   │   ├── entry.{web,mobile,desktop,popup}.tsx
+│   │   └── router/         # React Router configuration
+│   ├── store/              # Zustand stores
+│   ├── services/           # Client services
+│   ├── libs/               # Shared client/server helpers for the app shell
+│   └── ...
+└── e2e/                    # E2E tests (Cucumber + Playwright)
+```
+
+## SPA Routes and Features
+
+SPA-related code is grouped under `src/spa/` (entries + router) and `src/routes/` (page segments). We use a **roots vs features** split: route trees only hold page segments; business logic and UI live in features.
+
+- **`src/spa/`** – SPA entry points (`entry.web.tsx`, `entry.mobile.tsx`, `entry.desktop.tsx`, `entry.popup.tsx`) and React Router config (`router/`, with `desktopRouter.config.*`, `mobileRouter.config.tsx`, `popupRouter.config.tsx`). Keeps router config next to entries to avoid confusion with `src/routes/`.
+
+- **`src/routes/` (roots)**\
+  Only page-segment files: `_layout/index.tsx`, `index.tsx` (or `page.tsx`), and dynamic segments like `[id]/index.tsx`. Keep these **thin**: they should only import from `@/features/*` and compose layout/page, with no business logic or heavy UI.
+
+- **`src/features/`**\
+  Business components by **domain** (e.g. `Pages`, `PageEditor`, `Home`). Put layout chunks (sidebar, header, body), hooks, and domain-specific UI here. Each feature exposes an `index.ts` (or `index.tsx`) with clear exports.
+
+When adding or changing SPA routes:
+
+1. In `src/routes/`, add only the route segment files (layout + page) that delegate to features.
+2. Implement layout and page content under `src/features/<Domain>/` and export from there.
+3. In route files, use `import { X } from '@/features/<Domain>'` (or `import Y from '@/features/<Domain>/...'`). Do not add new `features/` folders inside `src/routes/`.
+4. **Register shared desktop content routes once:** add common Web/Electron paths, nesting, metadata, lazy loaders, and `preloadId` values in `src/spa/router/desktopRouter.shared.tsx`. The thin `desktopRouter.config.tsx` and `desktopRouter.config.desktop.tsx` files contain only runtime differences: Web mounts the content tree directly, while Electron keeps slim root stubs and mounts the same tree in per-tab memory routers through `src/spa/router/tabRouter.tsx`. Add code to a platform adapter only when the route is genuinely platform-specific. `desktopRouter.sync.test.tsx` guards the shared behavior and explicit differences — keep it passing.
+
+See the **spa-routes** skill for the full convention and file-division rules.
+
+## Development
+
+### Starting the Dev Environment
+
+```bash
+# SPA dev mode (frontend only, proxies API to localhost:3010)
+bun run dev:spa
+
+# Full-stack dev (Next.js + Vite SPA concurrently)
+bun run dev
+
+# Standalone Hono backend service
+pnpm --filter @lobechat/server dev
+```
+
+### Backend Architecture
+
+- Backend runtime code lives under `apps/server/src` and is imported through `@/server/*`.
+- `src/app/(backend)` contains Next.js route shells. Do not add backend business logic there.
+- Web shell helpers belong under `src/libs/*` or the relevant `src/app` segment, not under `src/server`.
+
+After `dev:spa` starts, the terminal prints a **Debug Proxy** URL:
+
+```plaintext
+Debug Proxy: https://app.lobehub.com/_dangerous_local_dev_proxy?debug-host=http%3A%2F%2Flocalhost%3A9876
+```
+
+Open this URL to develop locally against the production backend (app.lobehub.com). The proxy page loads your local Vite dev server's SPA into the online environment, enabling HMR with real server config.
+
+### Git Workflow
+
+- **Branch strategy**: `canary` is the development branch (cloud production); `main` is the release branch (periodically cherry-picks from canary)
+- New branches should be created from `canary`; PRs should target `canary`
+- Use rebase for `git pull`
+- Commit messages: prefix with gitmoji
+- Branch format: `<type>/<feature-name>`
+
+### Package Management
+
+- `pnpm` for dependency management
+- `bun` to run npm scripts
+- `bunx` for executable npm packages
+
+### Quality Check
+
+```bash
+bun run check [changed-files...]
+```
+
+- Every bug fix must include a corresponding regression test that fails before the fix and passes after it. **Skip** when the fix is pure style/CSS (selector, hover, mask, spacing, color) and the only practical assertion would be source-string matching on the stylesheet — that is not a regression test worth shipping.
+- No selector = **lint + test in a single pass** — run it once; don't fire a separate pass per selector. `--lint` / `--test` / `--type` narrow scope and are composable within one run. Default files = all working-tree changes (staged + unstaged + untracked); explicit paths override.
+- `--lint` auto-fixes the given files and prints the applied fixes as a diff, so you can review what changed.
+- `--test` auto-discovers the related tests for the given source files and runs them under the nearest owning vitest config (e.g. `packages/database`) — no need to `cd` into packages.
+- `--type` runs the full type-check. NEVER run `bun run test` — the full suite takes \~10 minutes.
+- To run tests manually (e.g. a single file or unusual flags), `cd` into the owning package first: `cd packages/database && bunx vitest run --silent='passed-only' '[file-path]'`.
+
+### i18n
+
+- Add keys to a namespace file under `packages/locales/src/default/` (e.g. `agent.ts`, `auth.ts`)
+- Ship en-US and zh-CN by hand in the same PR: author the English source in `packages/locales/src/default/*.ts`, mirror it to `locales/en-US/`, and hand-translate `locales/zh-CN/`.
+- Leave all other locales to the daily CI workflow (`.github/workflows/auto-i18n.yml`), which runs `bun run i18n` and opens an automated translation PR. Missing locale keys fall back to English until that PR is merged.
+- Run `bun run i18n` manually only when the translated locales are needed immediately instead of waiting for the daily workflow. It is slow and requires `OPENAI_API_KEY`; don't hand-translate the generated locales.
+
+### Code Style
+
+- When a single file grows beyond \~800 lines, consider splitting it into multiple files (extract sub-components, hooks, helpers, or types). Smaller, focused files are friendly to humans and agents.
+
+### Code Review
+
+Before reviewing a PR / diff / branch change, read the **deep-review** skill. Ordinary review requests use its light mode (one independent reviewer against the dimension quick checklists); the full multi-subagent deep mode runs only on explicit invocation.
+
+When designing or reviewing user-facing flows (empty/loading/error states, confirmations, async feedback, button hierarchy, lists at scale, pickers), follow LobeHub's design values in [`DESIGN.md`](./DESIGN.md) — Natural / Meaningful / Certainty / Growth (自然 / 意义感 / 确定性 / 成长).

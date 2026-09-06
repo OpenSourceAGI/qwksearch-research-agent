@@ -1,0 +1,293 @@
+import type { BuiltinToolManifest } from '@lobechat/types';
+
+import { systemPrompt } from './systemRole';
+import { AgentDocumentsApiName, AgentDocumentsIdentifier } from './types';
+
+const AGENT_DOCUMENT_ID_DESCRIPTION =
+  'Target agent document ID. Use the "id" field returned by listDocuments, not "documentId".';
+
+export const AgentDocumentsManifest: BuiltinToolManifest = {
+  api: [
+    {
+      description:
+        'Create a new agent document. This is the document-create operation (similar intent to touch/create with initial content).',
+      name: AgentDocumentsApiName.createDocument,
+      parameters: {
+        properties: {
+          content: {
+            description: 'Document content in markdown or plain text.',
+            type: 'string',
+          },
+          hintIsSkill: {
+            default: false,
+            description:
+              'Set true only when the document captures reusable procedural knowledge or durable agent behavior.',
+            type: 'boolean',
+          },
+          scope: {
+            default: 'agent',
+            description:
+              'Where to create the document. Use currentTopic to associate it with the current topic; defaults to agent-scoped documents.',
+            enum: ['agent', 'currentTopic'],
+            type: 'string',
+          },
+          title: {
+            description: 'Document title.',
+            type: 'string',
+          },
+        },
+        required: ['title', 'content'],
+        type: 'object',
+      },
+      work: {
+        action: 'create',
+        resourceType: 'document',
+      },
+    },
+    {
+      description:
+        'Read an existing agent document by ID. Prefer XML format before node-level edits because XML includes stable node IDs.',
+      name: AgentDocumentsApiName.readDocument,
+      parameters: {
+        properties: {
+          format: {
+            default: 'xml',
+            description:
+              'The format to return. Use "xml" for node-level edits, "markdown" for plain text, or "both". Defaults to "xml".',
+            enum: ['xml', 'markdown', 'both'],
+            type: 'string',
+          },
+          id: {
+            description: AGENT_DOCUMENT_ID_DESCRIPTION,
+            type: 'string',
+          },
+        },
+        required: ['id'],
+        type: 'object',
+      },
+    },
+    {
+      description:
+        'Replace the entire content of an existing agent document by ID. Use this only when overwriting most or all of the document. Prefer modifyNodes for targeted edits.',
+      name: AgentDocumentsApiName.replaceDocumentContent,
+      parameters: {
+        properties: {
+          content: {
+            description: 'New full document content.',
+            type: 'string',
+          },
+          id: {
+            description: AGENT_DOCUMENT_ID_DESCRIPTION,
+            type: 'string',
+          },
+        },
+        required: ['id', 'content'],
+        type: 'object',
+      },
+      work: {
+        action: 'update',
+        resourceType: 'document',
+      },
+    },
+    {
+      description:
+        'Perform LiteXML node operations (insert, modify, remove) on an agent document by ID. Use this for content edits after reading the document in XML format.',
+      name: AgentDocumentsApiName.modifyNodes,
+      parameters: {
+        properties: {
+          id: {
+            description: AGENT_DOCUMENT_ID_DESCRIPTION,
+            type: 'string',
+          },
+          operations: {
+            description:
+              'Array of node operations. For insert, provide beforeId or afterId plus LiteXML without an id. For modify, provide LiteXML with existing node IDs. For remove, provide the node id.',
+            items: {
+              oneOf: [
+                {
+                  properties: {
+                    action: { const: 'insert', type: 'string' },
+                    beforeId: { description: 'ID of the node to insert before.', type: 'string' },
+                    litexml: { description: 'LiteXML node to insert.', type: 'string' },
+                  },
+                  required: ['action', 'beforeId', 'litexml'],
+                  type: 'object',
+                },
+                {
+                  properties: {
+                    action: { const: 'insert', type: 'string' },
+                    afterId: { description: 'ID of the node to insert after.', type: 'string' },
+                    litexml: { description: 'LiteXML node to insert.', type: 'string' },
+                  },
+                  required: ['action', 'afterId', 'litexml'],
+                  type: 'object',
+                },
+                {
+                  properties: {
+                    action: { const: 'modify', type: 'string' },
+                    litexml: {
+                      description:
+                        'LiteXML string or array of strings with existing node IDs to update.',
+                      oneOf: [{ type: 'string' }, { items: { type: 'string' }, type: 'array' }],
+                    },
+                  },
+                  required: ['action', 'litexml'],
+                  type: 'object',
+                },
+                {
+                  properties: {
+                    action: { const: 'remove', type: 'string' },
+                    id: { description: 'ID of the node to remove.', type: 'string' },
+                  },
+                  required: ['action', 'id'],
+                  type: 'object',
+                },
+              ],
+            },
+            minItems: 1,
+            type: 'array',
+          },
+        },
+        required: ['id', 'operations'],
+        type: 'object',
+      },
+      work: {
+        action: 'update',
+        resourceType: 'document',
+      },
+    },
+    {
+      description: 'Remove an existing agent document by ID (similar intent to rm/delete).',
+      name: AgentDocumentsApiName.removeDocument,
+      parameters: {
+        properties: {
+          id: {
+            description: AGENT_DOCUMENT_ID_DESCRIPTION,
+            type: 'string',
+          },
+        },
+        required: ['id'],
+        type: 'object',
+      },
+      work: {
+        action: 'delete',
+        resourceType: 'document',
+      },
+    },
+    {
+      description:
+        'Rename an existing document title by ID (similar intent to mv/rename title-level operation).',
+      name: AgentDocumentsApiName.renameDocument,
+      parameters: {
+        properties: {
+          id: {
+            description: AGENT_DOCUMENT_ID_DESCRIPTION,
+            type: 'string',
+          },
+          newTitle: {
+            description: 'New title after rename.',
+            type: 'string',
+          },
+        },
+        required: ['id', 'newTitle'],
+        type: 'object',
+      },
+      work: {
+        action: 'update',
+        resourceType: 'document',
+      },
+    },
+    {
+      description: 'Copy an existing document to a new document (similar intent to cp/copy).',
+      name: AgentDocumentsApiName.copyDocument,
+      parameters: {
+        properties: {
+          id: {
+            description: 'Source document ID.',
+            type: 'string',
+          },
+          newTitle: {
+            description: 'Optional title for the copied document.',
+            type: 'string',
+          },
+        },
+        required: ['id'],
+        type: 'object',
+      },
+      work: {
+        action: 'create',
+        resourceType: 'document',
+      },
+    },
+    {
+      description:
+        'List agent documents. Use this to discover documents that are not auto-injected (e.g. web-crawled pages), to expand a folder collapsed in the agent_documents_index, or to resolve a title to a document ID.',
+      name: AgentDocumentsApiName.listDocuments,
+      parameters: {
+        properties: {
+          parentId: {
+            description:
+              'Restrict the listing to the direct children of this folder. Pass the folder id shown on a collapsed 📁 row in the agent_documents_index to expand that folder.',
+            type: 'string',
+          },
+          scope: {
+            default: 'agent',
+            description:
+              'Which document set to list. Defaults to "agent" (all agent-scoped documents). Use "currentTopic" to filter to documents associated with the current topic.',
+            enum: ['agent', 'currentTopic'],
+            type: 'string',
+          },
+          sourceType: {
+            default: 'all',
+            description:
+              'Filter by document source. "file" = user-created or uploaded; "web" = crawled from external URLs; "all" returns both. Web-crawled documents are hidden from the default agent_documents_index — pass sourceType="web" here to see them.',
+            enum: ['all', 'file', 'web'],
+            type: 'string',
+          },
+        },
+        required: [],
+        type: 'object',
+      },
+    },
+    {
+      description:
+        'Update agent-document load rules. Use this to control how documents are loaded into runtime context.',
+      name: AgentDocumentsApiName.updateLoadRule,
+      parameters: {
+        properties: {
+          id: {
+            description: AGENT_DOCUMENT_ID_DESCRIPTION,
+            type: 'string',
+          },
+          rule: {
+            description: 'New load rule settings.',
+            properties: {
+              maxTokens: {
+                description: 'Maximum token budget for this document when injected.',
+                minimum: 0,
+                type: 'number',
+              },
+              priority: {
+                description: 'Lower value means higher load priority.',
+                minimum: 0,
+                type: 'number',
+              },
+            },
+            type: 'object',
+          },
+        },
+        required: ['id', 'rule'],
+        type: 'object',
+      },
+    },
+  ],
+  identifier: AgentDocumentsIdentifier,
+  meta: {
+    avatar: '🗂️',
+    description:
+      'Manage agent-scoped documents (list/create/read/edit/remove/rename/copy/upsert) and load rules',
+    title: 'Documents',
+  },
+  systemRole: systemPrompt,
+  type: 'builtin',
+};

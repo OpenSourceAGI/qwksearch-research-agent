@@ -1,0 +1,88 @@
+import isEqual from 'fast-deep-equal';
+import { type SWRResponse } from 'swr';
+
+import { type SidebarAgentItem, type SidebarAgentListResponse } from '@/database/repositories/home';
+import { mutate, useClientDataSWR, useClientDataSWRWithSync } from '@/libs/swr';
+import { agentConfigKeys, agentKeys } from '@/libs/swr/keys';
+import { homeService } from '@/services/home';
+import { getAgentStoreState } from '@/store/agent';
+import { type HomeStore } from '@/store/home/store';
+import { type StoreSetter } from '@/store/types';
+import { setNamespace } from '@/utils/storeDebug';
+
+import { mapResponseToState } from './initialState';
+
+const n = setNamespace('agentList');
+
+type Setter = StoreSetter<HomeStore>;
+export const createAgentListSlice = (set: Setter, get: () => HomeStore, _api?: unknown) =>
+  new AgentListActionImpl(set, get, _api);
+
+export class AgentListActionImpl {
+  readonly #get: () => HomeStore;
+  readonly #set: Setter;
+
+  constructor(set: Setter, get: () => HomeStore, _api?: unknown) {
+    void _api;
+    this.#set = set;
+    this.#get = get;
+  }
+
+  closeAllAgentsDrawer = (): void => {
+    this.#set({ allAgentsDrawerOpen: false }, false, n('closeAllAgentsDrawer'));
+  };
+
+  openAllAgentsDrawer = (): void => {
+    this.#set({ allAgentsDrawerOpen: true }, false, n('openAllAgentsDrawer'));
+  };
+
+  refreshAgentList = async (): Promise<void> => {
+    getAgentStoreState().invalidateAvailableAgents();
+    await mutate(agentKeys.list(true));
+  };
+
+  useFetchAgentList = (isLogin: boolean | undefined): SWRResponse<SidebarAgentListResponse> => {
+    return useClientDataSWRWithSync<SidebarAgentListResponse>(
+      isLogin === true ? agentKeys.list(isLogin) : null,
+      () => homeService.getSidebarAgentList(),
+      {
+        onData: (data) => {
+          const state = this.#get();
+          const newState = mapResponseToState(data);
+
+          // Skip update if data is the same
+          if (
+            state.isAgentListInit &&
+            isEqual(state.pinnedAgents, newState.pinnedAgents) &&
+            isEqual(state.agentGroups, newState.agentGroups) &&
+            isEqual(state.ungroupedAgents, newState.ungroupedAgents) &&
+            isEqual(state.privateAgentGroups, newState.privateAgentGroups) &&
+            isEqual(state.privatePinnedAgents, newState.privatePinnedAgents) &&
+            isEqual(state.privateUngroupedAgents, newState.privateUngroupedAgents)
+          ) {
+            return;
+          }
+
+          this.#set(
+            {
+              ...newState,
+              isAgentListInit: true,
+            },
+            false,
+            n('useFetchAgentList/onData'),
+          );
+        },
+      },
+    );
+  };
+
+  useSearchAgents = (keyword?: string): SWRResponse<SidebarAgentItem[]> => {
+    return useClientDataSWR<SidebarAgentItem[]>(agentConfigKeys.search(keyword), async () => {
+      if (!keyword) return [];
+
+      return homeService.searchAgents(keyword);
+    });
+  };
+}
+
+export type AgentListAction = Pick<AgentListActionImpl, keyof AgentListActionImpl>;

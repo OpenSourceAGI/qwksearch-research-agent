@@ -1,0 +1,128 @@
+import { render, screen } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { ChatSettingsTabs } from '@/store/global/initialState';
+
+import Content from './Content';
+
+const mocks = vi.hoisted(() => ({
+  agentState: {
+    activeAgentId: 'inbox-agent',
+    config: {},
+    isCurrentAgentHeterogeneous: false,
+    isInbox: true,
+    meta: {},
+    optimisticUpdateAgentConfig: vi.fn(),
+    optimisticUpdateAgentMeta: vi.fn(),
+  },
+  serverState: {
+    featureFlags: {
+      enableAgentSelfIteration: true,
+    },
+  },
+}));
+
+vi.mock('@/features/AgentSetting', () => ({
+  AgentSettings: ({ tab }: { tab: ChatSettingsTabs }) => (
+    <div data-tab={tab} data-testid="agent-settings-content" />
+  ),
+  SettingsModalLayout: ({
+    activeTab,
+    tabs = [],
+    children,
+  }: {
+    activeTab?: string;
+    children?: ReactNode;
+    tabs?: { key: string }[];
+  }) => (
+    <div
+      data-active={activeTab}
+      data-tabs={tabs.map((tab) => tab.key).join(',')}
+      data-testid="layout"
+    >
+      {children}
+    </div>
+  ),
+}));
+
+vi.mock('@/store/agent', () => {
+  const useAgentStore = (selector: (state: typeof mocks.agentState) => unknown) =>
+    selector(mocks.agentState);
+  useAgentStore.getState = () => mocks.agentState;
+
+  return { useAgentStore };
+});
+
+vi.mock('@/store/agent/selectors', () => ({
+  agentSelectors: {
+    currentAgentConfig: (state: typeof mocks.agentState) => state.config,
+    currentAgentMeta: (state: typeof mocks.agentState) => state.meta,
+    isCurrentAgentHeterogeneous: (state: typeof mocks.agentState) =>
+      state.isCurrentAgentHeterogeneous,
+  },
+  builtinAgentSelectors: {
+    isInboxAgent: (state: typeof mocks.agentState) => state.isInbox,
+  },
+}));
+
+vi.mock('@/store/serverConfig', () => ({
+  featureFlagsSelectors: (state: typeof mocks.serverState) => state.featureFlags,
+  useServerConfigStore: (selector: (state: typeof mocks.serverState) => unknown) =>
+    selector(mocks.serverState),
+}));
+
+describe('AgentSettings Content', () => {
+  beforeEach(() => {
+    mocks.agentState.isInbox = true;
+    mocks.serverState.featureFlags.enableAgentSelfIteration = true;
+  });
+
+  it('exposes both tabs for inbox when feature is on', () => {
+    render(<Content />);
+
+    const layout = screen.getByTestId('layout');
+    expect(layout).toHaveAttribute('data-active', ChatSettingsTabs.Opening);
+    expect(layout).toHaveAttribute(
+      'data-tabs',
+      `${ChatSettingsTabs.Opening},${ChatSettingsTabs.SelfIteration}`,
+    );
+    expect(screen.getByTestId('agent-settings-content')).toHaveAttribute(
+      'data-tab',
+      ChatSettingsTabs.Opening,
+    );
+  });
+
+  it('exposes both tabs when not inbox and feature is on', () => {
+    mocks.agentState.isInbox = false;
+
+    render(<Content />);
+
+    const layout = screen.getByTestId('layout');
+    expect(layout).toHaveAttribute('data-active', ChatSettingsTabs.Opening);
+    expect(layout).toHaveAttribute(
+      'data-tabs',
+      `${ChatSettingsTabs.Opening},${ChatSettingsTabs.SelfIteration}`,
+    );
+  });
+
+  it('falls back to opening when feature flag is off (inbox)', () => {
+    mocks.serverState.featureFlags.enableAgentSelfIteration = false;
+
+    render(<Content />);
+
+    const layout = screen.getByTestId('layout');
+    expect(layout).toHaveAttribute('data-active', ChatSettingsTabs.Opening);
+    expect(layout).toHaveAttribute('data-tabs', ChatSettingsTabs.Opening);
+  });
+
+  it('exposes only opening when feature flag is off', () => {
+    mocks.agentState.isInbox = false;
+    mocks.serverState.featureFlags.enableAgentSelfIteration = false;
+
+    render(<Content />);
+
+    const layout = screen.getByTestId('layout');
+    expect(layout).toHaveAttribute('data-tabs', ChatSettingsTabs.Opening);
+  });
+});

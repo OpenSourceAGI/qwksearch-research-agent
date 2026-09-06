@@ -1,0 +1,84 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "qwksearch-lobehub",
+  "main": "./dist/worker/index.js",
+  "compatibility_date": "2026-03-10",
+  // nodejs_compat also populates `process.env` from vars/secrets, which is how
+  // LobeHub's env schemas read configuration.
+  "compatibility_flags": ["nodejs_compat"],
+  // Same as the qwksearch Worker: never wipe dashboard-entered variables on deploy.
+  "keep_vars": true,
+  "no_bundle": true,
+  // The Vite build emits code-split chunks next to index.js; upload them as ES modules.
+  "find_additional_modules": true,
+  "rules": [{ "type": "ESModule", "globs": ["chunks/**/*.js"] }],
+  "upload_source_maps": false,
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    // Backend paths always reach the Worker even if a static file happens to match.
+    "run_worker_first": ["/api/*", "/trpc/*", "/webapi/*", "/oidc/*", "/f/*"]
+  },
+  "vars": {
+    "APP_URL": "https://qwksearch.com",
+    "DATABASE_DRIVER": "neon",
+    "DISABLE_REDIS": "1",
+    "EMAIL_SERVICE_PROVIDER": "cloudflare",
+    "SMTP_FROM": "noreply@qwksearch.com",
+    "SCRAPER_URL": "https://proxy.qwksearch.com"
+  },
+  // Same infrastructure as the qwksearch Worker: KV, D1 (`qwksearch-new`), R2, Email.
+  "kv_namespaces": [
+    { "binding": "KV", "id": "c53d894414bb4cfda42536c717095d40" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "qwksearch-new",
+      "database_id": "b0ba9a66-e256-43dd-9083-062977c282a4"
+    }
+  ],
+  "r2_buckets": [{ "binding": "R2", "bucket_name": "qwksearch-uploads" }],
+  "send_email": [{ "name": "EMAIL", "destination_address": "noreply@qwksearch.com" }],
+  // Postgres for the LobeHub schema. Create with:
+  //   wrangler hyperdrive create qwksearch-lobehub-pg --connection-string="postgres://…"
+  // and paste the id here. Alternatively set the DATABASE_URL secret to a Neon
+  // URL and leave this section out (DATABASE_DRIVER=neon uses the serverless driver).
+  "hyperdrive": [
+    { "binding": "HYPERDRIVE", "id": "REPLACE_WITH_HYPERDRIVE_ID" }
+  ],
+  "limits": { "cpu_ms": 300000 },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": { "enabled": true, "invocation_logs": true, "persist": true }
+  },
+  "env": {
+    "production": {
+      "keep_vars": true,
+      "vars": {
+        "APP_URL": "https://qwksearch.com",
+        "DATABASE_DRIVER": "neon",
+        "DISABLE_REDIS": "1",
+        "EMAIL_SERVICE_PROVIDER": "cloudflare",
+        "SMTP_FROM": "noreply@qwksearch.com",
+        "SCRAPER_URL": "https://proxy.qwksearch.com"
+      },
+      "kv_namespaces": [
+        { "binding": "KV", "id": "371c242bebfc4de78ed9841ce72c77b3" }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "qwksearch-new",
+          "database_id": "b0ba9a66-e256-43dd-9083-062977c282a4"
+        }
+      ],
+      "r2_buckets": [{ "binding": "R2", "bucket_name": "qwksearch-uploads" }],
+      "send_email": [{ "name": "EMAIL", "destination_address": "noreply@qwksearch.com" }],
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "REPLACE_WITH_HYPERDRIVE_ID" }]
+    }
+  }
+}
