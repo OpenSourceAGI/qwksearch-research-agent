@@ -14,6 +14,7 @@ import { FileManagerModal } from './dialogs/FileManagerModal';
 import { cn } from './app-utils/utils';
 import { SidebarToolbar } from './SidebarToolbar';
 import { SidebarContent } from './SidebarContent';
+import { SidebarFooter } from './SidebarFooter';
 
 /** Translucent, blurred glass background — matches the app dock and weather widget. */
 const SIDEBAR_GLASS_CLASSES =
@@ -253,6 +254,21 @@ export const Sidebar = ({
     onNewChat,
   };
 
+  const footerProps = {
+    leftPanels,
+    leftSplit,
+    onLeftPanelsChange,
+    onLeftSplitChange,
+    rightPanels,
+    rightSplit,
+    onRightPanelsChange,
+    onRightSplitChange,
+    isMobile,
+    deletedDocs,
+    onRestore,
+    onSettingsClick,
+  };
+
   // Mobile: render in a drawer
   if (isMobile) {
     return (
@@ -263,6 +279,7 @@ export const Sidebar = ({
             <div className="flex-1 min-h-0 overflow-hidden">
               <SidebarContent {...contentProps} />
             </div>
+            <SidebarFooter {...footerProps} />
             <FileManagerModal open={isFileManagerOpen} onOpenChange={setIsFileManagerOpen} documents={activeDocuments} onSelectDocument={onSelect} />
           </aside>
         </SheetContent>
@@ -277,6 +294,7 @@ export const Sidebar = ({
       <div className="flex-1 min-h-0 overflow-hidden">
         <SidebarContent {...contentProps} />
       </div>
+      <SidebarFooter {...footerProps} />
       <FileManagerModal open={isFileManagerOpen} onOpenChange={setIsFileManagerOpen} documents={activeDocuments} onSelectDocument={onSelect} />
     </aside>
   );
