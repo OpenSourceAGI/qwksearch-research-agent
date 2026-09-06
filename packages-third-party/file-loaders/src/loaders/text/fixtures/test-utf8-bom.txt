@@ -1,2 +1,0 @@
-﻿Hello UTF-8 BOM.
-Second Line.
