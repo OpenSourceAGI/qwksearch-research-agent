@@ -99,7 +99,6 @@ export const ENGINE_NAMES = [
   "DeviantArt",
   "GitHub",
   "GitLab",
-  "npm",
   "PyPI",
   "crates.io",
   "Docker Hub",
@@ -390,6 +389,170 @@ export const FEATURE_TABS: FeatureTab[] = [
         description:
           "chat-agent-toolkit orchestrates providers, tools, and memory over the Vercel AI SDK, Mastra, and MCP.",
       },
+    ],
+  },
+];
+
+export type ComparisonStatus = "yes" | "partial" | "no" | "paid";
+
+export type ComparisonCell = {
+  status: ComparisonStatus;
+  note?: string;
+};
+
+export type ComparisonRow = {
+  feature: string;
+  /** One cell per entry in COMPARISON_COLUMNS, same order. */
+  cells: ComparisonCell[];
+};
+
+export const COMPARISON_COLUMNS: {
+  name: string;
+  detail?: string;
+  highlight?: boolean;
+}[] = [
+  { name: "QwkSearch", highlight: true },
+  { name: "Perplexity" },
+  { name: "ChatGPT" },
+  { name: "Claude" },
+  { name: "Google", detail: "Search / Gemini" },
+  { name: "Other OSS", detail: "SearXNG, GPT Researcher…" },
+];
+
+export const COMPARISON_ROWS: ComparisonRow[] = [
+  {
+    feature: "Open source",
+    cells: [
+      { status: "yes", note: "Yes" },
+      { status: "no" },
+      { status: "no" },
+      { status: "no" },
+      { status: "no" },
+      { status: "yes", note: "Varies" },
+    ],
+  },
+  {
+    feature: "Self-hostable (Cloudflare Workers, Docker)",
+    cells: [
+      { status: "yes", note: "Yes" },
+      { status: "no" },
+      { status: "no" },
+      { status: "no" },
+      { status: "no" },
+      { status: "yes", note: "Varies" },
+    ],
+  },
+  {
+    feature: "Choice of LLM provider",
+    cells: [
+      { status: "yes", note: "Claude, GPT, Gemini, Grok, Llama & more" },
+      { status: "no", note: "Fixed / limited" },
+      { status: "no", note: "OpenAI only" },
+      { status: "no", note: "Anthropic only" },
+      { status: "no", note: "Gemini only" },
+      { status: "partial", note: "Varies by project" },
+    ],
+  },
+  {
+    feature: "Search coverage",
+    cells: [
+      {
+        status: "yes",
+        note: "100+ sites across 13 categories (web, academic, news, video, files, images…)",
+      },
+      { status: "partial", note: "Web-focused" },
+      { status: "partial", note: "Bing-backed, limited" },
+      { status: "partial", note: "Web search (beta)" },
+      { status: "yes", note: "Broad web index, no AI synthesis by default" },
+      { status: "partial", note: "Meta-search only, no built-in AI" },
+    ],
+  },
+  {
+    feature: "Cited answers with APA formatting",
+    cells: [
+      { status: "yes", note: "Built-in citation extraction & formatting" },
+      { status: "yes", note: "Yes" },
+      { status: "partial", note: "Inconsistent" },
+      { status: "partial", note: "Inconsistent" },
+      { status: "no" },
+      { status: "no" },
+    ],
+  },
+  {
+    feature: "PDF / YouTube / DOCX ingestion",
+    cells: [
+      { status: "yes", note: "With transcript & structure extraction" },
+      { status: "partial", note: "PDF only" },
+      { status: "partial", note: "Limited" },
+      { status: "partial", note: "Limited" },
+      { status: "no" },
+      { status: "no" },
+    ],
+  },
+  {
+    feature: "Research writing / notes editor",
+    cells: [
+      { status: "yes", note: "Full Lexical-based editor with outline notation (REASON)" },
+      { status: "no" },
+      { status: "no" },
+      { status: "no" },
+      { status: "no" },
+      { status: "no" },
+    ],
+  },
+  {
+    feature: "Browser extension",
+    cells: [
+      { status: "yes", note: "AI tab manager" },
+      { status: "yes", note: "Yes" },
+      { status: "partial", note: "Limited" },
+      { status: "no" },
+      { status: "yes", note: "Yes" },
+      { status: "partial", note: "Varies" },
+    ],
+  },
+  {
+    feature: "Desktop app",
+    cells: [
+      { status: "yes", note: "Tauri-based" },
+      { status: "yes", note: "Yes" },
+      { status: "yes", note: "Yes" },
+      { status: "yes", note: "Yes" },
+      { status: "no" },
+      { status: "partial", note: "Varies" },
+    ],
+  },
+  {
+    feature: "Editor / IDE integration",
+    cells: [
+      { status: "yes", note: "VS Code extension" },
+      { status: "no" },
+      { status: "partial", note: "Copilot (separate product)" },
+      { status: "partial", note: "Claude Code (separate product)" },
+      { status: "no" },
+      { status: "partial", note: "Varies" },
+    ],
+  },
+  {
+    feature: "Privacy mode (no saved history)",
+    cells: [
+      { status: "yes", note: "Yes" },
+      { status: "partial", note: "Limited" },
+      { status: "partial", note: "Limited" },
+      { status: "partial", note: "Limited" },
+      { status: "partial", note: "Limited" },
+      { status: "yes", note: "Often, if self-hosted" },
+    ],
+  },
+  {
+    feature: "Pricing",
+    cells: [
+      { status: "yes", note: "Free & open-source, pay-per-use API" },
+      { status: "paid", note: "Subscription" },
+      { status: "paid", note: "Subscription" },
+      { status: "paid", note: "Subscription" },
+      { status: "paid", note: "Freemium" },
+      { status: "yes", note: "Usually free, self-hosted" },
     ],
   },
 ];

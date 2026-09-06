@@ -6,12 +6,15 @@ import {
   ArrowRight,
   Bot,
   Check,
+  CircleDollarSign,
   Download,
   Globe,
   Layers,
+  Minus,
   PenLine,
   Search,
   Sparkles,
+  X,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +29,8 @@ import {
   SpotlightCard,
 } from "@/components/features/effects";
 import {
+  COMPARISON_COLUMNS,
+  COMPARISON_ROWS,
   ENGINE_NAMES,
   FEATURE_TABS,
   PACKAGES,
@@ -34,8 +39,10 @@ import {
   PROVIDERS,
   SEARCH_CATEGORIES,
   STATS,
+  type ComparisonStatus,
 } from "@/components/features/data";
 import { config } from "@/lib/config/site";
+import { cn } from "@/lib/utils";
 
 function SectionHeading({
   eyebrow,
@@ -309,6 +316,123 @@ function BentoGrid() {
   );
 }
 
+const COMPARISON_STATUS_META: Record<
+  ComparisonStatus,
+  { icon: React.ElementType; className: string; label: string }
+> = {
+  yes: { icon: Check, className: "text-emerald-500", label: "Yes" },
+  partial: { icon: Minus, className: "text-amber-500", label: "Partial" },
+  no: { icon: X, className: "text-muted-foreground/40", label: "No" },
+  paid: { icon: CircleDollarSign, className: "text-muted-foreground", label: "Paid" },
+};
+
+function Comparison() {
+  return (
+    <section className="relative px-4 py-20 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <SectionHeading
+          eyebrow="How it compares"
+          title="The only open-source research IDE"
+          blurb="Search breadth, cited answers, document ingestion, and a real writing editor — side by side with the closed alternatives."
+        />
+
+        <Reveal>
+          <div className="qs-border-beam relative isolate overflow-hidden rounded-3xl p-px">
+            <div className="bg-card/80 relative z-10 overflow-hidden rounded-[calc(1.5rem-1px)] border backdrop-blur-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[900px] border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th
+                        scope="col"
+                        className="bg-card sticky left-0 z-10 w-56 border-r px-5 py-4 text-left align-bottom"
+                      >
+                        <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                          Feature
+                        </span>
+                      </th>
+                      {COMPARISON_COLUMNS.map((column) => (
+                        <th
+                          key={column.name}
+                          scope="col"
+                          className={cn(
+                            "px-4 py-4 text-center align-bottom",
+                            column.highlight && "qs-accent-soft",
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              "font-semibold",
+                              column.highlight && "qs-accent-text",
+                            )}
+                          >
+                            {column.name}
+                          </div>
+                          {column.detail && (
+                            <div className="text-muted-foreground text-[11px] font-normal">
+                              {column.detail}
+                            </div>
+                          )}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {COMPARISON_ROWS.map((row) => (
+                      <tr
+                        key={row.feature}
+                        className="hover:bg-muted/30 border-b transition-colors last:border-b-0"
+                      >
+                        <th
+                          scope="row"
+                          className="bg-card sticky left-0 z-10 border-r px-5 py-4 text-left text-sm font-medium"
+                        >
+                          {row.feature}
+                        </th>
+                        {row.cells.map((cell, index) => {
+                          const column = COMPARISON_COLUMNS[index];
+                          const meta = COMPARISON_STATUS_META[cell.status];
+                          return (
+                            <td
+                              key={column.name}
+                              className={cn(
+                                "px-4 py-4 text-center align-top",
+                                column.highlight && "qs-accent-soft",
+                              )}
+                            >
+                              <meta.icon
+                                aria-hidden
+                                className={cn("mx-auto size-4", meta.className)}
+                              />
+                              <span className="sr-only">{meta.label}</span>
+                              {cell.note && (
+                                <div
+                                  className={cn(
+                                    "mx-auto mt-1 max-w-44 text-xs leading-snug",
+                                    column.highlight
+                                      ? "text-foreground/80"
+                                      : "text-muted-foreground",
+                                  )}
+                                >
+                                  {cell.note}
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 function Pipeline() {
   return (
     <section className="relative px-4 py-20 sm:px-6 lg:px-8">
@@ -542,6 +666,7 @@ export function FeaturesView() {
       <VideoDemo />
       <EngineMarquee />
       <BentoGrid />
+      <Comparison />
       <Pipeline />
       <FeatureExplorer />
       <Platforms />
