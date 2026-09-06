@@ -8,6 +8,7 @@ import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { NextRequest, NextResponse } from "next/server";
 import { ConfigModelProvider } from "@/lib/config/types";
 import { getEnv } from "@/lib/config/env";
+import { assertAdmin } from "@/lib/auth/admin";
 
 type SaveConfigBody = {
   key: string;
@@ -54,6 +55,11 @@ export const GET = async (req: NextRequest) => {
 
 export const POST = async (req: NextRequest) => {
   try {
+    // Site-wide config writes are admin-only (the read side stays public —
+    // the regular Settings UI needs it).
+    const guard = await assertAdmin();
+    if (guard) return guard;
+
     const body: SaveConfigBody = await req.json();
 
     if (!body.key || !body.value) {

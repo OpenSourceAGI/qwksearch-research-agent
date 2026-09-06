@@ -1,35 +1,24 @@
 import { cache } from "react";
 import { NextResponse } from "next/server";
-import { getSession, type AuthSession } from "@/lib/auth";
-import { getDB } from "@/lib/database";
-import { user } from "@/lib/database/schema";
-import { asc } from "drizzle-orm";
+import { getSession } from "@/lib/auth";
 
+/**
+ * Admin access comes exclusively from the ADMIN_EMAILS (or legacy
+ * ADMIN_EMAIL) env var — a comma-separated list of addresses; the two vars
+ * are merged. With neither set, nobody is an admin: there is deliberately
+ * no fallback (an earlier version promoted the first registered user, which
+ * silently granted admin on deployments that forgot to set the var).
+ */
 export const getAdminEmails = cache(async (): Promise<string[]> => {
   const raw = [
     process.env.ADMIN_EMAIL ?? "",
     process.env.ADMIN_EMAILS ?? "",
   ].join(",");
 
-  const fromEnv = raw
+  return raw
     .split(",")
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
-
-  if (fromEnv.length > 0) return fromEnv;
-
-  const db = getDB();
-  const [firstUser] = await db
-    .select({ email: user.email })
-    .from(user)
-    .orderBy(asc(user.createdAt))
-    .limit(1);
-
-  if (firstUser?.email) {
-    return [firstUser.email.toLowerCase()];
-  }
-
-  return [];
 });
 
 export async function isAdmin(email: string): Promise<boolean> {
