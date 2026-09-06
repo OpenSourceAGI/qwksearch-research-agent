@@ -13,4 +13,4 @@ Here’s the table with **Grok** replacing the OSS column and domain favicon ima
 | Desktop app | ✅ Tauri-based | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No | ⚠️ Web/mobile app; no standard desktop app |
 | Editor/IDE integration | ✅ VS Code extension | ❌ No | ⚠️ Codex/Copilot-style tools are separate | ⚠️ Claude Code is separate | ⚠️ Gemini Code Assist is separate | ⚠️ Grok Code Fast / developer tools are separate |
 | Privacy mode (no saved history) | ✅ Yes | ⚠️ Limited | ⚠️ Limited | ⚠️ Limited | ⚠️ Limited | ⚠️ Limited |
-| Pricing | ✅ Free & open-source; pay-per-use API | 💲 Subscription | 💲 Subscription | 💲 Subscription | 💲 Freemium | 💲 Freemium/subscription |
+| Pricing | ✅ Free & open-source; pay-per-use API | 💲 Subscription | 💲 Subscription | 💲 Subscription | 💲 Freemium | 💲 Freemium  |
