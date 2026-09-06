@@ -53,7 +53,7 @@ export const FontSize =  Extension.create<FontSizeOptions>({
         const fontSizes = ensureNameValueOptions(extension.options?.fontSizes);
 
         const items = fontSizes.map((k) => ({
-          title: k.value === 'Default' ? '16px' : String(k.name),
+          title: String(k.name),
           isActive: () => {
             const { fontSize } = editor.getAttributes('textStyle');
             const isDefault = k.value === 'Default';
