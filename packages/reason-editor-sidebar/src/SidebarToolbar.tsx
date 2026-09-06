@@ -29,20 +29,12 @@ import { SidebarViewMenu } from './SidebarViewMenu';
 interface SidebarToolbarProps {
   /** Panels currently visible in the left sidebar — controls which toolbar buttons are shown. */
   leftPanels: SidebarPanelType[];
-  /** Whether the left sidebar allows multiple stacked panels. */
-  leftSplit: boolean;
   /** Changes which panels are visible in the left sidebar. */
   onLeftPanelsChange: (panels: SidebarPanelType[]) => void;
-  /** Changes whether the left sidebar allows multiple stacked panels. */
-  onLeftSplitChange: (split: boolean) => void;
   /** Panels currently visible in the right sidebar. */
   rightPanels: SidebarPanelType[];
-  /** Whether the right sidebar allows multiple stacked panels. */
-  rightSplit: boolean;
   /** Changes which panels are visible in the right sidebar. */
   onRightPanelsChange: (panels: SidebarPanelType[]) => void;
-  /** Changes whether the right sidebar allows multiple stacked panels. */
-  onRightSplitChange: (split: boolean) => void;
   /** ID of the currently selected document (used when creating a new sibling). */
   activeId: string | null;
   /** Creates a new note (`isFolder=false`) or folder (`isFolder=true`) under `parentId`. */
@@ -109,13 +101,9 @@ interface SidebarToolbarProps {
  */
 export const SidebarToolbar = ({
   leftPanels,
-  leftSplit,
   onLeftPanelsChange,
-  onLeftSplitChange,
   rightPanels,
-  rightSplit,
   onRightPanelsChange,
-  onRightSplitChange,
   activeId,
   onAdd,
   onSearchFocus,
@@ -401,16 +389,12 @@ export const SidebarToolbar = ({
             </>
           )}
 
-          {/* Split View Menu */}
+          {/* View Options Menu */}
           <SidebarViewMenu
             leftPanels={leftPanels}
             onLeftPanelsChange={onLeftPanelsChange}
-            leftSplit={leftSplit}
-            onLeftSplitChange={onLeftSplitChange}
             rightPanels={rightPanels}
             onRightPanelsChange={onRightPanelsChange}
-            rightSplit={rightSplit}
-            onRightSplitChange={onRightSplitChange}
             showDynamicIsland={showDynamicIsland}
             onToggleDynamicIsland={onToggleDynamicIsland}
             triggerClassName="size-8 shrink-0 p-0 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"

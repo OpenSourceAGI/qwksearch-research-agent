@@ -1,9 +1,11 @@
 /**
  * @module SidebarViewMenu
- * @description Shared "Split View Options" dropdown, rendered by both
+ * @description Shared "View Options" dropdown, rendered by both
  * SidebarToolbar and SidebarFooter. Presents two sections — Left Sidebar and
- * Right Sidebar — each with a Split View toggle and checkboxes for which
- * panels (AI, Files, Outline, Open Tabs) are visible on that side.
+ * Right Sidebar — each with checkboxes for which panels (Open Tabs, Files,
+ * Outline, Related, AI) are visible on that side. Selecting two or more
+ * panels on a side implicitly stacks them in a split view; there is no
+ * separate split toggle.
  */
 import { Button } from './app-ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './app-ui/tooltip';
@@ -16,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from './app-ui/dropdown-menu';
 import { cn } from './app-utils/utils';
-import { PANEL_OPTIONS, togglePanel, applySplitToggle } from './layout/sidebar/panelOptions';
+import { PANEL_OPTIONS, togglePanel } from './layout/sidebar/panelOptions';
 import type { SidebarPanelType } from './layout/sidebar/types';
 import { Columns2 } from 'lucide-react';
 
@@ -24,12 +26,8 @@ import { Columns2 } from 'lucide-react';
 interface SidebarViewMenuProps {
   leftPanels: SidebarPanelType[];
   onLeftPanelsChange: (panels: SidebarPanelType[]) => void;
-  leftSplit: boolean;
-  onLeftSplitChange: (split: boolean) => void;
   rightPanels: SidebarPanelType[];
   onRightPanelsChange: (panels: SidebarPanelType[]) => void;
-  rightSplit: boolean;
-  onRightSplitChange: (split: boolean) => void;
   /** Whether the floating reading-progress island is currently visible. */
   showDynamicIsland?: boolean;
   /** Toggles the floating reading-progress island. */
@@ -45,19 +43,15 @@ interface SidebarViewMenuProps {
 export const SidebarViewMenu = ({
   leftPanels,
   onLeftPanelsChange,
-  leftSplit,
-  onLeftSplitChange,
   rightPanels,
   onRightPanelsChange,
-  rightSplit,
-  onRightSplitChange,
   showDynamicIsland,
   onToggleDynamicIsland,
   triggerClassName,
   tooltipSide = 'bottom',
   align = 'end',
 }: SidebarViewMenuProps) => {
-  const isActive = leftSplit || rightSplit || rightPanels.length > 0;
+  const isActive = leftPanels.length > 1 || rightPanels.length > 0;
 
   return (
     <DropdownMenu>
@@ -74,29 +68,19 @@ export const SidebarViewMenu = ({
           </DropdownMenuTrigger>
         </TooltipTrigger>
         <TooltipContent side={tooltipSide}>
-          <p>Split View Options</p>
+          <p>View Options</p>
         </TooltipContent>
       </Tooltip>
       <DropdownMenuContent align={align} className="w-64">
         <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">
           Left Sidebar
         </DropdownMenuLabel>
-        <DropdownMenuCheckboxItem
-          checked={leftSplit}
-          onSelect={(e) => e.preventDefault()}
-          onCheckedChange={(checked) => {
-            onLeftSplitChange(checked);
-            onLeftPanelsChange(applySplitToggle(leftPanels, checked));
-          }}
-        >
-          Split View
-        </DropdownMenuCheckboxItem>
         {PANEL_OPTIONS.map(({ type, label, icon: Icon }) => (
           <DropdownMenuCheckboxItem
             key={`left-${type}`}
             checked={leftPanels.includes(type)}
             onSelect={(e) => e.preventDefault()}
-            onCheckedChange={() => onLeftPanelsChange(togglePanel(leftPanels, leftSplit, type, false))}
+            onCheckedChange={() => onLeftPanelsChange(togglePanel(leftPanels, type, false))}
           >
             <Icon className="h-4 w-4" />
             <span>{label}</span>
@@ -108,22 +92,12 @@ export const SidebarViewMenu = ({
         <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">
           Right Sidebar
         </DropdownMenuLabel>
-        <DropdownMenuCheckboxItem
-          checked={rightSplit}
-          onSelect={(e) => e.preventDefault()}
-          onCheckedChange={(checked) => {
-            onRightSplitChange(checked);
-            onRightPanelsChange(applySplitToggle(rightPanels, checked));
-          }}
-        >
-          Split View
-        </DropdownMenuCheckboxItem>
         {PANEL_OPTIONS.map(({ type, label, icon: Icon }) => (
           <DropdownMenuCheckboxItem
             key={`right-${type}`}
             checked={rightPanels.includes(type)}
             onSelect={(e) => e.preventDefault()}
-            onCheckedChange={() => onRightPanelsChange(togglePanel(rightPanels, rightSplit, type, true))}
+            onCheckedChange={() => onRightPanelsChange(togglePanel(rightPanels, type, true))}
           >
             <Icon className="h-4 w-4" />
             <span>{label}</span>

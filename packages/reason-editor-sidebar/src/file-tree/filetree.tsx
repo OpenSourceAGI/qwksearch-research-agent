@@ -18,7 +18,7 @@ import {
 import { AssistiveTreeDescription, useTree } from "@headless-tree/react";
 import { FolderIcon, FolderOpenIcon } from "lucide-react";
 import { FileTypeIcon } from "../app-ui/FileTypeIcon";
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 
 import type { Document } from "../documents/DocumentTree";
 
@@ -28,6 +28,8 @@ export type DocumentTreeHandle = {
   expandAll: () => void;
   expandToLevel: (level: number) => void;
   cancelExpand: () => void;
+  /** Deepest folder level currently fully expanded (0 = fully collapsed). */
+  getExpandLevel: () => number;
 };
 import { Tree, TreeDragLine, TreeItem, TreeItemLabel } from "../app-ui/tree";
 import {
@@ -76,32 +78,45 @@ interface FileTreeProps {
 const ROOT_ID = "__root__";
 const INDENT = 20;
 
+/** Folder ids grouped by nesting depth (index 0 = top-level folders). */
+function getFolderIdsByLevel(items: Record<string, FileTreeItem>): string[][] {
+  const levels: string[][] = [];
+  let frontier = [ROOT_ID];
+
+  while (frontier.length > 0) {
+    const next: string[] = [];
+    for (const id of frontier) {
+      for (const childId of items[id]?.children ?? []) {
+        if (items[childId]?.isFolder) next.push(childId);
+      }
+    }
+    if (next.length === 0) break;
+    levels.push(next);
+    frontier = next;
+  }
+
+  return levels;
+}
+
 /** Folder ids reachable within `level` levels of nesting (1 = top-level folders). */
 function getFolderIdsUpToLevel(items: Record<string, FileTreeItem>, level: number): string[] {
   if (level <= 0) return [];
+  return getFolderIdsByLevel(items).slice(0, level).flat();
+}
 
-  const result: string[] = [];
-  const queue: Array<{ depth: number; id: string }> = [{ depth: 0, id: ROOT_ID }];
-
-  while (queue.length > 0) {
-    const current = queue.shift();
-    if (!current) break;
-    const item = items[current.id];
-    if (!item) continue;
-
-    for (const childId of item.children ?? []) {
-      const child = items[childId];
-      if (!child?.isFolder) continue;
-
-      const childDepth = current.depth + 1;
-      if (childDepth > level) continue;
-
-      result.push(childId);
-      queue.push({ depth: childDepth, id: childId });
-    }
+/**
+ * Infers the deepest folder level that is currently fully expanded: the
+ * largest depth `L` such that every folder at depth <= L is expanded.
+ * Returns 0 when any top-level folder is collapsed.
+ */
+function getExpandedLevel(items: Record<string, FileTreeItem>, expandedItems: string[]): number {
+  const expanded = new Set(expandedItems);
+  let level = 0;
+  for (const idsAtDepth of getFolderIdsByLevel(items)) {
+    if (!idsAtDepth.every((id) => expanded.has(id))) break;
+    level++;
   }
-
-  return result;
+  return level;
 }
 
 function buildItems(documents: Document[]): Record<string, FileTreeItem> {
@@ -155,7 +170,8 @@ const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
     });
     const [copiedNodeId, setCopiedNodeId] = useState<string | null>(null);
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
-    const expandCancelToken = { current: false };
+    // Must survive re-renders so a queued expandAll can actually be cancelled.
+    const expandCancelToken = useRef(false);
 
     const tree = useTree<FileTreeItem>({
       canReorder: true,
@@ -244,13 +260,24 @@ const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
       state,
     });
 
+    // Selection follows the active document. Kept separate from expansion
+    // sync so switching documents doesn't clobber the current expansion.
     useEffect(() => {
       setState((prev) => ({
         ...prev,
-        expandedItems,
         selectedItems: activeId && items[activeId] ? [activeId] : [],
       }));
-    }, [activeId, expandedItems, items]);
+    }, [activeId, items]);
+
+    // Re-sync expansion from the documents' persisted `isExpanded` flags only
+    // when that derived list actually changes by value. Comparing by content
+    // (not array identity, which churns on every parent re-render) is what
+    // lets imperative expandToLevel/collapseAll changes stick.
+    const expandedItemsKey = expandedItems.join('\n');
+    useEffect(() => {
+      setState((prev) => ({ ...prev, expandedItems }));
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [expandedItemsKey]);
 
     useImperativeHandle(ref, () => ({
       collapseAll: () => {
@@ -274,6 +301,7 @@ const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
       cancelExpand: () => {
         expandCancelToken.current = true;
       },
+      getExpandLevel: () => getExpandedLevel(items, state.expandedItems ?? []),
     }));
 
     const handleDeleteConfirm = () => {
