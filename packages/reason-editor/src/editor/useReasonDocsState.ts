@@ -44,8 +44,12 @@ export function useReasonDocsState(openFilesSidebarSignal?: number | string) {
   const [defaultSidebarView, setDefaultSidebarView] = useLocalStorage<
     "tree" | "outline" | "split" | "last-used"
   >("REASON-default-sidebar-view", "last-used");
+  // Versioned key (v2): earlier builds persisted panel sets without
+  // "openTabs" (e.g. via the files-dock shortcut), which permanently hid the
+  // Open Tabs panel. Bumping the key restores the files + openTabs default
+  // for everyone once.
   const [leftPanels, setLeftPanels] = useLocalStorage<SidebarPanelType[]>(
-    "REASON-left-panels",
+    "REASON-left-panels-v2",
     ["files", "openTabs"],
   );
   const [leftSplit, setLeftSplit] = useLocalStorage<boolean>(
@@ -446,10 +450,12 @@ export function useReasonDocsState(openFilesSidebarSignal?: number | string) {
   }, []);
 
   // Opens the files sidebar in response to an external trigger (e.g. an app
-  // dock icon mounted outside this component tree).
+  // dock icon mounted outside this component tree). Keeps the Open Tabs panel
+  // alongside Files — this setter persists to localStorage, so dropping
+  // openTabs here would permanently strip it from the user's default layout.
   useEffect(() => {
     if (!openFilesSidebarSignal) return;
-    setLeftPanels(["files"]);
+    setLeftPanels(["files", "openTabs"]);
     setIsSidebarOpen(true);
   }, [openFilesSidebarSignal]);
 
