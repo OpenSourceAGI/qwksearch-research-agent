@@ -12,6 +12,10 @@
    and portaled dropdowns/modals render transparent (so the content behind
    them bleeds through) or fall into static flow. */
 @source "../../src";
+/* The sidebar lives in its own workspace package since the #305/#308
+   extraction; its unprefixed utilities (e.g. the `pt-14` dock offset on the
+   desktop <aside>) must be scanned from there too. */
+@source "../../../reason-editor-sidebar/src";
 
 /* next-themes toggles a `dark` class on <html>, so the dark: variant must
    be class-based rather than the v4 default media-query strategy. */
