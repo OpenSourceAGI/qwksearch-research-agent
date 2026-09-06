@@ -7,14 +7,14 @@ const ORIGIN = 'https://qwksearch.com';
 const anchorIn = (container: HTMLElement, attrs: Record<string, string>) => {
   const a = document.createElement('a');
   for (const [key, value] of Object.entries(attrs)) a.setAttribute(key, value);
-  container.append(a);
+  container.appendChild(a);
   return a;
 };
 
 const messageContainer = () => {
   const el = document.createElement('div');
   el.setAttribute('data-message-id', 'msg_1');
-  document.body.append(el);
+  document.body.appendChild(el);
   return el;
 };
 
@@ -26,7 +26,7 @@ describe('shouldInterceptAnchor', () => {
 
   it('ignores links outside chat messages', () => {
     const plain = document.createElement('div');
-    document.body.append(plain);
+    document.body.appendChild(plain);
     const a = anchorIn(plain, { href: 'https://example.com/story' });
     expect(shouldInterceptAnchor(a, ORIGIN)).toBeNull();
   });

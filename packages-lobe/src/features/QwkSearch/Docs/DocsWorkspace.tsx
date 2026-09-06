@@ -1,7 +1,7 @@
 'use client';
 
 import { Flexbox, Icon, Input, Markdown } from '@lobehub/ui';
-import { Button, Segmented, Text } from '@lobehub/ui/base-ui';
+import { Button, Segmented, Text, TextArea } from '@lobehub/ui/base-ui';
 import { createStaticStyles } from 'antd-style';
 import { FileTextIcon, PlusIcon } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
@@ -169,7 +169,7 @@ const DocsWorkspace = memo(() => {
 
       {mode === 'write' ? (
         <div className={styles.editor}>
-          <Input.TextArea
+          <TextArea
             placeholder={t('docs.editor.contentPlaceholder')}
             value={draft.content}
             onBlur={() => void save()}

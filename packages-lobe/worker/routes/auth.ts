@@ -40,8 +40,10 @@ const validateJsonBody = async (request: Request): Promise<Response | undefined>
 
 export const authApp = new Hono();
 
-authApp.post('/api/auth/check-user', (c) => checkUser(NextRequest.from(c.req.raw)));
-authApp.post('/api/auth/resolve-username', (c) => resolveUsername(NextRequest.from(c.req.raw)));
+authApp.post('/api/auth/check-user', (c) => checkUser(NextRequest.adapt(c.req.raw)));
+authApp.post('/api/auth/resolve-username', (c) =>
+  resolveUsername(NextRequest.adapt(c.req.raw)),
+);
 
 authApp.on(['GET', 'POST'], '/api/auth/*', async (c) => {
   if (c.req.method === 'POST') {

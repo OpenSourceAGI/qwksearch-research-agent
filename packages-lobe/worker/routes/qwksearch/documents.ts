@@ -6,6 +6,7 @@
  * (`userId IS NULL`) remain readable for local-storage mode compatibility.
  */
 import { desc, eq, isNull } from 'drizzle-orm';
+import type { Context } from 'hono';
 import { Hono } from 'hono';
 
 import { getQwkDB } from '../../qwksearch/db';
@@ -72,7 +73,7 @@ documentsApp.post('/api/doc/documents', async (c) => {
   }
 });
 
-const loadOwnedDocument = async (c: Parameters<Parameters<typeof documentsApp.get>[1]>[0]) => {
+const loadOwnedDocument = async (c: Context) => {
   const id = parseId(c.req.param('id'));
   if (id === null) return { error: c.json({ error: 'Invalid document id' }, 400) };
 

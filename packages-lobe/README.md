@@ -131,9 +131,16 @@ LobeHub's Postgres migrations once against the database: `bun run db:migrate` wi
 bunx vitest run worker src/features/QwkSearch src/libs/better-auth/utils/kvSecondaryStorage.test.ts \
   apps/server/src/services/email/impls/cloudflare
 
+# routes/nav registration touched by /docs
+bunx vitest run src/spa/router/desktopRouter.sync.test.tsx src/features/NavPanel/routeKey.test.ts
+
 # database bridge
 cd packages/database && bunx vitest run src/core/cloudflare.test.ts
 ```
+
+Coverage includes SPA locale/device/route resolution, the extraction fallback chain, the article and
+docs stores, chat-link interception, KV secondary storage, the Cloudflare email provider, the
+Hyperdrive bridge, and rendered-component tests for the article panel and the docs editor.
 
 ## What changed vs. upstream LobeHub
 

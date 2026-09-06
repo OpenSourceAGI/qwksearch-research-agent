@@ -8,6 +8,7 @@
  * Workers.
  */
 import { parse as parseCookie } from 'cookie';
+import type { NextRequest as UpstreamNextRequest } from 'next/server';
 
 import { waitUntil } from '../cf/requestContext';
 
@@ -48,6 +49,14 @@ export class NextRequest extends Request {
   static from(request: Request): NextRequest {
     if (request instanceof NextRequest) return request;
     return new NextRequest(request);
+  }
+
+  /**
+   * Same as `from`, typed as Next's own `NextRequest` so unchanged route
+   * handlers accept it. The Worker only relies on the Fetch API subset.
+   */
+  static adapt(request: Request): UpstreamNextRequest {
+    return NextRequest.from(request) as unknown as UpstreamNextRequest;
   }
 }
 

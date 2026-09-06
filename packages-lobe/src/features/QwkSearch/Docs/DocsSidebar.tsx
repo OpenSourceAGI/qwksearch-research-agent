@@ -86,7 +86,13 @@ const DocsSidebar = memo(() => {
     <Flexbox height={'100%'}>
       <Flexbox horizontal align={'center'} className={styles.header} justify={'space-between'}>
         <Text strong>{t('docs.title')}</Text>
-        <ActionIcon icon={PlusIcon} size={'small'} title={t('docs.actions.newDocument')} onClick={handleCreate} />
+        <ActionIcon
+          aria-label={t('docs.actions.newDocument')}
+          icon={PlusIcon}
+          size={'small'}
+          title={t('docs.actions.newDocument')}
+          onClick={handleCreate}
+        />
       </Flexbox>
       <Flexbox className={styles.list} gap={2}>
         {error === 'loginRequired' && (
@@ -111,6 +117,7 @@ const DocsSidebar = memo(() => {
               </span>
               <span className={'qwk-doc-actions'} onClick={(e) => e.stopPropagation()}>
                 <ActionIcon
+                  aria-label={t('docs.actions.delete')}
                   icon={Trash2Icon}
                   size={'small'}
                   title={t('docs.actions.delete')}

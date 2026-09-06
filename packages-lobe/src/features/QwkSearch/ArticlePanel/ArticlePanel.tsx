@@ -272,6 +272,7 @@ const ArticleHeader = memo(() => {
         <Flexbox horizontal gap={2}>
           <ActionIcon
             active={isFavorite}
+            aria-label={isFavorite ? t('article.actions.unfavorite') : t('article.actions.favorite')}
             disabled={!article}
             icon={StarIcon}
             loading={favoriteLoading}
@@ -280,6 +281,7 @@ const ArticleHeader = memo(() => {
             onClick={toggleFavorite}
           />
           <ActionIcon
+            aria-label={copied ? t('article.actions.copied') : t('article.actions.copy')}
             disabled={!article}
             icon={copied ? CheckIcon : CopyIcon}
             size={'small'}
@@ -287,6 +289,7 @@ const ArticleHeader = memo(() => {
             onClick={copy}
           />
           <ActionIcon
+            aria-label={t('article.actions.openOriginal')}
             disabled={!url}
             icon={ExternalLinkIcon}
             size={'small'}
@@ -294,6 +297,7 @@ const ArticleHeader = memo(() => {
             onClick={() => window.open(url, '_blank', 'noopener,noreferrer')}
           />
           <ActionIcon
+            aria-label={t('article.actions.close')}
             icon={XIcon}
             size={'small'}
             title={t('article.actions.close')}

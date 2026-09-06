@@ -25,7 +25,7 @@ apiApp.all('/api/v1', (c) => delegate(c, () => import('@lobechat/openapi')));
 
 apiApp.get('/api/agent/stream', async (c) => {
   const { GET } = await import('@/app/(backend)/api/agent/stream/route');
-  return GET(NextRequest.from(c.req.raw));
+  return GET(NextRequest.adapt(c.req.raw));
 });
 apiApp.all('/api/agent', (c) => delegate(c, () => import('@/server/router-hono/agent')));
 apiApp.all('/api/agent/*', (c) => delegate(c, () => import('@/server/router-hono/agent')));

@@ -16,7 +16,8 @@ type RouteHandler = (
   options: { params: Promise<Record<string, string>> },
 ) => Promise<Response> | Response;
 
-type RouteModule = Partial<Record<'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH', RouteHandler>>;
+/** Next route modules export per-method handlers with slightly different signatures. */
+type RouteModule = Record<string, unknown>;
 
 const callRoute = async (
   c: Context,
@@ -24,10 +25,10 @@ const callRoute = async (
   params: Record<string, string> = {},
 ) => {
   const mod = await loader();
-  const handler = mod[c.req.method as keyof RouteModule];
-  if (!handler) return c.text('Method Not Allowed', 405);
+  const handler = mod[c.req.method] as RouteHandler | undefined;
+  if (typeof handler !== 'function') return c.text('Method Not Allowed', 405);
 
-  return handler(NextRequest.from(c.req.raw), { params: Promise.resolve(params) });
+  return handler(NextRequest.adapt(c.req.raw), { params: Promise.resolve(params) });
 };
 
 export const webapiApp = new Hono();
