@@ -3,4 +3,4 @@
  * config map (with per-category scoring weights), and the global
  * `categoryRegistry` singleton from the canonical registry module.
  */
-export * from "./registry/search-engine-category-registry.js";
+export * from "./registry/search-engine-category-registry";

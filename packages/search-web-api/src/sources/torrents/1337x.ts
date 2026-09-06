@@ -2,7 +2,7 @@
  * @fileoverview Engine adapter that scrapes 1337x torrent search results.
  */
 import { parseHTML } from "linkedom";
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const torrent_1337x: EngineFunction = async (
   query: string,

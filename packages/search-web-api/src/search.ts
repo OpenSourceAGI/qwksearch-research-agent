@@ -6,5 +6,5 @@
  * - `search/search-engines-registry-list` — the static catalogue of all 75+
  *   engine adapters organised by category.
  */
-export { Search } from "./search/search-query-executor.js";
-export { ALL_ENGINES } from "./search/search-engines-registry-list.js";
+export { Search } from "./search/search-query-executor";
+export { ALL_ENGINES } from "./search/search-engines-registry-list";

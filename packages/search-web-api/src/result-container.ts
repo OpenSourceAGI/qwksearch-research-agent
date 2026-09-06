@@ -5,4 +5,4 @@
  * using position-weighted per-engine and per-category multipliers, and groups
  * the final list by result category.
  */
-export * from "./search/search-result-container.js";
+export * from "./search/search-result-container";

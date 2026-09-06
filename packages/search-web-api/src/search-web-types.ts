@@ -4,4 +4,4 @@
  * CategoryConfig, EngineMetadata, EngineStatus, EngineLog, and all supporting
  * weight and tracking interfaces used across the search API.
  */
-export * from "./types/search-result-types.js";
+export * from "./types/search-result-types";

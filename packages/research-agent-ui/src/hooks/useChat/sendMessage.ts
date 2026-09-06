@@ -225,6 +225,26 @@ export async function sendMessage(
    * Handles individual streaming events from the chat API.
    * @param data - Parsed JSON event from the stream
    */
+  /**
+   * Appends a persistent error bubble to the conversation so failures stay
+   * visible after the toast disappears. Without this, a failed response left
+   * the user's message with no reply at all — the only signal was a transient
+   * toast, which reads as "the chat produced no output".
+   */
+  const showErrorInChat = (errorMsg: string) => {
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      {
+        content: `⚠️ **The response failed:** ${errorMsg}`,
+        messageId: generateMessageId(),
+        chatId: chatId,
+        role: "assistant",
+        createdAt: new Date(),
+      },
+    ]);
+    setMessageAppeared(true);
+  };
+
   const messageHandler = async (data: any) => {
     // Handle error events
     if (data.type === "error") {
@@ -244,6 +264,7 @@ export async function sendMessage(
         setChatModelProvider?.({ key: "", providerId: "" });
       }
       toast.error(errorMsg);
+      showErrorInChat(errorMsg);
       setLoading(false);
       return;
     }
@@ -455,6 +476,9 @@ export async function sendMessage(
         thinkingTimeLimit,
         systemInstructions: localStorage.getItem("systemInstructions") ?? undefined,
       },
+      // A chat POST is not idempotent — retrying re-sends the message and
+      // hammers the backend while the user sees nothing. Fail fast instead.
+      sseMaxRetryAttempts: 1,
       onSseError: (error: unknown) => {
         const errMsg =
           error instanceof Error ? error.message : String(error);
@@ -466,6 +490,7 @@ export async function sendMessage(
           return;
         }
         toast.error("Failed to send message. Please try again.");
+        showErrorInChat(`${errMsg}. Please try again.`);
         setLoading(false);
       },
     });

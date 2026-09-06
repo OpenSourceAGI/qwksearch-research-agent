@@ -8,7 +8,7 @@
  * unresponsive engines, and per-engine timing metrics.
  */
 
-import { EngineResult } from "../types/search-engine-interface.js";
+import { EngineResult } from "../types/search-engine-interface";
 import {
   PriorityType,
   MergedResult,
@@ -18,7 +18,7 @@ import {
   UnresponsiveEngine,
   Timing,
   EngineData,
-} from "../types/search-result-types.js";
+} from "../types/search-result-types";
 
 export class ResultContainer {
   private mainResultsMap: Map<string, MergedResult> = new Map();

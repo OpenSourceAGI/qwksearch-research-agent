@@ -2,7 +2,7 @@
  * @fileoverview Engine adapter that scrapes EZTV torrent search results.
  */
 import { parseHTML } from "linkedom";
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const eztv: EngineFunction = async (
   query: string,

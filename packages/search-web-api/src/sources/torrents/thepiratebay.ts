@@ -2,7 +2,7 @@
  * @fileoverview Engine adapter that scrapes The Pirate Bay search results.
  */
 import { parseHTML } from "linkedom";
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const thepiratebay: EngineFunction = async (
   query: string,

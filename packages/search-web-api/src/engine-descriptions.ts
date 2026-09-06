@@ -4,4 +4,4 @@
  * canonical registry module. Descriptions are sourced from SearXNG's
  * engine_descriptions.json and cover all 75+ supported engines.
  */
-export * from "./registry/search-engine-descriptions.js";
+export * from "./registry/search-engine-descriptions";

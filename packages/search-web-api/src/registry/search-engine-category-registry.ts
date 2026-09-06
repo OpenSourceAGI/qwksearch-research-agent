@@ -5,8 +5,8 @@
  * system, it supports multi-category searches and weighted result combination.
  */
 
-import { Engine } from "../types/search-engine-interface.js";
-import { CategoryConfig } from "../types/search-result-types.js";
+import { Engine } from "../types/search-engine-interface";
+import { CategoryConfig } from "../types/search-result-types";
 
 export const CATEGORIES: { [key: string]: CategoryConfig } = {
   general: {

@@ -1,7 +1,7 @@
 /**
  * @fileoverview Engine adapter that queries the Qwant search API.
  */
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const qwant: EngineFunction = async (
   query: string,

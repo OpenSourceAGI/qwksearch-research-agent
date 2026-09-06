@@ -1,7 +1,7 @@
 /**
  * @fileoverview Engine adapter that queries the Stack Exchange API for Stack Overflow question results.
  */
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const stackoverflow: EngineFunction = async (
   query: string,

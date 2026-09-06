@@ -2,7 +2,7 @@
  * @fileoverview Engine adapter that scrapes Goodreads search results.
  */
 import { parseHTML } from "linkedom";
-import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
+import { EngineFunction, EngineResult } from "../../types/search-engine-interface";
 
 export const goodreads: EngineFunction = async (
   query: string,

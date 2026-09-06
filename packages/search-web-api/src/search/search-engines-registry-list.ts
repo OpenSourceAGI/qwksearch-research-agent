@@ -9,9 +9,9 @@
  * data separate from the query-execution logic.
  */
 
-import { EngineFunction } from "../types/search-engine-interface.js";
-import { EngineMetadata } from "../types/search-result-types.js";
-import { engineDescriptions } from "../registry/search-engine-descriptions.js";
+import { EngineFunction } from "../types/search-engine-interface";
+import { EngineMetadata } from "../types/search-result-types";
+import { engineDescriptions } from "../registry/search-engine-descriptions";
 import grab from "grab-url";
 
 // Set default browser User-Agent for all outgoing requests
@@ -24,97 +24,97 @@ grab("", {
 });
 
 // General search engines
-import { google } from "../sources/general/google.js";
-import { bing } from "../sources/general/bing.js";
-import { duckduckgo } from "../sources/general/duckduckgo.js";
-import { yahoo } from "../sources/general/yahoo.js";
-import { qwant } from "../sources/general/qwant.js";
-import { startpage } from "../sources/general/startpage.js";
-import { brave } from "../sources/general/brave.js";
-import { yandex } from "../sources/general/yandex.js";
-import { baidu } from "../sources/general/baidu.js";
-import { mojeek } from "../sources/general/mojeek.js";
+import { google } from "../sources/general/google";
+import { bing } from "../sources/general/bing";
+import { duckduckgo } from "../sources/general/duckduckgo";
+import { yahoo } from "../sources/general/yahoo";
+import { qwant } from "../sources/general/qwant";
+import { startpage } from "../sources/general/startpage";
+import { brave } from "../sources/general/brave";
+import { yandex } from "../sources/general/yandex";
+import { baidu } from "../sources/general/baidu";
+import { mojeek } from "../sources/general/mojeek";
 
 // IT / Developer engines
-import { github } from "../sources/it/github.js";
-import { stackoverflow } from "../sources/it/stackoverflow.js";
-import { npm } from "../sources/it/npm.js";
-import { crates } from "../sources/it/crates.js";
-import { dockerhub } from "../sources/it/dockerhub.js";
-import { pypi } from "../sources/it/pypi.js";
-import { packagist } from "../sources/it/packagist.js";
-import { rubygems } from "../sources/it/rubygems.js";
-import { gitlab } from "../sources/it/gitlab.js";
+import { github } from "../sources/it/github";
+import { stackoverflow } from "../sources/it/stackoverflow";
+import { npm } from "../sources/it/npm";
+import { crates } from "../sources/it/crates";
+import { dockerhub } from "../sources/it/dockerhub";
+import { pypi } from "../sources/it/pypi";
+import { packagist } from "../sources/it/packagist";
+import { rubygems } from "../sources/it/rubygems";
+import { gitlab } from "../sources/it/gitlab";
 
 // Image engines
-import { unsplash } from "../sources/images/unsplash.js";
-import { bing_images } from "../sources/images/bing_images.js";
-import { google_images } from "../sources/images/google_images.js";
-import { flickr } from "../sources/images/flickr.js";
-import { imgur } from "../sources/images/imgur.js";
-import { pixabay } from "../sources/images/pixabay.js";
-import { wallhaven } from "../sources/images/wallhaven.js";
-import { deviantart } from "../sources/images/deviantart.js";
-import { openclipart } from "../sources/images/openclipart.js";
+import { unsplash } from "../sources/images/unsplash";
+import { bing_images } from "../sources/images/bing_images";
+import { google_images } from "../sources/images/google_images";
+import { flickr } from "../sources/images/flickr";
+import { imgur } from "../sources/images/imgur";
+import { pixabay } from "../sources/images/pixabay";
+import { wallhaven } from "../sources/images/wallhaven";
+import { deviantart } from "../sources/images/deviantart";
+import { openclipart } from "../sources/images/openclipart";
 
 // Video engines
-import { youtube } from "../sources/videos/youtube.js";
-import { vimeo } from "../sources/videos/vimeo.js";
-import { dailymotion } from "../sources/videos/dailymotion.js";
-import { invidious } from "../sources/videos/invidious.js";
-import { peertube } from "../sources/videos/peertube.js";
-import { bing_videos } from "../sources/videos/bing_videos.js";
+import { youtube } from "../sources/videos/youtube";
+import { vimeo } from "../sources/videos/vimeo";
+import { dailymotion } from "../sources/videos/dailymotion";
+import { invidious } from "../sources/videos/invidious";
+import { peertube } from "../sources/videos/peertube";
+import { bing_videos } from "../sources/videos/bing_videos";
 
 // News engines
-import { hackernews } from "../sources/news/hackernews.js";
-import { yahoo_news } from "../sources/news/yahoo_news.js";
-import { bing_news } from "../sources/news/bing_news.js";
-import { google_news } from "../sources/news/google_news.js";
+import { hackernews } from "../sources/news/hackernews";
+import { yahoo_news } from "../sources/news/yahoo_news";
+import { bing_news } from "../sources/news/bing_news";
+import { google_news } from "../sources/news/google_news";
 
 // Academic engines
-import { google_scholar } from "../sources/academic/google_scholar.js";
-import { arxiv } from "../sources/academic/arxiv.js";
-import { wikidata } from "../sources/academic/wikidata.js";
-import { semantic_scholar } from "../sources/academic/semantic_scholar.js";
-import { crossref } from "../sources/academic/crossref.js";
-import { pubmed } from "../sources/academic/pubmed.js";
-import { openalex } from "../sources/academic/openalex.js";
-import { doaj } from "../sources/academic/doaj.js";
-import { core } from "../sources/academic/core.js";
+import { google_scholar } from "../sources/academic/google_scholar";
+import { arxiv } from "../sources/academic/arxiv";
+import { wikidata } from "../sources/academic/wikidata";
+import { semantic_scholar } from "../sources/academic/semantic_scholar";
+import { crossref } from "../sources/academic/crossref";
+import { pubmed } from "../sources/academic/pubmed";
+import { openalex } from "../sources/academic/openalex";
+import { doaj } from "../sources/academic/doaj";
+import { core } from "../sources/academic/core";
 
 // Torrent engines
-import { torrent_1337x } from "../sources/torrents/1337x.js";
-import { thepiratebay } from "../sources/torrents/thepiratebay.js";
-import { nyaa } from "../sources/torrents/nyaa.js";
-import { yts } from "../sources/torrents/yts.js";
-import { eztv } from "../sources/torrents/eztv.js";
-import { solidtorrents } from "../sources/torrents/solidtorrents.js";
-import { kickass } from "../sources/torrents/kickass.js";
+import { torrent_1337x } from "../sources/torrents/1337x";
+import { thepiratebay } from "../sources/torrents/thepiratebay";
+import { nyaa } from "../sources/torrents/nyaa";
+import { yts } from "../sources/torrents/yts";
+import { eztv } from "../sources/torrents/eztv";
+import { solidtorrents } from "../sources/torrents/solidtorrents";
+import { kickass } from "../sources/torrents/kickass";
 
 // Social media engines
-import { twitter } from "../sources/social/twitter.js";
-import { reddit } from "../sources/social/reddit.js";
-import { medium } from "../sources/social/medium.js";
-import { soundcloud } from "../sources/social/soundcloud.js";
-import { mastodon } from "../sources/social/mastodon.js";
+import { twitter } from "../sources/social/twitter";
+import { reddit } from "../sources/social/reddit";
+import { medium } from "../sources/social/medium";
+import { soundcloud } from "../sources/social/soundcloud";
+import { mastodon } from "../sources/social/mastodon";
 
 // Map engines
-import { openstreetmap } from "../sources/maps/openstreetmap.js";
-import { photon } from "../sources/maps/photon.js";
-import { apple_maps } from "../sources/maps/apple_maps.js";
+import { openstreetmap } from "../sources/maps/openstreetmap";
+import { photon } from "../sources/maps/photon";
+import { apple_maps } from "../sources/maps/apple_maps";
 
 // Shopping engines
-import { ebay } from "../sources/shopping/ebay.js";
+import { ebay } from "../sources/shopping/ebay";
 
 // Specialised engines
-import { wikipedia } from "../sources/specialized/wikipedia.js";
-import { imdb } from "../sources/specialized/imdb.js";
-import { genius } from "../sources/specialized/genius.js";
-import { archive } from "../sources/specialized/archive.js";
-import { openlibrary } from "../sources/specialized/openlibrary.js";
-import { wttr } from "../sources/specialized/wttr.js";
-import { annas_archive } from "../sources/specialized/annas_archive.js";
-import { goodreads } from "../sources/specialized/goodreads.js";
+import { wikipedia } from "../sources/specialized/wikipedia";
+import { imdb } from "../sources/specialized/imdb";
+import { genius } from "../sources/specialized/genius";
+import { archive } from "../sources/specialized/archive";
+import { openlibrary } from "../sources/specialized/openlibrary";
+import { wttr } from "../sources/specialized/wttr";
+import { annas_archive } from "../sources/specialized/annas_archive";
+import { goodreads } from "../sources/specialized/goodreads";
 
 export { engineDescriptions };
 

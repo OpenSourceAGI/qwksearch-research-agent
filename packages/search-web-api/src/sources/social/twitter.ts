@@ -2,7 +2,7 @@
  * @fileoverview Engine adapter that scrapes Twitter/X search results.
  */
 import { parseHTML } from "linkedom";
-import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
+import { EngineFunction, EngineResult } from "../../types/search-engine-interface";
 
 export const twitter: EngineFunction = async (
   query: string,

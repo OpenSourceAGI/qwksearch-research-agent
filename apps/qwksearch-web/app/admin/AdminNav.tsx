@@ -7,6 +7,7 @@ const NAV = [
   { href: "/admin/users", label: "Users" },
   { href: "/admin/config", label: "Site Config" },
   { href: "/admin/freekeys", label: "API Keys" },
+  { href: "/admin/chat-test", label: "Chat Test" },
 ];
 
 export default function AdminNav({ children }: { children: React.ReactNode }) {

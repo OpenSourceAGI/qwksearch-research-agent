@@ -1,7 +1,7 @@
 /**
  * @fileoverview Engine adapter that queries the Dailymotion API for video search results.
  */
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const dailymotion: EngineFunction = async (
   query: string,

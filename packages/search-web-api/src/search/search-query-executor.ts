@@ -7,11 +7,11 @@
  * deduplicated, ranked list of `MergedResult` objects.
  */
 
-import { engineStatusTracker } from "../registry/search-engine-status-tracker.js";
-import { categoryRegistry, CATEGORIES } from "../registry/search-engine-category-registry.js";
-import { ResultContainer } from "./search-result-container.js";
-import { ALL_ENGINES } from "./search-engines-registry-list.js";
-import { MergedResult, CategoryWeight, EngineMetadata } from "../types/search-result-types.js";
+import { engineStatusTracker } from "../registry/search-engine-status-tracker";
+import { categoryRegistry, CATEGORIES } from "../registry/search-engine-category-registry";
+import { ResultContainer } from "./search-result-container";
+import { ALL_ENGINES } from "./search-engines-registry-list";
+import { MergedResult, CategoryWeight, EngineMetadata } from "../types/search-result-types";
 
 export class Search {
   private engines: EngineMetadata[] = ALL_ENGINES;

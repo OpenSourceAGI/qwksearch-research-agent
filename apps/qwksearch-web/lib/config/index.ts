@@ -7,7 +7,7 @@ import {
 import { getModelProvidersUIConfigSection } from "chat-agent-toolkit/models/providers";
 import { getMCPServersUIConfigSection } from "../mcp-servers";
 import { getEnv } from "./env";
-import { ALL_ENGINES } from "search-web-api/search/search-engines-registry-list.js";
+import { ALL_ENGINES } from "search-web-api/search/search-engines-registry-list";
 // App-specific settings schema now lives as data in research-agent-ui; the
 // config manager "requests" it here instead of declaring the fields inline.
 import { searchSettingsFields } from "research-agent-ui/settings";

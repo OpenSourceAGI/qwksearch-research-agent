@@ -2,7 +2,7 @@
  * @fileoverview Engine adapter that scrapes Bing web search results.
  */
 import { parseHTML } from "linkedom";
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const bing: EngineFunction = async (q: string, page?: number) => {
   const params = new URLSearchParams({

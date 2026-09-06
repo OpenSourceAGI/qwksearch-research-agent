@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('search-web-api/search/search-engines-registry-list.js', () => ({
+vi.mock('search-web-api/search/search-engines-registry-list', () => ({
   ALL_ENGINES: [
     { name: 'google', categories: ['general'] },
     { name: 'brave', categories: ['general', 'news'] },

@@ -1,7 +1,7 @@
 /**
  * @fileoverview Engine adapter that queries the GitHub API for repository search results.
  */
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const github: EngineFunction = async (
   query: string,

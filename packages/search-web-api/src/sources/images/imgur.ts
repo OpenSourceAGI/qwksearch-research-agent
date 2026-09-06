@@ -2,7 +2,7 @@
  * @fileoverview Engine adapter that scrapes Imgur search results.
  */
 import { parseHTML } from "linkedom";
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const imgur: EngineFunction = async (
   query: string,

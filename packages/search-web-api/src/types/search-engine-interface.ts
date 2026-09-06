@@ -5,7 +5,7 @@
  * import `EngineFunction` and `EngineResult` from here.
  */
 
-import type { EngineResult, Engine, EngineFunction } from "./search-result-types.js";
+import type { EngineResult, Engine, EngineFunction } from "./search-result-types";
 
 export type { EngineResult, Engine, EngineFunction };
 

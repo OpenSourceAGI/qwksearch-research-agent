@@ -38,7 +38,7 @@ export const checkConfig = async (
   setIsConfigReady: (ready: boolean) => void,
   setHasError: (hasError: boolean) => void,
 ): Promise<void> => {
-  // try {
+  try {
     // Load user preferences from localStorage
     let chatModelKey = localStorage.getItem("chatModelKey");
     let chatModelProviderId = localStorage.getItem("chatModelProviderId");
@@ -179,10 +179,16 @@ export const checkConfig = async (
     });
 
     setIsConfigReady(true);
-  // } catch (err: any) {
-  //   console.error("An error occurred while checking the configuration:", err);
-  //   toast.error(err.message);
-  //   setIsConfigReady(false);
-  //   setHasError(true);
-  // }
+  } catch (err: any) {
+    // A failed providers fetch must not leave the app on an infinite loader:
+    // without this catch the promise rejected with neither isConfigReady nor
+    // hasError set, so ChatWindow never left its Loader state. Mark the app
+    // ready so the UI is usable and the user can configure a provider in
+    // Settings; surface the failure via toast.
+    console.error("An error occurred while checking the configuration:", err);
+    toast.error(
+      `Could not load AI providers: ${err?.message ?? String(err)}`,
+    );
+    setIsConfigReady(true);
+  }
 };

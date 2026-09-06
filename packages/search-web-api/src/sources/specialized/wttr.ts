@@ -1,7 +1,7 @@
 /**
  * @fileoverview Engine adapter that queries wttr.in for weather data, mapping WWO condition codes to human-readable descriptions.
  */
-import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
+import { EngineFunction, EngineResult } from "../../types/search-engine-interface";
 
 // Weather condition mapping
 const WWO_TO_CONDITION: Record<string, string> = {

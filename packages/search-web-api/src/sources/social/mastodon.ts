@@ -1,7 +1,7 @@
 /**
  * @fileoverview Engine adapter that queries the Mastodon public API for post search results.
  */
-import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
+import { EngineFunction, EngineResult } from "../../types/search-engine-interface";
 
 export const mastodon: EngineFunction = async (
   query: string,

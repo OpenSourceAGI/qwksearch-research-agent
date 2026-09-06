@@ -6,7 +6,7 @@
  * their success rate exceeds twice their failure count.
  */
 
-import { EngineStatus, EngineLog } from "../types/search-result-types.js";
+import { EngineStatus, EngineLog } from "../types/search-result-types";
 
 export class EngineStatusTracker {
   private statusMap: Map<string, EngineStatus> = new Map();

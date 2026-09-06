@@ -1,7 +1,7 @@
 /**
  * @fileoverview Engine adapter that queries the Internet Archive API for search results.
  */
-import { EngineFunction, EngineResult } from "../../types/search-engine-interface.js";
+import { EngineFunction, EngineResult } from "../../types/search-engine-interface";
 
 export const archive: EngineFunction = async (
   query: string,

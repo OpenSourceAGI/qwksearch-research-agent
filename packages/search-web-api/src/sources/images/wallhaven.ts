@@ -1,7 +1,7 @@
 /**
  * @fileoverview Engine adapter that queries the Wallhaven API for wallpaper search results.
  */
-import { EngineFunction } from "../../types/search-engine-interface.js";
+import { EngineFunction } from "../../types/search-engine-interface";
 
 export const wallhaven: EngineFunction = async (
   query: string,
