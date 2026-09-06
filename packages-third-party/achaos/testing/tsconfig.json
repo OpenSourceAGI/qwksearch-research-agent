@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "types": ["node", "vitest/globals"]
-  },
-  "extends": "../../../tsconfig.json",
-  "include": ["src/**/*.ts"]
-}
