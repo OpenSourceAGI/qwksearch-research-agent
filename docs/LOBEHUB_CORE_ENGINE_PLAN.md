@@ -1,5 +1,9 @@
 # LobeHub as the Core Engine — Integration Plan
 
+> **Superseded** by [`LOBE_PACKAGES_MIGRATION_PLAN.md`](./LOBE_PACKAGES_MIGRATION_PLAN.md),
+> which re-grounds this strategy in the now-working `packages-lobe/` Cloudflare port
+> (the `packages-third-party/` snapshot referenced below has been removed).
+
 Step-by-step plan for inverting the architecture: **LobeHub becomes the core
 engine and settings system**, and QwkSearch's differentiators are layered on
 top of it — the home/landing pages, the QwkSearch visual identity, the article
