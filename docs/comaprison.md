@@ -1,17 +1,16 @@
+Here’s the table with **Grok** replacing the OSS column and domain favicon images added to each product header via Google’s favicon service:
 
-## 🆚 How QwkSearch Compares
-
-| Feature | 🟢 QwkSearch | Perplexity | ChatGPT | Claude | Google (Search/Gemini) | Other OSS (SearXNG, GPT Researcher, etc) |
+| Feature |  <img src="https://www.google.com/s2/favicons?domain=qwksearch.com&sz=32" width="16" height="16" alt="QwkSearch"> QwkSearch |  <img src="https://www.google.com/s2/favicons?domain=perplexity.ai&sz=32" width="16" height="16" alt="Perplexity"> Perplexity |  <img src="https://www.google.com/s2/favicons?domain=chatgpt.com&sz=32" width="16" height="16" alt="ChatGPT"> ChatGPT | Claude <img src="https://www.google.com/s2/favicons?domain=claude.ai&sz=32" width="16" height="16" alt="Claude"> | <img src="https://www.google.com/s2/favicons?domain=google.com&sz=32" width="16" height="16" alt="Google"> Google Gemini |  <img src="https://www.google.com/s2/favicons?domain=grok.com&sz=32" width="16" height="16" alt="Grok"> Grok |
 |---|---|---|---|---|---|---|
-| Open source | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ✅ Varies |
-| Self-hostable (Cloudflare Workers, Docker) | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ✅ Varies |
-| Choice of LLM provider | ✅ Claude, GPT, Gemini, Grok, Llama, Chinese LLMs, etc | ❌ Fixed/limited | ❌ OpenAI only | ❌ Anthropic only | ❌ Gemini only | ⚠️ Varies by project |
-| Search coverage | ✅ 100+ sites across 10 categories (web, academic, news, video, files, images, etc) | ⚠️ Web-focused | ⚠️ Bing-backed, limited | ⚠️ Web search (beta) | ✅ Broad web index, no AI synthesis by default | ⚠️ Meta-search only, no built-in AI |
-| Cited answers with APA formatting | ✅ Built-in citation extraction & formatting | ✅ Yes | ⚠️ Inconsistent | ⚠️ Inconsistent | ❌ No | ❌ No |
-| PDF / YouTube / DOCX ingestion | ✅ Yes, with transcript & structure extraction | ⚠️ PDF only | ⚠️ Limited | ⚠️ Limited | ❌ No | ❌ No |
-| Research writing/notes editor | ✅ Full Lexical-based editor with outline notation (REASON) | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
-| Browser extension | ✅ AI tab manager | ✅ Yes | ⚠️ Limited | ❌ No | ✅ Yes | ⚠️ Varies |
-| Desktop app | ✅ Tauri-based | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No | ⚠️ Varies |
-| Editor/IDE integration | ✅ VS Code extension | ❌ No | ⚠️ Copilot (separate product) | ⚠️ Claude Code (separate product) | ❌ No | ⚠️ Varies |
-| Privacy mode (no saved history) | ✅ Yes | ⚠️ Limited | ⚠️ Limited | ⚠️ Limited | ⚠️ Limited | ✅ Often, if self-hosted |
-| Pricing | ✅ Free & open-source, pay-per-use API | 💲 Subscription | 💲 Subscription | 💲 Subscription | 💲 Freemium | ✅ Usually free, self-hosted |
+| Open source | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
+| Self-hostable (Cloudflare Workers, Docker) | ✅ Yes | ❌ No | ❌ No | ❌ No | ❌ No | ❌ No |
+| Choice of LLM provider | ✅ Claude, GPT, Gemini, Grok, Llama, Chinese LLMs, etc. | ❌ Fixed/limited | ❌ OpenAI only | ❌ Anthropic only | ❌ Gemini only | ❌ Grok/xAI only |
+| Search coverage | ✅ 100+ sites across 10 categories (web, academic, news, video, files, images, etc.) | ⚠️ Web-focused | ⚠️ Web search, varies by mode | ⚠️ Web search | ✅ Broad web index, no AI synthesis by default | ⚠️ Web/X-focused |
+| Cited answers with APA formatting | ✅ Built-in citation extraction & formatting | ✅ Yes | ⚠️ Inconsistent | ⚠️ Inconsistent | ❌ No | ⚠️ Citations available, not APA-focused |
+| PDF / YouTube / DOCX ingestion | ✅ Yes, with transcript & structure extraction | ⚠️ PDF only | ⚠️ Limited | ⚠️ Limited | ⚠️ Gemini supports some file uploads | ⚠️ Limited |
+| Research writing/notes editor | ✅ Full Lexical-based editor with outline notation (REASON) | ❌ No | ⚠️ Canvas/projects, not a dedicated research editor | ⚠️ Projects/artifacts, not a dedicated research editor | ⚠️ Workspace/Canvas features, not a dedicated research editor | ❌ No |
+| Browser extension | ✅ AI tab manager | ✅ Yes | ⚠️ Limited | ❌ No | ✅ Yes | ❌ No |
+| Desktop app | ✅ Tauri-based | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No | ⚠️ Web/mobile app; no standard desktop app |
+| Editor/IDE integration | ✅ VS Code extension | ❌ No | ⚠️ Codex/Copilot-style tools are separate | ⚠️ Claude Code is separate | ⚠️ Gemini Code Assist is separate | ⚠️ Grok Code Fast / developer tools are separate |
+| Privacy mode (no saved history) | ✅ Yes | ⚠️ Limited | ⚠️ Limited | ⚠️ Limited | ⚠️ Limited | ⚠️ Limited |
+| Pricing | ✅ Free & open-source; pay-per-use API | 💲 Subscription | 💲 Subscription | 💲 Subscription | 💲 Freemium | 💲 Freemium/subscription |
