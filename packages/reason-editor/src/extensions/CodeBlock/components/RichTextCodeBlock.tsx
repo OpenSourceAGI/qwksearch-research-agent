@@ -15,6 +15,7 @@ export function RichTextCodeBlock() {
   const {
     icon = undefined,
     tooltip = undefined,
+    shortcutKeys = undefined,
     tooltipOptions = {},
     action = undefined,
     isActive = undefined,
@@ -41,6 +42,7 @@ export function RichTextCodeBlock() {
       dataState={dataState}
       disabled={disabled}
       icon={icon}
+      shortcutKeys={shortcutKeys}
       tooltip={tooltip}
       tooltipOptions={tooltipOptions}
     />

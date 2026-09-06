@@ -6,7 +6,7 @@ import { Slot } from '@radix-ui/react-slot';
 import React from 'react';
 
 import { Button, Tooltip, TooltipContent, TooltipTrigger, icons } from '@/components';
-import { getShortcutKeys } from '@/utils/plateform';
+import { TooltipShortcutKeys } from '@/components/TooltipShortcutKeys';
 
 import type { ButtonViewReturnComponentProps } from '@/types';
 import type { TooltipContentProps } from '@radix-ui/react-tooltip';
@@ -76,11 +76,8 @@ const ActionMenuButton = React.forwardRef<HTMLButtonElement, ActionMenuButtonPro
             <div className='richtext-flex richtext-flex-col richtext-items-center richtext-text-center'>
               {tooltip && <div>{tooltip}</div>}
 
-              <div className='richtext-flex'>
-                {!!props?.shortcutKeys?.length && (
-                  <span>{getShortcutKeys(props?.shortcutKeys)}</span>
-                )}
-              </div>
+              <TooltipShortcutKeys shortcutKeys={props?.shortcutKeys} />
+
             </div>
           </TooltipContent>
         )}
