@@ -8,9 +8,16 @@
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES, isImageOptimizationPath } from "vinext/server/image-optimization";
 import type { ImageConfig } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
+import { applyD1Bookmark, runWithD1Session } from "../lib/database/d1-session";
 
 interface Env {
   ASSETS: Fetcher;
+  // See lib/database/d1-session.ts — "auto" (default), "primary",
+  // "unconstrained" or "off". Settable as a plain Variable in the dashboard.
+  D1_SESSION_MODE?: string;
+  // When set, responses carry x-d1-served-by-region / -primary so you can see
+  // which D1 instance answered.
+  D1_SESSION_DEBUG?: string;
   IMAGES: {
     input(stream: ReadableStream): {
       transform(options: Record<string, unknown>): {
@@ -52,6 +59,15 @@ export default {
     // Delegate everything else to vinext, forwarding ctx so that
     // ctx.waitUntil() is available to background cache writes and
     // other deferred work via getRequestExecutionContext().
-    return handler.fetch(request, env, ctx);
+    //
+    // The whole request runs inside one D1 read-replication session
+    // (lib/database/d1-session.ts): reads can be answered by the nearest
+    // replica, while the session's bookmark keeps them sequentially
+    // consistent. The closing bookmark rides back on the response so the
+    // client's next request never sees an older version of the database.
+    return runWithD1Session(request, env.D1_SESSION_MODE, async () => {
+      const response = await handler.fetch(request, env, ctx);
+      return applyD1Bookmark(response, { debug: Boolean(env.D1_SESSION_DEBUG) });
+    });
   },
 };
