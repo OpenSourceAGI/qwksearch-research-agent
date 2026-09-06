@@ -44,21 +44,16 @@ export function useReasonDocsState(openFilesSidebarSignal?: number | string) {
   const [defaultSidebarView, setDefaultSidebarView] = useLocalStorage<
     "tree" | "outline" | "split" | "last-used"
   >("REASON-default-sidebar-view", "last-used");
+  // Split view is inferred from the panel lists (2+ panels stack in a
+  // split), so there is no separate split flag. Open Tabs stacks above the
+  // Files tree.
   const [leftPanels, setLeftPanels] = useLocalStorage<SidebarPanelType[]>(
     "REASON-left-panels",
-    ["files", "openTabs"],
-  );
-  const [leftSplit, setLeftSplit] = useLocalStorage<boolean>(
-    "REASON-left-split",
-    true,
+    ["openTabs", "files"],
   );
   const [rightPanels, setRightPanels] = useLocalStorage<SidebarPanelType[]>(
     "REASON-right-panels",
     [],
-  );
-  const [rightSplit, setRightSplit] = useLocalStorage<boolean>(
-    "REASON-right-split",
-    false,
   );
   const [showDynamicIsland, setShowDynamicIsland] = useLocalStorage<boolean>(
     "REASON-show-dynamic-island",
@@ -483,13 +478,10 @@ export function useReasonDocsState(openFilesSidebarSignal?: number | string) {
   useEffect(() => {
     if (defaultSidebarView === "tree") {
       setLeftPanels(["files"]);
-      setLeftSplit(false);
     } else if (defaultSidebarView === "outline") {
       setLeftPanels(["outline"]);
-      setLeftSplit(false);
     } else if (defaultSidebarView === "split") {
-      setLeftPanels(["files", "openTabs", "outline"]);
-      setLeftSplit(true);
+      setLeftPanels(["openTabs", "files", "outline"]);
     }
   }, []);
 
@@ -793,12 +785,8 @@ export function useReasonDocsState(openFilesSidebarSignal?: number | string) {
     setDefaultSidebarView,
     leftPanels,
     setLeftPanels,
-    leftSplit,
-    setLeftSplit,
     rightPanels,
     setRightPanels,
-    rightSplit,
-    setRightSplit,
     showDynamicIsland,
     setShowDynamicIsland,
     sidebarWidth,

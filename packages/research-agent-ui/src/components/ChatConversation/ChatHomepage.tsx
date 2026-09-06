@@ -166,10 +166,10 @@ export default function ChatHomepage() {
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
             {(showWeatherWidget || showTrendingNewsWidget) && (
-              <div className="flex flex-col md:flex-row gap-2 w-full">
-                {/* The compact weather widget is a fixed-width card, so it sits
-                    beside the trending news column rather than taking its own row
-                    (and stretches to full width once they stack on mobile). */}
+              <div className="flex flex-col gap-2 w-full">
+                {/* The compact weather widget is fluid, so it spans the full
+                    column width on its own row (current conditions on the left,
+                    the next days on the right), with trending news below it. */}
                 {showWeatherWidget && (
                   <WeatherForecast
                     compact
@@ -177,7 +177,7 @@ export default function ChatHomepage() {
                     forecastHours={weatherForecastHours}
                     temperatureUnit={weatherTemperatureUnit}
                     locations={weatherLocations.length > 0 ? weatherLocations : undefined}
-                    className="rounded-2xl"
+                    className="rounded-2xl w-full"
                     style={{
                       background: 'rgba(255,255,255,0.08)',
                       border: '1px solid rgba(255,255,255,0.15)',
@@ -193,7 +193,7 @@ export default function ChatHomepage() {
                     maxTopics={trendingNewsMaxTopics}
                     showImages={trendingNewsShowImages}
                     apiEndpoint={trendingNewsApiUrl || undefined}
-                    className="rounded-2xl md:flex-1"
+                    className="rounded-2xl w-full"
                     style={{
                       background: 'rgba(255,255,255,0.08)',
                       border: '1px solid rgba(255,255,255,0.15)',

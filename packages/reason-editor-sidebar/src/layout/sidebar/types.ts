@@ -101,18 +101,15 @@ export interface SidebarProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   isMobile?: boolean;
-  // Left sidebar panel configuration
+  // Left sidebar panel configuration. Split view is inferred: 2+ selected
+  // panels stack in a resizable split.
   leftPanels: SidebarPanelType[];
   onLeftPanelsChange: (panels: SidebarPanelType[]) => void;
-  leftSplit: boolean;
-  onLeftSplitChange: (split: boolean) => void;
   // Right sidebar panel configuration (controlled here so the same view
   // menu can manage both sides, even though the right panel itself is
   // rendered outside of Sidebar by ReasonDocs)
   rightPanels: SidebarPanelType[];
   onRightPanelsChange: (panels: SidebarPanelType[]) => void;
-  rightSplit: boolean;
-  onRightSplitChange: (split: boolean) => void;
   // Settings
   onSettingsClick?: (section?: string) => void;
   onInviteClick?: () => void;
@@ -159,10 +156,8 @@ export interface SidebarProps {
 
 /** Props for the `SidebarContent` component (the shared panel-body renderer used by both the left sidebar and `RightPanel`). */
 export interface SidebarContentProps {
-  /** Which panels are active on this side, in stacking order. */
+  /** Which panels are active on this side. Two or more panels render stacked in a split (canonical stacking order applies). */
   panels: SidebarPanelType[];
-  /** Whether multiple panels may be shown stacked at once. */
-  split: boolean;
   /** Storage key suffix so left/right panel sizes persist independently. */
   persistenceKey: string;
   /** Filtered/flat document list to pass down to the file tree. */

@@ -1,10 +1,10 @@
 /**
  * @module SidebarContent
  * @description Renders the panel body of a sidebar (left or right). Stacks
- * any combination of the "files", "openTabs", "outline", and "ai" panels
- * vertically in a resizable split when more than one is active, matching
- * whatever `panels` list the {@link SidebarViewMenu} has configured for
- * that side.
+ * any combination of the "openTabs", "files", "outline", and "ai" panels
+ * vertically — Open Tabs always above the Files tree — in a resizable split
+ * inferred whenever two or more panels are active, matching whatever
+ * `panels` list the {@link SidebarViewMenu} has configured for that side.
  */
 import { RefObject, useState, useCallback, useMemo, useRef } from 'react';
 import type { OutlineViewHandle } from './search/OutlineView';
@@ -12,6 +12,7 @@ import type { RelatedDocumentResult } from './search/relatedDocuments';
 import type { SidebarPanelType, SidebarContentProps, OpenTabItem } from './layout/sidebar/types';
 import type { TocEntry } from './app-types/toc';
 import { FileTree } from './file-tree';
+import { sortPanels } from './layout/sidebar/panelOptions';
 import { OutlineView } from './search/OutlineView';
 import { findRelatedDocuments, splitTopSuggestion } from './search/relatedDocuments';
 import { AIRewriteSuggestion } from './features/ai-rewrite/AIRewriteSuggestion';
@@ -31,7 +32,7 @@ import { usePersistence } from 'react-split-pane/persistence';
 import { X, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb } from 'lucide-react';
 import './split-pane.css';
 
-type DocumentTreeHandle = { collapseAll: () => void; edit: (nodeId: string) => void; expandAll: () => void; expandToLevel: (level: number) => void; cancelExpand: () => void };
+import type { DocumentTreeHandle } from './file-tree/filetree';
 
 /** Human-readable panel titles used in headers/empty states. */
 const PANEL_TITLES: Record<SidebarPanelType, string> = {
@@ -48,7 +49,6 @@ const PANEL_TITLES: Record<SidebarPanelType, string> = {
  */
 export const SidebarContent = ({
   panels,
-  split,
   persistenceKey,
   activeDocuments,
   activeId,
@@ -504,7 +504,11 @@ export const SidebarContent = ({
     }
   };
 
-  if (panels.length === 0) {
+  // Panels always stack in the canonical order (Open Tabs above Files),
+  // regardless of the order they were toggled on in.
+  const orderedPanels = sortPanels(panels);
+
+  if (orderedPanels.length === 0) {
     return (
       <div className="h-full flex items-center justify-center p-6 text-center">
         <p className="text-sm text-muted-foreground">No panels enabled</p>
@@ -512,15 +516,16 @@ export const SidebarContent = ({
     );
   }
 
-  if (panels.length === 1 || !split) {
-    return <div className="h-full">{renderPanel(panels[0])}</div>;
+  // Split view is inferred: two or more selected panels stack in a split.
+  if (orderedPanels.length === 1) {
+    return <div className="h-full">{renderPanel(orderedPanels[0])}</div>;
   }
 
   return (
     <div className="h-full">
       <SplitPane direction="vertical" onResize={setPanelSizes}>
-        {panels.map((type, i) => (
-          <Pane key={type} size={panelSizes?.[i] || `${Math.round(100 / panels.length)}%`} minSize="0px">
+        {orderedPanels.map((type, i) => (
+          <Pane key={type} size={panelSizes?.[i] || `${Math.round(100 / orderedPanels.length)}%`} minSize="0px">
             {renderPanel(type)}
           </Pane>
         ))}

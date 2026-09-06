@@ -1,7 +1,7 @@
 /**
  * @module SidebarFooter
  * @description Bottom icon bar of the sidebar. Renders trash, settings,
- * and split-view controls.
+ * and panel view controls.
  */
 import { Button } from './app-ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './app-ui/tooltip';
@@ -29,20 +29,12 @@ import { SidebarViewMenu } from './SidebarViewMenu';
 interface SidebarFooterProps {
   /** Panels currently visible in the left sidebar. */
   leftPanels: SidebarPanelType[];
-  /** Whether the left sidebar allows multiple stacked panels. */
-  leftSplit: boolean;
   /** Changes which panels are visible in the left sidebar. */
   onLeftPanelsChange: (panels: SidebarPanelType[]) => void;
-  /** Changes whether the left sidebar allows multiple stacked panels. */
-  onLeftSplitChange: (split: boolean) => void;
   /** Panels currently visible in the right sidebar. */
   rightPanels: SidebarPanelType[];
-  /** Whether the right sidebar allows multiple stacked panels. */
-  rightSplit: boolean;
   /** Changes which panels are visible in the right sidebar. */
   onRightPanelsChange: (panels: SidebarPanelType[]) => void;
-  /** Changes whether the right sidebar allows multiple stacked panels. */
-  onRightSplitChange: (split: boolean) => void;
   /** Suppresses the settings button when `true` (mobile layout). */
   isMobile?: boolean;
   /** Soft-deleted documents shown in the trash dropdown. */
@@ -61,18 +53,14 @@ interface SidebarFooterProps {
 
 /**
  * Compact icon row pinned to the bottom of the sidebar. Includes a trash
- * dropdown (restore deleted docs), settings button, and a split-view mode
+ * dropdown (restore deleted docs), settings button, and a panel view
  * dropdown.
  */
 export const SidebarFooter = ({
   leftPanels,
-  leftSplit,
   onLeftPanelsChange,
-  onLeftSplitChange,
   rightPanels,
-  rightSplit,
   onRightPanelsChange,
-  onRightSplitChange,
   isMobile,
   deletedDocs,
   onRestore,
@@ -183,16 +171,12 @@ export const SidebarFooter = ({
             </DropdownMenu>
           )}
 
-          {/* Split View Menu */}
+          {/* View Options Menu */}
           <SidebarViewMenu
             leftPanels={leftPanels}
             onLeftPanelsChange={onLeftPanelsChange}
-            leftSplit={leftSplit}
-            onLeftSplitChange={onLeftSplitChange}
             rightPanels={rightPanels}
             onRightPanelsChange={onRightPanelsChange}
-            rightSplit={rightSplit}
-            onRightSplitChange={onRightSplitChange}
             triggerClassName="h-9 w-9 p-0 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
             tooltipSide="top"
           />

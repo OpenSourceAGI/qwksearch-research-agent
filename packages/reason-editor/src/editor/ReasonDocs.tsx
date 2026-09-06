@@ -267,12 +267,8 @@ const Index = ({
     isMobile: state.isMobile,
     leftPanels: state.leftPanels,
     onLeftPanelsChange: state.setLeftPanels,
-    leftSplit: state.leftSplit,
-    onLeftSplitChange: state.setLeftSplit,
     rightPanels: state.rightPanels,
     onRightPanelsChange: state.setRightPanels,
-    rightSplit: state.rightSplit,
-    onRightSplitChange: state.setRightSplit,
     onSettingsClick: (section?: string) => { setSettingsInitialSection(section); state.setIsSettingsOpen(true); },
     onInviteClick: () => state.setIsInviteModalOpen(true),
     onRestore: state.handleRestoreDocument,
@@ -329,7 +325,6 @@ const Index = ({
   const rightPanel = state.rightPanels.length > 0 && (
     <RightPanel
       panels={state.rightPanels}
-      split={state.rightSplit}
       documents={state.documents}
       activeId={state.activeDocId}
       activeDocument={state.activeDocument}

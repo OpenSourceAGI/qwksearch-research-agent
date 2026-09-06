@@ -28,7 +28,7 @@ export type {
   SidebarTipsProps,
   SidebarTopicsProps,
 } from './layout/sidebar/types';
-export { PANEL_OPTIONS, togglePanel, applySplitToggle } from './layout/sidebar/panelOptions';
+export { PANEL_OPTIONS, togglePanel, sortPanels } from './layout/sidebar/panelOptions';
 
 // Folders and files review: the headless-tree-powered folder/file browser
 // and its supporting hooks/utilities.

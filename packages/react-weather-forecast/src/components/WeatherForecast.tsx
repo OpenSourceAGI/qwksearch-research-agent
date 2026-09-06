@@ -77,9 +77,8 @@ function parseCalendarDate(date: string): Date {
   return new Date(year, month - 1, day);
 }
 
-// The upcoming days sit in narrow columns along the bottom of the card, so
-// they are labelled with the abbreviated weekday ("Fri") rather than a full
-// name or "Tomorrow".
+// The upcoming days sit in narrow columns in the card, so they are labelled
+// with the abbreviated weekday ("Fri") rather than a full name or "Tomorrow".
 function upcomingDayLabel(date: string): string {
   return parseCalendarDate(date).toLocaleDateString([], { weekday: 'short' });
 }
@@ -107,22 +106,24 @@ const styles = {
   hours: { display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 } as React.CSSProperties,
   hourCard: { minWidth: 72, textAlign: 'center' as const, padding: 8, borderRadius: 8, background: '#f9fafb' },
   dayRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 0', borderBottom: '1px solid #f3f4f6' } as React.CSSProperties,
-  // Card-sized: a fixed maximum width with generous, even padding, so the
-  // widget reads as a self-contained tile wherever it is dropped in.
+  // Fluid: fills whatever container it is dropped into (e.g. the full
+  // sidebar/column width on desktop), with generous, even padding. Current
+  // conditions sit on the left and the upcoming days on the right; the two
+  // halves wrap into a stack when the container gets narrow.
   compactRoot: {
     fontFamily: 'system-ui, sans-serif',
     display: 'flex',
-    flexDirection: 'column',
-    gap: 14,
-    padding: 18,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'stretch',
+    gap: 18,
+    padding: '16px 20px',
     borderRadius: 16,
     width: '100%',
-    maxWidth: 340,
     boxSizing: 'border-box',
   } as React.CSSProperties,
-  // Current conditions stack down the card; the upcoming days sit in a row
-  // along the bottom.
-  compactBody: { display: 'flex', flexDirection: 'column', gap: 10 } as React.CSSProperties,
+  // Current conditions stack down the left side of the card.
+  compactBody: { display: 'flex', flexDirection: 'column', gap: 10, flex: '1 1 200px', minWidth: 0 } as React.CSSProperties,
   compactCity: { fontSize: 15, fontWeight: 700, lineHeight: 1.2 } as React.CSSProperties,
   compactHeader: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 } as React.CSSProperties,
   compactTemp: { fontSize: 32, fontWeight: 600, lineHeight: 1 } as React.CSSProperties,
@@ -130,18 +131,23 @@ const styles = {
   compactSeconds: { fontSize: 13, fontWeight: 500, opacity: 0.6 } as React.CSSProperties,
   compactDate: { fontSize: 11, opacity: 0.7, marginTop: 2 } as React.CSSProperties,
   compactStats: { display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 12, opacity: 0.9 } as React.CSSProperties,
-  // Three equal columns along the bottom edge, each stacking weekday / icon /
-  // high-low so the row stays readable at card width.
+  // Three equal columns on the right side of the card, each stacking
+  // weekday / icon / high-low, vertically centered against the current
+  // conditions and nudged over behind a divider so the two halves read as
+  // separate sections.
   upcoming: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: 4,
-    paddingTop: 8,
-    borderTop: '1px solid currentColor',
-    borderTopColor: 'rgba(128,128,128,0.25)',
+    alignContent: 'center',
+    gap: 10,
+    flex: '1 1 220px',
+    minWidth: 0,
+    paddingLeft: 18,
+    borderLeft: '1px solid currentColor',
+    borderLeftColor: 'rgba(128,128,128,0.25)',
     fontSize: 11,
   } as React.CSSProperties,
-  upcomingDay: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, textAlign: 'center' } as React.CSSProperties,
+  upcomingDay: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, textAlign: 'center' } as React.CSSProperties,
   upcomingDayName: { opacity: 0.7, whiteSpace: 'nowrap' } as React.CSSProperties,
   upcomingTemps: { whiteSpace: 'nowrap' } as React.CSSProperties,
   compactStat: { display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' } as React.CSSProperties,
@@ -224,8 +230,8 @@ function SingleWeatherForecast(props: Props) {
   if (props.compact) {
     const today = data.daily[0];
     const windSpeedUnitLabel = WIND_SPEED_UNIT_LABELS[props.windSpeedUnit ?? 'mph'];
-    // Today is already summarised in the card's own stats line, so the bottom
-    // row starts at tomorrow and shows the next three days.
+    // Today is already summarised in the card's own stats line, so the
+    // upcoming-days section starts at tomorrow and shows the next three days.
     const upcomingDays = data.daily.slice(1, 4);
 
     return (

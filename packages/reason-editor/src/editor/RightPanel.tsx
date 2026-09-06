@@ -35,10 +35,8 @@ const SIDEBAR_GLASS_CLASSES =
 interface RightPanelProps {
   /** Renders the panel body. Supply `SidebarContent` from `react-reason-editor-sidebar`. */
   SidebarContentComponent: ComponentType<SidebarContentProps>;
-  /** Panels currently visible in the right sidebar. */
+  /** Panels currently visible in the right sidebar. Two or more panels render stacked in a split. */
   panels: SidebarPanelType[];
-  /** Whether the right sidebar allows multiple stacked panels. */
-  split: boolean;
   documents: Document[];
   activeId: string | null;
   activeDocument?: Document;
@@ -101,7 +99,6 @@ const PANEL_LABELS: Record<SidebarPanelType, string> = Object.fromEntries(
 export function RightPanel({
   SidebarContentComponent,
   panels,
-  split,
   documents,
   activeId,
   activeDocument,
@@ -154,7 +151,6 @@ export function RightPanel({
       <div className="flex-1 min-h-0">
         <SidebarContentComponent
           panels={panels}
-          split={split}
           persistenceKey="right"
           activeDocuments={documents}
           activeId={activeId}
