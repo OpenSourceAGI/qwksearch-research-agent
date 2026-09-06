@@ -60,3 +60,6 @@ apps/qwksearch-web/.open-next
 yarn.lock
 .yarnrc.yml
 bun.lockb
+
+# Vendored lobehub source: re-include dir matched by the "html/" test-report pattern above
+!packages-third-party/web-crawler/src/utils/html/

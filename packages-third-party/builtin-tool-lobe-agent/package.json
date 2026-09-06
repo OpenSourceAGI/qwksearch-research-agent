@@ -1,0 +1,35 @@
+{
+  "name": "@lobechat/builtin-tool-lobe-agent",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client/index.ts",
+    "./client/executor": "./src/client/executor/index.ts",
+    "./planRuntime": "./src/client/executor/PlanRuntime/index.ts"
+  },
+  "main": "./src/index.ts",
+  "scripts": {
+    "test": "vitest",
+    "test:coverage": "vitest --coverage --silent='passed-only'",
+    "test:update": "vitest -u"
+  },
+  "dependencies": {
+    "@lobechat/builtin-tool-user-interaction": "workspace:*",
+    "@lobechat/const": "workspace:*",
+    "@lobechat/prompts": "workspace:*",
+    "@lobechat/shared-tool-ui": "workspace:*",
+    "@lobechat/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@lobechat/types": "workspace:*"
+  },
+  "peerDependencies": {
+    "@lobehub/editor": "^4",
+    "@lobehub/ui": "^5",
+    "antd": "^6",
+    "antd-style": "*",
+    "lucide-react": "*",
+    "react": "*"
+  }
+}
