@@ -76,12 +76,10 @@ function Hero() {
 
         <Reveal delay={80}>
           <h1 className="text-4xl leading-[1.08] font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-            Search the whole web.
+            A game changing first innovation.
             <br />
             <span className="qs-shimmer-text bg-gradient-to-r from-sky-500 via-violet-500 to-sky-500 bg-clip-text text-transparent">
-              Read every source.
-              <br />
-              Write the answer.
+              The Research IDE.
             </span>
           </h1>
         </Reveal>
