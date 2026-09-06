@@ -28,7 +28,6 @@ import {
 import {
   ENGINE_NAMES,
   FEATURE_TABS,
-  PACKAGES,
   PIPELINE,
   PLATFORMS,
   PROVIDERS,
@@ -460,37 +459,6 @@ function Platforms() {
   );
 }
 
-function OpenSource() {
-  return (
-    <section className="relative px-4 py-20 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          eyebrow="Open source"
-          title="Built from packages you can use yourself"
-          blurb="The product is a thin shell over a monorepo of standalone, independently published libraries."
-        />
-
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {PACKAGES.map((pkg, index) => (
-            <Reveal key={pkg.name} delay={(index % 3) * 60}>
-              <SpotlightCard beam={false} spotlightSize={280} className="h-full">
-                <div className="p-5">
-                  <code className="qs-accent-text text-sm font-semibold">
-                    {pkg.name}
-                  </code>
-                  <p className="text-muted-foreground mt-1.5 text-sm leading-relaxed">
-                    {pkg.blurb}
-                  </p>
-                </div>
-              </SpotlightCard>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function ClosingCta() {
   return (
     <section className="relative px-4 pt-10 pb-28 sm:px-6 lg:px-8">
@@ -545,7 +513,6 @@ export function FeaturesView() {
       <Pipeline />
       <FeatureExplorer />
       <Platforms />
-      <OpenSource />
       <ClosingCta />
     </div>
   );
