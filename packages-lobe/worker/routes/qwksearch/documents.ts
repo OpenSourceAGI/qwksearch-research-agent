@@ -15,7 +15,9 @@ import { getUserId } from '../../qwksearch/session';
 
 export const documentsApp = new Hono();
 
-const parseId = (raw: string) => {
+/** Document ids are numeric; anything else (including a missing param) is rejected as a 400. */
+const parseId = (raw: string | undefined) => {
+  if (!raw) return null;
   const id = Number.parseInt(raw, 10);
   return Number.isNaN(id) ? null : id;
 };
