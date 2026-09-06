@@ -12,6 +12,7 @@ import { eq, sql } from "drizzle-orm";
 import { extractContent } from "extract-webpage/url-to-content/url-to-content";
 import { extractArticleViaScraper, extractViaTavily } from "@/lib/scraper";
 import { getTavilyApiKey } from "@/lib/config/serverRegistry";
+import { withCors, corsPreflight } from "@/lib/cors";
 
 interface Article {
   html?: string;
@@ -33,7 +34,7 @@ interface CachedArticle extends Article {
 }
 
 // GET /api/article?url=... - Get article with cache
-export async function GET(req: NextRequest) {
+async function articleGet(req: NextRequest) {
   console.log("[article] GET start", { url: req.nextUrl.searchParams.get("url") });
   try {
     const db = getDB();
@@ -320,7 +321,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/article - Store Q&A or update follow-up questions
-export async function POST(req: NextRequest) {
+async function articlePost(req: NextRequest) {
   try {
     const db = getDB();
     const body = await req.json();
@@ -363,3 +364,7 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export const GET = withCors(articleGet);
+export const POST = withCors(articlePost);
+export const OPTIONS = corsPreflight;
