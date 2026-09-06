@@ -194,7 +194,7 @@ These are MIT npm packages. No vendoring, no license question.
 - **2.4** Merge `urlRules.ts` with QwkSearch's own domain knowledge —
   `packages/domain-rank` already scores domains; wire rule selection to consult it.
   Add rules for the extractors we already have: `youtube.com/watch` →
-  `extract-youtube`, `*.pdf` → `extract-pdf`, arXiv → `extract-pdf-docling`.
+  `extract-youtube`, `*.pdf` → `extract-pdf`, arXiv → `extract-pdf` with `processor: "docling"`.
 - **2.5** Rewire `apps/qwksearch-web/app/api/scraper` to call `Crawler` instead
   of `extract-webpage` directly, so it inherits the fallback chain.
 - ✅ Check: unit tests from `packages/web-crawler/src/__tests__` ported and green;
@@ -249,7 +249,7 @@ Steps:
 
 - **4.1** Vendor `file-loaders` → `packages/lobehub/file-loaders/`. Zero internal
   deps, so this is a near-clean copy.
-- **4.2** Reconcile with what's already here: keep `extract-pdf`/`extract-pdf-docling`
+- **4.2** Reconcile with what's already here: keep `extract-pdf`
   as the PDF path (they're better tuned), take **xlsx / pptx / ipynb / doc** — the
   four formats QwkSearch can't read today. `mammoth` is already a root dep and is
   what lobehub's docx loader uses, so docx dedupes cleanly.

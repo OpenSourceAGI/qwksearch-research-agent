@@ -112,11 +112,8 @@ bun i qwksearch-api-client
 - **domain-rank** — Looks up top-ranked domains from the Tranco List and CommonCrawl backlink data to retrieve their human-readable source label, influence rank, and favicon. Useful for search/URL autocomplete, bookmark launchers, and domain reputation scoring.
   <a href="https://www.npmjs.com/package/domain-rank"><img src="https://img.shields.io/npm/dm/domain-rank.svg" alt="Monthly Downloads"></a>
 
-- **extract-pdf** — Converts a PDF from a URL or ArrayBuffer into clean HTML with structural tagging including headings, lists, footnotes, and code blocks. Works in Node.js, Cloudflare Workers, and browser environments with zero runtime dependencies.
+- **extract-pdf** — Converts a PDF from a URL or ArrayBuffer into clean HTML with structural tagging including headings, lists, footnotes, and code blocks. Slim by default — PDF.js loads at runtime from the pdfjs-serverless CDN build — with optional OCR via IBM's granite-docling-258M model: run all pages through the frontend JS parser, all through Docling, hybrid (a regex scan flags pages with infographics/tables and OCRs only those), or point at the URL of another docling-compatible processor. Ships the Hono HTTP OCR service in its `server/` folder. Works in Node.js, Cloudflare Workers, and browser environments.
   <a href="https://www.npmjs.com/package/extract-pdf"><img src="https://img.shields.io/npm/dm/extract-pdf.svg" alt="Monthly Downloads"></a>
-
-- **extract-pdf-docling** — Converts PDF documents to HTML using IBM's granite-docling-258M AI model via Hugging Face Transformers, preserving layout and structure through OCR. Supports recognition of code, formulas, tables, lists, charts, and figures via a Hono-based HTTP API.
-  <a href="https://www.npmjs.com/package/pdf-to-html-docling"><img src="https://img.shields.io/npm/dm/pdf-to-html-docling.svg" alt="Monthly Downloads"></a>
 
 - **extract-webpage** — Searches, extracts, cites, and outlines web content for a topic using an AI Research Agent. Combines PDF extraction, YouTube transcript extraction, DOM parsing, and LLM-based summarization to produce structured content from arbitrary web pages.
   <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/dm/extract-webpage.svg" alt="Monthly Downloads"></a>

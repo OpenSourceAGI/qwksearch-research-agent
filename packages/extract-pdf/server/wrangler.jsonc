@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "pdf-to-html-docling",
-  "main": "src/pdf2html.js",
+  "main": "server.js",
   "compatibility_date": "2025-05-01",
   // Required for Node.js built-ins (crypto, stream, path, etc.) used by
   // @huggingface/transformers and @hono/node-server.

@@ -27,7 +27,7 @@ well-bounded:
 | QwkSearch asset | Package(s) | Why it survives the inversion |
 |---|---|---|
 | Search fan-out across 100+ engines, 13 categories | `search-web-api`, `searxng-search-cloudflare`, `domain-rank` | LobeHub's `builtin-tool-web-browsing` ships 1 search provider; ours is the moat |
-| Article extraction + citation | `extract-webpage`, `extract-pdf`, `extract-pdf-docling`, `extract-youtube`, `render-url-to-html` | LobeHub's `web-crawler` has 7 generic backends but no cite-graph, no APA citations, no transcript extraction |
+| Article extraction + citation | `extract-webpage`, `extract-pdf`, `extract-youtube`, `render-url-to-html` | LobeHub's `web-crawler` has 7 generic backends but no cite-graph, no APA citations, no transcript extraction |
 | REASON writing editor | `reason-editor` (see [`REASON_EDITOR.md`](./REASON_EDITOR.md)) | LobeHub's editor is `@lobehub/editor` (chat input); REASON is a full document organizer |
 | Landing/marketing surface | `apps/qwksearch-web` app-router pages (`/`, `/features`, `/enterprise`, `/docs`) | LobeHub has no marketing shell — it *is* the app |
 
@@ -129,7 +129,7 @@ The highest-value integration, and it's additive rather than invasive.
   `packages/search-web-api/src/category-registry.ts`).
 - **2.2** New `crawlImpl`s in `web-crawler`: `qwksearch-extract` (→
   `extract-webpage` pipeline, returns cleaned article + APA citation),
-  `qwksearch-pdf` (→ `extract-pdf`/`extract-pdf-docling`), `qwksearch-youtube`
+  `qwksearch-pdf` (→ `extract-pdf`), `qwksearch-youtube`
   (→ `extract-youtube` transcripts). Register them **first** in the impl chain;
   LobeHub's `naive`/`jina`/`firecrawl`/… become the fallback tier.
 - **2.3** Merge domain knowledge into `urlRules.ts`: `youtube.com/watch` →

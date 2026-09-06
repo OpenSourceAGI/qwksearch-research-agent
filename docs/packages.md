@@ -4,8 +4,7 @@
 |--------|-----|-------------|
 | **chat-agent-toolkit** | [npm](https://www.npmjs.com/package/chat-agent-toolkit) | Multi-provider AI agent toolkit with web search, content extraction, and memory management across 10+ LLM providers |
 | **domain-rank** | [npm](https://www.npmjs.com/package/domain-rank) | Top-ranked domain lookup from Tranco List + CommonCrawl backlink data |
-| **extract-pdf** | [npm](https://www.npmjs.com/package/extract-pdf) | Zero-dependency PDF to HTML converter supporting Node.js, Cloudflare Workers, and browser environments |
-| **extract-pdf-docling** | [npm](https://www.npmjs.com/package/pdf-to-html-docling) | PDF to HTML via IBM's granite-docling-258M AI model with OCR layout preservation |
+| **extract-pdf** | [npm](https://www.npmjs.com/package/extract-pdf) | Slim PDF to HTML converter (PDF.js from CDN) with optional granite-docling-258M OCR — frontend, hybrid (regex-scans pages for infographics/tables to OCR), full-Docling, or remote processor URL — for Node.js, Cloudflare Workers, and browsers |
 | **extract-webpage** | [npm](https://www.npmjs.com/package/extract-webpage) | Web content extraction combining PDF extraction, YouTube transcripts, DOM parsing, and LLM summarization |
 | **extract-youtube** | [npm](https://www.npmjs.com/package/extract-youtube) | Serverless YouTube transcript extractor supporting SRT and WebVTT formats |
 | **notebooklm-api-client** | [npm](https://www.npmjs.com/package/notebooklm-api-client) | Placeholder API client for Google's NotebookLM service |

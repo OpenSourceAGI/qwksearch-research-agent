@@ -56,7 +56,6 @@ component_management:
         - packages/search-web-api/**
         - packages/extract-webpage/**
         - packages/extract-pdf/**
-        - packages/extract-pdf-docling/**
         - packages/extract-youtube/**
         - packages/domain-rank/**
         - packages/html-renderer-api/**

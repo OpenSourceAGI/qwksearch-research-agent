@@ -5,7 +5,7 @@ import {
   ConvertImageResponseSchema,
   ErrorResponseSchema,
   HealthResponseSchema,
-} from '../src/schemas.js';
+} from '../server/schemas.js';
 
 describe('ConvertImageBodySchema', () => {
   it('accepts a bare image URL and fills in the defaults', () => {

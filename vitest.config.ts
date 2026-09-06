@@ -22,7 +22,6 @@ export default defineConfig({
       'apps/qwksearch-ext',
       'apps/qwksearch-web',
       'packages/chat-agent-toolkit',
-      'packages/extract-pdf-docling',
       'packages/extract-webpage',
       'packages/html-renderer-api',
       'packages/notebooklm-api-client',
