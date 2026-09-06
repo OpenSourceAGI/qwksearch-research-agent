@@ -446,12 +446,38 @@ export function useReasonDocsState(openFilesSidebarSignal?: number | string) {
   }, []);
 
   // Opens the files sidebar in response to an external trigger (e.g. an app
-  // dock icon mounted outside this component tree).
+  // dock icon mounted outside this component tree). Adds the files panel
+  // without dropping whatever else is showing — replacing the whole list
+  // here used to persist a files-only layout, permanently hiding the
+  // Open Tabs panel that is on by default.
   useEffect(() => {
     if (!openFilesSidebarSignal) return;
-    setLeftPanels(["files"]);
+    setLeftPanels((prev) =>
+      prev.includes("files") ? prev : ["files", ...prev],
+    );
     setIsSidebarOpen(true);
   }, [openFilesSidebarSignal]);
+
+  // One-time repair for layouts saved by older builds, where the effect
+  // above overwrote the persisted panel list down to just "files": restore
+  // the default Open Tabs panel unless the user has since chosen a
+  // files-only or outline-only default view themselves.
+  useEffect(() => {
+    const RESTORE_FLAG = "REASON-open-tabs-default-restored";
+    try {
+      if (window.localStorage.getItem(RESTORE_FLAG)) return;
+      window.localStorage.setItem(RESTORE_FLAG, "1");
+    } catch {
+      return;
+    }
+    if (defaultSidebarView === "tree" || defaultSidebarView === "outline") return;
+    setLeftPanels((prev) =>
+      prev.includes("openTabs") ? prev : [...prev, "openTabs"],
+    );
+    setLeftSplit(true);
+    // Runs once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Apply default sidebar view on mount
   useEffect(() => {

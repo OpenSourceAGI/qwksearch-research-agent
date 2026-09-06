@@ -151,7 +151,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react/jsx-runtime'],
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'use-sync-external-store/shim/with-selector.js'],
     // Novel is pre-bundled ESM with `sideEffects: false`; letting esbuild/
     // rolldown prebundle it in dev would bypass the `novel-tiptap-v3-compat`
     // transform above (same reasoning as the library's own vite.config.ts).
