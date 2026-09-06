@@ -7,5 +7,6 @@ export * from './ActionMenuButton';
 export * from './ColorPicker';
 export * from './RichTextProvider';
 export * from './ToolbarMenuItem';
+export * from './TooltipShortcutKeys';
 export * from './icons';
 export * from './ui';

@@ -6,7 +6,7 @@
  * AIRewriteModesSection, and AboutSection.
  */
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Paintbrush, Database, HardDrive, Wand2, Info } from 'lucide-react';
+import { Settings as SettingsIcon, Paintbrush, Database, HardDrive, Wand2, Info, Keyboard } from 'lucide-react';
 import {
   Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList,
   BreadcrumbPage, BreadcrumbSeparator,
@@ -22,6 +22,7 @@ import { AppearanceSection } from './sections/AppearanceSection';
 import { StorageSection } from './sections/StorageSection';
 import { FileSourcesSection } from './sections/FileSourcesSection';
 import { AIRewriteModesSection } from './sections/AIRewriteModesSection';
+import { KeyboardShortcutsSection } from './sections/KeyboardShortcutsSection';
 import { AboutSection } from './sections/AboutSection';
 
 interface SettingsProps {
@@ -39,6 +40,7 @@ const NAV = [
   { name: 'Storage', icon: Database },
   { name: 'File Sources', icon: HardDrive },
   { name: 'AI Rewrite Modes', icon: Wand2 },
+  { name: 'Keyboard Shortcuts', icon: Keyboard },
   { name: 'About', icon: Info },
 ];
 
@@ -63,6 +65,8 @@ export const Settings = ({
         return <FileSourcesSection open={open} />;
       case 'AI Rewrite Modes':
         return <AIRewriteModesSection open={open} />;
+      case 'Keyboard Shortcuts':
+        return <KeyboardShortcutsSection />;
       case 'About':
         return <AboutSection />;
       default:

@@ -16,12 +16,13 @@ export const Clear =  Node.create<ClearOptions>({
   addOptions() {
     return {
       ...this.parent?.(),
-      button: ({ editor, t }) => ({
+      button: ({ editor, t, extension }: any) => ({
         // component: ActionButton,
         componentProps: {
           action: () => editor.chain().focus().clearNodes().unsetAllMarks().run(),
           isActive: () => editor.can().chain().focus().clearNodes().unsetAllMarks().run(),
           icon: 'Eraser',
+          shortcutKeys: extension.options.shortcutKeys ?? ['mod', '\\'],
           tooltip: t('editor.clear.tooltip'),
         },
       }),

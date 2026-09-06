@@ -36,3 +36,11 @@ export {
   externalLibsModeActions,
   type ExternalLibsMode,
 } from './store/externalLibsMode';
+/**
+ * Keyboard-shortcut registry: the remappable toolbar actions, their live
+ * bindings (user overrides persist to localStorage), and the ShortcutOverrides
+ * Tiptap extension that makes remapped combos work. `buildExtensions` already
+ * includes the extension; hosts composing their own extension array should add
+ * `ShortcutOverrides` themselves.
+ */
+export * from './shortcuts';

@@ -15,6 +15,7 @@ import {
   Check,
   CloudDownload,
   HardDrive,
+  Keyboard,
   Plus,
   Puzzle,
   RotateCcw,
@@ -23,6 +24,8 @@ import {
   Sliders,
   X,
 } from 'lucide-react';
+
+import { KeyboardShortcutsSection } from '@/features/settings/sections/KeyboardShortcutsSection';
 
 import {
   Select,
@@ -418,6 +421,17 @@ export function SettingsModal({
                 </span>
               </button>
             </div>
+          </section>
+
+          {/* Keyboard shortcuts */}
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Keyboard size={13} className="text-gray-400" />
+              <h3 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                Keyboard Shortcuts
+              </h3>
+            </div>
+            <KeyboardShortcutsSection compact />
           </section>
 
           {/* Plugins */}

@@ -16,13 +16,14 @@ export const CodeBlock = CodeBlockLowlight.extend<CodeBlockOptions>({
   addOptions() {
     return {
       ...this.parent?.(),
-      button: ({ editor, t }: any) => {
+      button: ({ editor, t, extension }: any) => {
         return {
           componentProps: {
             action: () => editor.chain().focus().setCodeBlock({ language: 'plaintext' }).run(),
             isActive: () => editor.isActive('codeBlock'),
             disabled: false,
             icon: 'Code2',
+            shortcutKeys: extension.options.shortcutKeys ?? ['mod', 'alt', 'C'],
             tooltip: t('editor.codeblock.tooltip'),
           },
         };

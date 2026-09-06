@@ -13,6 +13,8 @@ import { Text } from '@tiptap/extension-text';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Dropcursor, Gapcursor, Placeholder, TrailingNode } from '@tiptap/extensions';
 
+import { ShortcutOverrides } from '@/shortcuts';
+
 // Custom document that also permits top-level column layouts.
 const DocumentColumn = Document.extend({
   content: '(block|columns)+',
@@ -36,5 +38,7 @@ export function buildBaseKit(): any[] {
     Placeholder.configure({
       placeholder: "Press '/' for commands",
     }),
+    // User-remapped toolbar shortcuts (see Settings → Keyboard Shortcuts).
+    ShortcutOverrides,
   ];
 }
