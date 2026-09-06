@@ -76,7 +76,8 @@ bun run build:spa                  # dist/desktop  (main app, base /_spa/)
 bun run build:spa:auth             # dist/auth     (sign-in app, base /_spa-auth/)
 tsx scripts/buildWorkerAssets.mts  # public/ + dist/desktop + dist/auth → dist/client
 
-# 2. Worker bundle → dist/worker/index.js (single ES module, ~7.4 MB gzipped)
+# 2. Worker bundle → dist/worker/index.js (single ES module, ~7.4 MB gzipped,
+#    against Cloudflare's 10 MB compressed Worker limit)
 bun run build:worker:server
 
 # or all of the above:
@@ -84,7 +85,7 @@ bun run build:worker
 
 # 3. D1 tables (idempotent; safe on the existing qwksearch-new database)
 bun run cf:d1:migrate              # remote
-bun run cf:d1:migrate:local        # local wrangler dev
+bun run cf:d1:migrate:dev          # local wrangler dev
 
 # 4. Deploy
 bun run cf:deploy                  # default env

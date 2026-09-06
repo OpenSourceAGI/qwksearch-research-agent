@@ -59,7 +59,6 @@
     "build:worker": "bun run build:spa && bun run build:spa:auth && tsx scripts/buildWorkerAssets.mts && bun run build:worker:server",
     "build:worker:server": "cross-env NODE_OPTIONS=--max-old-space-size=8192 NODE_ENV=production vite build --config vite.worker.config.ts",
     "cf:d1:migrate": "wrangler d1 execute qwksearch-new --remote --file=migrations/d1/0001_qwksearch_tables.sql",
-    "cf:d1:migrate:local": "wrangler d1 execute qwksearch-new --local --file=migrations/d1/0001_qwksearch_tables.sql",
     "cf:deploy": "bun run build:worker && wrangler deploy",
     "cf:deploy:production": "bun run build:worker && wrangler deploy --env production",
     "cf:dev": "wrangler dev --config wrangler.local.jsonc --local",
