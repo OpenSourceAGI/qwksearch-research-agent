@@ -34,6 +34,10 @@
 
 Instant no-backend-needed javascript to convert a PDF (URL or `ArrayBuffer`) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic, and Table of Contents entries. Works in Node.js, Cloudflare Workers, and browser environments via [pdfjs-serverless](https://github.com/johannschopplich/pdfjs-serverless).
 
+**Slim by default:** the package bundles no PDF engine. PDF.js is loaded lazily at runtime from jsDelivr's ESM build of `pdfjs-serverless` (`https://cdn.jsdelivr.net/npm/pdfjs-serverless@1/+esm`, pinned to the major version) — a zero-dependency, single ~1.6 MB minified redistribution of Mozilla PDF.js built for serverless/edge runtimes. Node.js and Bun can't import remote URLs, so there the loader falls back to the locally-installed `pdfjs-serverless` optional dependency. Everything OCR-related (Granite Docling via `@huggingface/transformers`, `@napi-rs/canvas`) is likewise optional and imported only when actually used.
+
+For OCR-grade fidelity on pages with infographics, charts, and tables, the package also ships the Granite Docling path (merged from the former `extract-pdf-docling` package): run all pages through the frontend JS parser, all pages through Docling OCR, a **hybrid** mode that regex-scans pages and OCRs only the ones that need it, or point at the URL of a remote docling-compatible processor (see `server/`).
+
 ## Install 
 
 ```sh
@@ -60,11 +64,16 @@ const { html } = await convertPDFToHTML(buffer, { addPageNumbers: true });
 | `addCitation`     | `true`                 | Reads PDF metadata and first-page heading to populate `title`/`author` in the return value |
 | `method`          | `"ts-block-algorithm"` | Parsing engine — `"ts-block-algorithm"`, `"liteparse"`, or `"liteparse-wasm"` (see below)   |
 | `liteParseOptions`| `{}`                   | Passed through to LiteParse's constructor when `method` is `"liteparse"` or `"liteparse-wasm"` |
+| `processor`       | `"frontend"`           | Where OCR happens — `"frontend"`, `"hybrid"`, `"docling"`, or a processor URL (see below)   |
+| `processorUrl`    | —                      | Remote docling-compatible API used by `"hybrid"`/`"docling"` instead of the in-process model |
+| `ocrScanOptions`  | `{}`                   | Threshold tuning for the hybrid page scan (`scanPagesForOCR`)                              |
+| `doclingOptions`  | `{}`                   | `prompt`, `maxTokens`, `scale` for the Docling OCR model                                   |
 
 ### Return value
 
 ```ts
-{ html: string, title?: string, author?: string, format: "pdf" }
+{ html: string, title?: string, author?: string, format: "pdf",
+  processor: string, ocrScan: OcrScanResult }
 ```
 
 ## Parse methods
@@ -104,6 +113,76 @@ By default both LiteParse paths run with OCR disabled (`ocrEnabled: false`) —
 matching this package's "instant, no backend" philosophy. Use
 `detectPdfNeedsOcr` (below) to decide when a document is worth re-parsing with
 `liteParseOptions: { ocrEnabled: true }`.
+
+## Processor modes: frontend, hybrid, Docling OCR, or a remote URL
+
+Separately from `method`, the `processor` option decides whether pages go
+through the [Granite Docling](https://huggingface.co/ibm-granite/granite-docling-258M)
+OCR model — which preserves layout, tables, charts, code, and formulas at the
+cost of model inference per page:
+
+| `processor`            | What happens                                                                                             |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| `"frontend"` (default) | All pages parsed by the pure-JS text-layer pipeline. No OCR, no model, instant.                           |
+| `"hybrid"`             | JS pipeline everywhere + a regex scan (`scanPagesForOCR`) flags pages with infographics/figures/tables or no usable text layer; only those pages are rasterized and OCR'd with Docling. |
+| `"docling"`            | Every page rasterized and OCR'd with Docling.                                                             |
+| `"https://..."` (URL)   | Like `"docling"`, but every page is POSTed to that docling-compatible processor API instead of running the model in-process. |
+
+```ts
+// Hybrid: fast JS parse, OCR only the pages that need it
+const { html, ocrScan } = await convertPDFToHTML(buffer, { processor: "hybrid" });
+console.log(ocrScan.pagesNeedingOcr); // e.g. [3, 7] — pages with tables/figures
+// each ocrScan.pages[i] lists reasons: "table-caption", "figure-caption",
+// "table-rows", "numeric-grid", "no-text", "sparse-text", "garbled-text"
+
+// All pages through a remote Docling processor (this package's server/):
+const { html } = await convertPDFToHTML(buffer, {
+  processor: "http://localhost:3000",
+});
+
+// Hybrid with the OCR offloaded to a remote processor:
+const { html } = await convertPDFToHTML(buffer, {
+  processor: "hybrid",
+  processorUrl: "http://localhost:3000",
+});
+```
+
+OCR'd pages are emitted as `<section class="ocr-page" id="page-N">…</section>`
+(tables become real `<table>` markup, captions `<figcaption>`, formulas
+`<code class="formula">`, …); pages whose OCR fails keep their JS-parsed HTML.
+
+Running Docling **in-process** requires the optional `@huggingface/transformers`
+dependency (the ONNX model `onnx-community/granite-docling-258M-ONNX`, ~1 GB,
+downloads on first use) and — in Node.js — `@napi-rs/canvas` for page
+rasterization (browsers/Workers use `OffscreenCanvas`).
+
+The regex scanner is also exported standalone, and so are the OCR helpers:
+
+```ts
+import { scanPagesForOCR, doctagsToHtml, ocrImageWithDocling } from "extract-pdf";
+
+const scan = scanPagesForOCR(pageTexts); // string[] of per-page text
+// { needsOcr, pagesNeedingOcr: number[], pages: [{ page, reasons, captions }] }
+```
+
+### Running the Docling processor server
+
+The `server/` folder contains the Hono HTTP API (formerly the
+`extract-pdf-docling` package) exposing the Granite Docling model:
+
+```sh
+bun run serve:docling   # or dev:docling for --watch; port 3000
+```
+
+- Swagger UI: `http://localhost:3000/docs`, spec at `/openapi.json`
+- `POST /api/v1/convert` — `{ imageUrl, prompt?, maxTokens? }`
+- `POST /api/v1/convert-base64` — `{ imageBase64, mimeType?, prompt?, maxTokens? }`
+- `POST /api/v1/convert-stream` — SSE token stream
+- `GET /health`
+
+A `server/wrangler.jsonc` is included for deploying it as a Cloudflare Worker.
+Any deployment of it (or any API with the same contract) can be passed as the
+`processor`/`processorUrl` option above.
 
 ## Detecting whether a PDF needs OCR
 
@@ -163,6 +242,10 @@ src/
   pdf-to-html.ts          — main entry point (convertPDFToHTML)
   liteparse-to-html.ts    — "liteparse" method (native napi addon)
   liteparse-wasm-to-html.ts — "liteparse-wasm" method (WASM, browser/edge)
+  ocr-page-scan.ts        — regex scan flagging infographic/table pages for OCR
+  docling-ocr.ts          — Granite Docling OCR (local ONNX or remote URL),
+  │                         page rasterization, doctags → HTML
+  detect-needs-ocr.ts     — LiteParse-based OCR routing (Node.js only)
   models/                 — data classes: Page, ParseResult, TextItem,
   │                         LineItem, LineItemBlock, Word, BlockType, …
   transforms/
@@ -173,7 +256,10 @@ src/
   │  to-text-blocks.ts
   │  to-html.ts
   utils/
+     load-pdfjs.ts        — lazy CDN loader for pdfjs-serverless
      string-functions.ts
      page-item-functions.ts
      page-number-functions.ts
+server/                   — Granite Docling HTTP processor (Hono):
+   server.js, routes.js, schemas.js, model.js, wrangler.jsonc
 ```

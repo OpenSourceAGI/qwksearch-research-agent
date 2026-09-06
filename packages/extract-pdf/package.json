@@ -1,7 +1,7 @@
 {
   "name": "extract-pdf",
   "version": "0.1.260",
-  "description": "Convert a PDF (URL or ArrayBuffer) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic. Works in Node.js, Cloudflare Workers, and browser environments.",
+  "description": "Convert a PDF (URL or ArrayBuffer) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic. Slim by default (PDF.js loads at runtime from the pdfjs-serverless CDN build), with optional Granite Docling OCR for pages with infographics/tables — in-process, hybrid, or via a remote processor URL. Works in Node.js, Cloudflare Workers, and browser environments.",
   "author": "vtempest <grokthiscontact@gmail.com>",
   "license": "rights.institute/PROSPER",
   "type": "module",
@@ -17,18 +17,29 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "server"
   ],
   "scripts": {
     "build": "vite build",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=lcov --coverage-reporter=text",
+    "serve:docling": "node server/server.js",
+    "dev:docling": "node --watch server/server.js",
     "ship": "npm run build && npx standard-version --release-as patch; rm -f CHANGELOG.md; npm publish"
   },
   "dependencies": {},
   "optionalDependencies": {
+    "@hono/node-server": "^1.8.2",
+    "@hono/swagger-ui": "^0.2.1",
+    "@hono/zod-openapi": "^0.9.8",
+    "@huggingface/transformers": "^3.0.0",
     "@llamaindex/liteparse": "^2.10.0",
-    "@llamaindex/liteparse-wasm": "^2.11.0"
+    "@llamaindex/liteparse-wasm": "^2.11.0",
+    "@napi-rs/canvas": "^0.1.65",
+    "hono": "^4.0.0",
+    "pdfjs-serverless": "^1.1.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "terser": "^5.46.0",

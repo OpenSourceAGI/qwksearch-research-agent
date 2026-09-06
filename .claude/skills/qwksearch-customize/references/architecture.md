@@ -45,7 +45,7 @@ cached), and `dev` (not cached, persistent/long-running).
 | `search-web-api` | 70+ search engine adapters + Hono HTTP API |
 | `searxng-search-cloudflare` | Self-hosted SearXNG meta-search deployment config |
 | `domain-rank` | Domain reputation/favicon lookup (Tranco + CommonCrawl) |
-| `extract-pdf`, `extract-pdf-docling` | PDF → structured HTML |
+| `extract-pdf` | PDF → structured HTML (JS pipeline + optional Docling OCR) |
 | `extract-webpage` | Full research pipeline: search → extract → cite → outline |
 | `extract-youtube` | YouTube transcript extraction, no headless browser |
 | `render-url-to-html` | JS-rendered page → HTML (Puppeteer/JSDOM/Cloudflare Browser Rendering) |

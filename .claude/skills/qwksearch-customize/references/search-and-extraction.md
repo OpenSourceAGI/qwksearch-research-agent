@@ -19,12 +19,13 @@ the adapter closest in behavior (simple HTML scrape vs. JSON API — e.g.
 then register it in `search-engine-category-registry.ts` and add an entry
 in `search-engine-descriptions.ts`. Test with the package's own `bun run test`.
 
-## packages/extract-pdf and packages/extract-pdf-docling
+## packages/extract-pdf
 
-Two different PDF strategies:
+One package, several PDF strategies selected by `convertPDFToHTML`'s `processor` option:
 
-- `extract-pdf` — zero-runtime-dependency PDF→HTML using `pdfjs-serverless`, works in Node/Workers/browser. `src/pdf-to-html.ts` is the entry; `src/transforms/` holds structural transforms (headings, lists, footnotes, code blocks — see root README's "Tractor" section for the exact feature list); `src/detect-needs-ocr.ts` decides whether a PDF needs OCR fallback.
-- `extract-pdf-docling` — heavier, OCR-capable path using IBM's granite-docling model via Hugging Face Transformers, served over its own Hono HTTP API (`src/routes.js`, `src/pdf2html.js`, `src/model.js`, `src/schemas.js`). Has a `pdf-to-html-docling-python/` subfolder for the Python side. Use this one when layout/OCR fidelity matters more than portability.
+- `"frontend"` (default) — slim PDF→HTML using `pdfjs-serverless` loaded at runtime from the jsDelivr CDN (local optional dependency as Node fallback), works in Node/Workers/browser. `src/pdf-to-html.ts` is the entry; `src/transforms/` holds structural transforms (headings, lists, footnotes, code blocks — see root README's "Tractor" section for the exact feature list); `src/detect-needs-ocr.ts` (LiteParse-based) and `src/ocr-page-scan.ts` (dependency-free regex scan for infographic/table pages) decide whether pages need OCR.
+- `"hybrid"` — frontend pipeline plus Granite Docling OCR for only the pages `scanPagesForOCR` flags.
+- `"docling"` or a processor URL — every page OCR'd with IBM's granite-docling model (`src/docling-ocr.ts`), in-process via the optional `@huggingface/transformers` dependency or against a remote docling-compatible HTTP API. That Hono API lives in this package's `server/` folder (`server/server.js`, `server/routes.js`, `server/model.js`, `server/schemas.js`) with `bun run serve:docling`.
 
 ## packages/extract-webpage — the research pipeline
 

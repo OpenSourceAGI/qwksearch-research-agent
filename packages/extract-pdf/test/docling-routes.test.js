@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import * as routes from '../src/routes.js';
+import * as routes from '../server/routes.js';
 
 const ROUTES = Object.entries(routes).filter(([, value]) => value && typeof value === 'object');
 

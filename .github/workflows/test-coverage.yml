@@ -24,7 +24,6 @@ jobs:
           - { flag: qwksearch-ext, dir: apps/qwksearch-ext }
           - { flag: qwksearch-web, dir: apps/qwksearch-web }
           - { flag: chat-agent-toolkit, dir: packages/chat-agent-toolkit }
-          - { flag: extract-pdf-docling, dir: packages/extract-pdf-docling }
           - { flag: extract-webpage, dir: packages/extract-webpage }
           - { flag: html-renderer-api, dir: packages/html-renderer-api }
           - { flag: notebooklm-api-client, dir: packages/notebooklm-api-client }

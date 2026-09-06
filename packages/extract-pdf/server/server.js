@@ -1,5 +1,5 @@
 /**
- * @file pdf2html.js
+ * @file server.js
  * @description Entry point: wires middleware, route handlers, OpenAPI docs, and starts the server.
  */
 import { serve } from "@hono/node-server";
