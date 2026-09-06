@@ -133,6 +133,30 @@ function Hero() {
   );
 }
 
+function VideoDemo() {
+  return (
+    <section className="relative px-4 pb-4 sm:px-6 lg:px-8">
+      <Reveal className="mx-auto max-w-4xl">
+        <div className="qs-border-beam relative isolate overflow-hidden rounded-3xl p-px">
+          <div className="bg-card/90 relative z-10 overflow-hidden rounded-[calc(1.5rem-1px)] border backdrop-blur-sm">
+            <div className="relative aspect-video">
+              <iframe
+                src="https://www.youtube-nocookie.com/embed/DzykBAdrw6s?start=367"
+                title={`${config.appName} demo video`}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+                className="absolute inset-0 size-full"
+              />
+            </div>
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
 function EngineMarquee() {
   const half = Math.ceil(ENGINE_NAMES.length / 2);
   const rows = [ENGINE_NAMES.slice(0, half), ENGINE_NAMES.slice(half)];
@@ -515,6 +539,7 @@ export function FeaturesView() {
   return (
     <div className="qs-features relative min-h-screen md:pl-20">
       <Hero />
+      <VideoDemo />
       <EngineMarquee />
       <BentoGrid />
       <Pipeline />
