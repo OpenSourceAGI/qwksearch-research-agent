@@ -3,6 +3,7 @@
  * Supports YouTube transcripts, PDFs, DOCX, and web articles.
  */
 import { extractContentAndCite } from "../html-to-content/html-to-content";
+import { detectMarkdown } from "../html-to-content/html-utils";
 import { getURLYoutubeVideo, convertYoutubeToText } from "./youtube-helpers";
 import { convertDOCXToHTML, isBufferDOCX } from "./docx-to-content";
 import { scrapeURL } from "./url-to-html";
@@ -195,9 +196,12 @@ export async function extractContent(
     }
   } else if (
     typeof urlOrDoc === "string" &&
-    /<\/[^>]+>/.test(urlOrDoc.trim())
+    !urlOrDoc.startsWith("http") &&
+    (/<\/[^>]+>/.test(urlOrDoc.trim()) || detectMarkdown(urlOrDoc))
   ) {
-    console.log("[extractContent] input is raw HTML string");
+    // Raw HTML string, or raw Markdown (detected via regexp checks and
+    // converted to HTML inside extractContentAndCite).
+    console.log("[extractContent] input is raw HTML/Markdown string");
     // If urlOrDoc is an HTML string, treat as HTML content
     options.url = options.url || "";
 

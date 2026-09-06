@@ -6,6 +6,11 @@
 import { parseHTML } from "linkedom";
 import { extractCite } from "../html-to-cite/extract-cite";
 import { convertHTMLToBasicHTML } from "./html-to-basic-html";
+import {
+  convertMarkdownToFormattedHTML,
+  detectMarkdown,
+  removeMarkdownNavigation,
+} from "./html-utils";
 import { extractHumanName } from "../html-to-cite/human-names-recognize";
 import { extractMainContentFromHTML } from "./extract-content/extract-content-readability";
 import { extractMainContentFromHTML2 } from "./extract-content/extract-content-mercury";
@@ -47,6 +52,14 @@ export function extractContentAndCite(documentOrHTML, options = {}) {
       : documentOrHTML?.documentElement?.innerHTML;
 
   if (!html) return { error: "No HTML found" };
+
+  // Some scrape paths (the JINA reader, or proxies wrapping it) return the
+  // article as Markdown instead of HTML. Without conversion the sidebar
+  // renders raw `[text](url)` syntax, so use regexp checks to detect
+  // Markdown, strip navigation/reader-metadata noise, and convert it to
+  // formatted HTML before main-content extraction runs.
+  if (detectMarkdown(html))
+    html = convertMarkdownToFormattedHTML(removeMarkdownNavigation(html));
 
   try {
     var content1 = extractMainContentFromHTML(html, options);
