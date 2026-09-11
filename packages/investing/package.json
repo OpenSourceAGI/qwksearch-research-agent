@@ -1,6 +1,6 @@
 {
   "name": "investing",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Reusable investment utilities, trading agents, prediction-market analysis (PredictOS core) and financial data tools",
   "license": "rights.institute/prosper",
   "author": "vtempest",
