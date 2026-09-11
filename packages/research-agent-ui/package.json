@@ -1,7 +1,7 @@
 {
   "name": "research-agent-ui",
   "description": "The QwkSearch app UI: conversation window, article reader, search config, file uploads, chat history, and the app shell — exported both with and without the REASON editor and its sidebar",
-  "version": "0.1.202",
+  "version": "0.1.203",
   "author": "vtempest",
   "repository": {
     "type": "git",
