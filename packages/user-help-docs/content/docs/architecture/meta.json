@@ -1,12 +1,14 @@
 {
   "title": "Architecture",
-  "description": "Internal design notes and migration plans.",
+  "description": "Internal design notes, operations runbooks and migration plans.",
   "pages": [
     "d1-read-replication",
+    "cloudflare-env-vars",
     "lobehub-core-engine-plan",
     "lobehub-integration-plan",
     "lobe-packages-migration-plan",
     "lobehub-integrations",
-    "lobehub-migration-todo"
+    "lobehub-migration-todo",
+    "debate-video-category-keywords"
   ]
 }
