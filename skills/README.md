@@ -58,6 +58,12 @@ npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent 
 | [ask-render-url-to-html](./ask-render-url-to-html/SKILL.md) | `render-url-to-html` | Self-hosted Puppeteer-stealth and JSDOM renderers |
 | [ask-html-renderer-api](./ask-html-renderer-api/SKILL.md) | `html-renderer-api` | The Cloudflare rendering Worker: sessions, cookies, challenge bypass |
 
+### Finance
+
+| Skill | Package | Covers |
+| --- | --- | --- |
+| [ask-investing](./ask-investing/SKILL.md) | `investing` | Alpaca, stock data, Polymarket sync, LangGraph debate agents, and the merged PredictOS prediction-market core |
+
 ### Clients and servers
 
 | Skill | Package | Covers |

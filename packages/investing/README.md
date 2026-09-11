@@ -39,6 +39,8 @@ A comprehensive TypeScript/JavaScript library for investment analysis, trading a
 - 🤖 **Trading Agents** - Multi-agent framework for automated trading strategies
 - 📊 **Stock Data** - Fetch and analyze stock data from Yahoo Finance, SEC filings, and more
 - 💹 **Prediction Markets** - Polymarket integration for prediction market data
+- 🔮 **PredictOS Core** - Multi-agent prediction-market analysis, Kalshi/Polymarket
+  data clients, and cross-platform arbitrage (merged in from the `predictos` package)
 - 🔌 **Alpaca Trading API** - Easy-to-use wrapper for Alpaca trading platform
 - 📈 **Technical Analysis** - Algorithmic trading strategies and indicators
 - 🎯 **Social Trading** - Track and analyze top traders and strategies
@@ -116,6 +118,37 @@ const leaders = await fetchLeaderboard({
   limit: 10,
 });
 ```
+
+### PredictOS — Prediction-Market Analysis & Arbitrage
+
+```typescript
+import {
+  runEventAnalysisAgent,
+  findArbitrage,
+  getEvents,
+} from "investing/predictos";
+
+const url = "https://polymarket.com/event/will-x-happen-by-2026";
+
+// Resolve a Polymarket / Kalshi / Jupiter event URL into its raw markets
+const event = await getEvents({ url });
+
+// Analyze those markets for alpha and a predicted winner
+const { analysis } = await runEventAnalysisAgent({
+  markets: event.markets,
+  eventIdentifier: event.eventIdentifier,
+  pmType: event.pmType,
+  model: "grok-4-fast",
+  tools: ["x_search"], // Grok models only
+});
+
+// Look for the same event mispriced on the other venue
+const arb = await findArbitrage({ url, model: "grok-4-fast" });
+```
+
+Every entry point takes a typed `request` object and an optional second
+`config` (`AIConfig` / `DataConfig`) that falls back to `process.env`. Missing
+required fields **throw** rather than returning an error result.
 
 ### Trading Agents Framework
 
@@ -221,6 +254,90 @@ Get Polymarket leaderboard of top traders.
 - `limit` - Number of results (default: 20)
 - `category` - Market category (default: 'overall')
 
+### PredictOS Core
+
+```typescript
+import {
+  runEventAnalysisAgent,
+  runBookmakerAgent,
+  runMapperAgent,
+  findArbitrage,
+  getEvents,
+} from "investing/predictos";
+```
+
+> Adapted from [PredictOS](https://github.com/PredictionXBT/PredictOS) by
+> **PredictionXBT** (MIT licensed, © 2025). The original code shipped as
+> Deno/Supabase edge functions; here it is refactored into plain, typed,
+> dependency-light library functions with no HTTP/CORS layer. It lived in a
+> sibling `predictos` package until that package was merged into `investing`.
+> See [`NOTICE`](./NOTICE) and
+> [`LICENSE-PredictOS-MIT`](./LICENSE-PredictOS-MIT).
+
+#### What it covers
+
+- **AI provider clients** — OpenAI (Responses API), Grok/xAI (Responses API,
+  with optional `x_search` / `web_search` tools), and BlockRun (x402
+  wallet-based micropayments across 20+ models), plus the analysis prompt
+  builders (`analyzeEventMarkets`, `bookmakerAnalysis`, `arbitrageAnalysis`,
+  `searchQueryGenerator`).
+- **Market data clients** — Kalshi via the DFlow API
+  (`investing/predictos/data/kalshi`) and Polymarket via the Dome API
+  (`investing/predictos/data/polymarket`).
+- **Multi-agent pipeline** (`investing/predictos/agents`):
+  - `runEventAnalysisAgent` — analyzes an event's markets for alpha and a
+    predicted winner.
+  - `runBookmakerAgent` — aggregates multiple agent analyses (and optional
+    external data sources) into a single consolidated assessment.
+  - `runMapperAgent` — turns an analysis into Polymarket order parameters
+    (pure logic; Kalshi mapping not yet implemented).
+- **Cross-platform arbitrage** (`investing/predictos/arbitrage`) —
+  `findArbitrage` parses a Polymarket/Kalshi URL, generates a search query with
+  AI, searches the other platform, and evaluates whether the same event is
+  mispriced across venues.
+- **Event fetching** (`getEvents`) — resolves a Polymarket/Kalshi/Jupiter URL
+  into its raw markets (Kalshi via DFlow, Polymarket via the Gamma API).
+
+#### Subpath exports
+
+| Import | Contents |
+| --- | --- |
+| `investing/predictos` | Everything (barrel) |
+| `investing/predictos/ai` | AI clients + prompt builders |
+| `investing/predictos/data/kalshi` | Kalshi (DFlow) data client |
+| `investing/predictos/data/polymarket` | Polymarket (Dome) data client |
+| `investing/predictos/agents` | `runEventAnalysisAgent`, `runBookmakerAgent`, `runMapperAgent` |
+| `investing/predictos/arbitrage` | `findArbitrage` |
+
+The barrel re-exports the Kalshi (DFlow) client at the top level. The Polymarket
+(Dome) client exposes Kalshi helpers under the same names, so the barrel renames
+those two to `getDomeKalshiMarketsByEvent` / `buildDomeKalshiMarketUrl` — import
+from `investing/predictos/data/polymarket` for their original names. The
+Gamma/CLOB trading client, Polyfactual and x402 are namespaced on the barrel as
+`polymarketClob`, `polyfactual` and `x402` for the same reason.
+
+#### Refactor notes (Deno → Node)
+
+- Deno HTTP handlers (`Deno.serve`, `new Response(...)`, CORS headers) were
+  removed. Each endpoint is now a plain exported async function taking typed
+  parameters and returning a typed result; validation failures `throw`.
+- `Deno.env.get("X")` was replaced with config/options objects
+  (`AIConfig`, `DataConfig`, per-call `apiKey`/`walletKey`) that fall back to
+  `process.env` (`OPENAI_API_KEY`, `XAI_API_KEY`, `BLOCKRUN_WALLET_KEY`,
+  `DOME_API_KEY`, `DFLOW_API_KEY`). No secrets are hardcoded.
+- Remote (`https://...`) and `npm:` import specifiers were replaced with normal
+  package imports (`ethers`). The global `fetch` (Node 18+) is used throughout.
+- Prompt text and analysis logic are preserved verbatim.
+
+#### Not ported (yet)
+
+Intentionally left out of the core port — noted for future work: the Next.js
+`terminal/` frontend, the Python alpha-hunter examples, the **pay.sh** payment
+serving flows, **Irys** verifiable-agent storage, wallet-tracking websockets, and
+on-chain order execution (the mapper produces order parameters, but placing
+orders is out of scope). The BlockRun client *is* ported (it only needs `ethers`
++ `fetch`), but its on-chain micropayment flow is untested in this environment.
+
 ### Trading Agents
 
 ```typescript
@@ -299,6 +416,12 @@ ALPACA_SECRET=your_secret_here
 
 # OpenAI for AI-powered analysis
 OPENAI_API_KEY=your_openai_key
+
+# PredictOS: prediction-market analysis and data
+XAI_API_KEY=your_xai_key           # Grok/xAI
+BLOCKRUN_WALLET_KEY=your_wallet_key # BlockRun x402 micropayments
+DOME_API_KEY=your_dome_key          # Polymarket market data
+DFLOW_API_KEY=your_dflow_key        # Kalshi market data
 
 # Optional: Alternative LLM providers
 ANTHROPIC_API_KEY=your_anthropic_key
@@ -412,7 +535,15 @@ See the `/examples` directory for complete working examples:
 
 - [GitHub Repository](https://github.com/vtempest/ai-broker-investment-agent)
 - [Documentation](https://invest.vtempest.com/docs)
+- [Agent skill](../../skills/ask-investing/SKILL.md)
 - [Examples](./examples)
+
+## Credits
+
+The `predictos` module is a derivative work of
+[PredictOS](https://github.com/PredictionXBT/PredictOS) — all original design and
+logic © 2025 PredictionXBT, MIT licensed. See [`NOTICE`](./NOTICE) and
+[`LICENSE-PredictOS-MIT`](./LICENSE-PredictOS-MIT).
 
 - [GitHub Issues](https://github.com/vtempest/ai-broker-investment-agent/issues)
 - [Documentation](https://invest.vtempest.com/docs)
