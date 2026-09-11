@@ -1,0 +1,40 @@
+{
+  "name": "legal-terms-privacy-policy",
+  "version": "0.1.0",
+  "description": "Shared Terms of Service and Privacy Policy page, as a React component parameterized by app name, contact address and revision date",
+  "keywords": ["legal", "terms-of-service", "privacy-policy", "react", "component"],
+  "license": "rights.institute/PROSPER",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/legal-terms-privacy-policy"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./react": "./src/react/index.tsx",
+    "./package.json": "./package.json"
+  },
+  "files": ["src", "README.md"],
+  "sideEffects": false,
+  "peerDependencies": {
+    "react": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.0.0",
+    "jsdom": "^30.0.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  }
+}
