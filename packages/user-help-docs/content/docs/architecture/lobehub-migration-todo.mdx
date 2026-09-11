@@ -23,11 +23,11 @@ Last updated: 2026-09-11.
 | Phase | State |
 |---|---|
 | 0. Baseline — LobeHub builds and deploys on Workers | ✅ |
-| 1. Chat mode on the engine (staging) | 🚧 search and extraction wired, both with a settings layer, a pane and shared controls; parity open |
+| 1. Chat mode on the engine (staging) | 🚧 search and extraction wired, both with a settings layer, a pane and shared controls; the Worker's one unreachable chain deleted; parity open |
 | 2. Settings as the single system of record | 🚧 Both panes shipped end to end and their controls finished (2.2 done); key migration and retiring the old surface remain |
 | 3. REASON docs inside the engine | ⬜ |
 | 4. Public cutover | 🔒 needs the license answer |
-| 5. Decommission + satellites + ops gaps | ⬜ |
+| 5. Decommission + satellites + ops gaps | 🚧 `worker/` has a type-check that runs (5.5); packages, satellites and the ops gaps untouched |
 
 ## Phase 1 — Chat mode powered by the engine
 
@@ -125,34 +125,59 @@ Follow-ups that are deliberately *not* in that change:
   `PDF_PROCESSOR_URL` reach `extract-pdf` through 1.5.
 - ⬜ **Bundle budget in CI** (5.4) matters more now that the margin is ~2 MB.
 
-#### 🔒 Open question: two chains live in `extract.ts`
+#### ✅ Resolved: the second chain in `extract.ts` is deleted
 
-`extract.ts` currently defines **two** tier chains, and only one of them runs:
+`extract.ts` used to define **two** tier chains, and only one of them ran:
 
-| | `tiersForUrl` (live) | `defaultTiersFor` (not wired) |
+| | `tiersForUrl` (live) | `defaultTiersFor` (deleted) |
 |---|---|---|
 | article | `qwksearch → scraper → tavily → crawler` | `scraper → tavily → crawler` |
 | youtube | `qwksearch` | `extractViaYouTube → scraper → tavily → crawler` |
 | pdf | `qwksearch` | `extractViaPdf → tavily` |
 
-`extractArticle` defaults to `tiersForUrl`, so `extractViaYouTube` and
-`extractViaPdf` — and the `PDF_PROCESSOR_URL` read inside the latter — have
-never been on a request path. The contract in §F2 of the integrations reference
-describes the live chain, not the unwired one.
+The decision was framed as adopt-or-delete. It turned out not to be a judgement
+call at all, because **the unwired chain could not have run if it had been
+wired**:
 
-They arrived together and the two are materially different products: the live
-chain leads with `extract-webpage`'s own fetch, the unwired one leads with the
-Puppeteer render. Switching changes what *every* article extraction does, so it
-wants a deliberate decision rather than being settled inside an unrelated
-change. Until then `defaultTiersFor` carries a comment saying it is not wired.
+- `extractViaYouTube` calls `youTubeVideoId(url)` and `extractViaPdf` calls
+  `pdfUrlFor(url)`. Neither identifier is defined in `extract.ts`, imported into
+  it, or present anywhere else in the repository — `tsc` reports both as
+  `TS2304: Cannot find name`. Every YouTube and PDF extraction through that
+  chain would have thrown `ReferenceError` on its first line, been caught by
+  `extractArticle`'s per-tier `try`, and fallen through as a tier failure.
+- Both tiers also returned `via: 'youtube'` and `via: 'pdf'`, which are not
+  members of the `ExtractedArticle['via']` union they are typed against
+  (`TS2345`).
 
-Two more helpers from the same change are dead for the same reason:
-`loadCiteExtractor` and `articleViaCiteExtractor` are defined and never called
-— the live scraper tier reaches `extract-webpage` through
-`articleFromRenderedHtml` instead. Lint reports both as unused.
+So adopting it would have been a regression twice over: for `article` URLs it
+drops tier 0 and with it the citation extraction §1.3 exists to deliver, and for
+the two media kinds it leads with a tier that cannot execute. Deleted, along
+with `WEB_TIERS`, the two tiers and their support cast (`TranscriptFetcher`,
+`YouTubeConfig`, `loadTranscriptFetcher`, `transcriptToParagraphs`,
+`fetchYouTubeMetadata`, `PdfConverter`, `PdfConfig`, `loadPdfConverter`), the
+two helpers that were dead for the same reason (`loadCiteExtractor`,
+`articleViaCiteExtractor`, plus the `HtmlCiteExtractor` type and module-level
+`citeExtractor` cache they shared), and the three helpers left unreferenced once
+those went (`articleFromExtractedHtml`, `markdownOf`, `textOf`). 935 lines down
+to 619; no behavior change, because none of it was reachable.
 
-**Decide:** adopt `defaultTiersFor` (and rewrite §F2 to match), or delete it,
-the two tiers it names, and the two helpers above.
+Nothing is lost by the deletion. The knobs the unwired tiers read are the ones
+§1.5 already routes through tier 0 — `extract-webpage` branches on the URL
+itself and calls `extract-youtube` and `extract-pdf` internally, with
+`languages` and `PDF_PROCESSOR` / `PDF_PROCESSOR_URL` bound from the resolved
+settings. `extractViaPdf`'s own `process.env.PDF_PROCESSOR_URL` read was in fact
+the last direct `process.env` read in a tier, which is exactly what §1.5 set out
+to remove.
+
+§F2 of the integrations reference already described the live chain, so it needed
+no rewrite — only a line recording that it is now the only one.
+
+**Why it survived so long, and what now catches it:** nothing type-checks
+`worker/`. The repo-wide `bun run type-check` includes it, but OOMs before
+finishing (see below), and no CI job installs `packages-lobe` at all. Two
+undefined identifiers sat in a request-path module from the day they were
+written. `bun run type-check:worker` is the narrow check that closes that gap —
+see §5.5.
 
 ### 1.5 Extraction settings resolution ✅
 
@@ -646,26 +671,55 @@ Blocked on the LobeHub Community License answer, recorded in
   - ⬜ OIDC (`/oidc/*` returns 501) — blocks CLI and desktop sign-in.
   - ⬜ SEO strings in the HTML shell are English-only (`worker/shims/serverTranslation.ts`).
   - ⬜ No `sharp`; avatar processing falls back to the original image.
+- 🚧 **5.5 A type-check that actually runs over `worker/`.** `bun run
+  type-check:worker` (`scripts/typeCheckWorker.mts` + `tsconfig.worker.json`)
+  type-checks the Worker alone, in about a minute, where the repo-wide
+  `bun run type-check` OOMs at ~13.8 GB RSS and tells you nothing. It exists
+  because §1.3's unwired chain called two identifiers that are defined nowhere
+  in the repository and nothing ever noticed.
+
+  Two things it does that the root config does not:
+
+  - **Filters to `worker/`.** `worker/` imports `@/server/*`, so the program
+    pulls in `apps/server` and its pre-existing errors. Those are counted and
+    ignored; only `worker/` decides the exit code.
+  - **Gives the Worker its own globals.** The root `types` is
+    `["vitest/globals"]` and *nothing in the repo references
+    `@cloudflare/workers-types`*, so `D1Database`, `KVNamespace`, `Hyperdrive`,
+    `R2Bucket`, `Fetcher` and `ExecutionContext` — the types `worker/cf/env.ts`
+    declares the entire Worker environment in terms of — resolve to nothing
+    under the repo-wide check too. The package is already a devDependency;
+    `tsconfig.worker.json` is the only config that asks for it. Adding it took
+    the Worker's own error count from 50 to 19 on a stub install.
+
+  Still to do: confirm it reports zero against a real `pnpm install` (the 19
+  that remain on a stub install are all `TS2307` for packages that install did
+  not fetch, plus three implicit-`any`s downstream of an unresolved
+  `@trpc/server` type), and then decide whether it earns a CI job — it has the
+  same "no workflow installs `packages-lobe`" problem as 5.4's bundle budget,
+  and the two would share one.
 
 ## How to pick up the next item
 
 **Suggested next, in order** — all code-only, all testable without Cloudflare
 credentials:
 
-1. **1.3's open question — two chains in `extract.ts`.** `defaultTiersFor`,
-   `extractViaYouTube`, `extractViaPdf`, `loadCiteExtractor` and
-   `articleViaCiteExtractor` have never been on a request path, and lint reports
-   two of them as unused. It is a decision, not a discovery: adopt or delete.
-   Small, and it removes the only known dead code in the Worker.
-2. **1.4's agent parity checklist**, now that both settings features are done and
-   Phase 1's remaining work is parity rather than plumbing. Start with the two
-   items that are pure verification against the wired-up engine — search-cited
-   answers with follow-ups, and file-upload Q&A — and record each gap before
-   deciding to adopt or port.
-3. **5.4's bundle budget in CI.** The measurement exists (`bun run cf:budget`);
-   what is missing is a workflow that runs it. That needs a job that installs and
-   builds `packages-lobe`, which no workflow does yet — a CI-minutes decision as
-   much as a code one, which is why it sits below the items above.
+1. **1.4's agent parity checklist**, now that both settings features are done,
+   the Worker's dead chain is gone, and Phase 1's remaining work is parity rather
+   than plumbing. Start with the two items that are pure verification against the
+   wired-up engine — search-cited answers with follow-ups, and file-upload Q&A —
+   and record each gap before deciding to adopt or port.
+2. **Finish 5.5 against a real install.** `bun run type-check:worker` now exists
+   and is verified to catch what §1.3 missed, but it has only ever been run
+   against a stub install, where 19 unresolved-package errors remain. One
+   `pnpm install --ignore-scripts` inside `packages-lobe` settles whether the
+   Worker is clean; anything real it surfaces is worth more than a new feature,
+   because nothing else looks at those files.
+3. **5.4's bundle budget in CI**, now with 5.5 to keep it company. The
+   measurement exists (`bun run cf:budget`); what is missing is a workflow that
+   runs it. That needs a job that installs and builds `packages-lobe`, which no
+   workflow does yet — a CI-minutes decision as much as a code one, and the same
+   job would carry the Worker type-check.
 4. **2.1's settings map**, which is pure reading, and which 2.4 needs before
    anything in the old surface can be deleted.
 
@@ -703,18 +757,45 @@ Then, for whichever you pick:
    Expect pre-existing errors from `apps/desktop` and `apps/server` in the
    output (missing `electron` types and similar) — filter to your own paths.
 
+   For a `worker/` change that config already exists: `bun run type-check:worker`
+   (§5.5) is the same trick, committed, with the filtering built in. This is not
+   optional diligence — it is the only check that looks at those files at all,
+   and skipping it is how §1.3 shipped two identifiers that do not exist.
+
    **If the change is `worker/`-only and `packages-lobe/node_modules` is empty** — it is in a fresh clone, because
    `packages-lobe` is a separate pnpm workspace outside the root turbo graph — a
    full `pnpm install` is not the only option for a `worker/` change. Those
    modules depend on very little: an install of `vitest`, `drizzle-orm` and
-   `hono` in a scratch directory, symlinked to `packages-lobe/node_modules`
-   (which is gitignored), plus a throwaway config with `root` pointing at
+   `hono` in a scratch directory, symlinked to `packages-lobe/node_modules`,
+   plus a throwaway config with `root` pointing at
    `packages-lobe`, runs the whole `worker/qwksearch` and
-   `worker/routes/qwksearch` suite in about a second. Two files need more than
-   that and will fail to collect: `articleAi.test.ts` (`@lobechat/business-const`)
-   and `spaVariants.test.ts` (`cookie`); `article.test.ts` needs
-   `@lobechat/web-crawler/src/utils/htmlToMarkdown` aliased to a stub. Anything
-   touching `src/` needs the real install.
+   `worker/routes/qwksearch` suite in about a second. Anything touching `src/`
+   needs the real install.
+
+   Three aliases in that throwaway config decide how much of the suite collects.
+   With only the first, 3 of 9 files run (62 tests); with all three, **7 of 9
+   run (112 tests)**:
+
+   | Alias | Points at | Unblocks |
+   |---|---|---|
+   | `@lobechat/web-crawler/src/utils/htmlToMarkdown` | a stub returning `{ content }` | `extract.test.ts`, `article.test.ts` |
+   | `@/server` | `apps/server/src` | `searchSettings.test.ts` |
+   | `@/database` | `packages/database/src` | `extractionPreferences.test.ts`, `extractionSettings.test.ts`, and the two above |
+
+   **Delete the symlink before you commit.** `.gitignore` has `node_modules/`
+   with a trailing slash, which matches directories only — a real install is
+   ignored, a symlink is not, and it will sit in `git status` as an untracked
+   path waiting to be added.
+
+   The last two files cannot be made to collect this way:
+   `articleAi.test.ts` needs `@lobechat/business-const` and
+   `spaVariants.test.ts` needs `cookie` — the first is a workspace package that
+   is not in the tree at all, so only a real install reaches it.
+
+   **Type-check what you changed**: `bun run type-check:worker` (§5.5) covers
+   `worker/` in about a minute and filters out the `apps/server` noise. It is
+   worth running even on a stub install — the errors it will not resolve there
+   are all `TS2307`, so anything that is *not* a missing module is yours.
 4. Update this page's status and add the seam to the integrations reference in
    the same change.
 

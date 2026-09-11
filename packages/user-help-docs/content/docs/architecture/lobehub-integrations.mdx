@@ -126,6 +126,15 @@ No upstream LobeHub file is edited for this. `extract.ts` and the new
 `extractQwkSearch.ts` both live under `worker/`; the only build-side change is
 *removing* the `linkedom` alias.
 
+`tiersForUrl` is now the **only** chain in the module. A second, never-wired
+`defaultTiersFor` — with its own `extractViaYouTube` and `extractViaPdf` tiers —
+used to sit beside it; it was deleted once it turned out that both tiers called
+identifiers (`youTubeVideoId`, `pdfUrlFor`) that exist nowhere in the repository
+and so could never have run. The migration to-do § 1.3 records the finding. The
+capability it looked like it offered is not missing: `extract-webpage` reaches
+`extract-youtube` and `extract-pdf` itself, from inside tier 0, with the
+settings of F2a bound in.
+
 ### F2a — Extraction settings contract
 
 The chain used to read its configuration inline: `['en']` for transcript
@@ -570,6 +579,14 @@ bunx vitest run src/spa/router/desktopRouter.sync.test.tsx src/features/NavPanel
 
 # Database bridge
 cd packages/database && bunx vitest run src/core/cloudflare.test.ts
+```
+
+Types, for the Worker only — the one check that looks at `worker/` at all, since
+the repo-wide `bun run type-check` OOMs before it finishes and no CI job installs
+`packages-lobe`:
+
+```bash
+cd packages-lobe && bun run type-check:worker
 ```
 
 ## 7. Not yet integrated
