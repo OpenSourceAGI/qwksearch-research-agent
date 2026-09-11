@@ -66,8 +66,37 @@ export default {
     // consistent. The closing bookmark rides back on the response so the
     // client's next request never sees an older version of the database.
     return runWithD1Session(request, env.D1_SESSION_MODE, async () => {
-      const response = await handler.fetch(request, env, ctx);
-      return applyD1Bookmark(response, { debug: Boolean(env.D1_SESSION_DEBUG) });
+      try {
+        const response = await handler.fetch(request, env, ctx);
+        if (response.status >= 500) reportServerError(request, url, response.status);
+        return applyD1Bookmark(response, { debug: Boolean(env.D1_SESSION_DEBUG) });
+      } catch (error) {
+        reportServerError(request, url, 500, error);
+        throw error;
+      }
     });
   },
 };
+
+/**
+ * Put a 5xx in the Worker's logs with something to act on.
+ *
+ * Cloudflare's invocation log records only `GET <url>` and the status, and a
+ * render error never reaches this handler — the framework catches it and
+ * answers with its error shell — so an SSR failure otherwise reaches the
+ * dashboard as a bare `500` with no cause, no route and no stack. This adds one
+ * line naming the path, the status and (when the exception did escape) its
+ * stack, so the next report starts from the error rather than from a guess.
+ */
+function reportServerError(request: Request, url: URL, status: number, error?: unknown) {
+  console.error(
+    `[worker] ${request.method} ${url.pathname} -> ${status}`,
+    JSON.stringify({
+      host: url.host,
+      search: url.search || undefined,
+      ray: request.headers.get("cf-ray") ?? undefined,
+      error: error instanceof Error ? `${error.name}: ${error.message}` : error ? String(error) : undefined,
+      stack: error instanceof Error ? error.stack : undefined,
+    }),
+  );
+}

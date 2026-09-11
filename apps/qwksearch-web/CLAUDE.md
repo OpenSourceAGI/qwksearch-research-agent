@@ -23,6 +23,12 @@ it belongs in a package.
   Node APIs outside `nodejs_compat`, filesystem assumptions and long CPU work
   all pass locally and fail in production. See
   [`web-app.md`](../../.claude/architecture/web-app.md).
+- **Mount the research workspace through `components/layout/WorkspaceMount`**,
+  never by importing `research-agent-ui/workspace` into a route. That entry
+  carries the REASON editor's whole dependency tree, and a static import of it
+  turns one dependency's module-scope `document` read into a 500 for the entire
+  page. The mount loads it lazily inside a Suspense boundary, so the same
+  failure costs a flash of skeleton instead.
 - `worker/index.ts` is documented house style for a reason — read its comments
   before changing the entrypoint.
 - The `test-web-api.yml` workflow is path-filtered to this app and two packages;

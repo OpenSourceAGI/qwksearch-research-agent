@@ -6,9 +6,9 @@ import { usePathname } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import { useChat, useMainView } from 'research-agent-ui';
 
-import { ResearchWorkspaceView } from 'research-agent-ui/workspace';
 import { isHomeLandingState } from '@/lib/home-landing';
 import { cn } from '@/lib/utils';
+import { WorkspaceMount } from '@/components/layout/WorkspaceMount';
 
 /**
  * The homepage: the research workspace on the first screen, with the whole
@@ -191,7 +191,7 @@ export function HomeScrollStack() {
           turn it into a containing block and re-anchor the app's `fixed` and
           `absolute` chrome (popovers, dialogs, the dock) to it. */}
       <div ref={workspaceRef} className="h-screen">
-        <ResearchWorkspaceView />
+        <WorkspaceMount />
       </div>
 
       {showCue && (

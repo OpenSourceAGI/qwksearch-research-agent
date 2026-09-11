@@ -1,7 +1,7 @@
 'use client'
 
-import { ResearchWorkspaceView } from 'research-agent-ui/workspace'
+import { WorkspaceMount } from '@/components/layout/WorkspaceMount'
 
 export default function Page() {
-  return <ResearchWorkspaceView />
+  return <WorkspaceMount />
 }
