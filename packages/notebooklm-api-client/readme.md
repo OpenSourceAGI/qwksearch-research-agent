@@ -29,6 +29,7 @@
 </p>
 
 # notebooklm-api
+    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/notebooklm-api-client"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
 
 NotebookLM API powered by Cloudflare Containers. The Python sandbox runs on demand and sleeps after 5 minutes of inactivity to conserve costs.
 

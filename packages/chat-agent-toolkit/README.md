@@ -3,6 +3,7 @@
 <br /> 
     <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/dm/chat-agent-toolkit.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/v/chat-agent-toolkit.svg" alt="npm version"></a>
+    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/chat-agent-toolkit"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />

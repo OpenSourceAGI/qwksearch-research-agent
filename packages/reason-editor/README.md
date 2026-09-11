@@ -5,6 +5,7 @@
   />
 </a>
 <a href="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent"><img src="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg?component=package-reason-editor" alt="Coverage" /></a>
+<a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/reason-editor"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
 
 ![logo](https://i.imgur.com/EIqHZVO.png)
 
