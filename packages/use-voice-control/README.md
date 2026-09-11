@@ -3,6 +3,7 @@
 <br /> 
     <a href="https://www.npmjs.com/package/use-voice-control"><img src="https://img.shields.io/npm/dm/use-voice-control.svg" alt="NPM Monthly Downloads"></a>
     <a href="https://www.npmjs.com/package/use-voice-control"><img src="https://img.shields.io/npm/v/use-voice-control.svg" alt="npm version"></a>
+    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/use-voice-control"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
     <a href="https://discord.gg/SJdBqBz3tV">
         <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
             alt="Join Discord" />

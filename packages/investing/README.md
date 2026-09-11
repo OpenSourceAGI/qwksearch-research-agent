@@ -13,6 +13,7 @@
         src="https://img.shields.io/github/discussions/vtempest/stock-prediction-agent" />
     </a>
     <!-- <a href="https://npmjs.org/package/stock-prediction-agent"><img src="https://img.shields.io/npm/v/stock-prediction-agent"/></a>    -->
+    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/investing"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
     <a href="https://github.com/vtempest/stock-prediction-agent/pulse" alt="Activity">
         <img src="https://img.shields.io/github/commit-activity/m/vtempest/stock-prediction-agent" />
     </a>
