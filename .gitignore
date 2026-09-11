@@ -56,8 +56,11 @@ apps/qwksearch-web/.open-next
 .dev.vars
 .claude/*
 !.claude/skills
-# Architecture notes for Claude agents — checked in on purpose (see CLAUDE.md)
+# Agent docs for Claude Code — checked in on purpose (see CLAUDE.md)
 !.claude/architecture
+!.claude/settings.json
+.claude/settings.local.json
+CLAUDE.local.md
 .turbo
 
 yarn.lock
