@@ -1,6 +1,6 @@
 {
   "name": "extract-pdf",
-  "version": "0.1.316",
+  "version": "0.1.317",
   "description": "Convert a PDF (URL or ArrayBuffer) into clean HTML with structural tagging — headings, lists, footnotes, code blocks, bold/italic. Slim by default (PDF.js loads at runtime from the pdfjs-serverless CDN build), with optional Granite Docling OCR for pages with infographics/tables — in-process, hybrid, or via a remote processor URL. Works in Node.js, Cloudflare Workers, and browser environments.",
   "author": "vtempest <grokthiscontact@gmail.com>",
   "license": "rights.institute/PROSPER",
