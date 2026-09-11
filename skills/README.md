@@ -79,6 +79,7 @@ npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent 
 | [ask-weather-forecast](./ask-weather-forecast/SKILL.md) | `use-weather-forecast` | Open-Meteo widget, location resolution, the geo Worker |
 | [ask-trending-news](./ask-trending-news/SKILL.md) | `trending-news-api` | Trending widget and the Wikipedia-pageviews Worker |
 | [ask-user-help-docs](./ask-user-help-docs/SKILL.md) | `user-help-docs` | The Fumadocs `/docs` site, its Workers-safe content pipeline |
+| [ask-legal-terms-privacy-policy](./ask-legal-terms-privacy-policy/SKILL.md) | `legal-terms-privacy-policy` | The shared terms and privacy page, its full/summary switch and raw-TS exports |
 
 ## Adding a skill for a new package
 
