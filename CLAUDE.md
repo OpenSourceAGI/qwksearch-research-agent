@@ -20,6 +20,8 @@ VS Code) built from shared `packages/*`.
 3. **Read the package's skill first.** Every package has one under
    [`skills/ask-<name>/SKILL.md`](skills/), written from the source. They are the
    deepest documentation in the repo — do not re-derive what they already answer.
+   Each package and app also has its own `CLAUDE.md` next to its `readme.md`,
+   carrying the rules and traps specific to working *in* it.
 4. **Packages are consumed as built `dist/`, not live source.** A package edit
    that "doesn't show up" almost always means it was not rebuilt. See
    [`architecture/monorepo.md`](.claude/architecture/monorepo.md).
@@ -62,8 +64,8 @@ cd packages/<name> && bun run test    # much faster while iterating
 
 - Run the touched package's own tests, then `bun run test` from the root.
 - Run `bun run build` if you changed anything a sibling package imports.
-- Update the package's `readme.md` and its `skills/ask-<name>/SKILL.md` when
-  behaviour or public API changes.
+- Update the package's `readme.md`, its `skills/ask-<name>/SKILL.md` and its
+  `CLAUDE.md` when behaviour or public API changes.
 - Commit style is **gitmoji + conventional commits**:
   `✨ feat(scope): what changed`. See
   [`architecture/conventions.md`](.claude/architecture/conventions.md).
@@ -78,3 +80,5 @@ cd packages/<name> && bun run test    # much faster while iterating
 | [web-app.md](.claude/architecture/web-app.md) | The deployed Cloudflare app: Worker, D1, auth, deploy, migrations |
 | [documentation.md](.claude/architecture/documentation.md) | Where docs live, the Fumadocs pipeline, the skills convention |
 | [conventions.md](.claude/architecture/conventions.md) | Code style, commits, PRs, CI, publishing, security |
+
+Per-workspace notes live in each package's and app's own `CLAUDE.md`.
