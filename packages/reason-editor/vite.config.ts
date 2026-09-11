@@ -1,4 +1,5 @@
 import * as fs from 'node:fs';
+import { createRequire } from 'node:module';
 import * as path from 'node:path';
 
 import react from '@vitejs/plugin-react';
@@ -105,6 +106,50 @@ function novelTiptapV3Compat(): Plugin {
   };
 }
 
+// Dependencies that must be bundled from their *environment-neutral* build,
+// not the `browser` one.
+//
+// Vite builds this library with the browser export conditions, so a dependency
+// that ships a DOM-only build behind `browser` gets that build inlined into
+// dist/ — where it is frozen for every consumer, whatever conditions they
+// themselves resolve with. Resolving through `createRequire` instead applies
+// Node's conditions, which yields the entry that runs anywhere (browsers
+// included).
+//
+// `decode-named-character-reference` (reached through the remark/micromark
+// stack behind the Markdown extensions) is the case in point: its `browser`
+// entry decodes entities by assigning to the `innerHTML` of a module-scope
+// `document.createElement('i')`, so merely *loading* the chunk throws
+// "ReferenceError: document is not defined" when the app server-renders a
+// route that mounts the editor — and because that happens while the SSR shell
+// is still loading, React has no boundary to fall back to and the whole
+// response becomes the error page. Its default entry is a plain lookup table
+// over `character-entities`: no DOM, same results.
+//
+// Resolution is done from the *importer*, not from this config file: these are
+// transitive dependencies, and the package manager only links a package into
+// the `node_modules` of the dependents that declare it.
+const nodeConditionDependencies = ['decode-named-character-reference'];
+
+function nodeConditionResolver(ids: string[]): Plugin {
+  const wanted = new Set(ids);
+
+  return {
+    name: 'reason-editor-node-condition-resolve',
+    enforce: 'pre',
+    resolveId(id, importer) {
+      if (!wanted.has(id) || !importer) return null;
+      try {
+        return createRequire(importer).resolve(id);
+      } catch {
+        // Not resolvable from this importer — leave it to Vite's own resolver
+        // rather than failing the build.
+        return null;
+      }
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
   const isDev = mode !== 'production';
@@ -162,7 +207,7 @@ export default defineConfig(async ({ mode }) => {
   // fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, 2))
 
   return {
-    plugins: [selfReferenceResolver(srcDir), novelTiptapV3Compat(), react(), dts({
+    plugins: [selfReferenceResolver(srcDir), nodeConditionResolver(nodeConditionDependencies), novelTiptapV3Compat(), react(), dts({
       // Pin the declaration source root to src/ so declarations emit directly
       // under dist/ (e.g. dist/extensions/Bold/index.d.ts) matching the
       // package.json export/type paths, with no post-build hoist step.
@@ -345,6 +390,24 @@ export default defineConfig(async ({ mode }) => {
           // use-sync-external-store shim above (same dynamic-require issue),
           // so it must stay external too rather than get re-bundled here.
           'grab-url',
+          // Reached from the Plate equation node. The package ships one build
+          // per environment and picks between them with export conditions:
+          // the `browser` one opens with a top-level
+          // `!!document.documentElement.currentStyle`, while the `workerd` /
+          // `worker` / `edge-light` ones guard that behind an `isBrowser`
+          // check. This is a *library* build, so its conditions are the
+          // browser ones — bundling the package in therefore freezes the
+          // unguarded `document` read into dist/, where every consumer gets
+          // it regardless of the conditions *they* resolve with. Server-
+          // rendering any route that mounts the editor then dies on module
+          // evaluation with "ReferenceError: document is not defined", and
+          // because the throw happens while the SSR shell is still loading,
+          // React has no boundary to fall back to and the whole response is
+          // the error page (the app's homepage, which mounts the research
+          // workspace, served a 500 this way). Left external, the host
+          // bundler resolves the package per environment and the Worker/SSR
+          // build gets the guarded build.
+          'react-textarea-autosize',
           // React Compiler's runtime, reached from every `@platejs/*` (they all
           // depend on `platejs`, whose compiled output calls into it). It is
           // CommonJS-only — no `exports`, no `module`, no `"type": "module"`,
