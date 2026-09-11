@@ -1,6 +1,6 @@
 {
   "name": "extract-youtube",
-  "version": "1.0.319",
+  "version": "1.0.320",
   "description": "Fast, no-browser serverless-optimized YouTube transcript extractor, with optional React UI: a floating YouTube player and a synced-transcript modal",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
