@@ -1,13 +1,139 @@
 ## In Progress
 
+## Completed
+
+## Delete the Worker's unreachable extraction chain and give `worker/` a type-check
+
+**Status:** Completed
+**Source:** Scheduled task — "merge lobehub and qwksearch.com so that lobehub is
+the core engine…, every time it is run make more improvements". The LobeHub
+Migration To-Do's own #1 suggested next: § 1.3's open question, the two chains in
+`extract.ts`, framed as a decision — adopt `defaultTiersFor` or delete it.
+**Branch:** `claude/magical-bohr-om77ew` (from `master` at `325b1f2d`)
+**PR:** #439
+**Started:** 2026-09-11
+**Completed:** 2026-09-11
+
+### Goal
+Settle § 1.3's open question, and then answer the question the answer raised:
+how did an unwired chain sit in a request-path module for this long without
+anything noticing?
+
+### The finding worth keeping
+**It was not a decision.** The unwired chain could not have run if it had been
+wired, and two minutes with a type-checker says so:
+
+- `extractViaYouTube` calls `youTubeVideoId(url)`; `extractViaPdf` calls
+  `pdfUrlFor(url)`. Neither identifier is defined in `extract.ts`, imported into
+  it, or present anywhere else in the repository — `TS2304: Cannot find name`,
+  both of them. Every YouTube and PDF extraction through that chain would have
+  thrown `ReferenceError` on its first line, been swallowed by `extractArticle`'s
+  per-tier `try`, and reported as a tier failure.
+- Both also returned `via: 'youtube'` / `via: 'pdf'`, which are not members of
+  the `ExtractedArticle['via']` union they are typed against (`TS2345`).
+
+Adopting it would have regressed twice: for articles it drops tier 0 and the
+citation extraction § 1.3 exists to deliver, and for the two media kinds it
+leads with a tier that cannot execute. So: deleted.
+
+**The second finding is the one that matters more.** Nothing type-checks
+`worker/`. The repo-wide `bun run type-check` includes those files but OOMs at
+~13.8 GB RSS before finishing, and no CI job installs `packages-lobe` at all —
+it is a separate pnpm workspace outside the root turbo graph. Three real type
+errors sat in a live module from the day they were written. Deleting them
+without closing that gap would just wait for the next one.
+
+### Scope
+- `packages-lobe/worker/qwksearch/extract.ts`: −316 lines, no additions.
+- `packages-lobe/tsconfig.worker.json` (new) and
+  `packages-lobe/scripts/typeCheckWorker.mts` (new), wired as
+  `bun run type-check:worker`.
+- Docs: § 1.3's open question rewritten as its resolution, new § 5.5, the
+  Snapshot, the re-ranked "suggested next", the worker-test recipe, § F2 and § 6
+  of the integrations reference, and `packages-lobe/README.md` § What changed.
+
+### Non-goals
+- Restoring the capability the deleted tiers appeared to offer. There is none to
+  restore: `extract-webpage` reaches `extract-youtube` and `extract-pdf` itself,
+  from inside tier 0, with § 1.5's resolved settings bound in. `extractViaPdf`'s
+  own `process.env.PDF_PROCESSOR_URL` read was the last direct `process.env`
+  read left in a tier, which is what § 1.5 set out to remove.
+- Fixing `apps/server`'s type errors. `worker/` imports `@/server/*`, so they
+  are in the program; the script counts and ignores them.
+- A CI job. Nothing installs `packages-lobe`, so this shares 5.4's blocker.
+
+### What changed
+Deleted, in one module: `defaultTiersFor` and `WEB_TIERS`; the `extractViaYouTube`
+and `extractViaPdf` tiers; their support cast (`TranscriptSnippet`,
+`TranscriptFetcher`, `YouTubeConfig`, `loadTranscriptFetcher`,
+`transcriptToParagraphs`, `fetchYouTubeMetadata`, `PdfConverter`, `PdfConfig`,
+`loadPdfConverter`); the two helpers dead for the same reason
+(`loadCiteExtractor`, `articleViaCiteExtractor`, with the `HtmlCiteExtractor`
+type and `citeExtractor` cache they shared); and the three left unreferenced once
+those went (`articleFromExtractedHtml`, `markdownOf`, `textOf`). Nothing
+reachable was touched, so no test changed.
+
+`type-check:worker` does two things the root config does not:
+
+- **Filters to `worker/`**, counting the `apps/server` errors and ignoring them.
+  Only `worker/` decides the exit code, so the check is red only when it is
+  about you.
+- **Gives the Worker its own globals.** The root `types` is
+  `["vitest/globals"]`, and nothing anywhere in the repo references
+  `@cloudflare/workers-types` — so `D1Database`, `KVNamespace`, `Hyperdrive`,
+  `R2Bucket`, `Fetcher` and `ExecutionContext`, the types `worker/cf/env.ts`
+  declares the whole Worker environment in terms of, resolve to nothing under
+  the repo-wide check too. The package was already a devDependency with no
+  consumer.
+
+### Verification
+- **The guard was tested against the bug.** Run against `HEAD`'s `extract.ts`,
+  `type-check:worker` reports exactly the three defects: `TS2304` on
+  `youTubeVideoId` (line 720) and `pdfUrlFor` (784), `TS2345` on `via: 'youtube'`
+  (750). Run against the tree after the deletion, all three are gone and nothing
+  replaces them.
+- `worker/` suite: **112 passed**, 7 of 9 files. The 2 that do not collect are
+  the ones the migration to-do already names as unreachable without a real
+  install — `articleAi.test.ts` (`@lobechat/business-const`, a workspace package
+  not in the tree) and `spaVariants.test.ts` (`cookie`).
+- The extraction suites specifically — `extract.test.ts`, `extractSettings.test.ts`,
+  `extractQwkSearch.test.ts` — 62 passed, unchanged from before the deletion.
+- Writing the script surfaced a bug in the script: `spawnSync`'s 1 MB default
+  `maxBuffer` overflows with `ENOBUFS` on a tree this noisy, losing the `worker/`
+  errors along with the rest. Fixed, then re-run.
+- Not run: `bun run check --lint` and the real `pnpm install` (see below).
+
+### Remaining work
+- **`type-check:worker` has never seen a real install.** Everything above ran
+  against a scratch install of `vitest`/`drizzle-orm`/`hono`/`typescript`, where
+  19 errors remain in `worker/` — 16 `TS2307` for packages that install does not
+  fetch, and 3 implicit-`any`s downstream of an unresolved `@trpc/server` type.
+  They should all disappear under `pnpm install --ignore-scripts`. Confirming
+  that, and fixing anything real it turns up, is the first job of the next run
+  that has the minutes for an install — nothing else looks at those files.
+- **`tsgo` vs `tsc`.** The script calls `tsgo`, matching `type-check`. This
+  session had no `tsgo` binary, so the runs above used the pinned
+  `typescript@6.0.3` `tsc` through a shim. The two are meant to agree; the
+  three-error result should be re-confirmed once under the real binary.
+- **The worker-test recipe now collects 7 files instead of 3** (112 tests, up
+  from 62), via two aliases the recipe was missing — `@/server` →
+  `apps/server/src` and `@/database` → `packages/database/src`. Written up in the
+  migration to-do, along with the trap that `node_modules/` in `.gitignore` has a
+  trailing slash, so the scratch *symlink* the recipe tells you to make is not
+  ignored.
+
 ## Triage the 7 open pull requests: merge or close as superseded
 
-**Status:** In Progress
+**Status:** Completed — the 7 PRs are closed and the open list is empty.
 **Source:** Direct request — merge the repository's open pull requests and
 resolve their conflicts.
 **Branch:** `claude/merge-open-prs-conflicts-tupoxk`
-**PR:** Not created yet
+**PR:** Not created yet — the finding was the deliverable.
 **Started:** 2026-08-18
+**Completed:** 2026-09-11 — verified, not acted on: a later check found
+`state=open` returns nothing for this repository, so all 7 were closed by
+someone else in the meantime. The recommendation below was to close them as
+superseded; that is what happened.
 
 ### Goal
 Get the 7 open PRs (#223, #234, #236, #243, #245, #260, #264) off the open
@@ -96,15 +222,11 @@ already reached, and then went past by appending the `(merged)` marker.
       run is applicable — the change is this tracker entry alone.
 
 ### Remaining work
-- **Decision needed:** close #223, #234, #236, #243, #245, #260 and #264 as
-  superseded, each with a comment naming the PR that already landed its
-  content. Nothing in them can be merged without reverting `master`.
-- Optional follow-up: the five Group A branches descend from an ancestry
-  `master` no longer has. If those orphaned branches are not needed for
-  history, deleting them alongside closing the PRs would stop future runs
-  from re-triaging them.
-
-## Completed
+- None. The decision this entry asked for — close all 7 as superseded — was
+  taken: the repository has no open pull requests.
+- Optional, still true: the five Group A branches descend from an ancestry
+  `master` no longer has. If they are not needed for history, deleting them
+  would stop future runs from re-deriving why they cannot be merged.
 
 ## Build the settings panes' shared controls inside the LobeHub engine
 

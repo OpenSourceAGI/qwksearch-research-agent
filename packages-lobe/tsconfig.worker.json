@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // Type-checks `worker/` alone — the Cloudflare Worker that serves the
+  // QwkSearch routes. The repo-wide `bun run type-check` covers these files
+  // too, but it reaches ~13.8 GB RSS and gets OOM-killed on a 15 GB box, so in
+  // practice nothing ever checked them: a whole unwired extraction chain
+  // calling two identifiers that exist nowhere in the repo sat in
+  // `worker/qwksearch/extract.ts` from the day it was written until it was
+  // deleted. This config is the narrow check that catches that class of bug in
+  // about a minute. Run it with `bun run type-check:worker`.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // The root config is incremental; a scoped run must not write its build
+    // info over the repo-wide one, and the run is short enough not to need it.
+    "incremental": false,
+    // The root config's `types` is `["vitest/globals"]`, and nothing anywhere in
+    // the repo references `@cloudflare/workers-types` — so `D1Database`,
+    // `KVNamespace`, `Hyperdrive`, `R2Bucket`, `Fetcher` and `ExecutionContext`,
+    // which `worker/cf/env.ts` and `worker/index.ts` declare their whole
+    // environment in terms of, resolve to nothing. The package is already a
+    // devDependency; this is the only config that asks for it. `node` comes
+    // along for the `process.env` reads the settings layers do.
+    "types": ["vitest/globals", "@cloudflare/workers-types", "node"]
+  },
+  "include": ["worker/**/*.ts", "src/**/*.d.ts"]
+}

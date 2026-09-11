@@ -319,7 +319,15 @@ rebuilds its route's response from the real resolver.
   (the SheetJS CDN tarball is not reachable from the build environment).
 - `package.json`: `build:worker*`, `cf:*` scripts; `wrangler`/`@cloudflare/workers-types` dev deps;
   `worker/cf/globals.ts` registered in `sideEffects`; `extract-webpage` dependency (tier 0 of the
-  extraction chain).
+  extraction chain); `type-check:worker`.
+- `tsconfig.worker.json` + `scripts/typeCheckWorker.mts`: new, both QwkSearch's. Type-checks
+  `worker/` on its own, because the repo-wide `bun run type-check` OOMs at ~13.8 GB RSS and no CI
+  job installs this workspace — so nothing had ever checked those files, and an unreachable
+  extraction chain calling two identifiers that exist nowhere in the repo lived in
+  `worker/qwksearch/extract.ts` until it was deleted. The config is also the only place that
+  pulls in `@cloudflare/workers-types`, without which `D1Database`, `KVNamespace`, `Hyperdrive`,
+  `R2Bucket`, `Fetcher` and `ExecutionContext` resolve to nothing. No upstream file is edited:
+  `tsconfig.json` is extended, not changed.
 - `vite.worker.config.ts`: `linkedom` is no longer aliased to a shim. It is pure JS and runs on
   workerd, and `extract-webpage` parses every page with it; LobeHub only reached it from the
   dev-server template rewriter, which is why it used to be stubbed. `worker/shims/linkedom.ts`
