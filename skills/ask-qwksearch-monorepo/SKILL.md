@@ -1,6 +1,6 @@
 ---
 name: ask-qwksearch-monorepo
-description: Map of the QwkSearch research-agent monorepo (OpenSourceAGI/qwksearch-research-agent) — which of the 23 packages and 6 apps owns a given behaviour, the bun/turbo build and test commands, the workspace build-order trap, and the deploy targets. Also covers the four product shells (Next.js web app, Tauri desktop app, WXT browser extension, VS Code extension) and the Hocuspocus collaboration server, which have no package skill of their own. Use when you don't yet know which layer to edit, when a change to a package doesn't show up in the app that imports it, when a root `bun run test` behaves differently from a package's own test script, or when adding a new workspace package.
+description: Map of the QwkSearch research-agent monorepo (OpenSourceAGI/qwksearch-research-agent) — which of the packages and 6 apps owns a given behaviour, the bun/turbo build and test commands, the workspace build-order trap, and the deploy targets. Also covers the four product shells (Next.js web app, Tauri desktop app, WXT browser extension, VS Code extension) and the Hocuspocus collaboration server, which have no package skill of their own. Use when you don't yet know which layer to edit, when a change to a package doesn't show up in the app that imports it, when a root `bun run test` behaves differently from a package's own test script, or when adding a new workspace package.
 ---
 
 # Working In The QwkSearch Monorepo
@@ -44,6 +44,7 @@ things look similar:
 | The dock, the settings form, weather, trending news | `shadcn-app-dock`, `shadcn-settings`, `react-weather-forecast`, `trending-news-api` | ask-shadcn-app-dock, ask-shadcn-settings, ask-weather-forecast, ask-trending-news |
 | The `/docs` help site | `user-help-docs` | ask-user-help-docs |
 | Training a GPT from scratch on Wikipedia (Python) | `language-model-training` | ask-language-model-training |
+| Stocks, brokerage, trading agents, prediction markets, arbitrage | `investing` (incl. `investing/predictos`) | ask-investing |
 
 ## The apps (no package skill of their own)
 

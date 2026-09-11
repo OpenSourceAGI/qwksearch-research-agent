@@ -29,7 +29,7 @@ export * from "./stocks";
 export * from "./prediction";
 
 // PredictOS core: multi-agent analysis, data clients, and arbitrage
-// (adapted from PredictionXBT/PredictOS; see packages/predictos)
+// (adapted from PredictionXBT/PredictOS; see src/predictos and NOTICE)
 export * from "./predictos";
 
 // Trading strategies and algorithms

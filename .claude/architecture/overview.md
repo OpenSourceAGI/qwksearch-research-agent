@@ -72,7 +72,12 @@ memory), `language-model-training` (a GPT on Tinygrad, Python, its own toolchain
 `shadcn-app-dock`, `shadcn-settings`, `react-weather-forecast`,
 `trending-news-api`, `use-voice-control`, `user-help-docs`.
 
-**Vendored** — `investing`, `predictos` (from `ai-broker-investing-agent`).
+**Finance** — `investing` (vendored from `ai-broker-investing-agent`): Alpaca, stock
+data, Polymarket sync over D1, LangGraph debate agents, and the PredictOS
+prediction-market core on `investing/predictos` — multi-agent event analysis, Kalshi
+and Polymarket data clients, cross-platform arbitrage. The `predictos` package was
+merged into it; `packages/predictos` no longer exists. The PredictOS code under
+`src/predictos/` stays MIT (PredictionXBT) — see the package's `NOTICE`.
 
 ## `packages-lobe/`
 

@@ -1,7 +1,7 @@
 {
   "name": "investing",
   "version": "0.1.16",
-  "description": "Reusable investment utilities, trading agents, and financial data tools",
+  "description": "Reusable investment utilities, trading agents, prediction-market analysis (PredictOS core) and financial data tools",
   "license": "rights.institute/prosper",
   "author": "vtempest",
   "repository": {
@@ -37,6 +37,31 @@
       "import": "./dist/predictos/index.mjs",
       "require": "./dist/predictos/index.js"
     },
+    "./predictos/ai": {
+      "types": "./dist/predictos/ai/index.d.ts",
+      "import": "./dist/predictos/ai/index.mjs",
+      "require": "./dist/predictos/ai/index.js"
+    },
+    "./predictos/agents": {
+      "types": "./dist/predictos/agents/index.d.ts",
+      "import": "./dist/predictos/agents/index.mjs",
+      "require": "./dist/predictos/agents/index.js"
+    },
+    "./predictos/data/kalshi": {
+      "types": "./dist/predictos/data/kalshi.d.ts",
+      "import": "./dist/predictos/data/kalshi.mjs",
+      "require": "./dist/predictos/data/kalshi.js"
+    },
+    "./predictos/data/polymarket": {
+      "types": "./dist/predictos/data/polymarket.d.ts",
+      "import": "./dist/predictos/data/polymarket.mjs",
+      "require": "./dist/predictos/data/polymarket.js"
+    },
+    "./predictos/arbitrage": {
+      "types": "./dist/predictos/arbitrage.d.ts",
+      "import": "./dist/predictos/arbitrage.mjs",
+      "require": "./dist/predictos/arbitrage.js"
+    },
     "./trading-agents": {
       "types": "./dist/trading-agents/index.d.ts",
       "import": "./dist/trading-agents/index.mjs",
@@ -58,7 +83,10 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "data"
+    "data",
+    "README.md",
+    "NOTICE",
+    "LICENSE-PredictOS-MIT"
   ],
   "scripts": {
     "build": "vite build",
@@ -83,7 +111,11 @@
     "financial-data",
     "yahoo-finance",
     "sec-filings",
-    "trading-agents"
+    "trading-agents",
+    "polymarket",
+    "kalshi",
+    "arbitrage",
+    "predictos"
   ],
   "dependencies": {
     "@alpacahq/alpaca-trade-api": "^3.1.3",
@@ -105,7 +137,6 @@
     "nanoid": "5.1.6",
     "node-fetch": "^3.3.2",
     "pinets": "^0.8.3",
-    "predictos": "workspace:*",
     "qwksearch-api-client": "^0.0.12",
     "sec-edgar-toolkit": "^0.1.1",
     "tavily": "^1.0.2",
@@ -123,5 +154,13 @@
   },
   "peerDependencies": {
     "drizzle-orm": "^0.45.1"
+  },
+  "optionalDependencies": {
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.98.4",
+    "bs58": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

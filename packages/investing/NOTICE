@@ -1,0 +1,10 @@
+Adapted from PredictOS by PredictionXBT (https://github.com/PredictionXBT/PredictOS), MIT licensed.
+Refactored from Deno/Supabase edge functions to Node/TypeScript ESM.
+
+The adapted code lives in src/predictos/ and is published on the `investing/predictos`
+subpath exports. It shipped as a separate `predictos` package until that package was
+merged into `investing`.
+
+The original MIT license text is kept verbatim in LICENSE-PredictOS-MIT and applies to
+everything under src/predictos/. The rest of this package is licensed under
+rights.institute/prosper.
