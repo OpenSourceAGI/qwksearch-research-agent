@@ -50,6 +50,34 @@ Consequences worth remembering: the host app **must** register
 `No compiled module for "<path>"`; and MDX rules apply to content — a bare `{` or
 `<` outside a code fence is parsed as JSX.
 
+### The host app must scan `fumadocs-ui/dist` for Tailwind classes
+
+Importing `fumadocs-ui/css/preset.css` is **not** enough to style the docs.
+Fumadocs declares its own utility lists as `@source inline(…)` inside
+`css/generated/*.css`, and `preset.css` `@import`s those files *after* an
+`@plugin` at-rule. Vite resolves CSS `@import`s with postcss-import before
+Tailwind ever sees the file, and postcss-import stops inlining at the first
+non-`@import` at-rule — so all five generated files are dropped with no error.
+
+What survives is only what is plain CSS: the `--color-fd-*` tokens and a handful
+of base rules. Every *class* goes ungenerated — `#nd-notebook-layout`'s grid,
+`--fd-sidebar-width`, `text-fd-muted-foreground`, the sidebar animations — and
+`/docs` renders as a single unstyled column with **no sidebar and no
+navigation**, while the page tree, the routes, the search index and the whole
+test suite stay green.
+
+`apps/qwksearch-web/app/globals.css` compensates by scanning the shipped output
+itself (`dist`, not `src` — fumadocs-ui publishes compiled output only), next to
+the same registration for the docs package's own components:
+
+```css
+@source "../node_modules/fumadocs-ui/dist";
+@source "../../../packages/user-help-docs/src";
+```
+
+`app/docs/__tests__/docs-wiring.test.ts` compiles those registrations through
+Vite and fails if the layout classes stop being generated.
+
 ## Skills (`skills/`)
 
 One [Agent Skill](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview)

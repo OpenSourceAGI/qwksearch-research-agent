@@ -15,6 +15,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
+import { build } from 'vite';
 
 import { source } from 'user-help-docs';
 import { docsConfig } from 'user-help-docs/config';
@@ -117,4 +118,64 @@ describe('the app is configured to render the docs', () => {
     expect(css).toContain('fumadocs-ui/css/neutral.css');
     expect(css).toContain('fumadocs-ui/css/preset.css');
   });
+
+  it('generates the fumadocs layout utilities Tailwind would otherwise skip', async () => {
+    // Importing the preset is not enough. Fumadocs declares its own utility
+    // lists as `@source inline(…)` inside `css/generated/*.css`, which
+    // `preset.css` `@import`s *after* an `@plugin` at-rule — and Vite resolves
+    // CSS imports with postcss-import, which stops inlining at the first
+    // non-`@import` at-rule. Those files are dropped with no error, so every
+    // layout class goes ungenerated and /docs renders as one unstyled column
+    // with no sidebar: the page tree, the routes and the tests all stay green.
+    // `globals.css` compensates by scanning `fumadocs-ui/dist` itself; this
+    // check compiles the registrations it declares and looks for the classes
+    // the notebook layout cannot render without.
+    const css = readAppFile('app', 'globals.css');
+
+    // Reproduce globals.css's fumadocs half without the workspace packages'
+    // prebuilt `style.css` imports, which need `bun run build` to exist.
+    // `@source` paths are relative to the file that declares them, so resolve
+    // them against `app/` before moving the lines to a scratch entry.
+    const entry = [
+      '@import "tailwindcss";',
+      ...css
+        .split('\n')
+        .filter((line) => /^@import\s+"fumadocs-ui\/css\/|^@source\s+"/.test(line.trim()))
+        .map((line) =>
+          line.replace(/^@source\s+"([^"]+)"/, (_match, source: string) =>
+            `@source "${path.resolve(appDir, 'app', source)}"`,
+          ),
+        ),
+    ].join('\n');
+
+    // Inside the app so `fumadocs-ui` and the postcss config both resolve the
+    // way they do for the real build.
+    const entryPath = path.join(appDir, '.docs-css-check.css');
+    fs.writeFileSync(entryPath, entry);
+
+    let compiled: string;
+    try {
+      const result = await build({
+        configFile: false,
+        root: appDir,
+        logLevel: 'silent',
+        build: { write: false, rollupOptions: { input: entryPath } },
+      });
+      const outputs = (Array.isArray(result) ? result[0] : result) as {
+        output: { type: string; fileName: string; source?: unknown }[];
+      };
+      compiled = outputs.output
+        .filter((chunk) => chunk.type === 'asset' && chunk.fileName.endsWith('.css'))
+        .map((chunk) => String(chunk.source))
+        .join('\n');
+    } finally {
+      fs.rmSync(entryPath, { force: true });
+    }
+
+    // The grid container, the sidebar column's width, and one ordinary utility
+    // every Fumadocs surface uses — each absent when the source lists are lost.
+    expect(compiled).toContain('#nd-notebook-layout');
+    expect(compiled).toContain('268px');
+    expect(compiled).toContain('text-fd-muted-foreground');
+  }, 60_000);
 });

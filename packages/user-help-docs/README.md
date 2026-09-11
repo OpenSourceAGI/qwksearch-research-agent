@@ -76,12 +76,22 @@ import { helpDocsMdxPlugin } from 'user-help-docs/vite';
 ```
 
 The app must list `user-help-docs` in `next.config`'s `transpilePackages` (it
-ships TypeScript sources, not a build), and import fumadocs' CSS preset:
+ships TypeScript sources, not a build), and wire up four CSS lines:
 
 ```css
-@import "fumadocs-ui/css/neutral.css";
-@import "fumadocs-ui/css/preset.css";
+@import "fumadocs-ui/css/neutral.css";   /* --color-fd-* tokens */
+@import "fumadocs-ui/css/preset.css";    /* base rules, variants, @source lists */
+@source "../node_modules/fumadocs-ui/dist";       /* the layout classes */
+@source "../../../packages/user-help-docs/src";   /* this package's components */
 ```
+
+Both `@source` lines are load-bearing. Fumadocs declares its utility lists as
+`@source inline(…)` inside `css/generated/*.css`, which `preset.css` `@import`s
+*after* an `@plugin` at-rule — and Vite resolves CSS `@import`s with
+postcss-import, which stops inlining at the first non-`@import` at-rule, so those
+files are dropped with no error. The tokens still land (plain CSS), but every
+class does not: `/docs` then serves every page with no sidebar, no navigation and
+no styling, while the build and the tests stay green.
 
 ## Routes it expects
 

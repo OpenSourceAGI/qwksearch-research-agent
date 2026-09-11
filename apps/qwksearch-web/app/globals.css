@@ -22,8 +22,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 /* /docs help site (Fumadocs). `neutral.css`/`preset.css` only define
-   `--color-fd-*` theme tokens and `@source` utility lists — they don't
-   re-import Tailwind, so they load like any other first-party CSS. */
+   `--color-fd-*` theme tokens, base rules and `@source` utility lists — they
+   don't re-import Tailwind, so they load like any other first-party CSS. The
+   utility lists do not survive Vite's CSS import handling; see the
+   `fumadocs-ui/dist` source registration below. */
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 @import "react-native-app-buttons/styles" layer(vendor);
@@ -40,6 +42,22 @@
 @source "../../../packages/research-agent-ui/src";
 @source "../../../packages/reason-editor/src";
 @source "../../../packages/reason-editor-sidebar/src";
+/* Fumadocs ships its own utility lists as `@source inline(…)` inside
+   `css/generated/*.css`, which `preset.css` pulls in — but it `@import`s them
+   *after* an `@plugin` at-rule, and Vite resolves CSS `@import`s with
+   postcss-import before Tailwind ever sees the file. postcss-import stops
+   inlining at the first non-`@import` at-rule, so those five files are dropped
+   silently and every Fumadocs layout class (`#nd-notebook-layout`'s grid,
+   `--fd-sidebar-width`, `text-fd-muted-foreground`, the sidebar animations)
+   goes ungenerated: /docs then renders one unstyled column with no sidebar and
+   no navigation. Scanning the shipped `dist` produces the same utilities the
+   inline lists would have. `app/docs/__tests__/docs-wiring.test.ts` holds this.
+   Note `dist` — not `src`: fumadocs-ui publishes compiled output only. */
+@source "../node_modules/fumadocs-ui/dist";
+/* The docs package's own components (breadcrumb, per-page actions, the theme
+   dropdown) are workspace source, so they need the same explicit registration
+   as the packages above. */
+@source "../../../packages/user-help-docs/src";
 
 @custom-variant dark (&:is(.dark *));
 /* @plugin "@tailwindcss/typography"; */
