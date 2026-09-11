@@ -83,7 +83,7 @@
     "harper.js": "2.7.0",
     "katex": "^0.18.7",
     "kokoro-js": "^1.2.1",
-    "legal-terms-privacy-policy": "^0.1.0",
+    "legal-terms-privacy-policy": "workspace:*",
     "lodash-es": "^4.18.1",
     "lowlight": "^3.3.0",
     "lucide-react": "^1.43.0",

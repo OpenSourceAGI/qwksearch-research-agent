@@ -41,6 +41,7 @@ export default defineConfig({
       'packages/chat-agent-toolkit',
       'packages/extract-webpage',
       'packages/html-renderer-api',
+      'packages/legal-terms-privacy-policy',
       'packages/notebooklm-api-client',
       'packages/qwksearch-api-client',
       'packages/qwksearch-mcp-server',
