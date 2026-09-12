@@ -165,9 +165,20 @@ bun run cf:d1:migrate              # remote
 bun run cf:d1:migrate:dev          # local wrangler dev
 
 # 4. Deploy
-bun run cf:deploy                  # default env
-bun run cf:deploy:production       # `production` env in wrangler.jsonc
+bun run cf:deploy                  # top-level env -> Worker `qwksearch-lobehub`
+bun run cf:deploy:production       # `production` env -> Worker `qwksearch-lobehub-production`
 ```
+
+Both pass `--env` explicitly. `wrangler.jsonc` defines a named `production`
+environment alongside the top-level one, and `wrangler deploy` with no `--env`
+at all warns — *"Multiple environments are defined in the Wrangler configuration
+file, but no target environment was specified"* — and then falls back to the
+top-level environment. That fallback is what this tree wants, but the two
+environments are not interchangeable: the top-level one deploys the Worker
+`qwksearch-lobehub` bound to the `qwksearch-sessions` KV namespace, and
+`--env production` deploys a *separate* Worker, `qwksearch-lobehub-production`,
+bound to `production-qwksearch-sessions`. Passing `--env=""` for the top-level
+environment says so out loud and silences the warning.
 
 Local run: `bun run cf:dev` starts `wrangler dev --local` with `wrangler.local.jsonc` (dummy secrets,
 local D1/KV, no Cloudflare account needed); run `bun run cf:d1:migrate:dev` once to create the D1
@@ -193,9 +204,12 @@ Project settings for a Workers Builds deploy of this tree:
 | Root directory | `apps/qwk-in-lobe` |
 | Install command | `pnpm install --no-frozen-lockfile` |
 | Build command | `pnpm run build:worker` |
-| Deploy command | `pnpm exec wrangler deploy` |
+| Deploy command | `pnpm exec wrangler deploy --env=""` |
 
-Enter all four. The default build command is `npm run build`, which is the Next build, not the
+Enter all four. `--env=""` on the deploy command is the top-level environment,
+the one this project deploys; without it wrangler warns about the `production`
+environment the config also defines and then picks the top-level one anyway (see
+above). The default build command is `npm run build`, which is the Next build, not the
 Worker build: it writes `.next/` and never `dist/worker/index.js`, so the deploy step that follows
 has nothing to upload and fails with `The entry-point file at "dist/worker/index.js" was not
 found`. A deploy left on the defaults now recovers instead of failing: `wrangler.jsonc` declares a

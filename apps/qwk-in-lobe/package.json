@@ -59,7 +59,7 @@
     "build:worker:server": "cross-env NODE_OPTIONS=--max-old-space-size=8192 NODE_ENV=production vite build --config vite.worker.config.ts",
     "cf:budget": "tsx scripts/checkWorkerBudget.mts",
     "cf:d1:migrate": "wrangler d1 execute qwksearch-new --remote --file=migrations/d1/0001_qwksearch_tables.sql && wrangler d1 execute qwksearch-new --remote --file=migrations/d1/0002_extraction_settings.sql && wrangler d1 execute qwksearch-new --remote --file=migrations/d1/0003_search_settings.sql",
-    "cf:deploy": "bun run build:worker && wrangler deploy",
+    "cf:deploy": "bun run build:worker && wrangler deploy --env=\"\"",
     "cf:deploy:production": "bun run build:worker && wrangler deploy --env production",
     "cf:dev": "wrangler dev --config wrangler.local.jsonc --local",
     "cf:d1:migrate:dev": "wrangler d1 execute qwksearch-new --local --config wrangler.local.jsonc --file=migrations/d1/0001_qwksearch_tables.sql && wrangler d1 execute qwksearch-new --local --config wrangler.local.jsonc --file=migrations/d1/0002_extraction_settings.sql && wrangler d1 execute qwksearch-new --local --config wrangler.local.jsonc --file=migrations/d1/0003_search_settings.sql",
