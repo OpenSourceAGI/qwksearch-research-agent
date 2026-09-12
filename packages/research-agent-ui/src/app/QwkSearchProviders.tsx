@@ -21,6 +21,7 @@ import { ChatProvider } from '../hooks/useChat';
 import { ExtractPanelProvider } from '../components/ArticleReader/ExtractPanelContext';
 import { CategoryDock } from './CategoryDock';
 import { CookieConsent } from './CookieConsent';
+import { SpotlightPalette } from '../components/SpotlightPalette';
 import { MainViewProvider } from './MainViewProvider';
 import { useChunkErrorReload } from './useChunkErrorReload';
 
@@ -65,6 +66,12 @@ export interface QwkSearchProvidersProps {
   showCookieConsent?: boolean;
   /** Render the `sonner` toaster. Default true. */
   showToaster?: boolean;
+  /**
+   * Mount the Ctrl-Space spotlight palette. Default true. Turn it off in a
+   * shell that already binds that chord (a VS Code webview, say, where the
+   * host may want the keystroke for itself).
+   */
+  showSpotlight?: boolean;
 }
 
 /**
@@ -106,6 +113,7 @@ export function QwkSearchProviders({
   showDock = true,
   showCookieConsent = true,
   showToaster = true,
+  showSpotlight = true,
 }: QwkSearchProvidersProps) {
   // Applied during render rather than from an effect so the very first paint
   // already reflects the host's branding — everything below this point reads
@@ -161,6 +169,10 @@ export function QwkSearchProviders({
               />
             )}
             {showCookieConsent && <CookieConsent />}
+            {/* Outside the scroll root and after the dock: it is an overlay
+                over the whole app, and it reads the chat, session and view
+                contexts it sits inside. */}
+            {showSpotlight && <SpotlightPalette />}
           </ChatProvider>
         </ExtractPanelProvider>
       </SessionProvider>

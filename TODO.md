@@ -26,7 +26,7 @@ entry is about.
   specifiers `@moonshine-ai/moonshine-js` leaves unresolvable.
 - `lib/onnx/ort-bundle-stub.mjs`, `lib/onnx/ort-wasm-stub.wasm` — new: what
   those aliases point at, and why.
-- `apps/qwksearch-web/CLAUDE.md` — the trap itself: the dev and deploy builds
+- `.claude/apps/qwksearch-web/CLAUDE.md` — the trap itself: the dev and deploy builds
   fail differently, so a green `build` says nothing about `dev`.
 
 ### Non-goals

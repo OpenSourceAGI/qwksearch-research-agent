@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "npx open-ready next dev",
-    "prebuild": "node ../../scripts/build-workspace-packages.mjs",
+    "prebuild": "node ../../.github/scripts/build-workspace-packages.mjs",
     "build": "vinext build",
     "deploy": "vinext deploy",
     "start": "next start",

@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { Settings, LogIn, LogOut, FileText } from "lucide-react"
+import { Settings, LogIn, LogOut, FileText, Search } from "lucide-react"
 import {
   CategoryDock as BaseCategoryDock,
   type DockNavItem,
@@ -14,6 +14,7 @@ import { useSession } from "../hooks/useSession"
 import { useChat } from "../hooks/useChat"
 import { researchAgentUIConfig } from "../config"
 import { useMainView } from "./MainViewProvider"
+import { openSpotlight } from "../components/SpotlightPalette"
 // Both dock marks are SVGs, and next/image refuses to run SVG through the
 // optimizer unless `dangerouslyAllowSVG` is on — the request 400s and the dock
 // renders two broken-image glyphs. They are already tiny inline-able assets, so
@@ -105,6 +106,13 @@ export function CategoryDock() {
       menu: {
         renderContent: () => (
           <>
+            {/* The spotlight palette is keyboard-first, so the dock carries
+                the one pointer-reachable way in — and advertises the chord. */}
+            <DropdownMenuItem onClick={() => openSpotlight()} className="cursor-pointer py-1 h-7">
+              <Search className="mr-2 h-3.5 w-3.5" />
+              <span className="text-sm">Search everything</span>
+              <span className="ml-auto pl-3 text-[10px] text-muted-foreground">Ctrl Space</span>
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
                 // Open settings in a modal on large desktop screens; otherwise
