@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi, type MockedFunction } from 'vites
 import { getWeatherForecast } from '../src/api/forecast';
 import { clearWeatherForecastCache } from '../src/lib/cache';
 import grab from 'grab-url';
+import { requestedUrl as wireUrl } from './requested-url';
 
 vi.mock('grab-url');
 const mockGrab = grab as MockedFunction<typeof grab>;
@@ -47,7 +48,7 @@ function mockFetch(payload: unknown) {
 }
 
 function requestedUrl(fetchMock: typeof mockGrab, call = 0): URL {
-  return new URL(fetchMock.mock.calls[call][0] as unknown as string);
+  return new URL(wireUrl(fetchMock.mock.calls[call] as never));
 }
 
 /**
@@ -305,6 +306,31 @@ describe('getWeatherForecast fallbacks', () => {
     const params = requestedUrl(fetchMock).searchParams;
     expect(params.get('forecast_days')).toBe('16');
     expect(params.get('forecast_hours')).toBe('1');
+  });
+
+  it('uses coordinates given on `location` instead of looking the caller up', async () => {
+    const fetchMock = mockFetch(openMeteoResponse());
+
+    await getWeatherForecast({ location: { latitude: 48.8566, longitude: 2.3522 } });
+
+    const url = requestedUrl(fetchMock);
+    expect(url.origin + url.pathname).toBe('https://api.open-meteo.com/v1/forecast');
+    expect(url.searchParams.get('latitude')).toBe('48.8566');
+    // One call, so no IP lookup happened first.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends the timezone geolocation reported when the caller named none', async () => {
+    const fetchMock = mockGrab.mockImplementation(async (input: string) => {
+      if (input.includes('ipapi.co')) {
+        return { city: 'Berlin', timezone: 'Europe/Berlin', latitude: 52.52, longitude: 13.4 };
+      }
+      return openMeteoResponse();
+    });
+
+    await getWeatherForecast();
+
+    expect(requestedUrl(fetchMock, 1).searchParams.get('timezone')).toBe('Europe/Berlin');
   });
 
   it('drops a timezone the runtime does not recognise instead of sending it', async () => {

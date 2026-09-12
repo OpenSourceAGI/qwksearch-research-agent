@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi, type MockedFunction } 
 import grab from 'grab-url';
 import { metNoProvider, openMeteoProvider, resolveWeatherProviders, symbolToWmoCode, wttrProvider, wwoToWmoCode } from '../src/api/providers';
 import type { ForecastRequest } from '../src/api/providers';
+import { requestedUrl } from './requested-url';
 
 vi.mock('grab-url');
 const mockGrab = grab as MockedFunction<typeof grab>;
@@ -98,7 +99,7 @@ describe('Open-Meteo provider', () => {
 
     await openMeteoProvider.fetchForecast(request);
 
-    const url = new URL(mockGrab.mock.calls[0][0] as unknown as string);
+    const url = new URL(requestedUrl(mockGrab.mock.calls[0] as never));
     expect(url.searchParams.get('hourly')).toContain('precipitation_probability');
     expect(url.searchParams.get('daily')).toContain('wind_speed_10m_max');
     expect(url.searchParams.get('timezone')).toBe('UTC');
@@ -115,17 +116,43 @@ describe('Open-Meteo provider', () => {
 
     const data = await openMeteoProvider.fetchForecast(request);
 
-    const retried = new URL(mockGrab.mock.calls[1][0] as unknown as string);
+    const retried = new URL(requestedUrl(mockGrab.mock.calls[1] as never));
     expect(retried.searchParams.get('hourly')).toBe('temperature_2m,weather_code');
     expect(retried.searchParams.get('daily')).not.toContain('precipitation_probability_max');
     expect(data.current.temperature).toBe(21);
   });
 
-  it('gives up when even the minimal query is refused', async () => {
+  it('drops the range and zone parameters when the minimal query is refused too', async () => {
+    mockGrab
+      .mockResolvedValueOnce({ error: 'HTTP error: 400 Bad Request' } as never)
+      .mockResolvedValueOnce({ error: 'HTTP error: 400 Bad Request' } as never)
+      .mockResolvedValueOnce(payload as never);
+
+    const data = await openMeteoProvider.fetchForecast(request);
+
+    const last = new URL(requestedUrl(mockGrab.mock.calls[2] as never));
+    expect(last.searchParams.get('forecast_hours')).toBeNull();
+    expect(last.searchParams.get('timezone')).toBe('auto');
+    // The units are never dropped: the numbers would keep arriving and start
+    // meaning something else.
+    expect(last.searchParams.get('temperature_unit')).toBe('celsius');
+    expect(data.current.temperature).toBe(21);
+  });
+
+  it('gives up once every query shape is refused', async () => {
     mockGrab.mockResolvedValue({ error: 'HTTP error: 400 Bad Request' } as never);
 
     await expect(openMeteoProvider.fetchForecast(request)).rejects.toThrow('400 Bad Request');
-    expect(mockGrab).toHaveBeenCalledTimes(2);
+    expect(mockGrab).toHaveBeenCalledTimes(3);
+  });
+
+  it('hands a rate limit straight to the next provider instead of shrinking the query', async () => {
+    mockGrab.mockResolvedValue({ error: 'HTTP error: 429 Too Many Requests' } as never);
+
+    await expect(openMeteoProvider.fetchForecast(request)).rejects.toThrow('429 Too Many Requests');
+    // One shape, repeated by the transport's own backoff (3 attempts by
+    // default) -- the query is not the problem, so it is never shrunk.
+    expect(mockGrab).toHaveBeenCalledTimes(3);
   });
 });
 
@@ -137,7 +164,7 @@ describe('met.no provider', () => {
 
     await metNoProvider.fetchForecast(request);
 
-    expect(mockGrab.mock.calls[0][0]).toBe(
+    expect(requestedUrl(mockGrab.mock.calls[0] as never)).toBe(
       'https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=30.27&lon=-97.74'
     );
   });
@@ -189,7 +216,9 @@ describe('wttr.in provider', () => {
 
     await wttrProvider.fetchForecast(request);
 
-    expect(mockGrab.mock.calls[0][0]).toBe('https://wttr.in/30.27,-97.74?format=j1&lang=en');
+    expect(requestedUrl(mockGrab.mock.calls[0] as never)).toBe(
+      'https://wttr.in/30.27,-97.74?format=j1&lang=en'
+    );
   });
 
   it('starts the hourly series at the current hour, like Open-Meteo does', async () => {

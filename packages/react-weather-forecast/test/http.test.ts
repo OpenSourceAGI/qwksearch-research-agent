@@ -7,6 +7,20 @@ const mockGrab = grab as MockedFunction<typeof grab>;
 
 const noDelay = { retryDelay: 0 };
 
+/**
+ * Collect the delays passed to `setTimeout` while a call runs, so a backoff can
+ * be asserted exactly instead of being timed.
+ */
+function recordDelays(): () => number[] {
+  const delays: number[] = [];
+  const timeout = globalThis.setTimeout;
+  vi.spyOn(globalThis, 'setTimeout').mockImplementation(((handler: TimerHandler, ms?: number) => {
+    if (ms !== undefined) delays.push(ms);
+    return timeout(handler, 0);
+  }) as typeof globalThis.setTimeout);
+  return () => delays;
+}
+
 describe('grabJson', () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -116,11 +130,13 @@ describe('grabJson', () => {
       .mockResolvedValueOnce({ error: 'HTTP error: 503 Service Unavailable' } as never)
       .mockResolvedValueOnce({ temperature: 21 } as never);
 
-    const start = Date.now();
+    // The delays asked for, rather than the time that passed: a wall-clock
+    // assertion on a 60ms budget reads a millisecond short often enough to
+    // fail a loaded CI run.
+    const delays = recordDelays();
     await grabJson('https://example.test', 'Weather request', { retryDelay: 20 });
 
-    // 20ms then 40ms.
-    expect(Date.now() - start).toBeGreaterThanOrEqual(60);
+    expect(delays()).toEqual([20, 40]);
   });
 
   it('repeats a rate-limited 200 but not a rejected query', () => {
