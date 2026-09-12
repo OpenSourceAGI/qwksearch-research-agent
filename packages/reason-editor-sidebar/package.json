@@ -1,7 +1,7 @@
 {
   "name": "react-reason-editor-sidebar",
   "description": "The REASON editor's file/folder sidebar, open-tabs panel, and split-view menu as a standalone package built on react-reason-editor",
-  "version": "0.1.62",
+  "version": "0.1.63",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
