@@ -2,6 +2,173 @@
 
 ## Completed
 
+## Let CI see `packages-lobe` at all, and widen the type-check to every QwkSearch file
+
+**Status:** Completed
+**Source:** Scheduled task — "merge lobehub and qwksearch.com so that lobehub is
+the core engine…, every time it is run make more improvements". The LobeHub
+Migration To-Do's own #2 suggested next: finish § 5.5 against a real
+`pnpm install`, which turned out to unblock #3 as well.
+**Branch:** `claude/magical-bohr-aivl7k` (from `master` at `ff5c5f6e`)
+**PR:** #452
+**Started:** 2026-09-11
+**Completed:** 2026-09-11
+
+### Goal
+Answer the question § 5.5 left open — is `worker/` actually clean, or were those
+19 errors hiding real ones? — and then act on the answer's consequence: the
+reason nobody knew is that **no CI job has ever installed this workspace**. With
+an install in hand, the same two questions turned out to be worth asking about
+the QwkSearch code under `src/`, which nothing had ever type-checked either.
+
+### The finding worth keeping
+**`worker/` type-checks clean, and the install that proves it is cheap enough
+that the "CI-minutes decision" was not really a decision.** Measured here:
+
+| Step | Cost |
+|---|---|
+| `pnpm install --ignore-scripts` (cold store) | **1m23s**, 4.2 GB |
+| `bun run type-check:worker` | **~60s** → `worker/ type-checks clean` |
+| `bun run type-check:qwksearch` (new, `worker/` + `src/`) | **~57s** → clean |
+| The whole QwkSearch integration suite | **~66s**, 568 tests in 36 files |
+
+All 19 stub-install errors were the stub install. The docs had estimated the
+install at "a few minutes and about 3 GB"; it is faster than that, and the whole
+job is ~4 minutes — which is why this run did not stop at confirming 5.5.
+
+Two things were checked rather than assumed:
+
+- **The check is still live on a real install**, not silently passing because
+  something stopped resolving. One appended line calling an undefined identifier
+  in `worker/qwksearch/extract.ts` produces exactly
+  `extract.ts(621,31): error TS2304` and exit 1 — § 1.3's own bug class. Reverted.
+- **`tsgo` is the real binary now.** § 5.5's three-error result came from the
+  pinned `typescript@6.0.3` `tsc` through a shim, because that session had no
+  `tsgo`. `@typescript/native-preview` ships a working `tsgo` even under
+  `--ignore-scripts`, so this is the binary `type-check` itself uses, and the two
+  agree.
+
+Errors outside the scope, which the script counts and ignores: **504** —
+`apps/desktop` 248, `apps/server` 98, `packages/*` ~120, the rest upstream
+`src/`. That number is why the filter exists.
+
+**And then the scope widened, for free.** Nothing type-checked the QwkSearch
+code under `src/` either — both settings panes, their shared controls and the
+article/docs features. Adding those four directories to the program costs
+**nothing measurable** (~57s vs ~60s: they were already in it as imports, only
+the filter changed) and they are **clean too**. So the check that CI runs is now
+every QwkSearch-owned file in the workspace, not just the Worker.
+
+### Scope
+- `.github/workflows/lobehub-engine.yml` (new) — the only CI job in this
+  repository that installs `packages-lobe`.
+- `packages-lobe/scripts/typeCheckWorker.mts` → `typeCheckScoped.mts`, with the
+  config and the path prefixes as arguments instead of constants.
+- `packages-lobe/tsconfig.qwksearch.json` (new), extending
+  `tsconfig.worker.json` with the four QwkSearch `src/` directories.
+- `packages-lobe/package.json`: `test:qwksearch` and `type-check:qwksearch` new;
+  `type-check:worker` unchanged in behaviour, now one invocation of the shared
+  script.
+- Docs: § 5.5 resolved and § 5.6 added in the migration to-do, § 5.4's bundle
+  budget re-framed, the "suggested next" re-ranked, the "Nothing in CI builds or
+  tests `packages-lobe`" warning rewritten (it is no longer true), § 6 of the
+  integrations reference, and `packages-lobe/README.md` § Tests and § What
+  changed.
+
+### Non-goals
+- **The Worker bundle-size budget (§ 5.4).** It needs `build:worker`, so it needs
+  the SPA builds, 8 GB of heap and a *full* install — `build:worker:server` dies
+  at `[UNLOADABLE_DEPENDENCY] @napi-rs/canvas` when postinstall never ran, so the
+  `--ignore-scripts` install this job uses cannot produce a bundle to measure.
+  Different order of cost, own decision; the job to hang it on now exists.
+- **Lint.** `bun run check --lint` needs the same install and would fit, but it
+  auto-fixes, which is not a CI posture; deciding that is not this change. Left
+  as the migration to-do's suggested-next #4.
+- **Type-checking upstream LobeHub.** The 504 stay counted and ignored. Fixing
+  them is upstream's, and the merge cost of touching them is the reason this
+  migration keeps its changes additive.
+
+### What changed
+`typeCheckWorker.mts` became `typeCheckScoped.mts`: same mechanism — run `tsgo`
+over a narrow config, partition its output by path prefix, count and ignore
+everything outside, exit on what is left — with the config and the prefixes
+passed in rather than hard-coded. `tsconfig.qwksearch.json` extends
+`tsconfig.worker.json` with the four QwkSearch `src/` directories, so the
+`@cloudflare/workers-types` and `incremental: false` reasoning lives in exactly
+one place. `type-check:worker` still means what it meant; `type-check:qwksearch`
+is the wider one and is what CI runs.
+
+`test:qwksearch` is one script running every path the README and § 6 of the
+integrations reference had been listing as five separate recipes — `worker/`,
+both settings resolution and preferences layers, both panes and their
+`contract.test.ts` drift guards, the shared controls, the Cloudflare adapters,
+the search provider, and the Hyperdrive bridge in `packages/database` (which
+needs its own `vitest` invocation, because the root config excludes
+`**/packages/**`). The path list living in the script is what stops the workflow
+and the two docs from drifting apart — the same mechanism as the panes' contract
+tests, one level up.
+
+The workflow itself is short, but three details are specific to this workspace
+and each is a way the obvious version would have failed:
+
+- **`pnpm/action-setup` reads the repo-root `package.json` by default**, which
+  pins **bun**. It has to be pointed at `packages-lobe/package.json` to pick up
+  the pinned `pnpm@10.33.0`.
+- **There is no lockfile to key a cache on.** `pnpm-workspace.yaml` sets
+  `lockfile: false` and `packages-lobe/.gitignore` ignores `pnpm-lock.yaml`, so
+  `setup-node`'s `cache: pnpm` has nothing to hash and `--frozen-lockfile` has
+  nothing to freeze. The cache is `actions/cache` over the pnpm store, keyed on
+  the manifests instead.
+- **`--ignore-scripts`,** like every documented recipe here — which is also
+  exactly what keeps § 5.4 out of this job.
+
+Path-filtered to `packages-lobe/**` and the workflow file, because the install is
+the expensive step and nothing outside the engine changes either result.
+
+### Verification
+- `pnpm install --ignore-scripts` → exit 0 in 1m23s.
+- `pnpm run type-check:worker` → `504 error(s) outside worker/ ignored` /
+  `worker/ type-checks clean`, exit 0, twice (once through `tsx` directly, once
+  through the exact `pnpm run` CI uses).
+- `pnpm run type-check:qwksearch` → same 504, `type-checks clean` across all
+  five prefixes, exit 0, 57s.
+- Negative controls, one per scope, because a filter that matches nothing looks
+  exactly like a scope that is clean: planted `TS2304` in
+  `worker/qwksearch/extract.ts` → 1 error at (621,31), exit 1; planted `TS2304`
+  in `src/features/Settings/qwksearch/languageTags.ts` → 1 error at (179,26),
+  exit 1. Both reverted; tree clean.
+- `pnpm run test:qwksearch` → 35 files / 566 tests, then 1 file / 2 tests in
+  `packages/database`. All passing, 1m06s.
+- `bunx vitest run worker` alone, for the record: **10 files, 129 tests, 10s** —
+  the two files the migration to-do lists as uncollectable without a real
+  install (`articleAi.test.ts`, `spaVariants.test.ts`) both collect now, and the
+  filename filter also picks up `scripts/workerBudget.test.ts`.
+- The workflow YAML parses, and the docs suite in `packages/user-help-docs`
+  (which renders every MDX page, 39 cases) passes with the edited pages.
+- Root `bun run test`: **2962 passed, 3 failed, 25 files failed**, none of them
+  this change. The 3 are 5s timeouts on `await import()` in `qwksearch-web` and
+  `jsdom-scraper` on a loaded box — `docs-wiring.test.ts`, the one test that
+  actually renders the pages edited here, passes on its own in 2.5s. The 25 are
+  the `dist` trap: this run did not `turbo build` the four packages other
+  packages consume as built output, which is exactly what the Coverage workflow
+  does before its tests.
+
+### Remaining work
+- **The job has never run on a GitHub runner.** Everything above was measured on
+  a code-only box with Node 22; the workflow uses `.nvmrc`'s **24.20.0**, which
+  is what the Cloudflare build pins and the deploy runs, but which nothing here
+  could exercise. Its first real run is this PR — read it before building on it,
+  and remember that PRs here auto-merge before checks finish.
+- **An unlockfiled install is not a reproducible one.** `lockfile: false` is
+  upstream LobeHub's choice, but it means the job resolves fresh semver on every
+  cache miss and can go red for a reason that is not in the diff. If that
+  happens, the store cache key (the manifests) is the first thing to read.
+- **Noticed, not fixed:** `.github/workflows/test-web-api.yml` filters on
+  `.github/workflows/test-qwksearch-web.yml` and `packages/agent-toolkit/**`,
+  neither of which exists — the file is `test-web-api.yml` and the package is
+  `chat-agent-toolkit`. So that workflow does not re-run when it is itself
+  edited. Out of scope here; worth a one-line PR.
+
 ## Delete the Worker's unreachable extraction chain and give `worker/` a type-check
 
 **Status:** Completed

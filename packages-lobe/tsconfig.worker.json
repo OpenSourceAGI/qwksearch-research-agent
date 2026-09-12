@@ -8,6 +8,11 @@
   // `worker/qwksearch/extract.ts` from the day it was written until it was
   // deleted. This config is the narrow check that catches that class of bug in
   // about a minute. Run it with `bun run type-check:worker`.
+  //
+  // `tsconfig.qwksearch.json` extends this one to cover every QwkSearch file,
+  // `src/` included, for the same minute; that is the one CI runs. Keep this
+  // one for iterating on `worker/`, and for a stub install, where `src/` cannot
+  // resolve.
   "extends": "./tsconfig.json",
   "compilerOptions": {
     // The root config is incremental; a scoped run must not write its build

@@ -542,6 +542,17 @@ scoped stylesheet (`react-reason-editor/style.css`).
 
 ## 6. Test coverage of the integration points
 
+**All of it, in one command** — this is what CI runs, and the path list lives in
+the script so this page, `packages-lobe/README.md` and the workflow cannot drift
+apart:
+
+```bash
+cd packages-lobe && bun run test:qwksearch    # 568 cases, 36 files, ~1 min
+```
+
+The individual recipes below are for iterating on one seam. They are the same
+paths, split up:
+
 ```bash
 cd packages-lobe
 
@@ -581,13 +592,24 @@ bunx vitest run src/spa/router/desktopRouter.sync.test.tsx src/features/NavPanel
 cd packages/database && bunx vitest run src/core/cloudflare.test.ts
 ```
 
-Types, for the Worker only — the one check that looks at `worker/` at all, since
-the repo-wide `bun run type-check` OOMs before it finishes and no CI job installs
-`packages-lobe`:
+Types — the one check that looks at any of these files at all, since the
+repo-wide `bun run type-check` OOMs before it finishes:
 
 ```bash
+# worker/, src/features/QwkSearch/, and the two panes with their shared controls
+cd packages-lobe && bun run type-check:qwksearch   # ~60s, clean as of this writing
+
+# the same script narrowed to the Worker, for iterating there
 cd packages-lobe && bun run type-check:worker
 ```
+
+**Both of the above now run in CI**, in
+[`.github/workflows/lobehub-engine.yml`](https://github.com/OpenSourceAGI/qwksearch-research-agent/blob/master/.github/workflows/lobehub-engine.yml)
+— the only job in this repository that installs `packages-lobe`. It is
+path-filtered to `packages-lobe/**` and the workflow file, because the install
+is the expensive step (~1.5 min cold, 4.2 GB) and nothing outside the engine can
+change either result. What it does *not* run is the Worker bundle-size budget;
+§5.4 of the migration to-do records why.
 
 ## 7. Not yet integrated
 
