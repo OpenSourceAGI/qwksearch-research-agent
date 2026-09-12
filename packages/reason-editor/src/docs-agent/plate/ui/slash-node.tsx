@@ -4,7 +4,6 @@ import * as React from 'react';
 
 import type { PlateEditor, PlateElementProps } from 'platejs/react';
 
-import { AIChatPlugin } from '@platejs/ai/react';
 import {
   CalendarIcon,
   ChevronRightIcon,
@@ -29,6 +28,7 @@ import {
 import { type TComboboxInputElement, KEYS } from 'platejs';
 import { PlateElement } from 'platejs/react';
 
+import { getPlateAiController } from '@/docs-agent/plate/ai-controller';
 import {
   insertBlock,
   insertInlineElement,
@@ -57,7 +57,14 @@ type Group = {
   }[];
 };
 
-const groups: Group[] = [
+/**
+ * Exported (upstream's registry copy keeps it module-private) so the wiring of
+ * each item can be exercised without driving the combobox through jsdom. The
+ * AI item in particular calls into a plugin that has to be registered on the
+ * editor, and getting that wrong is invisible until someone types `/` in a
+ * browser.
+ */
+export const groups: Group[] = [
   {
     group: 'AI',
     items: [
@@ -66,7 +73,10 @@ const groups: Group[] = [
         icon: <SparklesIcon />,
         value: 'AI',
         onSelect: (editor) => {
-          editor.getApi(AIChatPlugin).aiChat.show();
+          // The registered assistant is `../ai-controller`, not `@platejs/ai`'s
+          // `AIChatPlugin` — see `../kits/ai-kit.tsx` for why this package
+          // ports the controller rather than shipping the Vercel AI SDK.
+          getPlateAiController(editor).open();
         },
       },
     ],
