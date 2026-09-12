@@ -2,6 +2,82 @@
 
 ## Completed
 
+## Fix the 500 `next dev` answers every page with, and settle the sidebar report
+
+**Status:** Completed
+**Source:** Direct request — "remove this sidebar and fix that the default page
+loaded returns 500 error" (with a screenshot of the application sidebar), then
+"add back the settings icon to app dock".
+**Branch:** `claude/trusting-shannon-kqvtma`
+**PR:** Not created yet
+**Started:** 2026-09-12
+**Completed:** 2026-09-12
+
+### Goal
+Two symptoms in one report: the overlay sidebar in the screenshot, and `/`
+answering 500. The sidebar half turned out to be already done — the screenshot
+is `AppSidebar.tsx` as it looked before #430 reverted it, and the dock has
+carried its Settings item ever since (#443 dropped only the nested Site Links
+submenu). The 500 half was real, reproducible on `master`, and is what this
+entry is about.
+
+### Scope
+- `next.config.mjs` — `turbopack.resolveAlias` for the two onnxruntime
+  specifiers `@moonshine-ai/moonshine-js` leaves unresolvable.
+- `lib/onnx/ort-bundle-stub.mjs`, `lib/onnx/ort-wasm-stub.wasm` — new: what
+  those aliases point at, and why.
+- `apps/qwksearch-web/CLAUDE.md` — the trap itself: the dev and deploy builds
+  fail differently, so a green `build` says nothing about `dev`.
+
+### Non-goals
+- **Touching `vite.config.ts`.** The deployed build already survives this:
+  rolldown warns (`new URL("ort-wasm-simd-threaded.jsep.wasm",
+  import.meta.url) doesn't exist at build time`) and leaves the URL to be
+  resolved at runtime. Adding an alias there would be config for a bug that
+  build does not have.
+- **Moving `use-voice-control` out of the root layout.** It is imported
+  dynamically already (`live-transcriber.ts` does `await import(...)`); a
+  dynamic import is still a module the bundler has to resolve, so hoisting it
+  further would not have helped.
+- **Re-removing the sidebar.** It is not in the tree on any ref.
+
+### What changed
+`@moonshine-ai/moonshine-js` ships onnxruntime-web pre-bundled, and that bundle
+names two of its own dist files with bare specifiers —
+`new URL("ort.bundle.min.mjs", import.meta.url)` and the matching
+`ort-wasm-simd-threaded.jsep.wasm`. Neither file is in the published package
+(onnxruntime downloads the wasm from its CDN at runtime), and neither specifier
+starts with `./`, so a bundler reads them as bare modules and cannot resolve
+them.
+
+Rolldown shrugs. Turbopack calls it `Module not found` and fails the module,
+which fails every route that transitively imports it — and the import trace is
+`app/layout.tsx` → `components/layout/Providers.tsx` → `research-agent-ui` →
+`use-voice-control/react` → moonshine, i.e. the root layout, i.e. all of them.
+`bun run dev` therefore served `/` as a 500 with no page at all.
+
+Both specifiers now resolve, through `turbopack.resolveAlias`, to stubs under
+`lib/onnx/`: a module that warns if it is ever actually executed, and an empty
+(header-only) wasm binary. Nothing loads either in practice — the URLs are only
+fetched in onnxruntime's proxy mode, which nothing here turns on.
+
+### Verification
+- `bun run dev` (Turbopack), before: `GET / 500`, 12 `Can't resolve` errors in
+  the log. After: `GET / 200` (74 KB of real page HTML, the app's own
+  `<title>`), zero resolve errors. `/features`, `/workspace` and `/settings`
+  are 200 as well.
+- `npx vinext build`: exits 0 both before and after the change, with the
+  rolldown warning quoted above — which is what establishes that the deployed
+  build was never affected.
+
+### Remaining work
+- **`qwksearch-production` is 51 commits behind `master`.** The Worker was last
+  uploaded 2026-09-10T06:51Z, which predates #430 (the sidebar revert),
+  #440 and #451 (the two homepage-500 fixes) and #443. Anything still showing
+  the sidebar is that deployment, not the source; it wants a
+  `wrangler deploy --env production --keep-vars` (the CLI flag, not the config
+  key — `keep_vars` is ignored inside a named env). Nothing in CI does this.
+
 ## Map the old settings surface onto the engine as a tested artifact, not a paragraph
 
 **Status:** Completed
