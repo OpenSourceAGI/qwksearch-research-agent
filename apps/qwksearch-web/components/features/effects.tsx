@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+import { Check, Link2 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
 /**
@@ -262,6 +264,99 @@ export function Pill({
       )}
     >
       {children}
+    </span>
+  );
+}
+
+/**
+ * GitHub-style anchor affordance for a section heading: hidden until the
+ * heading is hovered (or the link itself focused), and copies that section's
+ * fully-qualified `#hash` URL to the clipboard when clicked.
+ *
+ * It stays a real `<a href="#id">`, so middle-click, "copy link address" and
+ * keyboard activation keep working, and modified clicks are left alone. The
+ * click handler only takes over when the async clipboard is actually
+ * available — it is not on plain HTTP — otherwise the browser just follows
+ * the anchor. Touch devices never hover, so the icon is always shown there.
+ */
+export function AnchorLink({
+  id,
+  label,
+  className,
+}: {
+  /** Target element's `id`; also the hash that gets copied. */
+  id: string;
+  /** What the section is, for the screen-reader label. */
+  label?: string;
+  className?: string;
+}) {
+  const [copied, setCopied] = React.useState(false);
+  const timer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+    const clipboard =
+      typeof navigator === "undefined" ? undefined : navigator.clipboard;
+    if (!clipboard?.writeText) return;
+
+    event.preventDefault();
+    const { origin, pathname, search } = window.location;
+
+    clipboard.writeText(`${origin}${pathname}${search}#${id}`).then(
+      () => {
+        // Put the hash in the address bar without re-triggering a scroll —
+        // the heading the link belongs to is already on screen.
+        window.history.replaceState(null, "", `#${id}`);
+        setCopied(true);
+        if (timer.current) clearTimeout(timer.current);
+        timer.current = setTimeout(() => setCopied(false), 1600);
+      },
+      () => {
+        // Clipboard refused (permissions, focus) — fall back to navigating.
+        window.location.hash = id;
+      },
+    );
+  };
+
+  return (
+    <span className="relative ml-2 inline-flex align-middle">
+      <a
+        href={`#${id}`}
+        onClick={handleClick}
+        aria-label={
+          copied ? "Link copied" : `Copy link to ${label ?? "this section"}`
+        }
+        className={cn(
+          "text-muted-foreground/60 hover:text-foreground hover:bg-muted/60 focus-visible:ring-ring inline-flex size-8 -translate-y-[0.08em] items-center justify-center rounded-lg opacity-0 transition-[color,background-color,opacity] group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:outline-none [@media(hover:none)]:opacity-100",
+          className,
+        )}
+      >
+        {copied ? (
+          <Check className="size-4" aria-hidden />
+        ) : (
+          <Link2 className="size-4" aria-hidden />
+        )}
+      </a>
+
+      {copied && (
+        <span className="bg-card pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md border px-2 py-1 text-[11px] font-medium whitespace-nowrap shadow-sm">
+          Copied!
+        </span>
+      )}
+
+      {/* Announced on a mouse click, when the link itself never takes focus
+          and the swapped `aria-label` would go unnoticed. */}
+      <span role="status" aria-live="polite" className="sr-only">
+        {copied ? "Link copied" : ""}
+      </span>
     </span>
   );
 }
