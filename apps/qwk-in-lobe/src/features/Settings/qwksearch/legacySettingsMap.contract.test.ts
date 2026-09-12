@@ -32,9 +32,9 @@ import {
   retirementBlockers,
 } from './legacySettingsMap';
 
-/** `src/features/Settings/qwksearch` → `packages-lobe` → the repository root. */
-const REPO_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../../../..');
-const ENGINE_ROOT = path.join(REPO_ROOT, 'packages-lobe');
+/** `src/features/Settings/qwksearch` → `apps/qwk-in-lobe` → the repository root. */
+const ENGINE_ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
+const REPO_ROOT = path.join(ENGINE_ROOT, '../..');
 const SETTINGS_FEATURES = path.join(ENGINE_ROOT, 'src/features/Settings');
 const SCHEMA_DIR = path.join(REPO_ROOT, 'packages/research-agent-ui/src/settings');
 

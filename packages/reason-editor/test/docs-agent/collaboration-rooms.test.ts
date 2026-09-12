@@ -7,7 +7,7 @@ import {
   plateYjsProviders,
   ROOM_PREFIX,
 } from '../../src/docs-agent/collaboration/hocuspocus-client';
-import { parseRoom } from '../../../../apps/collaboration-server/src/rooms';
+import { parseRoom } from '../../../../apps/qwksearch-web/lib/collaboration/rooms';
 
 describe('collaborationRoom', () => {
   it('namespaces rooms by engine', () => {

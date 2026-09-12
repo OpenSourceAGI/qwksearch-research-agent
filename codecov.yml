@@ -198,3 +198,6 @@ ignore:
   - "**/*.gen.ts"
   - "packages/language-model-training/**"
   - "packages/searxng-search-cloudflare/**"
+  # A vendored pnpm workspace that no coverage job installs or runs; without
+  # this it would land in the "Apps" component via `apps/**`.
+  - "apps/qwk-in-lobe/**"

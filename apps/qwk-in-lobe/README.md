@@ -6,11 +6,11 @@ QwkSearch Worker already uses: Workers, D1, KV, R2, Email Routing and Better Aut
 LobeHub `packages/*`, `src/`, `apps/server`, locales and public assets live here unchanged except for
 the deltas listed under [What changed](#what-changed).
 
-It is intentionally **separate from `../packages`** (the QwkSearch bun/turbo workspace): LobeHub is
+It is intentionally **separate from the repo-root `packages/`** (the QwkSearch bun/turbo workspace): LobeHub is
 its own pnpm workspace (`pnpm-workspace.yaml`) with ~110 internal `@lobechat/*` packages.
 
 ```
-packages-lobe/
+apps/qwk-in-lobe/
 ├── worker/                    # Cloudflare Worker entry (Hono) — LobeHub backend + QwkSearch features
 │   ├── index.ts               # fetch handler; installs the per-request context
 │   ├── app.ts                 # route composition
@@ -139,7 +139,7 @@ data is reused as-is.
 ## Build & deploy
 
 ```bash
-cd packages-lobe
+cd apps/qwk-in-lobe
 pnpm install                       # LobeHub workspace (pnpm, not bun)
 
 # 1. SPA bundles + static assets → dist/client
@@ -181,7 +181,7 @@ protected pages redirect to `/signin`.
 
 The build image resolves the Node version from `.nvmrc` and installs it by exact
 version, so an nvm alias such as `lts/krypton` fails at `Installing nodejs
-lts/krypton` before a single dependency is fetched. `packages-lobe/.nvmrc` pins
+lts/krypton` before a single dependency is fetched. `apps/qwk-in-lobe/.nvmrc` pins
 `24.20.0` (the current Krypton LTS release, so local nvm users stay on the same
 runtime); bump it to another exact version, or override it with a `NODE_VERSION`
 build variable in the project settings.
@@ -190,7 +190,7 @@ Project settings for a Workers Builds deploy of this tree:
 
 | Setting | Value |
 | --- | --- |
-| Root directory | `packages-lobe` |
+| Root directory | `apps/qwk-in-lobe` |
 | Install command | `pnpm install --no-frozen-lockfile` |
 | Build command | `pnpm run build:worker` |
 | Deploy command | `pnpm exec wrangler deploy` |
@@ -389,7 +389,7 @@ writes nothing — are checked without spending a Worker build.
   integrations reference have a single source of truth for what "the integration's tests" means.
 - `.github/workflows/lobehub-engine.yml` (outside this directory, and the only CI job that installs
   this workspace at all — every other workflow installs with bun at the repo root, where
-  `packages-lobe` is not in `workspaces`). Path-filtered to `packages-lobe/**`; runs
+  `apps/qwk-in-lobe` is not in `workspaces`). Path-filtered to `apps/qwk-in-lobe/**`; runs
   `type-check:qwksearch` and `test:qwksearch` on an `--ignore-scripts` pnpm install. It does **not**
   run `cf:budget`: that needs `build:worker`, which needs a full install
   (`build:worker:server` dies at `[UNLOADABLE_DEPENDENCY] @napi-rs/canvas` otherwise) and 8 GB of
@@ -439,6 +439,6 @@ Everything under `worker/`, `src/features/QwkSearch/`, `src/features/Settings/ex
 - **SEO strings** in the HTML shell are English-only on Workers (`worker/shims/serverTranslation.ts`);
   the SPA itself is fully localized.
 - **Sharp / native image processing** is unavailable; avatar processing falls back to the original image.
-- The REASON editor (`../packages/reason-editor`) is not embedded; Docs uses LobeHub's Markdown
+- The REASON editor (the repo-root `packages/reason-editor`) is not embedded; Docs uses LobeHub's Markdown
   renderer with a plain editor. The D1 `documents` table and API are shared, so the REASON UI can
   be mounted on the same data later.

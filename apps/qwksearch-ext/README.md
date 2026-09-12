@@ -13,17 +13,101 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
-## QwkSearch Tab Manager AI
+# QwkSearch Tab Manager AI
 
-- Vertical Tabs Sidebar with Sorting and Context Menu
-- Search Inside All Open Tabs Page Content
-- Select Text, Press Tab To Search Google, Tab again for First Result
-- Reader Mode to Extract main content text and cite (includes PDF & Youtube)
-- Ask AI about Text Content of Open Tabs & Saved Tabs
+A browser extension (Chrome and Firefox) that turns the sidebar into a tab
+manager and a research assistant over whatever you have open.
+
+- Vertical tabs sidebar with sorting and a context menu
+- Search inside the page content of every open tab
+- Select text, press <kbd>Tab</kbd> to search; <kbd>Tab</kbd> again opens the first result
+- Reader mode that extracts and cites the main content (PDF and YouTube included)
+- Ask AI about the text of open and saved tabs
+
+Open the side panel with <kbd>Ctrl</kbd>+<kbd>Q</kbd>
+(<kbd>Cmd</kbd>+<kbd>B</kbd> on macOS).
 
 ### Screenshot
 
 <img src="https://i.imgur.com/JC1qiRd.png">
+
+## How it is built
+
+[WXT](https://wxt.dev) over Vite and React 19. The UI is
+`packages/research-agent-ui` — the same components the web app renders —
+compiled here through two shims in `lib/`, because an extension has neither
+Next.js nor a local server:
+
+| Shim | Why |
+| --- | --- |
+| `lib/next-navigation-shim.tsx` | `research-agent-ui` imports `next/navigation`, which does not exist outside Next.js. |
+| `lib/grab-url-shim.ts` | Its components call relative paths like `/api/agent/providers`. The shim rewrites anything starting with `/` onto `https://qwksearch.com`. |
+
+`wxt.config.ts` also re-escapes non-ASCII bytes in the content-script bundle
+after Vite's minifier converts `\uXXXX` back to literal characters — Chrome
+rejects content scripts that contain them.
+
+## Setup
+
+```bash
+bun install                 # from the repo root
+cd apps/qwksearch-ext
+
+bun run dev                 # Chrome, with a live-reloading dev profile
+bun run dev:firefox         # Firefox
+bun run test                # vitest
+bun run compile             # tsc --noEmit
+```
+
+`wxt dev` launches a browser with the extension already loaded — there is no
+"load unpacked" step while developing. To load a built extension by hand
+instead: `bun run build`, then `chrome://extensions` → Developer mode → **Load
+unpacked** → `.output/chrome-mv3`.
+
+## Configuration
+
+**This extension reads no environment variables** — there is no `.env`, and no
+API key ships in the bundle. Two things stand in for configuration:
+
+| What | Where | Default |
+| --- | --- | --- |
+| The API host every `/api/*` call is rewritten onto | `API_BASE` in [`lib/grab-url-shim.ts`](./lib/grab-url-shim.ts) | `https://qwksearch.com` |
+| Permissions, keyboard command, search provider, CSP | `manifest` in [`wxt.config.ts`](./wxt.config.ts) | see below |
+
+Point `API_BASE` at `http://localhost:3000` to develop against a local
+`apps/qwksearch-web`. Everything the API itself needs — model keys, auth, search
+providers — is configured on that deployment; see
+[its README](../qwksearch-web/README.md#environment-variables).
+
+The manifest asks for `<all_urls>` host permissions and a wide permission set
+(`tabs`, `history`, `bookmarks`, `sessions`, `downloads`, `scripting`,
+`declarativeNetRequest`, `offscreen`, …). Both stores review those closely, so
+removing one you no longer use is worth doing before a submission rather than
+after a rejection. On Chrome the manifest also overrides the homepage, startup
+page and default search provider; Firefox does not support that subset, so it
+is applied only when `env.browser === 'chrome'`.
+
+## Building and publishing
+
+```bash
+bun run build              # → .output/chrome-mv3/
+bun run build:firefox      # → .output/firefox-mv2/
+bun run zip                # → .output/*.zip, ready to upload
+bun run zip:firefox
+```
+
+Bump `version` in **both** `package.json` and the `manifest` block of
+`wxt.config.ts` — WXT does not derive one from the other, and a store rejects
+an upload whose version is not higher than the last.
+
+| Store | Upload | What you need |
+| --- | --- | --- |
+| Chrome Web Store | [Developer Dashboard](https://chrome.google.com/webstore/devconsole) | A developer account (one-time $5 registration fee) and the `chrome-mv3` zip. |
+| Firefox Add-ons | [addons.mozilla.org/developers](https://addons.mozilla.org/developers/) | A Mozilla account and the `firefox-mv2` zip. Source must be submitted alongside the build, since the bundle is generated. |
+
+Both stores want a privacy policy URL for an extension with these permissions.
+Neither upload needs a secret in this repository — they are interactive, and
+nothing here automates them.
 
 ## Ideas for Future Development
 

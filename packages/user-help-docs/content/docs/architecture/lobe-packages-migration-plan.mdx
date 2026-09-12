@@ -1,11 +1,11 @@
 ---
 title: "LobeHub Packages Migration Plan"
-description: "Migration plan for packages-lobe powering chat mode and settings."
+description: "Migration plan for apps/qwk-in-lobe powering chat mode and settings."
 ---
 
 # LobeHub Packages Migration Plan — Chat Engine + Settings Cutover
 
-Step-by-step plan for making [`packages-lobe/`](https://github.com/OpenSourceAGI/qwksearch-research-agent/blob/main/packages-lobe/README.md) (the
+Step-by-step plan for making [`apps/qwk-in-lobe/`](https://github.com/OpenSourceAGI/qwksearch-research-agent/blob/main/apps/qwk-in-lobe/README.md) (the
 adapted LobeHub v2.2.13 monorepo) **the engine that powers chat mode and the
 settings system** for qwksearch.com, then replacing the rest of the in-house
 chat stack — while **reusing** four QwkSearch assets:
@@ -28,19 +28,19 @@ Relationship to prior docs:
   Lobe pieces *into* QwkSearch. Superseded in strategy; its license analysis stands.
 - [`LOBEHUB_CORE_ENGINE_PLAN.md`](./lobehub-core-engine-plan) proposed this
   inversion against the old `packages-third-party/` snapshot (since removed).
-  **This plan replaces it**, grounded in `packages-lobe/` — which is no longer a raw
+  **This plan replaces it**, grounded in `apps/qwk-in-lobe/` — which is no longer a raw
   vendored copy but a working Cloudflare-Workers port of LobeHub with QwkSearch
   features already added (article side panel, D1 Docs, extraction chain, branding).
 
-Status: **plan — `packages-lobe/` builds and deploys; no traffic cutover yet.**
+Status: **plan — `apps/qwk-in-lobe/` builds and deploys; no traffic cutover yet.**
 
 ---
 
 ## 0. Where we actually are (baseline)
 
-`packages-lobe/` already implements a large share of the old core-engine plan:
+`apps/qwk-in-lobe/` already implements a large share of the old core-engine plan:
 
-| Concern | State in `packages-lobe/` today |
+| Concern | State in `apps/qwk-in-lobe/` today |
 |---|---|
 | Runtime | One Hono Worker (`worker/app.ts`) on the same Cloudflare stack as `apps/qwksearch-web`: Workers + **D1 (`qwksearch-new`, same database)** + KV + R2 + Email Routing |
 | Chat engine | Full LobeHub: Vite 8 + react-router 8 SPA, zustand stores, `@lobechat/model-runtime` (80+ providers), `@lobechat/agent-runtime`, `@lobechat/context-engine`, tRPC to Postgres (Hyperdrive/Neon) |
@@ -69,7 +69,7 @@ plan replaces or reuses — exact seams:
 License gate (unchanged from prior plans): the LobeHub Community License requires a
 commercial license for distributing derivative works. Running it is fine;
 shipping qwksearch.com on it needs the written answer recorded in
-`packages-lobe/README.md` before the Phase 4 public cutover.
+`apps/qwk-in-lobe/README.md` before the Phase 4 public cutover.
 
 ---
 
@@ -83,7 +83,7 @@ qwksearch.com (one domain, two Workers, shared D1/KV/R2)
 │   • /api/doc/article   extraction API (extract-webpage → cite → cache in D1)
 │   • /api/search        search-web-api fan-out (100+ engines, 13 categories)
 │
-├── Worker B: packages-lobe       (the engine)
+├── Worker B: apps/qwk-in-lobe       (the engine)
 │   • /chat /settings /docs /signin + /_spa/* assets   LobeHub SPA
 │   • /webapi/chat/[provider], /trpc/*, /api/auth/*    chat + config + auth
 │   • src/features/QwkSearch/ArticlePanel              article reader (reused UX)
@@ -101,7 +101,7 @@ REASON editor is the one deliberate exception living inside the engine's page �
 it ships its own scoped styles (`react-reason-editor/style.css`).
 
 The two workspaces stay separate on purpose: the root bun/turbo workspace
-(`packages/*`, `apps/*`) and the pnpm workspace in `packages-lobe/`. Do **not**
+(`packages/*`, `apps/*`) and the pnpm workspace in `apps/qwk-in-lobe/`. Do **not**
 merge them — Lobe's `pnpm-workspace.yaml` uses recursive `packages/**` globs
 (bun can't express them), a root-as-member workspace, pnpm `overrides`/
 `patchedDependencies`, and 85/94 packages exporting raw TS via root tsconfig
@@ -120,7 +120,7 @@ Goal: a signed-in user at `/chat` gets LobeHub chat, with QwkSearch search +
 extraction as its tools. No public routing change yet — verify behind a
 staging route.
 
-- **1.1 Stand up staging.** `cd packages-lobe && pnpm install && bun run build:worker
+- **1.1 Stand up staging.** `cd apps/qwk-in-lobe && pnpm install && bun run build:worker
   && bun run cf:deploy` (staging env), Postgres via Hyperdrive or Neon, run
   `bun run db:migrate` + `bun run cf:d1:migrate`. Smoke-check the verified
   endpoints (`/api/health`, `/trpc/lambda/config.getGlobalConfig`, `/signin`).
@@ -189,7 +189,7 @@ staging route.
 
 ### Phase 3 — REASON docs inside the engine
 
-`packages-lobe/README.md` already names this the intended follow-up: Docs uses a
+`apps/qwk-in-lobe/README.md` already names this the intended follow-up: Docs uses a
 plain Markdown editor but shares the D1 `documents` table and API.
 
 - **3.1** Consume `react-reason-editor` + `react-reason-editor-sidebar` from npm
@@ -260,7 +260,7 @@ plain Markdown editor but shares the D1 `documents` table and API.
   (`build:spa:mobile`), and monitor the Worker bundle (~7.4 MB gzipped vs the
   10 MB limit) in CI.
 - ✅ Check: root `bun run build` + `bun run test` green with the trimmed graph;
-  `packages-lobe` CI job builds SPA + worker and runs its vitest suites.
+  `apps/qwk-in-lobe` CI job builds SPA + worker and runs its vitest suites.
 
 ---
 
@@ -280,10 +280,10 @@ Phase 5  decommission + satellites + ops gaps
 | Risk | Mitigation |
 |---|---|
 | License answer is "no" | Cutover phases halt; fall back to the cherry-pick plan (Tier-A MIT packages only); staging work is evaluation, not distribution |
-| Two UI systems bleed (antd 6 vs Tailwind 4) | Seam rule + the REASON editor's scoped CSS; no cross-imports between `packages-lobe/src` and `packages/research-agent-ui` |
+| Two UI systems bleed (antd 6 vs Tailwind 4) | Seam rule + the REASON editor's scoped CSS; no cross-imports between `apps/qwk-in-lobe/src` and `packages/research-agent-ui` |
 | Worker size limit (10 MB gzipped, currently ~7.4) | CI size budget; lazy-load heavy SPA chunks; keep extractor code in Worker A |
-| Postgres ops burden (169 tables, pgvector) | Managed (Neon/Hyperdrive) — already the tested path in `packages-lobe`; D1 stays for QwkSearch tables |
+| Postgres ops burden (169 tables, pgvector) | Managed (Neon/Hyperdrive) — already the tested path in `apps/qwk-in-lobe`; D1 stays for QwkSearch tables |
 | Auth/history migration data loss | One-shot scripts with dry-runs on snapshots; D1 read-only retention window; `/c/:id` redirects |
 | Anonymous/guest chat regression | Decide in 1.4: engine anonymous sessions vs login-gating; don't discover it at cutover |
-| Fork drift vs upstream LobeHub | Keep QwkSearch changes additive (`worker/`, `src/features/QwkSearch/`, new settings tabs); the "What changed vs. upstream" list in `packages-lobe/README.md` is the merge contract |
+| Fork drift vs upstream LobeHub | Keep QwkSearch changes additive (`worker/`, `src/features/QwkSearch/`, new settings tabs); the "What changed vs. upstream" list in `apps/qwk-in-lobe/README.md` is the merge contract |
 | Redis-less agent runtime on Workers | Upstash HTTP Redis provider (5.4) before heavy multi-tab agent use |

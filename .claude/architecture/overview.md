@@ -50,8 +50,14 @@ owns the writing surface.
 | `qwksearch-desktop` | SvelteKit + Tauri (`src-tauri/`) | Global hotkey (select text, press `` ` ``), tray, autostart, quick-search popup. Native behaviour is Rust-side, not `src/`. |
 | `qwksearch-ext` | WXT browser extension | `entrypoints/{background,content,popup,sidepanel,offscreen}`. **Own** `pnpm-workspace.yaml` and lockfile — install inside it too. |
 | `qwk-vscode-ext` | esbuild host + two Vite webviews | Host/auth/API proxy in `src/`; chat sidebar in `webview-ui/`; editor in `webview-ui-editor/`. `bun run compile` builds all three. |
-| `collaboration-server` | Hocuspocus + SQLite | The Yjs rooms behind collaborative editing. |
-| `test-reports` | Cloudflare Worker | Static host for the Vitest HTML report. Infra only. |
+| `qwk-in-lobe` | LobeHub monorepo, pnpm | The qwksearch.com engine build. A **separate workspace** — see below. |
+
+The Yjs rooms behind collaborative editing used to be an app of their own
+(`collaboration-server`). They are now part of `qwksearch-web`: the Hocuspocus
+process is `apps/qwksearch-web/collaboration/server.ts`, the decision it makes is
+`lib/collaboration/rooms.ts`, and the two questions it asks — who is connecting,
+and what they may do to a document — are answered by `/api/collaboration/session`
+and `/api/collaboration/access` in the same app.
 
 ## Libraries (`packages/`)
 
@@ -79,7 +85,7 @@ and Polymarket data clients, cross-platform arbitrage. The `predictos` package w
 merged into it; `packages/predictos` no longer exists. The PredictOS code under
 `src/predictos/` stays MIT (PredictionXBT) — see the package's `NOTICE`.
 
-## `packages-lobe/`
+## `apps/qwk-in-lobe/`
 
 A copy of the [LobeHub](https://github.com/lobehub/lobehub) monorepo adapted to run
 qwksearch.com on the same Cloudflare stack (Workers + D1 + KV + R2 + Email Routing
@@ -87,7 +93,7 @@ qwksearch.com on the same Cloudflare stack (Workers + D1 + KV + R2 + Email Routi
 
 It is a **separate pnpm workspace** with its own rules — do not assume the bun/turbo
 commands above apply inside it. It carries its own `CLAUDE.md` (which delegates to
-`packages-lobe/AGENTS.md`); read that before editing anything in there.
+`apps/qwk-in-lobe/AGENTS.md`); read that before editing anything in there.
 
 ## A trap worth naming
 

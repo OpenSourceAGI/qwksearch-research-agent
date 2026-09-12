@@ -8,31 +8,26 @@
     <a href="https://youtu.be/DzykBAdrw6s"><img height="20px" src="https://img.shields.io/badge/YouTube-red?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube" /></a>
     <a href="https://deploy.workers.cloudflare.com/?url=https://github.com/OpenSourceAGI/qwksearch-research-agent"><img height="24px" src="https://deploy.workers.cloudflare.com/button" alt="Deploy to Cloudflare Workers" /></a>
     <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/qwksearch-api-client"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
-    <a href="https://codespaces.new/OpenSourceAGI/qwksearch-research-agent"><img height="20px" src="https://github.com/codespaces/badge.svg" alt="Open in GitHub Codespaces" /></a>
     <br />
-    <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/dm/qwksearch-api-client.svg" alt="NPM Monthly Downloads" /></a>
+      <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
+  <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/dm/qwksearch-api-client.svg" alt="NPM Monthly Downloads" /></a>
     <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/v/qwksearch-api-client.svg" alt="npm version" /></a>
     <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/dt/qwksearch-api-client.svg" alt="NPM Total Downloads" /></a>
-    <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/types/qwksearch-api-client" alt="TypeScript types" /></a>
     <a href="https://packagephobia.com/result?p=qwksearch-api-client"><img src="https://packagephobia.com/badge?p=qwksearch-api-client" alt="Install size" /></a>
     <a href="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent"><img src="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg" alt="Coverage" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/actions/workflows/test-web-api.yml"><img src="https://github.com/OpenSourceAGI/qwksearch-research-agent/actions/workflows/test-web-api.yml/badge.svg?branch=master" alt="CI status" /></a>
     <a href="https://stats.uptimerobot.com/wgqOZtDv0i"><img src="https://img.shields.io/badge/Uptime--Status-brightgreen?logo=uptimerobot&logoColor=white" alt="Uptime Status" /></a>
     <br />
-    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
-    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/forks"><img src="https://img.shields.io/github/forks/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Forks" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors"><img src="https://img.shields.io/github/contributors/OpenSourceAGI/qwksearch-research-agent" alt="Contributors" /></a>
-    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"><img src="https://img.shields.io/github/issues/OpenSourceAGI/qwksearch-research-agent?logo=github" alt="GitHub Issues" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls"><img src="https://img.shields.io/github/issues-pr/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs" alt="Open Pull Requests" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls?q=is%3Apr+is%3Aclosed"><img src="https://img.shields.io/github/issues-pr-closed/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs%20merged&color=8957e5" alt="Merged Pull Requests" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/discussions"><img src="https://img.shields.io/github/discussions/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Discussions" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors"><img src="https://img.shields.io/github/commit-activity/m/OpenSourceAGI/qwksearch-research-agent" alt="Commit activity" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/OpenSourceAGI/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
     <a href="https://discord.gg/SJdBqBz3tV"><img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat" alt="Join Discord" /></a>
-    <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request"><img src="https://img.shields.io/badge/PRs--welcome-brightgreen" alt="PRs Welcome" /></a>
-    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/blob/master/LICENSE.md"><img src="https://img.shields.io/github/license/OpenSourceAGI/qwksearch-research-agent" alt="License" /></a>
     <br />
-    <img src="https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=white" alt="Claude" /> <img src="https://img.shields.io/badge/Bun-14151A?logo=bun&logoColor=white" alt="Bun" /> <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" /> <img src="https://img.shields.io/badge/Next.js-black?logo=nextdotjs&logoColor=white" alt="Next.js" /> <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=white" alt="React" /> <img src="https://img.shields.io/badge/Svelte-FF3E00?logo=svelte&logoColor=white" alt="Svelte" /> <img src="https://img.shields.io/badge/Tauri-24C8D8?logo=tauri&logoColor=white" alt="Tauri" /> <img src="https://img.shields.io/badge/Cloudflare%20Workers-F38020?logo=cloudflareworkers&logoColor=white" alt="Cloudflare Workers" /> <img src="https://img.shields.io/badge/Hono-E36002?logo=hono&logoColor=white" alt="Hono" /> <img src="https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=white" alt="Tailwind CSS" /> <img src="https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white" alt="shadcn/ui" /> <img src="https://img.shields.io/badge/Drizzle%20ORM-C5F74F?logo=drizzle&logoColor=white" alt="Drizzle ORM" /> <img src="https://img.shields.io/badge/better--auth-000000" alt="better-auth" /> <img src="https://img.shields.io/badge/Vercel%20AI%20SDK-black?logo=vercel&logoColor=white" alt="Vercel AI SDK" /> <img src="https://img.shields.io/badge/MCP-000000" alt="MCP" /> <img src="https://img.shields.io/badge/TipTap-000000?logo=tiptap&logoColor=white" alt="TipTap" /> <img src="https://img.shields.io/badge/Zod-3E67B1?logo=zod&logoColor=white" alt="Zod" /> <img src="https://img.shields.io/badge/Fumadocs-000000" alt="Fumadocs" /> <img src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" alt="Vite" /> <img src="https://img.shields.io/badge/Turborepo-EF4444?logo=turborepo&logoColor=white" alt="Turborepo" /> <img src="https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest" /> <img src="https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=white" alt="Jest" />
+    <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request"><img src="https://img.shields.io/badge/PRs--welcome-brightgreen" alt="PRs Welcome" /></a>
+    <img src="https://img.shields.io/badge/Claude-D97757?logo=claude&logoColor=white" alt="Claude" /> <img src="https://img.shields.io/badge/Bun-14151A?logo=bun&logoColor=white" alt="Bun" /> <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" /> <img src="https://img.shields.io/badge/Next.js-black?logo=nextdotjs&logoColor=white" alt="Next.js" /> <img src="https://img.shields.io/badge/Tauri-24C8D8?logo=tauri&logoColor=white" alt="Tauri" /> <img src="https://img.shields.io/badge/Cloudflare-F38020?logo=cloudflareworkers&logoColor=white" alt="Cloudflare Workers" /> <img src="https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white" alt="shadcn/ui" /> <img src="https://img.shields.io/badge/Drizzle%20ORM-C5F74F?logo=drizzle&logoColor=white" alt="Drizzle ORM" /> <img src="https://img.shields.io/badge/better--auth-000000" alt="better-auth" />  <img src="https://img.shields.io/badge/Fumadocs-000000" alt="Fumadocs" /> 
 </p>
 <!-- template-git-repo:badges:end -->
 
@@ -204,10 +199,10 @@ See [skills/README.md](skills/README.md) for the full index.
 
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-## LobeHub foundation (`packages-lobe/`)
+## LobeHub foundation (`apps/qwk-in-lobe/`)
 
-`packages-lobe/` holds a copy of the [LobeHub](https://github.com/lobehub/lobehub) monorepo adapted to
+`apps/qwk-in-lobe/` holds a copy of the [LobeHub](https://github.com/lobehub/lobehub) monorepo adapted to
 run qwksearch.com on the same Cloudflare stack as this repo's Worker (Workers + D1 + KV + R2 +
 Email Routing + Better Auth). It ships all LobeHub features plus the QwkSearch article-extract side
 panel and D1-backed Docs. It is a separate pnpm workspace; see
-[`packages-lobe/README.md`](packages-lobe/README.md) for build, deploy and the list of changes.
+[`apps/qwk-in-lobe/README.md`](apps/qwk-in-lobe/README.md) for build, deploy and the list of changes.
