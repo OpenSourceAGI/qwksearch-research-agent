@@ -44,6 +44,13 @@ the sources and the ranking be tested without mounting the app.
   Sanitize at the boundary.
 - Settings UI comes from `shadcn-settings`; the dock from `shadcn-app-dock`.
   Compose them rather than reimplementing.
+- **The shell mounts no sidebar of its own.** Settings, Login/Logout and the
+  theme picker live in the dock's Settings menu (`app/CategoryDock.tsx`).
+  A sidebar here mounts on *every* surface the shell wraps, `/workspace`
+  included, where it overlays REASON's own sidebar — its toggle lands on
+  REASON's trigger and its collapsed rail leaves a second rail beside it.
+  That was #420, reverted by #430; `test/appShellChrome.test.ts` holds the
+  line in both directions.
 
 ```bash
 cd packages/research-agent-ui && bun run test
