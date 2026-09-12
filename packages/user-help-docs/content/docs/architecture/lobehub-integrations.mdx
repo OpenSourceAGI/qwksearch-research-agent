@@ -1,6 +1,6 @@
 ---
 title: "LobeHub Integrations Reference"
-description: "Every seam between QwkSearch and the LobeHub engine in packages-lobe, file by file."
+description: "Every seam between QwkSearch and the LobeHub engine in apps/qwk-in-lobe, file by file."
 ---
 
 # LobeHub Integrations Reference
@@ -11,7 +11,7 @@ strategy doc is [LobeHub Packages Migration Plan](./lobe-packages-migration-plan
 [LobeHub Migration To-Do](./lobehub-migration-todo). This page is the *map*:
 what exists today, in which file, and what it depends on.
 
-Scope: `packages-lobe/` — the adapted LobeHub v2.2.13 monorepo that runs as one
+Scope: `apps/qwk-in-lobe/` — the adapted LobeHub v2.2.13 monorepo that runs as one
 Cloudflare Worker. Keep it current whenever an integration is added, moved or
 removed; it is the merge contract against upstream LobeHub, so every entry
 should name real files.
@@ -22,13 +22,13 @@ The dependency runs **one way**: QwkSearch code is added *into* the LobeHub tree
 No package under `packages/` or `apps/` depends on `@lobehub/*` or `@lobechat/*`
 — verified by the absence of those names in every workspace `package.json`. That
 matters for the license gate: the QwkSearch workspace is not a LobeHub derivative
-work; `packages-lobe/` is.
+work; `apps/qwk-in-lobe/` is.
 
 The two workspaces stay separate (bun/turbo vs pnpm). The only bridges are
 **published npm packages** and **shared Cloudflare bindings** — never workspace
 links. See §1 of the migration plan for why merging them is not on the table.
 
-The npm bridges in place today, all declared in `packages-lobe/package.json` and
+The npm bridges in place today, all declared in `apps/qwk-in-lobe/package.json` and
 resolved from the registry rather than `../packages/`:
 
 | Package | Source of truth | Used by |
@@ -39,7 +39,7 @@ resolved from the registry rather than `../packages/`:
 
 Publishing is the update path: a fix in `packages/extract-*` reaches the engine
 through `npm publish` (the `ship` script in each package) and a version bump in
-`packages-lobe/package.json`, not through a workspace link.
+`apps/qwk-in-lobe/package.json`, not through a workspace link.
 
 ## 1. Runtime integrations — LobeHub on Cloudflare Workers
 
@@ -570,7 +570,7 @@ Vars in `wrangler.jsonc` (both the default and `production` env):
 `SMTP_FROM`, `SCRAPER_URL`, `SEARCH_PROVIDERS`, `QWKSEARCH_SEARCH_URL`.
 
 Optional extraction vars, all defaulted, are listed under §F2a and in
-`packages-lobe/README.md` — among them `PDF_PROCESSOR_URL` (F2's Granite Docling
+`apps/qwk-in-lobe/README.md` — among them `PDF_PROCESSOR_URL` (F2's Granite Docling
 OCR processor for scanned PDFs) and its companion `PDF_PROCESSOR`. Setting none
 of them reproduces the behavior the chain had before the settings layer existed.
 
@@ -588,25 +588,25 @@ Secrets (`wrangler secret put`): `KEY_VAULTS_SECRET`, `AUTH_SECRET`,
 
 **antd 6 + `@lobehub/ui` + antd-style inside the engine; Tailwind 4 + shadcn
 outside** (homepage, marketing, REASON editor). No cross-imports between
-`packages-lobe/src` and `packages/research-agent-ui`. The one planned exception
+`apps/qwk-in-lobe/src` and `packages/research-agent-ui`. The one planned exception
 is the REASON editor mounted inside the engine's `/docs` page — it ships its own
 scoped stylesheet (`react-reason-editor/style.css`).
 
 ## 6. Test coverage of the integration points
 
 **All of it, in one command** — this is what CI runs, and the path list lives in
-the script so this page, `packages-lobe/README.md` and the workflow cannot drift
+the script so this page, `apps/qwk-in-lobe/README.md` and the workflow cannot drift
 apart:
 
 ```bash
-cd packages-lobe && bun run test:qwksearch    # 579 cases, 37 files, ~1 min
+cd apps/qwk-in-lobe && bun run test:qwksearch    # 579 cases, 37 files, ~1 min
 ```
 
 The individual recipes below are for iterating on one seam. They are the same
 paths, split up:
 
 ```bash
-cd packages-lobe
+cd apps/qwk-in-lobe
 
 # The extraction chain and its settings (75 cases: kind routing, tier order,
 # field mapping, citation styles, layer resolution, what the client may set,
@@ -650,16 +650,16 @@ repo-wide `bun run type-check` OOMs before it finishes:
 
 ```bash
 # worker/, src/features/QwkSearch/, and the two panes with their shared controls
-cd packages-lobe && bun run type-check:qwksearch   # ~60s, clean as of this writing
+cd apps/qwk-in-lobe && bun run type-check:qwksearch   # ~60s, clean as of this writing
 
 # the same script narrowed to the Worker, for iterating there
-cd packages-lobe && bun run type-check:worker
+cd apps/qwk-in-lobe && bun run type-check:worker
 ```
 
 **Both of the above now run in CI**, in
 [`.github/workflows/lobehub-engine.yml`](https://github.com/OpenSourceAGI/qwksearch-research-agent/blob/master/.github/workflows/lobehub-engine.yml)
-— the only job in this repository that installs `packages-lobe`. It is
-path-filtered to `packages-lobe/**` and the workflow file, because the install is
+— the only job in this repository that installs `apps/qwk-in-lobe`. It is
+path-filtered to `apps/qwk-in-lobe/**` and the workflow file, because the install is
 the expensive step (~1 min cold on a runner, 4.2 GB) and nothing outside the
 engine can change either result. **~3.5 minutes end to end**, cache hit or
 miss — the store cache saves about 17s of a 1-minute install, because pnpm links

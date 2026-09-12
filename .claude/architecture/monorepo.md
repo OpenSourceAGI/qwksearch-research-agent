@@ -10,12 +10,18 @@ Declared in the root `package.json`:
 ```
 packages/*
 packages/render-url-to-html/*     # the two scrapers are their own workspaces
-apps/*
+apps/qwk-vscode-ext
+apps/qwksearch-desktop
+apps/qwksearch-ext
+apps/qwksearch-web
 ```
 
-Not covered by that glob, and deliberately separate:
+The apps are listed one by one rather than globbed as `apps/*`, so that a root
+`bun install` cannot walk into `apps/qwk-in-lobe`. A new app is a new line here.
 
-- `packages-lobe/` — its own **pnpm** workspace.
+Not covered by that list, and deliberately separate:
+
+- `apps/qwk-in-lobe/` — its own **pnpm** workspace, inside `apps/` but not of it.
 - `apps/qwksearch-ext` — its own `pnpm-workspace.yaml` and lockfile. A root
   install does not cover it; install inside it as well.
 
@@ -27,7 +33,7 @@ bun run dev                    # turbo dev --filter=qwksearch-web
 bun run dev:editor             # the REASON editor standalone
 bun run build                  # turbo build, whole graph
 bun run test                   # vitest, root config
-bun run test:report            # vitest + HTML reporter into apps/test-reports/dist
+bun run test:report            # vitest + HTML reporter into coverage/html
 cd packages/<name> && bun run test
 ```
 

@@ -52,10 +52,9 @@ by hand.
 | --- | --- | --- |
 | `test-coverage.yml` | push to master, PR | One matrix job per package, `fail-fast: false`, uploads to Codecov |
 | `test-web-api.yml` | paths under `apps/qwksearch-web` and two packages | The web app's own suite |
-| `lobehub-engine.yml` | paths under `packages-lobe` | The one job that installs that workspace: the QwkSearch type-check and integration suite |
+| `lobehub-engine.yml` | paths under `apps/qwk-in-lobe` | The one job that installs that workspace: the QwkSearch type-check and integration suite |
 | `lockfile.yml` | push, PR | `bun install --frozen-lockfile` with the pinned bun — this is what the Cloudflare build runs |
 | `npm-publish.yml` | push to master | Publishes changed public packages |
-| `deploy-test-reports.yml` | push to master | Builds the HTML report, deploys `apps/test-reports` |
 | `auto-merge-*.yml` | schedule / PR | Merges PRs that are clean, approved and green |
 
 Coverage jobs build `extract-pdf`, `extract-youtube`, `react-reason-editor` and
@@ -84,7 +83,7 @@ the bump is a deliberate choice rather than a patch.
 - Read `skills/ask-<name>/SKILL.md` before working in a package. It is written
   from source and covers the real gotchas.
 - Do not create a root `docs/` folder — see [documentation.md](documentation.md).
-- Do not run `npm`/`yarn`/`pnpm` at the repo root. `packages-lobe/` and
+- Do not run `npm`/`yarn`/`pnpm` at the repo root. `apps/qwk-in-lobe/` and
   `apps/qwksearch-ext` are the exceptions, and they have their own instructions.
 - After changing a package that another package imports, rebuild it before
   concluding a behaviour is broken — see [monorepo.md](monorepo.md).

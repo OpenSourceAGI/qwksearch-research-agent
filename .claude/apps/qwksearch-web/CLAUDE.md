@@ -48,12 +48,41 @@ it belongs in a package.
 - The `test-web-api.yml` workflow is path-filtered to this app and two packages;
   a change elsewhere won't run it.
 
+## The collaboration server lives here too
+
+`collaboration/server.ts` is a **Hocuspocus process**, not part of the Worker: a
+Yjs room is a long-lived WebSocket holding CRDT state, which a Worker request
+handler cannot hold. It is in this app because everything it decides comes from
+this app's API — `app/api/collaboration/session` (token → user) and
+`app/api/collaboration/access` (user + document → role) — and the decision
+itself is in `lib/collaboration/rooms.ts`, unit-tested without a socket.
+
+- **State is CRDT, not rows.** A Yjs document converges from concurrent edits;
+  you cannot "fix" one by overwriting it. Never mutate a stored document outside
+  the Yjs API.
+- **Schema changes in `packages/reason-editor` reach live rooms.** A document
+  written under the old schema still has to load. Test the upgrade path, not
+  just a fresh document.
+- **A room is a permission boundary.** Anyone who can sync a room can read and
+  write the document, so `/api/collaboration/access` is the check that keeps a
+  second user out — it authorizes on connect, before any state is exchanged.
+- **`/api/collaboration/access` names a user instead of reading a session**, so
+  it is service-to-service only: it requires `REASON_COLLAB_SECRET` and refuses
+  to answer in production when that secret is unset.
+- Connections are long-lived. A leak there degrades slowly and then all at once;
+  clean up on disconnect, including the error path.
+
+Losing or corrupting a document is the worst outcome this service can produce —
+weigh changes accordingly. `collaboration/README.md` has the run commands and
+the full environment table.
+
 ## Commands
 
 ```bash
 bun run dev        # from the root: turbo dev --filter=qwksearch-web
 bun run build
 bun run test
+bun run collab:dev # the Hocuspocus server, ws://127.0.0.1:1234
 ```
 
 ## Debugging a server-render 500

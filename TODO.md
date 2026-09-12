@@ -2,6 +2,84 @@
 
 ## Completed
 
+## Fold the collaboration server into the web app, drop `test-reports`, move `packages-lobe` under `apps/`
+
+**Status:** Completed
+**Source:** Direct request — "in qwksearch merge collaboration-server app into
+other qwksearch API if not already. delete the test reports app. move
+packages-lobe into apps/qwk-in-lobe".
+**Branch:** `claude/festive-cori-reed97`
+**PR:** #PR_NUMBER
+**Started:** 2026-09-12
+**Completed:** 2026-09-12
+
+### Goal
+Six apps down to five, and one of those five is not an app at all. The three
+asks are independent but land in the same places — the root `workspaces` list,
+the root Vitest projects, and the app tables in every map of the repo.
+
+### Scope
+- `apps/collaboration-server/**` → `apps/qwksearch-web`: `src/rooms.ts` to
+  `lib/collaboration/rooms.ts`, `src/index.ts` to `collaboration/server.ts`,
+  its suite to `lib/collaboration/__tests__/`.
+- `apps/qwksearch-web/app/api/collaboration/{session,access}/route.ts` — new:
+  the two endpoints the server used to reach through `REASON_AUTH_URL` and
+  `REASON_DOCUMENT_ACL_URL` with nothing behind them.
+- `apps/test-reports/**`, `.github/workflows/deploy-test-reports.yml`,
+  `.claude/apps/test-reports/` — deleted.
+- `packages-lobe/**` → `apps/qwk-in-lobe/**`.
+- Root `package.json`, `vitest.config.ts`, `codecov.yml`, `bun.lock`,
+  `.github/workflows/lobehub-engine.yml`, and the docs that name any of the
+  three paths.
+
+### Non-goals
+- **Running the Yjs rooms on the Worker.** A room is a long-lived WebSocket
+  holding CRDT state; a Worker request handler cannot hold one. The Hocuspocus
+  process still runs on its own, it just lives in the web app's workspace and
+  authorizes against the web app's API. Moving the rooms into a Durable Object
+  is a separate decision.
+- **Widening who may open a document.** The new ACL endpoint applies exactly
+  the rule `/api/doc/documents/[id]` already applies — owner writes, an unowned
+  document is open, everyone else is refused. Share tokens grant nothing here:
+  a share link is held by a browser, not named by a user id.
+- **Rewriting the historical entries in this file** that name `packages-lobe`.
+  They describe what the tree was at the time.
+
+### What changed
+
+**Collaboration.** The server was an app whose entire job was to ask two
+questions — who is connecting, and what may they do to this document — of URLs
+(`REASON_AUTH_URL`, `REASON_DOCUMENT_ACL_URL`) that no endpoint in this
+repository answered. Both are now route handlers in the web app, so a single
+`QWKSEARCH_API_URL` wires the server up and the demo branch (where the token
+*is* the user id) stays for local work only. The `REASON_*_URL` variables still
+override, so the server can be pointed elsewhere.
+
+`/api/collaboration/access` is the one route here that names a user instead of
+reading the caller's session, which makes it a "who can read what" oracle if
+left open. It requires `REASON_COLLAB_SECRET` and refuses to answer at all in
+production when that secret is unset.
+
+**test-reports.** A Worker that hosted the Vitest HTML report. `test:report`
+still exists and now writes to `coverage/html`, which is gitignored.
+
+**qwk-in-lobe.** `apps/*` is no longer a glob in the root `workspaces`: the
+apps are listed one by one, because `apps/qwk-in-lobe` is a pnpm workspace and
+a root `bun install` must not walk into it. Its contract test computed the
+repository root by counting `..` segments and now counts from the workspace
+root instead.
+
+### Verification
+- `bun install --frozen-lockfile` — exit 0, which is what proves the hand-edited
+  `bun.lock` matches the new manifests (this is the check `lockfile.yml` and
+  every Cloudflare build run).
+- `bunx vitest run lib/collaboration app/api/collaboration` in
+  `apps/qwksearch-web` — 35 passed, covering both new routes.
+- `packages/reason-editor`'s room-parity test, which now imports the parser from
+  its new home — 12 passed.
+- `bun run test` from the root.
+
+
 ## Fix the 500 `next dev` answers every page with, and settle the sidebar report
 
 **Status:** Completed

@@ -204,10 +204,10 @@ See [skills/README.md](skills/README.md) for the full index.
 
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)
 
-## LobeHub foundation (`packages-lobe/`)
+## LobeHub foundation (`apps/qwk-in-lobe/`)
 
-`packages-lobe/` holds a copy of the [LobeHub](https://github.com/lobehub/lobehub) monorepo adapted to
+`apps/qwk-in-lobe/` holds a copy of the [LobeHub](https://github.com/lobehub/lobehub) monorepo adapted to
 run qwksearch.com on the same Cloudflare stack as this repo's Worker (Workers + D1 + KV + R2 +
 Email Routing + Better Auth). It ships all LobeHub features plus the QwkSearch article-extract side
 panel and D1-backed Docs. It is a separate pnpm workspace; see
-[`packages-lobe/README.md`](packages-lobe/README.md) for build, deploy and the list of changes.
+[`apps/qwk-in-lobe/README.md`](apps/qwk-in-lobe/README.md) for build, deploy and the list of changes.
