@@ -33,6 +33,11 @@ export const DEFAULT_AI_ENDPOINT = '/api/agent/rewrite';
  * whole instruction as one prompt, so a plain rewrite route needs no changes to
  * serve every command in the menu. An empty `endpoint` returns the offline demo
  * transform, which is what keeps the menu usable with no backend at all.
+ *
+ * `stream: true` asks for a token stream, which is what fills the review panel
+ * in as the model writes. It is a hint, not a requirement: a route that ignores
+ * it answers with its usual JSON body and `createStreamingCompletion` reports
+ * that as a single chunk, so the panel still works — it just arrives at once.
  */
 export function createRewriteCompletion(endpoint: string): AiCompletionFn {
   if (!endpoint) return mockAiCompletion;
@@ -46,6 +51,7 @@ export function createRewriteCompletion(endpoint: string): AiCompletionFn {
       text: request.selectedText || request.documentText || request.instruction,
       prompt: `${request.systemPrompt}\n\n${buildAiUserPrompt(request)}`,
       command: request.commandId,
+      stream: true,
     }),
   });
 }

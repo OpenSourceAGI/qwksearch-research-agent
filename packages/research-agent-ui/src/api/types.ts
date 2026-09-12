@@ -73,6 +73,12 @@ export interface TranscriptDeps {
 
 export interface RewriteDeps extends EnvDeps {
   generateText: (opts: any) => Promise<{ text: string }>;
+  /**
+   * Streaming counterpart of `generateText`, used only when the request asks
+   * for `stream: true`. Optional so a host that has not wired it keeps serving
+   * the JSON contract rather than failing the request.
+   */
+  streamText?: (opts: any) => { textStream: AsyncIterable<string> };
   createGroq: (opts: { apiKey: string }) => (modelId: string) => any;
 }
 
