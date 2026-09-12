@@ -11,7 +11,10 @@ of how to migrate and document all lobehub integrations". The LobeHub Migration
 To-Do's own #2 suggested next: § 2.1's settings map, which § 2.4 needs before
 anything in the old surface can be deleted.
 **Branch:** `claude/magical-bohr-0skpwn` (rebased onto `master` at `2b19de7a`)
-**PR:** #458
+**PR:** #458, plus #459 — three counts inside the map's own prose were wrong
+(thirteen shell fields written as nine, four server-scoped fields written as
+six, and an unverified "75+" engine count). #458 auto-merged 27 seconds after it
+opened, which is why the correction is its own PR rather than another commit.
 **Started:** 2026-09-12
 **Completed:** 2026-09-12
 

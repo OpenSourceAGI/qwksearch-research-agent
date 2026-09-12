@@ -149,7 +149,7 @@ export const LEGACY_SETTINGS_SECTIONS: readonly LegacySection[] = [
     engineFeatures: ['search'],
     engineTabs: [SettingsTabs.Search],
     gaps: [
-      'The engine pane selects *categories*; the legacy pane selects *engines within a category* (75+ of them, with favicons and descriptions). No per-engine override exists in UserSearchOverrides.',
+      'The engine pane selects *categories*; the legacy pane selects *individual engines within a category*, listed from GET /api/search/engines with favicons and descriptions. No per-engine override exists in UserSearchOverrides.',
       'No engine equivalent for the live health check: GET /api/search/engines/status and POST /api/search/engines/test run a probe query per engine and disable the ones that fail.',
     ],
     key: 'searchEngines',
@@ -163,7 +163,7 @@ export const LEGACY_SETTINGS_SECTIONS: readonly LegacySection[] = [
     engineTabs: [SettingsTabs.Search, SettingsTabs.Extraction],
     gaps: [
       'This section is 22 unrelated fields with four different destinations — see LEGACY_SEARCH_FIELDS, which maps each one. Only sourceScrapeTimeout lands on a shipped pane today.',
-      'Nine of the 22 are homepage chrome (background art, orb glow, cursor trail, result glow) and homepage widgets (weather ×5, trending news ×4) belonging to a shell the engine replaces.',
+      'Thirteen of the 22 are chrome of a shell the engine replaces: four animations (homepage background art, orb glow, cursor trail, result-card glow) and two homepage widgets (weather ×5, trending news ×4).',
       'Three are operator credentials on a global admin-only row (searxngURL, proxyURL, tavilyApiKey) and become Worker secrets (2.3).',
     ],
     key: 'search',
@@ -171,7 +171,7 @@ export const LEGACY_SETTINGS_SECTIONS: readonly LegacySection[] = [
     name: 'Search Settings',
     status: 'partial',
     stores:
-      'Worker A /api/config for the six scope:"server" fields; localStorage for the other sixteen. Field list: packages/research-agent-ui/src/settings/search.json',
+      'Worker A /api/config for the four scope:"server" fields (searxngURL, proxyURL, tavilyApiKey, sourceScrapeTimeout); localStorage for the other eighteen. Field list: packages/research-agent-ui/src/settings/search.json',
   },
   {
     engineFeatures: [],
