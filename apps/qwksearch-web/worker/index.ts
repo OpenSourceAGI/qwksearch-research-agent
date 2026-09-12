@@ -9,8 +9,9 @@ import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES, isI
 import type { ImageConfig } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { applyD1Bookmark, runWithD1Session } from "../lib/database/d1-session";
+import { handleTurnstileGate, type TurnstileEnv } from "../lib/turnstile";
 
-interface Env {
+interface Env extends TurnstileEnv {
   ASSETS: Fetcher;
   // See lib/database/d1-session.ts — "auto" (default), "primary",
   // "unconstrained" or "off". Settable as a plain Variable in the dashboard.
@@ -41,6 +42,14 @@ interface ExecutionContext {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    // Cloudflare Turnstile, in front of everything else: a desktop browser's
+    // first HTML page view is answered with a "just a moment" check until it
+    // carries a pass this Worker signed. Returns null — and costs one HMAC
+    // verify — for every other request, and for all of them when the
+    // TURNSTILE_* variables are unset. See lib/turnstile/gate.ts.
+    const gated = await handleTurnstileGate(request, env);
+    if (gated) return gated;
 
     // Image optimization via Cloudflare Images binding.
     // The parseImageParams validation inside handleImageOptimization

@@ -1,0 +1,147 @@
+---
+title: "Turnstile first-load gate"
+description: "The Cloudflare Turnstile check in front of a visitor's first page view: what it challenges, what it never challenges, and how to turn it on."
+---
+
+A desktop browser's **first** HTML page view of QwkSearch is answered with a
+short "just a moment" check instead of the page. Once it passes, the Worker sets
+a signed cookie and the visitor is never challenged again for the life of that
+cookie (a week by default). Phones are exempt, and so is everything that is not
+a top-level page view.
+
+The whole feature lives in `apps/qwksearch-web/lib/turnstile/` and is called from one
+place — the top of the Worker's `fetch` in `apps/qwksearch-web/worker/index.ts`:
+
+```ts
+const gated = await handleTurnstileGate(request, env);
+if (gated) return gated;
+```
+
+## Why a Worker gate and not a widget on a form
+
+[Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/get-started/)
+issues a token in the browser, but **rendering the widget is not protection**.
+The token means nothing until a server exchanges it, with the secret key, at
+Cloudflare's `siteverify` endpoint — which is what this Worker does, on a request
+the browser cannot skip, before the app renders anything.
+
+The cookie that records the result is signed for the same reason. A plain
+`verified=1` cookie would be a one-line bypass (`curl -b verified=1`), so the
+pass is an HMAC-SHA-256 token over its own expiry and a random nonce, keyed by
+`TURNSTILE_SECRET_KEY`:
+
+```text
+v1.<expiry>.<nonce>.<HMAC of "v1.<expiry>.<nonce>">
+```
+
+Forging one needs the secret; replaying one is bounded by the expiry; verifying
+one is a single WebCrypto call with no KV or D1 read behind it, so every request
+after the first costs microseconds.
+
+## What gets challenged
+
+Only a request that is **all** of the following:
+
+- `GET` or `HEAD`,
+- a top-level document navigation (`Sec-Fetch-Dest: document`, or `Accept:
+  text/html` on older browsers),
+- not from a phone,
+- not from a search-engine or link-preview crawler,
+- not on an exempt path,
+- and not already carrying a valid pass cookie.
+
+Everything else goes straight to the app. That list is not politeness — an
+interstitial served in place of a JSON response is a parse error, and one served
+to Googlebot is a deindexed site.
+
+### Never challenged
+
+| | Why |
+| --- | --- |
+| Phones | Product decision: the extra tap lands on the connection where the page load is already slow. Detected from `Sec-CH-UA-Mobile`, falling back to the user-agent. iPadOS presents itself as desktop Safari and is not detectable — an iPad gets the check. |
+| Crawlers | Googlebot, Bingbot, Applebot, `facebookexternalhit`, Slackbot, GPTBot and friends, plus anything Cloudflare itself marks with `cf.verifiedBotCategory`. |
+| `/api/*` | The public API, webhooks and anything with its own auth. |
+| `/_next/*`, `/_vinext/*`, assets | Scripts, styles, images, fonts — by prefix and by file extension. |
+| RSC payload fetches | `RSC: 1`, `?_rsc=`, `Next-Router-Prefetch`. Answering one with HTML breaks client-side routing. |
+| `/robots.txt`, `/sitemap.xml`, `/favicon.ico`, manifests, `/health` | Machine endpoints and crawler contracts. |
+| Non-`GET` requests | Form posts and API writes carry their own protection. |
+
+The crawler list matches on the user-agent, which is self-reported and therefore
+spoofable. That is a deliberate trade: it guarantees the site stays indexable,
+and it is not the layer that stops a determined agent. Enforcement against
+clients that lie about who they are belongs in Cloudflare Bot Management and WAF
+rules in front of this Worker.
+
+## The round trip
+
+1. A desktop browser asks for a page and carries no pass cookie.
+2. The Worker answers with the challenge page (`200`, `Cache-Control: no-store`,
+   `X-Robots-Tag: noindex`) carrying the widget and the path to return to.
+3. Turnstile solves in the browser. In Managed mode most visitors see a spinner
+   resolve on its own; the widget's success callback submits the form.
+4. The page `POST`s the token to `/__turnstile/verify`.
+5. The Worker calls `siteverify` with the secret key and the visitor's IP.
+6. On success it checks the hostname the token was solved for, mints the pass,
+   and answers `303` back to the original path with `Set-Cookie`.
+
+Failures re-serve the same page with an explanation rather than a dead end: a
+missing token is `400`, a rejected token or a hostname mismatch is `403`, and an
+unreachable `siteverify` is `502` — all of them retryable by the visitor.
+
+The redirect target is always narrowed to a same-origin path, so the check page
+can never be turned into an open redirect.
+
+## Turning it on
+
+The gate is **off until it is configured**, and fails open: with no keys set,
+`handleTurnstileGate` returns `null` for every request and the Worker serves the
+app exactly as it did before. Local dev, preview deploys and CI are unaffected
+without doing anything.
+
+1. Create a **Managed** widget in the Cloudflare dashboard under **Turnstile**,
+   with `qwksearch.com` (and any other hostname the app answers on) in its
+   allowed list.
+2. Put the secret key in the Worker's secrets:
+
+   ```bash
+   bunx wrangler secret put TURNSTILE_SECRET_KEY
+   ```
+
+3. Set the site key as a plaintext Variable on the Worker (it is public — it
+   ships in the challenge page's HTML), or add it to `wrangler.jsonc` `vars`.
+
+| Variable | Required | Meaning |
+| --- | --- | --- |
+| `TURNSTILE_SITE_KEY` | yes | Public widget key rendered into the check page. |
+| `TURNSTILE_SECRET_KEY` | yes | Secret key. Validates tokens **and** signs the pass cookie. Never sent to the browser. |
+| `TURNSTILE_ENABLED` | no | `false` / `0` / `off` switches the gate off without removing the keys. |
+| `TURNSTILE_TTL_SECONDS` | no | How long one pass lasts. Default `604800` (7 days), clamped to 5 minutes–30 days. |
+| `TURNSTILE_COOKIE_DOMAIN` | no | e.g. `.qwksearch.com` to share one pass across subdomains. |
+
+<Callout type="warn">
+  `TURNSTILE_SECRET_KEY` is the cookie's signing key as well as the siteverify
+  credential. Rotating it invalidates every outstanding pass — visitors get the
+  check once more, which is the intended behaviour, not a bug.
+</Callout>
+
+## Local development
+
+Leave the variables unset and the gate never runs. To exercise it locally, add
+`localhost` to the widget's hostname list and put both keys in `.dev.vars`;
+`Secure` is dropped from the cookie on plain `http` so the flow completes.
+Cloudflare also publishes
+[testing keys](https://developers.cloudflare.com/turnstile/troubleshooting/testing/)
+that always pass or always fail.
+
+## Content Security Policy
+
+The check page loads `https://challenges.cloudflare.com/turnstile/v0/api.js` and
+the widget talks back to the same host. If a CSP is ever added to this app, that
+origin needs to be allowed for `script-src`, `frame-src` and `connect-src`.
+
+## Tests
+
+`apps/qwksearch-web/lib/turnstile/__tests__/turnstile.test.ts` covers the decision
+matrix (phone, crawler, asset, RSC, API, write), token forging and expiry, the
+siteverify exchange, hostname mismatch, open-redirect refusal, and the
+fails-open behaviour when unconfigured.
