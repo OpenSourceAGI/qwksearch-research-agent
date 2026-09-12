@@ -9,6 +9,7 @@
     "lobe-packages-migration-plan",
     "lobehub-integrations",
     "lobehub-migration-todo",
-    "debate-video-category-keywords"
+    "debate-video-category-keywords",
+    "turnstile-bot-gate"
   ]
 }

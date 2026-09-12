@@ -31,6 +31,12 @@ it belongs in a package.
   failure costs a flash of skeleton instead.
 - `worker/index.ts` is documented house style for a reason — read its comments
   before changing the entrypoint.
+- **The Turnstile gate runs first in `worker/index.ts`** (`lib/turnstile`). It
+  only ever interrupts a desktop browser's first HTML page view, and it is a
+  no-op until `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` are set. Adding a
+  path that must answer machines — a webhook, a feed, a health check — outside
+  `/api/*` means adding it to the exempt list in
+  `lib/turnstile/request-filter.ts`.
 - The `test-web-api.yml` workflow is path-filtered to this app and two packages;
   a change elsewhere won't run it.
 
