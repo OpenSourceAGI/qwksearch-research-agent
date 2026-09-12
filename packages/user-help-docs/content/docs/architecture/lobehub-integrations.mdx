@@ -78,6 +78,7 @@ then LobeHub's tRPC/webapi/api, then the SPA catch-all.
 | F5b | **Search preferences** — storage and API for F5a's per-user layer | `worker/routes/qwksearch/searchSettings.ts`, `.../qwksearch/searchPreferences.ts` | — | D1 `search_settings` |
 | F5c | **Search & Sources pane** (`/settings/search`) — the form over F5b, inside LobeHub's own settings shell | — | `src/features/Settings/search/` (`index.tsx`, `api.ts`, `formState.ts`, `features/SearchForm.tsx`) | through F5b |
 | F5d | **The panes' shared controls** — ordered drag-sortable lists for `tiers`/`categories`, BCP-47 language fields for `languages`/`language` | — | `src/features/Settings/qwksearch/` (`languageTags.ts`, `OrderedList.tsx`, `OrderedMultiSelect.tsx`, `LanguageSelect.tsx`) | — |
+| F5e | **The legacy settings map** — the old settings surface mapped onto this engine as data, with a guard that fails when either side moves. A migration artifact, not runtime code | — | `src/features/Settings/qwksearch/legacySettingsMap.ts` | — |
 | F6 | **Branding** | `packages/business/const/src/branding.ts`, `packages/const/src/url.ts`, `public/` favicons | — | — |
 | F7 | **Route + nav registration** for `/docs` and the article panel mount | `src/spa/router/desktopRouter.shared.tsx`, `src/features/NavPanel/routeKey.ts`, `src/routes/(main)/_layout/index.tsx` | — | — |
 | F8 | **i18n** | `packages/locales/src/default/qwksearch.ts` + `locales/{en-US,zh-CN}/qwksearch.json` | — | — |
@@ -487,6 +488,57 @@ each render `<Select mode="tags" open={false} tokenSeparators={…} />` with no
 touch, so they are recorded here and not changed — editing them is merge cost
 against upstream and wants its own decision.
 
+### F5e — The legacy settings map
+
+The one entry here that is not wired into anything. It answers a question the
+other entries cannot: **when may the old settings surface be deleted?**
+
+Phase 2.4 of the migration to-do deletes
+`apps/qwksearch-web/components/Settings/**`, `app/settings/[[...section]]` and
+`app/api/config`. Doing that safely needs a per-section answer to "where does
+this land, and what is missing", and that answer has to still be true on the day
+2.4 runs. So it is a module with a contract test rather than a page of prose:
+
+```
+src/features/Settings/qwksearch/
+  legacySettingsMap.ts               LEGACY_SETTINGS_SECTIONS (9) and
+                                     LEGACY_SEARCH_FIELDS (22), plus
+                                     retirementBlockers()
+  legacySettingsMap.contract.test.ts checks every claim against the real files
+```
+
+Each section records four things: what actually stores its values today, the
+engine tabs that take it over, the feature directories behind those tabs, and
+the `gaps` that block deletion. `retirementBlockers()` returns the sections that
+are not yet `covered` — **9 of 9** today — so "may 2.4 run?" is
+`retirementBlockers().length === 0` rather than a reading of a doc page.
+
+**The guard reads both sides from disk** instead of importing them: the legacy
+surface lives in the root Bun workspace and is bundled for Next.js, and
+`componentMap.ts` is thirty `dynamic()` imports that would pull half the SPA
+into the test. So it parses `[SettingsTabs.Foo]:` out of the registry's source,
+resolves each through the real enum, and checks `sections.json`, `search.json`,
+every named legacy component and every named feature directory. Adding a tenth
+section, renaming a pane, or moving a component fails it.
+
+Three things it found, each of which changes the work still to do:
+
+- **The old "server" scope was never per-user.** `POST /api/config` is
+  `assertAdmin`-gated, so the SearXNG URL, the proxy, the Tavily key and the
+  provider keys are one global D1 row. They are operator settings, and on the
+  engine they are Worker secrets — the panes report only `configured: true`.
+- **The "Search Settings" section is 22 fields with four destinations.** One is
+  already covered (`sourceScrapeTimeout` → the extraction pane's
+  `timeoutSeconds`), one is the agent system role, three become Worker secrets,
+  four have no engine home, and thirteen are chrome of the old shell — the
+  homepage animations, the weather widget and the trending-news widget.
+- **`voice → tts` was wrong.** `SettingsTabs.TTS` is deprecated and redirects to
+  `ServiceModel`, and `src/features/Settings/tts/` has no `index` — only the STT
+  sub-form `service-model` imports. Kokoro on/off and the speaker choice have
+  nowhere to land yet.
+
+The map is deleted along with the surface it describes.
+
 ## 3. Shared infrastructure
 
 Both Workers point at the **same** Cloudflare resources, which is what makes a
@@ -547,7 +599,7 @@ the script so this page, `packages-lobe/README.md` and the workflow cannot drift
 apart:
 
 ```bash
-cd packages-lobe && bun run test:qwksearch    # 568 cases, 36 files, ~1 min
+cd packages-lobe && bun run test:qwksearch    # 579 cases, 37 files, ~1 min
 ```
 
 The individual recipes below are for iterating on one seam. They are the same
@@ -582,7 +634,8 @@ bunx vitest run apps/server/src/services/search
 bunx vitest run src/features/Settings/extraction src/features/Settings/search
 
 # The panes' shared controls (F5d), including the language drift guard that
-# runs one corpus through both routes' normalizers and this module (133 cases)
+# runs one corpus through both routes' normalizers and this module, and the
+# legacy settings map with its own guard (F5e) — 144 cases
 bunx vitest run src/features/Settings/qwksearch
 
 # Route/nav registration touched by /docs

@@ -2,6 +2,121 @@
 
 ## Completed
 
+## Map the old settings surface onto the engine as a tested artifact, not a paragraph
+
+**Status:** Completed
+**Source:** Scheduled task — "merge lobehub and qwksearch.com so that lobehub is
+the core engine…, every time it is run make more improvements… keep a to-do list
+of how to migrate and document all lobehub integrations". The LobeHub Migration
+To-Do's own #2 suggested next: § 2.1's settings map, which § 2.4 needs before
+anything in the old surface can be deleted.
+**Branch:** `claude/magical-bohr-0skpwn` (rebased onto `master` at `2b19de7a`)
+**PR:** #458
+**Started:** 2026-09-12
+**Completed:** 2026-09-12
+
+### Goal
+§ 2.1 asks for every section of `research-agent-ui/src/settings/sections.json`
+mapped to its engine equivalent, because § 2.4 may not delete
+`apps/qwksearch-web/components/Settings/**` until each one has somewhere to
+land. The item had sat at ⬜ with a one-line sketch in the to-do page
+(`models → provider + service-model; mcpservers → features/MCP/MCPSettings;
+voice → tts; …`) — which is exactly the shape of thing that is wrong by the time
+someone acts on it.
+
+### The finding worth keeping
+**The sketch was already wrong, and a prose map could not have told anyone.**
+`voice → tts` does not exist: `SettingsTabs.TTS` is deprecated, redirects to
+`ServiceModel` in `SettingsContent.tsx`'s `REDIRECT_MAP`, and
+`src/features/Settings/tts/` has no `index` — only an STT sub-form that
+`service-model` imports. There is no TTS pane to map onto.
+
+So the map shipped as **code with a contract test** rather than as a doc
+section: `legacySettingsMap.ts` (nine sections, 22 fields) plus
+`legacySettingsMap.contract.test.ts`, which reads `sections.json`,
+`search.json`, every named legacy component and `componentMap.ts` off disk and
+fails when either side moves. `retirementBlockers()` answers "may 2.4 run?" from
+code; it returns 9 of 9 today.
+
+Two more findings that change what 2.3 and 2.4 have to do:
+
+- **The old "server" scope was never per-user.** `POST /api/config` is
+  `assertAdmin`-gated, so `searxngURL`, `proxyURL`, `tavilyApiKey` and every
+  provider key are one global D1 row shared by all users. They are operator
+  settings; on the engine they are Worker secrets. 2.3's re-entry announcement
+  therefore covers a *smaller* list than it looked: file-source credentials,
+  per-user provider keys, MCP servers — not the admin row nobody held.
+- **"Search Settings" is not a settings section, it is 22 unrelated fields.**
+  One is already covered (`sourceScrapeTimeout` → the extraction pane's
+  `timeoutSeconds`), one is the agent system role (`ChatSettingsTabs.Prompt`,
+  per-agent rather than global), three become Worker secrets, four have no
+  engine home (follow-up and query-expansion prompts, a TTS voice), and
+  **thirteen are chrome of the old shell** — homepage background art, orb glow,
+  cursor trail, result-card glow, the weather widget (5) and the trending-news
+  widget (4). Mapping the section rather than its fields is what made 2.1 look
+  finished when it was not.
+
+### Scope
+- `packages-lobe/src/features/Settings/qwksearch/legacySettingsMap.ts` (new) —
+  `LEGACY_SETTINGS_SECTIONS`, `LEGACY_SEARCH_FIELDS`, `retirementBlockers()`,
+  `engineTabsInUse()`.
+- `.../legacySettingsMap.contract.test.ts` (new) — 11 cases.
+- Docs: § 2.1 resolved with a per-section table and the three findings, § 2.3
+  sharpened, § 2.4 re-stated as `retirementBlockers()` returning empty, the
+  snapshot row, the "suggested next" re-ranked, §F5e added to the integrations
+  reference, and `packages-lobe/README.md` § features, § Tests and § What
+  changed.
+
+### Non-goals
+- **Closing any of the nine gaps.** The map records them; deciding which API key
+  the Worker trusts, or whether to write a memories migrator, is each its own
+  change. Three of the cheapest are now the to-do's suggested-next #2.
+- **Touching the legacy surface.** Nothing under `apps/qwksearch-web` changed;
+  2.4 deletes it, and it cannot run yet.
+- **Wiring the map into anything.** It is a migration artifact with a guard, and
+  it is deleted along with the surface it describes.
+
+### What changed
+The map is a plain data module: each section carries `stores` (what actually
+holds its values today), `engineTabs`, `engineFeatures`, a `status` of
+`covered | partial | gap`, and the `gaps` that block deletion. Typing
+`engineTabs` as `SettingsTabs[]` means an upstream enum rename is a compile
+error that `type-check:qwksearch` catches; the rest is the test's job.
+
+The guard reads both sides from disk rather than importing them, and the reason
+is worth keeping: the legacy surface is in the root Bun workspace bundled for
+Next.js, and `componentMap.ts` is thirty `dynamic(() => import(…))` entries that
+would pull half the SPA into the test. It parses `[SettingsTabs.Foo]:` out of the
+registry's source, resolves each name through the real enum, and checks the two
+JSON schemas, every legacy component path and every feature directory. Verified
+by mutation, not assumed: pointing the voice row at `SettingsTabs.TTS` fails with
+`voice → SettingsTabs "tts" is not reachable`, and dropping one field from the
+22 fails the `search.json` coverage case. Both reverted.
+
+### Verification
+- `bunx vitest run src/features/Settings/qwksearch` — **144 passed** (was 133).
+- `bun run test:qwksearch` — **577 + 2 passed, 37 files**, ~1 minute. This is
+  what CI runs.
+- `bun run type-check:qwksearch` — clean.
+- `bun run check --lint <the two files>` — clean after two auto-fix passes; the
+  one remaining warning (`unicorn/import-style` on `node:path`) was fixed by
+  hand, which is also why the test uses `path.join` rather than a named import.
+
+### Notes for the next run
+- **The to-do's suggested-next #1 is still 1.4's parity checklist**, unchanged.
+  #2 is now the three cheapest blockers this map named — where browser-session
+  revocation goes (the engine's `devices` tab manages CLI/desktop devices, not
+  sessions, which is another thing the sketch would have got wrong), whether
+  `SSOProvidersList` can unlink as well as list, and which API key the Worker's
+  `/api/agent/*` routes should trust. The last is a decision, not a build, and
+  it gates deleting the Account section.
+- **`retirementBlockers().length` is asserted to be 9.** That is deliberate: a
+  run that clears a gap has to update the number, which is how it notices the
+  page needs updating too. When it reaches 0, delete the map with the surface.
+- `pnpm install --ignore-scripts` in `packages-lobe` took about two minutes here
+  on a cold store; the suite and the type-check are each about a minute after
+  that, so the whole loop is ~4 minutes.
+
 ## Let CI see `packages-lobe` at all, and widen the type-check to every QwkSearch file
 
 **Status:** Completed

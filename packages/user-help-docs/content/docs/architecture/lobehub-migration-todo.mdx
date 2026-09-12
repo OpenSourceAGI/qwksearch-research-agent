@@ -16,7 +16,7 @@ The map of what already connects is
 
 **Legend** — ✅ done · 🚧 in progress · ⬜ not started · 🔒 blocked
 
-Last updated: 2026-09-11.
+Last updated: 2026-09-12.
 
 ## Snapshot
 
@@ -24,7 +24,7 @@ Last updated: 2026-09-11.
 |---|---|
 | 0. Baseline — LobeHub builds and deploys on Workers | ✅ |
 | 1. Chat mode on the engine (staging) | 🚧 search and extraction wired, both with a settings layer, a pane and shared controls; the Worker's one unreachable chain deleted; parity open |
-| 2. Settings as the single system of record | 🚧 Both panes shipped end to end and their controls finished (2.2 done); key migration and retiring the old surface remain |
+| 2. Settings as the single system of record | 🚧 Both panes shipped and their controls finished (2.2), and the old surface is now mapped section by section as a tested artifact (2.1); the key migration and the deletion remain, with 9 of 9 sections still blocking it |
 | 3. REASON docs inside the engine | ⬜ |
 | 4. Public cutover | 🔒 needs the license answer |
 | 5. Decommission + satellites + ops gaps | 🚧 `worker/` type-checks clean and CI finally installs this workspace (5.5, 5.6); packages, satellites and the ops gaps untouched |
@@ -574,10 +574,50 @@ Reproduce today's chat-mode behavior on the engine and record each gap:
 
 ## Phase 2 — Settings: one system of record
 
-- ⬜ **2.1 Map every section** of `research-agent-ui/src/settings/sections.json`
-  to its engine equivalent: models → `Settings/provider` + `service-model`;
-  mcpservers → `features/MCP/MCPSettings`; voice → `tts`; skills-memory →
-  `skill` + `memory`; account/storage → `profile` / `storage`.
+- ✅ **2.1 Map every section** of `research-agent-ui/src/settings/sections.json`
+  to its engine equivalent. Done, and done as **code rather than as this
+  paragraph**: `packages-lobe/src/features/Settings/qwksearch/legacySettingsMap.ts`
+  carries all nine sections with, for each, what stores its values today, the
+  engine tabs that take it over, and what is still missing before 2.4 may delete
+  it. `legacySettingsMap.contract.test.ts` checks every claim against the thing
+  itself — `sections.json` and `search.json` on the QwkSearch side,
+  `componentMap.ts` and the feature directories on the engine side — so the map
+  fails a test instead of going quietly stale. `retirementBlockers()` is the
+  answer to "may 2.4 run yet?"; it returns **9 of 9** today.
+
+  | Legacy section | Engine tabs | State |
+  |---|---|---|
+  | Account | `profile`, `apikey`, `devices`, `appearance` | 🚧 which API key the Worker trusts; account deletion; browser-session revocation (the `devices` tab is CLI/desktop devices, not sessions) |
+  | Language Models | `provider`, `service-model` | 🚧 global admin row → per-user vault; no "test models" |
+  | Connectors | `connector`, `skill` | 🚧 servers live in Worker A, engine reads its own store |
+  | Skills & Memory | `skill`, `memory` | 🚧 memories are D1 rows vs engine Postgres — the one migrator that is possible |
+  | Search Sources | `search` | 🚧 pane picks categories, legacy picks engines *within* a category + health test |
+  | Search Settings | `search`, `extraction` | 🚧 22 fields, four destinations — see below |
+  | Cloud Storage | — | ⬜ no engine equivalent; credentials in `localStorage` |
+  | Rewrite Modes | — | ⬜ Phase 3: REASON is not in the engine yet |
+  | Voice Settings | `service-model` | 🚧 STT only; `SettingsTabs.TTS` is deprecated and `tts/` has no pane |
+
+  Three findings the map exists to record, because each changes what 2.3 and 2.4
+  have to do:
+
+  - **The old "server" scope was never per-user.** `POST /api/config` is
+    `assertAdmin`-gated, so `searxngURL`, `proxyURL`, `tavilyApiKey` and the
+    provider keys are one global D1 row shared by everyone. On the engine they
+    are Worker secrets — which is what 2.3 already says, but the reason is that
+    they were operator settings all along, not that per-user storage was lost.
+  - **The "Search Settings" section is not one setting.** Its 22 fields have
+    four different destinations, mapped field by field in `LEGACY_SEARCH_FIELDS`:
+    **1** is already on a shipped pane (`sourceScrapeTimeout` → the extraction
+    pane's `timeoutSeconds`), **1** is the agent system role
+    (`ChatSettingsTabs.Prompt`, per-agent rather than global), **3** become
+    Worker secrets, **4** are follow-up/query-expansion prompts and a TTS voice
+    with no engine home, and **13** are chrome of the old shell — homepage
+    background art, orb and cursor glow, result-card glow, the weather widget
+    (5) and the trending-news widget (4).
+  - **`voice → tts` was wrong**, which is the kind of thing a prose map hides:
+    `SettingsTabs.TTS` is deprecated and redirects to `ServiceModel`, and
+    `src/features/Settings/tts/` has no `index` — only an STT sub-form that
+    `service-model` imports. There is no TTS voice pane to map onto.
 - ✅ **2.2 Add the two missing panes**, following the existing tab conventions
   (`src/features/Settings/<tab>/` + route segment + keys in
   `packages/locales/src/default/qwksearch.ts`): **Search & Sources** (engine and
@@ -599,7 +639,16 @@ Reproduce today's chat-mode behavior on the engine and record each gap:
 - ⬜ **2.3 Key migration.** Server env keys stay Worker secrets. Per-user keys
   live in `localStorage` today and have no server copy — announce a one-time
   re-entry into the engine's key vault; do not build a migrator.
-- ⬜ **2.4 Retire the old surface** only after the map is covered: delete
+
+  2.1's map sharpens the list. What actually has to be re-entered is: the
+  **file-source credentials** (SSH / S3 / R2 / B2 / Google Docs / Turso under
+  `REASON-file-sources`, and there is nowhere on the engine to enter them yet),
+  **per-user model provider keys**, and **MCP servers**. What does *not* need
+  announcing is the admin-only global row — those become Worker secrets and no
+  user ever held them. The one place a migrator is even possible is
+  `/api/user/memories`, which is server-side; whether to write one is undecided.
+- ⬜ **2.4 Retire the old surface** when `retirementBlockers()` (2.1) returns
+  empty — it returns all nine sections today. Then delete
   `apps/qwksearch-web/components/Settings/**`, `app/settings/[[...section]]`,
   `app/api/config`, and drop `shadcn-settings` from the prebuild chain. Never run
   two settings stores at once.
@@ -748,7 +797,7 @@ Blocked on the LobeHub Community License answer, recorded in
     drift guards, the shared controls, the Cloudflare adapters, the search
     provider, and the Hyperdrive bridge in `packages/database` (a separate
     vitest project, because the root config excludes `**/packages/**`).
-    **568 tests in 36 files, ~1 minute.** The path list living in the script is
+    **579 tests in 37 files, ~1 minute.** The path list living in the script is
     what stops the workflow, the README and the reference from drifting apart —
     the same mechanism as the panes' `contract.test.ts`.
   - **Path-filtered to everything under `packages-lobe/`, plus the workflow file
@@ -821,8 +870,14 @@ credentials:
    with the two items that are pure verification against the wired-up engine —
    search-cited answers with follow-ups, and file-upload Q&A — and record each
    gap before deciding to adopt or port.
-2. **2.1's settings map**, which is pure reading, and which 2.4 needs before
-   anything in the old surface can be deleted.
+2. **The cheapest blockers 2.1 just named.** The map turned "retire the old
+   surface" into nine specific questions, and three of them are code-only and
+   small: where browser-session revocation goes now that the `devices` tab turns
+   out to manage CLI/desktop devices rather than sessions; whether
+   `SSOProvidersList` can unlink as well as list; and which API key the Worker's
+   `/api/agent/*` routes should trust once the legacy minting UI is gone (that
+   one is a decision, not a build, and it gates deleting the Account section).
+   Each clears a `gaps` entry in `legacySettingsMap.ts` and its test.
 3. **5.4's bundle budget in CI**, which is now purely a minutes decision: 5.6's
    job exists to hang it on, and the measurement exists (`bun run cf:budget`).
    What it needs that 5.6 does not is a full install and a Worker build — see
@@ -853,7 +908,7 @@ Then, for whichever you pick:
    + auto-discovered related tests in one pass) available, which is the workflow
    `packages-lobe/AGENTS.md` documents. Prefer it unless the change is
    `worker/`-only. With it, `bun run test:qwksearch` runs the whole integration
-   surface — 568 tests — in about a minute; that is what CI runs, so a green run
+   surface — 579 tests — in about a minute; that is what CI runs, so a green run
    of it locally is the same signal.
 
    **`bun run build:worker:server` cannot finish after an `--ignore-scripts`
