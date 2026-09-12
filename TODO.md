@@ -9,7 +9,7 @@
 other qwksearch API if not already. delete the test reports app. move
 packages-lobe into apps/qwk-in-lobe".
 **Branch:** `claude/festive-cori-reed97`
-**PR:** #PR_NUMBER
+**PR:** #471
 **Started:** 2026-09-12
 **Completed:** 2026-09-12
 
