@@ -606,10 +606,11 @@ cd packages-lobe && bun run type-check:worker
 **Both of the above now run in CI**, in
 [`.github/workflows/lobehub-engine.yml`](https://github.com/OpenSourceAGI/qwksearch-research-agent/blob/master/.github/workflows/lobehub-engine.yml)
 — the only job in this repository that installs `packages-lobe`. It is
-path-filtered to `packages-lobe/**` and the workflow file, because the install
-is the expensive step (~1.5 min cold, 4.2 GB) and nothing outside the engine can
-change either result. What it does *not* run is the Worker bundle-size budget;
-§5.4 of the migration to-do records why.
+path-filtered to `packages-lobe/**` and the workflow file, because the install is
+the expensive step (~1 min cold on a runner, 4.2 GB) and nothing outside the
+engine can change either result. **3m22s end to end** on its first real run. What
+it does *not* run is the Worker bundle-size budget; §5.4 of the migration to-do
+records why.
 
 ## 7. Not yet integrated
 
