@@ -9,7 +9,7 @@
 loaded returns 500 error" (with a screenshot of the application sidebar), then
 "add back the settings icon to app dock".
 **Branch:** `claude/trusting-shannon-kqvtma`
-**PR:** Not created yet
+**PR:** #460
 **Started:** 2026-09-12
 **Completed:** 2026-09-12
 
