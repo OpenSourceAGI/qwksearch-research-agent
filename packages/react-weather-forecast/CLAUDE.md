@@ -17,6 +17,15 @@ Published.
 - Geolocation fails often (VPNs, blocked requests, datacenter IPs). A wrong or
   missing location must degrade to a usable component, not an error state.
 - Units and locale are user-visible: don't hardcode Fahrenheit or English.
+- **Never hand `grabJson` a URL with a query string on the path it cannot split.**
+  `grab-url` turns every option it does not recognise into the query string and
+  concatenates it onto the path, so a second `?` corrupts the last real
+  parameter — which is what made every forecast a `400 Bad Request`. Build the
+  query, let `splitUrl` separate it, and keep `test/wire-url.test.ts` (the one
+  test here that uses the real `grab-url`) green.
+- A failure has three layers of fallback beneath it: query shapes, then
+  providers, then whole reloads from the hook. Add to a layer; don't bypass them.
+
 
 ```bash
 cd packages/react-weather-forecast && bun run test

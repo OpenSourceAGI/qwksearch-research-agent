@@ -120,6 +120,15 @@ export type WeatherForecastOptions = {
    * provider failed, rather than throwing.
    */
   allowStaleCache?: boolean;
+  /**
+   * default=2 Whole reloads the component attempts after a load that failed on
+   * every provider, on top of the per-request retries. It stays in the loading
+   * state in between, so a failure that clears on its own never reaches the
+   * user. `0` surfaces the error as soon as the first load fails.
+   */
+  reloadAttempts?: number;
+  /** default=3000 Milliseconds before the first reload; each further wait doubles. */
+  reloadDelay?: number;
   /** Called for each upstream that failed, before the next one is tried. */
   onProviderError?: (info: {
     provider: string;

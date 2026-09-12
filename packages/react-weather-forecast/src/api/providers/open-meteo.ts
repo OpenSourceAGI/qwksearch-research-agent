@@ -31,19 +31,37 @@ const MINIMAL_VARIABLES = {
 
 type Variables = typeof FULL_VARIABLES;
 
+export type OpenMeteoQuery = {
+  /** default=FULL_VARIABLES Which variables to ask for. */
+  variables?: Variables;
+  /**
+   * default=false Leave out the range and zone parameters an endpoint can
+   * refuse on their own: `forecast_hours`, and a `timezone` other than `auto`.
+   *
+   * Only parameters that cannot change what the numbers *mean* are dropped --
+   * the units stay, since a Celsius body read as Fahrenheit would render a
+   * plausible, wrong temperature rather than an error.
+   */
+  omitOptional?: boolean;
+};
+
 export function buildOpenMeteoUrl(
   endpoint: string,
   request: ForecastRequest,
-  variables: Variables = FULL_VARIABLES
+  query: OpenMeteoQuery | Variables = {}
 ): string {
+  // Historically this took the variables directly; both shapes are accepted.
+  const { variables = FULL_VARIABLES, omitOptional = false } =
+    'current' in query ? { variables: query as Variables } : (query as OpenMeteoQuery);
+
   const params = new URLSearchParams({
     latitude: String(request.location.latitude),
     longitude: String(request.location.longitude),
-    timezone: request.timezone || 'auto',
+    timezone: omitOptional ? 'auto' : request.timezone || 'auto',
     temperature_unit: request.temperatureUnit,
     wind_speed_unit: request.windSpeedUnit,
     forecast_days: String(request.forecastDays),
-    forecast_hours: String(request.forecastHours),
+    ...(omitOptional ? {} : { forecast_hours: String(request.forecastHours) }),
     current: variables.current.join(','),
     hourly: variables.hourly.join(','),
     daily: variables.daily.join(','),
@@ -121,30 +139,41 @@ export function createOpenMeteoProvider(id: string, label: string, endpoint: str
     id,
     label,
     async fetchForecast(request) {
-      try {
-        const data = await grabJson<OpenMeteoResponse>(
-          buildOpenMeteoUrl(endpoint, request),
-          'Weather request',
-          request.transport
-        );
-        return parse(data, request);
-      } catch (error) {
-        // A 400 means this endpoint refused one of the optional variables (or
-        // the whole variable list); ask again for the bare minimum before
-        // handing the request to the next provider. A body we could not parse
-        // is not a query problem, so it is not worth a second request.
-        if (!(error instanceof HttpRequestError)) throw error;
-        const invalidQuery =
-          error.status === 400 || /cannot initialize|invalid|not supported/i.test(error.message);
-        if (!invalidQuery) throw error;
+      // Each shape asks for less than the last, so an endpoint that refused one
+      // part of the query gets a turn at answering the rest before the request
+      // is handed to the next provider: the full query, then only the variables
+      // every model supports, then that without the range and zone parameters.
+      const shapes: OpenMeteoQuery[] = [
+        {},
+        { variables: MINIMAL_VARIABLES },
+        { variables: MINIMAL_VARIABLES, omitOptional: true },
+      ];
 
-        const data = await grabJson<OpenMeteoResponse>(
-          buildOpenMeteoUrl(endpoint, request, MINIMAL_VARIABLES),
-          'Weather request',
-          request.transport
-        );
-        return parse(data, request);
+      let lastError: unknown;
+
+      for (const [index, shape] of shapes.entries()) {
+        try {
+          const data = await grabJson<OpenMeteoResponse>(
+            buildOpenMeteoUrl(endpoint, request, shape),
+            'Weather request',
+            request.transport
+          );
+          return parse(data, request);
+        } catch (error) {
+          lastError = error;
+
+          // Only a query the endpoint called invalid is worth asking again in a
+          // smaller shape. A body we could not parse, a rate limit or an
+          // unreachable host is not a query problem, so it goes straight to the
+          // next provider.
+          if (!(error instanceof HttpRequestError)) throw error;
+          const invalidQuery =
+            error.status === 400 || /cannot initialize|invalid|not supported/i.test(error.message);
+          if (!invalidQuery || index === shapes.length - 1) throw error;
+        }
       }
+
+      throw lastError;
     },
   };
 }
