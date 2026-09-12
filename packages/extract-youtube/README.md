@@ -1,35 +1,28 @@
-
 <p align="center">
     <img width="300px" src="https://i.imgur.com/dwg2IYg.png" />
-<br /> 
-    <a href="https://www.npmjs.com/package/extract-youtube"><img src="https://img.shields.io/npm/dm/extract-youtube.svg" alt="NPM Monthly Downloads"></a>
-    <a href="https://www.npmjs.com/package/extract-youtube"><img src="https://img.shields.io/npm/v/extract-youtube.svg" alt="npm version"></a>
-    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/extract-youtube"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
-    <a href="https://discord.gg/SJdBqBz3tV">
-        <img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat"
-            alt="Join Discord" />
-    </a>  
-     <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
-     <img alt="GitHub Stars" src="https://img.shields.io/github/stars/vtempest/qwksearch-research-agent" /></a>
-<br />
-    <a href="https://github.com/vtempest/qwksearch-research-agent/discussions">
-    <img alt="GitHub Discussions"
-        src="https://img.shields.io/github/discussions/vtempest/qwksearch-research-agent" />
-    </a>
-    <a href="https://github.com/vtempest/qwksearch-research-agent/pulse" alt="Activity">
-        <img src="https://img.shields.io/github/commit-activity/m/vtempest/qwksearch-research-agent" />
-    </a>
-    <img src="https://img.shields.io/github/last-commit/vtempest/qwksearch-research-agent.svg" alt="GitHub last commit" />
-<br />
-    <a href="https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request">
-        <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg"
-            alt="PRs Welcome" />
-    </a>
-    <a href="https://codespaces.new/vtempest/qwksearch-research-agent">
-    <img src="https://github.com/codespaces/badge.svg" width="150" height="20" />
-    </a>
-    <a href="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent"><img src="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg?component=package-extract-youtube" alt="Coverage" /></a>
 </p>
+
+<!-- template-git-repo:badges:start -->
+<p align="center">
+    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/extract-youtube"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
+    <br />
+    <a href="https://www.npmjs.com/package/extract-youtube"><img src="https://img.shields.io/npm/dm/extract-youtube.svg" alt="NPM Monthly Downloads" /></a>
+    <a href="https://www.npmjs.com/package/extract-youtube"><img src="https://img.shields.io/npm/v/extract-youtube.svg" alt="npm version" /></a>
+    <a href="https://www.npmjs.com/package/extract-youtube"><img src="https://img.shields.io/npm/dt/extract-youtube.svg" alt="NPM Total Downloads" /></a>
+    <a href="https://www.npmjs.com/package/extract-youtube"><img src="https://img.shields.io/npm/types/extract-youtube" alt="TypeScript types" /></a>
+    <a href="https://packagephobia.com/result?p=extract-youtube"><img src="https://packagephobia.com/badge?p=extract-youtube" alt="Install size" /></a>
+    <br />
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"><img src="https://img.shields.io/github/issues/OpenSourceAGI/qwksearch-research-agent?logo=github" alt="GitHub Issues" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls"><img src="https://img.shields.io/github/issues-pr/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs" alt="Open Pull Requests" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls?q=is%3Apr+is%3Aclosed"><img src="https://img.shields.io/github/issues-pr-closed/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs%20merged&color=8957e5" alt="Merged Pull Requests" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/discussions"><img src="https://img.shields.io/github/discussions/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Discussions" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/OpenSourceAGI/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
+    <br />
+    <img src="https://img.shields.io/badge/Bun-14151A?logo=bun&logoColor=white" alt="Bun" /> <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" /> <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=white" alt="React" /> <img src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" alt="Vite" /> <img src="https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=white" alt="Jest" />
+</p>
+<!-- template-git-repo:badges:end -->
 
 # Extract YouTube Transcript 
 
