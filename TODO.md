@@ -166,10 +166,18 @@ and not of one machine — which is what makes it usable as a tripwire rather th
 noise. And the **cold install is the whole cost**: on a cache hit the job is
 about two minutes, so the path filter is buying runner slots, not minutes.
 
+**Correction, from the second run.** That last sentence was an inference —
+subtract the install and the cache save — and the measurement disagrees with it.
+#453 hit the store cache on the primary key and took **3m36s**, marginally
+*slower* than the cold 3m22s, with the install going 1m03s → **45.7s**. The
+cache is worth about 17 seconds: it removes the download, but pnpm still links
+3939 packages into `node_modules` on every run, and that is what the install
+actually is. So the job costs ~3.5 minutes every time, which makes the path
+filter worth minutes as well as runner slots. Written up correctly in §5.6.
+
 ### Remaining work
-- **Only ever run on a cache miss.** The first run wrote the store cache; nothing
-  has read one back yet, so the `restore-keys` fallback is unexercised. A bad
-  restore would show up as a slow install rather than a wrong one.
+- **`restore-keys` has still not been taken.** The second run hit the primary
+  key, so the restore path works but the fallback branch is unexercised.
 - **Noticed, not fixed (repo-wide):** every run warns that
   `actions/checkout@v4`, `actions/setup-node@v4`, `actions/cache@v4` and
   `pnpm/action-setup@v4` target Node 20 and are being forced onto Node 24. Every

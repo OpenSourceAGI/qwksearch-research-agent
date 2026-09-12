@@ -13,8 +13,10 @@ name: LobeHub Engine
 #
 # Path-filtered on purpose: the install is the expensive step (~1 min cold on a
 # runner, a 1.0 GB pnpm store, 4.2 GB of node_modules), so it runs only when the
-# engine actually changed. Measured on the first real run (#452): 3m22s end to
-# end — 1m03s install, 40s type-check, 43s tests, ~25s saving the store cache.
+# engine actually changed. Measured: **3m22s** cold (#452) and **3m36s** on a
+# cache hit (#453) — the store cache is worth ~17s of the install because it
+# removes only the download, while pnpm links 3939 packages either way. Plan on
+# ~3.5 minutes per run whatever the cache does.
 
 on:
   push:
