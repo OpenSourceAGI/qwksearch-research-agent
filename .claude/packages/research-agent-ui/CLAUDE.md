@@ -24,6 +24,18 @@ are narrow, and neither has the web app's origin.
 
 Import from these, never from `dist/` internals.
 
+## The spotlight palette
+
+`src/components/SpotlightPalette/` is the Ctrl-Space overlay that searches
+chats, pages, settings and actions — ported from CardMirror's quick-card search
+palette in debate-ai, prefix system and ranking included. `QwkSearchProviders`
+mounts it, so all four shells get it; `showSpotlight={false}` opts out.
+
+Keep the split: `spotlightMatch.ts` and `spotlightItems.ts` are pure (a builder
+takes a `SpotlightContext` of callbacks, never a hook), and only
+`SpotlightPalette.tsx` touches React context or the router. That is what lets
+the sources and the ranking be tested without mounting the app.
+
 ## Rules
 
 - Keep it prop-driven and transport-agnostic: `./api` is the seam. A component

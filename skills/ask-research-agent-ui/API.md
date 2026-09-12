@@ -32,6 +32,18 @@
 | `docsEnabled` | set by the entry point | Whether the REASON surface is in this build |
 | `ChromeProvider` | — | Extra provider mounted inside the dock/view providers |
 | `showDock` / `showCookieConsent` / `showToaster` | `true` | Chrome toggles |
+| `showSpotlight` | `true` | Mount the Ctrl-Space spotlight palette |
+
+## Spotlight palette (`src/components/SpotlightPalette/`)
+
+| Export | Purpose |
+| --- | --- |
+| `SpotlightPalette` | The Ctrl-Space overlay; mounted for you by `QwkSearchProviders` |
+| `openSpotlight()` | Opens it from anywhere (no-op when it is not mounted) |
+| `SPOTLIGHT_PREFIXES`, `SpotlightPrefix`, `SpotlightSource` | The prefix system: `c` chats · `t` pages · `s` settings · `a` actions · `w` ask |
+| `parsePrefix`, `matchSpotlight` | The prefix parser and the two-tier ranker |
+| `SPOTLIGHT_LINKS`, `SpotlightLink` | The hand-kept list of app pages |
+| `SpotlightItem`, `SpotlightContext` | A row, and the callbacks a row's `run()` may use |
 
 ## Configuration
 

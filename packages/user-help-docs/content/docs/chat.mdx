@@ -70,6 +70,31 @@ Privacy mode skips history entirely for that session.
 Hands-free control is packaged separately as
 [`use-voice-control`](https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/use-voice-control).
 
+## Spotlight search — <kbd>Ctrl</kbd> <kbd>Space</kbd>
+
+Press <kbd>Ctrl</kbd> <kbd>Space</kbd> anywhere in the app and one bar opens in
+front of everything. Type and it searches your past chats, the app's pages, the
+settings sections and the things the app can do — and whatever you typed is
+always askable from the top row, so a question you meant to ask never turns into
+a dead end.
+
+Start the query with a letter and a space to look in one place only:
+
+| Type | Searches |
+| --- | --- |
+| `c ` | your past chats |
+| `t ` | pages — Library, News, Settings, the REASON editor… |
+| `s ` | settings sections |
+| `a ` | actions — new chat, incognito, focus mode, sign in/out |
+| `w ` | ask the research agent |
+
+<kbd>Tab</kbd> cycles through those scopes without retyping, <kbd>↑</kbd>
+<kbd>↓</kbd> move, <kbd>Enter</kbd> opens and <kbd>Esc</kbd> closes. Matching is
+plain substring matching on every word you type, in any order, so what you see
+is what you asked for. (On a Mac it is Ctrl, not Cmd — macOS keeps
+<kbd>Cmd</kbd> <kbd>Space</kbd> for its own Spotlight.) It's also in the dock's
+settings menu as **Search everything**.
+
 ## Discover
 
 `GET /api/agent/discover` returns curated content by topic — the feed shown on
