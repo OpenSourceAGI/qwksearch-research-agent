@@ -1,6 +1,6 @@
 ---
 name: ask-qwksearch-api-client
-description: Guide to qwksearch-api-client (packages/qwksearch-api-client), the hey-api generated TypeScript client for the QwkSearch backend — the 85 typed SDK functions, the shared `client` singleton and per-call `client` override, the baseUrl resolution that differs between browser and server, `throwOnError`, and the regeneration workflow from qwksearch-openapi.json. Use when calling the QwkSearch API from any app or package, when requests hit the wrong origin or 401, when a new endpoint is missing from the client, or when regenerating after an OpenAPI change.
+description: Guide to qwksearch-api-client (packages/qwksearch-api-client), the hey-api generated TypeScript client for the QwkSearch backend — the 85 typed SDK functions, the shared `client` singleton and per-call `client` override, the api2client/grab transport and its cache/retry/rateLimit/mock options, the baseUrl resolution that differs between browser and server, `throwOnError`, and the two-step regeneration workflow from qwksearch-openapi.json. Use when calling the QwkSearch API from any app or package, when requests hit the wrong origin or 401, when a response carries no status or an unparsed error body, when a new endpoint is missing from the client, or when regenerating after an OpenAPI change.
 ---
 
 # Working With qwksearch-api-client
@@ -10,12 +10,18 @@ description: Guide to qwksearch-api-client (packages/qwksearch-api-client), the 
 [`@hey-api/openapi-ts`](https://heyapi.dev) from `qwksearch-openapi.json` — **do not
 hand-edit them**, the next `bun run build:api` overwrites the lot.
 
+`src/client/client.gen.ts` is generated twice over: `openapi-ts` writes Hey API's
+bundled fetch client there, then `api2client --rewire-only ./src` replaces it with a
+one-line re-export of [api2client](https://github.com/OpenSourceAGI/GRAB-URL/tree/master/packages/api2client)'s
+client, so every operation sends through [`grab`](https://grab.js.org). That is why
+regeneration is `bun run codegen`, never bare `openapi-ts` — see **Transport** below.
+
 ## Setup
 
 ```ts
 import { agentSearch, listChats, uploadFiles } from "qwksearch-api-client";
 
-const { data, error } = await agentSearch({ body: { query: "…" } });
+const { data, error } = await agentSearch({ query: { q: "…" } });
 ```
 
 Every function takes one options object (`body`, `path`, `query`, `headers`, `client`,
@@ -35,6 +41,40 @@ the origin per environment:
 So in the browser the client talks to **the current origin** — which is what makes the
 same bundle work on localhost, staging and production — and on the server it needs
 `NEXT_PUBLIC_BASE_URL` or it goes to production.
+
+## Transport: api2client over grab
+
+Requests do not go through `fetch`; they go through `grab`. The function signatures,
+options and `{ data, error, request, response }` result are unchanged, so callers need
+no edits — but grab's options are now accepted per request and client-wide:
+
+| Option | Effect |
+| --- | --- |
+| `cache`, `cacheForTime` | Serve repeats from grab's cache |
+| `retryAttempts` | Retry a failed request |
+| `rateLimit` | Minimum seconds between calls to the same path |
+| `timeout` | Seconds before abort |
+| `cancelOngoingIfNew`, `cancelNewIfOngoing` | Dedupe concurrent calls to a path |
+| `debug`, `logger` | Log request and response |
+| `grab` | Send on a custom instance, e.g. `grab.instance({})` |
+
+```ts
+await agentSearch({ query: { q }, cache: true, cacheForTime: 60, retryAttempts: 2 });
+```
+
+Three consequences worth knowing:
+
+- **There is no `fetch` option.** Passing one does nothing — grab owns that call. To
+  stub the transport in a test, replace `globalThis.fetch`, or register a mock by
+  path: `grab.mock["/agent/search"] = { response: { results: [] } }`.
+- **The status and the parsed error body need grab >= 1.6.23.** api2client recovers the
+  raw `Response` through grab's `onRawResponse` hook and probes for it via
+  `grab.supports.onRawResponse`. On an older grab there is no `Response` to hand back:
+  `result.response` is `undefined` and `result.error` is grab's `"HTTP error: <status>"`
+  string rather than the handler's JSON. `packages/qwksearch-api-client/test/error-result-shape.test.ts`
+  skips itself on such a grab rather than assert what the transport cannot do.
+- **SSE bypasses grab.** `agentChat` and the rest of `client.sse.*` go straight to
+  `fetch`, because grab's cache/retry/timeout model assumes a request that completes.
 
 ## Picking the right call
 
@@ -70,9 +110,12 @@ await listChats({ client });
 call on that client — this is how the VS Code extension's API-key mode works.
 
 **Add an endpoint.** Update `qwksearch-openapi.json`, run `bun run build:api`
-(`openapi-ts && vite build`), and commit both `src/*.gen.ts` and `dist/`. This package
-has **no `build` script**, so the workspace prebuild chain skips it and the committed
-`dist/` is what consumers get — forgetting to commit it ships a stale client.
+(`openapi-ts && api2client --rewire-only ./src && vite build`), and commit both
+`src/*.gen.ts` and `dist/`. This package has **no `build` script**, so the workspace
+prebuild chain skips it and the committed `dist/` is what consumers get — forgetting to
+commit it ships a stale client. Running `openapi-ts` on its own leaves Hey API's fetch
+client in `src/client/client.gen.ts`; `bun run codegen` is the same two steps without
+the bundle.
 
 ## Troubleshooting
 
@@ -85,4 +128,7 @@ has **no `build` script**, so the workspace prebuild chain skips it and the comm
 | A generated file was edited and the change vanished | `src/**/*.gen.ts` is regenerated wholesale. Put customisation in `baseurl.ts`, or change the OpenAPI spec. |
 | A new backend endpoint is missing | The spec is a committed snapshot, not fetched at build time. Update `qwksearch-openapi.json` and regenerate. |
 | Consumers see an old client after your change | There is no `build` script, so nothing rebuilds it in the workspace chain. Run `bun run build:api` and commit `dist/`. |
-| Types don't resolve | `exports["."].types` points at `dist/src/index.d.ts` while `main`/`types` at the top level point elsewhere — a full `build:api` produces the layout the exports map expects. |
+| Types don't resolve (TS7016) | `dist/index.d.ts` is missing. `vite-plugin-dts` 5 spells the bundle option `bundleTypes` (not `rollupTypes`) and needs `@microsoft/api-extractor` present, or it silently emits per-file types under `dist/src/` instead. Run `bun run build:api` and check `dist/index.d.ts` exists. |
+| `result.response` is `undefined` on a failed call | The installed grab predates `onRawResponse` (< 1.6.23), so api2client has no `Response` to return. Check `grab.supports?.onRawResponse`. |
+| `result.error` is `"HTTP error: 500"` instead of the handler's JSON | Same cause as the row above — the error body is only read when the raw `Response` comes back. |
+| A `fetch` passed in the client config is ignored | There is no `fetch` option under api2client. Stub `globalThis.fetch` or use `grab.mock`. |
