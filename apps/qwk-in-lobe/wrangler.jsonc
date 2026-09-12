@@ -67,6 +67,12 @@
     "head_sampling_rate": 1,
     "logs": { "enabled": true, "invocation_logs": true, "persist": true }
   },
+  // A named environment deploys a *separate* Worker — `qwksearch-lobehub-production`,
+  // bound to the `production-qwksearch-sessions` KV namespace — not a variant of
+  // the one above. Defining it also makes a bare `wrangler deploy` warn that no
+  // target environment was specified before falling back to the top-level one, so
+  // both deploy paths pass `--env` explicitly: `--env=""` for this Worker (the
+  // qwksearch.com deploy), `--env production` for the separate one.
   "env": {
     "production": {
       "vars": {
