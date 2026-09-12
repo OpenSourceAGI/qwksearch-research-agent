@@ -139,26 +139,15 @@ export function convertURLToAbsoluteURL(base, relative) {
 }
 
 import { marked } from "marked";
-// Must precede every `prismjs/components/*` import: the grammar scripts read
-// `Prism` off the global object, which this module publishes (see its docs).
-import Prism from "./prism-global";
-import "prismjs/components/prism-markup.js";
-import "prismjs/components/prism-css.js";
-import "prismjs/components/prism-javascript.js";
-import "prismjs/components/prism-typescript.js";
-import "prismjs/components/prism-jsx.js";
-import "prismjs/components/prism-tsx.js";
-import "prismjs/components/prism-python.js";
-import "prismjs/components/prism-bash.js";
-import "prismjs/components/prism-json.js";
-import "prismjs/components/prism-yaml.js";
-import "prismjs/components/prism-markdown.js";
-import "prismjs/components/prism-sql.js";
-import "prismjs/components/prism-rust.js";
-import "prismjs/components/prism-go.js";
-import "prismjs/components/prism-java.js";
-import "prismjs/components/prism-c.js";
-import "prismjs/components/prism-cpp.js";
+// `prism-global` owns both the Prism instance and the grammars beyond the ones
+// prismjs' entry point bundles; importing `prismjs/components/*` here directly
+// would reintroduce the load-order crash its docs describe.
+import Prism, { loadPrismGrammars } from "./prism-global";
+
+// Start the grammars loading now, and again from the renderer below — the
+// second call is what guarantees they are requested at all, since a bundler is
+// free to drop this one as a side effect of a module it thinks is pure.
+void loadPrismGrammars();
 
 // Configure marked once at module load with Prism.js syntax highlighting.
 // marked v17 removed the `highlight` option from setOptions, so highlighting
@@ -166,6 +155,7 @@ import "prismjs/components/prism-cpp.js";
 marked.use({
   renderer: {
     code({ text, lang }) {
+      void loadPrismGrammars();
       const language = lang && Prism.languages[lang] ? lang : null;
       const highlighted = language
         ? Prism.highlight(text, Prism.languages[language], language)

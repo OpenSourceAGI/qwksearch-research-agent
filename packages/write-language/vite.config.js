@@ -3,6 +3,24 @@ import { resolve } from "path";
 import dts from "vite-plugin-dts";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
+/** Bare specifiers left to the consumer to resolve rather than bundled in. */
+const EXTERNAL_PACKAGES = [
+  "ai",
+  "@ai-sdk/openai",
+  "@ai-sdk/anthropic",
+  "@ai-sdk/groq",
+  "@ai-sdk/google",
+  "@ai-sdk/google-vertex",
+  "@ai-sdk/xai",
+  "@ai-sdk/amazon-bedrock",
+  "@ai-sdk/mcp",
+  "@openrouter/ai-sdk-provider",
+  "prismjs",
+  "html-entities",
+  "marked",
+  "qwksearch-api-client",
+];
+
 export default defineConfig({
   plugins: [
     nodePolyfills({
@@ -22,22 +40,13 @@ export default defineConfig({
       fileName: (format) => `write-language.${format === "es" ? "es" : "cjs"}.js`,
     },
     rollupOptions: {
-      external: [
-        "ai",
-        "@ai-sdk/openai",
-        "@ai-sdk/anthropic",
-        "@ai-sdk/groq",
-        "@ai-sdk/google",
-        "@ai-sdk/google-vertex",
-        "@ai-sdk/xai",
-        "@ai-sdk/amazon-bedrock",
-        "@ai-sdk/mcp",
-        "@openrouter/ai-sdk-provider",
-        "prismjs",
-        "html-entities",
-        "marked",
-        "qwksearch-api-client",
-      ],
+      // `prismjs/components/*` is matched by prefix, not listed: the grammars
+      // are pulled in with `import()` (see src/utils/prism-global.ts) and a
+      // bundled dynamic import would split this single-file lib build into
+      // extra chunks. Left external, they stay `import()` calls the consumer
+      // resolves.
+      external: (id) =>
+        id.startsWith("prismjs/") || EXTERNAL_PACKAGES.includes(id),
       output: {
         codeSplitting: false,
       },

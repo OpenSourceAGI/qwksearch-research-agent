@@ -1,30 +1,17 @@
 /**
- * @fileoverview Configures Prism.js with a fixed set of language grammars and exposes
- * a small `highlightCode` helper used by markdown-to-html.ts for code-block syntax
- * highlighting.
+ * @fileoverview Exposes a small `highlightCode` helper used by
+ * markdown-to-html.ts for code-block syntax highlighting. The Prism instance
+ * and its language grammars are owned by `prism-global.ts`.
  */
-// Must precede every `prismjs/components/*` import: the grammar scripts read
-// `Prism` off the global object, which this module publishes (see its docs).
-import Prism from "./prism-global";
-import "prismjs/components/prism-markup";
-import "prismjs/components/prism-css";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-typescript";
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-tsx";
-import "prismjs/components/prism-python";
-import "prismjs/components/prism-bash";
-import "prismjs/components/prism-json";
-import "prismjs/components/prism-yaml";
-import "prismjs/components/prism-markdown";
-import "prismjs/components/prism-sql";
-import "prismjs/components/prism-rust";
-import "prismjs/components/prism-go";
-import "prismjs/components/prism-java";
-import "prismjs/components/prism-c";
-import "prismjs/components/prism-cpp";
+import Prism, { loadPrismGrammars } from "./prism-global";
+
+// Start the grammars loading now, and again from `highlightCode` below — the
+// second call is what guarantees they are requested at all, since a bundler is
+// free to drop this one as a side effect of a module it thinks is pure.
+void loadPrismGrammars();
 
 export function highlightCode(code: string, lang: string): string | null {
+  void loadPrismGrammars();
   const grammar = Prism.languages[lang];
   if (!grammar) return null;
   return Prism.highlight(code, grammar, lang);
