@@ -54,282 +54,156 @@ bun i qwksearch-api-client
 
 ## Overview
 
-QwkSearch API provides three core services for AI-powered research and content analysis:
+The typed client for the QwkSearch API — 85 functions generated from
+[`qwksearch-openapi.json`](./qwksearch-openapi.json) with
+[Hey API](https://heyapi.dev), covering research chat and search, article Q&A,
+URL/PDF/YouTube scraping, the REASON document store, voice, provider and model
+config, MCP servers, NotebookLM and accounts.
 
-1. **Content Extraction** - Extract structured content and citations from any URL
-2. **Language Generation** - Generate AI responses using multiple language model providers
-3. **Web Search** - Search the web using  metasearch engine across 100+ sources
 
 
+## Transport: every call goes through `grab`
+
+The generated SDK is wired to [**api2client**](https://github.com/OpenSourceAGI/GRAB-URL/tree/master/packages/api2client),
+a [Hey API](https://heyapi.dev) client backed by [`grab`](https://grab.js.org),
+rather than to `fetch`. The functions, their options and the
+`{ data, error, request, response }` result are unchanged — only the transport
+underneath is different — so every endpoint in this client picks up grab's
+caching, retries, rate limiting, request dedupe, mock server and shared
+request log.
+
+Those are per-request options, alongside the usual `body`/`path`/`query`:
+
+```javascript
+const { data, error } = await agentSearch({
+  query: { q: 'quantum computing' },
+  cache: true,          // serve repeats from grab's cache
+  cacheForTime: 60,     // …for 60 seconds
+  retryAttempts: 2,
+  timeout: 15,
+  rateLimit: 1,         // min seconds between calls to this path
+});
+```
+
+Or client-wide, for every call on that client:
+
+```javascript
+import { createClient, createConfig } from 'qwksearch-api-client/client';
+
+const client = createClient(createConfig({ cache: true, retryAttempts: 2 }));
+await agentSearch({ query: { q: 'quantum computing' }, client });
+```
+
+Because grab keys its cache, dedupe and mocks by **path**, an endpoint can be
+stubbed without touching the network:
+
+```javascript
+import { grab } from 'grab-url';
+
+grab.mock['/agent/search'] = { response: { results: [] } };
+```
+
+> Recovering the HTTP status and the parsed error body from behind grab needs
+> its `onRawResponse` hook, added in **grab-url 1.6.23**. On an older grab,
+> api2client cannot hand back a `Response`, so `result.response` is
+> `undefined` and `result.error` is grab's own `"HTTP error: <status>"` string
+> instead of the handler's JSON body.
 
 ## Complete Example: Research Pipeline
 
-Combine all three endpoints to create a complete research pipeline:
+Search the web, read the top results, then ask a question grounded in them:
 
 ```javascript
-import * as qwk from 'qwksearch-api-client';
+import { agentSearch, scrapeGet, articleQa } from 'qwksearch-api-client';
 
 async function researchTopic(topic) {
   // 1. Search for relevant articles
-  const searchResults = await qwk.searchWeb({
-    query: {
-      q: topic,
-      cat: 'science',
-      recency: 'month'
-    }
+  const { data: search } = await agentSearch({
+    query: { q: topic, cat: 'science', recency: 'month' },
   });
 
-  console.log(`Found ${searchResults.results.length} results`);
+  console.log(`Found ${search.results.length} results`);
 
-  // 2. Extract content from top 3 results
+  // 2. Read the top 3 results
   const articles = await Promise.all(
-    searchResults.results.slice(0, 3).map(async (result) => {
-      const content = await qwk.extractContent({
-        query: {
-          url: result.url
-        }
-      });
-      return content;
-    })
+    search.results.slice(0, 3).map(async ({ url }) => {
+      const { data } = await scrapeGet({ query: { url, format: 'json' } });
+      return data;
+    }),
   );
 
-  // 3. Generate summary of all articles
+  // 3. Ask a question grounded in all of them
   const combinedText = articles
-    .map(a => `${a.title}\n\n${a.html}`)
+    .map((a) => `${a.title}\n\n${a.html}`)
     .join('\n\n---\n\n');
 
-  const summary = await qwk.writeLanguage({
+  const { data: answer } = await articleQa({
     body: {
-      provider: 'groq',
-      key: process.env.GROQ_API_KEY,
-      agent: 'summarize-bullets',
-      article: combinedText
-    }
+      article: combinedText,
+      question: `Summarise the state of ${topic} in bullet points.`,
+      chatModel: { providerId: 'groq', key: 'llama-3.3-70b-versatile' },
+    },
   });
 
-  return {
-    searchResults: searchResults.results,
-    articles,
-    summary: summary.content
-  };
+  return { searchResults: search.results, articles, summary: answer.content };
 }
 
-// Run the research pipeline
-researchTopic('quantum computing applications')
-  .then(results => {
-    console.log('Research Summary:');
-    console.log(results.summary);
-  });
+researchTopic('quantum computing applications').then((results) => {
+  console.log('Research Summary:');
+  console.log(results.summary);
+});
 ```
+
+Every function returns `{ data, error, request, response }` and **does not
+throw** by default — read `error`, or pass `throwOnError: true`.
 
 ---
 
 
 ## API Endpoints
 
-### 1. Extract Content (`/extract`)
-
-Extract structured content, citations, and metadata from any URL including articles, PDFs, and YouTube videos.
-
-#### Features
-
-- **Main Content Detection**: Combines Mozilla Readability and Postlight Mercury algorithms with 100+ custom adapters
-- **HTML Standardization**: Transforms complex HTML into simplified reading-mode format
-- **YouTube Transcripts**: Retrieves complete video transcripts with timestamps
-- **PDF Processing**: Extracts formatted text and infers heading hierarchy
-- **Citation Extraction**: Identifies author names, publication dates, sources, and titles
-- **Author Formatting**: Validates against 90,000+ name database for proper citation formatting
-
-#### Request
-
-```http
-GET /extract?url={url}&images={boolean}&links={boolean}
-```
-
-**Parameters:**
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `url` | string (uri) | Yes | - | URL to extract content from |
-| `images` | boolean | No | true | Include images in output |
-| `links` | boolean | No | true | Include hyperlinks in output |
-| `formatting` | boolean | No | true | Preserve text formatting |
-| `absoluteURLs` | boolean | No | true | Convert relative URLs to absolute |
-| `timeout` | integer | No | 5 | HTTP request timeout (1-30 seconds) |
-
-
-### 2. Generate Language (`/agents`)
-
-Generate AI responses using various language model providers with pre-built agent templates.
-
-#### Language Intelligence Providers (LIPs)
-
-| Provider | Model Families | Cost (1M Output) | Valuation |
-|----------|----------------|------------------|-----------|
-| **Groq** | Llama, DeepSeek, Gemini, Mistral | $0.79 | $2.8B |
-| **Ollama** | llama, mistral, mixtral, gemma, qwen, deepseek | $0 (local) | - |
-| **OpenAI** | o1, o4, gpt-4, gpt-4-turbo, gpt-4-omni | $8.00 | $300B |
-| **Anthropic** | Claude Sonnet, Opus, Haiku | $15.00 | $61.5B |
-| **TogetherAI** | Llama, Mistral, Qwen, DeepSeek | $0.90 | $3.3B |
-| **Perplexity** | Sonar, Sonar Deep Research | $15.00 | $18B |
-| **XAI** | Grok, Grok Vision | $15.00 | $80B |
-| **Google** | Gemini | $10.00 | - |
-| **Cloudflare** | Llama, Gemma, Mistral, Phi, Qwen | $2.25 | $62.3B |
-
-#### Agent Templates
-
-| Agent | Context Variables | Description |
-|-------|------------------|-------------|
-| `question` | query, chat_history | Answer questions with conversation context |
-| `summarize-bullets` | article | Create bullet-point summaries |
-| `summarize` | article | Generate narrative summaries |
-| `suggest-followups` | chat_history, article | Suggest follow-up questions (returns string[]) |
-| `answer-cite-sources` | context, chat_history, query | Answer with source citations |
-| `query-resolution` | chat_history, query | Resolve ambiguous queries |
-| `knowledge-graph-nodes` | query, article | Extract knowledge graph nodes |
-| `summary-longtext` | summaries | Summarize multiple summaries |
-
-#### Request
-
-```http
-POST /agents
-Content-Type: application/json
-
-{
-  "provider": "groq",
-  "key": "your-api-key",
-  "agent": "question",
-  "model": "llama-3.3-70b-versatile",
-  "query": "What is quantum computing?",
-  "temperature": 1.0,
-  "html": true
-}
-```
-
-**Body Parameters:**
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `provider` | string | Yes | - | LIP provider: groq, openai, anthropic, together, xai, google, perplexity, ollama, cloudflare |
-| `key` | string | Yes | - | API key for the provider |
-| `agent` | string | No | question | Agent template name |
-| `model` | string | No | llama-4-maverick-17b | Model name for the provider |
-| `html` | boolean | No | true | Format response as HTML (true) or Markdown (false) |
-| `temperature` | number | No | 1.0 | 0-1: deterministic, 1-2: creative |
-| `query` | string | No | - | Query text for certain agents |
-| `chat_history` | string | No | - | Conversation history for certain agents |
-| `article` | string | No | - | Article text for summarization agents |
-
-#### Response
-
-**200 OK**
-
-```json
-{
-  "content": "Generated response in HTML or Markdown format",
-  "extract": {
-    "structured": "data"
-  }
-}
-```
-
-#### Example Usage
+The full, current surface is the generated SDK itself — 85 typed functions, one
+per operation in [`qwksearch-openapi.json`](./qwksearch-openapi.json), which
+this package also exports:
 
 ```javascript
-import * as qwk from 'qwksearch-api-client';
-
-// Question answering
-const response = await qwk.writeLanguage({
-  body: {
-    provider: 'groq',
-    key: process.env.GROQ_API_KEY,
-    agent: 'question',
-    query: 'Explain neural networks',
-    temperature: 0.7
-  }
-});
-
-const { content } = response;
-console.log(content);
-
-// Summarize article
-const summary = await qwk.writeLanguage({
-  body: {
-    provider: 'anthropic',
-    key: process.env.ANTHROPIC_API_KEY,
-    agent: 'summarize-bullets',
-    article: articleText,
-    html: false // Get Markdown
-  }
-});
-
-// Answer with citations
-const answer = await qwk.writeLanguage({
-  body: {
-    provider: 'openai',
-    key: process.env.OPENAI_API_KEY,
-    agent: 'answer-cite-sources',
-    query: 'What causes climate change?',
-    context: 'Scientific articles about greenhouse gases...',
-    temperature: 0.5
-  }
-});
-console.log(answer.content);
+import spec from 'qwksearch-api-client/openapi.json';
 ```
 
----
+Browse it rendered at [qwksearch.com/api/docs](https://qwksearch.com/api/docs),
+or by area:
 
-### 3. Search Web (`/search`)
+| Area | Functions |
+| --- | --- |
+| Agent | `agentChat`, `agentSearch`, `articleQa`, `articleFollowups`, `generateSuggestions`, `discoverContent`, `rewriteText`, `autocomplete` |
+| Chats | `listChats`, `getChatById`, `searchChats`, `saveMessage`, `shareChat`, `deleteChatById`, `deleteAllChats` |
+| Documents | `listDocuments`, `createDocument`, `getDocumentById`, `updateDocument`, `deleteDocument`, `shareDocument`, `getSharedDocument` |
+| Articles & quotes | `getArticle`, `updateArticle`, `listQuotes`, `createQuote`, `updateQuote`, `deleteQuote`, `listFavorites`, `addFavorite`, `removeFavorite` |
+| Files | `uploadFiles`, `getUploadedFile`, `deleteUploadedFile`, `getUserStorage` |
+| Voice | `transcribeAudio`, `textToSpeech` |
+| Config & models | `getConfig`, `saveConfig`, `listProviders`, `addProvider`, `updateProvider`, `deleteProvider`, `addProviderModel`, `deleteProviderModel`, `testModels` |
+| MCP | `listMcpServers`, `addMcpServer`, `updateMcpServer`, `toggleMcpServer`, `deleteMcpServer` |
+| Search & scraping | `agentSearch`, `listSearchEngines`, `getEngineStatus`, `updateEngineStatus`, `testSearchEngines`, `scrapeGet`, `scrapePost` |
+| Google Docs / Drive | `googleDocsAuth`, `googleDocsAuthStatus`, `googleDocsCallback`, `exportToGoogleDocs`, `importFromGoogleDocs`, `getGoogleDriveFile`, `shareGoogleDoc`, `getGoogleToken`, `refreshGoogleToken` |
+| NotebookLM | `notebooklmLogin`, `getNotebooklmStatus`, `disconnectNotebooklm`, `listNotebooks`, `createNotebook`, `deleteNotebook`, `askNotebook`, `listNotebookSources`, `addNotebookSource`, `generateNotebookAudio` |
+| Accounts | `getUser`, `updateUser`, `deleteUser`, `deleteUserAccount`, `changePassword`, `listSessions`, `revokeSession`, `revokeOtherSessions`, `listUserAccounts` |
 
-Search the web using  metasearch engine aggregating 100+ search sources.
+### Removed in 1.0: `extractContent`, `writeLanguage`, `searchWeb`
 
-#### Features
+The 0.x client wrapped three endpoints — `/extract`, `/agents` and `/search`.
+All three are gone from the API, and so are those three functions. `/agents`
+in particular now answers **501** and says so. Replace them with:
 
-- **Privacy-Focused**: No tracking or personal data collection
-- **Multiple Categories**: General, news, videos, images, science, files, IT
-- **Recency Filters**: Filter by day, week, month, year
-- **Multi-Language**: Support for various languages
-- **Diverse Sources**: Aggregates from 100+ search engines
-- Search index exceeds 100,000,000 GB covering 130 trillion pages
-- Uses 200+ ranking factors including keywords, backlinks, page speed
+| 0.x | Use instead |
+| --- | --- |
+| `searchWeb({ query: { q } })` | `agentSearch({ query: { q } })` |
+| `extractContent({ query: { url } })` | `scrapeGet({ query: { url } })` |
+| `writeLanguage({ body: { agent: 'question', article } })` | `articleQa({ body: { article, question } })` |
+| `writeLanguage({ body: { agent: 'summarize-bullets', article } })` | `articleQa({ body: { article, question: 'Summarise this in bullet points.' } })` |
+| anything conversational | `agentChat` (server-sent events) |
 
-#### Request
-
-```http
-GET /search?q={query}&cat={category}&recency={filter}&lang={language}
-```
-
-**Parameters:**
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `q` | string | Yes | - | Search query string |
-| `cat` | string | No | general | Category: general, news, videos, images, science, files, it |
-| `recency` | string | No | all | Time filter: all, day, week, month, year |
-| `safesearch` | boolean | No | false | Block adult content |
-| `public` | boolean | No | false | Use public server instances |
-| `page` | integer | No | 1 | Pagination for results |
-| `lang` | string | No | en-US | Language code |
-
-#### Response
-
-**200 OK**
-
-```json
-{
-  "results": [
-    {
-      "title": "Search result title",
-      "url": "https://example.com/page",
-      "snippet": "Text snippet around the query...",
-      "domain": "example.com",
-      "favicon": "https://example.com/favicon.ico",
-      "path": "/page",
-      "engines": "google,bing"
-    }
-  ]
-}
-```
+Importing a removed function is not a runtime error — it is `undefined` until
+you call it, and bundlers only warn. Check against the table above.
 
 ## Installation
 
