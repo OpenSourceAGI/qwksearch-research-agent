@@ -31,6 +31,16 @@ So:
   (`apps/qwksearch-web/collaboration/`, with the room rules in
   `apps/qwksearch-web/lib/collaboration/rooms.ts`). Schema changes affect live
   rooms — a Yjs document written by an old schema still has to load.
+- **`src/docs-agent/plate/ui/*` are copies of Plate's shadcn registry, and the
+  registry assumes plugins this package does not register.** The clearest case
+  is AI: upstream's components call `editor.getApi(AIChatPlugin).aiChat.show()`
+  on `@platejs/ai`, whereas this editor registers its own `KEYS.aiChat` plugin
+  and reaches it through `getPlateAiController(editor)` (see
+  `src/extensions/Ai/README.md` for why). `getApi` is typed off the plugin
+  passed in, not off what the editor actually has, so a stale registry call
+  type-checks cleanly and then throws in the browser. When you re-run the
+  generator or copy a new component in, re-point its plugin calls and cover the
+  wiring with a test — `test/docs-agent/plate-slash-ai.test.ts` is the pattern.
 - The sidebar is a separate package: `reason-editor-sidebar`.
 - This package is a **coverage-build dependency** in CI (as
   `react-reason-editor`).
