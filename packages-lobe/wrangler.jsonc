@@ -2,6 +2,12 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "qwksearch-lobehub",
   "main": "./dist/worker/index.js",
+  // Every deploy checks that the Worker bundle and the asset directory are
+  // actually there, and builds them if they are not. Workers Builds defaults
+  // its build command to `npm run build` — the Next build, which never writes
+  // `dist/worker/index.js` — so without this a deploy on default project
+  // settings fails on a missing entry point. No-op when the build already ran.
+  "build": { "command": "node scripts/ensureWorkerBuild.mjs" },
   "compatibility_date": "2026-03-10",
   // nodejs_compat also populates `process.env` from vars/secrets, which is how
   // LobeHub's env schemas read configuration.
@@ -46,13 +52,15 @@
   ],
   "r2_buckets": [{ "binding": "R2", "bucket_name": "qwksearch-uploads" }],
   "send_email": [{ "name": "EMAIL", "destination_address": "noreply@qwksearch.com" }],
-  // Postgres for the LobeHub schema. Create with:
+  // Postgres for the LobeHub schema comes from the DATABASE_URL secret, read by
+  // the Neon serverless driver (DATABASE_DRIVER=neon above). To pool through
+  // Hyperdrive instead, create a config and add the binding with its real id:
   //   wrangler hyperdrive create qwksearch-lobehub-pg --connection-string="postgres://…"
-  // and paste the id here. Alternatively set the DATABASE_URL secret to a Neon
-  // URL and leave this section out (DATABASE_DRIVER=neon uses the serverless driver).
-  "hyperdrive": [
-    { "binding": "HYPERDRIVE", "id": "REPLACE_WITH_HYPERDRIVE_ID" }
-  ],
+  //   "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "<the id it prints>" }]
+  // A placeholder id is not deployable — wrangler rejects the upload — so the
+  // binding stays out until there is a config to point it at. `HYPERDRIVE` is
+  // optional at runtime: `packages/database/src/core/web-server.ts` falls back
+  // to DATABASE_URL when the binding is absent.
   "limits": { "cpu_ms": 300000 },
   "observability": {
     "enabled": true,
@@ -82,8 +90,7 @@
         }
       ],
       "r2_buckets": [{ "binding": "R2", "bucket_name": "qwksearch-uploads" }],
-      "send_email": [{ "name": "EMAIL", "destination_address": "noreply@qwksearch.com" }],
-      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "REPLACE_WITH_HYPERDRIVE_ID" }]
+      "send_email": [{ "name": "EMAIL", "destination_address": "noreply@qwksearch.com" }]
     }
   }
 }

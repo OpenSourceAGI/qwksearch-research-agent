@@ -21,7 +21,8 @@ packages-lobe/
 ├── src/features/QwkSearch/    # SPA features: ArticlePanel (extract side panel) and Docs
 ├── migrations/d1/             # QwkSearch tables for D1
 ├── vite.worker.config.ts      # Worker bundle build
-├── wrangler.jsonc             # bindings: DB (D1), KV, R2, EMAIL, HYPERDRIVE, ASSETS
+├── wrangler.jsonc             # bindings: DB (D1), KV, R2, EMAIL, ASSETS; custom build hook
+├── scripts/ensureWorkerBuild.mjs  # deploy-time guard: builds the Worker if it is missing
 └── scripts/buildWorkerAssets.mts
 ```
 
@@ -30,7 +31,7 @@ packages-lobe/
 | Concern | LobeHub default | On Cloudflare (this tree) |
 | --- | --- | --- |
 | HTTP shell | Next.js route handlers + middleware | One Hono app (`worker/app.ts`) mounting the same handlers: Better Auth, tRPC (lambda/tools/mobile/async), `/webapi/*`, `/api/v1` OpenAPI, agent/workflow/webhook Hono apps, `/f/:id`, SPA shells |
-| Database | Postgres via Neon serverless or `pg` | Same Postgres schema. `HYPERDRIVE` binding → `pg` pool, or `DATABASE_URL` (Neon serverless driver works natively on Workers) |
+| Database | Postgres via Neon serverless or `pg` | Same Postgres schema. `DATABASE_URL` by default (Neon serverless driver works natively on Workers); add a `HYPERDRIVE` binding to pool through Hyperdrive with `pg` instead |
 | Auth | Better Auth (Drizzle adapter) | Unchanged. Secondary storage uses the `KV` binding instead of Redis |
 | Email | nodemailer / Resend | New `cloudflare` provider on the `EMAIL` (Email Routing) binding; Resend still works |
 | Redis | ioredis | Not reachable from Workers → `DISABLE_REDIS=1`, in-memory fallbacks |
@@ -194,9 +195,18 @@ Project settings for a Workers Builds deploy of this tree:
 | Build command | `pnpm run build:worker` |
 | Deploy command | `pnpm exec wrangler deploy` |
 
-All four have to be entered. The default build command is `npm run build`, which is the Next
-build, not the Worker build: it writes `.next/` and never `dist/worker/index.js`, so the deploy
-step that follows has nothing to upload. It is also how a Workers build ends at `Failed to
+Enter all four. The default build command is `npm run build`, which is the Next build, not the
+Worker build: it writes `.next/` and never `dist/worker/index.js`, so the deploy step that follows
+has nothing to upload and fails with `The entry-point file at "dist/worker/index.js" was not
+found`. A deploy left on the defaults now recovers instead of failing: `wrangler.jsonc` declares a
+custom build command, `node scripts/ensureWorkerBuild.mjs`, which `wrangler deploy` runs first — it
+checks for `dist/worker/index.js` and `dist/client/_spa/index.html`, and runs `build:worker` itself
+(saying so in the log) when either is missing. It is a two-`stat` no-op on the recipe above, where
+the build step already produced them, and `WORKER_BUILD_FALLBACK=0` turns it into a bare check that
+fails rather than builds. Setting the build command is still the right fix: the fallback runs
+*after* the default `npm run build` has already spent three minutes on a Next build nothing uploads.
+
+The default build command is also how a Workers build ends at `Failed to
 collect page data for /api/auth/resolve-username` — `next build` imports every route to read its
 config, and importing a route that talks to Postgres used to construct the connection pool, which
 throws when `KEY_VAULTS_SECRET` is unset. The pool is now built on first query
@@ -219,10 +229,15 @@ workspace entry nor its scripts are kept.
 ### Required bindings / secrets
 
 Bindings are declared in `wrangler.jsonc` (identical IDs to `apps/qwksearch-web/wrangler.jsonc` for
-KV and D1). Create the Hyperdrive config and paste its id:
+KV and D1). Postgres comes from the `DATABASE_URL` secret, read by the Neon serverless driver
+(`DATABASE_DRIVER=neon`). To pool through Hyperdrive instead, create a config and add the binding
+with the id it prints — a placeholder id is not deployable, wrangler rejects the whole upload, so
+the binding is left out until there is a real config behind it:
 
 ```bash
 wrangler hyperdrive create qwksearch-lobehub-pg --connection-string="postgres://user:pass@host:5432/lobehub"
+# then, in wrangler.jsonc:
+#   "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "<the id it prints>" }]
 ```
 
 Secrets (`wrangler secret put …`):
@@ -231,7 +246,7 @@ Secrets (`wrangler secret put …`):
 | --- | --- |
 | `KEY_VAULTS_SECRET` | encrypts stored provider keys (`openssl rand -base64 32`) |
 | `AUTH_SECRET` | Better Auth signing secret |
-| `DATABASE_URL` | only when not using Hyperdrive (e.g. Neon URL, `DATABASE_DRIVER=neon`) |
+| `DATABASE_URL` | the Postgres connection (e.g. Neon URL, `DATABASE_DRIVER=neon`); optional only when a `HYPERDRIVE` binding is bound |
 | `S3_*` | uploads — point at the `qwksearch-uploads` R2 bucket via its S3 API |
 | `TAVILY_API_KEY`, `SCRAPER_API_KEY` | article extraction fallbacks |
 | provider keys (`OPENAI_API_KEY`, …) | server-side model providers, same as LobeHub |
@@ -277,7 +292,7 @@ LobeHub's Postgres migrations once against the database: `bun run db:migrate` wi
 ## Tests
 
 ```bash
-# Everything QwkSearch added to the engine, in one command -- 583 tests in 38
+# Everything QwkSearch added to the engine, in one command -- 589 tests in 39
 # files, about a minute. This is what CI runs (.github/workflows/lobehub-engine.yml),
 # and the path list lives in the script so the workflow and the docs cannot drift.
 bun run test:qwksearch
@@ -298,6 +313,7 @@ seam:
 ```bash
 # Worker + Cloudflare adapters + QwkSearch UI (root vitest config)
 bunx vitest run worker src/features/QwkSearch src/libs/better-auth/utils/kvSecondaryStorage.test.ts \
+  scripts/ensureWorkerBuild.test.ts \
   apps/server/src/services/email/impls/cloudflare apps/server/src/services/search/impls/qwksearch
 
 # the two settings panes, including their contract drift guards
@@ -314,7 +330,10 @@ Coverage includes SPA locale/device/route resolution, the extraction fallback ch
 docs stores, chat-link interception, KV secondary storage, the Cloudflare email provider, the
 Hyperdrive bridge, rendered-component tests for the article panel and the docs editor, and both
 settings panes end to end — client, form state, rendered form, and a contract test per pane that
-rebuilds its route's response from the real resolver.
+rebuilds its route's response from the real resolver. The deploy-time build guard
+(`scripts/ensureWorkerBuild.test.ts`) runs the real script against a stub `build:worker`, so the
+cases that matter for a deploy — no outputs, half the outputs, a failing build, a green build that
+writes nothing — are checked without spending a Worker build.
 
 ## What changed vs. upstream LobeHub
 
@@ -389,6 +408,17 @@ rebuilds its route's response from the real resolver.
   that pulls in `@cloudflare/workers-types`, without which `D1Database`, `KVNamespace`,
   `Hyperdrive`, `R2Bucket`, `Fetcher` and `ExecutionContext` resolve to nothing. No upstream file
   is edited: `tsconfig.json` is extended, not changed.
+- `scripts/ensureWorkerBuild.mjs` + the `build` command in `wrangler.jsonc`: new, QwkSearch's. Every
+  `wrangler deploy` checks for `dist/worker/index.js` and `dist/client/_spa/index.html` first and
+  runs `build:worker` when they are missing, so a Workers Builds project left on the default
+  `npm run build` deploys instead of failing on a missing entry point. Plain `.mjs` run by `node`
+  rather than a `.mts` run by `tsx` like the rest of `scripts/`: it is the first thing a deploy
+  runs, so it assumes nothing but node.
+- `wrangler.jsonc`: no `hyperdrive` binding. It carried a `REPLACE_WITH_HYPERDRIVE_ID` placeholder
+  in both environments, which wrangler rejects — an id that resolves to no config fails the whole
+  upload, so neither environment could deploy as written. `DATABASE_DRIVER=neon` and the
+  `DATABASE_URL` secret are the configured path anyway, and `HYPERDRIVE` is optional at runtime
+  (`web-server.ts` falls back when the binding is absent). The README says how to add it back.
 - `vite.worker.config.ts`: `linkedom` is no longer aliased to a shim. It is pure JS and runs on
   workerd, and `extract-webpage` parses every page with it; LobeHub only reached it from the
   dev-server template rewriter, which is why it used to be stubbed. `worker/shims/linkedom.ts`
