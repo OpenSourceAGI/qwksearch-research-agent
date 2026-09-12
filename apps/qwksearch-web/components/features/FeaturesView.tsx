@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import OrbitingCirclesGlobe from "@/components/ui/orbiting-circles-02";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  AnchorLink,
   AuroraBackdrop,
   CountUp,
   Marquee,
@@ -46,11 +47,18 @@ import {
 import { config } from "@/lib/config/site";
 import { cn } from "@/lib/utils";
 
+/**
+ * Section title with a deep-linkable heading. The `id` is the section's hash:
+ * hovering the title reveals a link icon that copies `…/features#<id>`, and
+ * `scroll-mt-28` keeps the eyebrow pill in frame when you arrive on one.
+ */
 function SectionHeading({
+  id,
   eyebrow,
   title,
   blurb,
 }: {
+  id: string;
   eyebrow: string;
   title: React.ReactNode;
   blurb?: string;
@@ -58,8 +66,12 @@ function SectionHeading({
   return (
     <Reveal className="mx-auto mb-12 max-w-2xl text-center">
       <Pill className="mb-4">{eyebrow}</Pill>
-      <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
+      <h2
+        id={id}
+        className="group scroll-mt-28 text-3xl font-bold tracking-tight text-balance sm:text-4xl"
+      >
         {title}
+        <AnchorLink id={id} label={eyebrow} />
       </h2>
       {blurb && (
         <p className="text-muted-foreground mt-4 text-base leading-relaxed text-pretty">
@@ -287,6 +299,7 @@ function BentoGrid() {
     <section className="relative px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
+          id="the-loop"
           eyebrow="The loop"
           title="Ask, search, read, cite, write — without leaving the tab"
           blurb="Most research tools stop at a list of links. This one carries a question all the way to a finished, sourced document."
@@ -415,6 +428,7 @@ function Comparison() {
     <section className="relative px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
+          id="how-it-compares"
           eyebrow="How it compares"
           title="The only open-source research IDE"
           blurb="Search breadth, cited answers, document ingestion, and a real writing editor — side by side with the closed alternatives."
@@ -423,8 +437,24 @@ function Comparison() {
         <Reveal>
           <div className="qs-border-beam relative isolate overflow-hidden rounded-3xl p-px">
             <div className="bg-card/80 relative z-10 overflow-hidden rounded-[calc(1.5rem-1px)] border backdrop-blur-sm">
+              {/* Title sits outside the scroll container so it stays put
+                  while the 1080px-wide table is panned sideways; the <table>
+                  carries the same text as its accessible name. */}
+              <div className="border-b px-4 py-4 sm:px-6">
+                <h3 className="text-base font-semibold tracking-tight">
+                  {config.appName} vs. other research tools
+                </h3>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Feature by feature, as each product ships it today.
+                </p>
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[1080px] border-collapse text-sm">
+                  <caption className="sr-only">
+                    {config.appName} vs. other research tools, feature by
+                    feature.
+                  </caption>
                   <thead>
                     <tr className="border-b">
                       <th
@@ -540,6 +570,7 @@ function Pipeline() {
     <section className="relative px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
+          id="how-it-works"
           eyebrow="How it works"
           title="How a question becomes a cited answer"
           blurb="Five stages, each one a package you can use on its own."
@@ -583,6 +614,7 @@ function FeatureExplorer() {
     <section className="relative px-4 py-20 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <SectionHeading
+          id="every-feature"
           eyebrow="Every feature"
           title="Four surfaces, one stack"
           blurb="Pick a surface to see everything it ships with today."
