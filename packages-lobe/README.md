@@ -194,6 +194,15 @@ Project settings for a Workers Builds deploy of this tree:
 | Build command | `pnpm run build:worker` |
 | Deploy command | `pnpm exec wrangler deploy` |
 
+All four have to be entered. The default build command is `npm run build`, which is the Next
+build, not the Worker build: it writes `.next/` and never `dist/worker/index.js`, so the deploy
+step that follows has nothing to upload. It is also how a Workers build ends at `Failed to
+collect page data for /api/auth/resolve-username` — `next build` imports every route to read its
+config, and importing a route that talks to Postgres used to construct the connection pool, which
+throws when `KEY_VAULTS_SECRET` is unset. The pool is now built on first query
+(`packages/database/src/core/db-adaptor.ts`), so neither build needs runtime secrets; `build:worker`
+is still the only one whose output `wrangler deploy` uploads.
+
 The repo root's `packageManager` (`bun@1.4.0`) and this tree's
 (`pnpm@10.33.0`) are both detected and both are installed, and the build image
 picks the repo root's bun unless the install command is set explicitly. Prefer
@@ -268,7 +277,7 @@ LobeHub's Postgres migrations once against the database: `bun run db:migrate` wi
 ## Tests
 
 ```bash
-# Everything QwkSearch added to the engine, in one command -- 579 tests in 37
+# Everything QwkSearch added to the engine, in one command -- 583 tests in 38
 # files, about a minute. This is what CI runs (.github/workflows/lobehub-engine.yml),
 # and the path list lives in the script so the workflow and the docs cannot drift.
 bun run test:qwksearch
@@ -298,7 +307,7 @@ bunx vitest run src/features/Settings/extraction src/features/Settings/search
 bunx vitest run src/spa/router/desktopRouter.sync.test.tsx src/features/NavPanel/routeKey.test.ts
 
 # database bridge
-cd packages/database && bunx vitest run src/core/cloudflare.test.ts
+cd packages/database && bunx vitest run src/core/cloudflare.test.ts src/core/db-adaptor.test.ts
 ```
 
 Coverage includes SPA locale/device/route resolution, the extraction fallback chain, the article and
@@ -310,6 +319,11 @@ rebuilds its route's response from the real resolver.
 ## What changed vs. upstream LobeHub
 
 - `packages/database/src/core/web-server.ts`: Hyperdrive branch (`resolveHyperdriveConnectionString`).
+- `packages/database/src/core/db-adaptor.ts`: `serverDB` is a lazy proxy instead of a
+  `getDBInstance()` call evaluated at module scope, so importing a module cannot build a
+  connection pool. It resolves on first property access, to the one instance `getServerDB()`
+  caches. Upstream's eager export fails any `next build` that runs without `KEY_VAULTS_SECRET`,
+  while it is merely collecting a route's page data.
 - `src/libs/better-auth/utils/config.ts`: KV-backed `secondaryStorage` (`createKVSecondaryStorage`).
 - `apps/server/src/services/email/*`: `cloudflare` provider (Email Routing binding), default on Workers.
 - `apps/server/src/services/search/impls/`: new `qwksearch` provider (`SearchImplType.QwkSearch`),
