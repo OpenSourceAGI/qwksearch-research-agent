@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  // Type-checks every QwkSearch-owned file in this workspace: the Cloudflare
+  // Worker, the article/docs features, and the two settings panes with the
+  // controls they share. `tsconfig.worker.json` is the same idea narrowed to
+  // `worker/` — keep it for iterating on the Worker, and run this one before
+  // pushing. CI runs this one (`bun run type-check:qwksearch`).
+  //
+  // The repo-wide `bun run type-check` covers all of these files in principle,
+  // but it reaches ~13.8 GB RSS and gets OOM-killed on a 15 GB box, so in
+  // practice nothing checked them: an unwired extraction chain calling two
+  // identifiers that exist nowhere in the repo sat in
+  // `worker/qwksearch/extract.ts` from the day it was written until it was
+  // deleted.
+  "extends": "./tsconfig.worker.json",
+  "include": [
+    "worker/**/*.ts",
+    "src/**/*.d.ts",
+    // Everything under these four is QwkSearch's own; nothing upstream is in
+    // the scope, which is what lets `typeCheckScoped.mts` fail the run on any
+    // error inside them. `src/features/Settings/{extraction,search}` are the
+    // two panes and `.../qwksearch` is the controls they share.
+    "src/features/QwkSearch/**/*",
+    "src/features/Settings/extraction/**/*",
+    "src/features/Settings/search/**/*",
+    "src/features/Settings/qwksearch/**/*"
+  ]
+}

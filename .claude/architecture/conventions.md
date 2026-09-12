@@ -52,6 +52,7 @@ by hand.
 | --- | --- | --- |
 | `test-coverage.yml` | push to master, PR | One matrix job per package, `fail-fast: false`, uploads to Codecov |
 | `test-web-api.yml` | paths under `apps/qwksearch-web` and two packages | The web app's own suite |
+| `lobehub-engine.yml` | paths under `packages-lobe` | The one job that installs that workspace: the QwkSearch type-check and integration suite |
 | `lockfile.yml` | push, PR | `bun install --frozen-lockfile` with the pinned bun — this is what the Cloudflare build runs |
 | `npm-publish.yml` | push to master | Publishes changed public packages |
 | `deploy-test-reports.yml` | push to master | Builds the HTML report, deploys `apps/test-reports` |

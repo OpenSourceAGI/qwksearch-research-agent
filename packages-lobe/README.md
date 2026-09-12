@@ -258,6 +258,25 @@ LobeHub's Postgres migrations once against the database: `bun run db:migrate` wi
 ## Tests
 
 ```bash
+# Everything QwkSearch added to the engine, in one command -- 568 tests in 36
+# files, about a minute. This is what CI runs (.github/workflows/lobehub-engine.yml),
+# and the path list lives in the script so the workflow and the docs cannot drift.
+bun run test:qwksearch
+
+# Types for every QwkSearch-owned file -- worker/, src/features/QwkSearch/ and
+# the two settings panes with the controls they share. The repo-wide
+# `bun run type-check` covers them in principle but OOMs at ~13.8 GB RSS; this
+# one takes about a minute and reports clean. Also in CI.
+bun run type-check:qwksearch
+
+# The same script narrowed to the Worker, for iterating on worker/.
+bun run type-check:worker
+```
+
+The individual recipes below are the same paths split up, for iterating on one
+seam:
+
+```bash
 # Worker + Cloudflare adapters + QwkSearch UI (root vitest config)
 bunx vitest run worker src/features/QwkSearch src/libs/better-auth/utils/kvSecondaryStorage.test.ts \
   apps/server/src/services/email/impls/cloudflare apps/server/src/services/search/impls/qwksearch
@@ -319,15 +338,30 @@ rebuilds its route's response from the real resolver.
   (the SheetJS CDN tarball is not reachable from the build environment).
 - `package.json`: `build:worker*`, `cf:*` scripts; `wrangler`/`@cloudflare/workers-types` dev deps;
   `worker/cf/globals.ts` registered in `sideEffects`; `extract-webpage` dependency (tier 0 of the
-  extraction chain); `type-check:worker`.
-- `tsconfig.worker.json` + `scripts/typeCheckWorker.mts`: new, both QwkSearch's. Type-checks
-  `worker/` on its own, because the repo-wide `bun run type-check` OOMs at ~13.8 GB RSS and no CI
-  job installs this workspace — so nothing had ever checked those files, and an unreachable
+  extraction chain); `type-check:worker`, `type-check:qwksearch`; `test:qwksearch` — one script
+  running every path the recipes above list separately, so the workflow, this README and §6 of the
+  integrations reference have a single source of truth for what "the integration's tests" means.
+- `.github/workflows/lobehub-engine.yml` (outside this directory, and the only CI job that installs
+  this workspace at all — every other workflow installs with bun at the repo root, where
+  `packages-lobe` is not in `workspaces`). Path-filtered to `packages-lobe/**`; runs
+  `type-check:qwksearch` and `test:qwksearch` on an `--ignore-scripts` pnpm install. It does **not**
+  run `cf:budget`: that needs `build:worker`, which needs a full install
+  (`build:worker:server` dies at `[UNLOADABLE_DEPENDENCY] @napi-rs/canvas` otherwise) and 8 GB of
+  heap. Note that `pnpm/action-setup` has to be pointed at *this* `package.json` for the pinned
+  pnpm, since the repo root pins bun, and that `lockfile: false` here means there is no lockfile to
+  cache on or install `--frozen` against.
+- `tsconfig.worker.json`, `tsconfig.qwksearch.json` + `scripts/typeCheckScoped.mts`: new, all three
+  QwkSearch's. They type-check the QwkSearch code on its own — `worker/` for the first config,
+  plus `src/features/QwkSearch/` and the three settings directories for the second — counting and
+  ignoring the ~500 pre-existing errors in the upstream files those imports pull in, so only
+  QwkSearch paths decide the exit code. One script, the prefixes as arguments. It exists because
+  the repo-wide `bun run type-check` OOMs at ~13.8 GB RSS and until the workflow above no CI job
+  installed this workspace at all — so nothing had ever checked those files, and an unreachable
   extraction chain calling two identifiers that exist nowhere in the repo lived in
-  `worker/qwksearch/extract.ts` until it was deleted. The config is also the only place that
-  pulls in `@cloudflare/workers-types`, without which `D1Database`, `KVNamespace`, `Hyperdrive`,
-  `R2Bucket`, `Fetcher` and `ExecutionContext` resolve to nothing. No upstream file is edited:
-  `tsconfig.json` is extended, not changed.
+  `worker/qwksearch/extract.ts` until it was deleted. `tsconfig.worker.json` is also the only place
+  that pulls in `@cloudflare/workers-types`, without which `D1Database`, `KVNamespace`,
+  `Hyperdrive`, `R2Bucket`, `Fetcher` and `ExecutionContext` resolve to nothing. No upstream file
+  is edited: `tsconfig.json` is extended, not changed.
 - `vite.worker.config.ts`: `linkedom` is no longer aliased to a shim. It is pure JS and runs on
   workerd, and `extract-webpage` parses every page with it; LobeHub only reached it from the
   dev-server template rewriter, which is why it used to be stubbed. `worker/shims/linkedom.ts`

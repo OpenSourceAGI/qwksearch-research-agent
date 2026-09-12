@@ -1,0 +1,115 @@
+name: LobeHub Engine
+
+# The one job in this repository that installs `packages-lobe`.
+#
+# `packages-lobe` is a separate pnpm workspace, outside the root `workspaces`
+# graph (`packages/*`, `packages/render-url-to-html/*`, `apps/*`), so every
+# other workflow here — Coverage, API, Lockfile, npm-publish — installs with
+# bun at the repo root and never sees it. Until this job existed, a green run
+# said nothing at all about a change made to the engine, which is how an
+# unreachable extraction chain calling two identifiers that exist nowhere in
+# the repository lived in `worker/qwksearch/extract.ts` from the day it was
+# written (see the LobeHub Migration To-Do, §1.3 and §5.5).
+#
+# Path-filtered on purpose: the install is the expensive step (~1.5 min cold,
+# 4.2 GB of node_modules), so it runs only when the engine actually changed.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'packages-lobe/**'
+      - '.github/workflows/lobehub-engine.yml'
+  pull_request:
+    paths:
+      - 'packages-lobe/**'
+      - '.github/workflows/lobehub-engine.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: lobehub-engine-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: packages-lobe
+
+jobs:
+  engine:
+    name: QwkSearch type-check + tests
+    runs-on: ubuntu-latest
+    # Measured locally at ~1m25s install + ~1m00s type-check + ~1m05s tests.
+    # The cap is generous for a cold runner and exists so a hung install cannot
+    # sit on a runner for six hours.
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # `packages-lobe/package.json` pins pnpm@10.33.0 with a hash. The repo
+      # root pins *bun*, and pnpm/action-setup reads the workspace root's
+      # package.json by default — so it has to be pointed at this one.
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: packages-lobe/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: packages-lobe/.nvmrc
+
+      # `pnpm-workspace.yaml` sets `lockfile: false` and `pnpm-lock.yaml` is
+      # gitignored here, so there is no lockfile to key a cache on or to
+      # install `--frozen`. Every manifest in the workspace is the next best
+      # key: a dependency edit busts the cache, anything else reuses the store.
+      # The `**` is safe because this runs before the install, so there is no
+      # node_modules for it to walk.
+      - name: Locate the pnpm store
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: lobehub-pnpm-store-${{ runner.os }}-${{ hashFiles('packages-lobe/**/package.json') }}
+          restore-keys: |
+            lobehub-pnpm-store-${{ runner.os }}-
+
+      # `--ignore-scripts`, like every documented recipe for this workspace:
+      # the postinstall builds are for the desktop app and for native bindings
+      # (`@napi-rs/canvas`, `sharp`) that neither check below touches, and they
+      # are the slow half of a full install.
+      - name: Install
+        id: install
+        run: pnpm install --ignore-scripts
+
+      # The only thing that type-checks any of the QwkSearch code — `worker/`,
+      # the article and docs features, and both settings panes with the
+      # controls they share. The repo-wide `bun run type-check` covers those
+      # files in principle but reaches ~13.8 GB RSS and gets OOM-killed, so in
+      # practice it checks nothing; this narrows the program to the QwkSearch
+      # paths, adds `@cloudflare/workers-types` (nothing else in the repo
+      # references it) and counts-then-ignores the ~500 pre-existing upstream
+      # errors it pulls in. See §5.5 of the migration to-do.
+      - name: Type-check the QwkSearch code
+        run: pnpm run type-check:qwksearch
+
+      # Everything QwkSearch added to the engine: the Worker and its routes,
+      # the extraction and search settings/preferences layers, both settings
+      # panes and their contract drift guards, the shared controls, the
+      # Cloudflare adapters and the Hyperdrive bridge. The path list lives in
+      # the script so the README recipe, the integrations reference and this
+      # workflow cannot drift apart.
+      # Runs even when the type-check failed — the two answer different
+      # questions, and a run that reports only the first one costs a whole
+      # install to learn the second — but not when the install itself did not
+      # finish, where it would only fail again more confusingly.
+      - name: Test the QwkSearch integration
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm run test:qwksearch
+
+# Deliberately not here: the Worker bundle-size budget (`bun run cf:budget`).
+# It needs `build:worker`, which needs the SPA builds and a *full* install —
+# `build:worker:server` fails at `[UNLOADABLE_DEPENDENCY] @napi-rs/canvas`
+# when postinstall never ran — and 8 GB of heap. That is a different order of
+# CI minutes from this job and wants its own decision; §5.4 of the migration
+# to-do tracks it.
