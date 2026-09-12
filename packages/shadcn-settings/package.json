@@ -1,7 +1,7 @@
 {
   "name": "shadcn-settings",
   "description": "Prop-driven, schema-based settings form renderer built on shadcn/ui — string, password, textarea, select and switch field variants with card, inline and ghost layouts",
-  "version": "0.1.92",
+  "version": "0.1.93",
   "author": "vtempest",
   "repository": {
     "type": "git",
