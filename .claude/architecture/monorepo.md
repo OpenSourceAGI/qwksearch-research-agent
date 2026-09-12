@@ -43,7 +43,7 @@ rebuilt.
 
 ```bash
 bun run build --filter=<name>            # rebuild the one package
-node scripts/build-workspace-packages.mjs # rebuild all, topological order
+node .github/scripts/build-workspace-packages.mjs # rebuild all, topological order
 ```
 
 That second script is what `apps/qwksearch-web`'s `prebuild` runs.
@@ -57,7 +57,7 @@ point at a `dist/` that does not exist yet. Same fix.
 Turbo treats a dependency as internal only when the declared semver range matches
 the workspace version. When a package asks for `use-voice-control@^0.1.95` and the
 workspace is older, turbo silently drops the edge and builds in the wrong order.
-`scripts/workspace-build-order.mjs` keys edges by package **name**, so the script
+`.github/scripts/workspace-build-order.mjs` keys edges by package **name**, so the script
 covers what turbo misses. If you add a workspace dependency and the build order
 looks wrong, that mismatch is the first thing to check.
 
