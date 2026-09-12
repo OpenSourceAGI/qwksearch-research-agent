@@ -2,62 +2,16 @@
  * Popover toggle for selecting the research focus mode: All web, Academic, Writing (no search),
  * Wolfram Alpha, YouTube, or Reddit.
  */
-import {
-  BadgePercent,
-  ChevronDown,
-  Globe,
-  Pencil,
-  ScanEye,
-  SwatchBook,
-} from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from '../../ui/popover';
-import { FaReddit, FaYoutube } from 'react-icons/fa';
+import { focusModes } from './focusModes';
 
 import { useChat } from '../../hooks/useChat';
-
-const focusModes = [
-  {
-    key: 'webSearch',
-    title: 'All',
-    description: 'Searches across all of the internet',
-    icon: <Globe size={16} />,
-  },
-  {
-    key: 'academicSearch',
-    title: 'Academic',
-    description: 'Search in published academic papers',
-    icon: <SwatchBook size={16} />,
-  },
-  {
-    key: 'writingAssistant',
-    title: 'Writing',
-    description: 'Chat without searching the web',
-    icon: <Pencil size={16} />,
-  },
-  {
-    key: 'wolframAlphaSearch',
-    title: 'Wolfram Alpha',
-    description: 'Computational knowledge engine',
-    icon: <BadgePercent size={16} />,
-  },
-  {
-    key: 'youtubeSearch',
-    title: 'Youtube',
-    description: 'Search and watch videos',
-    icon: <FaYoutube className="h-[16px] w-auto mr-0.5" />,
-  },
-  {
-    key: 'redditSearch',
-    title: 'Reddit',
-    description: 'Search for discussions and opinions',
-    icon: <FaReddit className="h-[16px] w-auto mr-0.5" />,
-  },
-];
 
 const Focus = () => {
   const { focusMode, setFocusMode } = useChat();

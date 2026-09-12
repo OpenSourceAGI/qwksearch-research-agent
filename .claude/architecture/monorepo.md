@@ -10,12 +10,18 @@ Declared in the root `package.json`:
 ```
 packages/*
 packages/render-url-to-html/*     # the two scrapers are their own workspaces
-apps/*
+apps/qwk-vscode-ext
+apps/qwksearch-desktop
+apps/qwksearch-ext
+apps/qwksearch-web
 ```
 
-Not covered by that glob, and deliberately separate:
+The apps are listed one by one rather than globbed as `apps/*`, so that a root
+`bun install` cannot walk into `apps/qwk-in-lobe`. A new app is a new line here.
 
-- `packages-lobe/` — its own **pnpm** workspace.
+Not covered by that list, and deliberately separate:
+
+- `apps/qwk-in-lobe/` — its own **pnpm** workspace, inside `apps/` but not of it.
 - `apps/qwksearch-ext` — its own `pnpm-workspace.yaml` and lockfile. A root
   install does not cover it; install inside it as well.
 
@@ -27,7 +33,7 @@ bun run dev                    # turbo dev --filter=qwksearch-web
 bun run dev:editor             # the REASON editor standalone
 bun run build                  # turbo build, whole graph
 bun run test                   # vitest, root config
-bun run test:report            # vitest + HTML reporter into apps/test-reports/dist
+bun run test:report            # vitest + HTML reporter into coverage/html
 cd packages/<name> && bun run test
 ```
 
@@ -43,7 +49,7 @@ rebuilt.
 
 ```bash
 bun run build --filter=<name>            # rebuild the one package
-node scripts/build-workspace-packages.mjs # rebuild all, topological order
+node .github/scripts/build-workspace-packages.mjs # rebuild all, topological order
 ```
 
 That second script is what `apps/qwksearch-web`'s `prebuild` runs.
@@ -57,7 +63,7 @@ point at a `dist/` that does not exist yet. Same fix.
 Turbo treats a dependency as internal only when the declared semver range matches
 the workspace version. When a package asks for `use-voice-control@^0.1.95` and the
 workspace is older, turbo silently drops the edge and builds in the wrong order.
-`scripts/workspace-build-order.mjs` keys edges by package **name**, so the script
+`.github/scripts/workspace-build-order.mjs` keys edges by package **name**, so the script
 covers what turbo misses. If you add a workspace dependency and the build order
 looks wrong, that mismatch is the first thing to check.
 

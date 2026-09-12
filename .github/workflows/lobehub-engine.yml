@@ -1,9 +1,10 @@
 name: LobeHub Engine
 
-# The one job in this repository that installs `packages-lobe`.
+# The one job in this repository that installs `apps/qwk-in-lobe`.
 #
-# `packages-lobe` is a separate pnpm workspace, outside the root `workspaces`
-# graph (`packages/*`, `packages/render-url-to-html/*`, `apps/*`), so every
+# `apps/qwk-in-lobe` is a separate pnpm workspace, outside the root `workspaces`
+# graph — which is why the root `package.json` names its apps one by one instead
+# of globbing `apps/*`, so a root `bun install` cannot walk into this one. Every
 # other workflow here — Coverage, API, Lockfile, npm-publish — installs with
 # bun at the repo root and never sees it. Until this job existed, a green run
 # said nothing at all about a change made to the engine, which is how an
@@ -22,11 +23,11 @@ on:
   push:
     branches: [master]
     paths:
-      - 'packages-lobe/**'
+      - 'apps/qwk-in-lobe/**'
       - '.github/workflows/lobehub-engine.yml'
   pull_request:
     paths:
-      - 'packages-lobe/**'
+      - 'apps/qwk-in-lobe/**'
       - '.github/workflows/lobehub-engine.yml'
   workflow_dispatch:
 
@@ -36,7 +37,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: packages-lobe
+    working-directory: apps/qwk-in-lobe
 
 jobs:
   engine:
@@ -49,16 +50,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # `packages-lobe/package.json` pins pnpm@10.33.0 with a hash. The repo
+      # `apps/qwk-in-lobe/package.json` pins pnpm@10.33.0 with a hash. The repo
       # root pins *bun*, and pnpm/action-setup reads the workspace root's
       # package.json by default — so it has to be pointed at this one.
       - uses: pnpm/action-setup@v4
         with:
-          package_json_file: packages-lobe/package.json
+          package_json_file: apps/qwk-in-lobe/package.json
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: packages-lobe/.nvmrc
+          node-version-file: apps/qwk-in-lobe/.nvmrc
 
       # `pnpm-workspace.yaml` sets `lockfile: false` and `pnpm-lock.yaml` is
       # gitignored here, so there is no lockfile to key a cache on or to
@@ -73,7 +74,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ${{ steps.pnpm-store.outputs.path }}
-          key: lobehub-pnpm-store-${{ runner.os }}-${{ hashFiles('packages-lobe/**/package.json') }}
+          key: lobehub-pnpm-store-${{ runner.os }}-${{ hashFiles('apps/qwk-in-lobe/**/package.json') }}
           restore-keys: |
             lobehub-pnpm-store-${{ runner.os }}-
 

@@ -1,6 +1,6 @@
 ---
 name: ask-qwksearch-monorepo
-description: Map of the QwkSearch research-agent monorepo (OpenSourceAGI/qwksearch-research-agent) — which of the packages and 6 apps owns a given behaviour, the bun/turbo build and test commands, the workspace build-order trap, and the deploy targets. Also covers the four product shells (Next.js web app, Tauri desktop app, WXT browser extension, VS Code extension) and the Hocuspocus collaboration server, which have no package skill of their own. Use when you don't yet know which layer to edit, when a change to a package doesn't show up in the app that imports it, when a root `bun run test` behaves differently from a package's own test script, or when adding a new workspace package.
+description: Map of the QwkSearch research-agent monorepo (OpenSourceAGI/qwksearch-research-agent) — which of the packages and 5 apps owns a given behaviour, the bun/turbo build and test commands, the workspace build-order trap, and the deploy targets. Also covers the four product shells (Next.js web app, Tauri desktop app, WXT browser extension, VS Code extension) and the Hocuspocus collaboration server that ships inside the web app, which have no package skill of their own. Use when you don't yet know which layer to edit, when a change to a package doesn't show up in the app that imports it, when a root `bun run test` behaves differently from a package's own test script, or when adding a new workspace package.
 ---
 
 # Working In The QwkSearch Monorepo
@@ -54,8 +54,13 @@ things look similar:
 | `apps/qwksearch-desktop` | SvelteKit + Tauri (`src-tauri/`) | Global hotkey ("select text, press `` ` ``"), tray, autostart, the quick-search popup. Native behaviour is Rust-side, not `src/`. |
 | `apps/qwksearch-ext` | WXT browser extension | `entrypoints/{background,content,popup,sidepanel,offscreen}`. Has its **own** `pnpm-workspace.yaml` and lockfile — run install inside it too. |
 | `apps/qwk-vscode-ext` | esbuild extension host + two Vite webviews | Host/auth/API proxy in `src/`; chat sidebar in `webview-ui/`; document editor in `webview-ui-editor/`. `bun run compile` builds all three. |
-| `apps/collaboration-server` | Hocuspocus + SQLite | The Yjs rooms behind the editor's collaborative editing. `bun run dev`. |
-| `apps/test-reports` | Cloudflare Worker | Static host for the Vitest HTML report. Infra only. |
+| `apps/qwk-in-lobe` | LobeHub monorepo (pnpm) | The qwksearch.com engine build. A separate pnpm workspace inside `apps/` — the root `bun install` does not cover it, and the root `workspaces` list names the other apps one by one so it cannot. |
+
+The Yjs rooms behind collaborative editing are **not** an app of their own: the
+Hocuspocus process is `apps/qwksearch-web/collaboration/server.ts`
+(`bun run collab:dev`), the room/auth decision is
+`apps/qwksearch-web/lib/collaboration/rooms.ts`, and it authorizes against
+`/api/collaboration/session` and `/api/collaboration/access` in the same app.
 
 ## Commands
 
@@ -75,7 +80,7 @@ their own workspaces) and `apps/*`.
 
 **A package edit doesn't show up in the web app.** Siblings are consumed as built
 `dist/`, not live source. Run `bun run build` in that package, or
-`node scripts/build-workspace-packages.mjs` (what `qwksearch-web`'s `prebuild` runs)
+`node .github/scripts/build-workspace-packages.mjs` (what `qwksearch-web`'s `prebuild` runs)
 to rebuild all of them in topological order.
 
 **Adding a new package.** Create `packages/<name>/package.json`, add its
@@ -90,9 +95,9 @@ a tool in `chat-agent-toolkit` or an entry in that panel — not a file in `skil
 
 | Symptom | Cause → fix |
 | --- | --- |
-| Edited a package, app still shows the old behaviour | The app imports the package's `dist/`. Build the package, or run `node scripts/build-workspace-packages.mjs`. |
+| Edited a package, app still shows the old behaviour | The app imports the package's `dist/`. Build the package, or run `node .github/scripts/build-workspace-packages.mjs`. |
 | `Cannot find module 'react-reason-editor/...' or its type declarations` | An unbuilt sibling: `bun install` symlinks it, but its `exports → types` point at a `dist/` that does not exist yet. Same fix as above. |
-| `turbo build` skips a package that clearly is a local dependency | Turbo only treats a dependency as internal when the declared semver range matches the workspace version (e.g. `research-agent-ui` asks for `use-voice-control@^0.1.95` while the workspace is older). `scripts/workspace-build-order.mjs` keys edges by package *name*, which is why the prebuild script covers it and turbo does not. |
+| `turbo build` skips a package that clearly is a local dependency | Turbo only treats a dependency as internal when the declared semver range matches the workspace version (e.g. `research-agent-ui` asks for `use-voice-control@^0.1.95` while the workspace is older). `.github/scripts/workspace-build-order.mjs` keys edges by package *name*, which is why the prebuild script covers it and turbo does not. |
 | Root `bun run test` doesn't run a package's tests | The root `vitest.config.ts` lists projects explicitly, and `domain-rank`/`extract-pdf` (bun test), `extract-youtube` (jest) and `language-model-training` (pytest) are deliberately absent. Run their own `test` script. |
 | A root `vitest.workspace.ts` you remember is gone | Vitest 4 dropped it; it was silently ignored. Projects now live in the root `vitest.config.ts` — add new packages there. |
 | Extension dependencies look missing after a root install | `apps/qwksearch-ext` is a semi-independent workspace with its own lockfile. Install inside it. |

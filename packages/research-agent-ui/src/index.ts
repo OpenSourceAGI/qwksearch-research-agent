@@ -91,6 +91,26 @@ export { default as HistoryDropdown } from './components/ChatHistoryDropdown';
 export { HistoryDialogs } from './components/ChatHistoryDropdown/HistoryDialogs';
 export { useHistoryState } from './components/ChatHistoryDropdown/useHistoryState';
 
+// ============ Spotlight Palette ============
+// The Ctrl-Space overlay that searches chats, pages, settings and actions.
+// `QwkSearchProviders` mounts it already; these exports are for hosts that
+// build their own shell, or want to open it from their own chrome.
+export {
+  SpotlightPalette,
+  openSpotlight,
+  SPOTLIGHT_LINKS,
+  SPOTLIGHT_PREFIXES,
+  matchSpotlight,
+  parsePrefix,
+} from './components/SpotlightPalette';
+export type {
+  SpotlightContext,
+  SpotlightItem,
+  SpotlightLink,
+  SpotlightPrefix,
+  SpotlightSource,
+} from './components/SpotlightPalette';
+
 // ============ Types ============
 export * from './types/chat';
 

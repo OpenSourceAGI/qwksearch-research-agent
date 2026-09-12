@@ -1,6 +1,6 @@
 ---
 name: ask-research-agent-ui
-description: Guide to research-agent-ui (packages/research-agent-ui), the QwkSearch chat/search UI as a drop-in package — the two entry points (chat-only root vs `/workspace` with the REASON editor), QwkSearchApp and the QwkSearchProviders stack, configureResearchAgentUI, the ChatProvider / SessionProvider / ExtractPanelProvider contexts, the article reader, voice and TTS hooks, and the `/api` dependency-injected route-handler factories. Use when changing anything in the chat window, message composer, search config, article reader, file upload or chat history, when wiring the package into a host app's auth and API routes, or when the editor's dependency tree leaks into a chat-only bundle.
+description: Guide to research-agent-ui (packages/research-agent-ui), the QwkSearch chat/search UI as a drop-in package — the two entry points (chat-only root vs `/workspace` with the REASON editor), QwkSearchApp and the QwkSearchProviders stack, configureResearchAgentUI, the ChatProvider / SessionProvider / ExtractPanelProvider contexts, the article reader, voice and TTS hooks, the Ctrl-Space spotlight palette, and the `/api` dependency-injected route-handler factories. Use when changing anything in the chat window, message composer, search config, article reader, file upload, chat history or the spotlight palette, when wiring the package into a host app's auth and API routes, or when the editor's dependency tree leaks into a chat-only bundle.
 ---
 
 # Working With research-agent-ui
@@ -60,6 +60,7 @@ configured before prompting), `ChromeProvider`, `showDock`, `showCookieConsent`,
 | Copy/share/export actions | `src/components/MessageActions/` |
 | Upload flow, Drive picker | `src/components/FileUpload/` |
 | History dropdown and dialogs | `src/components/ChatHistoryDropdown/` |
+| The Ctrl-Space spotlight palette | `src/components/SpotlightPalette/` |
 | Voice settings, Kokoro voices | `src/components/VoiceSettings/`, `src/hooks/voice/` |
 | Send/stream logic, chat state | `src/hooks/useChat/` (`sendMessage.ts`, `chatMessages.ts`, `buildSections.ts`) |
 | Shell: dock, providers, view switch, tabs | `src/app/` |
@@ -83,6 +84,24 @@ host handled the request in place, and `false`/`undefined` to fall back to navig
 Next.js app. Add an endpoint by adding a handler plus its `*Deps` interface in
 `src/api/types.ts` and exporting it from `src/api/index.ts`.
 
+**The spotlight palette.** `QwkSearchProviders` mounts `SpotlightPalette` (turn it off
+with `showSpotlight={false}`). Ctrl-Space — Cmd-Space belongs to macOS — opens one bar
+over the whole app; `openSpotlight()` does the same from chrome that has no keyboard
+(the dock's Settings menu calls it). It is modelled on CardMirror's quick-card palette
+in debate-ai, prefix system and all: `c ` chats · `t ` pages · `s ` settings sections ·
+`a ` actions · `w ` ask, no prefix searches everything with "ask it" pinned on top. Tab
+cycles the scope, ↑↓ move, Enter runs, Esc closes.
+
+Three files, split so the interesting parts are testable without mounting the app:
+`spotlightMatch.ts` (the prefix parser and the two-tier ranker — name matches first,
+then secondary text with a snippet; substring, never fuzzy), `spotlightItems.ts` (one
+builder per source, each taking a `SpotlightContext` of callbacks so nothing reaches for
+a hook or an endpoint) and `SpotlightPalette.tsx` (the overlay, which supplies that
+context from the chat / session / view contexts it is mounted inside). Add a source by
+writing a builder and giving it a prefix in `SPOTLIGHT_PREFIXES`; add a page by adding
+it to `spotlightLinks.ts`, which is hand-kept because the package has no router to
+derive it from.
+
 **Google Drive picker.** Set both `googleApiKey` and `googleAppId`. The connector holds
 the per-file `drive.file` scope, and Google only releases a picked file when the picker
 knows the app id — with it empty, files come back but downloading them 403s.
@@ -95,8 +114,10 @@ knows the app id — with it empty, files come back but downloading them 403s.
 | `QwkSearchWorkspaceApp` is not exported | You imported the root entry. Use `research-agent-ui/workspace`. |
 | Missing-peer errors for `react-reason-editor` | Those are optional peers of the `/workspace` entry — install them, or use the chat-only entry. |
 | Google One Tap never appears | `googleOneTap` defaults to `'auto'` and stays off unless the backend reports Google as a configured provider. Pass `true` to force it. |
+| Ctrl-Space does nothing | The host mounts its own shell instead of `QwkSearchProviders`, or passes `showSpotlight={false}`. Mount `<SpotlightPalette />` inside the session/chat/view providers — it reads all three. |
+| A palette row navigates when the host wanted to handle it in place | `onOpenChat` / `onOpenSettings` must return `true`; the palette falls back to `/c/<id>` and `/settings/<section>` exactly like the history dropdown. |
 | Settings open as a route when a modal was wanted | `onOpenSettings` must return `true`; anything else falls through to route navigation. |
 | Drive picker returns a file that then 403s | `googleAppId` (the Google Cloud project number) is empty. |
-| Edits don't appear in `apps/qwksearch-web` | It consumes the built `dist/`. `bun run build` here, or run the repo's `scripts/build-workspace-packages.mjs`. |
+| Edits don't appear in `apps/qwksearch-web` | It consumes the built `dist/`. `bun run build` here, or run the repo's `.github/scripts/build-workspace-packages.mjs`. |
 | A component looks right in Storybook but breaks in the app | Providers. Most components assume `SessionProvider` / `ChatProvider` / `ExtractPanelProvider` above them (`bun run storybook` to iterate). |
 | Type-check fails on editor types after a fresh clone | `react-reason-editor` has not been built, so its `exports → types` point at a missing `dist/`. Build siblings first. |

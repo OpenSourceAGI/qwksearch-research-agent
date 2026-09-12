@@ -57,6 +57,8 @@ apps/qwksearch-web/.open-next
 .claude/*
 !.claude/skills
 # Agent docs for Claude Code — checked in on purpose (see CLAUDE.md)
+!.claude/apps
+!.claude/packages
 !.claude/architecture
 !.claude/settings.json
 .claude/settings.local.json

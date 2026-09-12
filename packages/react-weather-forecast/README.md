@@ -1,3 +1,25 @@
+<!-- template-git-repo:badges:start -->
+<p align="center">
+    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/react-weather-forecast"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
+    <br />
+    <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/dm/use-weather-forecast.svg" alt="NPM Monthly Downloads" /></a>
+    <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/v/use-weather-forecast.svg" alt="npm version" /></a>
+    <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/dt/use-weather-forecast.svg" alt="NPM Total Downloads" /></a>
+    <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/types/use-weather-forecast" alt="TypeScript types" /></a>
+    <a href="https://packagephobia.com/result?p=use-weather-forecast"><img src="https://packagephobia.com/badge?p=use-weather-forecast" alt="Install size" /></a>
+    <br />
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"><img src="https://img.shields.io/github/issues/OpenSourceAGI/qwksearch-research-agent?logo=github" alt="GitHub Issues" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls"><img src="https://img.shields.io/github/issues-pr/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs" alt="Open Pull Requests" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls?q=is%3Apr+is%3Aclosed"><img src="https://img.shields.io/github/issues-pr-closed/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs%20merged&color=8957e5" alt="Merged Pull Requests" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/discussions"><img src="https://img.shields.io/github/discussions/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Discussions" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/OpenSourceAGI/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
+    <br />
+    <img src="https://img.shields.io/badge/Bun-14151A?logo=bun&logoColor=white" alt="Bun" /> <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" /> <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=white" alt="React" /> <img src="https://img.shields.io/badge/Cloudflare%20Workers-F38020?logo=cloudflareworkers&logoColor=white" alt="Cloudflare Workers" /> <img src="https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest" />
+</p>
+<!-- template-git-repo:badges:end -->
+
 # use-weather-forecast
 
 [![Coverage](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg?component=package-react-weather-forecast)](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent)
@@ -46,18 +68,37 @@ the package does when an upstream misbehaves.
 
 ### `Weather request failed: 400 Bad Request`
 
-Open-Meteo answers `400` for a query it cannot parse, and the usual way to
-build one is not a typo in your props: an IP geolocation upstream answers
-`200` with no coordinates in the body, `Number(undefined)` becomes `NaN`,
-`latitude=NaN` goes out on the wire. Everything that goes into a request is
-validated first now:
+Two different things produced this, and both are fixed.
+
+**A malformed URL.** Requests go through
+[`grab-url`](https://www.npmjs.com/package/grab-url), which turns every option
+it does not recognise into the GET query string and concatenates it onto the
+path. Passing it a URL that already had a query gave the request *two* `?`, and
+the last real parameter value absorbed the leftover option:
+
+```text
+...&daily=temperature_2m_max%2Cwind_speed_10m_max?retryAttempts=0
+```
+
+Open-Meteo read that as an unknown `daily` variable and answered `400`. It hit
+every weather provider on every call, since all four build a query -- while the
+geolocation lookups kept working, because their URLs carry no query of their own
+for the stray `?` to collide with. The query is now handed over as grab-url's
+own parameters, so grab-url writes the single `?` itself and there is no query
+string of ours left to corrupt.
+
+**A malformed query.** Open-Meteo also answers `400` for a query it cannot
+parse, and the usual way to build one is not a typo in your props: an IP
+geolocation upstream answers `200` with no coordinates in the body,
+`Number(undefined)` becomes `NaN`, `latitude=NaN` goes out on the wire.
+Everything that goes into a request is validated first:
 
 | Input | What happens to it |
 | --- | --- |
-| `latitude` / `longitude` | Must be finite and on the globe, and are rounded to 4 decimals. A geolocation response without them counts as a failed lookup, so the next provider gets a turn. Unusable props fall back to IP geolocation. |
-| `location.timezone` | Canonicalized (`US/Pacific` becomes `America/Los_Angeles`); a zone the runtime cannot resolve is dropped rather than sent, and Open-Meteo resolves the zone from the coordinates instead. |
+| `latitude` / `longitude` | Must be finite and on the globe, and are rounded to 4 decimals. A geolocation response without them counts as a failed lookup, so the next provider gets a turn. Unusable props fall back to IP geolocation. Coordinates on `location` are honoured like top-level ones, without an IP lookup. |
+| `location.timezone` | Canonicalized (`US/Pacific` becomes `America/Los_Angeles`); a zone the runtime cannot resolve is dropped rather than sent. With no zone given, the one IP geolocation reported is used, and Open-Meteo resolves it from the coordinates if there is none. |
 | `forecastDays` / `forecastHours` | Clamped to the 1-16 days and 1-384 hours the API accepts. |
-| Variable list | A `400` from an endpoint that refused one of the optional variables is retried once with the minimal set the widget needs. |
+| Variable list | A `400` from an endpoint that refused part of the query is asked again in a smaller shape: first only the variables every model supports, then that without `forecast_hours` and with `timezone=auto`. The units are never dropped -- a Celsius body read as Fahrenheit would render a plausible, wrong temperature. |
 
 ### Retries
 
@@ -82,9 +123,20 @@ upstream's rate limit.
 The fallbacks normalize their own condition codes, units and timestamps into
 the same shape Open-Meteo returns, so a failover is invisible in the rendered
 widget (wttr.in is 3-hourly rather than hourly). If every provider fails, a
-cached forecast up to a day old is served instead of throwing; only if there is
-no cache either does an error reach the widget, listing what each provider
-said.
+cached forecast up to a day old is served instead of throwing.
+
+### Reloading
+
+If even that produces nothing, the component reloads the whole forecast
+`reloadAttempts` more times (2 by default) with a growing pause -- 3s, then 6s.
+A failure that reaches this point means every provider failed at once, which is
+usually something that clears on its own: a flaky network on first paint, or
+every free upstream rate-limited in the same second. The component stays in its
+loading state while a reload is pending, so it renders nothing for a few
+seconds rather than flashing an error it is about to recover from.
+
+Only once the reloads are spent does an error reach the widget, listing what
+each provider said. `reloadAttempts={0}` shows it immediately instead.
 
 ```tsx
 <WeatherForecast
@@ -93,6 +145,8 @@ said.
   retryAttempts={3}
   retryDelay={400}
   timeout={15}
+  reloadAttempts={2}
+  reloadDelay={3000}
   fallbackLocation={{ city: 'Austin', latitude: 30.27, longitude: -97.74 }}
   allowStaleCache
   onProviderError={({ provider, stage, error }) => console.warn(stage, provider, error.message)}

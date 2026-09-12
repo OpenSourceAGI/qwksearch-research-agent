@@ -83,6 +83,11 @@ interface ReasonDocsProps {
   /** Called whenever a document/file tab becomes active, so the host can switch away from an extra tab. */
   onFileTabSelect?: () => void;
   /**
+   * URL the sidebar's settings button opens. Defaults to `/settings` — the
+   * button is a plain link to the settings page, not a dropdown menu.
+   */
+  settingsHref?: string;
+  /**
    * Document ID to open as the active document once (e.g. restored from a
    * URL param on load). Applied only on the first render where the document
    * exists — later changes to this prop are ignored, so it never fights with
@@ -144,10 +149,10 @@ const Index = ({
   onGenerateTopics,
   onSearchTopic,
   onSignIn,
+  settingsHref,
 }: ReasonDocsProps) => {
   const { theme, setTheme } = useTheme();
   const state = useReasonDocsState(openFilesSidebarSignal);
-  const [settingsInitialSection, setSettingsInitialSection] = useState<string | undefined>(undefined);
   const [tips, setTips] = useState<string[]>([]);
   const [isTipsLoading, setIsTipsLoading] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
@@ -331,7 +336,7 @@ const Index = ({
     onLeftPanelsChange: state.setLeftPanels,
     rightPanels: state.rightPanels,
     onRightPanelsChange: state.setRightPanels,
-    onSettingsClick: (section?: string) => { setSettingsInitialSection(section); state.setIsSettingsOpen(true); },
+    settingsHref,
     onInviteClick: () => state.setIsInviteModalOpen(true),
     onRestore: state.handleRestoreDocument,
     onPermanentDelete: state.handlePermanentDelete,
@@ -514,7 +519,6 @@ const Index = ({
         setIsSearchModalOpen={state.setIsSearchModalOpen}
         isSettingsOpen={state.isSettingsOpen}
         setIsSettingsOpen={state.setIsSettingsOpen}
-        settingsInitialSection={settingsInitialSection}
         isTeamsOpen={state.isTeamsOpen}
         setIsTeamsOpen={state.setIsTeamsOpen}
         isInviteModalOpen={state.isInviteModalOpen}

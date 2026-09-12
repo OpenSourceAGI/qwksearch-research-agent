@@ -83,7 +83,8 @@ remote embed regardless.
 remapped combos stop working.
 
 **Collaboration.** `@hocuspocus/provider` + the Tiptap collaboration extensions, against
-`apps/collaboration-server`.
+the Hocuspocus server inside the web app (`apps/qwksearch-web/collaboration/server.ts`,
+`bun run collab:dev`), which authorizes through `/api/collaboration/*`.
 
 **i18n.** 21 locales in `src/locales/`. Add a key to `en.ts` first, then the others.
 

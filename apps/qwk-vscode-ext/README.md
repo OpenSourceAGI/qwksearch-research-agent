@@ -1,3 +1,18 @@
+<!-- template-git-repo:badges:start -->
+<p align="center">
+    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <br />
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"><img src="https://img.shields.io/github/issues/OpenSourceAGI/qwksearch-research-agent?logo=github" alt="GitHub Issues" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls"><img src="https://img.shields.io/github/issues-pr/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs" alt="Open Pull Requests" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls?q=is%3Apr+is%3Aclosed"><img src="https://img.shields.io/github/issues-pr-closed/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs%20merged&color=8957e5" alt="Merged Pull Requests" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/discussions"><img src="https://img.shields.io/github/discussions/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Discussions" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/OpenSourceAGI/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
+    <br />
+    <img src="https://img.shields.io/badge/Bun-14151A?logo=bun&logoColor=white" alt="Bun" /> <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" /> <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=white" alt="React" /> <img src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" alt="Vite" /> <img src="https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest" />
+</p>
+<!-- template-git-repo:badges:end -->
+
 # QwkSearch for VS Code
 
 Search, ask, and research the web from a sidebar in VS Code — the same
@@ -173,19 +188,51 @@ Then press **F5** in VS Code (with this folder open) to launch an Extension
 Development Host with QwkSearch loaded, or open the QwkSearch icon in the
 Activity Bar.
 
-### Packaging
+### Packaging and publishing
 
 ```bash
-bun run package      # production build (dist/, webview-ui/dist/, webview-ui-editor/dist/)
-bunx @vscode/vsce package   # produces a .vsix you can install or publish
+bun run package                 # production build (dist/, webview-ui/dist/, webview-ui-editor/dist/)
+bunx @vscode/vsce package       # → qwksearch-vscode-<version>.vsix
 ```
 
+Install the result with **Extensions → … → Install from VSIX**, or
+`code --install-extension qwksearch-vscode-<version>.vsix`.
+
+Publishing to the Marketplace under the `opensourceagi` publisher needs a
+Personal Access Token with the **Marketplace → Manage** scope, created in an
+Azure DevOps organization at [dev.azure.com](https://dev.azure.com) — the
+walkthrough is
+[Publishing Extension](https://code.visualstudio.com/api/working-with-extensions/publishing-extension).
+
+```bash
+bunx @vscode/vsce login opensourceagi   # paste the PAT once
+bunx @vscode/vsce publish               # bump "version" in package.json first
+```
+
+`vscode:prepublish` runs `bun run package`, so both webviews are rebuilt before
+anything ships. The PAT is a credential: leave it in `vsce`'s keychain entry,
+never in the repository.
+
 ## Configuration
+
+**This extension reads no environment variables.** There is no `.env` — every
+knob is a VS Code setting, and the one credential it holds (your QwkSearch API
+key, stored by `QwkSearch: Sign In`) lives in VS Code's
+[SecretStorage](https://code.visualstudio.com/api/references/vscode-api#SecretStorage),
+not in a settings file or this repository.
+
+Change these in **Settings → Extensions → QwkSearch**:
 
 | Setting | Default | Description |
 | --- | --- | --- |
 | `qwksearch.apiBaseUrl` | `https://qwksearch.com` | Base URL of the QwkSearch deployment to use. Point at a self-hosted `qwksearch-web` instance to use your own. |
 | `qwksearch.focusMode` | `webSearch` | Default research focus for new questions: `webSearch` (cited web search) or `writingAssistant` (no search). |
+
+Everything the backend needs — model provider keys, search providers, auth — is
+configured on the `qwksearch-web` deployment that `qwksearch.apiBaseUrl` points
+at, not here. See
+[its README](../qwksearch-web/README.md#environment-variables); point the
+setting at `http://localhost:3000` to develop against a local one.
 
 ## Commands
 

@@ -39,7 +39,7 @@ jobs:
           - { flag: use-voice-control, dir: packages/use-voice-control }
           - { flag: user-help-docs, dir: packages/user-help-docs }
           - { flag: write-language, dir: packages/write-language }
-          - { flag: scripts, dir: scripts }
+          - { flag: scripts, dir: .github/scripts }
 
     steps:
       - uses: actions/checkout@v4
