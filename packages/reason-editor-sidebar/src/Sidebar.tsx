@@ -41,7 +41,7 @@ export const Sidebar = ({
   onLeftPanelsChange,
   rightPanels,
   onRightPanelsChange,
-  onSettingsClick,
+  settingsHref,
   onRestore,
   newDocumentId,
   showDynamicIsland,
@@ -146,11 +146,6 @@ export const Sidebar = ({
     onAdd,
     onSearchFocus,
     onFileManagerOpen: () => setIsFileManagerOpen(true),
-    sources,
-    activeSource,
-    activeFileSourceId,
-    onFileSourceChange,
-    onSourceSelect: handleSourceSelect,
     allExpanded: expandCycle.isFullyExpanded,
     expandToggleLabel: expandCycle.label,
     // Without a mounted file tree the toggle has nothing to act on; the
@@ -163,7 +158,6 @@ export const Sidebar = ({
     outlineRef,
     deletedDocs,
     onRestore,
-    onSettingsClick,
     showDynamicIsland,
     onToggleDynamicIsland,
     isMobile,
@@ -224,7 +218,13 @@ export const Sidebar = ({
     isMobile,
     deletedDocs,
     onRestore,
-    onSettingsClick,
+    settingsHref,
+    // The storage-source switcher lives in the footer, not the top toolbar.
+    sources,
+    activeSource,
+    activeFileSourceId,
+    onFileSourceChange,
+    onSourceSelect: handleSourceSelect,
   };
 
   // Mobile: render in a drawer

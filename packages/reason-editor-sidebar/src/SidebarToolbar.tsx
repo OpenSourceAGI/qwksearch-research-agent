@@ -1,13 +1,12 @@
 /**
  * @module SidebarToolbar
  * @description Compact icon toolbar rendered at the top of the sidebar. Shows
- * context-sensitive controls based on `leftPanels`: file-source switcher, search,
- * and expand/collapse buttons. The file-tree actions (new file/folder, trash,
- * file manager) render here only when the "Files" panel — which hosts them in
- * its own header — is hidden.
+ * context-sensitive controls based on `leftPanels`: search and expand/collapse
+ * buttons. The storage-source switcher lives in the sidebar footer. The
+ * file-tree actions (new file/folder, trash, file manager) render here only
+ * when the "Files" panel — which hosts them in its own header — is hidden.
  */
 import { RefObject } from 'react';
-import type { AnyFileSource } from './app-types/fileSource';
 import type { DocumentTreeHandle } from './file-tree/filetree';
 import type { OutlineViewHandle } from './search/OutlineView';
 import type { SidebarPanelType, OpenTabItem } from './layout/sidebar/types';
@@ -23,8 +22,7 @@ import {
 } from './app-ui/dropdown-menu';
 import { cn } from './app-utils/utils';
 import { FileTypeIcon } from './app-ui/FileTypeIcon';
-import { Search, FilePlus, FolderPlus, ChevronsDownUp, ChevronsUpDown, Check, Folders, Trash2, RotateCcw, MoreHorizontal, X, MessageSquare } from 'lucide-react';
-import { getSourceIcon, getSourceTypeLabel } from './fileSourceUtils';
+import { Search, FilePlus, FolderPlus, ChevronsDownUp, ChevronsUpDown, Folders, Trash2, RotateCcw, MoreHorizontal, X, MessageSquare } from 'lucide-react';
 import { SidebarViewMenu } from './SidebarViewMenu';
 
 /** Props for the {@link SidebarToolbar} component. */
@@ -45,16 +43,6 @@ interface SidebarToolbarProps {
   onSearchFocus: () => void;
   /** Opens the file manager modal. */
   onFileManagerOpen: () => void;
-  /** Available file source configurations. */
-  sources: AnyFileSource[];
-  /** The currently active file source object, or `null` if none selected. */
-  activeSource: AnyFileSource | null;
-  /** ID of the currently active file source. */
-  activeFileSourceId: string;
-  /** Called when the user selects a different file source from the dropdown. */
-  onFileSourceChange?: (sourceId: string) => void;
-  /** Selects a source by ID and updates the active source state. */
-  onSourceSelect: (sourceId: string) => void;
   /** Whether all tree nodes are currently expanded (drives the toggle icon). */
   allExpanded: boolean;
   /** Tooltip label describing what the expand-all toggle will do next (cycles by folder level). */
@@ -83,9 +71,7 @@ interface SidebarToolbarProps {
   showDynamicIsland?: boolean;
   /** Toggles the floating reading-progress island. */
   onToggleDynamicIsland?: () => void;
-  /** Opens the settings dialog, optionally navigating to a specific section. */
-  onSettingsClick?: (section?: string) => void;
-  /** Suppresses the settings button when `true` (mobile layout). */
+  /** Reserved for layout tweaks on the mobile drawer. */
   isMobile?: boolean;
   /** All currently open tab IDs. */
   openTabs?: string[];
@@ -104,8 +90,7 @@ interface SidebarToolbarProps {
 /**
  * Sidebar toolbar strip. Renders different button sets based on which
  * panels are active in `leftPanels`: the files/open-tabs panel shows
- * file-source, search, file-manager, new-file/folder, and collapse-all
- * buttons; the outline panel additionally shows an expand/collapse toggle.
+ * search, file-manager, new-file/folder, and collapse-all buttons; the outline panel additionally shows an expand/collapse toggle.
  */
 export const SidebarToolbar = ({
   leftPanels,
@@ -116,11 +101,6 @@ export const SidebarToolbar = ({
   onAdd,
   onSearchFocus,
   onFileManagerOpen,
-  sources,
-  activeSource,
-  activeFileSourceId,
-  onFileSourceChange,
-  onSourceSelect,
   allExpanded,
   expandToggleLabel,
   expandToggleDisabled = false,
@@ -133,7 +113,6 @@ export const SidebarToolbar = ({
   onRestore,
   showDynamicIsland = false,
   onToggleDynamicIsland,
-  onSettingsClick,
   isMobile,
   openTabs = [],
   activeTab,
@@ -158,63 +137,7 @@ export const SidebarToolbar = ({
           {/* Show file/folder buttons only when the file tree or open-tabs panel is visible */}
           {(leftPanels.includes('files') || leftPanels.includes('openTabs')) && (
             <>
-              {/* File Source Dropdown */}
-              {onFileSourceChange && (
-                <DropdownMenu>
                   <Tooltip>
-                    <TooltipTrigger asChild>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="size-8 shrink-0 p-0 text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                        >
-                          {activeSource && getSourceIcon(activeSource.type)}
-                        </Button>
-                      </DropdownMenuTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">
-                      <p>Storage Source: {activeSource?.name || 'Select Source'}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <DropdownMenuContent align="start" className="w-56">
-                    {sources.map((source, index) => (
-                      <div key={source.id}>
-                        {index > 0 && sources[index - 1]?.type !== source.type && (
-                          <DropdownMenuSeparator />
-                        )}
-                        <DropdownMenuItem
-                          onClick={() => onSourceSelect(source.id)}
-                          className="flex items-center justify-between cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            {getSourceIcon(source.type)}
-                            <div className="flex flex-col flex-1 min-w-0">
-                              <span className="truncate text-sm">{source.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {getSourceTypeLabel(source.type)}
-                              </span>
-                            </div>
-                          </div>
-                          {source.id === activeFileSourceId && (
-                            <Check className="h-4 w-4 ml-2 shrink-0" />
-                          )}
-                        </DropdownMenuItem>
-                      </div>
-                    ))}
-                    {sources.length === 1 && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem disabled className="text-xs text-center text-muted-foreground">
-                          Add sources in Settings
-                        </DropdownMenuItem>
-                      </>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-
-              <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"

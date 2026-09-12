@@ -43,7 +43,7 @@ rather than mutating the array at the call site.
 | The left sidebar | `Sidebar` (`SidebarProps`) |
 | The right panel body | `SidebarContent` (`SidebarContentProps`) |
 | Search box / expand-collapse header | `SidebarToolbar` |
-| Footer | `SidebarFooter` |
+| Footer (storage source, trash, settings link, view menu) | `SidebarFooter` |
 | The panel-toggle menu | `SidebarViewMenu`, `PANEL_OPTIONS`, `togglePanel`, `sortPanels` |
 | The file/folder tree alone | `FileTree`, `DocumentTreeHandle` |
 | Outline of the active document | `OutlineView`, `OutlineViewHandle`, `ActiveHeadingEditorHandle` |
@@ -70,7 +70,9 @@ that callback the stepped state lives only inside the tree and is lost on the ne
 document change.
 
 **File sources.** Seven backends — `local`, `ssh`, `s3`, `r2`, `b2`, `gdocs`, `turso` —
-as a discriminated union on `type`. The CRUD helpers are **localStorage-backed**, so
+as a discriminated union on `type`. The picker lives in `SidebarFooter` (bottom icon
+row), not the toolbar, and renders only when the host passes `onFileSourceChange`.
+The CRUD helpers are **localStorage-backed**, so
 they are per-browser and never reach a server; secrets entered in the file-source dialog
 live in the browser.
 
@@ -89,5 +91,6 @@ same panel.
 | A circular-dependency error appears after an edit | Something in this package imported `react-reason-editor`. The dependency is one-way. |
 | `localStorage is not defined` under SSR | Use `ssrSafeLocalStorage`; the file-source helpers already do. |
 | File-source credentials don't work on another device | They are in `localStorage`, per browser, by design. |
+| The settings button does nothing / 404s | It is a plain link to `settingsHref` (default `/settings`), not a callback — the host must serve that route or pass its own URL. |
 | The tree looks unstyled | Import `react-reason-editor-sidebar/style.css`. |
 | Peer errors on install | `react` and `react-dom` are peers; everything else (headless-tree, radix, svar filemanager, react-split-pane) is a real dependency. |
