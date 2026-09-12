@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi, type MockedFunction } from 'vitest';
 import { getClientLocation } from '../src/api/geolocation';
 import grab from 'grab-url';
+import { requestedUrl } from './requested-url';
 
 vi.mock('grab-url');
 const mockGrab = grab as MockedFunction<typeof grab>;
@@ -57,7 +58,9 @@ describe('getClientLocation', () => {
 
       await getClientLocation('https://geo.example.workers.dev', '8.8.8.8');
 
-      expect(mockGrab.mock.calls[0][0]).toBe('https://geo.example.workers.dev?ip=8.8.8.8');
+      expect(requestedUrl(mockGrab.mock.calls[0] as never)).toBe(
+        'https://geo.example.workers.dev?ip=8.8.8.8'
+      );
     });
 
     it('throws with the status code when the worker errors', async () => {
@@ -186,10 +189,18 @@ describe('getClientLocation', () => {
     it('waits between tries when a delay is configured', async () => {
       grabResolves({ error: true, reason: 'RateLimited' }, { latitude: 1, longitude: 2 });
 
-      const start = Date.now();
+      // The delay asked for, not the time that passed -- see the note on
+      // `recordDelays` in http.test.ts.
+      const delays: number[] = [];
+      const timeout = globalThis.setTimeout;
+      vi.spyOn(globalThis, 'setTimeout').mockImplementation(((handler: TimerHandler, ms?: number) => {
+        if (ms !== undefined) delays.push(ms);
+        return timeout(handler, 0);
+      }) as typeof globalThis.setTimeout);
+
       await getClientLocation(undefined, undefined, { retryDelay: 20 });
 
-      expect(Date.now() - start).toBeGreaterThanOrEqual(20);
+      expect(delays).toEqual([20]);
       expect(mockGrab).toHaveBeenCalledTimes(2);
     });
 
