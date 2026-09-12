@@ -125,7 +125,7 @@
     "start": "next start -p 3210",
     "stylelint": "stylelint \"src/**/*.{js,jsx,ts,tsx}\" --fix",
     "test": "npm run test-app && npm run test-server",
-    "test:qwksearch": "vitest run worker src/features/QwkSearch src/features/Settings/extraction src/features/Settings/search src/features/Settings/qwksearch src/libs/better-auth/utils/kvSecondaryStorage.test.ts src/spa/router/desktopRouter.sync.test.tsx src/features/NavPanel/routeKey.test.ts apps/server/src/services/email/impls/cloudflare apps/server/src/services/search/impls/qwksearch && pnpm --filter @lobechat/database exec vitest run src/core/cloudflare.test.ts",
+    "test:qwksearch": "vitest run worker src/features/QwkSearch src/features/Settings/extraction src/features/Settings/search src/features/Settings/qwksearch src/libs/better-auth/utils/kvSecondaryStorage.test.ts src/spa/router/desktopRouter.sync.test.tsx src/features/NavPanel/routeKey.test.ts apps/server/src/services/email/impls/cloudflare apps/server/src/services/search/impls/qwksearch && pnpm --filter @lobechat/database exec vitest run src/core/cloudflare.test.ts src/core/db-adaptor.test.ts",
     "test:update": "vitest -u",
     "test-app": "vitest run",
     "test-app:coverage": "vitest --coverage --silent='passed-only'",
