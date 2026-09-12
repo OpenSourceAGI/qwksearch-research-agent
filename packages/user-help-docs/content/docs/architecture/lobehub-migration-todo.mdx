@@ -755,28 +755,6 @@ Blocked on the LobeHub Community License answer, recorded in
     itself.** The install is the expensive step, and nothing outside the engine
     changes either result.
 
-  **First real run: green, in 3m22s** (#452, `f3b37e85`). Every step was faster
-  on a GitHub runner than on the box these numbers were estimated from:
-
-  | Step | On a runner, cold cache |
-  |---|---|
-  | `pnpm install --ignore-scripts` | **1m03s**, 3939 packages |
-  | `pnpm run type-check:qwksearch` | **40s** → clean |
-  | `pnpm run test:qwksearch` | **43s**, 568 passed |
-  | Saving the pnpm store to the cache | ~25s, **1.0 GB** |
-
-  Two things that run confirmed beyond "it works". The **504 ignored errors are
-  the same 504** on the runner's Node 24.20.0 as on Node 22 here, so the filter's
-  count is a property of the tree rather than of one machine — which is what
-  makes it usable as a tripwire. And the **cold install is the whole cost**: on a
-  cache hit the job is roughly two minutes, so the path filter is about runner
-  slots, not minutes.
-
-  One warning on every run, and not this job's: `actions/checkout@v4`,
-  `actions/setup-node@v4`, `actions/cache@v4` and `pnpm/action-setup@v4` all
-  target Node 20 and are being forced onto Node 24. Every workflow in this
-  repository uses those actions, so the v5 bump is a repo-wide change, not a
-  `packages-lobe` one.
   - **Three details are specific to this workspace**, and each one is a way the
     obvious workflow would have failed: `pnpm/action-setup` reads the *repo
     root* `package.json` by default, which pins **bun**, so it has to be pointed
@@ -787,6 +765,43 @@ Blocked on the LobeHub Community License answer, recorded in
     the install is `--ignore-scripts` like every other recipe here, which is
     also what keeps 5.4's bundle budget out of this job.
 
+  **Both runs so far: green**, on `.nvmrc`'s Node 24.20.0 — the version the
+  Cloudflare build pins and the deploy runs, which nothing local could exercise.
+  #452 (`f3b37e85`) missed the store cache and wrote it; #453 (`3c8839f6`) hit it
+  on the primary key:
+
+  | Step | Cold (#452) | Cache hit (#453) |
+  |---|---|---|
+  | `pnpm install --ignore-scripts` | 1m03s, 3939 packages | **45.7s** |
+  | `pnpm run type-check:qwksearch` | 40s → clean | 47s → clean |
+  | `pnpm run test:qwksearch` | 43s, 568 passed | 56s, 568 passed |
+  | The pnpm store | ~25s to save, **1.0 GB** | hit, nothing saved |
+  | **Whole job** | **3m22s** | **3m36s** |
+
+  Three things those runs settled:
+
+  - **The 504 ignored errors are the same 504** on the runner's Node 24 as on
+    Node 22 here, so the filter's count is a property of the tree rather than of
+    one machine. That is what makes it usable as a tripwire: a change in it is
+    a signal, not a machine difference.
+  - **The store cache is worth about 17 seconds, and that is all.** #452's
+    write-up guessed that a cache hit would take the job to "roughly two
+    minutes"; the measured hit is 3m36s, *slower* than the cold run, within
+    runner variance either way. The cache only removes the download — pnpm still
+    links 3939 packages into `node_modules` every time, and that is the install.
+    Keep the cache (17s and a gentler registry) but do not plan around it: this
+    job costs ~3.5 minutes on every run, which makes the path filter worth
+    minutes and not just runner slots.
+  - **`restore-keys` is no longer unexercised.** The second run hit the primary
+    key, so the fallback branch specifically still has not been taken, but the
+    restore path itself works.
+
+  One warning on every run, and not this job's: `actions/checkout@v4`,
+  `actions/setup-node@v4`, `actions/cache@v4` and `pnpm/action-setup@v4` all
+  target Node 20 and are being forced onto Node 24. Every workflow in this
+  repository uses those actions, so the v5 bump is a repo-wide change, not a
+  `packages-lobe` one.
+
   Follow-ups:
 
   - ⬜ **An unlockfiled install is not a reproducible one.** `lockfile: false`
@@ -794,13 +809,6 @@ Blocked on the LobeHub Community License answer, recorded in
     means this job resolves fresh semver on every cache miss and can go red for
     a reason that is not in the diff. If that happens, the store cache key
     (the manifests) is the first thing to read.
-  - ✅ **Confirmed on a GitHub runner**, on `.nvmrc`'s **24.20.0** — the version
-    the Cloudflare build pins and the deploy runs, which nothing local could
-    exercise. See the table above.
-  - ⬜ **The job has only ever run on a cache miss.** Its first run wrote the
-    store cache; nothing has yet read one back. If a restore is ever partial or
-    stale, the symptom will be an install that is slow rather than wrong, but
-    the `restore-keys` fallback is unexercised.
 
 ## How to pick up the next item
 

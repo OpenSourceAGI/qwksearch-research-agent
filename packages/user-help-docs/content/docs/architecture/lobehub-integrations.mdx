@@ -608,7 +608,9 @@ cd packages-lobe && bun run type-check:worker
 — the only job in this repository that installs `packages-lobe`. It is
 path-filtered to `packages-lobe/**` and the workflow file, because the install is
 the expensive step (~1 min cold on a runner, 4.2 GB) and nothing outside the
-engine can change either result. **3m22s end to end** on its first real run. What
+engine can change either result. **~3.5 minutes end to end**, cache hit or
+miss — the store cache saves about 17s of a 1-minute install, because pnpm links
+3939 packages either way. What
 it does *not* run is the Worker bundle-size budget; §5.4 of the migration to-do
 records why.
 
