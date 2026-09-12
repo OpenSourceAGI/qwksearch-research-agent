@@ -122,6 +122,16 @@ data is reused as-is.
   trims. Hosts and credentials appear only as read-only "configured / not configured" rows. Each
   pane's `contract.test.ts` is the drift guard — it imports the real resolver, rebuilds the exact
   document its route returns, and fails if the client's restated types fall behind.
+- **The legacy settings map** (`src/features/Settings/qwksearch/legacySettingsMap.ts`): not a
+  feature — a migration artifact with a test. It carries all nine sections of the old
+  qwksearch.com settings surface (`packages/research-agent-ui/src/settings/sections.json`) and all
+  22 fields of its flat "Search Settings" list, each with what stores it today, the engine tabs
+  that take it over, and what is still missing before the old surface can be deleted.
+  `retirementBlockers()` returns the sections that are not covered yet — nine of nine today — so
+  "may we delete it?" is answerable from code. `legacySettingsMap.contract.test.ts` reads both
+  JSON schemas, the legacy components and `componentMap.ts` from disk and fails when either side
+  moves, which is the difference between a map and a stale paragraph. Both files are deleted along
+  with the surface they describe.
 - **Branding**: `BRANDING_NAME`/`ORG_NAME` = QwkSearch, QwkSearch favicons under `public/`,
   support/social URLs point at qwksearch.com.
 
@@ -258,7 +268,7 @@ LobeHub's Postgres migrations once against the database: `bun run db:migrate` wi
 ## Tests
 
 ```bash
-# Everything QwkSearch added to the engine, in one command -- 568 tests in 36
+# Everything QwkSearch added to the engine, in one command -- 579 tests in 37
 # files, about a minute. This is what CI runs (.github/workflows/lobehub-engine.yml),
 # and the path list lives in the script so the workflow and the docs cannot drift.
 bun run test:qwksearch
@@ -329,6 +339,9 @@ rebuilds its route's response from the real resolver.
   `languages`/`language`). No upstream file changed for it; the two panes are QwkSearch-added
   files and import it through the barrel. See §F5d of the integrations reference, which also
   records why the language fields use base-ui's `AutoComplete` and not a tags `Select`.
+  `legacySettingsMap.ts` and its contract test live in the same directory and change no upstream
+  file either — they only *read* `componentMap.ts` as text, which is the point: the guard notices
+  when upstream renames or drops a pane the migration was counting on (§F5e).
 - `packages/env/src/email.ts`: accepts `EMAIL_SERVICE_PROVIDER=cloudflare`.
 - `packages/business/const/src/branding.ts`, `packages/const/src/url.ts`: QwkSearch branding.
 - `packages/locales/src/default/{electron,qwksearch}.ts` + `locales/{en-US,zh-CN}`: new keys.
