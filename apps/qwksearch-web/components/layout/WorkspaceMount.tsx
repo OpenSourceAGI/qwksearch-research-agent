@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 
+import { logSsrError, traceSsr } from '@/lib/debug/ssr-trace';
+
 /**
  * The one place the app mounts `research-agent-ui/workspace`.
  *
@@ -27,11 +29,25 @@ import * as React from 'react';
  * in the browser too (an offline navigation, a half-deployed asset), the reader
  * gets a reload prompt rather than a blank screen.
  */
-const ResearchWorkspaceView = React.lazy(() =>
-  import('research-agent-ui/workspace').then((mod) => ({
-    default: mod.ResearchWorkspaceView,
-  })),
-);
+const ResearchWorkspaceView = React.lazy(() => {
+  traceSsr('workspace:chunk:import:begin');
+  return import('research-agent-ui/workspace').then(
+    (mod) => {
+      traceSsr('workspace:chunk:import:end', {
+        hasView: typeof mod.ResearchWorkspaceView === 'function',
+      });
+      return { default: mod.ResearchWorkspaceView };
+    },
+    (error) => {
+      // The whole point of the lazy import is that this failure costs a
+      // skeleton instead of the page — but React only reports it as a
+      // *recoverable* error, which production logs nowhere. Log it here, then
+      // rethrow so the Suspense/error boundary behaviour below is unchanged.
+      logSsrError('workspace:chunk:import:failed', error);
+      throw error;
+    },
+  );
+});
 
 /**
  * Holds the workspace's footprint while its chunk is in flight. The workspace
@@ -75,7 +91,10 @@ class WorkspaceErrorBoundary extends React.Component<
 > {
   state = { failed: false };
 
-  static getDerivedStateFromError() {
+  static getDerivedStateFromError(error: unknown) {
+    // Unlike `componentDidCatch`, this runs during a server render too, so it
+    // is the only hook that reports a workspace failure from inside the Worker.
+    logSsrError('workspace:boundary:derived-state', error);
     return { failed: true };
   }
 
@@ -93,6 +112,8 @@ class WorkspaceErrorBoundary extends React.Component<
 
 /** The research workspace, mounted so that failing to load it is not a 500. */
 export function WorkspaceMount() {
+  traceSsr('workspace:mount:render');
+
   return (
     <WorkspaceErrorBoundary>
       <React.Suspense fallback={<WorkspaceSkeleton />}>
@@ -101,3 +122,5 @@ export function WorkspaceMount() {
     </WorkspaceErrorBoundary>
   );
 }
+
+traceSsr('module:components/layout/WorkspaceMount');

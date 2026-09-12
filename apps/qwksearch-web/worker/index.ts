@@ -10,6 +10,7 @@ import type { ImageConfig } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 import { applyD1Bookmark, runWithD1Session } from "../lib/database/d1-session";
 import { handleTurnstileGate, type TurnstileEnv } from "../lib/turnstile";
+import { describeError, isSsrTraceEnabled, logSsrError, traceSsr } from "../lib/debug/ssr-trace";
 
 interface Env extends TurnstileEnv {
   ASSETS: Fetcher;
@@ -42,50 +43,189 @@ interface ExecutionContext {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+    const startedAt = Date.now();
 
-    // Cloudflare Turnstile, in front of everything else: a desktop browser's
-    // first HTML page view is answered with a "just a moment" check until it
-    // carries a pass this Worker signed. Returns null — and costs one HMAC
-    // verify — for every other request, and for all of them when the
-    // TURNSTILE_* variables are unset. See lib/turnstile/gate.ts.
-    const gated = await handleTurnstileGate(request, env);
-    if (gated) return gated;
+    // One line per request, before anything can throw. It is the anchor every
+    // other line of the trace is read against: the same `cf-ray` appears in
+    // Cloudflare's own invocation log, so a bare `500` there can be joined to
+    // the breadcrumbs here.
+    traceSsr("worker:request", describeRequest(request, url));
 
-    // Image optimization via Cloudflare Images binding.
-    // The parseImageParams validation inside handleImageOptimization
-    // normalizes backslashes and validates the origin hasn't changed.
-    if (isImageOptimizationPath(url.pathname)) {
-      const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
-      return handleImageOptimization(request, {
-        fetchAsset: (path) => env.ASSETS.fetch(new Request(new URL(path, request.url))),
-        transformImage: async (body, { width, format, quality }) => {
-          const result = await env.IMAGES.input(body).transform(width > 0 ? { width } : {}).output({ format, quality });
-          return result.response();
-        },
-      }, allowedWidths);
-    }
+    // Which bindings and variables this deployment actually has. The report
+    // that opened this hunt came from `opensourceagi.app`, served by a Worker
+    // whose script name is not the one `wrangler.jsonc` deploys — so "the same
+    // code with a binding missing" is a live hypothesis, and a missing binding
+    // is invisible until something dereferences it. Names and presence only;
+    // no secret is read here.
+    traceSsr("worker:env", describeEnv(env));
 
-    // Delegate everything else to vinext, forwarding ctx so that
-    // ctx.waitUntil() is available to background cache writes and
-    // other deferred work via getRequestExecutionContext().
-    //
-    // The whole request runs inside one D1 read-replication session
-    // (lib/database/d1-session.ts): reads can be answered by the nearest
-    // replica, while the session's bookmark keeps them sequentially
-    // consistent. The closing bookmark rides back on the response so the
-    // client's next request never sees an older version of the database.
-    return runWithD1Session(request, env.D1_SESSION_MODE, async () => {
+    try {
+      // Cloudflare Turnstile, in front of everything else: a desktop browser's
+      // first HTML page view is answered with a "just a moment" check until it
+      // carries a pass this Worker signed. Returns null — and costs one HMAC
+      // verify — for every other request, and for all of them when the
+      // TURNSTILE_* variables are unset. See lib/turnstile/gate.ts.
+      //
+      // It also runs before the framework, so an exception here is one of the
+      // few ways to 500 a page without the app ever being asked to render it.
+      let gated: Response | null;
       try {
-        const response = await handler.fetch(request, env, ctx);
-        if (response.status >= 500) reportServerError(request, url, response.status);
-        return applyD1Bookmark(response, { debug: Boolean(env.D1_SESSION_DEBUG) });
+        gated = await handleTurnstileGate(request, env);
       } catch (error) {
-        reportServerError(request, url, 500, error);
+        logSsrError("worker:turnstile:threw", error, { path: url.pathname });
         throw error;
       }
-    });
+      if (gated) {
+        traceSsr("worker:turnstile:served", { status: gated.status, path: url.pathname });
+        return gated;
+      }
+
+      // Image optimization via Cloudflare Images binding.
+      // The parseImageParams validation inside handleImageOptimization
+      // normalizes backslashes and validates the origin hasn't changed.
+      if (isImageOptimizationPath(url.pathname)) {
+        traceSsr("worker:image-optimization", { path: url.pathname });
+        const allowedWidths = [...DEFAULT_DEVICE_SIZES, ...DEFAULT_IMAGE_SIZES];
+        return handleImageOptimization(request, {
+          fetchAsset: (path) => env.ASSETS.fetch(new Request(new URL(path, request.url))),
+          transformImage: async (body, { width, format, quality }) => {
+            const result = await env.IMAGES.input(body).transform(width > 0 ? { width } : {}).output({ format, quality });
+            return result.response();
+          },
+        }, allowedWidths);
+      }
+
+      // Delegate everything else to vinext, forwarding ctx so that
+      // ctx.waitUntil() is available to background cache writes and
+      // other deferred work via getRequestExecutionContext().
+      //
+      // The whole request runs inside one D1 read-replication session
+      // (lib/database/d1-session.ts): reads can be answered by the nearest
+      // replica, while the session's bookmark keeps them sequentially
+      // consistent. The closing bookmark rides back on the response so the
+      // client's next request never sees an older version of the database.
+      return await runWithD1Session(request, env.D1_SESSION_MODE, async () => {
+        traceSsr("worker:handler:enter", {
+          path: url.pathname,
+          d1SessionMode: env.D1_SESSION_MODE ?? "auto",
+        });
+        try {
+          const response = await handler.fetch(request, env, ctx);
+          traceSsr("worker:handler:exit", {
+            path: url.pathname,
+            status: response.status,
+            contentType: response.headers.get("content-type") ?? undefined,
+            ms: Date.now() - startedAt,
+          });
+          const withBookmark = applyD1Bookmark(response, { debug: Boolean(env.D1_SESSION_DEBUG) });
+          if (response.status >= 500) {
+            reportServerError(request, url, response.status);
+            return describeErrorResponseBody(withBookmark, url, ctx);
+          }
+          return withBookmark;
+        } catch (error) {
+          reportServerError(request, url, 500, error);
+          throw error;
+        }
+      });
+    } catch (error) {
+      // `runWithD1Session` and the phases above it are outside the inner
+      // try/catch; without this one, a throw from any of them reaches
+      // Cloudflare as an unhandled exception with no context attached.
+      logSsrError("worker:fetch:threw", error, {
+        ...describeRequest(request, url),
+        ms: Date.now() - startedAt,
+      });
+      throw error;
+    }
   },
 };
+
+/** Which bindings are wired up, and how the tunable Variables are set. */
+function describeEnv(env: Env): Record<string, unknown> {
+  const bindings: Record<string, boolean> = {};
+  for (const name of ["ASSETS", "IMAGES", "KV", "DB", "R2", "EMAIL"]) {
+    bindings[name] = (env as unknown as Record<string, unknown>)[name] !== undefined;
+  }
+  return {
+    bindings,
+    d1SessionMode: env.D1_SESSION_MODE ?? "(unset)",
+    d1SessionDebug: Boolean(env.D1_SESSION_DEBUG),
+    turnstileConfigured: Boolean(env.TURNSTILE_SITE_KEY && env.TURNSTILE_SECRET_KEY),
+  };
+}
+
+/** The parts of a request that decide which code path it takes. */
+function describeRequest(request: Request, url: URL): Record<string, unknown> {
+  return {
+    method: request.method,
+    path: url.pathname,
+    search: url.search || undefined,
+    host: url.host,
+    ray: request.headers.get("cf-ray") ?? undefined,
+    country: request.headers.get("cf-ipcountry") ?? undefined,
+    accept: request.headers.get("accept") ?? undefined,
+    secFetchDest: request.headers.get("sec-fetch-dest") ?? undefined,
+    secFetchMode: request.headers.get("sec-fetch-mode") ?? undefined,
+    rsc: request.headers.get("rsc") ?? undefined,
+    prefetch: request.headers.get("next-router-prefetch") ?? undefined,
+    userAgent: request.headers.get("user-agent") ?? undefined,
+    // Names only — which cookies arrived changes the render, the values are
+    // nobody's business in a log.
+    cookieNames: (request.headers.get("cookie") ?? "")
+      .split(";")
+      .map((pair) => pair.split("=")[0]?.trim())
+      .filter(Boolean)
+      .join(",") || undefined,
+  };
+}
+
+/** How much of a 5xx body to quote. Enough to recognise which shell it is. */
+const ERROR_BODY_SAMPLE_CHARS = 1200;
+
+/**
+ * Logs the first part of a 5xx body, and returns a response that still streams
+ * the original bytes to the client.
+ *
+ * The point is to tell the two failure shapes apart from the log alone:
+ * vinext's built-in error document (a shell error it swallowed), this app's
+ * `app/global-error.tsx` (a shell error it rethrew and we logged), or an
+ * error from a route handler that never involved the renderer at all. The body
+ * is teed rather than read, so nothing is buffered on the way to the reader.
+ */
+function describeErrorResponseBody(response: Response, url: URL, ctx: ExecutionContext): Response {
+  if (!isSsrTraceEnabled() || !response.body) return response;
+
+  let forClient: ReadableStream<Uint8Array>;
+  let forLog: ReadableStream<Uint8Array>;
+  try {
+    [forClient, forLog] = response.body.tee();
+  } catch (error) {
+    traceSsr("worker:error-body:tee-failed", { reason: describeError(error).message });
+    return response;
+  }
+
+  ctx.waitUntil(
+    (async () => {
+      try {
+        const sample = await new Response(forLog).text();
+        traceSsr("worker:error-body", {
+          path: url.pathname,
+          status: response.status,
+          bodyStart: sample.slice(0, ERROR_BODY_SAMPLE_CHARS),
+        });
+      } catch (error) {
+        traceSsr("worker:error-body:unreadable", { reason: describeError(error).message });
+      }
+    })(),
+  );
+
+  return new Response(forClient, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
 
 /**
  * Put a 5xx in the Worker's logs with something to act on.
@@ -96,6 +236,10 @@ export default {
  * dashboard as a bare `500` with no cause, no route and no stack. This adds one
  * line naming the path, the status and (when the exception did escape) its
  * stack, so the next report starts from the error rather than from a guess.
+ *
+ * The cause itself comes from inside the app: `instrumentation.ts`'s
+ * `onRequestError` and `app/global-error.tsx` log the error the framework
+ * caught, which is the half this function cannot see.
  */
 function reportServerError(request: Request, url: URL, status: number, error?: unknown) {
   console.error(
