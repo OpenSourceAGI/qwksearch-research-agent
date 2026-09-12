@@ -35,6 +35,7 @@ import {
 import { renderChallengePage } from "./challenge-page";
 import { decideChallenge } from "./request-filter";
 import { buildPassCookie, mintPassToken, readCookie, verifyPassToken } from "./session";
+import { traceSsr } from "../debug/ssr-trace";
 
 /** Name of the cookie carrying a verified pass. */
 export const TURNSTILE_COOKIE_NAME = "qs_human";
@@ -54,7 +55,10 @@ export async function handleTurnstileGate(
   env: TurnstileEnv | undefined | null,
 ): Promise<Response | null> {
   const config = resolveTurnstileConfig(env);
-  if (!config) return null;
+  if (!config) {
+    traceSsr("turnstile:unconfigured");
+    return null;
+  }
 
   const url = new URL(request.url);
 
@@ -65,12 +69,16 @@ export async function handleTurnstileGate(
     return handleVerification(request, url, config);
   }
 
-  if (!decideChallenge(request, url).challenge) return null;
+  const decision = decideChallenge(request, url);
+  traceSsr("turnstile:decision", { path: url.pathname, ...decision });
+  if (!decision.challenge) return null;
 
   if (await verifyPassToken(config.secretKey, readCookie(request, TURNSTILE_COOKIE_NAME))) {
+    traceSsr("turnstile:pass-accepted", { path: url.pathname });
     return null;
   }
 
+  traceSsr("turnstile:challenge-served", { path: url.pathname });
   return renderChallengePage({
     siteKey: config.siteKey,
     redirectTo: safeRedirectTarget(`${url.pathname}${url.search}`),

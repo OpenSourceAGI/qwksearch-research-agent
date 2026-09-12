@@ -8,7 +8,10 @@ import { useChat, useMainView } from 'research-agent-ui';
 
 import { isHomeLandingState } from '@/lib/home-landing';
 import { cn } from '@/lib/utils';
+import { traceSsr } from '@/lib/debug/ssr-trace';
+import '@/lib/debug/marks/home-workspace-mount-begin';
 import { WorkspaceMount } from '@/components/layout/WorkspaceMount';
+import '@/lib/debug/marks/home-workspace-mount-end';
 
 /**
  * The homepage: the research workspace on the first screen, with the whole
@@ -147,12 +150,23 @@ function ScrollCue({
 }
 
 export function HomeScrollStack() {
+  // One breadcrumb between each hook call rather than a try/catch around them:
+  // a hook that throws must still be *called* on the next render or the hook
+  // order breaks, so the useful signal is which breadcrumb is missing. The
+  // context hooks below come from `research-agent-ui` and read providers
+  // mounted in the root layout — if that stack failed to mount, this is where
+  // the homepage stops, and the last line in the log names the hook.
+  traceSsr('home:stack:render:enter');
+
   const workspaceRef = React.useRef<HTMLDivElement>(null);
   const featuresRef = React.useRef<HTMLDivElement>(null);
   const reducedMotion = usePrefersReducedMotion();
   const pathname = usePathname();
+  traceSsr('home:stack:usePathname', { pathname });
   const { activeView } = useMainView();
+  traceSsr('home:stack:useMainView', { activeView });
   const { chatTurns } = useChat();
+  traceSsr('home:stack:useChat', { chatTurnCount: chatTurns?.length });
 
   // The features slab belongs to the homepage's landing state and nowhere
   // else. The workspace never leaves `/` — chats and REASON documents are tabs
@@ -176,6 +190,8 @@ export function HomeScrollStack() {
 
   // The cue only ever points at the slab, so it lives and dies with it.
   const showCue = showFeatures;
+
+  traceSsr('home:stack:render:resolved', { showFeatures, showingFeatures });
 
   const scrollTo = (ref: React.RefObject<HTMLElement | null>) => {
     ref.current?.scrollIntoView({
@@ -229,3 +245,5 @@ export function HomeScrollStack() {
     </div>
   );
 }
+
+traceSsr('module:components/layout/HomeScrollStack');

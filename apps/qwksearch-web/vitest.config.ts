@@ -12,6 +12,10 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     include: ['lib/**/__tests__/**/*.test.ts', 'app/**/__tests__/**/*.test.ts'],
+    // Breadcrumbs are on by default in the app (see lib/debug/ssr-trace.ts);
+    // in a suite they are just noise between the assertions. The tracer's own
+    // tests stub this back on.
+    env: { QS_SSR_TRACE: 'off' },
     restoreMocks: true,
     unstubEnvs: true,
     unstubGlobals: true,
