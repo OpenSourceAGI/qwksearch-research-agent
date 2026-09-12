@@ -118,8 +118,9 @@ export interface SidebarProps {
   // rendered outside of Sidebar by ReasonDocs)
   rightPanels: SidebarPanelType[];
   onRightPanelsChange: (panels: SidebarPanelType[]) => void;
-  // Settings
-  onSettingsClick?: (section?: string) => void;
+  // Settings — the footer's settings button is a link to this URL
+  // (defaults to `/settings`), not a menu.
+  settingsHref?: string;
   onInviteClick?: () => void;
   // Trash callbacks
   onRestore?: (id: string) => void;
