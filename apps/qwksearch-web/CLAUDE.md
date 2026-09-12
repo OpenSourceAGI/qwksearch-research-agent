@@ -29,6 +29,14 @@ it belongs in a package.
   turns one dependency's module-scope `document` read into a 500 for the entire
   page. The mount loads it lazily inside a Suspense boundary, so the same
   failure costs a flash of skeleton instead.
+- **The two builds do not fail the same way.** `bun run dev` is Turbopack;
+  `bun run build` is vite/rolldown. An unresolvable
+  `new URL("x", import.meta.url)` inside a dependency is a warning to rolldown
+  and a fatal `Module not found` to Turbopack, which 500s the whole route that
+  imported it — the root layout's `Providers` included, i.e. every page. The
+  `turbopack.resolveAlias` entries in `next.config.mjs` exist for exactly that
+  (see `lib/onnx/ort-bundle-stub.mjs`). A green `build` is not evidence `dev`
+  boots, and vice versa.
 - `worker/index.ts` is documented house style for a reason — read its comments
   before changing the entrypoint.
 - **The Turnstile gate runs first in `worker/index.ts`** (`lib/turnstile`). It
