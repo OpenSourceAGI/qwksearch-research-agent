@@ -57,7 +57,7 @@ export default defineConfig({
       'packages/use-voice-control',
       'packages/user-help-docs',
       'packages/write-language',
-      'scripts',
+      '.github/scripts',
     ],
     coverage: {
       provider: 'v8',

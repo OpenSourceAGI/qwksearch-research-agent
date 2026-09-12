@@ -75,7 +75,7 @@ their own workspaces) and `apps/*`.
 
 **A package edit doesn't show up in the web app.** Siblings are consumed as built
 `dist/`, not live source. Run `bun run build` in that package, or
-`node scripts/build-workspace-packages.mjs` (what `qwksearch-web`'s `prebuild` runs)
+`node .github/scripts/build-workspace-packages.mjs` (what `qwksearch-web`'s `prebuild` runs)
 to rebuild all of them in topological order.
 
 **Adding a new package.** Create `packages/<name>/package.json`, add its
@@ -90,9 +90,9 @@ a tool in `chat-agent-toolkit` or an entry in that panel — not a file in `skil
 
 | Symptom | Cause → fix |
 | --- | --- |
-| Edited a package, app still shows the old behaviour | The app imports the package's `dist/`. Build the package, or run `node scripts/build-workspace-packages.mjs`. |
+| Edited a package, app still shows the old behaviour | The app imports the package's `dist/`. Build the package, or run `node .github/scripts/build-workspace-packages.mjs`. |
 | `Cannot find module 'react-reason-editor/...' or its type declarations` | An unbuilt sibling: `bun install` symlinks it, but its `exports → types` point at a `dist/` that does not exist yet. Same fix as above. |
-| `turbo build` skips a package that clearly is a local dependency | Turbo only treats a dependency as internal when the declared semver range matches the workspace version (e.g. `research-agent-ui` asks for `use-voice-control@^0.1.95` while the workspace is older). `scripts/workspace-build-order.mjs` keys edges by package *name*, which is why the prebuild script covers it and turbo does not. |
+| `turbo build` skips a package that clearly is a local dependency | Turbo only treats a dependency as internal when the declared semver range matches the workspace version (e.g. `research-agent-ui` asks for `use-voice-control@^0.1.95` while the workspace is older). `.github/scripts/workspace-build-order.mjs` keys edges by package *name*, which is why the prebuild script covers it and turbo does not. |
 | Root `bun run test` doesn't run a package's tests | The root `vitest.config.ts` lists projects explicitly, and `domain-rank`/`extract-pdf` (bun test), `extract-youtube` (jest) and `language-model-training` (pytest) are deliberately absent. Run their own `test` script. |
 | A root `vitest.workspace.ts` you remember is gone | Vitest 4 dropped it; it was silently ignored. Projects now live in the root `vitest.config.ts` — add new packages there. |
 | Extension dependencies look missing after a root install | `apps/qwksearch-ext` is a semi-independent workspace with its own lockfile. Install inside it. |

@@ -97,6 +97,6 @@ knows the app id — with it empty, files come back but downloading them 403s.
 | Google One Tap never appears | `googleOneTap` defaults to `'auto'` and stays off unless the backend reports Google as a configured provider. Pass `true` to force it. |
 | Settings open as a route when a modal was wanted | `onOpenSettings` must return `true`; anything else falls through to route navigation. |
 | Drive picker returns a file that then 403s | `googleAppId` (the Google Cloud project number) is empty. |
-| Edits don't appear in `apps/qwksearch-web` | It consumes the built `dist/`. `bun run build` here, or run the repo's `scripts/build-workspace-packages.mjs`. |
+| Edits don't appear in `apps/qwksearch-web` | It consumes the built `dist/`. `bun run build` here, or run the repo's `.github/scripts/build-workspace-packages.mjs`. |
 | A component looks right in Storybook but breaks in the app | Providers. Most components assume `SessionProvider` / `ChatProvider` / `ExtractPanelProvider` above them (`bun run storybook` to iterate). |
 | Type-check fails on editor types after a fresh clone | `react-reason-editor` has not been built, so its `exports → types` point at a missing `dist/`. Build siblings first. |
