@@ -753,7 +753,30 @@ Blocked on the LobeHub Community License answer, recorded in
     the same mechanism as the panes' `contract.test.ts`.
   - **Path-filtered to everything under `packages-lobe/`, plus the workflow file
     itself.** The install is the expensive step, and nothing outside the engine
-    changes either result. Whole job: ~4 minutes cold.
+    changes either result.
+
+  **First real run: green, in 3m22s** (#452, `f3b37e85`). Every step was faster
+  on a GitHub runner than on the box these numbers were estimated from:
+
+  | Step | On a runner, cold cache |
+  |---|---|
+  | `pnpm install --ignore-scripts` | **1m03s**, 3939 packages |
+  | `pnpm run type-check:qwksearch` | **40s** → clean |
+  | `pnpm run test:qwksearch` | **43s**, 568 passed |
+  | Saving the pnpm store to the cache | ~25s, **1.0 GB** |
+
+  Two things that run confirmed beyond "it works". The **504 ignored errors are
+  the same 504** on the runner's Node 24.20.0 as on Node 22 here, so the filter's
+  count is a property of the tree rather than of one machine — which is what
+  makes it usable as a tripwire. And the **cold install is the whole cost**: on a
+  cache hit the job is roughly two minutes, so the path filter is about runner
+  slots, not minutes.
+
+  One warning on every run, and not this job's: `actions/checkout@v4`,
+  `actions/setup-node@v4`, `actions/cache@v4` and `pnpm/action-setup@v4` all
+  target Node 20 and are being forced onto Node 24. Every workflow in this
+  repository uses those actions, so the v5 bump is a repo-wide change, not a
+  `packages-lobe` one.
   - **Three details are specific to this workspace**, and each one is a way the
     obvious workflow would have failed: `pnpm/action-setup` reads the *repo
     root* `package.json` by default, which pins **bun**, so it has to be pointed
@@ -771,10 +794,13 @@ Blocked on the LobeHub Community License answer, recorded in
     means this job resolves fresh semver on every cache miss and can go red for
     a reason that is not in the diff. If that happens, the store cache key
     (the manifests) is the first thing to read.
-  - ⬜ **Never yet run on a GitHub runner.** Everything above was measured on a
-    code-only box with Node 22; the job uses `.nvmrc`'s **24.20.0**, which is
-    what the Cloudflare build pins and what the deploy actually runs, but which
-    nothing here could exercise.
+  - ✅ **Confirmed on a GitHub runner**, on `.nvmrc`'s **24.20.0** — the version
+    the Cloudflare build pins and the deploy runs, which nothing local could
+    exercise. See the table above.
+  - ⬜ **The job has only ever run on a cache miss.** Its first run wrote the
+    store cache; nothing has yet read one back. If a restore is ever partial or
+    stale, the symptom will be an install that is slow rather than wrong, but
+    the `restore-keys` fallback is unexercised.
 
 ## How to pick up the next item
 

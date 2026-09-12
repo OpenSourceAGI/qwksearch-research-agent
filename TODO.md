@@ -153,12 +153,28 @@ the expensive step and nothing outside the engine changes either result.
   packages consume as built output, which is exactly what the Coverage workflow
   does before its tests.
 
+### The first real run
+**Green, 3m22s**, on `.nvmrc`'s Node 24.20.0 — faster on a GitHub runner than on
+this box at every step: install **1m03s** (3939 packages), type-check **40s**,
+tests **43s**, plus ~25s saving a **1.0 GB** pnpm store to the cache. Recorded
+in §5.6 in a follow-up, since the PR auto-merged eleven seconds after it opened
+and its own checks finished well after that.
+
+Two things that confirmed more than "it works". The **504 ignored errors are the
+same 504** on Node 24 as on Node 22 here, so that count is a property of the tree
+and not of one machine — which is what makes it usable as a tripwire rather than
+noise. And the **cold install is the whole cost**: on a cache hit the job is
+about two minutes, so the path filter is buying runner slots, not minutes.
+
 ### Remaining work
-- **The job has never run on a GitHub runner.** Everything above was measured on
-  a code-only box with Node 22; the workflow uses `.nvmrc`'s **24.20.0**, which
-  is what the Cloudflare build pins and the deploy runs, but which nothing here
-  could exercise. Its first real run is this PR — read it before building on it,
-  and remember that PRs here auto-merge before checks finish.
+- **Only ever run on a cache miss.** The first run wrote the store cache; nothing
+  has read one back yet, so the `restore-keys` fallback is unexercised. A bad
+  restore would show up as a slow install rather than a wrong one.
+- **Noticed, not fixed (repo-wide):** every run warns that
+  `actions/checkout@v4`, `actions/setup-node@v4`, `actions/cache@v4` and
+  `pnpm/action-setup@v4` target Node 20 and are being forced onto Node 24. Every
+  workflow here uses those actions, so the v5 bump is one repo-wide PR, not a
+  `packages-lobe` one.
 - **An unlockfiled install is not a reproducible one.** `lockfile: false` is
   upstream LobeHub's choice, but it means the job resolves fresh semver on every
   cache miss and can go red for a reason that is not in the diff. If that
