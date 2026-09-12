@@ -9,11 +9,12 @@ import { documents } from "@/lib/database/schema";
 import { eq, and, isNull, desc } from "drizzle-orm";
 import { initAuth } from "@/lib/auth";
 import { AuthSession } from "@/lib/auth/session";
+import { withCors, corsPreflight } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
 // GET all documents for a user
-export async function GET(req: NextRequest) {
+async function handleDocumentsGet(req: NextRequest) {
   try {
     const db = getDB();
     const auth = await initAuth();
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST - Create a new document
-export async function POST(req: NextRequest) {
+async function handleDocumentsPost(req: NextRequest) {
   try {
     const db = getDB();
     const auth = await initAuth();
@@ -82,3 +83,7 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export const GET = withCors(handleDocumentsGet);
+export const POST = withCors(handleDocumentsPost);
+export const OPTIONS = corsPreflight;

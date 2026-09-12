@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["apps/qwksearch-web/*"],
+      "chat-agent-toolkit": ["packages/chat-agent-toolkit/src/index.ts"],
+      "chat-agent-toolkit/*": ["packages/chat-agent-toolkit/src/*"],
+      "research-agent-ui": ["packages/research-agent-ui/src/index.ts"],
+      "research-agent-ui/*": ["packages/research-agent-ui/src/*"],
+      "search-web-api": ["packages/search-web-api/src/index.ts"],
+      "search-web-api/*": ["packages/search-web-api/src/*"],
+      "trending-news-api": ["packages/trending-news-api/src/index.ts"],
+      "trending-news-api/*": ["packages/trending-news-api/src/*"],
+      "write-language": ["packages/write-language/src/index.ts"],
+      "write-language/*": ["packages/write-language/src/*"],
+      "user-help-docs": ["packages/user-help-docs/src/index.ts"],
+      "user-help-docs/*": ["packages/user-help-docs/src/*"],
+      "qwksearch-api-client": ["packages/qwksearch-api-client/src/index.ts"],
+      "qwksearch-api-client/*": ["packages/qwksearch-api-client/src/*"]
+    }
+  }
+}

@@ -26,6 +26,7 @@ interface ConfigResponse {
   values: Record<string, any>;
   fields: {
     preferences: ConfigField[];
+    api?: ConfigField[];
     search: ConfigField[];
     modelProviders: ConfigSection[];
     mcpServers: ConfigSection[];
@@ -306,6 +307,16 @@ export default function AdminConfigPage() {
 
       {config && (
         <>
+          {config.fields.api && config.fields.api.length > 0 && (
+            <SectionCard
+              title="API Access & Security"
+              fields={config.fields.api}
+              sectionKey="api"
+              values={config.values}
+              onSave={saveConfig}
+            />
+          )}
+
           <SectionCard
             title="Search Settings"
             fields={config.fields.search}

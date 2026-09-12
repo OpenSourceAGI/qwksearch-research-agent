@@ -5,32 +5,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { renderWithCloudflare, type ScraperOptions } from '@/lib/scraper';
+import { withCors, corsPreflight } from '@/lib/cors';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
-/**
- * POST /api/scraper
- *
- * Renders a web page using Cloudflare Browser Rendering.
- *
- * @example
- * ```typescript
- * const response = await fetch('/api/scraper', {
- *   method: 'POST',
- *   headers: { 'Content-Type': 'application/json' },
- *   body: JSON.stringify({
- *     url: 'https://example.com',
- *     blockImages: true,
- *     bypassCaptcha: true
- *   })
- * });
- *
- * const data = await response.json();
- * console.log(data.html);
- * ```
- */
-export async function POST(request: NextRequest) {
+async function handleScraperPost(request: NextRequest) {
   try {
     const body = await request.json() as Partial<ScraperOptions>;
 
@@ -75,18 +55,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * GET /api/scraper?url=...
- *
- * Quick GET endpoint for simple rendering.
- *
- * @example
- * ```typescript
- * const response = await fetch('/api/scraper?url=https://example.com&blockImages=true');
- * const data = await response.json();
- * ```
- */
-export async function GET(request: NextRequest) {
+async function handleScraperGet(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const url = searchParams.get('url');
@@ -132,3 +101,7 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withCors(handleScraperGet);
+export const POST = withCors(handleScraperPost);
+export const OPTIONS = corsPreflight;

@@ -4,10 +4,11 @@
  */
 import { generateSpeech, type TTSOptions } from "../../../../../../packages/use-voice-control/speech";
 import { NextRequest, NextResponse } from "next/server";
+import { withCors, corsPreflight } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
-export async function POST(request: NextRequest) {
+async function handleTtsPost(request: NextRequest) {
   try {
     const body = await request.json() as TTSOptions;
 
@@ -40,3 +41,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withCors(handleTtsPost);
+export const OPTIONS = corsPreflight;

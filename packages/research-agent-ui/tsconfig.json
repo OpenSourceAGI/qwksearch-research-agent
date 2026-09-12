@@ -13,7 +13,15 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "types": []
+    "types": [],
+    "paths": {
+      "chat-agent-toolkit": ["../chat-agent-toolkit/src/index.ts"],
+      "chat-agent-toolkit/*": ["../chat-agent-toolkit/src/*"],
+      "search-web-api": ["../search-web-api/src/index.ts"],
+      "search-web-api/*": ["../search-web-api/src/*"],
+      "extract-webpage": ["../extract-webpage/src/index.ts"],
+      "extract-webpage/*": ["../extract-webpage/src/*"]
+    }
   },
   "include": ["src", "vite.config.ts"],
   "exclude": ["node_modules", "dist"]

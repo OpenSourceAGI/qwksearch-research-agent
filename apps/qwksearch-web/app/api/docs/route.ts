@@ -4,8 +4,9 @@
  */
 import { NextResponse } from "next/server";
 import { config } from "@/lib/config/site";
+import { withCors, corsPreflight } from "@/lib/cors";
 
-export async function GET() {
+async function renderDocsPage() {
   const html = `
 <!DOCTYPE html>
 <html>
@@ -30,3 +31,6 @@ export async function GET() {
     },
   });
 }
+
+export const GET = withCors(renderDocsPage, { skipApiKeyCheck: true });
+export const OPTIONS = corsPreflight;

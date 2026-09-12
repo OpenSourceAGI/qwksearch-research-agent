@@ -3,8 +3,9 @@ import { getUserId } from "@/lib/auth/session";
 import { getDB } from "@/lib/database";
 import { user as userSchema } from "@/lib/database/schema";
 import { getEnv } from "@/lib/config/env";
+import { withCors, corsPreflight } from "@/lib/cors";
 
-export const POST = createPageTipsHandler({
+const handler = createPageTipsHandler({
   getUserId,
   requireUserId: async () => {
     const id = await getUserId();
@@ -15,3 +16,6 @@ export const POST = createPageTipsHandler({
   userSchema,
   getEnv,
 });
+
+export const POST = withCors(handler.POST);
+export const OPTIONS = corsPreflight;

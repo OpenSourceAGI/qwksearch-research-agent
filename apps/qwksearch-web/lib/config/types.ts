@@ -85,6 +85,10 @@ type Config = {
   preferences: {
     [key: string]: any;
   };
+  api: {
+    requireApiKey: boolean;
+    [key: string]: any;
+  };
   modelProviders: ConfigModelProvider[];
   mcpServers: MCPServerConfig[];
   search: {
@@ -113,6 +117,7 @@ type MCPServerUISection = {
 
 type UIConfigSections = {
   preferences: UIConfigField[];
+  api: UIConfigField[];
   modelProviders: ModelProviderUISection[];
   mcpServers: MCPServerUISection[];
   search: UIConfigField[];

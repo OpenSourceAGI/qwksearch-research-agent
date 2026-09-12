@@ -50,6 +50,15 @@ const nextConfig = {
   async headers() {
     return [
       {
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          { key: "Access-Control-Allow-Methods", value: "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD" },
+          { key: "Access-Control-Allow-Headers", value: "Content-Type, Authorization, X-API-Key, x-api-key, X-Requested-With, Accept, Origin" },
+          { key: "Access-Control-Max-Age", value: "86400" },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "Referrer-Policy", value: "no-referrer-when-downgrade" },

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ALL_ENGINES, engineDescriptions } from "search-web-api/search/search-engines-registry-list";
 import { CATEGORIES } from "search-web-api/registry/search-engine-category-registry.js";
+import { withCors, corsPreflight } from "@/lib/cors";
 
 /** Map engine name to a best-guess domain for favicon lookup. */
 const ENGINE_DOMAINS: Record<string, string> = {
@@ -77,7 +78,7 @@ const ENGINE_DOMAINS: Record<string, string> = {
   goodreads: "goodreads.com",
 };
 
-export const GET = async () => {
+const handleGetEngines = async () => {
   try {
     const enginesByCategory: { [key: string]: any[] } = {};
 
@@ -110,3 +111,6 @@ export const GET = async () => {
     );
   }
 };
+
+export const GET = withCors(handleGetEngines, { skipApiKeyCheck: true });
+export const OPTIONS = corsPreflight;

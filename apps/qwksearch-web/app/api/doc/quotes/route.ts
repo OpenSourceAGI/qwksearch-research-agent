@@ -5,9 +5,10 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { tursoQueries } from '@/lib/database/turso';
+import { withCors, corsPreflight } from '@/lib/cors';
 
-// GET /api/quotes?documentId=xxx - Get all quotes for a document
-export async function GET(request: NextRequest) {
+// GET /api/doc/quotes?documentId=xxx - Get all quotes for a document
+async function handleQuotesGet(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const documentId = searchParams.get('documentId');
@@ -42,8 +43,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/quotes - Create a new quote
-export async function POST(request: NextRequest) {
+// POST /api/doc/quotes - Create a new quote
+async function handleQuotesPost(request: NextRequest) {
   try {
     const body = await request.json();
     const { documentId, text, source, author, url, pageNumber, tags } = body;
@@ -100,3 +101,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withCors(handleQuotesGet);
+export const POST = withCors(handleQuotesPost);
+export const OPTIONS = corsPreflight;

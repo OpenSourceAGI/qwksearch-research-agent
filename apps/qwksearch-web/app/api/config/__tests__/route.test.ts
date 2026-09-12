@@ -158,6 +158,18 @@ describe('POST /api/config', () => {
     expect(data.message).toMatch(/success/i)
   })
 
+  it('allows updating api.requireApiKey boolean setting', async () => {
+    const res = await POST(makeRequest('POST', { key: 'api.requireApiKey', value: 'true' }))
+    expect(res.status).toBe(200)
+    expect(mockUpdateConfig).toHaveBeenCalledWith('api.requireApiKey', 'true')
+  })
+
+  it('allows updating api.requireApiKey to false', async () => {
+    const res = await POST(makeRequest('POST', { key: 'api.requireApiKey', value: false }))
+    expect(res.status).toBe(200)
+    expect(mockUpdateConfig).toHaveBeenCalledWith('api.requireApiKey', false)
+  })
+
   it('returns 400 when key is missing', async () => {
     const res = await POST(makeRequest('POST', { value: 'dark' }))
     expect(res.status).toBe(400)

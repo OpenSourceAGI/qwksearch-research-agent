@@ -62,7 +62,7 @@ export const POST = async (req: NextRequest) => {
 
     const body: SaveConfigBody = await req.json();
 
-    if (!body.key || !body.value) {
+    if (!body.key || body.value === undefined || body.value === null) {
       return Response.json(
         {
           message: "Key and value are required.",

@@ -30,6 +30,9 @@ class ConfigManager {
     version: this.configVersion,
     setupComplete: getEnv("SETUP_COMPLETE") === "true" || false,
     preferences: {},
+    api: {
+      requireApiKey: getEnv("REQUIRE_API_KEY") === "true" || false,
+    },
     modelProviders: [],
     mcpServers: [],
     search: {
@@ -43,6 +46,19 @@ class ConfigManager {
   };
   uiConfigSections: UIConfigSections = {
     preferences: [],
+    api: [
+      {
+        name: "Require API Key",
+        key: "requireApiKey",
+        type: "switch",
+        required: false,
+        description:
+          "Require external API requests to supply a valid API key (via X-API-Key header or Bearer token)",
+        scope: "server",
+        env: "REQUIRE_API_KEY",
+        default: false,
+      },
+    ],
     modelProviders: [],
     mcpServers: [],
     // Search-section fields are declared as JSON data in research-agent-ui and
@@ -58,6 +74,14 @@ class ConfigManager {
   private initialize() {
     this.initializeFromEnv();
     this.loadPreferencesFromEnv();
+    this.loadApiConfigFromEnv();
+  }
+
+  private loadApiConfigFromEnv() {
+    if (getEnv("REQUIRE_API_KEY") !== undefined) {
+      this.currentConfig.api.requireApiKey =
+        getEnv("REQUIRE_API_KEY") === "true";
+    }
   }
 
   private loadPreferencesFromEnv() {
@@ -238,7 +262,7 @@ class ConfigManager {
     }
 
     const finalKey = parts[parts.length - 1];
-    target[finalKey] = val;
+    target[finalKey] = val === "true" ? true : val === "false" ? false : val;
 
     // Configuration changes are kept in memory only
   }

@@ -19,6 +19,12 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "write-language": ["../write-language/src/index.ts"],
+      "write-language/*": ["../write-language/src/*"],
+      "qwksearch-api-client": ["../qwksearch-api-client/src/index.ts"],
+      "qwksearch-api-client/*": ["../qwksearch-api-client/src/*"]
+    }
   },
 }

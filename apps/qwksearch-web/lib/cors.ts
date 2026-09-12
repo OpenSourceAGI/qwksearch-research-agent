@@ -1,66 +1,96 @@
 /**
- * @fileoverview CORS helpers for the small set of public, unauthenticated
- * agent API routes (search, chat, discover, autocomplete, suggestions,
- * providers, test-models) that external sites embed research-agent-ui
- * against directly from the browser instead of iframing qwksearch.com.
- * Everything else (chats, messages, uploads, auth, admin) stays same-origin
- * only, so this allowlist deliberately isn't wired into research-agent-ui's
- * shared handler factories — it's a deployment-specific policy for this app.
+ * @fileoverview CORS helpers for the public agent API routes and web services.
+ * Allows cross-origin requests from any site so external applications and browser clients
+ * can access the search, agent, extraction, and research APIs.
+ * Supports configurable API key enforcement when requireApiKey is enabled in site config.
  */
 
-const ALLOWED_ORIGINS = new Set([
-  "https://debate-ai.com",
-  "https://www.debate-ai.com",
-  ...(process.env.NODE_ENV !== "production"
-    ? ["http://localhost:3000", "http://localhost:3001"]
-    : []),
-]);
+import { checkApiAuth } from "./auth/api-key";
 
-function resolveAllowOrigin(request: Request): string | null {
+export interface CorsOptions {
+  skipApiKeyCheck?: boolean;
+}
+
+const ALLOWED_METHODS = "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD";
+const ALLOWED_HEADERS =
+  "Content-Type, Authorization, X-API-Key, x-api-key, X-Requested-With, Accept, Origin";
+
+export function resolveAllowOrigin(request?: Request): string | null {
+  if (!request) return null;
   // Optional chaining: some route tests call handlers with a minimal
-  // `{ nextUrl, url }` mock (no `.headers`) since the handler itself never
-  // read headers before. Treat that the same as a same-origin request.
-  const origin = request.headers?.get("origin");
-  return origin && ALLOWED_ORIGINS.has(origin) ? origin : null;
+  // `{ nextUrl, url }` mock (no `.headers`) or with no arguments.
+  const origin = request.headers?.get?.("origin");
+  return origin ? origin.trim() : null;
 }
 
 /**
- * Wraps a route handler, adding `Access-Control-Allow-Origin` to its
- * response when the caller's origin is allowlisted. Same-origin requests
- * (no `Origin` header) pass through unchanged. Streams the original
- * response body through untouched, so this is safe to use on the streaming
- * `/api/agent/chat` route as well as plain JSON handlers.
+ * Applies CORS headers to a response based on the request's origin.
+ */
+export function applyCorsHeaders(request: Request | undefined, response: Response): Response {
+  if (!request || !response) return response;
+  const allowOrigin = resolveAllowOrigin(request);
+  if (!allowOrigin) return response;
+
+  const headers = new Headers(response.headers);
+  headers.set("Access-Control-Allow-Origin", allowOrigin);
+  headers.set("Access-Control-Allow-Methods", ALLOWED_METHODS);
+  headers.set("Access-Control-Allow-Headers", ALLOWED_HEADERS);
+  headers.append("Vary", "Origin");
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+/**
+ * Wraps a route handler, adding CORS headers to its response for any cross-origin
+ * request. Same-origin requests (no `Origin` header) pass through unchanged.
+ * Streams the response body untouched (safe for SSE / streaming chat endpoints).
+ * Enforces API key requirement if enabled in site config (unless skipApiKeyCheck is true).
  */
 export function withCors<Args extends unknown[]>(
-  handler: (request: Request, ...args: Args) => Promise<Response> | Response,
+  handler: (request?: Request, ...args: Args) => Promise<Response> | Response,
+  options?: CorsOptions,
 ) {
-  return async (request: Request, ...args: Args): Promise<Response> => {
-    const response = await handler(request, ...args);
-    const allowOrigin = resolveAllowOrigin(request);
-    if (!allowOrigin) return response;
+  return async (request?: Request, ...args: Args): Promise<Response> => {
+    // If API key check is not skipped and request exists, check authorization
+    if (request && !options?.skipApiKeyCheck) {
+      const auth = await checkApiAuth(request);
+      if (!auth.authorized) {
+        const errorRes =
+          auth.response ||
+          new Response(
+            JSON.stringify({
+              error: "Unauthorized",
+              message: "API key is required",
+            }),
+            {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            },
+          );
+        return applyCorsHeaders(request, errorRes);
+      }
+    }
 
-    const headers = new Headers(response.headers);
-    headers.set("Access-Control-Allow-Origin", allowOrigin);
-    headers.append("Vary", "Origin");
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    });
+    const response = await handler(request, ...args);
+    return applyCorsHeaders(request, response);
   };
 }
 
 /** OPTIONS handler for CORS preflight on routes wrapped with `withCors`. */
-export function corsPreflight(request: Request): Response {
-  const allowOrigin = resolveAllowOrigin(request);
-  if (!allowOrigin) return new Response(null, { status: 204 });
+export function corsPreflight(request?: Request): Response {
+  const allowOrigin = (request && resolveAllowOrigin(request)) || "*";
 
   return new Response(null, {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin": allowOrigin,
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Methods": ALLOWED_METHODS,
+      "Access-Control-Allow-Headers": ALLOWED_HEADERS,
+      "Access-Control-Max-Age": "86400",
       Vary: "Origin",
     },
   });

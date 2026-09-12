@@ -5,9 +5,10 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { tursoQueries } from '@/lib/database/turso';
+import { withCors, corsPreflight } from '@/lib/cors';
 
-// POST /api/share - Create a share link for a document
-export async function POST(request: NextRequest) {
+// POST /api/doc/share - Create a share link for a document
+async function handleSharePost(request: NextRequest) {
   try {
     const { documentId } = await request.json();
 
@@ -68,3 +69,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withCors(handleSharePost);
+export const OPTIONS = corsPreflight;

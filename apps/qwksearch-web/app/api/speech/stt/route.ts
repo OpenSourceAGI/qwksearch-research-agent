@@ -4,13 +4,14 @@
  * This endpoint is primarily for API documentation and potential server-side fallback
  */
 import { NextRequest, NextResponse } from "next/server";
+import { withCors, corsPreflight } from "@/lib/cors";
 
 export const runtime = "nodejs";
 
 /**
  * GET - Returns API documentation
  */
-export async function GET() {
+async function handleSttGet() {
   return NextResponse.json({
     message: "STT (Speech-to-Text) API",
     description: "Transcription happens client-side using Moonshine.js. This endpoint is for documentation purposes.",
@@ -22,7 +23,7 @@ export async function GET() {
 /**
  * POST - Server-side fallback for transcription (future expansion)
  */
-export async function POST(request: NextRequest) {
+async function handleSttPost(request: NextRequest) {
   try {
     const formData = await request.formData();
     const audio = formData.get("audio") as File;
@@ -51,3 +52,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withCors(handleSttGet, { skipApiKeyCheck: true });
+export const POST = withCors(handleSttPost);
+export const OPTIONS = corsPreflight;

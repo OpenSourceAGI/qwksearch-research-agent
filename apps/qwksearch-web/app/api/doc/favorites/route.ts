@@ -7,9 +7,10 @@ import { getDB } from '@/lib/database';
 import { favorites } from '@/lib/database/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireUserId } from '@/lib/auth/session';
+import { withCors, corsPreflight } from '@/lib/cors';
 
 // GET all favorites for the current user
-export const GET = async (req: Request) => {
+const handleFavoritesGet = async (req: Request) => {
   try {
     const db = getDB();
     const userId = await requireUserId();
@@ -37,7 +38,7 @@ export const GET = async (req: Request) => {
 };
 
 // POST - Add a new favorite
-export const POST = async (req: Request) => {
+const handleFavoritesPost = async (req: Request) => {
   try {
     const db = getDB();
     const userId = await requireUserId();
@@ -102,7 +103,7 @@ export const POST = async (req: Request) => {
 };
 
 // DELETE - Remove a favorite by URL
-export const DELETE = async (req: Request) => {
+const handleFavoritesDelete = async (req: Request) => {
   try {
     const db = getDB();
     const userId = await requireUserId();
@@ -140,3 +141,8 @@ export const DELETE = async (req: Request) => {
     );
   }
 };
+
+export const GET = withCors(handleFavoritesGet);
+export const POST = withCors(handleFavoritesPost);
+export const DELETE = withCors(handleFavoritesDelete);
+export const OPTIONS = corsPreflight;

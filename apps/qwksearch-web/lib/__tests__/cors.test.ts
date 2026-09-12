@@ -1,15 +1,16 @@
 /**
- * @fileoverview Tests for the CORS allowlist wrapper used by the public
- * agent API routes. The allowlist is baked in at module load from
- * NODE_ENV, so under vitest (NODE_ENV=test) the localhost dev origins
- * are part of it alongside the debate-ai.com production origins.
+ * @fileoverview Tests for CORS helpers used by public agent API routes.
+ * Verifies that cross-origin requests from any site are allowed with appropriate
+ * headers, preflight requests return 204 with permitted methods and headers,
+ * and same-origin requests pass through untouched.
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { withCors, corsPreflight } from '../cors'
+import * as apiKeyAuth from '../auth/api-key'
 
-const ALLOWED = 'https://debate-ai.com'
-const ALLOWED_WWW = 'https://www.debate-ai.com'
-const DENIED = 'https://evil.example.com'
+const ORIGIN_A = 'https://debate-ai.com'
+const ORIGIN_EXTERNAL = 'https://some-other-app.com'
+const ORIGIN_LOCALHOST = 'http://localhost:3000'
 
 /** A request carrying (or omitting) an Origin header. */
 function request(origin?: string, init: RequestInit = {}) {
@@ -19,39 +20,33 @@ function request(origin?: string, init: RequestInit = {}) {
 }
 
 describe('withCors', () => {
-  it('adds the allow-origin header for an allowlisted origin', async () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('adds the allow-origin header for any origin', async () => {
     const handler = withCors(async () => Response.json({ ok: true }))
 
-    const res = await handler(request(ALLOWED))
+    const res = await handler(request(ORIGIN_EXTERNAL))
 
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ALLOWED)
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ORIGIN_EXTERNAL)
     expect(res.headers.get('Vary')).toContain('Origin')
   })
 
-  it('allows the www variant of the production origin', async () => {
+  it('allows the debate-ai origin', async () => {
     const handler = withCors(async () => Response.json({ ok: true }))
 
-    const res = await handler(request(ALLOWED_WWW))
+    const res = await handler(request(ORIGIN_A))
 
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ALLOWED_WWW)
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ORIGIN_A)
   })
 
-  it('allows the localhost dev origins outside production', async () => {
+  it('allows localhost dev origins', async () => {
     const handler = withCors(async () => Response.json({ ok: true }))
 
-    const res = await handler(request('http://localhost:3000'))
+    const res = await handler(request(ORIGIN_LOCALHOST))
 
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:3000')
-  })
-
-  it('returns the handler response untouched for an origin off the list', async () => {
-    const original = Response.json({ ok: true })
-    const handler = withCors(async () => original)
-
-    const res = await handler(request(DENIED))
-
-    expect(res).toBe(original)
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBeNull()
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ORIGIN_LOCALHOST)
   })
 
   it('passes same-origin requests (no Origin header) straight through', async () => {
@@ -78,7 +73,7 @@ describe('withCors', () => {
       new Response('rate limited', { status: 429, statusText: 'Too Many Requests' }),
     )
 
-    const res = await handler(request(ALLOWED))
+    const res = await handler(request(ORIGIN_EXTERNAL))
 
     expect(res.status).toBe(429)
     expect(res.statusText).toBe('Too Many Requests')
@@ -90,10 +85,10 @@ describe('withCors', () => {
       new Response('data: hi\n\n', { headers: { 'Content-Type': 'text/event-stream' } }),
     )
 
-    const res = await handler(request(ALLOWED))
+    const res = await handler(request(ORIGIN_EXTERNAL))
 
     expect(res.headers.get('Content-Type')).toBe('text/event-stream')
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ALLOWED)
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ORIGIN_EXTERNAL)
   })
 
   it('appends to a Vary header the handler already set instead of replacing it', async () => {
@@ -101,7 +96,7 @@ describe('withCors', () => {
       new Response(null, { headers: { Vary: 'Accept-Encoding' } }),
     )
 
-    const res = await handler(request(ALLOWED))
+    const res = await handler(request(ORIGIN_EXTERNAL))
 
     const vary = res.headers.get('Vary') ?? ''
     expect(vary).toContain('Accept-Encoding')
@@ -111,7 +106,7 @@ describe('withCors', () => {
   it('forwards the request and extra route args to the wrapped handler', async () => {
     const inner = vi.fn(async () => Response.json({ ok: true }))
     const handler = withCors(inner)
-    const req = request(ALLOWED)
+    const req = request(ORIGIN_EXTERNAL)
     const ctx = { params: Promise.resolve({ id: 'abc' }) }
 
     await handler(req, ctx)
@@ -122,9 +117,9 @@ describe('withCors', () => {
   it('supports a synchronous handler', async () => {
     const handler = withCors(() => Response.json({ ok: true }))
 
-    const res = await handler(request(ALLOWED))
+    const res = await handler(request(ORIGIN_EXTERNAL))
 
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ALLOWED)
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ORIGIN_EXTERNAL)
   })
 
   it('lets a handler rejection propagate', async () => {
@@ -132,33 +127,56 @@ describe('withCors', () => {
       throw new Error('boom')
     })
 
-    await expect(handler(request(ALLOWED))).rejects.toThrow('boom')
+    await expect(handler(request(ORIGIN_EXTERNAL))).rejects.toThrow('boom')
+  })
+
+  it('returns 401 with CORS headers when API key is required and missing', async () => {
+    vi.spyOn(apiKeyAuth, 'checkApiAuth').mockResolvedValue({
+      authorized: false,
+      response: new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    })
+
+    const handler = withCors(async () => Response.json({ ok: true }))
+    const res = await handler(request(ORIGIN_EXTERNAL))
+
+    expect(res.status).toBe(401)
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ORIGIN_EXTERNAL)
+  })
+
+  it('skips API key check when skipApiKeyCheck is set to true', async () => {
+    const checkSpy = vi.spyOn(apiKeyAuth, 'checkApiAuth')
+
+    const handler = withCors(async () => Response.json({ ok: true }), {
+      skipApiKeyCheck: true,
+    })
+    const res = await handler(request(ORIGIN_EXTERNAL))
+
+    expect(res.status).toBe(200)
+    expect(checkSpy).not.toHaveBeenCalled()
   })
 })
 
 describe('corsPreflight', () => {
-  it('answers an allowlisted preflight with the permitted methods and headers', () => {
-    const res = corsPreflight(request(ALLOWED, { method: 'OPTIONS' }))
+  it('answers preflight from any origin with permitted methods and headers', () => {
+    const res = corsPreflight(request(ORIGIN_EXTERNAL, { method: 'OPTIONS' }))
 
     expect(res.status).toBe(204)
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ALLOWED)
-    expect(res.headers.get('Access-Control-Allow-Methods')).toBe('GET, POST, OPTIONS')
-    expect(res.headers.get('Access-Control-Allow-Headers')).toBe('Content-Type, Authorization')
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe(ORIGIN_EXTERNAL)
+    expect(res.headers.get('Access-Control-Allow-Methods')).toContain('GET')
+    expect(res.headers.get('Access-Control-Allow-Methods')).toContain('POST')
+    expect(res.headers.get('Access-Control-Allow-Methods')).toContain('OPTIONS')
+    expect(res.headers.get('Access-Control-Allow-Headers')).toContain('X-API-Key')
+    expect(res.headers.get('Access-Control-Allow-Headers')).toContain('Authorization')
     expect(res.headers.get('Vary')).toBe('Origin')
   })
 
-  it('answers a non-allowlisted preflight with a bare 204', () => {
-    const res = corsPreflight(request(DENIED, { method: 'OPTIONS' }))
-
-    expect(res.status).toBe(204)
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBeNull()
-    expect(res.headers.get('Access-Control-Allow-Methods')).toBeNull()
-  })
-
-  it('answers a preflight with no Origin header with a bare 204', () => {
+  it('answers preflight with no Origin header using fallback wildcard', () => {
     const res = corsPreflight(request(undefined, { method: 'OPTIONS' }))
 
     expect(res.status).toBe(204)
-    expect(res.headers.get('Access-Control-Allow-Origin')).toBeNull()
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*')
   })
 })
