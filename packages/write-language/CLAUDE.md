@@ -25,6 +25,12 @@ That is the whole contract, and it is easy to erode:
 - Adding a provider is an entry plus its quirks, not a new public API.
 - Token counting and context limits differ per model — get them from the
   registry, don't hardcode.
+- **Never `import "prismjs/components/…"`.** Those files read `Prism` off the
+  global object, and nothing in the module graph pins them after whoever
+  publishes it — a bundler that reorders or drops that publication turns the
+  whole chunk into `ReferenceError: Prism is not defined` at load. Grammars are
+  loaded through `loadPrismGrammars()` in `src/utils/prism-global.ts`, which
+  reads the docs at the top of that file before you change it.
 
 ```bash
 cd packages/write-language && bun run test

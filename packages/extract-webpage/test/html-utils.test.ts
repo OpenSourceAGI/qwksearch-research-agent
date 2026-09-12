@@ -10,6 +10,7 @@ import {
   convertURLToAbsoluteURL,
   copyHTMLToClipboard,
 } from '../src/html-to-content/html-utils';
+import { loadPrismGrammars } from '../src/html-to-content/prism-global';
 
 describe('convertURLSafeHTMLToHTML', () => {
   it('decodes named entities', () => {
@@ -130,6 +131,15 @@ describe('convertMarkdownToHTML', () => {
     const html = convertMarkdownToHTML('```js\nconst a = 1;\n```') as string;
 
     expect(html).toContain('class="language-js"');
+    expect(html).toContain('token');
+  });
+
+  it('highlights a language that only arrives with the loaded grammars', async () => {
+    await loadPrismGrammars();
+
+    const html = convertMarkdownToHTML('```python\nx = 1\n```') as string;
+
+    expect(html).toContain('class="language-python"');
     expect(html).toContain('token');
   });
 
