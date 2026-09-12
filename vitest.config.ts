@@ -18,12 +18,12 @@ import { defineConfig } from 'vitest/config';
  * Vitest 5's HTML reporter ignores `outputFile` and writes `<outputDir>/index.html`
  * plus its UI bundle, where `outputDir` is a *reporter option* defaulting to
  * `.vitest`. A reporter named on the command line (`--reporter=html`) is
- * constructed without options and would silently keep that default, which is how
- * `apps/test-reports/dist` came to be missing at deploy time -- so the reporter
- * and its destination both have to be declared here.
+ * constructed without options and would silently keep that default, writing the
+ * report somewhere nobody looks -- so the reporter and its destination both have
+ * to be declared here.
  *
  * The report stays opt-in so a plain `vitest run` does not pay for copying the UI
- * bundle; `test:report` sets this to the directory Wrangler deploys.
+ * bundle; `test:report` writes it to `coverage/html`, which is gitignored.
  */
 const htmlReportDir = process.env.VITEST_HTML_REPORT_DIR;
 
@@ -33,7 +33,6 @@ export default defineConfig({
       ? ['default', ['html', { outputDir: htmlReportDir }]]
       : ['default'],
     projects: [
-      'apps/collaboration-server',
       'apps/qwk-vscode-ext',
       'apps/qwksearch-desktop',
       'apps/qwksearch-ext',

@@ -14,7 +14,7 @@ in `app/`.
 | Area | Route | What you get |
 | --- | --- | --- |
 | Research chat | `/`, `/c/[id]` | The agent loop from `packages/chat-agent-toolkit`, over 75+ engines via `packages/search-web-api`, rendered by `packages/research-agent-ui`. |
-| Document editor | `/workspace` | REASON — `packages/reason-editor` and its sidebar, with optional live collaboration. |
+| Document editor | `/workspace` | REASON — `packages/reason-editor` and its sidebar, with optional live collaboration against [`collaboration/`](collaboration/). |
 | Library | `/library` | Saved documents, uploads and extractions, backed by D1 and R2. |
 | Extraction | `/api/doc`, `/api/scraper` | URL, PDF and YouTube extraction from `packages/extract-*`. |
 | Search API | `/api/search` | The dedupe-and-rank pipeline, described by `/api/openapi`. |
@@ -71,7 +71,9 @@ Cloudflare dashboard survive each deploy.
 | Variable | Enables | Where to get it |
 | --- | --- | --- |
 | `NEXT_PUBLIC_BASE_URL` | Absolute links, OAuth callbacks, OG images. | Your own origin — `http://localhost:3000` in development. |
-| `NEXT_PUBLIC_HOCUSPOCUS_URL` | Live collaborative editing in the workspace. Unset, the editor is single-player. | The URL of your [`apps/collaboration-server`](../collaboration-server/) deployment. |
+| `NEXT_PUBLIC_HOCUSPOCUS_URL` | Live collaborative editing in the workspace. Unset, the editor is single-player. | The URL of your [collaboration server](collaboration/) deployment — it ships with this app. |
+| `QWKSEARCH_API_URL` | Read by the collaboration server, not the Worker: the origin it verifies tokens and document access against. | This app's own origin. |
+| `REASON_COLLAB_SECRET` | Lets `/api/collaboration/access` answer the collaboration server, and only it. Unset, that route refuses to answer in production. | A random string, set here *and* on the collaboration server. |
 
 ### Auth
 
@@ -142,6 +144,7 @@ or from this directory with `bun run <script>`.
 | `db:generate` | Generates a Drizzle migration into `drizzle/`. |
 | `db:migrate` / `db:migrate:local` / `db:migrate:status` | Applies or lists migrations with Wrangler. |
 | `db:studio` | Drizzle Studio. |
+| `collab` / `collab:dev` | The Hocuspocus collaboration server, with and without `--watch`. See [`collaboration/`](collaboration/). |
 | `test` / `test:coverage` | Vitest. |
 
 ## Deploying

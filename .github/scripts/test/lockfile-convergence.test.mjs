@@ -37,15 +37,26 @@ const rootPackageJson = readJson('package.json');
 const rootLockfile = readLockfile('bun.lock');
 
 /**
- * Every workspace glob in this repo ends in a single `*` segment
- * (`packages/*`, `packages/render-url-to-html/*`, `apps/*`), so expanding one
- * means listing the tracked package.json files exactly one level below it.
+ * A workspace entry is one of two shapes.
+ *
+ * A glob ending in a single `*` segment (`packages/*`,
+ * `packages/render-url-to-html/*`) expands to the tracked package.json files
+ * exactly one level below it. A literal directory (`apps/qwksearch-web`) names
+ * one workspace on its own: the apps are listed one by one rather than globbed
+ * as `apps/*` so that a root install cannot walk into `apps/qwk-in-lobe`, which
+ * is a pnpm workspace with its own rules.
  */
 const workspaceDirs = [
   ...new Set(
-    rootPackageJson.workspaces.flatMap((glob) => {
-      const prefix = glob.replace(/\/\*$/, '');
-      if (prefix === glob) throw new Error(`unsupported workspace glob: ${glob}`);
+    rootPackageJson.workspaces.flatMap((entry) => {
+      if (!entry.endsWith('/*')) {
+        const manifest = `${entry}/package.json`;
+        if (!git('ls-files', '--', manifest).trim()) {
+          throw new Error(`workspace ${entry} has no tracked ${manifest}`);
+        }
+        return [entry];
+      }
+      const prefix = entry.slice(0, -'/*'.length);
       const depth = prefix.split('/').length + 2;
       return git('ls-files', '--', `${prefix}/*/package.json`)
         .split('\n')

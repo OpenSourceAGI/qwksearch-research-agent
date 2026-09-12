@@ -5,7 +5,7 @@ import {
   authorizeDocument,
   parseRoom,
   resolveUser,
-} from '../src/rooms';
+} from '../rooms';
 
 const originalEnv = { ...process.env };
 
@@ -53,8 +53,9 @@ describe('resolveUser', () => {
   it('refuses unverified tokens in production', async () => {
     process.env.NODE_ENV = 'production';
     delete process.env.REASON_AUTH_URL;
+    delete process.env.QWKSEARCH_API_URL;
 
-    await expect(resolveUser('anything')).rejects.toThrow(/REASON_AUTH_URL/);
+    await expect(resolveUser('anything')).rejects.toThrow(/QWKSEARCH_API_URL/);
   });
 
   it('verifies the token against the session endpoint when configured', async () => {
@@ -70,6 +71,21 @@ describe('resolveUser', () => {
     });
   });
 
+  it("defaults to this app's session route when QWKSEARCH_API_URL is set", async () => {
+    process.env.QWKSEARCH_API_URL = 'https://qwksearch.com';
+    delete process.env.REASON_AUTH_URL;
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ id: 'u1' }), { status: 200 }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(resolveUser('tok')).resolves.toEqual({ id: 'u1', name: 'u1' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://qwksearch.com/api/collaboration/session',
+      { headers: { authorization: 'Bearer tok' } },
+    );
+  });
+
   it('returns null when the session endpoint rejects the token', async () => {
     process.env.REASON_AUTH_URL = 'https://auth.test/session';
     vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 401 })));
@@ -82,9 +98,10 @@ describe('authorizeDocument', () => {
   it('refuses blanket access in production', async () => {
     process.env.NODE_ENV = 'production';
     delete process.env.REASON_DOCUMENT_ACL_URL;
+    delete process.env.QWKSEARCH_API_URL;
 
     await expect(authorizeDocument({ id: 'u1', name: 'Ada' }, 'doc')).rejects.toThrow(
-      /REASON_DOCUMENT_ACL_URL/,
+      /QWKSEARCH_API_URL/,
     );
   });
 
@@ -96,6 +113,22 @@ describe('authorizeDocument', () => {
     );
 
     await expect(authorizeDocument({ id: 'u1', name: 'Ada' }, 'doc')).resolves.toBe('read');
+  });
+
+  it("defaults to this app's access route and sends the shared secret", async () => {
+    process.env.QWKSEARCH_API_URL = 'https://qwksearch.com';
+    process.env.REASON_COLLAB_SECRET = 's3cret';
+    delete process.env.REASON_DOCUMENT_ACL_URL;
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ role: 'write' }), { status: 200 }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(authorizeDocument({ id: 'u1', name: 'Ada' }, 'doc 1')).resolves.toBe('write');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://qwksearch.com/api/collaboration/access?documentId=doc%201&userId=u1',
+      { headers: { 'x-collaboration-secret': 's3cret' } },
+    );
   });
 
   it('denies when the ACL returns no role', async () => {

@@ -44,8 +44,9 @@ VS Code) built from shared `packages/*`.
 | Search engines, dedupe, ranking | `packages/search-web-api` |
 | URL / PDF / YouTube extraction | `packages/extract-*` |
 | Routes, `/api` handlers, auth, D1 schema | `apps/qwksearch-web` |
+| The Yjs collaboration rooms (Hocuspocus) | `apps/qwksearch-web/collaboration` + `lib/collaboration` |
 | User-facing documentation | `packages/user-help-docs/content/docs` |
-| The qwksearch.com LobeHub build | `packages-lobe/` (separate pnpm workspace) |
+| The qwksearch.com LobeHub build | `apps/qwk-in-lobe/` (separate pnpm workspace) |
 
 Full map: [`architecture/overview.md`](.claude/architecture/overview.md) ·
 [`skills/ask-qwksearch-monorepo`](skills/ask-qwksearch-monorepo/SKILL.md).
@@ -88,12 +89,10 @@ repo sits in one tree rather than beside the source.
 
 | Workspace | Note |
 | --- | --- |
-| `apps/collaboration-server` | [.claude/apps/collaboration-server/CLAUDE.md](.claude/apps/collaboration-server/CLAUDE.md) |
 | `apps/qwk-vscode-ext` | [.claude/apps/qwk-vscode-ext/CLAUDE.md](.claude/apps/qwk-vscode-ext/CLAUDE.md) |
 | `apps/qwksearch-desktop` | [.claude/apps/qwksearch-desktop/CLAUDE.md](.claude/apps/qwksearch-desktop/CLAUDE.md) |
 | `apps/qwksearch-ext` | [.claude/apps/qwksearch-ext/CLAUDE.md](.claude/apps/qwksearch-ext/CLAUDE.md) |
 | `apps/qwksearch-web` | [.claude/apps/qwksearch-web/CLAUDE.md](.claude/apps/qwksearch-web/CLAUDE.md) |
-| `apps/test-reports` | [.claude/apps/test-reports/CLAUDE.md](.claude/apps/test-reports/CLAUDE.md) |
 | `packages/chat-agent-toolkit` | [.claude/packages/chat-agent-toolkit/CLAUDE.md](.claude/packages/chat-agent-toolkit/CLAUDE.md) |
 | `packages/domain-rank` | [.claude/packages/domain-rank/CLAUDE.md](.claude/packages/domain-rank/CLAUDE.md) |
 | `packages/extract-pdf` | [.claude/packages/extract-pdf/CLAUDE.md](.claude/packages/extract-pdf/CLAUDE.md) |
@@ -120,5 +119,5 @@ repo sits in one tree rather than beside the source.
 | `packages/user-help-docs` | [.claude/packages/user-help-docs/CLAUDE.md](.claude/packages/user-help-docs/CLAUDE.md) |
 | `packages/write-language` | [.claude/packages/write-language/CLAUDE.md](.claude/packages/write-language/CLAUDE.md) |
 
-`packages-lobe/` is a separate vendored workspace and keeps its upstream
+`apps/qwk-in-lobe/` is a separate vendored workspace and keeps its upstream
 `CLAUDE.md`/`AGENTS.md` pair in place.

@@ -1,6 +1,6 @@
 ---
 title: "LobeHub Migration To-Do"
-description: "Running checklist for making packages-lobe the engine behind qwksearch.com."
+description: "Running checklist for making apps/qwk-in-lobe the engine behind qwksearch.com."
 ---
 
 # LobeHub Migration To-Do
@@ -35,7 +35,7 @@ Last updated: 2026-09-12.
 
 Needs Cloudflare account access, so it cannot be done from a code-only run.
 
-1. `cd packages-lobe && pnpm install && bun run build:worker`
+1. `cd apps/qwk-in-lobe && pnpm install && bun run build:worker`
 2. Create the Hyperdrive config and paste the id into `wrangler.jsonc`
    (or set `DATABASE_URL` to a Neon URL and keep `DATABASE_DRIVER=neon`).
 3. `bun run db:migrate` (Postgres, 157 migrations) and `bun run cf:d1:migrate` (D1).
@@ -174,7 +174,7 @@ no rewrite — only a line recording that it is now the only one.
 
 **Why it survived so long, and what now catches it:** nothing type-checked
 `worker/`. The repo-wide `bun run type-check` includes it, but OOMs before
-finishing (see below), and no CI job installed `packages-lobe` at all. Two
+finishing (see below), and no CI job installed `apps/qwk-in-lobe` at all. Two
 undefined identifiers sat in a request-path module from the day they were
 written. `bun run type-check:qwksearch` is the narrow check that closes that gap
 and §5.6's CI job is what runs it on every engine change — see §5.5 and §5.6.
@@ -576,7 +576,7 @@ Reproduce today's chat-mode behavior on the engine and record each gap:
 
 - ✅ **2.1 Map every section** of `research-agent-ui/src/settings/sections.json`
   to its engine equivalent. Done, and done as **code rather than as this
-  paragraph**: `packages-lobe/src/features/Settings/qwksearch/legacySettingsMap.ts`
+  paragraph**: `apps/qwk-in-lobe/src/features/Settings/qwksearch/legacySettingsMap.ts`
   carries all nine sections with, for each, what stores its values today, the
   engine tabs that take it over, and what is still missing before 2.4 may delete
   it. `legacySettingsMap.contract.test.ts` checks every claim against the thing
@@ -671,7 +671,7 @@ Reproduce today's chat-mode behavior on the engine and record each gap:
 ## Phase 4 — Public cutover 🔒
 
 Blocked on the LobeHub Community License answer, recorded in
-`packages-lobe/README.md` before any public traffic moves.
+`apps/qwk-in-lobe/README.md` before any public traffic moves.
 
 - 🔒 **4.1 Routing split.** `/chat*`, `/settings*`, `/docs*`, `/signin*`,
   `/_spa*`, `/webapi/*`, `/trpc/*`, `/api/auth/*`, `/f/*` → engine; everything
@@ -698,7 +698,7 @@ Blocked on the LobeHub Community License answer, recorded in
   engine (`/webapi`, `/api/v1`); desktop picks Lobe's Electron app or keeps Tauri
   as a webview.
 - ⬜ **5.3 Trim the prebuild chain** in `apps/qwksearch-web/package.json`.
-- ⬜ **5.4 Ops gaps**, all from `packages-lobe/README.md` § Known gaps:
+- ⬜ **5.4 Ops gaps**, all from `apps/qwk-in-lobe/README.md` § Known gaps:
   - ⬜ Upstash HTTP Redis provider in `src/libs/redis` — without it, agent stream
     fan-out, edit locks and some rate limits run on per-isolate memory.
   - ⬜ Mobile SPA build (`build:spa:mobile`); mobile currently gets the desktop bundle.
@@ -752,7 +752,7 @@ Blocked on the LobeHub Community License answer, recorded in
     the Worker's own error count from 50 to 19 on a stub install.
 
   **Confirmed against a real install, and then widened past `worker/`.**
-  `pnpm install --ignore-scripts` inside `packages-lobe` takes **1m23s** and
+  `pnpm install --ignore-scripts` inside `apps/qwk-in-lobe` takes **1m23s** and
   4.2 GB here, and after it the Worker reports **clean** in about a minute — all
   19 errors that remained on the stub install were that install, not the code.
   Three things were checked rather than assumed:
@@ -782,7 +782,7 @@ Blocked on the LobeHub Community License answer, recorded in
   the reason the filter exists, not a regression — and it is why `worker/` and
   the panes could sit unchecked while a repo-wide `type-check` existed.
 
-- ✅ **5.6 A CI job that installs `packages-lobe` at all.**
+- ✅ **5.6 A CI job that installs `apps/qwk-in-lobe` at all.**
   `.github/workflows/lobehub-engine.yml` — the blocker 5.4 and 5.5 both named,
   and the reason a green check on this repo used to say nothing whatsoever about
   an engine change. It runs `pnpm run type-check:qwksearch` and
@@ -791,7 +791,7 @@ Blocked on the LobeHub Community License answer, recorded in
   minutes.
 
   - **`test:qwksearch` is new and is the point of the job.** It is one script in
-    `packages-lobe/package.json` running every path the README and §6 of the
+    `apps/qwk-in-lobe/package.json` running every path the README and §6 of the
     integrations reference list as separate recipes — the Worker and its routes,
     both settings resolution/preferences layers, both panes and their contract
     drift guards, the shared controls, the Cloudflare adapters, the search
@@ -800,14 +800,14 @@ Blocked on the LobeHub Community License answer, recorded in
     **579 tests in 37 files, ~1 minute.** The path list living in the script is
     what stops the workflow, the README and the reference from drifting apart —
     the same mechanism as the panes' `contract.test.ts`.
-  - **Path-filtered to everything under `packages-lobe/`, plus the workflow file
+  - **Path-filtered to everything under `apps/qwk-in-lobe/`, plus the workflow file
     itself.** The install is the expensive step, and nothing outside the engine
     changes either result.
 
   - **Three details are specific to this workspace**, and each one is a way the
     obvious workflow would have failed: `pnpm/action-setup` reads the *repo
     root* `package.json` by default, which pins **bun**, so it has to be pointed
-    at `packages-lobe/package.json` for the pinned `pnpm@10.33.0`;
+    at `apps/qwk-in-lobe/package.json` for the pinned `pnpm@10.33.0`;
     `pnpm-workspace.yaml` sets `lockfile: false` and `pnpm-lock.yaml` is
     gitignored, so there is no lockfile to key `setup-node`'s cache on or to
     install `--frozen` against — the manifests are the cache key instead; and
@@ -849,7 +849,7 @@ Blocked on the LobeHub Community License answer, recorded in
   `actions/setup-node@v4`, `actions/cache@v4` and `pnpm/action-setup@v4` all
   target Node 20 and are being forced onto Node 24. Every workflow in this
   repository uses those actions, so the v5 bump is a repo-wide change, not a
-  `packages-lobe` one.
+  `apps/qwk-in-lobe` one.
 
   Follow-ups:
 
@@ -897,16 +897,16 @@ Then, for whichever you pick:
 2. Keep changes **additive**: new files under `worker/`, `src/features/QwkSearch/`
    or a new `impls/` directory. Edits to upstream files are the merge cost against
    LobeHub, so keep them to registration points (an enum, a switch, a route mount)
-   and list every one in `packages-lobe/README.md` § What changed vs. upstream.
-3. Ship a test with it. `bunx vitest run <path>` under `packages-lobe`.
+   and list every one in `apps/qwk-in-lobe/README.md` § What changed vs. upstream.
+3. Ship a test with it. `bunx vitest run <path>` under `apps/qwk-in-lobe`.
 
-   A full `pnpm install --ignore-scripts` inside `packages-lobe` **does** work in
+   A full `pnpm install --ignore-scripts` inside `apps/qwk-in-lobe` **does** work in
    a code-only environment — measured at **1m23s and 4.2 GB** on a cold store,
    which is cheaper than the "few minutes and about 3 GB" this page used to
    estimate, and cheap enough that 5.6 does it on every engine PR. Anything
    touching `src/` needs it, and it is what makes `bun run check <files>` (lint
    + auto-discovered related tests in one pass) available, which is the workflow
-   `packages-lobe/AGENTS.md` documents. Prefer it unless the change is
+   `apps/qwk-in-lobe/AGENTS.md` documents. Prefer it unless the change is
    `worker/`-only. With it, `bun run test:qwksearch` runs the whole integration
    surface — 579 tests — in about a minute; that is what CI runs, so a green run
    of it locally is the same signal.
@@ -936,13 +936,13 @@ Then, for whichever you pick:
    §5.6's CI job runs the wider one, so a skipped local run now surfaces as a red
    check instead of as nothing.
 
-   **If the change is `worker/`-only and `packages-lobe/node_modules` is empty** — it is in a fresh clone, because
-   `packages-lobe` is a separate pnpm workspace outside the root turbo graph — a
+   **If the change is `worker/`-only and `apps/qwk-in-lobe/node_modules` is empty** — it is in a fresh clone, because
+   `apps/qwk-in-lobe` is a separate pnpm workspace outside the root turbo graph — a
    full `pnpm install` is not the only option for a `worker/` change. Those
    modules depend on very little: an install of `vitest`, `drizzle-orm` and
-   `hono` in a scratch directory, symlinked to `packages-lobe/node_modules`,
+   `hono` in a scratch directory, symlinked to `apps/qwk-in-lobe/node_modules`,
    plus a throwaway config with `root` pointing at
-   `packages-lobe`, runs the whole `worker/qwksearch` and
+   `apps/qwk-in-lobe`, runs the whole `worker/qwksearch` and
    `worker/routes/qwksearch` suite in about a second. Anything touching `src/`
    needs the real install.
 
@@ -982,7 +982,7 @@ Then, for whichever you pick:
 ## What CI will and will not tell you
 
 Three things about this repo's CI are worth knowing before you read a red check
-on a `packages-lobe` change:
+on a `apps/qwk-in-lobe` change:
 
 - **The repo-wide install outage is fixed by handing the SDK transport back to
   fetch.** `bun install --frozen-lockfile` could not resolve two
@@ -1017,9 +1017,9 @@ on a `packages-lobe` change:
   can publish them. Re-landing #422 is a `git revert` of the revert plus a
   `bun install` once `api2client@1.0.1` and `grab-url@1.6.23` are on npm —
   check with `npm view api2client version` before trying.
-- **One job now installs `packages-lobe`, and only one.** The root `workspaces`
+- **One job now installs `apps/qwk-in-lobe`, and only one.** The root `workspaces`
   are `packages/*`, `packages/render-url-to-html/*` and `apps/*`;
-  `packages-lobe` is a separate pnpm workspace outside that graph, so every
+  `apps/qwk-in-lobe` is a separate pnpm workspace outside that graph, so every
   other workflow — Coverage, API, Lockfile, npm-publish — installs with bun at
   the repo root and cannot see it. `LobeHub Engine`
   (`.github/workflows/lobehub-engine.yml`, §5.6) is the exception: it installs
@@ -1027,8 +1027,8 @@ on a `packages-lobe` change:
 
   Two consequences worth keeping straight. **A red check on one of the other
   workflows is still almost certainly not yours** if your change is
-  `packages-lobe`-only — they never installed your code. And **a green run on a
-  PR that touches nothing under `packages-lobe` says nothing about the engine
+  `apps/qwk-in-lobe`-only — they never installed your code. And **a green run on a
+  PR that touches nothing under `apps/qwk-in-lobe` says nothing about the engine
   either**, because the job is path-filtered and did not run. What it does *not*
   cover: the Worker bundle-size budget (5.4), the repo-wide type-check outside
   `worker/`, and lint.

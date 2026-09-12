@@ -27,9 +27,10 @@ So:
 - **Document data loss is the worst bug this package can ship.** Anything
   touching the schema, serialization, or the Docs import/export round-trip needs
   a round-trip test.
-- Collaborative editing runs through `apps/collaboration-server` (Hocuspocus +
-  Yjs). Schema changes affect live rooms — a Yjs document written by an old
-  schema still has to load.
+- Collaborative editing runs through the Hocuspocus server inside the web app
+  (`apps/qwksearch-web/collaboration/`, with the room rules in
+  `apps/qwksearch-web/lib/collaboration/rooms.ts`). Schema changes affect live
+  rooms — a Yjs document written by an old schema still has to load.
 - The sidebar is a separate package: `reason-editor-sidebar`.
 - This package is a **coverage-build dependency** in CI (as
   `react-reason-editor`).

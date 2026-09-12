@@ -3,10 +3,14 @@
   "private": true,
   "version": "2.2.0",
   "packageManager": "bun@1.4.0",
+  "//workspaces": "apps/ is listed app by app, not globbed: apps/qwk-in-lobe is a separate pnpm workspace (see .github/workflows/lobehub-engine.yml) and a root bun install must not walk into it.",
   "workspaces": [
     "packages/*",
     "packages/render-url-to-html/*",
-    "apps/*"
+    "apps/qwk-vscode-ext",
+    "apps/qwksearch-desktop",
+    "apps/qwksearch-ext",
+    "apps/qwksearch-web"
   ],
   "scripts": {
     "dev": "turbo dev --filter=qwksearch-web",
@@ -16,9 +20,8 @@
     "build:editor": "turbo build --filter=react-reason-editor",
     "test": "vitest run",
     "test:ui": "vitest --ui",
-    "test:report": "VITEST_HTML_REPORT_DIR=apps/test-reports/dist vitest run",
-    "test:report:coverage": "VITEST_HTML_REPORT_DIR=apps/test-reports/dist vitest run --coverage",
-    "deploy:test-reports": "cd apps/test-reports && wrangler deploy"
+    "test:report": "VITEST_HTML_REPORT_DIR=coverage/html vitest run",
+    "test:report:coverage": "VITEST_HTML_REPORT_DIR=coverage/html vitest run --coverage"
   },
   "devDependencies": {
     "@typescript/typescript6": "^6.0.2",

@@ -1,6 +1,6 @@
 ---
 name: ask-qwksearch-monorepo
-description: Map of the QwkSearch research-agent monorepo (OpenSourceAGI/qwksearch-research-agent) — which of the packages and 6 apps owns a given behaviour, the bun/turbo build and test commands, the workspace build-order trap, and the deploy targets. Also covers the four product shells (Next.js web app, Tauri desktop app, WXT browser extension, VS Code extension) and the Hocuspocus collaboration server, which have no package skill of their own. Use when you don't yet know which layer to edit, when a change to a package doesn't show up in the app that imports it, when a root `bun run test` behaves differently from a package's own test script, or when adding a new workspace package.
+description: Map of the QwkSearch research-agent monorepo (OpenSourceAGI/qwksearch-research-agent) — which of the packages and 5 apps owns a given behaviour, the bun/turbo build and test commands, the workspace build-order trap, and the deploy targets. Also covers the four product shells (Next.js web app, Tauri desktop app, WXT browser extension, VS Code extension) and the Hocuspocus collaboration server that ships inside the web app, which have no package skill of their own. Use when you don't yet know which layer to edit, when a change to a package doesn't show up in the app that imports it, when a root `bun run test` behaves differently from a package's own test script, or when adding a new workspace package.
 ---
 
 # Working In The QwkSearch Monorepo
@@ -54,8 +54,13 @@ things look similar:
 | `apps/qwksearch-desktop` | SvelteKit + Tauri (`src-tauri/`) | Global hotkey ("select text, press `` ` ``"), tray, autostart, the quick-search popup. Native behaviour is Rust-side, not `src/`. |
 | `apps/qwksearch-ext` | WXT browser extension | `entrypoints/{background,content,popup,sidepanel,offscreen}`. Has its **own** `pnpm-workspace.yaml` and lockfile — run install inside it too. |
 | `apps/qwk-vscode-ext` | esbuild extension host + two Vite webviews | Host/auth/API proxy in `src/`; chat sidebar in `webview-ui/`; document editor in `webview-ui-editor/`. `bun run compile` builds all three. |
-| `apps/collaboration-server` | Hocuspocus + SQLite | The Yjs rooms behind the editor's collaborative editing. `bun run dev`. |
-| `apps/test-reports` | Cloudflare Worker | Static host for the Vitest HTML report. Infra only. |
+| `apps/qwk-in-lobe` | LobeHub monorepo (pnpm) | The qwksearch.com engine build. A separate pnpm workspace inside `apps/` — the root `bun install` does not cover it, and the root `workspaces` list names the other apps one by one so it cannot. |
+
+The Yjs rooms behind collaborative editing are **not** an app of their own: the
+Hocuspocus process is `apps/qwksearch-web/collaboration/server.ts`
+(`bun run collab:dev`), the room/auth decision is
+`apps/qwksearch-web/lib/collaboration/rooms.ts`, and it authorizes against
+`/api/collaboration/session` and `/api/collaboration/access` in the same app.
 
 ## Commands
 

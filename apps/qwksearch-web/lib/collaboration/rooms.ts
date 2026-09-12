@@ -1,6 +1,10 @@
 /**
- * Room parsing and authorisation, kept separate from the server bootstrap so it
- * can be unit-tested without opening a socket.
+ * Room parsing and authorisation for the Reason Editor's collaboration rooms.
+ *
+ * Kept separate from the server bootstrap (`collaboration/server.ts`) so it can
+ * be unit-tested without opening a socket, and kept in `lib/` because the two
+ * endpoints it calls — `/api/collaboration/session` and
+ * `/api/collaboration/access` — are route handlers in this same app.
  *
  * Room names are `reason-editor:<engine>:<documentId>` and are minted by
  * `packages/reason-editor/src/docs-agent/collaboration/hocuspocus-client.ts`.
@@ -8,6 +12,10 @@
  */
 
 export const ROOM_PREFIX = 'reason-editor';
+
+/** Route handlers in this app that answer the two questions below. */
+export const SESSION_ENDPOINT_PATH = '/api/collaboration/session';
+export const ACCESS_ENDPOINT_PATH = '/api/collaboration/access';
 
 export type EditorEngine = 'tiptap' | 'plate';
 
@@ -27,6 +35,42 @@ export function parseRoom(documentName: string): ParsedRoom | null {
   return { engine, documentId };
 }
 
+/**
+ * Where to ask this app's API. `QWKSEARCH_API_URL` is the one variable that
+ * wires both endpoints up (`https://qwksearch.com`); the individual
+ * `REASON_*_URL` variables still win when set, so the server can be pointed at
+ * a different session or ACL backend without touching this file.
+ */
+function apiEndpoint(path: string): string | undefined {
+  const base = process.env.QWKSEARCH_API_URL?.trim();
+  if (!base) return undefined;
+
+  try {
+    return new URL(path, base).toString();
+  } catch {
+    return undefined;
+  }
+}
+
+function sessionEndpoint(): string | undefined {
+  return process.env.REASON_AUTH_URL?.trim() || apiEndpoint(SESSION_ENDPOINT_PATH);
+}
+
+function accessEndpoint(): string | undefined {
+  return process.env.REASON_DOCUMENT_ACL_URL?.trim() || apiEndpoint(ACCESS_ENDPOINT_PATH);
+}
+
+/**
+ * Shared secret proving a request to `/api/collaboration/access` came from this
+ * server rather than from a browser — that endpoint answers "what may user X do
+ * to document Y", which nobody else may ask. Sent as `x-collaboration-secret`;
+ * the route rejects the request without it whenever it is configured there.
+ */
+function internalSecretHeaders(): Record<string, string> {
+  const secret = process.env.REASON_COLLAB_SECRET?.trim();
+  return secret ? { 'x-collaboration-secret': secret } : {};
+}
+
 export interface SessionUser {
   id: string;
   name: string;
@@ -35,19 +79,19 @@ export interface SessionUser {
 /**
  * Resolves a connection token to a user.
  *
- * Demo default: the token *is* the user id. Point `REASON_AUTH_URL` at your
- * session endpoint in production and this calls it instead — never ship the
- * demo branch, since it lets anyone claim any identity.
+ * Demo default: the token *is* the user id. Set `QWKSEARCH_API_URL` (or
+ * `REASON_AUTH_URL`) in production and this calls the session endpoint instead
+ * — never ship the demo branch, since it lets anyone claim any identity.
  */
 export async function resolveUser(token: string | undefined): Promise<SessionUser | null> {
   if (!token) return null;
 
-  const authUrl = process.env.REASON_AUTH_URL;
+  const authUrl = sessionEndpoint();
 
   if (!authUrl) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error(
-        'REASON_AUTH_URL is required in production: refusing to accept unverified tokens',
+        'QWKSEARCH_API_URL (or REASON_AUTH_URL) is required in production: refusing to accept unverified tokens',
       );
     }
 
@@ -75,20 +119,22 @@ export async function authorizeDocument(
   user: SessionUser,
   documentId: string,
 ): Promise<'read' | 'write' | null> {
-  const aclUrl = process.env.REASON_DOCUMENT_ACL_URL;
+  const aclUrl = accessEndpoint();
 
   if (!aclUrl) {
     if (process.env.NODE_ENV === 'production') {
       throw new Error(
-        'REASON_DOCUMENT_ACL_URL is required in production: refusing to grant blanket document access',
+        'QWKSEARCH_API_URL (or REASON_DOCUMENT_ACL_URL) is required in production: refusing to grant blanket document access',
       );
     }
 
     return 'write';
   }
 
+  const separator = aclUrl.includes('?') ? '&' : '?';
   const response = await fetch(
-    `${aclUrl}?documentId=${encodeURIComponent(documentId)}&userId=${encodeURIComponent(user.id)}`,
+    `${aclUrl}${separator}documentId=${encodeURIComponent(documentId)}&userId=${encodeURIComponent(user.id)}`,
+    { headers: internalSecretHeaders() },
   );
 
   if (!response.ok) return null;

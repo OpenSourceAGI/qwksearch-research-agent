@@ -5,7 +5,7 @@
  * declares the surface `worker/qwksearch/extract.ts` actually uses, so the PDF
  * and transcript tiers type-check instead of resolving to `any`.
  *
- * Source of truth is `../../../packages/extract-youtube/src`; keep this in sync
+ * Source of truth is the repo-root `packages/extract-youtube/src`; keep this in sync
  * with it, and delete the file once a published version ships declarations.
  */
 declare module 'extract-youtube' {
