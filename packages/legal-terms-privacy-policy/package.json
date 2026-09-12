@@ -1,6 +1,6 @@
 {
   "name": "legal-terms-privacy-policy",
-  "version": "0.1.41",
+  "version": "0.1.43",
   "description": "Shared Terms of Service and Privacy Policy page, as a React component parameterized by app name, contact address and revision date",
   "keywords": ["legal", "terms-of-service", "privacy-policy", "react", "component"],
   "license": "rights.institute/PROSPER",

@@ -84,6 +84,15 @@ host handled the request in place, and `false`/`undefined` to fall back to navig
 Next.js app. Add an endpoint by adding a handler plus its `*Deps` interface in
 `src/api/types.ts` and exporting it from `src/api/index.ts`.
 
+`rewrite` answers in two shapes. By default it returns `{ rewrittenText }` JSON,
+which is what the chat UI's rewrite-message button reads. When the request body
+sets `stream: true` *and* the host passed a `streamText` in `deps`, it returns a
+`text/plain` token stream instead — that is what the REASON editor's writing
+assistant asks for, so its review panel fills in as the model writes. Both are
+load-bearing and neither is inferable from the types, so keep the fallbacks:
+`stream: true` against a host with no `streamText` has to answer with JSON
+rather than failing the request.
+
 **The spotlight palette.** `QwkSearchProviders` mounts `SpotlightPalette` (turn it off
 with `showSpotlight={false}`). Ctrl-Space — Cmd-Space belongs to macOS — opens one bar
 over the whole app; `openSpotlight()` does the same from chrome that has no keyboard

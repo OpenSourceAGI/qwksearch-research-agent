@@ -1,6 +1,6 @@
 {
   "name": "qwksearch-api-client",
-  "version": "1.0.36",
+  "version": "1.0.38",
   "description": "QwkSearch API Client - Generated from openapi-docs.yml",
   "repository": {
     "type": "git",
@@ -13,18 +13,19 @@
   "module": "./dist/api-client.js",
   "exports": {
     ".": {
-      "types": "./dist/src/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/api-client.js",
       "require": "./dist/api-client.umd.cjs"
     },
     "./openapi.json": "./qwksearch-openapi.json"
   },
   "scripts": {
-    "ship": "npx standard-version --release-as patch; npm publish",
-    "build:api": " openapi-ts && vite build",
+    "ship": "npx standard-version --release-as patch; bun run build:api; npm publish",
+    "build:api": "openapi-ts && api2client --rewire-only ./src && vite build",
     "test:api": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test": "vitest run"
+    "test": "vitest run",
+    "codegen": "openapi-ts && api2client --rewire-only ./src"
   },
   "files": [
     "dist",
@@ -34,11 +35,17 @@
     "@hey-api/client-fetch": "^0.13.1",
     "@hey-api/openapi-ts": "^0.99.0",
     "@hey-api/vite-plugin": "^0.3.2",
+    "@microsoft/api-extractor": "^7.50.1",
+    "@types/node": "^26.5.0",
     "@vitest/coverage-v8": "^5.0.0",
+    "grab-url": "^1.6.22",
     "terser": "^5.51.2",
-    "vite-plugin-dts": "^5.1.0",
     "vite": "^8.2.2",
+    "vite-plugin-dts": "^5.1.0",
     "vitest": "^5.0.0"
   },
-  "license": "rights.institute/PROSPER"
+  "license": "rights.institute/PROSPER",
+  "dependencies": {
+    "api2client": "^1.0.1"
+  }
 }

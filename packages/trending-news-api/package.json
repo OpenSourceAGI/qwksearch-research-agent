@@ -1,6 +1,6 @@
 {
   "name": "trending-news-api",
-  "version": "0.1.92",
+  "version": "0.1.94",
   "description": "React trending news widget backed by Wikipedia pageviews and The News API, via a Cloudflare Worker proxy",
   "keywords": ["react", "news", "trending", "wikipedia", "thenewsapi", "cloudflare", "component-library"],
   "repository": {

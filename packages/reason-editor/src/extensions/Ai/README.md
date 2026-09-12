@@ -51,6 +51,13 @@ In this repo the plugin registry defaults the endpoint to the QwkSearch web
 app's `/api/agent/rewrite`; it is editable (and clearable, to fall back to the
 demo transform) under Settings → Plugins → AI Writing.
 
+`createRewriteCompletion` sends `stream: true` with that request. It is a hint,
+not a requirement: `/api/agent/rewrite` answers with a `text/plain` token stream
+when it sees the flag (and the host wired `streamText`), and with its original
+`{ rewrittenText }` JSON when it does not. Either way the panel works — without
+streaming the answer simply lands in one piece instead of filling in as the
+model writes, so a route of your own can ignore the flag entirely.
+
 ## What the extension guarantees about the output
 
 - The response is sanitised before it is shown or applied: chat preambles
@@ -69,10 +76,18 @@ demo transform) under Settings → Plugins → AI Writing.
 
 `src/docs-agent/plate` mounts the same assistant. Its `AiKit`
 (`src/docs-agent/plate/kits/ai-kit.tsx`) registers a Plate plugin keyed
-`KEYS.aiChat` whose panel opens from the bubble menu's ✨ **Ask AI** button or
-`⌘/Ctrl + J`, and it runs the command set, prompts and response sanitising from
-this directory — only the document half is re-implemented for Slate, in
-`src/docs-agent/plate/ai-controller.ts`.
+`KEYS.aiChat` whose panel opens from the bubble menu's ✨ **Ask AI** button, the
+slash menu's **AI** item, or `⌘/Ctrl + J`, and it runs the command set, prompts
+and response sanitising from this directory — only the document half is
+re-implemented for Slate, in `src/docs-agent/plate/ai-controller.ts`.
+
+Every one of those entry points goes through `getPlateAiController(editor)`.
+That matters more than it looks: the components under `src/docs-agent/plate/ui`
+are copies of Plate's shadcn registry, and upstream's versions reach for
+`editor.getApi(AIChatPlugin).aiChat.show()` instead. On this editor that API was
+never registered, so the call throws and the entry point silently does nothing —
+and `getApi` is typed off the plugin handed to it rather than off what the
+editor actually has, so nothing catches it before a browser does.
 
 It is deliberately not Plate's own `@platejs/ai` `AIChatPlugin`: that needs the
 Vercel AI SDK in the bundle and a streaming chat route to talk to, neither of
