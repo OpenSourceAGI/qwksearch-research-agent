@@ -52,6 +52,32 @@ The two editor packages are declared as **optional** peer dependencies:
 installing `research-agent-ui` on its own is enough for the chat-only build,
 and package managers will not warn about the missing peers.
 
+## Spotlight search
+
+`QwkSearchProviders` mounts a macOS-Spotlight-style command palette over the
+whole app. <kbd>Ctrl</kbd> <kbd>Space</kbd> opens it (Cmd-Space belongs to
+macOS), or call `openSpotlight()` from your own chrome. Typing searches past
+chats, app pages, settings sections and actions at once, with "ask the research
+agent this" pinned to the top; a leading letter scopes the search to one source
+— `c ` chats, `t ` pages, `s ` settings, `a ` actions, `w ` ask — and
+<kbd>Tab</kbd> cycles between them.
+
+```tsx
+import { QwkSearchProviders, openSpotlight } from 'research-agent-ui';
+
+<QwkSearchProviders authClient={authClient} showSpotlight>   {/* the default */}
+  <YourApp />
+</QwkSearchProviders>;
+
+// …and from a button somewhere in your own chrome:
+<button onClick={() => openSpotlight()}>Search everything</button>;
+```
+
+Rows that open a chat or a settings section go through `onOpenChat` /
+`onOpenSettings` first, so a host rendering chats inline handles them without
+navigating; returning anything but `true` falls back to `/c/<id>` and
+`/settings/<section>`.
+
 ## Usage
 
 ### The whole app in one component

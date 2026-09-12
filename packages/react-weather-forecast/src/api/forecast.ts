@@ -15,12 +15,20 @@ import { resolveWeatherProviders, type ForecastRequest } from './providers';
  * Everything that goes on the wire is validated first, then the providers are
  * tried in order until one answers.
  *
- * The `400 Bad Request` this used to render came from an unvalidated request:
- * a geolocation upstream answering 200 with no coordinates put `latitude=NaN`
- * in the URL, and an unknown timezone string or an out-of-range `forecastDays`
- * did the same. Those are caught in {@link buildForecastRequest} now, before a
- * request is sent, and anything that still fails falls through to the next
- * provider and finally to a stale cache entry.
+ * Two different things produced the `400 Bad Request` this used to render, and
+ * both are handled, in different places:
+ *
+ * - The **request** could be malformed. A geolocation upstream answering 200
+ *   with no coordinates put `latitude=NaN` in the URL; an unknown timezone
+ *   string or an out-of-range `forecastDays` did the same. Those are caught in
+ *   {@link buildForecastRequest}, before a request is sent.
+ * - The **URL** could be malformed after it left here, by the transport rather
+ *   than by anything in this file -- see `splitUrl` in `./http`. That one broke
+ *   every provider on every call, which is why the fallbacks below could not
+ *   rescue it.
+ *
+ * Anything that still fails falls through to the next provider and finally to a
+ * stale cache entry.
  */
 
 /** Cache key for a request, so a fallback provider's answer is reused like the primary one's. */
@@ -39,7 +47,11 @@ export function forecastCacheKey(request: ForecastRequest): string {
 
 /** Resolve the location for a request, falling back to IP geolocation. */
 async function resolveLocation(options: WeatherForecastOptions): Promise<WeatherLocation> {
-  const explicit = normalizeCoordinates(options.latitude, options.longitude);
+  // Coordinates can arrive at the top level or on `location`; either is a
+  // location the caller already knows, so neither should cost an IP lookup.
+  const explicit =
+    normalizeCoordinates(options.latitude, options.longitude) ??
+    normalizeCoordinates(options.location?.latitude, options.location?.longitude);
   if (explicit) {
     return {
       ...options.location,
@@ -81,7 +93,10 @@ export async function buildForecastRequest(
     // `undefined` means "let the provider resolve the zone from the
     // coordinates" (Open-Meteo's `timezone=auto`); an unrecognised zone string
     // is dropped here rather than sent, since Open-Meteo answers 400 for one.
-    timezone: normalizeTimezone(options.location?.timezone),
+    // A zone the caller gave wins over the one geolocation reported, but the
+    // geolocated zone is still used rather than discarded -- it is what makes
+    // the clock read in the location's own time on the first render.
+    timezone: normalizeTimezone(options.location?.timezone) ?? location.timezone,
     transport,
   };
 }

@@ -55,7 +55,7 @@ describe('<WeatherForecast />', () => {
   it('renders the error message when the request fails', async () => {
     vi.spyOn(forecastApi, 'getWeatherForecast').mockRejectedValue(new Error('network down'));
 
-    render(<WeatherForecast latitude={1} longitude={2} />);
+    render(<WeatherForecast latitude={1} longitude={2} reloadAttempts={0} />);
 
     expect(await screen.findByText('Error: network down')).toBeTruthy();
   });

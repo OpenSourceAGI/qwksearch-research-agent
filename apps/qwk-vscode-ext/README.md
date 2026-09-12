@@ -188,19 +188,51 @@ Then press **F5** in VS Code (with this folder open) to launch an Extension
 Development Host with QwkSearch loaded, or open the QwkSearch icon in the
 Activity Bar.
 
-### Packaging
+### Packaging and publishing
 
 ```bash
-bun run package      # production build (dist/, webview-ui/dist/, webview-ui-editor/dist/)
-bunx @vscode/vsce package   # produces a .vsix you can install or publish
+bun run package                 # production build (dist/, webview-ui/dist/, webview-ui-editor/dist/)
+bunx @vscode/vsce package       # → qwksearch-vscode-<version>.vsix
 ```
 
+Install the result with **Extensions → … → Install from VSIX**, or
+`code --install-extension qwksearch-vscode-<version>.vsix`.
+
+Publishing to the Marketplace under the `opensourceagi` publisher needs a
+Personal Access Token with the **Marketplace → Manage** scope, created in an
+Azure DevOps organization at [dev.azure.com](https://dev.azure.com) — the
+walkthrough is
+[Publishing Extension](https://code.visualstudio.com/api/working-with-extensions/publishing-extension).
+
+```bash
+bunx @vscode/vsce login opensourceagi   # paste the PAT once
+bunx @vscode/vsce publish               # bump "version" in package.json first
+```
+
+`vscode:prepublish` runs `bun run package`, so both webviews are rebuilt before
+anything ships. The PAT is a credential: leave it in `vsce`'s keychain entry,
+never in the repository.
+
 ## Configuration
+
+**This extension reads no environment variables.** There is no `.env` — every
+knob is a VS Code setting, and the one credential it holds (your QwkSearch API
+key, stored by `QwkSearch: Sign In`) lives in VS Code's
+[SecretStorage](https://code.visualstudio.com/api/references/vscode-api#SecretStorage),
+not in a settings file or this repository.
+
+Change these in **Settings → Extensions → QwkSearch**:
 
 | Setting | Default | Description |
 | --- | --- | --- |
 | `qwksearch.apiBaseUrl` | `https://qwksearch.com` | Base URL of the QwkSearch deployment to use. Point at a self-hosted `qwksearch-web` instance to use your own. |
 | `qwksearch.focusMode` | `webSearch` | Default research focus for new questions: `webSearch` (cited web search) or `writingAssistant` (no search). |
+
+Everything the backend needs — model provider keys, search providers, auth — is
+configured on the `qwksearch-web` deployment that `qwksearch.apiBaseUrl` points
+at, not here. See
+[its README](../qwksearch-web/README.md#environment-variables); point the
+setting at `http://localhost:3000` to develop against a local one.
 
 ## Commands
 
