@@ -11,6 +11,7 @@ dist/
 .wrangler/
 *.tsbuildinfo
 .fuse*
+.kilo/
 # IDE/Editor specific
 .vscode/
 .idea/

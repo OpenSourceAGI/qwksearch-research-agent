@@ -214,7 +214,7 @@ function getAnyAPIConfigFields() {
       description: "Your AnyAPI.ai API key. Free plan includes 100,000 anyTokens/day (resets daily, no credit card) with access to free/basic models - get yours at anyapi.ai/pricing",
       required: true,
       placeholder: "sk-...",
-      env: "ANYAPI_API_KEY",
+      env: "ANY_API_KEY",
       scope: "server" as const,
     },
     {

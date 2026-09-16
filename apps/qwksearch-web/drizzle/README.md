@@ -47,7 +47,7 @@ wrangler d1 execute qwksearch-new --remote --command "
 "
 ```
 
-Then `pnpm db:migrate:status` should show only `0007` and `0008` pending, and
+Then `pnpm db:migrate:status` should show only `0007`, `0008`, and `0009` pending, and
 `pnpm db:migrate` will apply them. After that this section is history.
 
 Because `0001`–`0005` are missing, this folder cannot rebuild a database from

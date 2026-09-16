@@ -1,13 +1,14 @@
 <!-- template-git-repo:badges:start -->
 <p align="center">
+<img src="https://i.imgur.com/g0jThXd.png" />
+        <br />
     <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
-    <br />
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
     <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/dm/use-weather-forecast.svg" alt="NPM Monthly Downloads" /></a>
     <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/v/use-weather-forecast.svg" alt="npm version" /></a>
-    <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/dt/use-weather-forecast.svg" alt="NPM Total Downloads" /></a>
-    <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/types/use-weather-forecast" alt="TypeScript types" /></a>
-    <a href="https://packagephobia.com/result?p=use-weather-forecast"><img src="https://packagephobia.com/badge?p=use-weather-forecast" alt="Install size" /></a>
+    <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/dt/use-weather-forecast.svg" alt="NPM Total Downloads" /></a>        <a href="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent" aria-label="Coverage">
+<img src="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg?component=package-react-weather-forecast" alt="Coverage">
+</a>
     <br />
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"><img src="https://img.shields.io/github/issues/OpenSourceAGI/qwksearch-research-agent?logo=github" alt="GitHub Issues" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls"><img src="https://img.shields.io/github/issues-pr/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs" alt="Open Pull Requests" /></a>
@@ -21,8 +22,6 @@
 <!-- template-git-repo:badges:end -->
 
 # use-weather-forecast
-
-[![Coverage](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg?component=package-react-weather-forecast)](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent)
 
 React weather forecast component using Open-Meteo for current, hourly, and daily forecasts and Cloudflare/ipwho.is for IP geolocation, with a fallback chain behind both.
 

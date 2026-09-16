@@ -1,0 +1,123 @@
+name: Build and deploy web and .com apps to Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/**'
+      - '.github/workflows/cloudflare-workers-deploy.yml'
+
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'Optional directory name under apps/. Leave empty to deploy all directories containing web or .com.'
+        required: false
+        type: string
+      environment:
+        description: 'Wrangler environment (production, staging, or leave blank for default).'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-workers-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    name: Discover apps
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.select.outputs.apps }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Select deployable apps
+        id: select
+        shell: bash
+        env:
+          REQUESTED_APP: ${{ inputs.app }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "${REQUESTED_APP}" ]]; then
+            if [[ ! -d "apps/${REQUESTED_APP}" ]]; then
+              echo "::error::Directory apps/${REQUESTED_APP} does not exist."
+              exit 1
+            fi
+
+            apps=$(jq -cn --arg app "${REQUESTED_APP}" '[ $app ]')
+          else
+            apps=$(find apps -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
+              | grep -Ei 'web|\.com' \
+              | jq -Rsc 'split("\n") | map(select(length > 0))')
+          fi
+
+          if [[ "${apps}" == "[]" ]]; then
+            echo "::error::No direct app directories matching '*web*' or '*.com*' were found in apps/."
+            exit 1
+          fi
+
+          echo "Deploying: ${apps}"
+          echo "apps=${apps}" >> "${GITHUB_OUTPUT}"
+
+  deploy:
+    name: Build and deploy ${{ matrix.app }}
+    needs: discover
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.discover.outputs.apps) }}
+
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            apps/${{ matrix.app }}/package-lock.json
+            apps/${{ matrix.app }}/package.json
+
+      - name: Install dependencies
+        id: install
+        run: |
+          if [[ -f package-lock.json ]]; then
+            echo "package-lock.json found, running npm ci"
+            npm ci
+          else
+            echo "No package-lock.json, running npm install"
+            npm install
+          fi
+
+      - name: Build app
+        if: steps.install.outcome == 'success'
+        run: npm run build --if-present
+
+      - name: Deploy Worker with Wrangler
+        if: steps.install.outcome == 'success'
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DEPLOY_ENV: ${{ inputs.environment }}
+        run: |
+          if [[ -n "${DEPLOY_ENV}" ]]; then
+            npx wrangler deploy --env "${DEPLOY_ENV}"
+          else
+            npx wrangler deploy
+          fi

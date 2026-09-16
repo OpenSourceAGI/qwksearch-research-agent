@@ -94,7 +94,7 @@ At least one model provider is needed for the agent to answer.
 | Variable | Enables | Where to get it |
 | --- | --- | --- |
 | `OPENROUTER_API_KEY` | Most models, through one gateway. | [openrouter.ai/keys](https://openrouter.ai/keys) |
-| `ANYAPI_API_KEY` | AnyAPI models. Its free plan gives 100,000 tokens/day with no card. | [anyapi.ai/pricing](https://anyapi.ai/pricing) |
+| `ANY_API_KEY` | AnyAPI models. Its free plan gives 100,000 tokens/day with no card. | [anyapi.ai/pricing](https://anyapi.ai/pricing) |
 | `DEEPSEEK_API_KEY` | DeepSeek models. | [platform.deepseek.com](https://platform.deepseek.com/api_keys) |
 | `NVIDIA_API_KEY` | Models on the NVIDIA API catalog. | [build.nvidia.com](https://build.nvidia.com) |
 | `OOMOL_API_KEY` | OOMOL models. | Your OOMOL account dashboard. |

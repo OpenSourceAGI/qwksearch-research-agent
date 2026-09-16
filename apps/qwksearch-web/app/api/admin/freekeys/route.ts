@@ -188,7 +188,7 @@ export async function GET(req: NextRequest) {
     getEnv("NVIDIA_BASE_URL") ?? "https://integrate.api.nvidia.com/v1";
   const orKey = getEnv("OPENROUTER_API_KEY") ?? "";
   const orBase = getEnv("OPENROUTER_BASE_URL") ?? "https://openrouter.ai/api/v1";
-  const anyapiKey = getEnv("ANYAPI_API_KEY") ?? "";
+  const anyapiKey = getEnv("ANY_API_KEY") ?? "";
   const anyapiBase = getEnv("ANYAPI_BASE_URL") ?? "https://api.anyapi.ai/v1";
 
   // --- Full test mode: live-test every free model ---------------------------
@@ -208,7 +208,7 @@ export async function GET(req: NextRequest) {
     if (testAll === "anyapi" || testAll === "all") {
       out.anyapi = anyapiKey
         ? await testAllFreeModels("anyapi", anyapiKey, anyapiBase)
-        : { error: "ANYAPI_API_KEY not set" };
+        : { error: "ANY_API_KEY not set" };
     }
     return NextResponse.json(out);
   }
@@ -300,7 +300,7 @@ export async function GET(req: NextRequest) {
         : { skipped: true, reason: orKey ? "no free model found" : "no API key" },
     },
     anyapi: {
-      key: envSourceReport("ANYAPI_API_KEY"),
+      key: envSourceReport("ANY_API_KEY"),
       keyConfigured: !!anyapiKey,
       keyMasked: anyapiKey ? mask(anyapiKey) : null,
       baseUrl: anyapiBase,

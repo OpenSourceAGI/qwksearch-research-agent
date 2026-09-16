@@ -203,7 +203,7 @@ describe('GET /api/admin/freekeys summary mode', () => {
   })
 
   it('prefers the known-good DeepSeek model for the AnyAPI probe', async () => {
-    env({ ANYAPI_API_KEY: 'any-key' })
+    env({ ANY_API_KEY: 'any-key' })
 
     const body = await (await GET(request())).json()
 
@@ -346,7 +346,7 @@ describe('GET /api/admin/freekeys summary mode', () => {
     env({
       NVIDIA_API_KEY: 'nvapi-supersecretvalue',
       OPENROUTER_API_KEY: 'or-supersecretvalue',
-      ANYAPI_API_KEY: 'any-supersecretvalue',
+      ANY_API_KEY: 'any-supersecretvalue',
     })
 
     const raw = await (await GET(request())).text()
