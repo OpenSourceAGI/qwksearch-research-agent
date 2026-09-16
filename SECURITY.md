@@ -23,8 +23,6 @@ Report suspected vulnerabilities privately using one of the following methods:
 1. GitHub Private Vulnerability Reporting:
    https://github.com/OpenSourceAGI/qwksearch-research-agent/security/advisories/new
 
-2. Email:
-   **grokthiscontact@gmail.com**
 
 Please include as much of the following information as possible:
 
