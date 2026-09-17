@@ -272,3 +272,54 @@ describe('worker compatibility', () => {
     expect(onDisk).toBeGreaterThan(0);
   });
 });
+
+describe('landing page', () => {
+  const landing = pages.find((page) => page.url === docsConfig.baseUrl);
+
+  /** The index rendered through the same component map the route uses. */
+  const html = () =>
+    renderToStaticMarkup(
+      createElement(landing!.data.body, { components: getMDXComponents() }),
+    );
+
+  it('is served at the docs root', () => {
+    expect(landing).toBeDefined();
+  });
+
+  it('opens with the hero, not with prose', () => {
+    // The route drops its own title and breadcrumb for this page (see the
+    // `isLandingPage` branch in `app/docs/[[...slug]]/page.tsx`), so the hero
+    // is the only thing carrying the `<h1>`. Losing it leaves the front door
+    // with no heading at all.
+    const markup = html();
+
+    expect(markup).toContain('<h1');
+    expect(markup).toContain('Open-source research agent');
+    expect(markup).toContain('Search 100+ sites');
+  });
+
+  it('links its calls to action somewhere real', () => {
+    const markup = html();
+
+    expect(markup).toContain('href="/docs/quickstart"');
+    expect(markup).toContain('href="https://qwksearch.com"');
+    // External links open in a new tab without handing the opener over.
+    expect(markup).toContain('rel="noreferrer noopener"');
+  });
+
+  it('renders the feature grid and the highlight rows as real markup', () => {
+    // An MDX component that resolved to nothing would still render the page,
+    // just empty — assert on what each one actually draws.
+    const markup = html();
+
+    for (const href of ['/docs/quickstart', '/docs/search', '/docs/reader', '/docs/api']) {
+      expect(markup, href).toContain(`href="${href}"`);
+    }
+
+    expect(markup).toContain('Full-text grounding');
+    expect(markup).toContain('Real citations');
+    // The highlights replaced a header-less Markdown table, which is exactly
+    // what should not come back.
+    expect(markup).not.toContain('<table');
+  });
+})

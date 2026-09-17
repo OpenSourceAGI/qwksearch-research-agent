@@ -2,46 +2,68 @@
 title: "QwkSearch"
 description: "Search 100+ sites, read the sources, and write cited research — with the model of your choice."
 icon: "House"
+full: true
 ---
 
-QwkSearch is an open-source research agent. It queries many search engines at
-once, **extracts the full text** of the top results rather than reading
-snippets, and answers with citations you can click through and check. What you
-find becomes a document in the built-in editor.
+<Hero
+  eyebrow="Open-source research agent"
+  title="Search 100+ sites. Read the sources. Cite them."
+  description="QwkSearch queries many search engines at once, extracts the full text of the top results rather than reading snippets, and answers with citations you can click through and check. What you find becomes a document in the built-in editor."
+>
+  <HeroAction href="/docs/quickstart" variant="primary">Quickstart</HeroAction>
+  <HeroAction href="https://qwksearch.com">Try it live</HeroAction>
+  <HeroAction href="https://github.com/OpenSourceAGI/qwksearch-research-agent">GitHub</HeroAction>
+</Hero>
 
-<Cards>
-  <Card
+<FeatureCards>
+  <FeatureCard
+    icon="rocket"
     title="Quickstart"
     description="Run your first search and turn the answer into a document."
     href="/docs/quickstart"
   />
-  <Card
+  <FeatureCard
+    icon="search"
     title="Search"
     description="100+ engines across 13 categories, and how results are ranked."
     href="/docs/search"
   />
-  <Card
+  <FeatureCard
+    icon="file"
     title="Reading & extraction"
     description="URLs, PDFs, YouTube and uploads to clean, citable text."
     href="/docs/reader"
   />
-  <Card
+  <FeatureCard
+    icon="terminal"
     title="API"
     description="Call everything the website does from your own code."
     href="/docs/api"
   />
-</Cards>
+</FeatureCards>
 
 ## What makes it different
 
-| | |
-|---|---|
-| **Open source** | Read it, fork it, [run it yourself](/docs/self-hosting) on Cloudflare Workers or locally |
-| **Any model** | Claude, GPT, Gemini, Grok, Llama, DeepSeek — or your own OpenAI-compatible endpoint |
-| **Full-text grounding** | Answers cite text actually [extracted](/docs/reader) from each source, not search snippets |
-| **Real citations** | APA metadata parsed from the page and validated against a 90k-name database |
-| **Research writing** | [REASON](/docs/reason-editor) turns an answer into a structured, cited document |
-| **Everywhere you work** | [Browser](/docs/browser-extension), [desktop](/docs/desktop-app), [VS Code](/docs/vscode-extension), and [MCP](/docs/mcp-server) |
+<Highlights>
+  <Highlight title="Open source">
+    Read it, fork it, [run it yourself](/docs/self-hosting) on Cloudflare Workers or locally
+  </Highlight>
+  <Highlight title="Any model">
+    Claude, GPT, Gemini, Grok, Llama, DeepSeek — or your own OpenAI-compatible endpoint
+  </Highlight>
+  <Highlight title="Full-text grounding">
+    Answers cite text actually [extracted](/docs/reader) from each source, not search snippets
+  </Highlight>
+  <Highlight title="Real citations">
+    APA metadata parsed from the page and validated against a 90k-name database
+  </Highlight>
+  <Highlight title="Research writing">
+    [REASON](/docs/reason-editor) turns an answer into a structured, cited document
+  </Highlight>
+  <Highlight title="Everywhere you work">
+    [Browser](/docs/browser-extension), [desktop](/docs/desktop-app), [VS Code](/docs/vscode-extension), and [MCP](/docs/mcp-server)
+  </Highlight>
+</Highlights>
 
 See the [feature list](/docs/features) for detail, or the
 [comparison](/docs/comparison) against Perplexity, ChatGPT, Claude, Gemini and
