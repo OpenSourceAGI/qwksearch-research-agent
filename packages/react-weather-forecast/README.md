@@ -2,7 +2,7 @@
 <p align="center">
 <img src="https://i.imgur.com/g0jThXd.png" />
         <br />
-    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
     <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/dm/use-weather-forecast.svg" alt="NPM Monthly Downloads" /></a>
     <a href="https://www.npmjs.com/package/use-weather-forecast"><img src="https://img.shields.io/npm/v/use-weather-forecast.svg" alt="npm version" /></a>

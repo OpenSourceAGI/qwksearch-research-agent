@@ -48,6 +48,6 @@ export const docsConfig: DocsConfig = {
   favicon: '/favicon.ico',
   topLinks: [
     { text: 'Search', url: '/' },
-    { text: 'API Reference', url: '/api/docs' },
+    { text: 'API Reference', url: '/api' },
   ],
 };

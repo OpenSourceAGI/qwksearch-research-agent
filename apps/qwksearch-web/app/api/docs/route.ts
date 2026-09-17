@@ -1,36 +1,21 @@
 /**
- * @fileoverview API documentation page. GET renders an HTML page with the
- * Scalar API reference viewer powered by the OpenAPI spec.
+ * @fileoverview Redirect for the API reference's former address.
+ *
+ * The Scalar viewer moved up to `/api` (see `app/api/route.ts`). Every package
+ * README in this monorepo carries a badge pointing at `/api/docs`, and so do
+ * the copies already published to npm, which cannot be edited — so this stays
+ * as a permanent redirect rather than a 404.
  */
 import { NextResponse } from "next/server";
-import { config } from "@/lib/config/site";
-import { withCors, corsPreflight } from "@/lib/cors";
 
-async function renderDocsPage() {
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>${config.appName} API Documentation</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-</head>
-<body>
-  <script
-    id="api-reference"
-    data-url="/api/openapi"
-  ></script>
-  <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
-</body>
-</html>
-  `.trim();
+/** Where the API reference now lives. */
+export const API_REFERENCE_PATH = "/api";
 
-  return new NextResponse(html, {
-    headers: {
-      "Content-Type": "text/html",
-    },
-  });
+function redirectToApiReference(request: Request): Response {
+  // 308 keeps the method and tells caches and crawlers the move is permanent,
+  // so the badges settle on the new URL instead of hopping every time.
+  return NextResponse.redirect(new URL(API_REFERENCE_PATH, request.url), 308);
 }
 
-export const GET = withCors(renderDocsPage, { skipApiKeyCheck: true });
-export const OPTIONS = corsPreflight;
+export const GET = redirectToApiReference;
+export const HEAD = redirectToApiReference;
