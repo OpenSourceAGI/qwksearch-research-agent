@@ -61,6 +61,18 @@ jobs:
         with:
           node-version-file: apps/qwk-in-lobe/.nvmrc
 
+      # The openapi checks below shell out to `bun`: the spec generator and the
+      # API-reference probe both import `src/app`, whose module graph resolves
+      # through the root tsconfig's `paths`, and `bun generate:openapi` is how
+      # this package documents running them. This workspace installs with pnpm,
+      # so nothing else here would put bun on PATH — without this the tests die
+      # at `bun: not found` before asserting anything. Version comes from the
+      # repo root, which is what pins bun; `apps/qwk-in-lobe/package.json` pins
+      # pnpm and would not answer for it.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
       # `pnpm-workspace.yaml` sets `lockfile: false` and `pnpm-lock.yaml` is
       # gitignored here, so there is no lockfile to key a cache on or to
       # install `--frozen`. Every manifest in the workspace is the next best
