@@ -7,9 +7,21 @@ import { generateText, streamText, type LanguageModel } from "ai";
 import { LineOutputParser, LineListOutputParser } from "../../utils/outputParser";
 import type { Document } from "./document";
 
+/**
+ * Longest HTML we run through {@link htmlToText}.
+ *
+ * Each `.replace()` below allocates a fresh copy of the whole string, so an
+ * unbounded page (a 20MB HTML dump is not rare) becomes eight unbounded copies
+ * live at once — enough on its own to take a 128MB Worker isolate out. Only the
+ * first 5000 characters of the result are ever used, and a prefix this long is
+ * far more than that survives.
+ */
+const MAX_HTML_CHARS = 500_000;
+
 /** Strip HTML tags and decode entities — works in Cloudflare edge runtime */
 function htmlToText(html: string): string {
   return html
+    .slice(0, MAX_HTML_CHARS)
     .replace(/<(script|style)[^>]*>[\s\S]*?<\/(script|style)>/gi, ' ')
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/g, ' ')
@@ -27,6 +39,7 @@ import EventEmitter from "events";
 import type {
   Config,
   ChatTurnMessage,
+  DrainableEmitter,
   MetaSearchAgentType,
   SearchingEvent,
 } from "./meta-search-types";
@@ -35,12 +48,13 @@ import {
   rerankDocs,
   processDocs,
   normalizeSourcesOutput,
-  loadUploadImages,
+  loadUploads,
+  selectUploadImages,
   type R2CredentialsInput,
 } from "./doc-utils";
 import { groupAndSummarizeDocs } from "./link-summarizer";
 
-export type { MetaSearchAgentType, Config } from "./meta-search-types";
+export type { MetaSearchAgentType, Config, DrainableEmitter } from "./meta-search-types";
 
 const waitWithTimeout = async <T>(
   promise: Promise<T>,
@@ -371,12 +385,18 @@ class MetaSearchAgent implements MetaSearchAgentType {
           }
         : undefined;
 
+      // Resolved once and shared below: the answer context needs the text and
+      // the message needs the images, and fetching each attachment twice is how
+      // a handful of large uploads used to reach the isolate's memory ceiling.
+      const uploads = await loadUploads(fileIds, r2Credentials);
+
       const sortedDocs = await rerankDocs(
         query,
         docs ?? [],
         fileIds,
         optimizationMode,
         r2Credentials,
+        uploads,
       );
 
       const sources = normalizeSourcesOutput(sortedDocs, message);
@@ -389,10 +409,10 @@ class MetaSearchAgent implements MetaSearchAgentType {
         date: new Date().toISOString(),
       });
 
-      // Resolve any uploaded images so they are passed to the LLM directly as
-      // image content parts (alongside the text query). Documents already
-      // reach the model as text context via processDocs above.
-      const imageAttachments = await loadUploadImages(fileIds, r2Credentials);
+      // Uploaded images are passed to the LLM directly as image content parts
+      // (alongside the text query). Documents already reach the model as text
+      // context via processDocs above.
+      const imageAttachments = selectUploadImages(uploads);
       const userContent =
         imageAttachments.length > 0
           ? [
@@ -415,6 +435,11 @@ class MetaSearchAgent implements MetaSearchAgentType {
       for await (const chunk of result.textStream) {
         responseChunkCount += 1;
         emitter.emit("data", JSON.stringify({ type: "response", data: chunk }));
+        // `emit` is synchronous: without this the whole model stream is pulled
+        // into memory at the speed of the model while the consumer writes it
+        // out at the speed of the client. A consumer that installs no
+        // `waitForDrain` keeps the old behaviour.
+        await (emitter as DrainableEmitter).waitForDrain?.();
       }
       console.log("[MetaSearchAgent] response stream ended, chunks:", responseChunkCount);
 

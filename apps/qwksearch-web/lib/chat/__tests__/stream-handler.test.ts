@@ -74,3 +74,93 @@ describe('handleEmitterEvents listener lifecycle', () => {
     expect(emitter.listenerCount('error')).toBe(0)
   })
 })
+
+describe('handleEmitterEvents backpressure', () => {
+  it('sends one frame per model chunk instead of one per word', async () => {
+    const emitter = new EventEmitter()
+    const writer = makeWriter()
+
+    handleEmitterEvents(emitter, writer, new TextEncoder(), 'chat-1', null, undefined)
+
+    emitter.emit('data', JSON.stringify({ type: 'response', data: 'one two three four' }))
+    emitter.emit('end')
+    await flush()
+
+    const messages = writer.chunks.filter((c) => c.includes('"type":"message"'))
+    expect(messages).toHaveLength(1)
+    expect(messages[0]).toContain('one two three four')
+  })
+
+  it('installs waitForDrain so the producer cannot outrun a slow client', async () => {
+    const emitter = new EventEmitter() as EventEmitter & {
+      waitForDrain?: () => Promise<void>
+    }
+
+    // A writer that only completes a write when the test releases it: this is
+    // the slow client whose backlog used to accumulate in the isolate.
+    const released: (() => void)[] = []
+    const writer = {
+      chunks: [] as string[],
+      write: vi.fn(
+        () =>
+          new Promise<void>((resolve) => {
+            released.push(resolve)
+          }),
+      ),
+      close: vi.fn(async () => {}),
+    } as unknown as WritableStreamDefaultWriter & { chunks: string[] }
+
+    handleEmitterEvents(emitter, writer, new TextEncoder(), 'chat-1', null, undefined)
+
+    expect(typeof emitter.waitForDrain).toBe('function')
+
+    emitter.emit('data', JSON.stringify({ type: 'response', data: 'first' }))
+    emitter.emit('data', JSON.stringify({ type: 'response', data: 'second' }))
+    await flush()
+
+    // Only the first write is in flight; the second is still behind it, and
+    // the producer awaiting waitForDrain has not been let go.
+    expect(writer.write).toHaveBeenCalledTimes(1)
+
+    let drained = false
+    void emitter.waitForDrain?.().then(() => {
+      drained = true
+    })
+    await flush()
+    expect(drained).toBe(false)
+
+    released.forEach((release) => release())
+    await flush()
+    released.forEach((release) => release())
+    await flush()
+
+    expect(writer.write).toHaveBeenCalledTimes(2)
+    expect(drained).toBe(true)
+  })
+
+  it('stops writing once the client is gone instead of queueing into a dead stream', async () => {
+    const emitter = new EventEmitter()
+    const writer = {
+      chunks: [] as string[],
+      write: vi.fn(async () => {
+        throw new Error('The stream was cancelled.')
+      }),
+      close: vi.fn(async () => {}),
+    } as unknown as WritableStreamDefaultWriter & { chunks: string[] }
+
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    handleEmitterEvents(emitter, writer, new TextEncoder(), 'chat-1', null, undefined)
+
+    emitter.emit('data', JSON.stringify({ type: 'response', data: 'first' }))
+    await flush()
+
+    // The failed write tore the bridge down, so the pipeline's later events
+    // reach nothing at all.
+    expect(emitter.listenerCount('data')).toBe(0)
+    emitter.emit('data', JSON.stringify({ type: 'response', data: 'second' }))
+    await flush()
+
+    expect(writer.write).toHaveBeenCalledTimes(1)
+  })
+})
