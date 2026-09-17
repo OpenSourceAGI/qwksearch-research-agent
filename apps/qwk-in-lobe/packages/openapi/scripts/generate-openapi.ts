@@ -29,7 +29,7 @@ const HTTP_METHODS = new Set(['DELETE', 'GET', 'PATCH', 'POST', 'PUT']);
 
 // Documentation-serving routes: real endpoints, deliberately not part of the
 // API surface described by the spec.
-const SPEC_EXEMPT = new Set(['GET /api/v1/docs', 'GET /api/v1/openapi.json']);
+const SPEC_EXEMPT = new Set(['GET /api/v1', 'GET /api/v1/docs', 'GET /api/v1/openapi.json']);
 
 // Import after the env defaults above are in place.
 const { honoApp } = await import('../src/app');

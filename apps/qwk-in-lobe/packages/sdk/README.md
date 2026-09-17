@@ -1,6 +1,6 @@
 # @lobehub/sdk
 
-Official TypeScript SDK for the [LobeHub REST API](https://app.lobehub.com/api/v1/docs), generated from the OpenAPI spec in [`packages/openapi`](../openapi) via [@hey-api/openapi-ts](https://heyapi.dev).
+Official TypeScript SDK for the [LobeHub REST API](https://app.lobehub.com/api/v1), generated from the OpenAPI spec in [`packages/openapi`](../openapi) via [@hey-api/openapi-ts](https://heyapi.dev).
 
 Resource-style methods with full typing — every path, parameter, request body, and response comes from `openapi.yml`, and the HTTP runtime is inlined (zero dependencies).
 
