@@ -48,6 +48,9 @@ app.get('/health', describeRoute({ summary: 'Health check', tags: ['health'] }),
   });
 });
 
+/** Where the API reference is served. */
+export const API_REFERENCE_PATH = '/api/v1';
+
 // API documentation (public, like the API spec itself).
 // The spec is rebuilt from the live routes on first request and cached, so it
 // can never lag behind the deployed code; `openapi.yml` at the package root is
@@ -87,7 +90,10 @@ const resolveDocsLocale = (c: Context): ScalarLocale | undefined => {
   return undefined;
 };
 
-app.get('/docs', (c, next) => {
+// The reference is served at the API root itself: `/api/v1` is the URL people
+// try first, and it answered 404 while the reference sat a level down at
+// `/api/v1/docs`.
+app.get('/', (c, next) => {
   const locale = resolveDocsLocale(c);
   return Scalar({
     customCss: SCALAR_CUSTOM_CSS,
@@ -100,6 +106,11 @@ app.get('/docs', (c, next) => {
     url: '/api/v1/openapi.json',
   })(c, next);
 });
+
+// 308 keeps the method and tells caches and crawlers the move is permanent, so
+// links already published — the SDK README among them — settle on the new URL
+// instead of hopping forever.
+app.get('/docs', (c) => c.redirect(API_REFERENCE_PATH, 308));
 
 // Register routes
 Object.entries(routes).forEach(([key, value]) => app.route(`/${key}`, value));

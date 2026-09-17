@@ -185,7 +185,7 @@ local D1/KV, no Cloudflare account needed); run `bun run cf:d1:migrate:dev` once
 tables locally. The Worker needs `dist/client/_spa/index.html` to serve pages, so run the SPA build
 first. Postgres-backed routes need a reachable `DATABASE_URL` (set it in `wrangler.local.jsonc` vars).
 Verified locally: `/api/version`, `/api/health`, `/api/auth/get-session`, `/trpc/lambda/config.getGlobalConfig`,
-`/api/v1/docs`, `/api/doc/documents` (D1), `/signin` renders the sign-in SPA in headless Chromium, and
+`/api/v1`, `/api/doc/documents` (D1), `/signin` renders the sign-in SPA in headless Chromium, and
 protected pages redirect to `/signin`.
 
 ### Cloudflare Workers Builds
