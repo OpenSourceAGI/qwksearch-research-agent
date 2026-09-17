@@ -8,12 +8,15 @@
  * The probe runs as a subprocess under `bun` — the same shape as
  * `scripts/generate-openapi.test.ts` — because importing the app reaches the
  * database and auth module graph, which resolves through the root tsconfig's
- * `paths` rather than the aliases this package's vitest config mirrors.
+ * `paths` rather than the aliases this package's vitest config mirrors. It
+ * hands its result back through a file; see the script for why not stdout.
  */
 import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const PKG_ROOT = path.join(__dirname, '..');
 
@@ -25,17 +28,27 @@ interface Probe {
 }
 
 let routes: Record<'docs' | 'health' | 'reference' | 'spec', Probe>;
+let workDir: string;
 
 beforeAll(() => {
-  const stdout = execFileSync('bun', ['scripts/probe-reference-routes.ts'], {
+  // Via a file, not stdout: the spec response alone runs to hundreds of
+  // kilobytes, which a pipe splits at a buffer boundary and interleaves with
+  // the app's own request logger.
+  workDir = mkdtempSync(path.join(tmpdir(), 'openapi-probe-'));
+  const outPath = path.join(workDir, 'routes.json');
+
+  execFileSync('bun', ['scripts/probe-reference-routes.ts', outPath], {
     cwd: PKG_ROOT,
     encoding: 'utf8',
     stdio: 'pipe',
   });
-  // The app's request logger shares stdout, so the payload is the last line.
-  const payload = stdout.trim().split('\n').at(-1)!;
-  routes = JSON.parse(payload);
+
+  routes = JSON.parse(readFileSync(outPath, 'utf8'));
 }, 120_000);
+
+afterAll(() => {
+  if (workDir) rmSync(workDir, { force: true, recursive: true });
+});
 
 describe('GET /api/v1', () => {
   it('serves the Scalar viewer pointed at the spec this app publishes', () => {
