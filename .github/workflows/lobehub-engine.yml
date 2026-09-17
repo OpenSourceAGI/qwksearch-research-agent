@@ -100,9 +100,12 @@ jobs:
       # Everything QwkSearch added to the engine: the Worker and its routes,
       # the extraction and search settings/preferences layers, both settings
       # panes and their contract drift guards, the shared controls, the
-      # Cloudflare adapters and the Hyperdrive bridge. The path list lives in
-      # the script so the README recipe, the integrations reference and this
-      # workflow cannot drift apart.
+      # Cloudflare adapters and the Hyperdrive bridge — and the REST API's own
+      # front door: the reference served at `/api/v1`, the 308 from its former
+      # `/api/v1/docs` address, and the guard that keeps `openapi.yml` in step
+      # with the routes actually registered. The path list lives in the script
+      # so the README recipe, the integrations reference and this workflow
+      # cannot drift apart.
       # Runs even when the type-check failed — the two answer different
       # questions, and a run that reports only the first one costs a whole
       # install to learn the second — but not when the install itself did not

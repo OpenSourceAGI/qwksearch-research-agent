@@ -306,7 +306,7 @@ LobeHub's Postgres migrations once against the database: `bun run db:migrate` wi
 ## Tests
 
 ```bash
-# Everything QwkSearch added to the engine, in one command -- 589 tests in 39
+# Everything QwkSearch added to the engine, in one command -- 595 tests in 41
 # files, about a minute. This is what CI runs (.github/workflows/lobehub-engine.yml),
 # and the path list lives in the script so the workflow and the docs cannot drift.
 bun run test:qwksearch
@@ -389,6 +389,15 @@ writes nothing — are checked without spending a Worker build.
   `legacySettingsMap.ts` and its contract test live in the same directory and change no upstream
   file either — they only *read* `componentMap.ts` as text, which is the point: the guard notices
   when upstream renames or drops a pane the migration was counting on (§F5e).
+- `packages/openapi/src/app.ts`: the Scalar reference is served at the API root, `/api/v1`,
+  rather than a level down at `/api/v1/docs`, which now answers a 308 to it — the SDK README
+  published to npm links to the old address and cannot be edited. `src/app.test.ts` covers both
+  halves plus `/health`, proving the root route does not shadow what is mounted under it; it
+  probes the real app through `scripts/probe-reference-routes.ts` in a `bun` subprocess, the
+  same shape `generate-openapi.test.ts` uses, because importing the app needs the root
+  tsconfig's `paths`. `SPEC_EXEMPT` in `scripts/generate-openapi.ts` carries the routes that
+  are deliberately outside the described surface: those documentation routes, and the two
+  hetero-model relays that speak the upstream provider's protocol rather than this API's.
 - `packages/env/src/email.ts`: accepts `EMAIL_SERVICE_PROVIDER=cloudflare`.
 - `packages/business/const/src/branding.ts`, `packages/const/src/url.ts`: QwkSearch branding.
 - `packages/locales/src/default/{electron,qwksearch}.ts` + `locales/{en-US,zh-CN}`: new keys.
