@@ -80,6 +80,22 @@ export interface RewriteDeps extends EnvDeps {
    */
   streamText?: (opts: any) => { textStream: AsyncIterable<string> };
   createGroq: (opts: { apiKey: string }) => (modelId: string) => any;
+  /**
+   * Loads a model the way the article/page handlers do — from the host's own
+   * provider registry, using whichever key that deployment or the signed-in
+   * user configured. Optional, and tried either side of the Groq key: first
+   * when the caller names a `chatModel`, last when `GROQ_API_KEY` is unset.
+   *
+   * Without it a deployment that never set `GROQ_API_KEY` answers every
+   * rewrite with a 500, even while its chat routes hold a working model.
+   */
+  loadChatModel?: (chatModel?: RewriteChatModel) => Promise<unknown>;
+}
+
+/** The provider/model pair a caller may name, as the settings UI stores it. */
+export interface RewriteChatModel {
+  providerId?: string;
+  key?: string;
 }
 
 export interface ValidateOpenRouterDeps {
