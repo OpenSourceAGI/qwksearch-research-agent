@@ -12,7 +12,8 @@
  * So the app logs for itself. Two kinds of line, deliberately distinct:
  *
  *   `[ssr-trace]`  breadcrumbs — module evaluated, render entered, render left.
- *                  Chatty, sequence-numbered, silenced by `QS_SSR_TRACE=off`.
+ *                  Chatty (several lines per re-render), sequence-numbered, and
+ *                  therefore off unless `QS_SSR_TRACE=on`.
  *   `[ssr-error]`  a failure, with the error unwrapped as far as it goes.
  *                  Never silenced: an error nobody logs is the bug we are here
  *                  for.
@@ -33,7 +34,7 @@
  * logger that can fail is one more way to lose the page.
  */
 
-/** Marks a breadcrumb. Silenced by `QS_SSR_TRACE=off`. */
+/** Marks a breadcrumb. Printed only under `QS_SSR_TRACE=on`. */
 export const SSR_TRACE_PREFIX = "[ssr-trace]";
 
 /** Marks a failure. Always printed. */
@@ -74,14 +75,18 @@ export function traceSide(): "server" | "browser" {
 }
 
 /**
- * Breadcrumbs are on by default: they exist to catch a failure that has so far
- * only happened in production, and a trace that has to be turned on first is a
- * trace nobody has when it matters. `QS_SSR_TRACE=off` (a plain Worker
- * Variable, so it takes effect without a redeploy) turns them off again.
+ * Breadcrumbs are off by default. They were on while the homepage 500 was
+ * being hunted, but a breadcrumb per render is a *render-loop* log: the
+ * browser console filled with `home:stack:*` and `workspace:mount:render`
+ * lines, several per re-render, drowning out everything an actual bug would
+ * print. `QS_SSR_TRACE=on` (a plain Worker Variable, so it takes effect
+ * without a redeploy) turns them back on for the next hunt.
+ *
+ * `[ssr-error]` lines are unaffected — see {@link logSsrError}.
  */
 export function isSsrTraceEnabled(): boolean {
   const flag = readEnv("QS_SSR_TRACE")?.trim().toLowerCase();
-  return flag !== "off" && flag !== "0" && flag !== "false" && flag !== "no";
+  return flag === "on" || flag === "1" || flag === "true" || flag === "yes";
 }
 
 /** JSON that cannot throw, whatever it is handed. */

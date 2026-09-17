@@ -21,6 +21,7 @@
     "./components/docs-actions": "./src/components/layout/docs-actions.tsx",
     "./components/breadcrumb": "./src/components/layout/breadcrumb.tsx",
     "./components/theme-dropdown": "./src/components/layout/theme-dropdown.tsx",
+    "./components/home": "./src/components/home/index.ts",
     "./package.json": "./package.json"
   },
   "dependencies": {

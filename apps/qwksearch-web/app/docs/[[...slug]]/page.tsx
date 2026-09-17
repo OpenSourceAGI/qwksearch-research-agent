@@ -19,6 +19,12 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
   const { data } = page;
   const MDX = data.body;
 
+  // The docs index is a front door, not a doc: its own MDX opens with a hero
+  // that carries the title and the calls to action. Leaving the page chrome on
+  // would print the title twice and put a breadcrumb above a landing page, so
+  // the index gets the body alone.
+  const isLandingPage = !slug || slug.length === 0;
+
   return (
     <DocsPage
       toc={data.toc}
@@ -30,11 +36,17 @@ export default async function Page(props: { params: Promise<{ slug?: string[] }>
         path: `${docsConfig.githubEdit.pathPrefix}/${page.path}`,
       }}
     >
-      <Breadcrumb tree={source.pageTree} />
-      <DocsTitle>{data.title}</DocsTitle>
-      {data.description ? <DocsDescription>{data.description}</DocsDescription> : null}
+      {isLandingPage ? null : (
+        <>
+          <Breadcrumb tree={source.pageTree} />
+          <DocsTitle>{data.title}</DocsTitle>
+          {data.description ? <DocsDescription>{data.description}</DocsDescription> : null}
+        </>
+      )}
       <DocsBody>
-        <DocsActions markdownUrl={getMarkdownUrl(page)} githubUrl={getGithubUrl(page)} />
+        {isLandingPage ? null : (
+          <DocsActions markdownUrl={getMarkdownUrl(page)} githubUrl={getGithubUrl(page)} />
+        )}
         <MDX components={getMDXComponents()} />
       </DocsBody>
     </DocsPage>

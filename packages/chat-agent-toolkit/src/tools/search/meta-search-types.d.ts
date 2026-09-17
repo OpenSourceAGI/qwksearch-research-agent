@@ -11,10 +11,16 @@ export interface ChatTurnMessage {
 }
 /** A `[role, content]` tuple used for few-shot prompt examples. */
 export type FewShotExample = [role: "user" | "assistant", content: string];
+/**
+ * The pipeline's event emitter, plus the hook a consumer uses to push back.
+ */
+export interface DrainableEmitter extends EventEmitter {
+    waitForDrain?: () => Promise<void>;
+}
 export interface MetaSearchAgentType {
     searchAndAnswer: (message: string, history: ChatTurnMessage[], llm: LanguageModel, optimizationMode: "speed" | "balanced" | "quality", fileIds: string[], systemInstructions: string, category?: string, sourceExtractionEnabled?: boolean, thinkingTimeLimit?: number, 
     /** User-authored replacement for the focus mode's query-expansion prompt. */
-    queryExpansionPrompt?: string) => Promise<EventEmitter>;
+    queryExpansionPrompt?: string) => Promise<DrainableEmitter>;
 }
 /** Emitted on the EventEmitter data channel to report live search progress. */
 export interface SearchingEvent {
