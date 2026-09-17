@@ -1116,9 +1116,9 @@ paths:
                   type: string
                   minLength: 1
                 sort:
-                  anyOf:
-                    - type: number
-                    - type: "null"
+                  type:
+                    - number
+                    - "null"
               required:
                 - name
       responses:
@@ -1152,11 +1152,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -1228,11 +1241,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -1293,9 +1319,9 @@ paths:
                       minLength: 1
                     - type: "null"
                 sort:
-                  anyOf:
-                    - type: number
-                    - type: "null"
+                  type:
+                    - number
+                    - "null"
       responses:
         "200":
           content:
@@ -1319,11 +1345,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -1397,11 +1436,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -1490,11 +1542,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -1547,9 +1612,9 @@ paths:
                     - type: object
                       properties:
                         enableGraphMode:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         graph:
                           anyOf:
                             - type: object
@@ -1690,17 +1755,17 @@ paths:
                             - type: "null"
                     - type: "null"
                 avatar:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 chatConfig:
                   anyOf:
                     - type: object
                       properties:
                         disableContextCaching:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         displayMode:
                           anyOf:
                             - type: string
@@ -1709,33 +1774,33 @@ paths:
                                 - docs
                             - type: "null"
                         enableCompressHistory:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableHistoryCount:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableMaxTokens:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableReasoning:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableReasoningEffort:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         historyCount:
-                          anyOf:
-                            - type: number
-                            - type: "null"
+                          type:
+                            - number
+                            - "null"
                         reasoningBudgetToken:
-                          anyOf:
-                            - type: number
-                            - type: "null"
+                          type:
+                            - number
+                            - "null"
                         reasoningEffort:
                           anyOf:
                             - type: string
@@ -1745,9 +1810,9 @@ paths:
                                 - high
                             - type: "null"
                         searchFCModel:
-                          anyOf:
-                            - type: string
-                            - type: "null"
+                          type:
+                            - string
+                            - "null"
                         searchMode:
                           anyOf:
                             - type: string
@@ -1756,18 +1821,18 @@ paths:
                                 - enabled
                             - type: "null"
                         useModelBuiltinSearch:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                     - type: "null"
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 model:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 params:
                   anyOf:
                     - type: object
@@ -1776,13 +1841,13 @@ paths:
                       additionalProperties: {}
                     - type: "null"
                 provider:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 systemRole:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 title:
                   type: string
                   minLength: 1
@@ -1811,11 +1876,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -1887,11 +1965,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -1951,9 +2042,9 @@ paths:
                     - type: object
                       properties:
                         enableGraphMode:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         graph:
                           anyOf:
                             - type: object
@@ -2094,17 +2185,17 @@ paths:
                             - type: "null"
                     - type: "null"
                 avatar:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 chatConfig:
                   anyOf:
                     - type: object
                       properties:
                         disableContextCaching:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         displayMode:
                           anyOf:
                             - type: string
@@ -2113,33 +2204,33 @@ paths:
                                 - docs
                             - type: "null"
                         enableCompressHistory:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableHistoryCount:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableMaxTokens:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableReasoning:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableReasoningEffort:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         historyCount:
-                          anyOf:
-                            - type: number
-                            - type: "null"
+                          type:
+                            - number
+                            - "null"
                         reasoningBudgetToken:
-                          anyOf:
-                            - type: number
-                            - type: "null"
+                          type:
+                            - number
+                            - "null"
                         reasoningEffort:
                           anyOf:
                             - type: string
@@ -2149,9 +2240,9 @@ paths:
                                 - high
                             - type: "null"
                         searchFCModel:
-                          anyOf:
-                            - type: string
-                            - type: "null"
+                          type:
+                            - string
+                            - "null"
                         searchMode:
                           anyOf:
                             - type: string
@@ -2160,18 +2251,18 @@ paths:
                                 - enabled
                             - type: "null"
                         useModelBuiltinSearch:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                     - type: "null"
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 model:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 params:
                   anyOf:
                     - type: object
@@ -2180,13 +2271,13 @@ paths:
                       additionalProperties: {}
                     - type: "null"
                 provider:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 systemRole:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 title:
                   type: string
                   minLength: 1
@@ -2213,11 +2304,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -2291,11 +2395,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -2419,7 +2536,7 @@ paths:
                   anyOf:
                     - type: string
                       format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
                     - type: "null"
                 name:
                   type: string
@@ -2540,11 +2657,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -2617,11 +2747,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -2683,7 +2826,7 @@ paths:
                   anyOf:
                     - type: string
                       format: date-time
-                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z|([+-](?:[01]\d|2[0-3]):[0-5]\d)))$
                     - type: "null"
                 name:
                   type: string
@@ -2713,11 +2856,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -2792,11 +2948,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -2892,9 +3061,9 @@ paths:
                       maxLength: 64
                     - type: "null"
                 stream:
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 temperature:
                   anyOf:
                     - type: number
@@ -2930,11 +3099,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -3039,11 +3221,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -3103,9 +3298,9 @@ paths:
                     - type: object
                       properties:
                         disableContextCaching:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         displayMode:
                           anyOf:
                             - type: string
@@ -3114,25 +3309,25 @@ paths:
                                 - docs
                             - type: "null"
                         enableCompressHistory:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableHistoryCount:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableMaxTokens:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableReasoning:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         enableReasoningEffort:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                         historyCount:
                           anyOf:
                             - type: integer
@@ -3173,9 +3368,9 @@ paths:
                               maximum: 1000000
                             - type: "null"
                         useModelBuiltinSearch:
-                          anyOf:
-                            - type: boolean
-                            - type: "null"
+                          type:
+                            - boolean
+                            - "null"
                     - type: "null"
                 conversationHistory:
                   maxItems: 1000
@@ -3251,11 +3446,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -3325,11 +3533,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -3443,11 +3664,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -3535,11 +3769,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -3611,13 +3858,13 @@ paths:
           schema:
             type: string
             format: date-time
-            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
         - in: query
           name: updatedAtStart
           schema:
             type: string
             format: date-time
-            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+            pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
         - in: query
           name: userId
           schema:
@@ -3656,11 +3903,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -3841,11 +4101,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -3901,9 +4174,9 @@ paths:
               type: object
               properties:
                 knowledgeBaseId:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
       responses:
         "200":
           content:
@@ -3927,11 +4200,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4005,11 +4291,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4061,9 +4360,9 @@ paths:
         - in: query
           name: expiresIn
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
       responses:
         "200":
           content:
@@ -4088,11 +4387,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4144,9 +4456,9 @@ paths:
         - in: query
           name: skipExist
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
       responses:
         "200":
           content:
@@ -4171,11 +4483,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4259,11 +4584,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4335,11 +4673,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4601,11 +4952,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4694,11 +5058,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4781,11 +5158,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4857,11 +5247,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -4949,11 +5352,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -5027,11 +5443,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -5095,9 +5524,9 @@ paths:
         - in: query
           name: fileType
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
       responses:
         "200":
           content:
@@ -5122,11 +5551,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -5214,11 +5656,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -5307,11 +5762,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -5403,11 +5871,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -5546,11 +6027,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -5698,11 +6192,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -5845,11 +6352,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -5924,11 +6444,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6011,11 +6544,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6080,13 +6626,13 @@ paths:
                 from:
                   type: string
                 model:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 provider:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 to:
                   type: string
                   minLength: 1
@@ -6116,11 +6662,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6192,11 +6751,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6254,13 +6826,13 @@ paths:
                 from:
                   type: string
                 model:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 provider:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 to:
                   type: string
                   minLength: 1
@@ -6292,11 +6864,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6368,11 +6953,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6418,15 +7016,15 @@ paths:
         - in: query
           name: topicIds
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
         - in: query
           name: userId
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
       responses:
         "200":
           content:
@@ -6457,11 +7055,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6507,15 +7118,15 @@ paths:
         - in: query
           name: topicId
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
         - in: query
           name: userId
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
         - in: query
           name: role
           schema:
@@ -6573,11 +7184,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6636,47 +7260,37 @@ paths:
                     - assistant
                     - tool
                 model:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 provider:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 topicId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 threadId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 parentId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 quotaId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 agentId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 clientId:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 metadata:
                   anyOf:
                     - {}
@@ -6694,17 +7308,13 @@ paths:
                     - {}
                     - type: "null"
                 traceId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 observationId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 files:
                   anyOf:
                     - type: array
@@ -6713,9 +7323,9 @@ paths:
                     - type: "null"
                 favorite:
                   default: false
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
               required:
                 - content
                 - role
@@ -6742,11 +7352,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6828,11 +7451,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6904,11 +7540,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -6982,11 +7631,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -7042,47 +7704,37 @@ paths:
                   type: string
                   const: user
                 model:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 provider:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 topicId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 threadId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 parentId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 quotaId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 agentId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 clientId:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 metadata:
                   anyOf:
                     - {}
@@ -7100,17 +7752,13 @@ paths:
                     - {}
                     - type: "null"
                 traceId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 observationId:
-                  anyOf:
-                    - anyOf:
-                        - type: string
-                        - type: "null"
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 files:
                   anyOf:
                     - type: array
@@ -7119,9 +7767,9 @@ paths:
                     - type: "null"
                 favorite:
                   default: false
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
               required:
                 - content
                 - role
@@ -7150,11 +7798,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -7212,9 +7873,9 @@ paths:
         - in: query
           name: enabled
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
         - in: query
           name: provider
           schema:
@@ -7273,11 +7934,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -7346,20 +8020,20 @@ paths:
                       maximum: 9007199254740991
                     - type: "null"
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 displayName:
                   type: string
                   minLength: 1
                 enabled:
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 organization:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 parameters:
                   anyOf:
                     - type: object
@@ -7375,9 +8049,9 @@ paths:
                       additionalProperties: {}
                     - type: "null"
                 releasedAt:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 sort:
                   anyOf:
                     - type: integer
@@ -7441,11 +8115,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -7526,11 +8213,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -7614,20 +8314,20 @@ paths:
                       maximum: 9007199254740991
                     - type: "null"
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 displayName:
                   type: string
                   minLength: 1
                 enabled:
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 organization:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 parameters:
                   anyOf:
                     - type: object
@@ -7643,9 +8343,9 @@ paths:
                       additionalProperties: {}
                     - type: "null"
                 releasedAt:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 sort:
                   anyOf:
                     - type: integer
@@ -7698,11 +8398,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -7748,9 +8461,9 @@ paths:
         - in: query
           name: active
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
         - in: query
           name: category
           schema:
@@ -7804,11 +8517,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -7863,14 +8589,14 @@ paths:
                   type: string
                   minLength: 1
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 isActive:
                   default: true
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 name:
                   type: string
                   minLength: 1
@@ -7901,11 +8627,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -7978,11 +8717,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -8045,14 +8797,14 @@ paths:
                   type: string
                   minLength: 1
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 isActive:
                   default: true
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 name:
                   type: string
                   minLength: 1
@@ -8079,11 +8831,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -8158,11 +8923,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -8255,11 +9033,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -8308,24 +9099,24 @@ paths:
               type: object
               properties:
                 checkModel:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 config:
                   type: object
                   propertyNames:
                     type: string
                   additionalProperties: {}
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 enabled:
                   type: boolean
                 fetchOnClient:
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 keyVaults:
                   type: object
                   propertyNames:
@@ -8333,9 +9124,9 @@ paths:
                   additionalProperties:
                     type: string
                 logo:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 name:
                   anyOf:
                     - type: string
@@ -8385,11 +9176,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -8462,11 +9266,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -8523,24 +9340,24 @@ paths:
               type: object
               properties:
                 checkModel:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 config:
                   type: object
                   propertyNames:
                     type: string
                   additionalProperties: {}
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 enabled:
                   type: boolean
                 fetchOnClient:
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 keyVaults:
                   anyOf:
                     - type: object
@@ -8550,9 +9367,9 @@ paths:
                         type: string
                     - type: "null"
                 logo:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 name:
                   anyOf:
                     - type: string
@@ -8597,11 +9414,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -8676,11 +9506,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -8863,9 +9706,9 @@ paths:
                               - output
                               - type
                 instructions:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 max_output_tokens:
                   anyOf:
                     - type: integer
@@ -8883,13 +9726,13 @@ paths:
                 model:
                   type: string
                 parallel_tool_calls:
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 previous_response_id:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 reasoning:
                   anyOf:
                     - type: object
@@ -8902,9 +9745,9 @@ paths:
                             - high
                     - type: "null"
                 stream:
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 temperature:
                   anyOf:
                     - type: number
@@ -8958,6 +9801,7 @@ paths:
                             properties:
                               type:
                                 type: string
+                                format: starts_with
                                 pattern: ^lobe-.*
                             required:
                               - type
@@ -8980,9 +9824,9 @@ paths:
                             - disabled
                     - type: "null"
                 user:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
               required:
                 - input
                 - model
@@ -9020,11 +9864,24 @@ paths:
                 type: string
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9070,15 +9927,15 @@ paths:
         - in: query
           name: active
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
         - in: query
           name: system
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
         - in: query
           name: keyword
           schema:
@@ -9125,11 +9982,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9178,22 +10048,22 @@ paths:
               type: object
               properties:
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 displayName:
                   type: string
                   minLength: 1
                 isActive:
                   default: true
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 isSystem:
                   default: false
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 name:
                   type: string
                   minLength: 1
@@ -9223,11 +10093,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9299,11 +10182,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9359,22 +10255,22 @@ paths:
               type: object
               properties:
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 displayName:
                   type: string
                   minLength: 1
                 isActive:
                   default: true
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 isSystem:
                   default: false
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 name:
                   type: string
                   minLength: 1
@@ -9401,11 +10297,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9479,11 +10388,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9568,11 +10490,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9665,11 +10600,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9743,11 +10691,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9793,9 +10754,9 @@ paths:
         - in: query
           name: agentId
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
         - in: query
           name: excludeTriggers
           schema:
@@ -9805,9 +10766,9 @@ paths:
         - in: query
           name: groupId
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
+            type:
+              - string
+              - "null"
         - in: query
           name: includeTriggers
           schema:
@@ -9864,11 +10825,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -9917,17 +10891,17 @@ paths:
               type: object
               properties:
                 agentId:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 clientId:
                   type: string
                 favorite:
                   type: boolean
                 groupId:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 title:
                   type: string
                   minLength: 1
@@ -9956,11 +10930,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10032,11 +11019,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10132,11 +11132,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10210,11 +11223,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10381,11 +11407,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10434,35 +11473,35 @@ paths:
               type: object
               properties:
                 avatar:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 email:
                   anyOf:
                     - type: string
                       format: email
-                      pattern: ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+                      pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
                     - type: "null"
                 firstName:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 fullName:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 id:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 lastName:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 phone:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 roleIds:
                   anyOf:
                     - type: array
@@ -10498,11 +11537,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10574,11 +11626,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10634,35 +11699,35 @@ paths:
               type: object
               properties:
                 avatar:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 email:
                   anyOf:
                     - type: string
                       format: email
-                      pattern: ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+                      pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
                     - type: "null"
                 firstName:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 fullName:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 isOnboarded:
-                  anyOf:
-                    - type: boolean
-                    - type: "null"
+                  type:
+                    - boolean
+                    - "null"
                 lastName:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 phone:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 preference:
                   anyOf:
                     - {}
@@ -10702,11 +11767,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10780,11 +11858,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10857,11 +11948,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -10926,7 +12030,7 @@ paths:
                             anyOf:
                               - type: string
                                 format: date-time
-                                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
                               - type: "null"
                           roleId:
                             type: string
@@ -10965,11 +12069,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
@@ -11043,11 +12160,24 @@ paths:
                 type: object
           description: Successful response
         "400":
+          description: Validation Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ApiError"
-          description: Invalid request
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    enum:
+                      - false
+                  error:
+                    type: array
+                    items: {}
+                  data: {}
+                required:
+                  - success
+                  - error
+                  - data
         "401":
           content:
             application/json:
