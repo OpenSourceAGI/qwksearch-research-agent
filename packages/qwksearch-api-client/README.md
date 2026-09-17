@@ -5,7 +5,7 @@
 
 <!-- template-git-repo:badges:start -->
 <p align="center">
-    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <br />
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
     <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/dm/qwksearch-api-client.svg" alt="NPM Monthly Downloads" /></a>
@@ -170,7 +170,7 @@ this package also exports:
 import spec from 'qwksearch-api-client/openapi.json';
 ```
 
-Browse it rendered at [qwksearch.com/api/docs](https://qwksearch.com/api/docs),
+Browse it rendered at [qwksearch.com/api](https://qwksearch.com/api),
 or by area:
 
 | Area | Functions |
