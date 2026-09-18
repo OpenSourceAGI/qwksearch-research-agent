@@ -15,13 +15,12 @@
     <a href="https://packagephobia.com/result?p=qwksearch-api-client"><img src="https://packagephobia.com/badge?p=qwksearch-api-client" alt="Install size" /></a>
     <a href="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent"><img src="https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg" alt="Coverage" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/actions/workflows/test-web-api.yml"><img src="https://github.com/OpenSourceAGI/qwksearch-research-agent/actions/workflows/test-web-api.yml/badge.svg?branch=master" alt="CI status" /></a>
-    <img src="https://img.shields.io/badge/%EB%AA%A8%20lines-17k-yellow" />
     <br />
-    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors"><img src="https://img.shields.io/github/contributors/OpenSourceAGI/qwksearch-research-agent" alt="Contributors" /></a>
-    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls"><img src="https://img.shields.io/github/issues-pr/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs" alt="Open Pull Requests" /></a>
-    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls?q=is%3Apr+is%3Aclosed"><img src="https://img.shields.io/github/issues-pr-closed/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs%20merged&color=8957e5" alt="Merged Pull Requests" /></a>
-    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors"><img src="https://img.shields.io/github/commit-activity/m/OpenSourceAGI/qwksearch-research-agent" alt="Commit activity" /></a>
+       <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors"><img src="https://img.shields.io/github/commit-activity/m/OpenSourceAGI/qwksearch-research-agent" alt="Commit activity" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/OpenSourceAGI/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors"><img src="https://img.shields.io/github/contributors/OpenSourceAGI/qwksearch-research-agent" alt="Contributors" /></a>
+    <img src="https://img.shields.io/badge/%EB%AA%A8%20lines-17k-yellow" />
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls?q=is%3Apr+is%3Aclosed"><img src="https://img.shields.io/github/issues-pr-closed/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs%20merged&color=8957e5" alt="Merged Pull Requests" /></a>
     <a href="https://discord.gg/SJdBqBz3tV"><img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat" alt="Join Discord" /></a>
     <br />
     <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/qwksearch-api-client"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
