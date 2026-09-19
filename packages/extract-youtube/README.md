@@ -28,7 +28,7 @@
 
 ⚡ **The fastest, most optimized YouTube transcript extractor for Node.js/TypeScript**
 
-A production-ready TypeScript port of the popular Python [`extract-youtube`](https://github.com/jdepoix/extract-youtube) (100k+ monthly PyPI downloads), optimized for serverless environments and edge computing. No API keys, no headless browsers, no dependencies bloat.
+A production-ready TypeScript port of the popular Python [`extract-youtube`](https://github.com/dbeley/youtube_extract) (100k+ monthly PyPI downloads), optimized for serverless environments and edge computing. No API keys, no headless browsers, no dependencies bloat.
 
 ## Why This Package?
 
