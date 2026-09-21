@@ -59,6 +59,25 @@ jobs:
             [[ -f "${dir}/wrangler.jsonc" || -f "${dir}/wrangler.json" || -f "${dir}/wrangler.toml" ]]
           }
 
+          # An app that declares its own workspace root is a self-contained
+          # project with its own package manager, not something this job can
+          # install. `apps/qwk-in-lobe` in qwksearch-research-agent is the case
+          # this exists for: a vendored LobeChat fork pinning pnpm@10.33.0 with
+          # its own pnpm-workspace.yaml, packages/ and patches/. It carries a
+          # wrangler.jsonc, so the config test alone selects it, and the build
+          # then dies on `pnpm --filter @lobehub/workbench build` — pnpm is not
+          # installed and bun did not apply its patches. That app has its own
+          # workflow (.github/workflows/lobehub-engine.yml), which the repo
+          # documents as "the one job in this repository that installs
+          # apps/qwk-in-lobe".
+          owns_its_workspace() {
+            [[ -f "apps/$1/pnpm-workspace.yaml" ]]
+          }
+
+          deployable() {
+            has_wrangler "$1" && ! owns_its_workspace "$1"
+          }
+
           if [[ -n "${REQUESTED_APP}" ]]; then
             if [[ ! -d "apps/${REQUESTED_APP}" ]]; then
               echo "::error::Directory apps/${REQUESTED_APP} does not exist."
@@ -70,13 +89,18 @@ jobs:
               exit 1
             fi
 
+            if owns_its_workspace "${REQUESTED_APP}"; then
+              echo "::error::apps/${REQUESTED_APP} declares its own pnpm-workspace.yaml and is built by its own workflow, not this one."
+              exit 1
+            fi
+
             apps=$(jq -cn --arg app "${REQUESTED_APP}" '[ $app ]')
           else
             apps=$(
               for dir in apps/*/; do
                 [[ -d "${dir}" ]] || continue
                 app=$(basename "${dir}")
-                if has_wrangler "${app}"; then echo "${app}"; fi
+                if deployable "${app}"; then echo "${app}"; fi
               done | jq -Rsc 'split("\n") | map(select(length > 0))'
             )
           fi
@@ -86,7 +110,7 @@ jobs:
           # made it permanently red for a repository with nothing to deploy.
           # The deploy job is skipped instead.
           if [[ "${apps}" == "[]" ]]; then
-            echo "No directory under apps/ carries a Wrangler config — nothing to deploy."
+            echo "No directory under apps/ is a Worker this job can build — nothing to deploy."
             find apps -mindepth 1 -maxdepth 1 -type d -printf ' - %f\n' 2>/dev/null || true
             echo "apps=[]" >> "${GITHUB_OUTPUT}"
             exit 0
