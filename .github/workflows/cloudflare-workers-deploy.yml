@@ -117,20 +117,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      # Node 24: intentionally above the deprecated Node 20 runtime that
-      # `actions/setup-node@v4` still defaults to. Cache the npm store so a
-      # repeat deploy of an unchanged app reuses ~90% of the install; the
-      # cache key includes the package.json (and package-lock.json when one
-      # exists) so a dependency edit busts it.
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      # bun, not npm: this repository is a bun workspace (`packageManager:
+      # bun@1.4.0`, one `bun.lock` at the root) and `apps/qwksearch-web`
+      # declares fifteen `workspace:*` dependencies. npm cannot parse that
+      # protocol at all — the install died on
+      # `EUNSUPPORTEDPROTOCOL: Unsupported URL Type "workspace:"` — so this job
+      # has never deployed that app either, whatever the discovery step
+      # selected.
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
-          check-latest: true
-          cache: npm
-          cache-dependency-path: |
-            apps/${{ matrix.app }}/package-lock.json
-            apps/${{ matrix.app }}/package.json
+          bun-version: 1.4.0
 
       - name: Show app files
         run: |
@@ -138,24 +135,26 @@ jobs:
           echo "Current directory: $(pwd)"
           ls -la
 
-      # Prefer a lockfile-bound install when one exists; fall back to a plain
-      # install for apps that have not yet committed one. Both paths keep
-      # postinstall scripts enabled — unlike the LobeHub engine job, the
-      # apps here need their native-build postinstall to produce dist.
+      # Run from the app directory, not the repository root, because the two
+      # deployable apps sit on opposite sides of the workspace boundary and
+      # this one command covers both: `qwksearch-web` is in the root
+      # `workspaces` globs, so bun walks up and installs the whole workspace
+      # from `bun.lock`; `qwk-in-lobe` is not, so bun installs that package
+      # alone. Verified both resolve (`bun install --dry-run`, exit 0) where
+      # npm failed.
+      #
+      # No `--frozen-lockfile`: `qwk-in-lobe` has no entry in the root
+      # `bun.lock` and no lockfile of its own, so a frozen install cannot
+      # succeed there.
       - name: Install dependencies
         id: install
-        run: |
-          if [[ -f package-lock.json ]]; then
-            echo "package-lock.json found, running npm ci"
-            npm ci
-          else
-            echo "No package-lock.json, running npm install"
-            npm install
-          fi
+        run: bun install
 
+      # `--if-present` has to precede the script name: after it, bun stops
+      # parsing flags and forwards the rest to the script.
       - name: Build app
         if: steps.install.outcome == 'success'
-        run: npm run build --if-present
+        run: bun run --if-present build
 
       - name: Deploy Worker with Wrangler
         if: steps.install.outcome == 'success'
@@ -166,7 +165,7 @@ jobs:
           DEPLOY_ENV: ${{ inputs.environment }}
         run: |
           if [[ -n "${DEPLOY_ENV}" ]]; then
-            npx wrangler deploy --env "${DEPLOY_ENV}"
+            bunx wrangler deploy --env "${DEPLOY_ENV}"
           else
-            npx wrangler deploy
+            bunx wrangler deploy
           fi
