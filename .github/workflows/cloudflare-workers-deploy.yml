@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       app:
-        description: 'Optional directory name under apps/. Leave empty to deploy all folders containing web or .com.'
+        description: 'Optional directory name under apps/. Leave empty to deploy every app that has a Wrangler config.'
         required: false
         type: string
       environment:
@@ -47,24 +47,73 @@ jobs:
         run: |
           set -euo pipefail
 
+          # A directory is deployable when it carries a Wrangler config. The
+          # name is no guide in either direction, and the old `grep -Ei
+          # 'web|\.com'` filter got it wrong both ways across the repos this
+          # workflow is copied into: `debate-web-ext` matched but is a browser
+          # extension with no Worker, so `wrangler deploy` failed on it, while
+          # `qwk-in-lobe` carries a wrangler.jsonc and was never deployed at
+          # all.
+          has_wrangler() {
+            local dir="apps/$1"
+            [[ -f "${dir}/wrangler.jsonc" || -f "${dir}/wrangler.json" || -f "${dir}/wrangler.toml" ]]
+          }
+
+          # An app that declares its own workspace root is a self-contained
+          # project with its own package manager, not something this job can
+          # install. `apps/qwk-in-lobe` in qwksearch-research-agent is the case
+          # this exists for: a vendored LobeChat fork pinning pnpm@10.33.0 with
+          # its own pnpm-workspace.yaml, packages/ and patches/. It carries a
+          # wrangler.jsonc, so the config test alone selects it, and the build
+          # then dies on `pnpm --filter @lobehub/workbench build` — pnpm is not
+          # installed and bun did not apply its patches. That app has its own
+          # workflow (.github/workflows/lobehub-engine.yml), which the repo
+          # documents as "the one job in this repository that installs
+          # apps/qwk-in-lobe".
+          owns_its_workspace() {
+            [[ -f "apps/$1/pnpm-workspace.yaml" ]]
+          }
+
+          deployable() {
+            has_wrangler "$1" && ! owns_its_workspace "$1"
+          }
+
           if [[ -n "${REQUESTED_APP}" ]]; then
             if [[ ! -d "apps/${REQUESTED_APP}" ]]; then
               echo "::error::Directory apps/${REQUESTED_APP} does not exist."
               exit 1
             fi
 
+            if ! has_wrangler "${REQUESTED_APP}"; then
+              echo "::error::apps/${REQUESTED_APP} has no wrangler.jsonc/.json/.toml, so it is not a Workers app."
+              exit 1
+            fi
+
+            if owns_its_workspace "${REQUESTED_APP}"; then
+              echo "::error::apps/${REQUESTED_APP} declares its own pnpm-workspace.yaml and is built by its own workflow, not this one."
+              exit 1
+            fi
+
             apps=$(jq -cn --arg app "${REQUESTED_APP}" '[ $app ]')
           else
             apps=$(
-              find apps -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
-                | grep -Ei 'web|\.com' \
-                | jq -Rsc 'split("\n") | map(select(length > 0))'
+              for dir in apps/*/; do
+                [[ -d "${dir}" ]] || continue
+                app=$(basename "${dir}")
+                if deployable "${app}"; then echo "${app}"; fi
+              done | jq -Rsc 'split("\n") | map(select(length > 0))'
             )
           fi
 
+          # Not an error. This workflow is copied into repositories that have
+          # no Workers app at all — GRAB-URL is one — and failing the run there
+          # made it permanently red for a repository with nothing to deploy.
+          # The deploy job is skipped instead.
           if [[ "${apps}" == "[]" ]]; then
-            echo "::error::No direct directories in apps/ contain 'web' or '.com'."
-            exit 1
+            echo "No directory under apps/ is a Worker this job can build — nothing to deploy."
+            find apps -mindepth 1 -maxdepth 1 -type d -printf ' - %f\n' 2>/dev/null || true
+            echo "apps=[]" >> "${GITHUB_OUTPUT}"
+            exit 0
           fi
 
           echo "Deploying: ${apps}"
@@ -73,6 +122,10 @@ jobs:
   deploy:
     name: Build and deploy ${{ matrix.app }}
     needs: discover
+    # `fromJSON('[]')` is not an empty matrix to Actions, it is an error
+    # ("Matrix vector 'app' does not contain any values"), so the job has to be
+    # skipped before the matrix is evaluated.
+    if: needs.discover.outputs.apps != '[]'
     runs-on: ubuntu-latest
 
     strategy:
@@ -88,20 +141,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      # Node 24: intentionally above the deprecated Node 20 runtime that
-      # `actions/setup-node@v4` still defaults to. Cache the npm store so a
-      # repeat deploy of an unchanged app reuses ~90% of the install; the
-      # cache key includes the package.json (and package-lock.json when one
-      # exists) so a dependency edit busts it.
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      # bun, not npm: this repository is a bun workspace (`packageManager:
+      # bun@1.4.0`, one `bun.lock` at the root) and `apps/qwksearch-web`
+      # declares fifteen `workspace:*` dependencies. npm cannot parse that
+      # protocol at all — the install died on
+      # `EUNSUPPORTEDPROTOCOL: Unsupported URL Type "workspace:"` — so this job
+      # has never deployed that app either, whatever the discovery step
+      # selected.
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
-          check-latest: true
-          cache: npm
-          cache-dependency-path: |
-            apps/${{ matrix.app }}/package-lock.json
-            apps/${{ matrix.app }}/package.json
+          bun-version: 1.4.0
 
       - name: Show app files
         run: |
@@ -109,24 +159,26 @@ jobs:
           echo "Current directory: $(pwd)"
           ls -la
 
-      # Prefer a lockfile-bound install when one exists; fall back to a plain
-      # install for apps that have not yet committed one. Both paths keep
-      # postinstall scripts enabled — unlike the LobeHub engine job, the
-      # apps here need their native-build postinstall to produce dist.
+      # Run from the app directory, not the repository root, because the two
+      # deployable apps sit on opposite sides of the workspace boundary and
+      # this one command covers both: `qwksearch-web` is in the root
+      # `workspaces` globs, so bun walks up and installs the whole workspace
+      # from `bun.lock`; `qwk-in-lobe` is not, so bun installs that package
+      # alone. Verified both resolve (`bun install --dry-run`, exit 0) where
+      # npm failed.
+      #
+      # No `--frozen-lockfile`: `qwk-in-lobe` has no entry in the root
+      # `bun.lock` and no lockfile of its own, so a frozen install cannot
+      # succeed there.
       - name: Install dependencies
         id: install
-        run: |
-          if [[ -f package-lock.json ]]; then
-            echo "package-lock.json found, running npm ci"
-            npm ci
-          else
-            echo "No package-lock.json, running npm install"
-            npm install
-          fi
+        run: bun install
 
+      # `--if-present` has to precede the script name: after it, bun stops
+      # parsing flags and forwards the rest to the script.
       - name: Build app
         if: steps.install.outcome == 'success'
-        run: npm run build --if-present
+        run: bun run --if-present build
 
       - name: Deploy Worker with Wrangler
         if: steps.install.outcome == 'success'
@@ -137,7 +189,7 @@ jobs:
           DEPLOY_ENV: ${{ inputs.environment }}
         run: |
           if [[ -n "${DEPLOY_ENV}" ]]; then
-            npx wrangler deploy --env "${DEPLOY_ENV}"
+            bunx wrangler deploy --env "${DEPLOY_ENV}"
           else
-            npx wrangler deploy
+            bunx wrangler deploy
           fi
