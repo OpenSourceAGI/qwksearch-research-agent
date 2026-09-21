@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       app:
-        description: 'Optional directory name under apps/. Leave empty to deploy all folders containing web or .com.'
+        description: 'Optional directory name under apps/. Leave empty to deploy every app that has a Wrangler config.'
         required: false
         type: string
       environment:
@@ -47,24 +47,49 @@ jobs:
         run: |
           set -euo pipefail
 
+          # A directory is deployable when it carries a Wrangler config. The
+          # name is no guide in either direction, and the old `grep -Ei
+          # 'web|\.com'` filter got it wrong both ways across the repos this
+          # workflow is copied into: `debate-web-ext` matched but is a browser
+          # extension with no Worker, so `wrangler deploy` failed on it, while
+          # `qwk-in-lobe` carries a wrangler.jsonc and was never deployed at
+          # all.
+          has_wrangler() {
+            local dir="apps/$1"
+            [[ -f "${dir}/wrangler.jsonc" || -f "${dir}/wrangler.json" || -f "${dir}/wrangler.toml" ]]
+          }
+
           if [[ -n "${REQUESTED_APP}" ]]; then
             if [[ ! -d "apps/${REQUESTED_APP}" ]]; then
               echo "::error::Directory apps/${REQUESTED_APP} does not exist."
               exit 1
             fi
 
+            if ! has_wrangler "${REQUESTED_APP}"; then
+              echo "::error::apps/${REQUESTED_APP} has no wrangler.jsonc/.json/.toml, so it is not a Workers app."
+              exit 1
+            fi
+
             apps=$(jq -cn --arg app "${REQUESTED_APP}" '[ $app ]')
           else
             apps=$(
-              find apps -mindepth 1 -maxdepth 1 -type d -printf '%f\n' \
-                | grep -Ei 'web|\.com' \
-                | jq -Rsc 'split("\n") | map(select(length > 0))'
+              for dir in apps/*/; do
+                [[ -d "${dir}" ]] || continue
+                app=$(basename "${dir}")
+                if has_wrangler "${app}"; then echo "${app}"; fi
+              done | jq -Rsc 'split("\n") | map(select(length > 0))'
             )
           fi
 
+          # Not an error. This workflow is copied into repositories that have
+          # no Workers app at all — GRAB-URL is one — and failing the run there
+          # made it permanently red for a repository with nothing to deploy.
+          # The deploy job is skipped instead.
           if [[ "${apps}" == "[]" ]]; then
-            echo "::error::No direct directories in apps/ contain 'web' or '.com'."
-            exit 1
+            echo "No directory under apps/ carries a Wrangler config — nothing to deploy."
+            find apps -mindepth 1 -maxdepth 1 -type d -printf ' - %f\n' 2>/dev/null || true
+            echo "apps=[]" >> "${GITHUB_OUTPUT}"
+            exit 0
           fi
 
           echo "Deploying: ${apps}"
@@ -73,6 +98,10 @@ jobs:
   deploy:
     name: Build and deploy ${{ matrix.app }}
     needs: discover
+    # `fromJSON('[]')` is not an empty matrix to Actions, it is an error
+    # ("Matrix vector 'app' does not contain any values"), so the job has to be
+    # skipped before the matrix is evaluated.
+    if: needs.discover.outputs.apps != '[]'
     runs-on: ubuntu-latest
 
     strategy:
