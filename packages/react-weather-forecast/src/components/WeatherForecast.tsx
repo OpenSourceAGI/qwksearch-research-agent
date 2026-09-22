@@ -107,33 +107,40 @@ const styles = {
   hourCard: { minWidth: 72, textAlign: 'center' as const, padding: 8, borderRadius: 8, background: '#f9fafb' },
   dayRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 0', borderBottom: '1px solid #f3f4f6' } as React.CSSProperties,
   // Fluid: fills whatever container it is dropped into (e.g. the full
-  // sidebar/column width on desktop), with generous, even padding. Current
-  // conditions sit on the left and the upcoming days on the right; the two
-  // halves wrap into a stack when the container gets narrow.
+  // sidebar/column width on desktop). Current conditions sit on the left and
+  // the upcoming days on the right; the two halves wrap into a stack when the
+  // container gets narrow.
+  //
+  // The card is deliberately **short**: on the homepage it sits under the
+  // trending-news widget and above the chat input, and every pixel it takes is
+  // one the input box loses on a laptop screen. Padding, the gap between its
+  // two rows and the two display sizes (temperature and clock) are what set
+  // its height — raising any of them pushes the input below the fold, so
+  // prefer trimming content over growing the card.
   compactRoot: {
     fontFamily: 'system-ui, sans-serif',
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'stretch',
-    gap: 24,
-    padding: '20px 24px',
+    alignItems: 'center',
+    gap: 20,
+    padding: '12px 16px',
     borderRadius: 16,
     width: '100%',
     boxSizing: 'border-box',
   } as React.CSSProperties,
-  // Current conditions form two spread-out rows down the left side of the
-  // card (rather than five stacked lines), so the card stays short and each
-  // row uses the full available width.
-  compactBody: { display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 20, flex: '1.6 1 240px', minWidth: 0 } as React.CSSProperties,
-  compactRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px 16px' } as React.CSSProperties,
-  compactCity: { fontSize: 15, fontWeight: 700, lineHeight: 1.2 } as React.CSSProperties,
-  compactHeader: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 12 } as React.CSSProperties,
-  compactTemp: { fontSize: 32, fontWeight: 600, lineHeight: 1 } as React.CSSProperties,
-  compactTime: { fontSize: 26, fontWeight: 600, lineHeight: 1.1 } as React.CSSProperties,
-  compactSeconds: { fontSize: 13, fontWeight: 500, opacity: 0.6, marginLeft: 2 } as React.CSSProperties,
-  compactDate: { fontSize: 11, opacity: 0.7, marginTop: 5 } as React.CSSProperties,
-  compactStats: { display: 'flex', flexWrap: 'wrap', gap: '8px 18px', fontSize: 12, opacity: 0.9 } as React.CSSProperties,
+  // Current conditions form two rows down the left side of the card (rather
+  // than five stacked lines), so the card stays short and each row uses the
+  // full available width.
+  compactBody: { display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8, flex: '1.6 1 240px', minWidth: 0 } as React.CSSProperties,
+  compactRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px 16px' } as React.CSSProperties,
+  compactCity: { fontSize: 14, fontWeight: 700, lineHeight: 1.2 } as React.CSSProperties,
+  compactHeader: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10 } as React.CSSProperties,
+  compactTemp: { fontSize: 26, fontWeight: 600, lineHeight: 1 } as React.CSSProperties,
+  compactTime: { fontSize: 20, fontWeight: 600, lineHeight: 1.1 } as React.CSSProperties,
+  compactSeconds: { fontSize: 12, fontWeight: 500, opacity: 0.6, marginLeft: 2 } as React.CSSProperties,
+  compactDate: { fontSize: 11, opacity: 0.7, marginTop: 2 } as React.CSSProperties,
+  compactStats: { display: 'flex', flexWrap: 'wrap', gap: '4px 16px', fontSize: 12, opacity: 0.9 } as React.CSSProperties,
   // Three equal columns on the right side of the card, each stacking
   // weekday / icon / high-low, vertically centered against the current
   // conditions and nudged over behind a divider so the two halves read as
@@ -142,15 +149,15 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
     alignContent: 'center',
-    gap: 14,
+    gap: 10,
     flex: '1 1 190px',
     minWidth: 0,
-    paddingLeft: 22,
+    paddingLeft: 18,
     borderLeft: '1px solid currentColor',
     borderLeftColor: 'rgba(128,128,128,0.25)',
     fontSize: 11,
   } as React.CSSProperties,
-  upcomingDay: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, textAlign: 'center' } as React.CSSProperties,
+  upcomingDay: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, textAlign: 'center' } as React.CSSProperties,
   upcomingDayName: { opacity: 0.7, whiteSpace: 'nowrap' } as React.CSSProperties,
   upcomingTemps: { whiteSpace: 'nowrap' } as React.CSSProperties,
   compactStat: { display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' } as React.CSSProperties,
@@ -249,9 +256,9 @@ function SingleWeatherForecast(props: Props) {
             </div>
 
             <div style={styles.compactHeader}>
-              <WeatherIcon condition={data.current.icon} width={30} height={30} title="Current weather" />
+              <WeatherIcon condition={data.current.icon} width={26} height={26} title="Current weather" />
               <strong style={styles.compactTemp}>{data.current.temperature}</strong>
-              {renderUnitSwitch(13)}
+              {renderUnitSwitch(12)}
             </div>
           </div>
 

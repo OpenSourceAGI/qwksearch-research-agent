@@ -64,6 +64,14 @@ export interface ResearchAgentUIConfig {
    */
   trendingNewsApiUrl: string;
   /**
+   * Endpoint serving the host app's site-wide news-widget settings (whether
+   * the widget is on, how many topics it shows, whether a user's own topic
+   * list counts). Defaults to this app's `/api/news/settings`. Set it to an
+   * empty string on a host that has no such route — the widget then follows
+   * the local settings alone.
+   */
+  trendingNewsSettingsUrl: string;
+  /**
    * Requests that the settings UI be opened. Lets the consuming app render
    * settings in a modal (e.g. on large desktop screens) instead of navigating
    * to the `/settings` route. Return `true` when the request was handled — the
@@ -96,6 +104,7 @@ export const researchAgentUIConfig: ResearchAgentUIConfig = {
   getAutoMediaSearch: () => true,
   appIconUrl: '/apple-touch-icon.png',
   trendingNewsApiUrl: '/api/news/trending',
+  trendingNewsSettingsUrl: '/api/news/settings',
 };
 
 /**

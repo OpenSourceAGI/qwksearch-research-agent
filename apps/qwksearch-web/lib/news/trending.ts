@@ -3,17 +3,36 @@
  * deployment only needs a `THENEWSAPI_API_KEY` — not a separately deployed
  * copy of `packages/trending-news-api/worker`.
  *
- * The widget's data is the same for everyone (Wikipedia's daily ranking joined
- * to headlines), and each cold answer costs one Wikipedia call plus one News
- * API search per topic, so it is cached in KV for ten minutes. The browser
- * caches the same response in `localStorage` for ten minutes too; this cache
- * is what keeps the *first* visit of the next ten minutes cheap.
+ * Three things sit between the widget and The News API, in this order:
+ *
+ * 1. **The admin settings** (`./settings`) decide whether the widget answers
+ *    at all, and which topics it answers with when the visitor named none.
+ * 2. **A KV cache**, because each cold answer costs one Wikipedia call plus
+ *    one News API search *per topic*. The browser caches the same response in
+ *    `localStorage`; this cache is what keeps the *first* visit of the next
+ *    cache window cheap.
+ * 3. **The D1 archive** (`./store`), written through on every successful
+ *    fetch and read back when the upstream fails. The News API is metered and
+ *    third-party: without the archive a missing key or a 429 turns the
+ *    homepage card into a blank space.
  */
-import { handleTrendingNewsRequest, parseTopicLimit } from "trending-news-api/server";
+import {
+  handleTrendingNewsRequest,
+  parseTopicLimit,
+  parseTopicList,
+} from "trending-news-api/server";
+import type { TrendingNewsWireResponse } from "trending-news-api/server";
 import { getCloudflareContext } from "../cloudflare/context";
+import { getNewsWidgetSettings, resolveTopics } from "./settings";
+import { readStoredTrendingNews, storeTrendingNews } from "./store";
 
-const CACHE_PREFIX = "trending-news:v1:";
-const CACHE_TTL_SECONDS = 600;
+const CACHE_PREFIX = "trending-news:v2:";
+
+/**
+ * How stale a stored answer may be before we would rather show nothing. A
+ * week-old headline presented as news is worse than an absent widget.
+ */
+const FALLBACK_MAX_AGE_DAYS = 7;
 
 /**
  * The News API token. Worker secrets are only on the Cloudflare env; local dev
@@ -42,17 +61,27 @@ function getKV(): any {
  * normalised first — the same way the handler normalises it — so that
  * `?limit=6`, `?limit=06` and `?limit=99999` can't each open their own cache
  * entry (and their own upstream fan-out) for what is one answer.
+ *
+ * The resolved topic list is part of the key rather than the raw `?topics=`
+ * string, so two visitors who wrote the same topics in a different order or
+ * casing share one entry — and so a change to the admin default topics starts
+ * answering from a new key instead of serving the old list until it expires.
  */
-function cacheKey(url: URL): string {
+function cacheKey(url: URL, topics: string[]): string {
   const topic = url.searchParams.get("topic");
   if (topic) return `${CACHE_PREFIX}topic:${topic.trim().toLowerCase().slice(0, 120)}`;
+  if (topics.length > 0) {
+    const normalised = [...topics].map((t) => t.toLowerCase()).sort().join("|");
+    return `${CACHE_PREFIX}topics:${normalised}`;
+  }
   return `${CACHE_PREFIX}top:${parseTopicLimit(url.searchParams.get("limit"))}`;
 }
 
 function jsonResponse(
   body: string,
   status: number,
-  cache: "HIT" | "MISS" | "BYPASS",
+  cache: "HIT" | "MISS" | "BYPASS" | "STORED" | "OFF",
+  cacheSeconds: number,
 ): Response {
   return new Response(body, {
     status,
@@ -60,45 +89,142 @@ function jsonResponse(
       "content-type": "application/json",
       // Public and non-personalised when it worked; never hold on to a failure.
       "Cache-Control":
-        status === 200 ? `public, max-age=${CACHE_TTL_SECONDS}` : "no-store",
+        status === 200 ? `public, max-age=${cacheSeconds}` : "no-store",
       "X-Trending-News-Cache": cache,
     },
   });
 }
 
 /**
- * Answers a trending-news request, reading through a ten-minute KV cache when
- * the binding is available. Errors are never cached, so a News API blip
- * doesn't stick around for ten minutes.
+ * Rebuilds the upstream request with the topics we resolved, so the shared
+ * handler sees one unambiguous instruction. A visitor's `?topics=` has already
+ * been merged with (or overridden by) the admin settings at this point.
+ */
+function upstreamRequest(request: Request, topics: string[]): Request {
+  const url = new URL(request.url);
+  url.searchParams.delete("topics");
+  if (topics.length > 0) url.searchParams.set("topics", topics.join(","));
+  return new Request(url.toString(), { headers: request.headers });
+}
+
+/**
+ * Answers a trending-news request.
+ *
+ * Errors are never cached, so a News API blip doesn't stick around for the
+ * whole cache window — but a blip does fall through to the D1 archive, which
+ * is served with a `STORED` cache marker and no `max-age`, so the next request
+ * tries the upstream again.
  *
  * Cross-origin access is decided by this app's own allowlist (`lib/cors`), not
  * by the `Access-Control-Allow-Origin: *` the standalone worker sends — hence
  * rebuilding the response rather than passing it straight through.
  */
 export async function serveTrendingNews(request: Request): Promise<Response> {
+  const settings = await getNewsWidgetSettings();
+  const url = new URL(request.url);
+
+  // Switched off site-wide: answer with an empty list rather than an error, so
+  // the widget simply renders nothing instead of retrying a failing endpoint.
+  if (!settings.enabled) {
+    return jsonResponse(
+      JSON.stringify({ source: "disabled", date: "", topics: [] }),
+      200,
+      "OFF",
+      60,
+    );
+  }
+
+  const cacheSeconds = settings.cacheMinutes * 60;
   const apiKey = getNewsApiKey();
   const kv = getKV();
-  const key = cacheKey(new URL(request.url));
+
+  // A single `?topic=` lookup is a different route (one topic's headlines) and
+  // is not affected by the configured topic list.
+  const singleTopic = url.searchParams.get("topic");
+  const topics = singleTopic
+    ? []
+    : resolveTopics(settings, url.searchParams.get("topics"));
+  const key = cacheKey(url, topics);
 
   if (kv && apiKey) {
     try {
       const cached = await kv.get(key);
-      if (cached) return jsonResponse(cached, 200, "HIT");
+      if (cached) return jsonResponse(cached, 200, "HIT", cacheSeconds);
     } catch (error) {
       console.error("Trending news cache read failed:", error);
     }
   }
 
-  const response = await handleTrendingNewsRequest(request, { apiKey });
+  const response = await handleTrendingNewsRequest(upstreamRequest(request, topics), {
+    apiKey,
+  });
   const body = await response.text();
 
-  if (kv && response.status === 200) {
-    try {
-      await kv.put(key, body, { expirationTtl: CACHE_TTL_SECONDS });
-    } catch (error) {
-      console.error("Trending news cache write failed:", error);
+  if (response.status === 200) {
+    if (!singleTopic) {
+      // Write-through. D1 is awaited rather than backgrounded because this
+      // runtime hands route handlers no `waitUntil`; it only happens on a
+      // cache miss, and `storeTrendingNews` swallows its own failures.
+      try {
+        await storeTrendingNews(JSON.parse(body) as TrendingNewsWireResponse);
+      } catch (error) {
+        console.error("Trending news store failed:", error);
+      }
+    }
+
+    if (kv) {
+      try {
+        await kv.put(key, body, { expirationTtl: cacheSeconds });
+      } catch (error) {
+        console.error("Trending news cache write failed:", error);
+      }
+    }
+
+    return jsonResponse(body, 200, kv ? "MISS" : "BYPASS", cacheSeconds);
+  }
+
+  // The upstream is unhappy (no key, rate-limited, down). Serve the archive
+  // if it has anything recent enough to be worth showing.
+  if (!singleTopic) {
+    const stored = await readStoredTrendingNews({
+      topics,
+      limit: topics.length > 0 ? topics.length : parseTopicLimit(url.searchParams.get("limit")),
+      maxAgeDays: FALLBACK_MAX_AGE_DAYS,
+    });
+    if (stored) {
+      return jsonResponse(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
     }
   }
 
-  return jsonResponse(body, response.status, kv ? "MISS" : "BYPASS");
+  return jsonResponse(body, response.status, kv ? "MISS" : "BYPASS", cacheSeconds);
+}
+
+/**
+ * Fetches and stores the current news without serving it — the admin panel's
+ * "Refresh now". Returns how many articles were written.
+ */
+export async function refreshStoredNews(): Promise<{
+  stored: number;
+  topics: number;
+  error?: string;
+}> {
+  const settings = await getNewsWidgetSettings();
+  const apiKey = getNewsApiKey();
+  const topics = parseTopicList(settings.defaultTopics);
+
+  const url = new URL("https://news.internal/");
+  if (topics.length > 0) url.searchParams.set("topics", topics.join(","));
+  else url.searchParams.set("limit", String(Math.max(settings.maxTopics, 10)));
+
+  const response = await handleTrendingNewsRequest(new Request(url.toString()), {
+    apiKey,
+  });
+  const payload = (await response.json()) as TrendingNewsWireResponse & { error?: string };
+
+  if (response.status !== 200) {
+    return { stored: 0, topics: 0, error: payload.error ?? `HTTP ${response.status}` };
+  }
+
+  const stored = await storeTrendingNews(payload);
+  return { stored, topics: payload.topics?.length ?? 0 };
 }

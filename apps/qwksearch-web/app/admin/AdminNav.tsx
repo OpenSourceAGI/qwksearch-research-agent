@@ -7,6 +7,7 @@ const NAV = [
   { href: "/admin/users", label: "Users" },
   { href: "/admin/database", label: "Database" },
   { href: "/admin/config", label: "Site Config" },
+  { href: "/admin/news", label: "News Widget" },
   { href: "/admin/freekeys", label: "API Keys" },
   { href: "/admin/chat-test", label: "Chat Test" },
 ];

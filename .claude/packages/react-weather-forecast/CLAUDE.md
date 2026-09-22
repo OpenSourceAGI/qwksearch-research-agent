@@ -28,6 +28,11 @@ Published.
 - Geolocation fails often (VPNs, blocked requests, datacenter IPs). A wrong or
   missing location must degrade to a usable component, not an error state.
 - Units and locale are user-visible: don't hardcode Fahrenheit or English.
+- **`compact` is a deliberately short card.** On the qwksearch homepage it sits
+  under the news widget and above the chat input, so its height comes straight
+  out of the input box's room on a laptop. Padding, the gap between its two rows
+  and the two display sizes (temperature, clock) are what set that height —
+  trim content before growing any of them.
 - **Never hand `grabJson` a URL with a query string on the path it cannot split.**
   `grab-url` turns every option it does not recognise into the query string and
   concatenates it onto the path, so a second `?` corrupts the last real

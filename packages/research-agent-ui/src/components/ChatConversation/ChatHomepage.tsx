@@ -25,6 +25,35 @@ import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 const TRENDING_NEWS_EXPANDED_TOPICS = 15;
 
 /**
+ * The host app's site-wide news-widget settings (`/api/news/settings`), which
+ * an admin controls. They gate the local settings rather than replace them:
+ * the site can switch the widget off for everyone, and can decline to honour
+ * per-user topics, but a user who has said nothing simply gets the site's
+ * defaults.
+ */
+type NewsSiteSettings = {
+  enabled: boolean;
+  allowUserTopics: boolean;
+  defaultTopics?: string;
+  maxTopics: number;
+  showImages: boolean;
+};
+
+/**
+ * Parses the `trendingNewsCustomTopics` setting — one topic per line, or
+ * comma separated — into the list the widget follows instead of the daily
+ * trending ranking. The server re-parses and caps this; the trimming here is
+ * so a trailing newline never becomes an empty topic in the URL.
+ */
+function parseCustomTopics(raw: string | null): string[] {
+  if (!raw) return [];
+  return raw
+    .split(/[,\n]/)
+    .map((topic) => topic.trim())
+    .filter(Boolean);
+}
+
+/**
  * Parses the `weatherLocations` setting (one location per line, formatted as
  * "Label, latitude, longitude") into structured entries for the weather
  * widget. Lines without valid coordinates fall back to a label-only entry
@@ -73,8 +102,12 @@ export default function ChatHomepage() {
   const [weatherTemperatureUnit, setWeatherTemperatureUnit] = useState<'celsius' | 'fahrenheit'>('fahrenheit');
   const [trendingNewsApiUrl, setTrendingNewsApiUrl] = useState<string | null>(null);
   const [showTrendingNewsWidget, setShowTrendingNewsWidget] = useState(true);
-  const [trendingNewsMaxTopics, setTrendingNewsMaxTopics] = useState(6);
-  const [trendingNewsShowImages, setTrendingNewsShowImages] = useState(true);
+  // `null` means "the user has not chosen", which is what lets the site-wide
+  // setting supply the value instead of a hardcoded default overriding it.
+  const [trendingNewsMaxTopics, setTrendingNewsMaxTopics] = useState<number | null>(null);
+  const [trendingNewsShowImages, setTrendingNewsShowImages] = useState<boolean | null>(null);
+  const [trendingNewsCustomTopics, setTrendingNewsCustomTopics] = useState<string[]>([]);
+  const [newsSiteSettings, setNewsSiteSettings] = useState<NewsSiteSettings | null>(null);
   const [orbHoverGlow, setOrbHoverGlow] = useState(false);
   // Off by default; enabled via the "Cursor Glow Trail" setting.
   const [cursorGlowTrail, setCursorGlowTrail] = useState(false);
@@ -85,6 +118,37 @@ export default function ChatHomepage() {
   // so the News API key stays on the server); the setting only has to be filled
   // in to point the widget at a different deployment.
   const trendingNewsEndpoint = trendingNewsApiUrl || researchAgentUIConfig.trendingNewsApiUrl;
+  // A site that has switched the widget off, or that does not honour per-user
+  // topics, overrides the local settings; everything else the site provides is
+  // only a default for a user who has not chosen.
+  const newsWidgetAllowed = newsSiteSettings?.enabled !== false;
+  const newsTopics =
+    newsSiteSettings?.allowUserTopics === false ? [] : trendingNewsCustomTopics;
+  const newsMaxTopics = trendingNewsMaxTopics ?? newsSiteSettings?.maxTopics ?? 6;
+  const newsShowImages = trendingNewsShowImages ?? newsSiteSettings?.showImages ?? true;
+  const showNewsWidget = showTrendingNewsWidget && newsWidgetAllowed;
+
+  useEffect(() => {
+    const url = researchAgentUIConfig.trendingNewsSettingsUrl;
+    // Hosts without this route (the desktop app, the extension) leave the URL
+    // blank and follow their local settings alone.
+    if (!url) return;
+
+    let active = true;
+    fetch(url)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((settings) => {
+        if (active && settings) setNewsSiteSettings(settings as NewsSiteSettings);
+      })
+      // An unreachable settings route must not take the widget with it: the
+      // local settings already describe a working widget.
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   useEffect(() => {
     const readLocations = () => {
       setWeatherLocations(parseWeatherLocations(localStorage.getItem('weatherLocations')));
@@ -94,8 +158,11 @@ export default function ChatHomepage() {
       setWeatherTemperatureUnit(localStorage.getItem('weatherTemperatureUnit') === 'celsius' ? 'celsius' : 'fahrenheit');
       setTrendingNewsApiUrl(localStorage.getItem('trendingNewsApiUrl'));
       setShowTrendingNewsWidget(localStorage.getItem('showTrendingNewsWidget') !== 'false');
-      setTrendingNewsMaxTopics(Number(localStorage.getItem('trendingNewsMaxTopics')) || 6);
-      setTrendingNewsShowImages(localStorage.getItem('trendingNewsShowImages') !== 'false');
+      const maxTopics = localStorage.getItem('trendingNewsMaxTopics');
+      setTrendingNewsMaxTopics(maxTopics ? Number(maxTopics) || null : null);
+      const showImages = localStorage.getItem('trendingNewsShowImages');
+      setTrendingNewsShowImages(showImages === null ? null : showImages !== 'false');
+      setTrendingNewsCustomTopics(parseCustomTopics(localStorage.getItem('trendingNewsCustomTopics')));
       setOrbHoverGlow(localStorage.getItem('orbHoverGlow') === 'true');
       setCursorGlowTrail(localStorage.getItem('cursorGlowTrail') === 'true');
     };
@@ -175,20 +242,21 @@ export default function ChatHomepage() {
 
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
-            {(showWeatherWidget || showTrendingNewsWidget) && (
+            {(showWeatherWidget || showNewsWidget) && (
               <div className="flex flex-col gap-2 w-full">
-                {/* Trending news sits on top, with the compact weather widget
-                    below it. The weather widget is fluid, so it spans the full
-                    column width on its own row (current conditions on the left,
-                    the next days on the right). */}
-                {showTrendingNewsWidget && (
+                {/* News sits on top, with the compact weather widget below it.
+                    The weather widget is fluid, so it spans the full column
+                    width on its own row (current conditions on the left, the
+                    next days on the right). */}
+                {showNewsWidget && (
                   <TrendingNews
                     compact
                     expandable
-                    maxTopics={trendingNewsMaxTopics}
+                    maxTopics={newsMaxTopics}
                     expandedMaxTopics={TRENDING_NEWS_EXPANDED_TOPICS}
-                    showImages={trendingNewsShowImages}
+                    showImages={newsShowImages}
                     apiEndpoint={trendingNewsEndpoint}
+                    topics={newsTopics}
                     limit={TRENDING_NEWS_EXPANDED_TOPICS}
                     className="rounded-2xl w-full"
                     style={{

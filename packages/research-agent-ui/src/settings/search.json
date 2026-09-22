@@ -263,5 +263,15 @@
     "description": "Show article thumbnail images in the trending news widget.",
     "default": true,
     "scope": "client"
+  },
+  {
+    "name": "My News Topics",
+    "key": "trendingNewsCustomTopics",
+    "type": "textarea",
+    "required": false,
+    "description": "Follow your own topics instead of the daily trending list. Enter one topic per line (or separate them with commas) \u2014 for example: fusion power, semiconductor supply chain. Leave blank to see what the site shows by default.",
+    "placeholder": "fusion power\nsemiconductor supply chain\nlocal elections",
+    "scope": "client",
+    "default": ""
   }
 ]

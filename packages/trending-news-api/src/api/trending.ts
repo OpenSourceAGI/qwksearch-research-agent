@@ -19,6 +19,7 @@ type WorkerTopic = {
 
 type WorkerTopicsResponse = {
   date?: string;
+  source?: string;
   topics: WorkerTopic[];
   error?: string;
 };
@@ -54,12 +55,28 @@ function resolveEndpoint(apiEndpoint: string): URL {
   }
 }
 
+/**
+ * Blank entries are dropped before the list reaches the URL: the topics come
+ * from a free-text setting, and a trailing newline must not turn into an empty
+ * topic the server then searches for.
+ */
+function cleanTopics(topics: string[] | undefined): string[] {
+  return (topics ?? []).map((t) => t.trim()).filter(Boolean);
+}
+
 function buildUrl(apiEndpoint: string, options: TrendingNewsOptions) {
   const url = resolveEndpoint(apiEndpoint);
   if (options.topic) url.searchParams.set('topic', options.topic);
+
+  const topics = options.topic ? [] : cleanTopics(options.topics);
+  if (topics.length > 0) url.searchParams.set('topics', topics.join(','));
+
   // Ask the server for only as many topics as the caller keeps: each topic
-  // costs it one upstream news search.
-  if (options.limit && !options.topic) url.searchParams.set('limit', String(options.limit));
+  // costs it one upstream news search. A custom list already says how many
+  // there are, so `limit` would only ever truncate it.
+  if (options.limit && !options.topic && topics.length === 0) {
+    url.searchParams.set('limit', String(options.limit));
+  }
   return url.toString();
 }
 
@@ -85,9 +102,12 @@ export async function getTrendingNews(options: TrendingNewsOptions): Promise<Tre
   const data = (await response.json()) as WorkerTopicsResponse;
   if (data.error) throw new Error(data.error);
 
-  const limit = options.limit ?? 25;
+  // A custom topic list is exactly what the caller asked for, so it is never
+  // truncated — only the daily ranking is.
+  const limit = cleanTopics(options.topics).length > 0 ? Infinity : (options.limit ?? 25);
   const result: TrendingNewsData = {
     date: data.date,
+    source: data.source,
     topics: (data.topics ?? []).slice(0, limit).map((t) => ({
       topic: t.topic,
       wikiRank: t.wiki_rank,

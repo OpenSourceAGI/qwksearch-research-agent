@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  MAX_CUSTOM_TOPICS,
+  getCustomTopicNews,
   getTrendingTopics,
   handleTrendingNewsRequest,
   parseTopicLimit,
+  parseTopicList,
 } from '../src/server';
 import { getTrendingNews } from '../src/api/trending';
 import { clearTrendingNewsCache } from '../src/lib/cache';
@@ -270,5 +273,133 @@ describe('server and client agree on the wire format', () => {
         ],
       },
     ]);
+  });
+});
+
+describe('parseTopicList', () => {
+  it('splits on commas and newlines, trimming blanks', () => {
+    expect(parseTopicList('AI, climate\nfusion power')).toEqual([
+      'AI',
+      'climate',
+      'fusion power',
+    ]);
+    expect(parseTopicList('  ,\n , ')).toEqual([]);
+    expect(parseTopicList(null)).toEqual([]);
+  });
+
+  it('de-duplicates case-insensitively while keeping the first spelling', () => {
+    expect(parseTopicList('AI, ai, Ai, robotics')).toEqual(['AI', 'robotics']);
+  });
+
+  it('caps the list so one request cannot fan out without bound', () => {
+    const many = Array.from({ length: MAX_CUSTOM_TOPICS + 8 }, (_, i) => `t${i}`);
+    expect(parseTopicList(many)).toHaveLength(MAX_CUSTOM_TOPICS);
+  });
+
+  it('length-caps a single topic', () => {
+    expect(parseTopicList('x'.repeat(500))[0]).toHaveLength(120);
+  });
+});
+
+describe('getCustomTopicNews', () => {
+  it('searches each named topic and keeps the caller’s order', async () => {
+    const { fetchImpl, calls } = stubUpstreams({
+      wiki: wikiItems(0),
+      news: (q) => [newsArticle(`${q} headline`)],
+    });
+
+    const data = await getCustomTopicNews(['fusion', 'AI', 'shipping'], {
+      apiKey: 'k',
+      fetchImpl,
+    });
+
+    expect(data.source).toBe('custom_topics');
+    expect(data.topics.map((t) => t.topic)).toEqual(['fusion', 'AI', 'shipping']);
+    expect(data.topics[0].articles[0].title).toBe('fusion headline');
+    // Wikipedia is never consulted for a custom list.
+    expect(calls.some((url) => url.startsWith(WIKI_HOST))).toBe(false);
+    expect(newsCalls(calls)).toHaveLength(3);
+  });
+
+  it('keeps a topic that has no headlines, rather than dropping it', async () => {
+    const { fetchImpl } = stubUpstreams({
+      wiki: wikiItems(0),
+      news: (q) => (q === 'quiet' ? [] : [newsArticle('A headline')]),
+    });
+
+    const data = await getCustomTopicNews(['quiet', 'loud'], { apiKey: 'k', fetchImpl });
+
+    expect(data.topics.map((t) => [t.topic, t.news_count])).toEqual([
+      ['quiet', 0],
+      ['loud', 1],
+    ]);
+  });
+});
+
+describe('handleTrendingNewsRequest with ?topics=', () => {
+  it('serves the named topics instead of the Wikipedia ranking', async () => {
+    const { fetchImpl, calls } = stubUpstreams({
+      wiki: wikiItems(5),
+      news: (q) => [newsArticle(`${q} headline`)],
+    });
+
+    const res = await handleTrendingNewsRequest(
+      new Request('https://example.com/?topics=AI%2Cclimate'),
+      { apiKey: 'k', fetchImpl },
+    );
+    const body: any = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.source).toBe('custom_topics');
+    expect(body.topics.map((t: any) => t.topic)).toEqual(['AI', 'climate']);
+    expect(calls.some((url) => url.startsWith(WIKI_HOST))).toBe(false);
+  });
+
+  it('falls through to the daily ranking when the list parses to nothing', async () => {
+    const { fetchImpl, calls } = stubUpstreams({ wiki: wikiItems(2) });
+
+    const res = await handleTrendingNewsRequest(
+      new Request('https://example.com/?topics=%20%2C%20&limit=2'),
+      { apiKey: 'k', fetchImpl },
+    );
+    const body: any = await res.json();
+
+    expect(body.source).toBe('wikipedia_daily_top');
+    expect(calls.some((url) => url.startsWith(WIKI_HOST))).toBe(true);
+  });
+
+  it('gives a single ?topic= precedence over a ?topics= list', async () => {
+    const { fetchImpl } = stubUpstreams({
+      wiki: wikiItems(2),
+      news: (q) => [newsArticle(`${q} headline`)],
+    });
+
+    const res = await handleTrendingNewsRequest(
+      new Request('https://example.com/?topic=solo&topics=a,b'),
+      { apiKey: 'k', fetchImpl },
+    );
+    const body: any = await res.json();
+
+    expect(body.topic).toBe('solo');
+    expect(body.topics).toBeUndefined();
+  });
+
+  it('round-trips a custom list through the client, untruncated by limit', async () => {
+    const { fetchImpl } = stubUpstreams({
+      wiki: wikiItems(0),
+      news: (q) => [newsArticle(`${q} headline`)],
+    });
+    vi.stubGlobal('fetch', (input: any) =>
+      handleTrendingNewsRequest(new Request(String(input)), { apiKey: 'k', fetchImpl }),
+    );
+
+    const data = await getTrendingNews({
+      apiEndpoint: '/api/news/trending',
+      topics: ['a', 'b', 'c'],
+      limit: 1,
+    });
+
+    expect(data.source).toBe('custom_topics');
+    expect(data.topics.map((t) => t.topic)).toEqual(['a', 'b', 'c']);
   });
 });

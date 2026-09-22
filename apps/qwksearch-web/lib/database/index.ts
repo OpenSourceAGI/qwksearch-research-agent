@@ -1,3 +1,4 @@
+import type { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
 import { drizzle as drizzleD1 } from "drizzle-orm/d1";
 import { drizzle as drizzleLibsql } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
@@ -37,3 +38,15 @@ export const getDB = cache(() => {
     throw new Error(`Database unavailable: ${msg}`);
   }
 });
+
+/**
+ * `getDB()` returns a union of the D1 and libsql drizzle handles, and calling
+ * a method on a union of two differently-parameterised signatures does not
+ * type-check — `db.select({ ... })` reports "expected 0 arguments". Both
+ * handles extend the same async SQLite base, so a module that builds anything
+ * beyond a plain `select().from()` takes that base type and keeps full
+ * inference on the query builder.
+ */
+export type QueryDB = BaseSQLiteDatabase<"async", unknown, Record<string, never>>;
+
+export const getQueryDB = (): QueryDB => getDB() as unknown as QueryDB;

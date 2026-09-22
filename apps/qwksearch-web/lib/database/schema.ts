@@ -387,3 +387,87 @@ export const userAgentSkills = sqliteTable("user_agent_skills", {
 });
 
 export type UserAgentSkill = typeof userAgentSkills.$inferSelect;
+
+/**
+ * Every headline the trending-news widget has fetched, kept past the ten
+ * minute KV cache so the homepage has something to show when The News API is
+ * down, rate-limited or unconfigured — and so the admin panel can report what
+ * the widget is actually serving.
+ *
+ * `(topic, url)` is unique: a re-fetch of the same topic re-reports the same
+ * articles, and those are updates to one row, not new rows. `fetchedAt` is
+ * therefore "last seen in a fetch", which is what the read-back orders by and
+ * what the retention sweep deletes on.
+ */
+export const newsArticles = sqliteTable(
+  "news_articles",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    topic: text("topic").notNull(),
+    /** `wikipedia_daily_top` or `custom_topics` — how the topic was chosen. */
+    topicSource: text("topic_source").notNull().default("wikipedia_daily_top"),
+    title: text("title").notNull(),
+    url: text("url").notNull(),
+    source: text("source"),
+    imageUrl: text("image_url"),
+    publishedAt: text("published_at"),
+    wikiRank: integer("wiki_rank"),
+    wikiViews: integer("wiki_views"),
+    firstSeenAt: integer("first_seen_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    fetchedAt: integer("fetched_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => {
+    return {
+      topicUrlUnique: unique("news_articles_topic_url").on(
+        table.topic,
+        table.url,
+      ),
+      topicIdx: index("idx_news_articles_topic").on(table.topic),
+      fetchedAtIdx: index("idx_news_articles_fetchedAt").on(table.fetchedAt),
+    };
+  },
+);
+
+export type NewsArticleRow = typeof newsArticles.$inferSelect;
+
+/**
+ * Site-wide control of the homepage news widget, set from the admin panel.
+ *
+ * One row, `id = 'global'`. It lives in D1 rather than in `lib/config` because
+ * that config manager is in-memory: a value set there is lost on the next
+ * Worker isolate and was never visible to the other ones. An admin toggling
+ * the widget off expects it to stay off.
+ */
+export const newsWidgetSettings = sqliteTable("news_widget_settings", {
+  id: text("id").primaryKey(),
+  /** Master switch: off hides the widget for everyone, whatever a user set. */
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  /**
+   * Topics served when a visitor has named none of their own. Blank means the
+   * widget falls back to Wikipedia's daily trending ranking.
+   */
+  defaultTopics: text("default_topics").notNull().default(""),
+  /** Whether visitors may override `defaultTopics` with their own list. */
+  allowUserTopics: integer("allow_user_topics", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  /** Topics the widget shows collapsed. */
+  maxTopics: integer("max_topics").notNull().default(6),
+  showImages: integer("show_images", { mode: "boolean" })
+    .notNull()
+    .default(true),
+  /** How long a fetched answer is cached before the upstream is asked again. */
+  cacheMinutes: integer("cache_minutes").notNull().default(10),
+  /** How long stored articles are kept before the retention sweep drops them. */
+  retentionDays: integer("retention_days").notNull().default(30),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedBy: text("updated_by"),
+});
+
+export type NewsWidgetSettingsRow = typeof newsWidgetSettings.$inferSelect;
