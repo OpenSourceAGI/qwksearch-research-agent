@@ -87,6 +87,16 @@ Cloudflare dashboard survive each deploy.
 | `AUTH_RESEND_KEY` | Verification and magic-link email. | [resend.com/api-keys](https://resend.com/api-keys) |
 | `ADMIN_EMAILS` (legacy `ADMIN_EMAIL` is merged in) | `/admin` and the admin API routes, for the comma-separated addresses listed. Unset, nobody has admin access. | Your own addresses. |
 
+### Billing
+
+Upgrades go through the Stripe Payment Links in `SubscriptionPlans` (`lib/config/site.ts`): **Pro** ($5/month) and **Team** ($99/month), both with a 7-day free trial. The Plan card in Settings → Account opens the link with the user's ID as `client_reference_id`. The [better-auth Stripe plugin](https://www.better-auth.com/docs/plugins/stripe) then ties the payment to the account from its webhook and records it in the `subscription` table (migration `0011_add_stripe_subscriptions`). Without the two secrets below, the upgrade buttons still open checkout but nothing is recorded.
+
+| Variable | Enables | Where to get it |
+| --- | --- | --- |
+| `STRIPE_SECRET_KEY` | The Stripe plugin: subscription tracking and the "Manage billing" portal. | [dashboard.stripe.com/apikeys](https://dashboard.stripe.com/apikeys) |
+| `STRIPE_WEBHOOK_SECRET` | Verifying Stripe webhooks. Point the endpoint at `https://<your host>/api/auth/stripe/webhook` with `checkout.session.completed` and `customer.subscription.created`/`updated`/`deleted`. | [dashboard.stripe.com/webhooks](https://dashboard.stripe.com/webhooks) → the endpoint's signing secret. |
+| `STRIPE_PRICE_ID_PRO` / `STRIPE_PRICE_ID_TEAM` | Optional. Matches subscriptions to plans by price ID. Unset, they are matched by monthly amount. | The price on each product in the Stripe dashboard. |
+
 ### Model and search providers
 
 At least one model provider is needed for the agent to answer.

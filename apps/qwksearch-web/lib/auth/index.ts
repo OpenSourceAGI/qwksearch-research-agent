@@ -6,6 +6,7 @@ import * as schema from "../database/schema";
 import { getCloudflareContext } from "../cloudflare/context";
 import { detectVpnAndLocation } from "../cloudflare/ip-geolocation";
 import { config } from "../config/site";
+import { createStripePlugin } from "../billing/stripe";
 
 export interface Env {
   EMAIL: {
@@ -105,6 +106,8 @@ async function authBuilder() {
         .filter((origin): origin is string => Boolean(origin)),
     ),
   );
+
+  const stripePlugin = createStripePlugin();
 
   return betterAuth({
     baseURL: config.baseUrl || "http://localhost:3000",
@@ -213,6 +216,8 @@ async function authBuilder() {
         expiresIn: 300,
         disableSignUp: false,
       }),
+      // Subscriptions via Stripe Payment Links; only when keys are configured.
+      ...(stripePlugin ? [stripePlugin] : []),
     ],
   });
 }

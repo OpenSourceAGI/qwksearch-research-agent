@@ -70,7 +70,44 @@ export const user = sqliteTable("user", {
     mode: "timestamp",
   }).notNull(),
   isAnonymous: integer("is_anonymous", { mode: "boolean" }),
+  // Set by the better-auth Stripe plugin (lib/billing/stripe.ts) once the user
+  // has paid through Checkout or a Payment Link.
+  stripeCustomerId: text("stripe_customer_id"),
 });
+
+// Subscriptions tracked by the better-auth Stripe plugin. Field names match
+// the plugin's model (`@better-auth/stripe` schema); `referenceId` is the
+// user ID. See drizzle migration 0011_add_stripe_subscriptions.
+export const subscription = sqliteTable(
+  "subscription",
+  {
+    id: text("id").primaryKey(),
+    plan: text("plan").notNull(),
+    referenceId: text("reference_id").notNull(),
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    status: text("status").default("incomplete"),
+    periodStart: integer("period_start", { mode: "timestamp" }),
+    periodEnd: integer("period_end", { mode: "timestamp" }),
+    trialStart: integer("trial_start", { mode: "timestamp" }),
+    trialEnd: integer("trial_end", { mode: "timestamp" }),
+    cancelAtPeriodEnd: integer("cancel_at_period_end", {
+      mode: "boolean",
+    }).default(false),
+    cancelAt: integer("cancel_at", { mode: "timestamp" }),
+    canceledAt: integer("canceled_at", { mode: "timestamp" }),
+    endedAt: integer("ended_at", { mode: "timestamp" }),
+    seats: integer("seats"),
+    billingInterval: text("billing_interval"),
+    stripeScheduleId: text("stripe_schedule_id"),
+  },
+  (table) => [
+    index("subscription_reference_id_idx").on(table.referenceId),
+    index("subscription_stripe_subscription_id_idx").on(
+      table.stripeSubscriptionId,
+    ),
+  ],
+);
 
 export const session = sqliteTable("session", {
   id: text("id").primaryKey(),

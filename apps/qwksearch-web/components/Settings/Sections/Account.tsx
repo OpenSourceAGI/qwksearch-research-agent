@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useImageUpload } from '@/lib/hooks/use-image-upload';
+import UpgradePlans from '@/components/Settings/UpgradePlans';
 
 interface UserProfile {
   id: string;
@@ -176,6 +177,7 @@ export default function Account() {
   const { data: authSession, isPending: isSessionLoading } = authClient.useSession();
  // @ts-ignore
   const isAuthenticated = !!authSession?.user;
+  const sessionUser = (authSession as { user?: { id: string; email?: string | null; isAnonymous?: boolean | null } } | null)?.user;
   const { theme, setTheme } = useTheme();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -710,6 +712,17 @@ export default function Account() {
           </SelectContent>
         </Select>
       </SectionCard>
+
+      {/* Plan */}
+      {sessionUser && !sessionUser.isAnonymous && (
+        <SectionCard>
+          <SectionTitle
+            title="Plan"
+            subtitle="Upgrade for priority responses and custom agents. Checkout opens in Stripe."
+          />
+          <UpgradePlans user={sessionUser} />
+        </SectionCard>
+      )}
 
       {/* API Key */}
       <SectionCard>

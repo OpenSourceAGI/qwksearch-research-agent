@@ -100,6 +100,7 @@
         "@ai-sdk/groq": "^4.0.38",
         "@ai-sdk/openai": "^4.0.62",
         "@ai-sdk/xai": "^4.0.55",
+        "@better-auth/stripe": "~1.7.3",
         "@floating-ui/react": "^0.27.20",
         "@fumadocs/mdx-remote": "^1.5.1",
         "@hocuspocus/extension-sqlite": "^4.6.0",
@@ -187,6 +188,7 @@
         "shadcn-settings": "workspace:*",
         "shadcn-theme-menu": "^1.1.47",
         "sonner": "^2.0.8",
+        "stripe": "^22.6.2",
         "tailwind-merge": "^3.6.0",
         "tailwindcss-animate": "^1.0.7",
         "tldts": "^7.4.12",
@@ -233,7 +235,7 @@
     },
     "packages/chat-agent-toolkit": {
       "name": "chat-agent-toolkit",
-      "version": "1.2.389",
+      "version": "1.2.395",
       "dependencies": {
         "@ai-sdk/anthropic": "^4.0.50",
         "@ai-sdk/google": "^4.0.65",
@@ -281,7 +283,7 @@
     },
     "packages/domain-rank": {
       "name": "domain-rank",
-      "version": "0.1.378",
+      "version": "0.1.384",
       "dependencies": {
         "fuse.js": "^7.5.0",
         "grab-url": "^1.6.22",
@@ -300,7 +302,7 @@
     },
     "packages/extract-pdf": {
       "name": "extract-pdf",
-      "version": "0.1.373",
+      "version": "0.1.379",
       "dependencies": {
         "grab-url": "^1.6.22",
       },
@@ -325,7 +327,7 @@
     },
     "packages/extract-webpage": {
       "name": "extract-webpage",
-      "version": "1.2.383",
+      "version": "1.2.389",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "ai": "^7.0.94",
@@ -374,7 +376,7 @@
     },
     "packages/extract-youtube": {
       "name": "extract-youtube",
-      "version": "1.0.377",
+      "version": "1.0.383",
       "bin": {
         "extract-youtube": "dist/cli.js",
       },
@@ -412,7 +414,7 @@
     },
     "packages/html-renderer-api": {
       "name": "html-renderer-api",
-      "version": "1.0.261",
+      "version": "1.0.267",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.4.0",
       },
@@ -423,7 +425,7 @@
     },
     "packages/investing": {
       "name": "investing",
-      "version": "0.1.81",
+      "version": "0.1.87",
       "dependencies": {
         "@alpacahq/alpaca-trade-api": "^3.1.3",
         "@langchain/core": "^1.1.8",
@@ -470,7 +472,7 @@
     },
     "packages/legal-terms-privacy-policy": {
       "name": "legal-terms-privacy-policy",
-      "version": "0.1.66",
+      "version": "0.1.72",
       "devDependencies": {
         "@testing-library/react": "^16.3.3",
         "@types/react": "^19.2.18",
@@ -489,7 +491,7 @@
     },
     "packages/notebooklm-api-client": {
       "name": "notebooklm-api-client",
-      "version": "0.1.332",
+      "version": "0.1.338",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.4.0",
       },
@@ -503,7 +505,7 @@
     },
     "packages/qwksearch-api-client": {
       "name": "qwksearch-api-client",
-      "version": "1.0.61",
+      "version": "1.0.67",
       "dependencies": {
         "api2client": "^1.0.1",
       },
@@ -523,7 +525,7 @@
     },
     "packages/qwksearch-mcp-server": {
       "name": "qwksearch-mcp-server",
-      "version": "1.0.225",
+      "version": "1.0.231",
       "bin": {
         "qwksearch-mcp": "./bin/qwksearch-mcp.ts",
       },
@@ -540,7 +542,7 @@
     },
     "packages/react-weather-forecast": {
       "name": "use-weather-forecast",
-      "version": "0.1.203",
+      "version": "0.1.209",
       "dependencies": {
         "grab-url": "^1.6.22",
       },
@@ -566,7 +568,7 @@
     },
     "packages/reason-editor": {
       "name": "react-reason-editor",
-      "version": "1.0.191",
+      "version": "1.0.197",
       "dependencies": {
         "@ariakit/react": "^0.4.39",
         "@emoji-mart/data": "1.2.1",
@@ -774,7 +776,7 @@
     },
     "packages/reason-editor-sidebar": {
       "name": "react-reason-editor-sidebar",
-      "version": "0.1.108",
+      "version": "0.1.114",
       "dependencies": {
         "@headless-tree/core": "^1.7.0",
         "@headless-tree/react": "^1.7.0",
@@ -903,7 +905,7 @@
     },
     "packages/research-agent-ui": {
       "name": "research-agent-ui",
-      "version": "0.1.256",
+      "version": "0.1.262",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "@radix-ui/react-dialog": "^1.1.23",
@@ -980,7 +982,7 @@
     },
     "packages/search-web-api": {
       "name": "search-web-api",
-      "version": "1.0.241",
+      "version": "1.0.247",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "@scalar/hono-api-reference": "^0.12.1",
@@ -1000,7 +1002,7 @@
     },
     "packages/shadcn-app-dock": {
       "name": "shadcn-app-dock",
-      "version": "0.1.239",
+      "version": "0.1.245",
       "dependencies": {
         "@radix-ui/react-dropdown-menu": "^2.1.24",
         "@radix-ui/react-slot": "^1.3.3",
@@ -1033,7 +1035,7 @@
     },
     "packages/shadcn-settings": {
       "name": "shadcn-settings",
-      "version": "0.1.117",
+      "version": "0.1.123",
       "dependencies": {
         "@radix-ui/react-select": "^2.3.7",
         "@radix-ui/react-switch": "^1.3.7",
@@ -1062,7 +1064,7 @@
     },
     "packages/trending-news-api": {
       "name": "trending-news-api",
-      "version": "0.1.117",
+      "version": "0.1.123",
       "devDependencies": {
         "@cloudflare/workers-types": "^5.20260908.1",
         "@testing-library/react": "^16.3.3",
@@ -1085,7 +1087,7 @@
     },
     "packages/use-voice-control": {
       "name": "use-voice-control",
-      "version": "0.1.198",
+      "version": "0.1.204",
       "bin": {
         "use-voice-control": "bin/use-voice-control.mjs",
       },
@@ -1147,7 +1149,7 @@
     },
     "packages/write-language": {
       "name": "write-language",
-      "version": "0.1.259",
+      "version": "0.1.265",
       "dependencies": {
         "@ai-sdk/amazon-bedrock": "^5.0.78",
         "@ai-sdk/anthropic": "^4.0.50",
@@ -1416,6 +1418,8 @@
     "@better-auth/mongo-adapter": ["@better-auth/mongo-adapter@1.7.3", "", { "peerDependencies": { "@better-auth/core": "^1.7.3", "@better-auth/utils": "0.4.2", "mongodb": "^6.0.0 || ^7.0.0" }, "optionalPeers": ["mongodb"] }, "sha512-YL9m01tNogmFmRvOWJ46M9WwE6HirCXHDell29mtsQB/Qs1TPNLrgj7ybGMMGhQuyj6S218+8Wbls8m9s+i8RQ=="],
 
     "@better-auth/prisma-adapter": ["@better-auth/prisma-adapter@1.7.3", "", { "peerDependencies": { "@better-auth/core": "^1.7.3", "@better-auth/utils": "0.4.2", "@prisma/client": "^5.0.0 || ^6.0.0 || ^7.0.0", "prisma": "^5.0.0 || ^6.0.0 || ^7.0.0" }, "optionalPeers": ["@prisma/client", "prisma"] }, "sha512-TJ/DhlU7oLzrC626/1wfYA1Pl+lVsXa/zXBZ8d7Rlc2YO5fGd5fsAYJdRrYMyA51iZEo+rWLXMhZ0cez1BamsQ=="],
+
+    "@better-auth/stripe": ["@better-auth/stripe@1.7.3", "", { "dependencies": { "defu": "^6.1.5", "zod": "^4.5.4" }, "peerDependencies": { "@better-auth/core": "^1.7.3", "better-auth": "^1.7.3", "better-call": "1.4.0", "stripe": "^18 || ^19 || ^20 || ^21 || ^22" } }, "sha512-h0PYw+0BU8IbrPbFocsdCDpgpJd4e3opvl/WxhvWmAQYcV3ZtK/1oDfzjcN60UMPwW61yuNGQAXZQVt4sfB7lw=="],
 
     "@better-auth/telemetry": ["@better-auth/telemetry@1.7.3", "", { "peerDependencies": { "@better-auth/core": "^1.7.3", "@better-auth/utils": "0.4.2", "@better-fetch/fetch": "1.3.1" } }, "sha512-aixgHbJhGvS8PRczX/LR3murYyBnIvOGmJw37ZZBMg6ZtLR/UBJAkufbDi1HYn5THSuTJ3D5DtY85Ahh/ABQtw=="],
 
@@ -6408,6 +6412,8 @@
     "strip-literal": ["strip-literal@3.1.0", "", { "dependencies": { "js-tokens": "^9.0.1" } }, "sha512-8r3mkIM/2+PpjHoOtiAW8Rg3jJLHaV7xPwG+YRGrv6FP0wwk/toTpATxWYOW0BKdWwl82VT2tFYi5DlROa0Mxg=="],
 
     "strip-outer": ["strip-outer@1.0.1", "", { "dependencies": { "escape-string-regexp": "^1.0.2" } }, "sha512-k55yxKHwaXnpYGsOzg4Vl8+tDrWylxDEpknGjhTiZB8dFRU5rTo9CAzeycivxV3s+zlTKwrs6WxMxR95n26kwg=="],
+
+    "stripe": ["stripe@22.6.2", "", { "peerDependencies": { "@types/node": ">=18" }, "optionalPeers": ["@types/node"] }, "sha512-PwRE2scocvXqDKPiskMa5vRJEAEkq46W69XyUYmAwrNSLr675lQnfqLwnsndAWizwgihOWw/irLmoFRo3ez7ew=="],
 
     "strnum": ["strnum@2.4.2", "", { "dependencies": { "anynum": "^1.0.1" } }, "sha512-rDG3Ah4TV0k1hWvLSzkZtMmLN9+eS+h3knq4MP6A42Y3Yh5qGNnOUs1jJkoSr8FG5dsL28c7KgkIBzSEykqtuw=="],
 
