@@ -450,7 +450,7 @@ export function faviconUrl(domain: string, size = 64): string {
 
 export const COMPARISON_ROWS: ComparisonRow[] = [
   {
-    feature: "Open source",
+    feature: "Open Source Self-hosted",
     cells: [
       { status: "yes", note: "Yes" },
       { status: "no" },
@@ -462,7 +462,7 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
     ],
   },
   {
-    feature: "Self-hostable",
+    feature: "",
     cells: [
       { status: "yes", note: "Cloudflare Workers or Docker" },
       { status: "no" },
