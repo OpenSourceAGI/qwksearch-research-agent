@@ -6,10 +6,20 @@
  * differ. Keeping one copy here is what stops the five pages from drifting.
  *
  * The document itself is a React component — import it from
- * `legal-terms-privacy-policy/react`. This entry point carries only the types
- * and constants, so server code that needs, say, the summary URL does not pull
- * React in with it.
+ * `legal-terms-privacy-policy/react`, along with the cookie consent banner
+ * that carries the same promises in a smaller box. This entry point holds only
+ * the types, constants and the consent storage helpers, so server code that
+ * needs, say, the summary URL does not pull React in with it.
  */
+
+export {
+    COOKIE_CONSENT_CHOICES,
+    COOKIE_CONSENT_STORAGE_KEY,
+    clearCookieConsent,
+    readCookieConsent,
+    writeCookieConsent,
+} from './cookie-consent';
+export type { CookieConsentChoice, CookieConsentRecord } from './cookie-consent';
 
 /** Which rendering of the document the page opens on. */
 export type LegalVariant = 'full' | 'summary';

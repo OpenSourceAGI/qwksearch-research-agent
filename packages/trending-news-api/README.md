@@ -1,6 +1,6 @@
 <!-- template-git-repo:badges:start -->
 <p align="center">
-    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <br />
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
     <a href="https://www.npmjs.com/package/trending-news-api"><img src="https://img.shields.io/npm/dm/trending-news-api.svg" alt="NPM Monthly Downloads" /></a>
@@ -31,6 +31,7 @@ Cloudflare Worker so the News API key never reaches the browser.
 ## Features
 
 - Daily trending topics, ranked by Wikipedia pageviews.
+- Or your own topic list, followed in the order you give it.
 - Matching headlines per topic from The News API.
 - Article thumbnail images, shown alongside headlines (toggle off with `showImages={false}`).
 - Single-topic headline lookup.
@@ -67,6 +68,22 @@ Pass `topic` to render headlines for a single topic instead of the daily trendin
 <TrendingNews apiEndpoint="https://trending-news-api.your-subdomain.workers.dev" topic="Donald Trump" />
 ```
 
+Pass `topics` to follow a list of your own instead of the Wikipedia ranking. The order
+is yours and is kept; a topic with no headlines right now is still shown, rather than
+disappearing from a list the reader chose:
+
+```tsx
+<TrendingNews
+  apiEndpoint="/api/news/trending"
+  topics={['fusion power', 'semiconductor supply chain', 'local elections']}
+  compact
+/>
+```
+
+The list is trimmed, de-duplicated case-insensitively and capped at 20 topics — each one
+costs the server a News API search. A compact card built from a custom list labels itself
+"Your Topics"; override it with `heading`.
+
 `apiEndpoint` may be a full URL or a path on the current origin (`/api/news/trending`), so a host
 app that serves the data itself doesn't have to hardcode its own domain.
 
@@ -84,6 +101,11 @@ const trending = await getTrendingNews({
 
 const topicNews = await getTrendingNewsForTopic('Donald Trump', {
   apiEndpoint: 'https://trending-news-api.your-subdomain.workers.dev',
+});
+
+const mine = await getTrendingNews({
+  apiEndpoint: '/api/news/trending',
+  topics: ['fusion power', 'shipping'],
 });
 ```
 
@@ -105,9 +127,13 @@ npm run build
   - `GET /` — trending topics with headline counts and articles (`?limit=` topics, default 25,
     capped at 50).
   - `GET /?topic=...` — headlines for a specific topic.
+  - `GET /?topics=a,b,c` — headlines for a named list of topics, in that order, instead of
+    the Wikipedia ranking (capped at 20; `?topic=` wins if both are given).
 
-Topics with no matching headlines are dropped, so it looks at up to twice as many Wikipedia
-entries as topics requested and stops once the quota is filled. Searches run five at a time.
+Topics with no matching headlines are dropped from the *daily* list, so it looks at up to twice
+as many Wikipedia entries as topics requested and stops once the quota is filled. A named topic
+is never dropped — a reader who asked for it should see that it is quiet, not lose the row.
+Searches run five at a time either way.
 
 ### Deploying the worker
 

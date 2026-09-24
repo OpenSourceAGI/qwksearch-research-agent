@@ -70,6 +70,13 @@ default chain — requesting it raises the permission prompt. Put it first expli
 
 The component adds `className`, `style` and `compact`.
 
+`compact` is a short, fluid card: current conditions on the left, the next three days
+on the right, wrapping to a stack when the container narrows. It is kept deliberately
+short — on the qwksearch homepage it sits between the news widget and the chat input,
+so its height comes out of the input box's room on a laptop. The padding, the gap
+between its two rows and the two display sizes (temperature, clock) are what set that
+height; trim content before growing any of them.
+
 Data: `WeatherForecastData { location, current, hourly[], daily[] }` with
 `CurrentWeather { time, temperature, weatherCode, icon, isDay?, rain?, showers?,
 snowfall?, windSpeed? }`, `HourlyWeather` (adds `precipitationProbability`) and

@@ -1,13 +1,10 @@
-import type { BaseSQLiteDatabase } from "drizzle-orm/sqlite-core";
-import { getDB } from "@/lib/database";
+import { getDB, type QueryDB } from "@/lib/database";
 
 /**
- * `getDB()` returns a union of the D1 and libsql drizzle handles, and calling
- * a method on a union of two differently-parameterised signatures does not
- * type-check — `db.select({ ... })` reports "expected 0 arguments" across the
- * app. Both handles extend the same async SQLite base, so the admin modules
- * take that base type and keep full inference on the query builder.
+ * The admin modules' name for the shared query handle. See `QueryDB` in
+ * `lib/database` for why `getDB()` cannot be used directly for anything
+ * beyond a plain `select().from()`.
  */
-export type AdminDB = BaseSQLiteDatabase<"async", unknown, Record<string, never>>;
+export type AdminDB = QueryDB;
 
 export const getAdminDB = (): AdminDB => getDB() as unknown as AdminDB;

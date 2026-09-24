@@ -40,10 +40,24 @@ export type UploadFileLoader = (fileId: string) => Promise<LoadedUpload | null>;
  */
 export declare function registerUploadFileLoader(loader: UploadFileLoader): void;
 /**
+ * Resolves every uploaded fileId once, in order — sequentially, so one raw
+ * payload is live at a time, and once per request, with the result shared by
+ * the reranker and the image loader.
+ */
+export declare function loadUploads(fileIds: string[], r2Credentials?: R2CredentialsInput): Promise<LoadedUpload[]>;
+/**
+ * Picks the image attachments out of already-resolved uploads, ready to be
+ * passed to the LLM as image content parts.
+ */
+export declare function selectUploadImages(uploads: LoadedUpload[]): UploadImageAttachment[];
+/**
  * Resolves image attachments for the given uploaded fileIds so they can be
  * passed to the LLM as image content parts. Non-image uploads (documents) and
  * images stored without inline data are skipped.
  */
-export declare function loadUploadImages(fileIds: string[], r2Credentials?: R2CredentialsInput): Promise<UploadImageAttachment[]>;
-export declare function rerankDocs(query: string, docs: Document[], fileIds: string[], optimizationMode: "speed" | "balanced" | "quality", r2Credentials?: R2CredentialsInput): Promise<Document[]>;
+export declare function loadUploadImages(fileIds: string[], r2Credentials?: R2CredentialsInput, preloaded?: LoadedUpload[]): Promise<UploadImageAttachment[]>;
+/**
+ * Builds the answer context: uploaded file content first, then web results.
+ */
+export declare function rerankDocs(query: string, docs: Document[], fileIds: string[], optimizationMode: "speed" | "balanced" | "quality", r2Credentials?: R2CredentialsInput, preloaded?: LoadedUpload[]): Promise<Document[]>;
 export declare function processDocs(docs: Document[]): string;

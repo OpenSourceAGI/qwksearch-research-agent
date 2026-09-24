@@ -4,7 +4,7 @@
 
 <!-- template-git-repo:badges:start -->
 <p align="center">
-    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <br />
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
     <a href="https://www.npmjs.com/package/extract-youtube"><img src="https://img.shields.io/npm/dm/extract-youtube.svg" alt="NPM Monthly Downloads" /></a>
@@ -25,10 +25,10 @@
 <!-- template-git-repo:badges:end -->
 
 # Extract YouTube Transcript 
+.
+⚡ **No API keys, no headless browsers, no dependencies. Only the fastest, most optimized YouTube transcript extractor.**
 
-⚡ **The fastest, most optimized YouTube transcript extractor for Node.js/TypeScript**
-
-A production-ready TypeScript port of the popular Python [`extract-youtube`](https://github.com/jdepoix/extract-youtube) (100k+ monthly PyPI downloads), optimized for serverless environments and edge computing. No API keys, no headless browsers, no dependencies bloat.
+A production-ready TypeScript port of the popular Python [`extract-youtube`](https://github.com/dbeley/youtube_extract) (100k+ monthly PyPI downloads), optimized for serverless environments and edge computing. No API keys, no headless browsers, no dependencies bloat.
 
 ## Why This Package?
 

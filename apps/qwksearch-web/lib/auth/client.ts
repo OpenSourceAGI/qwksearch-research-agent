@@ -4,6 +4,7 @@ import {
   magicLinkClient,
   anonymousClient,
 } from "better-auth/client/plugins";
+import { stripeClient } from "@better-auth/stripe/client";
 import { config } from "../config/site";
 
 // Use the current browser origin so auth requests are always same-origin.
@@ -26,5 +27,6 @@ export const authClient = createAuthClient({
     }),
     magicLinkClient(),
     anonymousClient(),
+    stripeClient({ subscription: true }),
   ],
 });

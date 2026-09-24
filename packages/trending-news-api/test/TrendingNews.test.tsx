@@ -114,14 +114,37 @@ describe('<TrendingNews />', () => {
     expect(screen.getByText('Total eclipse crosses North America')).toBeTruthy();
   });
 
-  it('renders a compact card for a topic with no articles', async () => {
+  it('renders a compact card for a topic with no articles, but not as a link', async () => {
     vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue(data());
 
     render(<TrendingNews apiEndpoint={ENDPOINT} compact />);
 
-    const card = (await screen.findByText('Elections')).closest('a');
-    expect(card).not.toBeNull();
-    expect(card?.getAttribute('href')).toBeNull();
+    // The card is still rendered — a custom topic the user named must not
+    // vanish just because it has no headlines right now — but with no lead
+    // article there is nothing to link to, so it is not an anchor.
+    const name = await screen.findByText('Elections');
+    expect(name.closest('a')).toBeNull();
+    expect(screen.getByText('No headlines right now.')).toBeTruthy();
+  });
+
+  it('labels a custom topic list as such instead of "Trending"', async () => {
+    vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue({
+      ...data(),
+      source: 'custom_topics',
+    });
+
+    render(<TrendingNews apiEndpoint={ENDPOINT} compact topics={['Eclipse']} />);
+
+    expect(await screen.findByText('Your Topics')).toBeTruthy();
+    expect(screen.queryByText('Trending')).toBeNull();
+  });
+
+  it('lets the host app override the compact heading', async () => {
+    vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue(data());
+
+    render(<TrendingNews apiEndpoint={ENDPOINT} compact heading="Today" />);
+
+    expect(await screen.findByText('Today')).toBeTruthy();
   });
 
   it('does not show an expand toggle in compact mode unless expandable is set', async () => {

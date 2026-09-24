@@ -1,5 +1,5 @@
 {
-  "name": "train-next-word-prediction-webui",
+  "name": "train-llm",
   "private": true,
   "version": "1.0.0",
   "description": "Control/monitoring dashboard (Next.js + shadcn) for the FastAPI training API",

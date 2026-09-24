@@ -17,8 +17,13 @@ afterEach(() => {
 });
 
 describe('isSsrTraceEnabled', () => {
-  it('is on by default, so a production 500 is already traced when it happens', () => {
+  it('is off by default, so a render loop cannot flood the console', () => {
     vi.stubEnv('QS_SSR_TRACE', '');
+    expect(isSsrTraceEnabled()).toBe(false);
+  });
+
+  it.each(['on', 'ON', ' on ', '1', 'true', 'yes'])('is on for %o', (value) => {
+    vi.stubEnv('QS_SSR_TRACE', value);
     expect(isSsrTraceEnabled()).toBe(true);
   });
 

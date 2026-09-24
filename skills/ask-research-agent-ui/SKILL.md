@@ -93,6 +93,19 @@ load-bearing and neither is inferable from the types, so keep the fallbacks:
 `stream: true` against a host with no `streamText` has to answer with JSON
 rather than failing the request.
 
+`rewrite` finds its model in three steps, most specific first: the `chatModel`
+(`{ providerId, key }`) the caller named, loaded through the host's optional
+`loadChatModel` dep; then the deployment's `GROQ_API_KEY`; then `loadChatModel`
+again with no argument, for whatever provider the host does have. Only the Groq
+step existed before, so a deployment that never set that key answered every
+rewrite with a 500 while its chat routes ran on a working model. When none of
+the three produce a model — and whenever the provider itself rejects the
+request — the reason travels in the body's `error` field, because that is what
+`createStreamingCompletion` shows the user; a bare "Please try again" is not a
+diagnosis. The streaming path pulls the model's first chunk *before* it returns
+a Response for the same reason: a bad key or a retired model is still a status
+code at that point, and an empty 200 afterwards.
+
 **The spotlight palette.** `QwkSearchProviders` mounts `SpotlightPalette` (turn it off
 with `showSpotlight={false}`). Ctrl-Space — Cmd-Space belongs to macOS — opens one bar
 over the whole app; `openSpotlight()` does the same from chrome that has no keyboard

@@ -38,6 +38,13 @@ export interface TrendingNewsWireResponse {
   topics: TrendingNewsWireTopic[];
 }
 
+/**
+ * The most topics a caller may name in `?topics=`. Each one costs an upstream
+ * news search, so an unbounded list is a way to burn the API quota in one
+ * request.
+ */
+export const MAX_CUSTOM_TOPICS = 20;
+
 /** Body of `GET /?topic=…` — headlines for one topic. */
 export interface TrendingNewsWireTopicResponse {
   topic: string;
@@ -110,6 +117,31 @@ export function parseTopicLimit(
   const value = typeof raw === 'string' ? Number(raw) : raw;
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return fallback;
   return Math.min(MAX_TOPIC_LIMIT, Math.floor(value));
+}
+
+/**
+ * Parses a caller-supplied custom topic list (`?topics=a,b,c`, or newline
+ * separated) into clean, de-duplicated topic names.
+ *
+ * Topics come from user settings, so they are untrusted: each one is trimmed,
+ * length-capped and compared case-insensitively for de-duplication, and the
+ * list is capped at `MAX_CUSTOM_TOPICS`.
+ */
+export function parseTopicList(raw: string | string[] | null | undefined): string[] {
+  if (!raw) return [];
+  const parts = Array.isArray(raw) ? raw : raw.split(/[,\n]/);
+  const seen = new Set<string>();
+  const topics: string[] = [];
+  for (const part of parts) {
+    const topic = String(part).trim().slice(0, 120);
+    if (!topic) continue;
+    const key = topic.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    topics.push(topic);
+    if (topics.length >= MAX_CUSTOM_TOPICS) break;
+  }
+  return topics;
 }
 
 /** The UTC date the pageviews API has complete data for (see `getTrendingTopics`). */
@@ -244,6 +276,50 @@ export async function getTrendingTopics(
   };
 }
 
+/**
+ * The same wire shape as the daily list, but built from topics the caller
+ * named instead of Wikipedia's ranking — this is what backs per-user custom
+ * topics and an admin-configured default topic list.
+ *
+ * Ordering is the caller's, not a popularity ranking, so no `wiki_rank` is
+ * attached and the result is not re-sorted. Unlike the daily list, a topic
+ * with no headlines is *kept* (with `news_count: 0`): the user asked for it by
+ * name, and silently dropping it reads as the setting not having been saved.
+ * Searches run in the same bounded batches as the daily list.
+ */
+export async function getCustomTopicNews(
+  topics: string[],
+  options: { apiKey: string; fetchImpl?: typeof fetch }
+): Promise<TrendingNewsWireResponse> {
+  const { apiKey, fetchImpl = fetch } = options;
+  const wanted = parseTopicList(topics);
+
+  const results: TrendingNewsWireTopic[] = [];
+  for (let i = 0; i < wanted.length; i += SEARCH_CONCURRENCY) {
+    const batch = wanted.slice(i, i + SEARCH_CONCURRENCY);
+    const searched = await Promise.all(
+      batch.map(async (topic) => ({
+        topic,
+        articles: await searchNewsForTopic(apiKey, topic, ARTICLES_PER_TOPIC, fetchImpl),
+      }))
+    );
+
+    for (const { topic, articles } of searched) {
+      results.push({
+        topic,
+        news_count: articles.length,
+        articles: toArticlePayload(articles),
+      });
+    }
+  }
+
+  return {
+    source: 'custom_topics',
+    date: formatDate(new Date()),
+    topics: results,
+  };
+}
+
 /** Headlines for a single topic, bypassing the Wikipedia ranking. */
 export async function getTopicHeadlines(
   topic: string,
@@ -264,10 +340,12 @@ export async function getTopicHeadlines(
 }
 
 /**
- * Serves both routes the client speaks:
+ * Serves the three routes the client speaks:
  *
  * - `GET /` — the daily trending list (`?limit=` topics, default 25).
  * - `GET /?topic=…` — headlines for one topic.
+ * - `GET /?topics=a,b,c` — headlines for a caller-named topic list, in that
+ *   order, instead of the Wikipedia ranking.
  *
  * Always answers with JSON, including for failures, so a widget that only
  * reads `error` never has to parse an HTML error page.
@@ -283,10 +361,18 @@ export async function handleTrendingNewsRequest(
 
   const params = new URL(request.url).searchParams;
   const topic = params.get('topic');
+  // `topics` is only honoured when it survives parsing — a list of nothing but
+  // whitespace must fall through to the daily ranking rather than render an
+  // empty widget.
+  const customTopics = parseTopicList(params.get('topics'));
 
   try {
     if (topic) {
       return jsonResponse(await getTopicHeadlines(topic, { apiKey, fetchImpl }));
+    }
+
+    if (customTopics.length > 0) {
+      return jsonResponse(await getCustomTopicNews(customTopics, { apiKey, fetchImpl }));
     }
 
     return jsonResponse(
@@ -299,7 +385,11 @@ export async function handleTrendingNewsRequest(
   } catch (e) {
     return jsonResponse(
       {
-        error: topic ? 'Failed to fetch news for topic' : 'Failed to fetch Wikipedia trends',
+        error: topic
+          ? 'Failed to fetch news for topic'
+          : customTopics.length > 0
+            ? 'Failed to fetch news for topics'
+            : 'Failed to fetch Wikipedia trends',
         details: e instanceof Error ? e.message : String(e),
       },
       500

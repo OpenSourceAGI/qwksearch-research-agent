@@ -27,9 +27,22 @@ const PKG_ROOT = path.join(import.meta.dirname, '..');
 const SPEC_PATH = path.join(PKG_ROOT, 'openapi.yml');
 const HTTP_METHODS = new Set(['DELETE', 'GET', 'PATCH', 'POST', 'PUT']);
 
-// Documentation-serving routes: real endpoints, deliberately not part of the
-// API surface described by the spec.
-const SPEC_EXEMPT = new Set(['GET /api/v1/docs', 'GET /api/v1/openapi.json']);
+// Real endpoints deliberately outside the API surface this spec describes.
+const SPEC_EXEMPT = new Set([
+  // Documentation-serving routes: the reference itself and the spec behind it.
+  'GET /api/v1',
+  'GET /api/v1/docs',
+  'GET /api/v1/openapi.json',
+  // Heterogeneous-model relays. These speak the upstream provider's protocol so
+  // an Anthropic or OpenAI SDK can be pointed straight at this host: they take
+  // that provider's request body, answer with its SSE event stream, and on
+  // failure return its error envelope, not this API's. Describing them here
+  // would republish someone else's contract as our own — and a spec entry has
+  // to carry the JSON 200/400/.../500 set every other operation does, which an
+  // endpoint that only ever streams cannot honestly claim.
+  'POST /api/v1/anthropic/v1/messages',
+  'POST /api/v1/openai/v1/responses',
+]);
 
 // Import after the env defaults above are in place.
 const { honoApp } = await import('../src/app');

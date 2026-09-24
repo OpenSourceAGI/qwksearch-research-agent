@@ -1,6 +1,6 @@
 <!-- template-git-repo:badges:start -->
 <p align="center">
-    <a href="https://qwksearch.com/api/docs"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <br />
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
     <a href="https://www.npmjs.com/package/legal-terms-privacy-policy"><img src="https://img.shields.io/npm/dm/legal-terms-privacy-policy.svg" alt="NPM Monthly Downloads" /></a>
@@ -25,7 +25,8 @@
 The Terms of Service and Privacy Policy page that QwkSearch, Debate AI, AI Broker,
 Grab URL and Rights Institute all publish — one copy, rendered as a React
 component, so the pages cannot drift apart. Each site passes its own name,
-contact address and revision date; every clause is shared.
+contact address and revision date; every clause is shared. The cookie consent
+banner ships alongside it, for the same reason.
 
 ## Usage
 
@@ -62,12 +63,63 @@ The component carries its own stylesheet, inlined into a `<style>` element
 rather than imported as a `.css` file, so it drops into any bundler without
 CSS-in-`node_modules` configuration.
 
+## Cookie consent banner
+
+The consent banner makes the same promises the policy makes, in a smaller box,
+so it lives here rather than in any one app's UI.
+
+```tsx
+import { CookieConsent } from 'legal-terms-privacy-policy/react';
+
+<CookieConsent
+    appName="QwkSearch"
+    links={[{ url: '/legal/privacy', text: 'Privacy' }]}
+    heightVar="--qs-bottom-right-inset"
+/>;
+```
+
+It shows only when no decision is on record, and the check runs in an effect —
+so it costs nothing on the server, and a cached page never shows it to someone
+who already answered.
+
+| Prop | Required | Description |
+| --- | --- | --- |
+| `appName` | yes | Product name, named in the default copy. |
+| `links` | no | Links under the copy. Point one at the page above. |
+| `title` / `message` | no | Replace the default heading and body copy. |
+| `acceptLabel` / `rejectLabel` | no | Default to "Accept All" and "Reject". |
+| `storageKey` | no | `localStorage` key holding the decision. Defaults to `cookie-consent`. |
+| `dismissible` | no | Show the × that hides the banner without recording a decision. Defaults to `true`. |
+| `heightVar` | no | CSS custom property on `<html>` to publish the banner's height into while it is up, so other chrome in the same corner can sit above it. |
+| `onDecision` | no | Called with the stored record when the visitor answers. |
+| `className` | no | Extra class on the fixed wrapper. |
+
+The decision itself is readable without React, for gating analytics:
+
+```ts
+import { readCookieConsent, clearCookieConsent } from 'legal-terms-privacy-policy';
+
+if (readCookieConsent()?.analytics) loadAnalytics();
+clearCookieConsent(); // a "change my choices" link — the banner asks again
+```
+
+"Reject" records essential cookies only rather than nothing at all; the record
+is stamped with the time the visitor decided. A malformed or half-written
+record reads as no decision, so a bad value cannot wedge the page.
+
+Like the legal page, the banner inlines its own stylesheet. Its colors come
+from the host's shadcn/ui custom properties (`--secondary`, `--border`,
+`--foreground`, `--muted`) where those are defined, so it picks up the site's
+palette and light/dark switch; sites without them get a plain light card that
+darkens with `prefers-color-scheme`.
+
 ## Entry points
 
-- `legal-terms-privacy-policy` — types and `LEGAL_SUMMARY_URL`, no React import.
-- `legal-terms-privacy-policy/react` — `LegalTermsPrivacyPolicy` and the
-  `FullLegalTerms` / `LegalSummary` halves, should a site want to lay them out
-  itself.
+- `legal-terms-privacy-policy` — types, `LEGAL_SUMMARY_URL` and the cookie
+  consent storage helpers, no React import.
+- `legal-terms-privacy-policy/react` — `LegalTermsPrivacyPolicy`, the
+  `FullLegalTerms` / `LegalSummary` halves should a site want to lay them out
+  itself, and `CookieConsent`.
 
 The package ships TypeScript sources, like the other workspace packages here, so
 consumers transpile it. In Next.js that means listing it in

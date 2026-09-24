@@ -734,7 +734,7 @@ export const PROJECT_BADGES: ProjectBadge[] = [
   {
     alt: "API reference",
     src: "https://img.shields.io/badge/API-blue?logo=fastapi&logoColor=white",
-    href: "https://qwksearch.com/api/docs",
+    href: "https://qwksearch.com/api",
   },
   {
     alt: "YouTube",

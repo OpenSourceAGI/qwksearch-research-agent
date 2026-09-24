@@ -123,50 +123,92 @@ async function resolveUpload(
 }
 
 /**
+ * Resolves every uploaded fileId once, in order.
+ *
+ * Two things here are deliberate, and both are about the 128MB an edge isolate
+ * gets. An attachment arrives as a JSON object whose `image` field is a data
+ * URL, so an 8MB picture is ~11MB of base64 that exists twice while it is
+ * parsed — and a request may carry ten of them. So: resolved **sequentially**,
+ * to keep one raw payload live at a time rather than ten; and resolved **once**
+ * per request, with the result shared by the reranker and the image loader,
+ * which between them used to fetch and parse every attachment twice over.
+ *
+ * Duplicate ids in the list collapse to one fetch. A file that cannot be
+ * resolved is dropped, exactly as before.
+ */
+export async function loadUploads(
+  fileIds: string[],
+  r2Credentials?: R2CredentialsInput,
+): Promise<LoadedUpload[]> {
+  if (!fileIds || fileIds.length === 0) return [];
+
+  const seen = new Set<string>();
+  const loaded: LoadedUpload[] = [];
+
+  for (const fileId of fileIds) {
+    if (seen.has(fileId)) continue;
+    seen.add(fileId);
+    const upload = await resolveUpload(fileId, r2Credentials);
+    if (upload) loaded.push(upload);
+  }
+
+  return loaded;
+}
+
+/**
+ * Picks the image attachments out of already-resolved uploads, ready to be
+ * passed to the LLM as image content parts. Documents and images stored
+ * without inline data carry no `image`, so they drop out here.
+ */
+export function selectUploadImages(uploads: LoadedUpload[]): UploadImageAttachment[] {
+  return uploads
+    .filter((u) => typeof u.image === "string" && u.image.length > 0)
+    .map((u) => ({
+      mediaType: u.mediaType || "image/png",
+      image: u.image as string,
+    }));
+}
+
+/**
  * Resolves image attachments for the given uploaded fileIds so they can be
  * passed to the LLM as image content parts. Non-image uploads (documents) and
  * images stored without inline data are skipped.
+ *
+ * Pass `preloaded` when the uploads have already been resolved for this
+ * request — {@link loadUploads} explains why fetching them twice is worth
+ * avoiding.
  */
 export async function loadUploadImages(
   fileIds: string[],
   r2Credentials?: R2CredentialsInput,
+  preloaded?: LoadedUpload[],
 ): Promise<UploadImageAttachment[]> {
+  if (preloaded) return selectUploadImages(preloaded);
   if (!fileIds || fileIds.length === 0) return [];
-
-  const resolved = await Promise.all(
-    fileIds.map((fileId) => resolveUpload(fileId, r2Credentials)),
-  );
-
-  return resolved
-    .filter(
-      (r): r is LoadedUpload =>
-        r !== null && typeof r.image === "string" && r.image.length > 0,
-    )
-    .map((r) => ({
-      mediaType: r.mediaType || "image/png",
-      image: r.image as string,
-    }));
+  return selectUploadImages(await loadUploads(fileIds, r2Credentials));
 }
 
+/**
+ * Builds the answer context: uploaded file content first, then web results.
+ *
+ * Pass `preloaded` when the uploads have already been resolved for this
+ * request — see {@link loadUploads}.
+ */
 export async function rerankDocs(
   query: string,
   docs: Document[],
   fileIds: string[],
   optimizationMode: "speed" | "balanced" | "quality",
   r2Credentials?: R2CredentialsInput,
+  preloaded?: LoadedUpload[],
 ): Promise<Document[]> {
   if (docs.length === 0 && fileIds.length === 0) {
     return docs;
   }
 
-  let filesData: LoadedUpload[] = [];
-
-  if (fileIds.length > 0) {
-    const results = await Promise.all(
-      fileIds.map((fileId) => resolveUpload(fileId, r2Credentials)),
-    );
-    filesData = results.filter((r): r is LoadedUpload => r !== null);
-  }
+  const filesData: LoadedUpload[] =
+    preloaded ??
+    (fileIds.length > 0 ? await loadUploads(fileIds, r2Credentials) : []);
 
   // Uploaded documents must always reach the LLM. Build their docs up front so
   // every return path below keeps them in the answer context. Image uploads

@@ -19,6 +19,11 @@ type Props = TrendingNewsOptions & {
   expandedMaxTopics?: number;
   /** Show each topic's lead article thumbnail image, when available (default true). */
   showImages?: boolean;
+  /**
+   * Label on the `compact` card. Defaults to "Trending", or "Your Topics"
+   * when the server answered with a custom topic list.
+   */
+  heading?: string;
 };
 
 function ChevronIcon({ up }: { up?: boolean }) {
@@ -156,9 +161,13 @@ function TopicArticleList({ topic, showImages }: { topic: TrendingTopic; showIma
           {topic.newsCount} article{topic.newsCount === 1 ? '' : 's'}
         </span>
       </div>
-      {topic.articles.slice(0, 5).map((article, i) => (
-        <ArticleLine key={article.url ?? i} article={article} showImage={showImages} />
-      ))}
+      {topic.articles.length === 0 ? (
+        <div style={{ ...styles.article, opacity: 0.6 }}>No headlines right now.</div>
+      ) : (
+        topic.articles.slice(0, 5).map((article, i) => (
+          <ArticleLine key={article.url ?? i} article={article} showImage={showImages} />
+        ))
+      )}
     </div>
   );
 }
@@ -178,6 +187,7 @@ export function TrendingNews(props: Props) {
     expandable,
     expandedMaxTopics = 15,
     showImages = true,
+    heading,
     ...options
   } = props;
   const { data, loading, error } = useTrendingNews(options);
@@ -197,7 +207,9 @@ export function TrendingNews(props: Props) {
     return (
       <div className={className} style={{ ...styles.compactRoot, ...style }}>
         <div style={styles.compactHeaderRow}>
-          <div style={styles.compactHeader}>Trending</div>
+          <div style={styles.compactHeader}>
+            {heading ?? (data.source === 'custom_topics' ? 'Your Topics' : 'Trending')}
+          </div>
           {expandable && (
             <button
               type="button"
@@ -220,24 +232,29 @@ export function TrendingNews(props: Props) {
         ) : (
           <div style={styles.topicRow}>
             {topics.map((topic) => {
-              const thumb = showImages ? topic.articles[0]?.imageUrl : undefined;
+              const lead = topic.articles[0];
+              const thumb = showImages ? lead?.imageUrl : undefined;
+              // A custom topic can come back with nothing — render it as a
+              // plain card rather than an anchor with no href.
+              const Card = lead?.url ? 'a' : 'div';
+              const linkProps = lead?.url
+                ? ({ href: lead.url, target: '_blank', rel: 'noreferrer' } as const)
+                : {};
               return (
-                <a
-                  key={topic.topic}
-                  href={topic.articles[0]?.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={styles.topicCard}
-                >
+                <Card key={topic.topic} {...linkProps} style={styles.topicCard}>
                   {thumb && <img src={thumb} alt="" style={styles.topicThumb} />}
                   <div style={styles.topicCardBody}>
                     <div style={styles.topicName}>{topic.topic}</div>
-                    {topic.articles[0] && <div style={styles.headline}>{topic.articles[0].title}</div>}
+                    {lead ? (
+                      <div style={styles.headline}>{lead.title}</div>
+                    ) : (
+                      <div style={{ ...styles.headline, opacity: 0.5 }}>No headlines right now.</div>
+                    )}
                     <div style={styles.count}>
                       {topic.newsCount} article{topic.newsCount === 1 ? '' : 's'}
                     </div>
                   </div>
-                </a>
+                </Card>
               );
             })}
           </div>

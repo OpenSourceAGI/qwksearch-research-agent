@@ -13,6 +13,15 @@ import { TypeTable } from 'fumadocs-ui/components/type-table';
 import defaultComponents from 'fumadocs-ui/mdx';
 import type { MDXComponents } from 'mdx/types';
 
+import {
+  FeatureCard,
+  FeatureCards,
+  Hero,
+  HeroAction,
+  Highlight,
+  Highlights,
+} from './components/home';
+
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
   return {
     ...defaultComponents,
@@ -22,9 +31,15 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     Callout,
     Card,
     Cards,
+    FeatureCard,
+    FeatureCards,
     File,
     Files,
     Folder,
+    Hero,
+    HeroAction,
+    Highlight,
+    Highlights,
     Step,
     Steps,
     TypeTable,

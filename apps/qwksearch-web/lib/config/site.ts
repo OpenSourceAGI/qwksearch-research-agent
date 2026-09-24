@@ -76,6 +76,7 @@ export const SubscriptionPlans: SubscriptionPlan[] = [
     name: "Pro",
     description: "For professionals who want custom advanced AI Agents.",
     url: "https://buy.stripe.com/8wMdTmdi1asl1xe3cc",
+    trialDays: 7,
     price: 5,
     features: [
       // { text: '1,000 queries / 24 hours', icon: "Rocket" },
@@ -95,6 +96,7 @@ export const SubscriptionPlans: SubscriptionPlan[] = [
     name: "Team",
     description: "For organizations & teams who need custom solutions.",
     url: "https://buy.stripe.com/bIY4iM3HrfMF4Jq28a",
+    trialDays: 7,
     callURL: "https://calendly.com/qwksearch/30min",
     price: 99,
     features: [
@@ -169,10 +171,12 @@ export interface SubscriptionPlan {
   name: string;
   /** Short marketing description of who the plan is for */
   description?: string;
-  /** Stripe checkout URL or placeholder for the plan */
+  /** Stripe Payment Link URL used to upgrade, or a placeholder for the plan */
   url: string;
   /** Monthly price in USD */
   price: number;
+  /** Days of free trial the Stripe checkout grants before the first charge */
+  trialDays?: number;
   /** Optional calendar scheduling URL for sales calls */
   callURL?: string;
   /** List of features included in this plan */

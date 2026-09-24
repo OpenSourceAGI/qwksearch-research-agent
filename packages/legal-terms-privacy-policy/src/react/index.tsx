@@ -12,6 +12,17 @@ export { LEGAL_SUMMARY_URL } from '../index';
 export { FullLegalTerms } from './full-terms';
 export { LegalSummary } from './summary';
 export { legalTermsStyles } from './styles';
+export { CookieConsent } from './cookie-consent';
+export type { CookieConsentLink, CookieConsentProps } from './cookie-consent';
+export { cookieConsentStyles } from './cookie-consent-styles';
+export {
+    COOKIE_CONSENT_CHOICES,
+    COOKIE_CONSENT_STORAGE_KEY,
+    clearCookieConsent,
+    readCookieConsent,
+    writeCookieConsent,
+} from '../cookie-consent';
+export type { CookieConsentChoice, CookieConsentRecord } from '../cookie-consent';
 
 /**
  * The shared Terms of Service and Privacy Policy page.

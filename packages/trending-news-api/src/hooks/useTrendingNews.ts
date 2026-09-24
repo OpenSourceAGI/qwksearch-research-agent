@@ -23,7 +23,9 @@ export function useTrendingNews(options: TrendingNewsOptions = {}) {
       .finally(() => { if (active) setLoading(false); });
 
     return () => { active = false; };
-  }, [options.apiEndpoint, options.topic, options.limit]);
+    // `topics` is an array, so it is compared by value — a caller that rebuilds
+    // the same list on every render must not retrigger the fetch.
+  }, [options.apiEndpoint, options.topic, options.limit, (options.topics ?? []).join('\u0000')]);
 
   return { data, error, loading };
 }

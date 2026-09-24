@@ -73,7 +73,7 @@ const ApiKey: FC = () => {
   // Desktop renders from app://renderer, where a relative href is denied by the
   // window-open handler — resolve the docs link against the active server origin.
   const remoteServerUrl = useElectronStore(electronSyncSelectors.remoteServerUrl);
-  const docsHref = isDesktop ? urlJoin(remoteServerUrl, '/api/v1/docs') : '/api/v1/docs';
+  const docsHref = isDesktop ? urlJoin(remoteServerUrl, '/api/v1') : '/api/v1';
   const canCreate = canEdit && (!activeWorkspaceId || workspacePolicy.canCreate);
   const isMemberCreationRestricted =
     !!activeWorkspaceId && !workspacePolicy.isAdmin && !workspacePolicy.canCreate;

@@ -45,6 +45,11 @@ it belongs in a package.
   path that must answer machines — a webhook, a feed, a health check — outside
   `/api/*` means adding it to the exempt list in
   `lib/turnstile/request-filter.ts`.
+- **Site settings an admin sets must go in D1, not `lib/config`.** The config
+  manager keeps values in memory: a write there is lost with the isolate and was
+  never seen by the other ones, so a toggle appears to work and then reverts.
+  `lib/news/settings.ts` (one row in `news_widget_settings`, edited from
+  `/admin/news`) is the pattern to copy.
 - The `test-web-api.yml` workflow is path-filtered to this app and two packages;
   a change elsewhere won't run it.
 
