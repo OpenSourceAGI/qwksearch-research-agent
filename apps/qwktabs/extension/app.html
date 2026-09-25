@@ -1,0 +1,69 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>LeoTabs · Library</title>
+    <link rel="icon" type="image/svg+xml" sizes="any" href="icons/lion.svg" />
+    <link rel="stylesheet" href="ui/styles.css" />
+    <link rel="stylesheet" href="ui/onboarding.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside id="sidebar">
+        <div class="tab-search">
+          <input
+            id="tab-search"
+            type="search"
+            placeholder="Search tabs, history & collections…"
+            aria-label="Search tabs, history and collections"
+          />
+        </div>
+        <div
+          id="sidebar-scopes"
+          class="browse-scopes sidebar-scopes"
+          role="group"
+          aria-label="Search scope"
+        ></div>
+        <div class="section-heading">
+          <div class="open-tabs-heading">
+            <h2>Open tabs <span id="tab-count"></span></h2>
+            <div id="tab-tools"></div>
+          </div>
+          <div id="tab-preferences"></div>
+        </div>
+        <div id="selection" hidden></div>
+        <div id="tabs"></div>
+        <section id="recent"></section>
+        <div class="sidebar-bottom">
+          <button id="imports">Import</button><button id="recovery">Recovery</button>
+        </div>
+      </aside>
+      <main id="main">
+        <header class="page-head">
+          <nav id="spaces" aria-label="Spaces"></nav>
+          <div class="global-actions">
+            <button
+              id="settings"
+              title="Settings"
+              aria-label="Settings"
+              aria-haspopup="dialog"
+            ></button>
+          </div>
+          <div class="head-actions">
+            <button id="ai-tools" aria-label="Organise with AI" hidden>Organise with AI</button>
+            <div id="current-collection"></div>
+          </div>
+        </header>
+        <nav class="library-tools">
+          <div id="breadcrumbs"></div>
+          <div id="view-tools"></div>
+        </nav>
+        <div id="board" aria-live="polite"></div>
+      </main>
+    </div>
+    <div id="stash" class="stash" popover="auto"></div>
+    <script type="module" src="ui/app.js"></script>
+  </body>
+</html>

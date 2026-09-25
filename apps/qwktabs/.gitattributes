@@ -1,0 +1,5 @@
+* text=auto
+# Packaged text uses the same bytes on Windows and CI for build hash checks.
+extension/** text=auto eol=lf
+*.json text eol=lf
+*.mjs text eol=lf

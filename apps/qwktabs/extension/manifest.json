@@ -1,0 +1,74 @@
+{
+  "manifest_version": 3,
+  "omnibox": {
+    "keyword": "leotabs"
+  },
+  "name": "LeoTabs \u2014 Tab Manager & Switcher",
+  "version": "0.15.1",
+  "minimum_chrome_version": "123",
+  "description": "Find open pages, put work away, and resume only what you need. Local collections, groups, notes and portable exports.",
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "permissions": [
+    "tabs",
+    "tabGroups",
+    "storage",
+    "activeTab",
+    "scripting",
+    "unlimitedStorage",
+    "sessions",
+    "alarms",
+    "favicon"
+  ],
+  "optional_permissions": [
+    "bookmarks",
+    "history"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Open LeoTabs library",
+    "default_icon": {
+      "16": "icons/16.png",
+      "20": "icons/20.png",
+      "24": "icons/24.png",
+      "32": "icons/32.png"
+    }
+  },
+  "options_ui": {
+    "page": "app.html#settings",
+    "open_in_tab": true
+  },
+  "commands": {
+    "open-search": {
+      "suggested_key": {
+        "default": "Alt+Shift+K"
+      },
+      "description": "Open search only (tabs, @collections and /commands)"
+    },
+    "open-library": {
+      "suggested_key": {
+        "default": "Alt+Shift+Q"
+      },
+      "description": "Open your library"
+    },
+    "open-switcher": {
+      "suggested_key": {
+        "default": "Alt+Q"
+      },
+      "description": "Toggle visual tab switcher"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+  }
+}

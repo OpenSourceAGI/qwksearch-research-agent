@@ -1,0 +1,23 @@
+{
+  "name": "leotabs",
+  "version": "0.15.1",
+  "private": true,
+  "license": "MPL-2.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build-overlay.mjs",
+    "package": "node scripts/package.mjs",
+    "site:build": "node scripts/build-site.mjs",
+    "site:check": "node scripts/check-site.mjs",
+    "docs:check": "node scripts/check-docs.mjs",
+    "test:browser": "node scripts/test-browser.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

@@ -1,0 +1,107 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>LeoTabs · Help</title>
+    <link rel="stylesheet" href="ui/styles.css" />
+  </head>
+  <body>
+    <main class="help-page">
+      <a href="app.html">← Library</a>
+      <h1>Help</h1>
+      <p>
+        <a href="app.html#tour">Quick start</a>
+        ·
+        <a href="https://ringlochid.me/leotabs/docs/" target="_blank" rel="noopener">User guide</a>
+        · <a href="privacy.html">Privacy policy</a>
+        · <a href="mailto:support@ringlochid.me">Contact support</a>
+      </p>
+      <section>
+        <h2>Save and open tabs</h2>
+        <p>
+          Choose Save tabs beside Open tabs to create a new collection. Check
+          “and close them” to close the tabs after saving. “and switch to new collection”
+          makes the collection current without reopening those tabs; it requires all
+          unpinned tabs in the window and cannot be combined with closing them.
+        </p>
+        <p>
+          To add tabs to an existing collection, drag them from Open tabs into it.
+          The browser tabs stay open. Open adds fresh tabs from a collection; Switch
+          makes the collection current in the window. The outgoing-work checkbox
+          in the Switch dialog is unchecked by default. Pinned tabs stay open.
+        </p>
+        <p>
+          Auto-update follows the current window while On. Paused keeps the saved
+          collection fixed. Resuming updates it from the window's current tabs.
+          <a href="https://ringlochid.me/leotabs/docs/saving-switching/" target="_blank" rel="noopener">Saving and switching guide</a>.
+        </p>
+      </section>
+      <section>
+        <h2>Keyboard shortcuts</h2>
+        <ul>
+          <li>Alt+Q: visual switcher.</li>
+          <li>Alt+Shift+Q: library.</li>
+          <li>Alt+Shift+K: search.</li>
+          <li>Alt+W: close the focused tab or group in the switcher, or selected unpinned tabs in selection mode.</li>
+        </ul>
+        <p>
+          Change bindings in your browser's extension shortcut settings. In search,
+          type @ to select a collection or / to choose an action. Up/Down selects a
+          result and Enter opens it. Protected pages use a separate extension window.
+          <a href="https://ringlochid.me/leotabs/docs/search-shortcuts/" target="_blank" rel="noopener">Search and shortcut guide</a>.
+        </p>
+        <p>
+          Group cards also have a × close button. Alt+W is inactive while typing.
+          Closing keeps the switcher available with Undo, using a separate window
+          if you close the page hosting it.
+        </p>
+        <p>
+          The sidebar search finds saved tabs, notes, groups and collections across
+          all spaces, with matches shown inside their collection cards. Press / to focus search.
+          Clear search to return to your previous view.
+        </p>
+      </section>
+      <section>
+        <h2>Group tabs</h2>
+        <p>
+          Auto-group only groups ungrouped tabs. Existing groups keep their membership
+          when titles or URLs change. Tabs you manually ungroup stay independent as you
+          navigate. Explicit Group &amp; sort and AI organization can regroup existing
+          tabs when “Include already grouped tabs” is enabled; both put independent
+          tabs before groups and sort alphabetically. These actions offer Undo.
+        </p>
+      </section>
+      <section>
+        <h2>Backups and recovery</h2>
+        <p>
+          Download Settings → Export &amp; import → Backup JSON before uninstalling or
+          changing installations. Import that file in the destination and check your
+          collections before removing the original. Keys and preview images are excluded.
+        </p>
+        <p>
+          Use Undo after a supported change. Timeline and collection Version history
+          provide earlier saved work. Open search and choose /recovery for interrupted
+          operations. Recovery restores saved URLs and groups, not unsaved form or app state.
+          <a href="https://ringlochid.me/leotabs/docs/recovery/" target="_blank" rel="noopener">Recovery guide</a>.
+        </p>
+      </section>
+      <section>
+        <h2>Privacy and optional connections</h2>
+        <p>
+          Your core library stays in your browser profile. Settings → Privacy &amp; permissions
+          controls automatic previews, cached images and optional permissions. Opening
+          the visual switcher can capture the current page even when automatic previews are off.
+        </p>
+        <p>
+          AI and Notion send data directly to services you configure. Saving an AI key and
+          granting provider access can enable automatic collection naming. Notion exports
+          are snapshots, not two-way sync. Provider charges may apply.
+          <a href="https://ringlochid.me/leotabs/docs/ai/" target="_blank" rel="noopener">AI setup</a>
+          · <a href="https://ringlochid.me/leotabs/docs/notion/" target="_blank" rel="noopener">Notion setup</a>.
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

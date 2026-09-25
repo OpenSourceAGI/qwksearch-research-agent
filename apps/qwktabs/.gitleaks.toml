@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated overlay build manifest stores SHA-256 source checksums, not API keys. npm run check verifies them."
+condition = "AND"
+paths = ['''(^|/)extension/overlay-build\.json$''']
+regexTarget = "secret"
+regexes = ['''^[a-f0-9]{64}$''']

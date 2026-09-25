@@ -1,0 +1,46 @@
+<section class="hero">
+  <h1>Your tabs.<br>Right where you left them.</h1>
+  <p class="intro">Save tabs into collections, switch between projects, and find the page you need.</p>
+  <div class="hero-actions">{{INSTALL}} {{WATCH_VIDEO}}</div>
+</section>
+<dialog id="video-dialog" class="video-modal" aria-labelledby="video-title">
+  <div class="video-modal-head"><h2 id="video-title">LeoTabs in action</h2><button class="video-close" type="button" aria-label="Close video" autofocus>×</button></div>
+  <div id="video-player" class="video-player"></div>
+  <div class="video-modal-foot">{{VIDEO_LINK}}</div>
+</dialog>
+<figure class="product" id="library">
+  <div class="product-frame"><img src="assets/library.png" width="1920" height="1200" fetchpriority="high" alt="LeoTabs library with open tabs on the left and coding collections, groups and notes on the right."></div>
+</figure>
+<section class="section" id="features">
+  <div class="section-heading"><h2>Save, switch and find.</h2></div>
+  <div class="workflow">
+    <article><h3>Save your work</h3><p>Save tabs into collections with groups and notes. Keep different projects in separate spaces.</p></article>
+    <article><h3>Switch projects</h3><p>Open a saved collection or switch your window to it. Auto-update can keep the collection in step with your tabs.</p></article>
+    <article><h3>Find a tab</h3><p>Search open tabs and saved links, or use the visual switcher to recognise a page by its preview.</p></article>
+  </div>
+</section>
+<section class="section" id="integrations">
+  <div class="section-heading"><h2>AI and Notion</h2></div>
+  <div class="integrations">
+    <article class="integration"><h3>Organise with AI</h3><p>Connect an AI provider to group links by topic and name or summarise collections.</p><p class="small">Optional. Uses titles, URLs and relevant notes, not screenshots or page text. Requires an API key; provider charges may apply.</p><a class="text-link" href="docs/ai/">AI setup →</a></article>
+    <article class="integration"><h3>Export to Notion</h3><p>Send a collection or your entire library to Notion, including links, groups and notes.</p><p class="small">Optional. Requires a Notion connection. Exports are snapshots; later changes do not sync.</p><a class="text-link" href="docs/notion/">Notion setup →</a></article>
+  </div>
+</section>
+<section class="section" id="shortcuts">
+  <h2>Keyboard shortcuts</h2>
+  <div class="keys"><div><kbd>Alt</kbd> + <kbd>Q</kbd><p>Open the visual switcher</p></div><div><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Q</kbd><p>Go straight to your library</p></div><div><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>K</kbd><p>Search without distractions</p></div></div>
+  <p class="small">Change these defaults in your browser's extension shortcuts. <a href="docs/search-shortcuts/">See all shortcuts →</a></p>
+  <figure class="product switcher-preview">
+    <div class="product-frame"><img src="assets/switcher.png" width="1920" height="1200" loading="lazy" decoding="async" alt="LeoTabs visual switcher showing grouped tab previews over the current web page."></div>
+  </figure>
+</section>
+<section class="section" id="privacy">
+  <div class="privacy-callout"><h2>Privacy</h2><div><p>Your library stays in your browser profile. LeoTabs has no advertising or telemetry.</p><p>AI and Notion send data directly to the services you configure.</p><a class="text-link" href="privacy/">Privacy policy →</a></div></div>
+</section>
+<section class="section faq"><h2>Q&amp;A</h2><div>
+  <details><summary>Is LeoTabs free?</summary><p>Yes. LeoTabs is free to use. Optional AI providers may charge for API usage.</p></details>
+  <details><summary>Do I need to use AI?</summary><p>No. Saving, switching, search, notes, file export and website grouping work without an AI connection.</p></details>
+  <details><summary>Can I take my collections with me?</summary><p>Yes. Download backup JSON, bookmark HTML or Markdown. Back up before uninstalling or changing installations: local data is tied to the extension's identity in your browser. <a href="docs/import-export/">Read the backup guide.</a></p></details>
+  <details><summary>What if I need to undo a change?</summary><p>Undo and Recovery help restore saved work after supported actions. They cannot reverse a provider request or delete an exported Notion page. <a href="docs/recovery/">See what can be recovered.</a></p></details>
+</div></section>
+<section class="section closing"><h2>Get LeoTabs</h2>{{INSTALL}}</section>

@@ -1,0 +1,21 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Parked page · LeoTabs</title>
+    <link rel="stylesheet" href="ui/styles.css" />
+  </head>
+  <body class="parked-page">
+    <main>
+      <div id="loading" class="parked-spinner" role="status" aria-label="Loading page"></div>
+      <div id="error" class="parked-card" hidden>
+        <p id="description" role="alert"></p>
+        <button id="load" class="primary" hidden>Try again</button
+        ><button id="library">Open library</button>
+      </div>
+    </main>
+    <script type="module" src="ui/parked.js"></script>
+  </body>
+</html>

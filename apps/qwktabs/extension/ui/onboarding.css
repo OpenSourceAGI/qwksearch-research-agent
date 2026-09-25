@@ -1,0 +1,24 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The guide inherits the extension's shared, flat dialog surface and controls. */
+.tour-shade{position:fixed;inset:0;background:#10121640;z-index:10000;pointer-events:none}
+.tour-highlight{position:fixed;border-radius:4px;box-shadow:0 0 0 100vmax #10121640,0 0 0 1px var(--accent);z-index:10000;pointer-events:none}
+#onboarding-dialog{position:fixed;inset:auto;margin:0;width:480px;max-width:calc(100% - 32px);max-height:calc(100dvh - 32px);overflow:auto}
+#onboarding-dialog[data-media='true']{width:760px}
+#onboarding-dialog::backdrop{background:transparent}
+#onboarding-dialog .dialog-head{gap:16px;align-items:flex-start}
+#onboarding-dialog .dialog-head h2{flex:1}
+#onboarding-dialog .dialog-head h2:focus{outline:none}
+.tour-counter{flex:none;color:var(--muted);font-size:var(--type-small);line-height:26px;white-space:nowrap}
+.tour-body{color:var(--muted)}
+.tour-video{display:block;width:100%;height:auto;max-height:min(45dvh,420px);object-fit:contain;margin-top:16px;background:#202124;border:1px solid var(--line);border-radius:3px}
+.tour-video:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tour-video:fullscreen{width:100%;height:100%;max-height:none;margin:0;border:0;border-radius:0;background:#000}
+.tour-themes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.tour-themes .dialog-action[aria-pressed='true']{background:var(--selected);border-color:var(--accent);color:var(--accent)}
+.tour-import{margin-top:16px}
+#onboarding-dialog .tour-skip{margin-right:auto;padding-left:0;padding-right:0;border-color:transparent;background:transparent;color:var(--muted)}
+#onboarding-dialog .tour-skip:hover{color:var(--text)}
+.tour-dots{display:flex;justify-content:center;gap:0;padding:8px 0 14px}
+#onboarding-dialog .tour-dots button{display:grid;place-items:center;width:24px;min-height:24px;padding:0;background:transparent}
+.tour-dots button>span{display:block;width:6px;height:6px;border-radius:50%;background:var(--line)}
+.tour-dots button[aria-current]>span{background:var(--accent-fill)}

@@ -1,0 +1,17 @@
+LeoTabs — Tab Manager & Switcher
+
+Source code and accompanying project assets are available under the Mozilla
+Public License 2.0. The full license is included in LICENSE.txt.
+
+The readable JavaScript, HTML and CSS source is included directly in this
+extension package. No runtime third-party library or hosted application
+backend is required. LeoTabs's icon and interface assets were created for this
+project. Tabme and Notion were design references; their screenshots, branding
+and application code are not bundled.
+
+Optional external services retain their own terms and account requirements.
+
+The website grouping rules include a transformed copy of the Public Suffix
+List, retrieved 2026-09-07 from https://publicsuffix.org/list/public_suffix_list.dat.
+The Public Suffix List is provided under MPL-2.0; its license is included in
+LICENSE.txt. Source and update information: https://github.com/publicsuffix/list.
