@@ -18,8 +18,11 @@
     <br />
        <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors"><img src="https://img.shields.io/github/commit-activity/m/OpenSourceAGI/qwksearch-research-agent" alt="Commit activity" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/OpenSourceAGI/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
-    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors"><img src="https://img.shields.io/github/contributors/OpenSourceAGI/qwksearch-research-agent" alt="Contributors" /></a>
-    <img src="https://img.shields.io/badge/%EB%AA%A8%20lines-17k-yellow" />
+   <a href="https://uptime.betterstack.com/?utm_source=status_badge"><img
+    src="https://uptime.betterstack.com/status-badges/v1/monitor/2yp1l.svg"
+    alt="Production uptime"
+  ></a>
+     <a href="https://app.codecov.io/gh/OpenSourceAGI/qwksearch-research-agent"><img src="https://img.shields.io/badge/%EB%AA%A8%20lines-18k-yellow" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls?q=is%3Apr+is%3Aclosed"><img src="https://img.shields.io/github/issues-pr-closed/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs%20merged&color=8957e5" alt="Merged Pull Requests" /></a>
     <a href="https://discord.gg/SJdBqBz3tV"><img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat" alt="Join Discord" /></a>
     <br />
