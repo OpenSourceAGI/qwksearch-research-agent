@@ -56,6 +56,22 @@ describe('<TrendingNews />', () => {
     await vi.waitFor(() => expect(container.firstChild).toBeNull());
   });
 
+  it('shows the failure message when showErrors is set', async () => {
+    vi.spyOn(trendingApi, 'getTrendingNews').mockRejectedValue(new Error('worker down'));
+
+    render(<TrendingNews apiEndpoint={ENDPOINT} showErrors />);
+
+    expect((await screen.findByRole('alert')).textContent).toBe('worker down');
+  });
+
+  it('says the answer was empty when showErrors is set', async () => {
+    vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue({ topics: [] });
+
+    render(<TrendingNews apiEndpoint={ENDPOINT} showErrors />);
+
+    expect(await screen.findByText('The endpoint answered with no topics.')).toBeTruthy();
+  });
+
   it('renders nothing when the response has no topics', async () => {
     vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue({ topics: [] });
 

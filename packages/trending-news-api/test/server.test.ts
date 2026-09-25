@@ -41,10 +41,13 @@ function stubUpstreams({
   wiki,
   news = () => [newsArticle('A headline')],
   wikiOk = true,
+  newsError,
 }: {
   wiki: unknown;
   news?: (query: string) => unknown[];
   wikiOk?: boolean;
+  /** Makes The News API refuse the queries it returns true for. */
+  newsError?: (query: string) => boolean;
 }) {
   const calls: string[] = [];
   const fetchImpl = vi.fn(async (input: any) => {
@@ -54,7 +57,16 @@ function stubUpstreams({
       return { ok: wikiOk, status: wikiOk ? 200 : 503, json: async () => wiki } as any;
     }
     if (url.startsWith(NEWS_HOST)) {
-      const query = new URL(url).searchParams.get('q') ?? '';
+      const query = new URL(url).searchParams.get('search') ?? '';
+      if (newsError?.(query)) {
+        return {
+          ok: false,
+          status: 401,
+          json: async () => ({
+            error: { code: 'invalid_api_token', message: 'An invalid API token was supplied.' },
+          }),
+        } as any;
+      }
       return { ok: true, status: 200, json: async () => ({ data: news(query) }) } as any;
     }
     throw new Error(`unexpected fetch: ${url}`);
@@ -157,6 +169,76 @@ describe('getTrendingTopics', () => {
     expect(newsCalls(calls)).toHaveLength(4);
   });
 
+  it('reads the nested ranking the pageviews API actually returns', async () => {
+    const { fetchImpl } = stubUpstreams({
+      wiki: {
+        items: [
+          {
+            project: 'en.wikipedia',
+            articles: [
+              { article: 'Main_Page', views: 9000, rank: 1 },
+              { article: 'Ada_Lovelace', views: 500, rank: 2 },
+            ],
+          },
+        ],
+      },
+    });
+
+    const result = await getTrendingTopics({ apiKey: 'k', limit: 5, fetchImpl });
+
+    expect(result.topics.map((t) => t.topic)).toEqual(['Ada Lovelace']);
+  });
+
+  it('falls back to the day before when yesterday is not published yet', async () => {
+    const calls: string[] = [];
+    const fetchImpl = vi.fn(async (input: any) => {
+      const url = String(input);
+      calls.push(url);
+      if (url.includes('/2024/03/05')) return { ok: false, status: 404, json: async () => ({}) } as any;
+      if (url.startsWith(WIKI_HOST)) return { ok: true, status: 200, json: async () => wikiItems(1) } as any;
+      return { ok: true, status: 200, json: async () => ({ data: [newsArticle('x')] }) } as any;
+    });
+
+    const result = await getTrendingTopics({
+      apiKey: 'k',
+      limit: 1,
+      date: new Date(Date.UTC(2024, 2, 5)),
+      fetchImpl,
+    });
+
+    expect(calls[1]).toContain('/2024/03/04');
+    expect(result.topics).toHaveLength(1);
+  });
+
+  it('queries The News API search endpoint with `search`', async () => {
+    const { fetchImpl, calls } = stubUpstreams({ wiki: wikiItems(1) });
+
+    await getTrendingTopics({ apiKey: 'k', limit: 1, fetchImpl });
+
+    const url = new URL(newsCalls(calls)[0]);
+    expect(url.pathname).toBe('/v1/news/all');
+    expect(url.searchParams.get('search')).toBe('Topic 1');
+  });
+
+  it('tolerates one topic the News API refuses', async () => {
+    const { fetchImpl } = stubUpstreams({
+      wiki: wikiItems(3),
+      newsError: (query) => query === 'Topic 1',
+    });
+
+    const result = await getTrendingTopics({ apiKey: 'k', limit: 2, fetchImpl });
+
+    expect(result.topics.map((t) => t.topic)).toEqual(['Topic 2', 'Topic 3']);
+  });
+
+  it('throws the News API’s own message when every search fails', async () => {
+    const { fetchImpl } = stubUpstreams({ wiki: wikiItems(3), newsError: () => true });
+
+    await expect(getTrendingTopics({ apiKey: 'bad', limit: 2, fetchImpl })).rejects.toThrow(
+      'An invalid API token was supplied.'
+    );
+  });
+
   it('sends the API key to The News API, never to Wikipedia', async () => {
     const { fetchImpl, calls } = stubUpstreams({ wiki: wikiItems(1) });
 
@@ -226,6 +308,22 @@ describe('handleTrendingNewsRequest', () => {
 
     expect(response.status).toBe(500);
     expect(await response.json()).toMatchObject({ error: 'Failed to fetch Wikipedia trends' });
+  });
+
+  it('reports a rejected News API token as a 502 naming the cause', async () => {
+    const { fetchImpl } = stubUpstreams({ wiki: wikiItems(2), newsError: () => true });
+
+    const response = await handleTrendingNewsRequest(request('?limit=2'), {
+      apiKey: 'bad',
+      fetchImpl,
+    });
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      error: 'The News API: An invalid API token was supplied. (invalid_api_token)',
+      code: 'invalid_api_token',
+      upstream_status: 401,
+    });
   });
 
   it('allows cross-origin reads, as the deployed worker always has', async () => {

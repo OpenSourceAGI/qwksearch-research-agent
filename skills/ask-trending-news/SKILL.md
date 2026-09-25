@@ -151,6 +151,19 @@ hardcoded default silently overriding it.
 
 ## Troubleshooting
 
+Start at **Admin → News Widget → Diagnostics**. It checks each dependency live
+(the widget switch, `THENEWSAPI_API_KEY`, a test News API search, the Wikipedia
+ranking, the KV binding), prints the upstream's own error message for whichever
+fails, and renders a preview of `/api/news/trending` with `showErrors`, so the
+reason the homepage widget is hidden is on screen. Outside the admin panel, pass
+`showErrors` to `<TrendingNews>` to see the failure in place of an empty widget.
+
+The server queries The News API's **`/v1/news/all?search=`** endpoint (there is
+no `/v1/news/search`). A News API failure on one topic drops that topic; when
+*every* search fails (bad token, exhausted quota) the handler answers **502**
+with the API's message, e.g. `The News API: An invalid API token was supplied.
+(invalid_api_token)`, rather than an empty list.
+
 | Symptom | Cause → fix |
 | --- | --- |
 | `trending-news-api: apiEndpoint is required` | The option is mandatory. The hook simply returns `loading: false` with no data instead of throwing. |
@@ -164,7 +177,8 @@ hardcoded default silently overriding it.
 | `Failed to fetch Wikipedia trends` (500) | The pageviews API was unreachable or has no data for that date. It usually resolves on the next day boundary. |
 | Topics include "Main Page" or `Special:`/`Portal:` entries | The worker filters those with `NON_ARTICLE_TITLE`. Seeing them means an older deployment — redeploy. |
 | Stale data after changing the endpoint | The 10-minute cache is keyed by URL. `clearTrendingNewsCache()`. |
-| Nothing renders and no error | `data.topics` is empty — The News API returned nothing for those topics (quota, or a plan restriction). |
+| Nothing renders and no error | `data.topics` is empty — The News API returned nothing for those topics. An empty *daily* list is never cached in KV and falls back to the archive. |
+| 502 `The News API: …` | Every news search was refused. The message is the API's own — fix the key, plan or quota it names. |
 | The chevron does nothing | `expandable` only applies with `compact`. |
 | SSR crashes on `localStorage` | The cache guards on `typeof window`; the component is client-side. Mark the host boundary `'use client'`. |
 | CORS errors | The worker sets `Access-Control-Allow-Origin: *` and `Cache-Control: no-store`; a proxy in front may be stripping them. |

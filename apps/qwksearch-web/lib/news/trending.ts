@@ -17,9 +17,11 @@
  *    homepage card into a blank space.
  */
 import {
+  fetchWikipediaTopPages,
   handleTrendingNewsRequest,
   parseTopicLimit,
   parseTopicList,
+  searchNewsForTopic,
 } from "trending-news-api/server";
 import type { TrendingNewsWireResponse } from "trending-news-api/server";
 import { getCloudflareContext } from "../cloudflare/context";
@@ -107,6 +109,14 @@ function upstreamRequest(request: Request, topics: string[]): Request {
   return new Request(url.toString(), { headers: request.headers });
 }
 
+function isEmptyList(body: string): boolean {
+  try {
+    return ((JSON.parse(body) as TrendingNewsWireResponse).topics ?? []).length === 0;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Answers a trending-news request.
  *
@@ -160,7 +170,13 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
   });
   const body = await response.text();
 
-  if (response.status === 200) {
+  // An empty daily ranking is a failure in disguise (every topic came back
+  // without headlines): don't pin it in KV for the whole cache window, and
+  // let the archive below answer instead.
+  const emptyDaily =
+    response.status === 200 && !singleTopic && topics.length === 0 && isEmptyList(body);
+
+  if (response.status === 200 && !emptyDaily) {
     if (!singleTopic) {
       // Write-through. D1 is awaited rather than backgrounded because this
       // runtime hands route handlers no `waitUntil`; it only happens on a
@@ -219,12 +235,106 @@ export async function refreshStoredNews(): Promise<{
   const response = await handleTrendingNewsRequest(new Request(url.toString()), {
     apiKey,
   });
-  const payload = (await response.json()) as TrendingNewsWireResponse & { error?: string };
+  const payload = (await response.json()) as TrendingNewsWireResponse & {
+    error?: string;
+    details?: string;
+  };
 
   if (response.status !== 200) {
-    return { stored: 0, topics: 0, error: payload.error ?? `HTTP ${response.status}` };
+    const error = payload.error ?? `HTTP ${response.status}`;
+    return { stored: 0, topics: 0, error: payload.details ? `${error} — ${payload.details}` : error };
+  }
+  if (!payload.topics?.length) {
+    return { stored: 0, topics: 0, error: "The News API returned no headlines for any topic." };
   }
 
   const stored = await storeTrendingNews(payload);
   return { stored, topics: payload.topics?.length ?? 0 };
+}
+
+/** One line of the admin panel's health check. */
+export type NewsDiagnostic = {
+  name: string;
+  ok: boolean;
+  detail: string;
+};
+
+function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * Checks each thing the widget depends on, one at a time, so the admin panel
+ * can say *which* one is broken instead of showing an empty widget. Costs one
+ * News API search and one Wikipedia call; never throws.
+ */
+export async function diagnoseNews(): Promise<NewsDiagnostic[]> {
+  const checks: NewsDiagnostic[] = [];
+  const settings = await getNewsWidgetSettings();
+
+  checks.push({
+    name: "Widget enabled",
+    ok: settings.enabled,
+    detail: settings.enabled
+      ? "The widget is switched on for the homepage."
+      : "Switched off below — /api/news/trending answers an empty list and the homepage hides it.",
+  });
+
+  const apiKey = getNewsApiKey();
+  checks.push({
+    name: "THENEWSAPI_API_KEY",
+    ok: Boolean(apiKey),
+    detail: apiKey
+      ? "Set on this deployment."
+      : "Not set. Add it to .env, or run `bunx wrangler secret put THENEWSAPI_API_KEY` in production. Get a key at https://www.thenewsapi.com.",
+  });
+
+  if (apiKey) {
+    try {
+      const articles = await searchNewsForTopic(apiKey, "news", 3);
+      checks.push({
+        name: "The News API",
+        ok: true,
+        detail: `Reachable — a test search returned ${articles.length} article(s).`,
+      });
+    } catch (error) {
+      checks.push({ name: "The News API", ok: false, detail: errorText(error) });
+    }
+  } else {
+    checks.push({ name: "The News API", ok: false, detail: "Skipped: no API key." });
+  }
+
+  if (parseTopicList(settings.defaultTopics).length > 0) {
+    checks.push({
+      name: "Wikipedia trending ranking",
+      ok: true,
+      detail: "Not used — default topics are set, so the ranking is skipped.",
+    });
+  } else {
+    try {
+      const yesterday = new Date();
+      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+      const pages = await fetchWikipediaTopPages(yesterday, 5);
+      checks.push({
+        name: "Wikipedia trending ranking",
+        ok: pages.length > 0,
+        detail:
+          pages.length > 0
+            ? `Reachable — top topics: ${pages.map((p) => p.article).join(", ")}.`
+            : "Reachable, but it returned no articles.",
+      });
+    } catch (error) {
+      checks.push({ name: "Wikipedia trending ranking", ok: false, detail: errorText(error) });
+    }
+  }
+
+  checks.push({
+    name: "KV cache",
+    ok: Boolean(getKV()),
+    detail: getKV()
+      ? "Bound — answers are cached between visits."
+      : "No KV binding — every visit fetches fresh (works, but costs more News API quota).",
+  });
+
+  return checks;
 }
