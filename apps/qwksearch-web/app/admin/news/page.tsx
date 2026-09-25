@@ -10,6 +10,7 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
+import { TrendingNews, clearTrendingNewsCache } from "trending-news-api";
 
 type Settings = {
   enabled: boolean;
@@ -29,6 +30,8 @@ type Stats = {
 };
 
 type Payload = { settings: Settings; stats: Stats; apiKeyConfigured: boolean };
+
+type Check = { name: string; ok: boolean; detail: string };
 
 function when(iso: string | null): string {
   if (!iso) return "never";
@@ -67,13 +70,41 @@ export default function AdminNewsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [checks, setChecks] = useState<Check[] | null>(null);
+  const [checking, setChecking] = useState(false);
+  // Bumped to remount the preview, so it refetches instead of showing the
+  // browser's 10-minute cached answer.
+  const [previewKey, setPreviewKey] = useState(0);
+
+  const diagnose = useCallback(async () => {
+    setChecking(true);
+    try {
+      const res = await fetch("/api/admin/news", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "diagnose" }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.message ?? payload.error ?? `HTTP ${res.status}`);
+      setChecks(payload.checks ?? []);
+    } catch (e: any) {
+      setChecks([{ name: "Health check", ok: false, detail: e.message }]);
+    } finally {
+      setChecking(false);
+    }
+    clearTrendingNewsCache();
+    setPreviewKey((k) => k + 1);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/admin/news");
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message ?? body.error ?? `HTTP ${res.status}`);
+      }
       const payload: Payload = await res.json();
       setData(payload);
       setDraft(payload.settings);
@@ -86,7 +117,8 @@ export default function AdminNewsPage() {
 
   useEffect(() => {
     load();
-  }, [load]);
+    diagnose();
+  }, [load, diagnose]);
 
   async function post(body: Record<string, unknown>, label: string) {
     setBusy(label);
@@ -118,13 +150,14 @@ export default function AdminNewsPage() {
     // clamped), so the form shows what was actually saved, not what was typed.
     setDraft(payload.settings);
     setNotice("Settings saved.");
+    diagnose();
   }
 
   async function refresh() {
     const payload = await post({ action: "refresh" }, "refresh");
     if (!payload) return;
     if (payload.error) {
-      setError(payload.error);
+      setError(`Fetch failed: ${payload.error}`);
       return;
     }
     setData((prev) => (prev ? { ...prev, stats: payload.stats } : prev));
@@ -195,6 +228,68 @@ export default function AdminNewsPage() {
       )}
 
       {loading && !draft && <div className="text-gray-400 text-sm">Loading…</div>}
+
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="font-semibold text-base">Diagnostics</h2>
+          <button
+            onClick={diagnose}
+            disabled={checking}
+            className="px-3 py-1.5 text-sm rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+          >
+            {checking ? "Checking…" : "Run check"}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500">
+          Each thing the homepage widget depends on, checked live. The widget
+          hides itself on the homepage when any of these fail — this is why.
+        </p>
+
+        {checking && !checks && <div className="text-gray-400 text-sm">Checking…</div>}
+        {checks && (
+          <ul className="space-y-1.5">
+            {checks.map((c) => (
+              <li key={c.name} className="flex gap-2 text-sm">
+                <span
+                  aria-label={c.ok ? "OK" : "Failing"}
+                  className={c.ok ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}
+                >
+                  {c.ok ? "✓" : "✗"}
+                </span>
+                <span>
+                  <span className="font-medium">{c.name}</span>
+                  <span className={"block text-xs break-words " + (c.ok ? "text-gray-500" : "text-red-600 dark:text-red-400 font-mono")}>
+                    {c.detail}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="space-y-1 pt-1">
+          <div className="text-xs font-medium text-gray-700 dark:text-gray-300">
+            Live preview of <code className="font-mono">/api/news/trending</code>
+          </div>
+          {/* Mounted after the first check, which clears the browser cache,
+              so the preview shows what the endpoint answers now. */}
+          {checks && (
+            <TrendingNews
+              key={previewKey}
+              apiEndpoint="/api/news/trending"
+              compact
+              expandable
+              showErrors
+              maxTopics={data?.settings.maxTopics ?? 6}
+              showImages={data?.settings.showImages ?? true}
+              limit={15}
+              className="rounded-lg w-full"
+              style={{ border: "1px solid rgba(127,127,127,0.25)", maxWidth: "100%" }}
+            />
+          )}
+        </div>
+      </div>
+
 
       {draft && (
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-4">

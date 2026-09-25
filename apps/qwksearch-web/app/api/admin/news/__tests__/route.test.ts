@@ -17,6 +17,7 @@ vi.mock('@/lib/news/store', () => ({
   readStoredTopicArticles: vi.fn(),
 }))
 vi.mock('@/lib/news/trending', () => ({
+  diagnoseNews: vi.fn(),
   getNewsApiKey: vi.fn(),
   refreshStoredNews: vi.fn(),
 }))
@@ -31,7 +32,7 @@ import {
   pruneStoredNews,
   readStoredTopicArticles,
 } from '@/lib/news/store'
-import { getNewsApiKey, refreshStoredNews } from '@/lib/news/trending'
+import { diagnoseNews, getNewsApiKey, refreshStoredNews } from '@/lib/news/trending'
 import { jsonRequest } from '../../../__tests__/helpers/fake-db'
 import { GET, POST, DELETE } from '../route'
 
@@ -45,6 +46,7 @@ const mockPrune = pruneStoredNews as unknown as ReturnType<typeof vi.fn>
 const mockTopicArticles = readStoredTopicArticles as unknown as ReturnType<typeof vi.fn>
 const mockApiKey = getNewsApiKey as unknown as ReturnType<typeof vi.fn>
 const mockRefresh = refreshStoredNews as unknown as ReturnType<typeof vi.fn>
+const mockDiagnose = diagnoseNews as unknown as ReturnType<typeof vi.fn>
 
 const SETTINGS = {
   enabled: true,
@@ -177,6 +179,20 @@ describe('POST /api/admin/news', () => {
     const body = await (await post({ action: 'refresh' })).json()
 
     expect(body.error).toBe('THENEWSAPI_API_KEY is not configured')
+  })
+
+  it('reports each upstream check on the diagnose action', async () => {
+    const checks = [
+      { name: 'THENEWSAPI_API_KEY', ok: true, detail: 'Set on this deployment.' },
+      { name: 'The News API', ok: false, detail: 'The News API: An invalid API token was supplied.' },
+    ]
+    mockDiagnose.mockResolvedValue(checks)
+
+    const res = await post({ action: 'diagnose' })
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ checks })
+    expect(mockSaveSettings).not.toHaveBeenCalled()
   })
 
   it('prunes with the configured retention window', async () => {

@@ -81,6 +81,25 @@ function buildUrl(apiEndpoint: string, options: TrendingNewsOptions) {
 }
 
 /**
+ * The error for a failed request, carrying the server's own `error` message
+ * (e.g. "THENEWSAPI_API_KEY is not configured") when the body has one, so a
+ * caller that shows it tells the reader what to fix, not just a status code.
+ */
+async function requestError(response: Response): Promise<Error> {
+  let detail = '';
+  try {
+    const body = (await response.json()) as { error?: unknown; details?: unknown };
+    if (typeof body?.error === 'string') {
+      detail = body.error + (typeof body.details === 'string' ? ` — ${body.details}` : '');
+    }
+  } catch {
+    // Not JSON — the status line is all there is.
+  }
+  const status = `${response.status}${response.statusText ? ` ${response.statusText}` : ''}`;
+  return new Error(`Trending news request failed: ${status}${detail ? `: ${detail}` : ''}`);
+}
+
+/**
  * Fetches trending topics (or, when `options.topic` is set, news for a
  * single topic) from a deployed instance of `worker/index.ts`.
  */
@@ -95,9 +114,7 @@ export async function getTrendingNews(options: TrendingNewsOptions): Promise<Tre
   if (cached) return cached;
 
   const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
-  if (!response.ok) {
-    throw new Error(`Trending news request failed: ${response.status} ${response.statusText}`);
-  }
+  if (!response.ok) throw await requestError(response);
 
   const data = (await response.json()) as WorkerTopicsResponse;
   if (data.error) throw new Error(data.error);
@@ -136,9 +153,7 @@ export async function getTrendingNewsForTopic(
   if (cached) return cached;
 
   const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
-  if (!response.ok) {
-    throw new Error(`Trending news request failed: ${response.status} ${response.statusText}`);
-  }
+  if (!response.ok) throw await requestError(response);
 
   const data = (await response.json()) as WorkerTopicResponse;
   if (data.error) throw new Error(data.error);

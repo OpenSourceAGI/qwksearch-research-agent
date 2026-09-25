@@ -4,7 +4,8 @@
  * - `GET`    — current settings plus what the archive holds.
  * - `POST`   — save settings (partial body; only the fields named change), or
  *              run an action: `refresh` fetches and stores now, `prune` drops
- *              articles past the retention window.
+ *              articles past the retention window, `diagnose` checks each
+ *              upstream the widget depends on and reports what is broken.
  * - `DELETE` — empty the archive.
  *
  * Every method is admin-only. The settings live in D1 (see
@@ -25,7 +26,7 @@ import {
   pruneStoredNews,
   readStoredTopicArticles,
 } from "@/lib/news/store";
-import { getNewsApiKey, refreshStoredNews } from "@/lib/news/trending";
+import { diagnoseNews, getNewsApiKey, refreshStoredNews } from "@/lib/news/trending";
 
 /** The settings fields a POST body may name. Anything else is ignored. */
 const EDITABLE: (keyof NewsWidgetSettings)[] = [
@@ -88,6 +89,10 @@ export const POST = async (req: NextRequest) => {
         ...result,
         stats: await getNewsStoreStats(),
       });
+    }
+
+    if (body.action === "diagnose") {
+      return NextResponse.json({ checks: await diagnoseNews() });
     }
 
     if (body.action === "prune") {

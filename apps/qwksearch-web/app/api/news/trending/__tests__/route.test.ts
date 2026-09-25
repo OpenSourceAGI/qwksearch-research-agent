@@ -347,6 +347,23 @@ describe('GET /api/news/trending — stored articles', () => {
     )
   })
 
+  it('treats an empty daily list as a failure: not cached, archive served', async () => {
+    const kv = fakeKV()
+    stubEnv({ THENEWSAPI_API_KEY: 'k', KV: kv })
+    upstream({ source: 'wikipedia_daily_top', date: '2024-01-01', topics: [] })
+    mockReadStored.mockResolvedValue({
+      source: 'wikipedia_daily_top',
+      date: '2024-01-01',
+      topics: [{ topic: 'Eclipse', news_count: 1, articles: [] }],
+    })
+
+    const response = await GET(request('?limit=6'))
+
+    expect(kv.put).not.toHaveBeenCalled()
+    expect(mockStore).not.toHaveBeenCalled()
+    expect(response.headers.get('X-Trending-News-Cache')).toBe('STORED')
+  })
+
   it('still reports the failure when the archive is empty too', async () => {
     upstream({ error: 'Failed to fetch Wikipedia trends' }, 500)
 

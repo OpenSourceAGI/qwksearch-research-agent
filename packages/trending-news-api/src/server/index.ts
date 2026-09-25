@@ -92,6 +92,30 @@ const ARTICLES_FOR_SINGLE_TOPIC = 30;
  */
 const SEARCH_CONCURRENCY = 5;
 
+/**
+ * Wikimedia rejects or rate-limits requests without a descriptive User-Agent
+ * (https://meta.wikimedia.org/wiki/User-Agent_policy), so name the project
+ * and where to find it.
+ */
+const WIKI_USER_AGENT =
+  'trending-news-api (https://github.com/OpenSourceAGI/qwksearch-research-agent)';
+
+/**
+ * A failure talking to The News API — bad or missing token, exhausted quota,
+ * plan restriction, rate limit. Carries the API's own message so it can be
+ * shown to whoever has to fix it instead of turning into an empty widget.
+ */
+export class NewsApiError extends Error {
+  status: number;
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'NewsApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Cache-Control': 'no-store',
@@ -168,31 +192,57 @@ export async function fetchWikipediaTopPages(
   limit = DEFAULT_TOPIC_LIMIT,
   fetchImpl: typeof fetch = fetch
 ): Promise<WikiTopPage[]> {
-  const [year, month, day] = formatDate(date).split('-');
-  const url = `https://wikimedia.org/api/rest_v1/metrics/pageviews/top-per-article/en.wikipedia.org/all-access/all-agents/${year}/${month}/${day}`;
+  const url = (d: Date) => {
+    const [year, month, day] = formatDate(d).split('-');
+    return `https://wikimedia.org/api/rest_v1/metrics/pageviews/top-per-article/en.wikipedia.org/all-access/all-agents/${year}/${month}/${day}`;
+  };
 
-  const res = await fetchImpl(url, { headers: { 'User-Agent': 'trending-news-api' } });
+  let res = await fetchImpl(url(date), { headers: { 'User-Agent': WIKI_USER_AGENT } });
+  // Yesterday's ranking is usually published a few hours into the UTC day;
+  // before then the API answers 404, so fall back to the day before.
+  if (res.status === 404) {
+    const earlier = new Date(date);
+    earlier.setUTCDate(earlier.getUTCDate() - 1);
+    res = await fetchImpl(url(earlier), { headers: { 'User-Agent': WIKI_USER_AGENT } });
+  }
   if (!res.ok) {
     throw new Error(`Failed to fetch Wikipedia top pages: ${res.status}`);
   }
 
-  const data = (await res.json()) as {
-    items?: Array<{ article: string; views: number; rank?: number }>;
-  };
+  type Entry = { article: string; views: number; rank?: number };
+  const data = (await res.json()) as { items?: Array<Entry | { articles?: Entry[] }> };
 
-  const items = (data.items ?? []).filter((it) => !NON_ARTICLE_TITLE.test(it.article));
+  // The pageviews API nests the ranking one level down
+  // (`items[0].articles[]`); accept a flat `items[]` too.
+  const raw = (data.items ?? []).flatMap((it) =>
+    'articles' in it && Array.isArray(it.articles) ? it.articles : [it as Entry]
+  );
+  const items = raw.filter((it) => it?.article && !NON_ARTICLE_TITLE.test(it.article));
 
   return items.slice(0, limit).map((it, i) => ({
     rank: it.rank ?? i + 1,
-    article: decodeURIComponent(it.article.replace(/_/g, ' ')),
+    article: safeDecode(it.article.replace(/_/g, ' ')),
     views: it.views,
   }));
 }
 
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 /**
- * Search news for a given query using The News API (thenewsapi.com). A failed
- * lookup yields no articles rather than throwing: one topic the API dislikes
- * shouldn't cost the whole trending list.
+ * Search news for a given query using The News API (thenewsapi.com) — its
+ * `/v1/news/all` endpoint, which takes the query as `search`.
+ *
+ * A non-OK answer throws a `NewsApiError` with the API's own message (bad
+ * token, quota, plan limits). The list builders below catch it per topic, so
+ * one topic the API dislikes doesn't cost the whole list — but when *every*
+ * search fails they rethrow it, so a broken key surfaces as an error instead
+ * of an empty widget.
  */
 export async function searchNewsForTopic(
   apiKey: string,
@@ -200,17 +250,53 @@ export async function searchNewsForTopic(
   limit = ARTICLES_PER_TOPIC,
   fetchImpl: typeof fetch = fetch
 ): Promise<NewsApiArticle[]> {
-  const url = new URL('https://api.thenewsapi.com/v1/news/search');
+  const url = new URL('https://api.thenewsapi.com/v1/news/all');
   url.searchParams.set('api_token', apiKey);
-  url.searchParams.set('q', query);
+  url.searchParams.set('search', query);
   url.searchParams.set('language', 'en');
   url.searchParams.set('limit', String(limit));
 
   const res = await fetchImpl(url.toString());
-  if (!res.ok) return [];
-
-  const data = (await res.json()) as { data?: NewsApiArticle[] };
+  let data: { data?: NewsApiArticle[]; error?: { code?: string; message?: string } } = {};
+  try {
+    data = (await res.json()) as typeof data;
+  } catch {
+    // Non-JSON body; fall through with what the status says.
+  }
+  if (!res.ok || data.error) {
+    const code = data.error?.code;
+    const message = data.error?.message ?? `HTTP ${res.status}`;
+    throw new NewsApiError(
+      `The News API: ${message}${code ? ` (${code})` : ''}`,
+      res.status,
+      code
+    );
+  }
   return data.data ?? [];
+}
+
+/**
+ * Runs `searchNewsForTopic` for each query, keeping per-topic failures from
+ * sinking the batch. Returns `null` articles for a failed topic plus the first
+ * error seen.
+ */
+async function searchBatch(
+  apiKey: string,
+  queries: string[],
+  fetchImpl: typeof fetch
+): Promise<{ results: Array<NewsApiArticle[] | null>; error?: Error }> {
+  let error: Error | undefined;
+  const results = await Promise.all(
+    queries.map(async (q) => {
+      try {
+        return await searchNewsForTopic(apiKey, q, ARTICLES_PER_TOPIC, fetchImpl);
+      } catch (e) {
+        error ??= e instanceof Error ? e : new Error(String(e));
+        return null;
+      }
+    })
+  );
+  return { results, error };
 }
 
 function toArticlePayload(articles: NewsApiArticle[]): TrendingNewsWireArticle[] {
@@ -246,17 +332,24 @@ export async function getTrendingTopics(
   );
 
   const results: TrendingNewsWireTopic[] = [];
+  let searches = 0;
+  let failures = 0;
+  let firstError: Error | undefined;
   for (let i = 0; i < candidates.length && results.length < limit; i += SEARCH_CONCURRENCY) {
     const batch = candidates.slice(i, i + SEARCH_CONCURRENCY);
-    const searched = await Promise.all(
-      batch.map(async (entry) => ({
-        entry,
-        articles: await searchNewsForTopic(apiKey, entry.article, ARTICLES_PER_TOPIC, fetchImpl),
-      }))
+    const { results: found, error } = await searchBatch(
+      apiKey,
+      batch.map((entry) => entry.article),
+      fetchImpl
     );
+    firstError ??= error;
+    searches += found.length;
+    failures += found.filter((a) => a === null).length;
 
-    for (const { entry, articles } of searched) {
-      if (!articles.length) continue;
+    for (let j = 0; j < batch.length; j++) {
+      const entry = batch[j];
+      const articles = found[j];
+      if (!articles || !articles.length) continue;
       results.push({
         topic: entry.article,
         wiki_rank: entry.rank,
@@ -266,6 +359,9 @@ export async function getTrendingTopics(
       });
     }
   }
+
+  // Every search failed: that is the API key or quota, not the topics.
+  if (searches > 0 && failures === searches && firstError) throw firstError;
 
   results.sort((a, b) => (a.wiki_rank ?? 999) - (b.wiki_rank ?? 999));
 
@@ -295,16 +391,17 @@ export async function getCustomTopicNews(
   const wanted = parseTopicList(topics);
 
   const results: TrendingNewsWireTopic[] = [];
+  let failures = 0;
+  let firstError: Error | undefined;
   for (let i = 0; i < wanted.length; i += SEARCH_CONCURRENCY) {
     const batch = wanted.slice(i, i + SEARCH_CONCURRENCY);
-    const searched = await Promise.all(
-      batch.map(async (topic) => ({
-        topic,
-        articles: await searchNewsForTopic(apiKey, topic, ARTICLES_PER_TOPIC, fetchImpl),
-      }))
-    );
+    const { results: found, error } = await searchBatch(apiKey, batch, fetchImpl);
+    firstError ??= error;
+    failures += found.filter((a) => a === null).length;
 
-    for (const { topic, articles } of searched) {
+    for (let j = 0; j < batch.length; j++) {
+      const topic = batch[j];
+      const articles = found[j] ?? [];
       results.push({
         topic,
         news_count: articles.length,
@@ -312,6 +409,8 @@ export async function getCustomTopicNews(
       });
     }
   }
+
+  if (wanted.length > 0 && failures === wanted.length && firstError) throw firstError;
 
   return {
     source: 'custom_topics',
@@ -383,6 +482,11 @@ export async function handleTrendingNewsRequest(
       })
     );
   } catch (e) {
+    // A News API failure (bad key, quota) is the actionable part — say that,
+    // rather than blaming the step that happened to be running.
+    if (e instanceof NewsApiError) {
+      return jsonResponse({ error: e.message, code: e.code, upstream_status: e.status }, 502);
+    }
     return jsonResponse(
       {
         error: topic
