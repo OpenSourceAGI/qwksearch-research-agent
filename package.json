@@ -9,7 +9,7 @@
     "packages/render-url-to-html/*",
     "apps/qwk-vscode-ext",
     "apps/qwksearch-desktop",
-    "apps/qwksearch-ext",
+    "apps/qwksearch-browser-ext",
     "apps/qwksearch-web"
   ],
   "scripts": {

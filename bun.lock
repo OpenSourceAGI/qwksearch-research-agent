@@ -35,30 +35,7 @@
         "vitest": "^5.0.0",
       },
     },
-    "apps/qwksearch-desktop": {
-      "name": "qwksearch-desktop",
-      "version": "0.2.0",
-      "dependencies": {
-        "@tauri-apps/api": "~2.11.1",
-        "@tauri-apps/plugin-autostart": "~2.5.1",
-        "@tauri-apps/plugin-clipboard-manager": "~2.3.3",
-        "@tauri-apps/plugin-shell": "~2.3.6",
-      },
-      "devDependencies": {
-        "@sveltejs/adapter-static": "^3.0.10",
-        "@sveltejs/kit": "^2.70.3",
-        "@sveltejs/vite-plugin-svelte": "^7.3.0",
-        "@tauri-apps/cli": "2.11.4",
-        "@vitest/coverage-v8": "^5.0.0",
-        "cross-env": "^10.1.0",
-        "svelte": "^5.57.0",
-        "svelte-check": "^4.7.6",
-        "typescript": "^7.0.2",
-        "vite": "^8.2.2",
-        "vitest": "^5.0.0",
-      },
-    },
-    "apps/qwksearch-ext": {
+    "apps/qwksearch-browser-ext": {
       "name": "qwksearch-extension-wxt",
       "version": "6.0.0",
       "dependencies": {
@@ -87,6 +64,29 @@
         "vite": "^8.2.2",
         "vitest": "^5.0.0",
         "wxt": "^0.21.4",
+      },
+    },
+    "apps/qwksearch-desktop": {
+      "name": "qwksearch-desktop",
+      "version": "0.2.0",
+      "dependencies": {
+        "@tauri-apps/api": "~2.11.1",
+        "@tauri-apps/plugin-autostart": "~2.5.1",
+        "@tauri-apps/plugin-clipboard-manager": "~2.3.3",
+        "@tauri-apps/plugin-shell": "~2.3.6",
+      },
+      "devDependencies": {
+        "@sveltejs/adapter-static": "^3.0.10",
+        "@sveltejs/kit": "^2.70.3",
+        "@sveltejs/vite-plugin-svelte": "^7.3.0",
+        "@tauri-apps/cli": "2.11.4",
+        "@vitest/coverage-v8": "^5.0.0",
+        "cross-env": "^10.1.0",
+        "svelte": "^5.57.0",
+        "svelte-check": "^4.7.6",
+        "typescript": "^7.0.2",
+        "vite": "^8.2.2",
+        "vitest": "^5.0.0",
       },
     },
     "apps/qwksearch-web": {
@@ -235,7 +235,7 @@
     },
     "packages/chat-agent-toolkit": {
       "name": "chat-agent-toolkit",
-      "version": "1.2.395",
+      "version": "1.2.396",
       "dependencies": {
         "@ai-sdk/anthropic": "^4.0.50",
         "@ai-sdk/google": "^4.0.65",
@@ -283,7 +283,7 @@
     },
     "packages/domain-rank": {
       "name": "domain-rank",
-      "version": "0.1.384",
+      "version": "0.1.385",
       "dependencies": {
         "fuse.js": "^7.5.0",
         "grab-url": "^1.6.22",
@@ -302,7 +302,7 @@
     },
     "packages/extract-pdf": {
       "name": "extract-pdf",
-      "version": "0.1.379",
+      "version": "0.1.380",
       "dependencies": {
         "grab-url": "^1.6.22",
       },
@@ -327,7 +327,7 @@
     },
     "packages/extract-webpage": {
       "name": "extract-webpage",
-      "version": "1.2.389",
+      "version": "1.2.390",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "ai": "^7.0.94",
@@ -376,7 +376,7 @@
     },
     "packages/extract-youtube": {
       "name": "extract-youtube",
-      "version": "1.0.383",
+      "version": "1.0.384",
       "bin": {
         "extract-youtube": "dist/cli.js",
       },
@@ -414,7 +414,7 @@
     },
     "packages/html-renderer-api": {
       "name": "html-renderer-api",
-      "version": "1.0.267",
+      "version": "1.0.268",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.4.0",
       },
@@ -425,7 +425,7 @@
     },
     "packages/investing": {
       "name": "investing",
-      "version": "0.1.87",
+      "version": "0.1.89",
       "dependencies": {
         "@alpacahq/alpaca-trade-api": "^3.1.3",
         "@langchain/core": "^1.1.8",
@@ -472,7 +472,7 @@
     },
     "packages/legal-terms-privacy-policy": {
       "name": "legal-terms-privacy-policy",
-      "version": "0.1.72",
+      "version": "0.1.73",
       "devDependencies": {
         "@testing-library/react": "^16.3.3",
         "@types/react": "^19.2.18",
@@ -491,7 +491,7 @@
     },
     "packages/notebooklm-api-client": {
       "name": "notebooklm-api-client",
-      "version": "0.1.338",
+      "version": "0.1.339",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.4.0",
       },
@@ -505,7 +505,7 @@
     },
     "packages/qwksearch-api-client": {
       "name": "qwksearch-api-client",
-      "version": "1.0.67",
+      "version": "1.0.68",
       "dependencies": {
         "api2client": "^1.0.1",
       },
@@ -525,7 +525,7 @@
     },
     "packages/qwksearch-mcp-server": {
       "name": "qwksearch-mcp-server",
-      "version": "1.0.231",
+      "version": "1.0.232",
       "bin": {
         "qwksearch-mcp": "./bin/qwksearch-mcp.ts",
       },
@@ -542,7 +542,7 @@
     },
     "packages/react-weather-forecast": {
       "name": "use-weather-forecast",
-      "version": "0.1.209",
+      "version": "0.1.210",
       "dependencies": {
         "grab-url": "^1.6.22",
       },
@@ -568,7 +568,7 @@
     },
     "packages/reason-editor": {
       "name": "react-reason-editor",
-      "version": "1.0.197",
+      "version": "1.0.198",
       "dependencies": {
         "@ariakit/react": "^0.4.39",
         "@emoji-mart/data": "1.2.1",
@@ -776,7 +776,7 @@
     },
     "packages/reason-editor-sidebar": {
       "name": "react-reason-editor-sidebar",
-      "version": "0.1.114",
+      "version": "0.1.115",
       "dependencies": {
         "@headless-tree/core": "^1.7.0",
         "@headless-tree/react": "^1.7.0",
@@ -905,7 +905,7 @@
     },
     "packages/research-agent-ui": {
       "name": "research-agent-ui",
-      "version": "0.1.262",
+      "version": "0.1.263",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "@radix-ui/react-dialog": "^1.1.23",
@@ -982,7 +982,7 @@
     },
     "packages/search-web-api": {
       "name": "search-web-api",
-      "version": "1.0.247",
+      "version": "1.0.248",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "@scalar/hono-api-reference": "^0.12.1",
@@ -1002,7 +1002,7 @@
     },
     "packages/shadcn-app-dock": {
       "name": "shadcn-app-dock",
-      "version": "0.1.245",
+      "version": "0.1.246",
       "dependencies": {
         "@radix-ui/react-dropdown-menu": "^2.1.24",
         "@radix-ui/react-slot": "^1.3.3",
@@ -1035,7 +1035,7 @@
     },
     "packages/shadcn-settings": {
       "name": "shadcn-settings",
-      "version": "0.1.123",
+      "version": "0.1.124",
       "dependencies": {
         "@radix-ui/react-select": "^2.3.7",
         "@radix-ui/react-switch": "^1.3.7",
@@ -1064,7 +1064,7 @@
     },
     "packages/trending-news-api": {
       "name": "trending-news-api",
-      "version": "0.1.123",
+      "version": "0.1.124",
       "devDependencies": {
         "@cloudflare/workers-types": "^5.20260908.1",
         "@testing-library/react": "^16.3.3",
@@ -1087,7 +1087,7 @@
     },
     "packages/use-voice-control": {
       "name": "use-voice-control",
-      "version": "0.1.204",
+      "version": "0.1.205",
       "bin": {
         "use-voice-control": "bin/use-voice-control.mjs",
       },
@@ -1149,7 +1149,7 @@
     },
     "packages/write-language": {
       "name": "write-language",
-      "version": "0.1.265",
+      "version": "0.1.266",
       "dependencies": {
         "@ai-sdk/amazon-bedrock": "^5.0.78",
         "@ai-sdk/anthropic": "^4.0.50",
@@ -5971,7 +5971,7 @@
 
     "qwksearch-desktop": ["qwksearch-desktop@workspace:apps/qwksearch-desktop"],
 
-    "qwksearch-extension-wxt": ["qwksearch-extension-wxt@workspace:apps/qwksearch-ext"],
+    "qwksearch-extension-wxt": ["qwksearch-extension-wxt@workspace:apps/qwksearch-browser-ext"],
 
     "qwksearch-mcp-server": ["qwksearch-mcp-server@workspace:packages/qwksearch-mcp-server"],
 
