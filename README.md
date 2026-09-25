@@ -18,7 +18,7 @@
     <br />
        <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/graphs/contributors"><img src="https://img.shields.io/github/commit-activity/m/OpenSourceAGI/qwksearch-research-agent" alt="Commit activity" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/OpenSourceAGI/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
-   <a href="https://uptime.betterstack.com/?utm_source=status_badge"><img
+   <a href="https://status.opensourceagi.app"><img
     src="https://uptime.betterstack.com/status-badges/v1/monitor/2yp1l.svg"
     alt="Production uptime"
   ></a>
