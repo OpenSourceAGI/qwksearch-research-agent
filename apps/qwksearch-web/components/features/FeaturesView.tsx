@@ -438,7 +438,7 @@ function Comparison() {
           <div className="qs-border-beam relative isolate overflow-hidden rounded-3xl p-px">
             <div className="bg-card/80 relative z-10 overflow-hidden rounded-[calc(1.5rem-1px)] border backdrop-blur-sm">
               {/* Title sits outside the scroll container so it stays put
-                  while the 1080px-wide table is panned sideways; the <table>
+                  while the wide table is panned or scrolled; the <table>
                   carries the same text as its accessible name. */}
               <div className="border-b px-4 py-4 sm:px-6">
                 <h3 className="text-base font-semibold tracking-tight">
@@ -449,8 +449,10 @@ function Comparison() {
                 </p>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1080px] border-collapse text-sm">
+              {/* Both axes scroll inside a fixed-height viewport so the
+                  header row and feature column can stay pinned in view. */}
+              <div className="max-h-[32rem] overflow-auto">
+                <table className="w-full min-w-[1320px] border-collapse text-sm">
                   <caption className="sr-only">
                     {config.appName} vs. other research tools, feature by
                     feature.
@@ -459,7 +461,7 @@ function Comparison() {
                     <tr className="border-b">
                       <th
                         scope="col"
-                        className="bg-card sticky left-0 z-10 w-40 border-r px-4 py-4 text-left align-bottom"
+                        className="bg-card sticky top-0 left-0 z-30 w-32 border-r px-3 py-3 text-left align-bottom"
                       >
                         <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                           Feature
@@ -470,7 +472,7 @@ function Comparison() {
                           key={column.name}
                           scope="col"
                           className={cn(
-                            "px-4 py-4 text-center align-bottom",
+                            "bg-card sticky top-0 z-20 px-2 py-3 text-center align-bottom",
                             column.highlight && "qs-accent-soft",
                           )}
                         >
@@ -517,7 +519,7 @@ function Comparison() {
                       >
                         <th
                           scope="row"
-                          className="bg-card sticky left-0 z-10 w-40 border-r px-4 py-4 text-left text-sm font-medium"
+                          className="bg-card sticky left-0 z-10 w-32 border-r px-3 py-3 text-left text-sm font-medium"
                         >
                           {row.feature}
                         </th>
@@ -528,7 +530,7 @@ function Comparison() {
                             <td
                               key={column.name}
                               className={cn(
-                                "px-4 py-4 text-center align-top",
+                                "px-2 py-3 text-center align-top",
                                 column.highlight && "qs-accent-soft",
                               )}
                             >
@@ -540,7 +542,7 @@ function Comparison() {
                               {cell.note && (
                                 <div
                                   className={cn(
-                                    "mx-auto mt-1 max-w-44 text-xs leading-snug",
+                                    "mx-auto mt-1 max-w-32 text-xs leading-snug",
                                     column.highlight
                                       ? "text-foreground/80"
                                       : "text-muted-foreground",
