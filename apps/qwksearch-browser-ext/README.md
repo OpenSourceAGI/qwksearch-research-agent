@@ -23,9 +23,6 @@ manager and a research assistant over whatever you have open.
 - Search inside the page content of every open tab
 - Select text, press <kbd>Tab</kbd> to search; <kbd>Tab</kbd> again opens the first result
 - Reader mode that extracts and cites the main content (PDF and YouTube included)
-- Synced transcript beside every YouTube video: captions grouped into
-  sentences, the spoken line highlighted and followed, click to seek, search
-  and copy
 - Ask AI about the text of open and saved tabs
 
 Open the side panel with <kbd>Ctrl</kbd>+<kbd>Q</kbd>
