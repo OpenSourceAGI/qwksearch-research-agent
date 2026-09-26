@@ -347,8 +347,8 @@ export const SidebarContent = ({
     'h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:bg-sidebar-accent hover:text-foreground';
 
   const renderFiles = () => (
-    <div className="h-full overflow-auto">
-      <div className="flex items-center justify-between px-3 py-1">
+    <div className="h-full overflow-hidden flex flex-col">
+      <div className="shrink-0 flex items-center justify-between px-3 py-1">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Files</p>
         <div className="flex items-center gap-0.5">
           {onFileSourceChange && (
@@ -444,31 +444,33 @@ export const SidebarContent = ({
           )}
         </div>
       </div>
-      <FileTree
-        ref={effectiveTreeRef}
-        documents={activeDocuments}
-        onExpandStateChange={expandCycle.onExpandStateChange}
-        onExpandedFoldersChange={onSetExpandedFolders}
-        activeId={activeId}
-        onSelect={handleSelect}
-        onMove={onMove}
-        onRename={onRename}
-        onDelete={onDelete}
-        onDuplicate={onDuplicate}
-        onAddChild={(parentId) => onAdd(parentId, false)}
-        onAddChildFolder={(parentId) => onAdd(parentId, true)}
-        onAddSibling={(itemId) => {
-          const item = activeDocuments.find(d => d.id === itemId);
-          onAdd(item?.parentId || null, false);
-        }}
-        onAddSiblingFolder={(itemId) => {
-          const item = activeDocuments.find(d => d.id === itemId);
-          onAdd(item?.parentId || null, true);
-        }}
-        onCopy={handleCopy}
-        onPaste={handlePaste}
-        onManageTags={handleManageTags}
-      />
+      <div className="flex-1 overflow-auto">
+        <FileTree
+          ref={effectiveTreeRef}
+          documents={activeDocuments}
+          onExpandStateChange={expandCycle.onExpandStateChange}
+          onExpandedFoldersChange={onSetExpandedFolders}
+          activeId={activeId}
+          onSelect={handleSelect}
+          onMove={onMove}
+          onRename={onRename}
+          onDelete={onDelete}
+          onDuplicate={onDuplicate}
+          onAddChild={(parentId) => onAdd(parentId, false)}
+          onAddChildFolder={(parentId) => onAdd(parentId, true)}
+          onAddSibling={(itemId) => {
+            const item = activeDocuments.find(d => d.id === itemId);
+            onAdd(item?.parentId || null, false);
+          }}
+          onAddSiblingFolder={(itemId) => {
+            const item = activeDocuments.find(d => d.id === itemId);
+            onAdd(item?.parentId || null, true);
+          }}
+          onCopy={handleCopy}
+          onPaste={handlePaste}
+          onManageTags={handleManageTags}
+        />
+      </div>
     </div>
   );
 
