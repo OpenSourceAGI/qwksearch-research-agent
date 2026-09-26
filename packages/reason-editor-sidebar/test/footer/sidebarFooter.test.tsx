@@ -1,8 +1,8 @@
 /**
  * The sidebar's bottom icon row. Two things the user sees directly:
  * settings is a plain link to the settings page (it used to be a dropdown
- * of settings sections), and the storage-source switcher sits down here
- * rather than in the top toolbar.
+ * of settings sections), and the storage-source switcher sits in the Files
+ * panel header, falling back to this row only when that panel is hidden.
  */
 
 import { act } from 'react';
@@ -66,6 +66,11 @@ function settingsControl() {
   return container.querySelector('[aria-label="Settings"]');
 }
 
+/** The storage-source switcher trigger, wherever it renders. */
+function storageSwitcher() {
+  return container.querySelector('[aria-label^="Storage Source"]');
+}
+
 /** Buttons in the footer's icon row. */
 function footerButtons() {
   return Array.from(container.querySelectorAll('nav button'));
@@ -90,16 +95,31 @@ describe('sidebar footer', () => {
     expect(settingsControl()!.getAttribute('href')).toBe('/workspace/settings');
   });
 
-  it('puts the storage-source switcher in the footer, not the toolbar', () => {
+  it('puts the storage-source switcher in the Files panel header, not the footer', () => {
     renderSidebar();
-    const withoutSwitcher = footerButtons().length;
+    const footerWithout = footerButtons().length;
+    expect(storageSwitcher()).toBeNull();
 
     // The switcher renders only once the host can act on a source change,
-    // and it renders in the footer row — it used to live in the toolbar.
+    // and it sits in the Files header — it used to live in the footer.
     renderSidebar({ onFileSourceChange: () => {} });
+    const switcher = storageSwitcher();
+
+    expect(switcher).not.toBeNull();
+    expect(switcher!.closest('nav')).toBeNull();
+    expect(switcher!.getAttribute('aria-haspopup')).toBe('menu');
+    expect(footerButtons().length).toBe(footerWithout);
+  });
+
+  it('falls back to the footer when the Files panel is hidden', () => {
+    renderSidebar({ leftPanels: ['outline'] });
+    const withoutSwitcher = footerButtons().length;
+
+    renderSidebar({ leftPanels: ['outline'], onFileSourceChange: () => {} });
     const withSwitcher = footerButtons();
 
     expect(withSwitcher.length).toBe(withoutSwitcher + 1);
+    expect(withSwitcher[0]?.getAttribute('aria-label')).toMatch(/^Storage Source/);
     expect(withSwitcher[0]?.getAttribute('aria-haspopup')).toBe('menu');
   });
 });

@@ -208,6 +208,12 @@ export const Sidebar = ({
     onFileManagerOpen: () => setIsFileManagerOpen(true),
     deletedDocs,
     onRestore,
+    // The storage-source switcher sits in the Files panel header.
+    sources,
+    activeSource,
+    activeFileSourceId,
+    onFileSourceChange,
+    onSourceSelect: handleSourceSelect,
   };
 
   const footerProps = {
@@ -219,7 +225,7 @@ export const Sidebar = ({
     deletedDocs,
     onRestore,
     settingsHref,
-    // The storage-source switcher lives in the footer, not the top toolbar.
+    // Footer fallback for the storage switcher when the Files panel is hidden.
     sources,
     activeSource,
     activeFileSourceId,

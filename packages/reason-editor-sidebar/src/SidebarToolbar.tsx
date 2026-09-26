@@ -2,7 +2,7 @@
  * @module SidebarToolbar
  * @description Compact icon toolbar rendered at the top of the sidebar. Shows
  * context-sensitive controls based on `leftPanels`: search and expand/collapse
- * buttons. The storage-source switcher lives in the sidebar footer. The
+ * buttons. The storage-source switcher lives in the "Files" panel header. The
  * file-tree actions (new file/folder, trash, file manager) render here only
  * when the "Files" panel — which hosts them in its own header — is hidden.
  */

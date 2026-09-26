@@ -40,6 +40,7 @@ import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { X, XCircle, ArrowDownFromLine, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, FolderPlus, Folders, Trash2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import './split-pane.css';
+import { StorageSourceMenu } from './StorageSourceMenu';
 
 import type { DocumentTreeHandle } from './file-tree/filetree';
 import { useExpandCycle } from './file-tree/useExpandCycle';
@@ -96,6 +97,11 @@ export const SidebarContent = ({
   onFileManagerOpen,
   deletedDocs = [],
   onRestore,
+  sources = [],
+  activeSource,
+  activeFileSourceId,
+  onSourceSelect,
+  onFileSourceChange,
 }: SidebarContentProps) => {
   // Track copied document for copy/paste operations
   const [copiedDocId, setCopiedDocId] = useState<string | null>(null);
@@ -345,6 +351,19 @@ export const SidebarContent = ({
       <div className="flex items-center justify-between px-3 py-1">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Files</p>
         <div className="flex items-center gap-0.5">
+          {onFileSourceChange && (
+            <StorageSourceMenu
+              sources={sources}
+              activeSource={activeSource}
+              activeFileSourceId={activeFileSourceId}
+              onSourceSelect={onSourceSelect}
+              renderTrigger={(icon, label) => (
+                <button className={panelHeaderButtonClass} title={label} aria-label={label}>
+                  {icon}
+                </button>
+              )}
+            />
+          )}
           <button
             className={panelHeaderButtonClass}
             title="New File"

@@ -14,6 +14,7 @@ import type { TocEntry } from "../../app-types/toc";
 import type { ActiveHeadingEditorHandle } from "../../search/useActiveHeading";
 import type { DocumentTreeHandle } from "../../file-tree/filetree";
 import type { OutlineViewHandle } from "../../search/OutlineView";
+import type { AnyFileSource } from "../../app-types/fileSource";
 
 /** A single togglable panel kind that can appear in the left or right sidebar. */
 export type SidebarPanelType = "ai" | "files" | "outline" | "openTabs" | "related";
@@ -257,4 +258,14 @@ export interface SidebarContentProps {
   deletedDocs?: Document[];
   /** Restores a soft-deleted document by ID (from the trash menu). */
   onRestore?: (id: string) => void;
+  /** Available storage sources for the "Files" panel header switcher. */
+  sources?: AnyFileSource[];
+  /** The currently active storage source. */
+  activeSource?: AnyFileSource | null;
+  /** ID of the currently active storage source. */
+  activeFileSourceId?: string;
+  /** Selects a storage source by ID. */
+  onSourceSelect?: (sourceId: string) => void;
+  /** Called when the storage source changes; also gates the header switcher. */
+  onFileSourceChange?: (sourceId: string) => void;
 }
