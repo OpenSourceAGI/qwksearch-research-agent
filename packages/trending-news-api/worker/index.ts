@@ -8,11 +8,11 @@
 import { handleTrendingNewsRequest } from '../src/server';
 
 export interface Env {
-  THENEWSAPI_API_KEY: string;
+  THE_NEWS_API_KEY: string;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    return handleTrendingNewsRequest(request, { apiKey: env.THENEWSAPI_API_KEY });
+    return handleTrendingNewsRequest(request, { apiKey: env.THE_NEWS_API_KEY });
   },
 } satisfies ExportedHandler<Env>;

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Serves the homepage trending-news widget from this app, so a
- * deployment only needs a `THENEWSAPI_API_KEY` — not a separately deployed
+ * deployment only needs a `THE_NEWS_API_KEY` — not a separately deployed
  * copy of `packages/trending-news-api/worker`.
  *
  * Three things sit between the widget and The News API, in this order:
@@ -43,11 +43,11 @@ const FALLBACK_MAX_AGE_DAYS = 7;
 export function getNewsApiKey(): string | undefined {
   let fromWorker: string | undefined;
   try {
-    fromWorker = getCloudflareContext().env?.THENEWSAPI_API_KEY;
+    fromWorker = getCloudflareContext().env?.THE_NEWS_API_KEY;
   } catch {
     // No Cloudflare runtime (Node dev server, tests) — fall through.
   }
-  return fromWorker || process.env.THENEWSAPI_API_KEY || undefined;
+  return fromWorker || process.env.THE_NEWS_API_KEY || undefined;
 }
 
 function getKV(): any {
@@ -282,11 +282,11 @@ export async function diagnoseNews(): Promise<NewsDiagnostic[]> {
 
   const apiKey = getNewsApiKey();
   checks.push({
-    name: "THENEWSAPI_API_KEY",
+    name: "THE_NEWS_API_KEY",
     ok: Boolean(apiKey),
     detail: apiKey
       ? "Set on this deployment."
-      : "Not set. Add it to .env, or run `bunx wrangler secret put THENEWSAPI_API_KEY` in production. Get a key at https://www.thenewsapi.com.",
+      : "Not set. Add it to .env, or run `bunx wrangler secret put THE_NEWS_API_KEY` in production. Get a key at https://www.thenewsapi.com.",
   });
 
   if (apiKey) {

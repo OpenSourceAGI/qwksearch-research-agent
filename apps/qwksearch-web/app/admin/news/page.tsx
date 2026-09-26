@@ -221,7 +221,7 @@ export default function AdminNewsPage() {
 
       {data && !data.apiKeyConfigured && (
         <div className="p-3 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 rounded text-sm">
-          <code className="font-mono">THENEWSAPI_API_KEY</code> is not set on this
+          <code className="font-mono">THE_NEWS_API_KEY</code> is not set on this
           deployment, so no new headlines can be fetched. The widget falls back to
           whatever is already stored below.
         </div>

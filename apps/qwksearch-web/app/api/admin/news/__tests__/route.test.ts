@@ -173,17 +173,17 @@ describe('POST /api/admin/news', () => {
     mockRefresh.mockResolvedValue({
       stored: 0,
       topics: 0,
-      error: 'THENEWSAPI_API_KEY is not configured',
+      error: 'THE_NEWS_API_KEY is not configured',
     })
 
     const body = await (await post({ action: 'refresh' })).json()
 
-    expect(body.error).toBe('THENEWSAPI_API_KEY is not configured')
+    expect(body.error).toBe('THE_NEWS_API_KEY is not configured')
   })
 
   it('reports each upstream check on the diagnose action', async () => {
     const checks = [
-      { name: 'THENEWSAPI_API_KEY', ok: true, detail: 'Set on this deployment.' },
+      { name: 'THE_NEWS_API_KEY', ok: true, detail: 'Set on this deployment.' },
       { name: 'The News API', ok: false, detail: 'The News API: An invalid API token was supplied.' },
     ]
     mockDiagnose.mockResolvedValue(checks)

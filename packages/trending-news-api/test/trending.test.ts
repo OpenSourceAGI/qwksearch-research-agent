@@ -157,12 +157,12 @@ describe('getTrendingNews', () => {
 
   it('includes the server’s error message from a non-ok response', async () => {
     mockFetch(
-      { error: 'THENEWSAPI_API_KEY is not configured' },
+      { error: 'THE_NEWS_API_KEY is not configured' },
       { ok: false, status: 500, statusText: 'Internal Server Error' }
     );
 
     await expect(getTrendingNews({ apiEndpoint: ENDPOINT })).rejects.toThrow(
-      'Trending news request failed: 500 Internal Server Error: THENEWSAPI_API_KEY is not configured'
+      'Trending news request failed: 500 Internal Server Error: THE_NEWS_API_KEY is not configured'
     );
   });
 

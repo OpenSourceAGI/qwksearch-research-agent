@@ -85,14 +85,14 @@ const TOPICS = { source: 'wikipedia_daily_top', date: '2024-01-01', topics: [{ t
 
 describe('GET /api/news/trending', () => {
   beforeEach(() => {
-    delete process.env.THENEWSAPI_API_KEY
+    delete process.env.THE_NEWS_API_KEY
     siteSettings()
     mockStore.mockResolvedValue(0)
     mockReadStored.mockResolvedValue(null)
   })
 
   it('serves the trending list with the server-held API key', async () => {
-    stubEnv({ THENEWSAPI_API_KEY: 'worker-secret' })
+    stubEnv({ THE_NEWS_API_KEY: 'worker-secret' })
     upstream(TOPICS)
 
     const response = await GET(request('?limit=6'))
@@ -106,7 +106,7 @@ describe('GET /api/news/trending', () => {
     mockContext.mockImplementation(() => {
       throw new Error('no cloudflare runtime')
     })
-    process.env.THENEWSAPI_API_KEY = 'env-secret'
+    process.env.THE_NEWS_API_KEY = 'env-secret'
     upstream(TOPICS)
 
     await GET(request())
@@ -115,7 +115,7 @@ describe('GET /api/news/trending', () => {
   })
 
   it('never leaks the API key to the caller', async () => {
-    stubEnv({ THENEWSAPI_API_KEY: 'worker-secret' })
+    stubEnv({ THE_NEWS_API_KEY: 'worker-secret' })
     upstream(TOPICS)
 
     const response = await GET(request('?limit=6'))
@@ -125,7 +125,7 @@ describe('GET /api/news/trending', () => {
 
   it('caches a successful answer in KV for the next visitor', async () => {
     const kv = fakeKV()
-    stubEnv({ THENEWSAPI_API_KEY: 'k', KV: kv })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
     upstream(TOPICS)
 
     const first = await GET(request('?limit=6'))
@@ -145,7 +145,7 @@ describe('GET /api/news/trending', () => {
 
   it('keys the cache by topic, so one topic never answers another', async () => {
     const kv = fakeKV()
-    stubEnv({ THENEWSAPI_API_KEY: 'k', KV: kv })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
     upstream({ topic: 'Eclipse', news_count: 0, articles: [] })
 
     await GET(request('?topic=Eclipse'))
@@ -159,7 +159,7 @@ describe('GET /api/news/trending', () => {
 
   it('normalises the limit so one answer gets one cache entry', async () => {
     const kv = fakeKV()
-    stubEnv({ THENEWSAPI_API_KEY: 'k', KV: kv })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
     upstream(TOPICS)
 
     await GET(request('?limit=6'))
@@ -174,7 +174,7 @@ describe('GET /api/news/trending', () => {
 
   it('does not cache a failure', async () => {
     const kv = fakeKV()
-    stubEnv({ THENEWSAPI_API_KEY: 'k', KV: kv })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
     upstream({ error: 'Failed to fetch Wikipedia trends' }, 500)
 
     const response = await GET(request())
@@ -185,7 +185,7 @@ describe('GET /api/news/trending', () => {
   })
 
   it('still answers when KV is unavailable', async () => {
-    stubEnv({ THENEWSAPI_API_KEY: 'k' })
+    stubEnv({ THE_NEWS_API_KEY: 'k' })
     upstream(TOPICS)
 
     const response = await GET(request())
@@ -197,7 +197,7 @@ describe('GET /api/news/trending', () => {
   it('survives a KV read that throws', async () => {
     const kv = fakeKV()
     kv.get.mockRejectedValue(new Error('KV unavailable'))
-    stubEnv({ THENEWSAPI_API_KEY: 'k', KV: kv })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
     upstream(TOPICS)
 
     const response = await GET(request())
@@ -208,7 +208,7 @@ describe('GET /api/news/trending', () => {
 
   it('passes an unconfigured key through as the handler’s own error', async () => {
     stubEnv({})
-    upstream({ error: 'THENEWSAPI_API_KEY is not configured' }, 500)
+    upstream({ error: 'THE_NEWS_API_KEY is not configured' }, 500)
 
     const response = await GET(request())
 
@@ -219,11 +219,11 @@ describe('GET /api/news/trending', () => {
 
 describe('GET /api/news/trending — admin settings', () => {
   beforeEach(() => {
-    delete process.env.THENEWSAPI_API_KEY
+    delete process.env.THE_NEWS_API_KEY
     siteSettings()
     mockStore.mockResolvedValue(0)
     mockReadStored.mockResolvedValue(null)
-    stubEnv({ THENEWSAPI_API_KEY: 'k' })
+    stubEnv({ THE_NEWS_API_KEY: 'k' })
   })
 
   it('answers an empty list, not an error, when the widget is switched off', async () => {
@@ -268,7 +268,7 @@ describe('GET /api/news/trending — admin settings', () => {
 
   it('keys the cache by the resolved topics, not the raw query string', async () => {
     const kv = fakeKV()
-    stubEnv({ THENEWSAPI_API_KEY: 'k', KV: kv })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
     upstream(TOPICS)
 
     // Same topics, written differently by two visitors.
@@ -281,7 +281,7 @@ describe('GET /api/news/trending — admin settings', () => {
 
   it('honours the configured cache window', async () => {
     const kv = fakeKV()
-    stubEnv({ THENEWSAPI_API_KEY: 'k', KV: kv })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
     siteSettings({ cacheMinutes: 30 })
     upstream(TOPICS)
 
@@ -296,11 +296,11 @@ describe('GET /api/news/trending — admin settings', () => {
 
 describe('GET /api/news/trending — stored articles', () => {
   beforeEach(() => {
-    delete process.env.THENEWSAPI_API_KEY
+    delete process.env.THE_NEWS_API_KEY
     siteSettings()
     mockStore.mockResolvedValue(0)
     mockReadStored.mockResolvedValue(null)
-    stubEnv({ THENEWSAPI_API_KEY: 'k' })
+    stubEnv({ THE_NEWS_API_KEY: 'k' })
   })
 
   it('stores what it fetched', async () => {
@@ -320,7 +320,7 @@ describe('GET /api/news/trending — stored articles', () => {
   })
 
   it('serves stored articles when the upstream fails', async () => {
-    upstream({ error: 'THENEWSAPI_API_KEY is not configured' }, 500)
+    upstream({ error: 'THE_NEWS_API_KEY is not configured' }, 500)
     mockReadStored.mockResolvedValue({
       source: 'wikipedia_daily_top',
       date: '2024-01-01',
@@ -349,7 +349,7 @@ describe('GET /api/news/trending — stored articles', () => {
 
   it('treats an empty daily list as a failure: not cached, archive served', async () => {
     const kv = fakeKV()
-    stubEnv({ THENEWSAPI_API_KEY: 'k', KV: kv })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
     upstream({ source: 'wikipedia_daily_top', date: '2024-01-01', topics: [] })
     mockReadStored.mockResolvedValue({
       source: 'wikipedia_daily_top',

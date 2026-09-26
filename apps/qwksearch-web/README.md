@@ -109,7 +109,7 @@ At least one model provider is needed for the agent to answer.
 | `NVIDIA_API_KEY` | Models on the NVIDIA API catalog. | [build.nvidia.com](https://build.nvidia.com) |
 | `OOMOL_API_KEY` | OOMOL models. | Your OOMOL account dashboard. |
 | `TAVILY_API_KEY` | Tavily as a search backend. The other engines in `packages/search-web-api` need no key. | [app.tavily.com](https://app.tavily.com/) · [docs](https://docs.tavily.com/documentation/quickstart) |
-| `THENEWSAPI_API_KEY` | The homepage trending-news widget. Without it the widget does not render; nothing else changes. | [thenewsapi.com](https://www.thenewsapi.com/) |
+| `THE_NEWS_API_KEY` | The homepage trending-news widget. Without it the widget does not render; nothing else changes. | [thenewsapi.com](https://www.thenewsapi.com/) |
 
 ### Extraction and storage
 

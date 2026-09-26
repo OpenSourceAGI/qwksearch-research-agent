@@ -256,7 +256,7 @@ describe('handleTrendingNewsRequest', () => {
     const response = await handleTrendingNewsRequest(request(), { apiKey: undefined });
 
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: 'THENEWSAPI_API_KEY is not configured' });
+    expect(await response.json()).toEqual({ error: 'THE_NEWS_API_KEY is not configured' });
   });
 
   it('serves the daily list honouring ?limit=', async () => {

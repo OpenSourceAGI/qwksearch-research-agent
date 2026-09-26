@@ -33,16 +33,16 @@ const check = (checks: { name: string; ok: boolean; detail: string }[], name: st
   checks.find((c) => c.name === name)!
 
 beforeEach(() => {
-  delete process.env.THENEWSAPI_API_KEY
+  delete process.env.THE_NEWS_API_KEY
   mockSettings.mockResolvedValue({ ...DEFAULT_NEWS_WIDGET_SETTINGS })
-  mockContext.mockReturnValue({ env: { THENEWSAPI_API_KEY: 'k' } })
+  mockContext.mockReturnValue({ env: { THE_NEWS_API_KEY: 'k' } })
   mockSearch.mockResolvedValue([{ title: 'x' }])
   mockWiki.mockResolvedValue([{ rank: 1, article: 'Eclipse', views: 10 }])
 })
 
 describe('diagnoseNews', () => {
   it('passes every check when the upstreams answer', async () => {
-    mockContext.mockReturnValue({ env: { THENEWSAPI_API_KEY: 'k', KV: {} } })
+    mockContext.mockReturnValue({ env: { THE_NEWS_API_KEY: 'k', KV: {} } })
 
     const checks = await diagnoseNews()
 
@@ -55,7 +55,7 @@ describe('diagnoseNews', () => {
 
     const checks = await diagnoseNews()
 
-    expect(check(checks, 'THENEWSAPI_API_KEY').ok).toBe(false)
+    expect(check(checks, 'THE_NEWS_API_KEY').ok).toBe(false)
     expect(check(checks, 'The News API').detail).toBe('Skipped: no API key.')
     expect(mockSearch).not.toHaveBeenCalled()
   })

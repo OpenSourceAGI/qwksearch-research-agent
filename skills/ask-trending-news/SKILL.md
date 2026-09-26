@@ -15,7 +15,7 @@ The widget needs an `apiEndpoint`; there is no bundled fallback data. Inside thi
 monorepo it already has one: qwksearch-web serves the handler at
 **`/api/news/trending`** (`app/api/news/trending/route.ts` → `lib/news/trending.ts`),
 and `researchAgentUIConfig.trendingNewsApiUrl` points the homepage widget there, so the
-only setup is the `THENEWSAPI_API_KEY` env var. The `trendingNewsApiUrl` **setting**
+only setup is the `THE_NEWS_API_KEY` env var. The `trendingNewsApiUrl` **setting**
 overrides that per user, for reading from a separately deployed worker instead.
 
 Topics come from one of three places, in this order: the visitor's **My News Topics**
@@ -24,12 +24,12 @@ ranking. See [In qwksearch-web](#in-qwksearch-web) below.
 
 ## Setup
 
-Serving it from the app (what qwksearch-web does) — set `THENEWSAPI_API_KEY` in
+Serving it from the app (what qwksearch-web does) — set `THE_NEWS_API_KEY` in
 `.env`, or as a Worker secret in production:
 
 ```bash
 cd apps/qwksearch-web
-bunx wrangler secret put THENEWSAPI_API_KEY
+bunx wrangler secret put THE_NEWS_API_KEY
 ```
 
 Or deploy the standalone worker and paste its URL into the *Trending News API URL*
@@ -38,7 +38,7 @@ setting:
 ```bash
 cd packages/trending-news-api
 bun run worker:deploy                      # then set the secret:
-bunx wrangler secret put THENEWSAPI_API_KEY --config worker/wrangler.jsonc
+bunx wrangler secret put THE_NEWS_API_KEY --config worker/wrangler.jsonc
 ```
 
 ```tsx
@@ -152,7 +152,7 @@ hardcoded default silently overriding it.
 ## Troubleshooting
 
 Start at **Admin → News Widget → Diagnostics**. It checks each dependency live
-(the widget switch, `THENEWSAPI_API_KEY`, a test News API search, the Wikipedia
+(the widget switch, `THE_NEWS_API_KEY`, a test News API search, the Wikipedia
 ranking, the KV binding), prints the upstream's own error message for whichever
 fails, and renders a preview of `/api/news/trending` with `showErrors`, so the
 reason the homepage widget is hidden is on screen. Outside the admin panel, pass
@@ -167,8 +167,8 @@ with the API's message, e.g. `The News API: An invalid API token was supplied.
 | Symptom | Cause → fix |
 | --- | --- |
 | `trending-news-api: apiEndpoint is required` | The option is mandatory. The hook simply returns `loading: false` with no data instead of throwing. |
-| `THENEWSAPI_API_KEY is not configured` (500) | Set the env var on whichever side serves the data — the app (`.env` / `wrangler secret put`) or the standalone worker. |
-| The homepage widget is blank on a self-hosted instance | Same cause: no `THENEWSAPI_API_KEY`. `/api/news/trending` answers 500 and the widget hides itself rather than showing a broken card. |
+| `THE_NEWS_API_KEY is not configured` (500) | Set the env var on whichever side serves the data — the app (`.env` / `wrangler secret put`) or the standalone worker. |
+| The homepage widget is blank on a self-hosted instance | Same cause: no `THE_NEWS_API_KEY`. `/api/news/trending` answers 500 and the widget hides itself rather than showing a broken card. |
 | Stale trending data for a while after fixing the key | `/api/news/trending` caches in KV for the admin's *Cache (minutes)* (default 10), but never caches an error — a failure clears as soon as the next request succeeds. |
 | The widget shows old headlines with no obvious error | It is serving the D1 archive because the upstream failed. Check `X-Trending-News-Cache: STORED` and the `stale: true` flag, then the API key. |
 | A user's topics are ignored | Either the admin turned off *Let each user set their own topics*, or the list parsed to nothing (all blanks). `/api/news/settings` reports `allowUserTopics`. |

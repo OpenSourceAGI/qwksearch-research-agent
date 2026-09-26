@@ -82,7 +82,7 @@ function buildUrl(apiEndpoint: string, options: TrendingNewsOptions) {
 
 /**
  * The error for a failed request, carrying the server's own `error` message
- * (e.g. "THENEWSAPI_API_KEY is not configured") when the body has one, so a
+ * (e.g. "THE_NEWS_API_KEY is not configured") when the body has one, so a
  * caller that shows it tells the reader what to fix, not just a status code.
  */
 async function requestError(response: Response): Promise<Error> {

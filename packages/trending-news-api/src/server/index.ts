@@ -455,7 +455,7 @@ export async function handleTrendingNewsRequest(
 ): Promise<Response> {
   const { apiKey, fetchImpl } = options;
   if (!apiKey) {
-    return jsonResponse({ error: 'THENEWSAPI_API_KEY is not configured' }, 500);
+    return jsonResponse({ error: 'THE_NEWS_API_KEY is not configured' }, 500);
   }
 
   const params = new URL(request.url).searchParams;
