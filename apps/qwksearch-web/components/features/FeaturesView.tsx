@@ -717,7 +717,7 @@ function ClosingCta() {
   );
 }
 
-export function FeaturesView() {
+export function FeaturesView({ showPipeline = true }: { showPipeline?: boolean } = {}) {
   return (
     <div className="qs-features relative min-h-screen md:pl-20">
       <Hero />
@@ -726,7 +726,7 @@ export function FeaturesView() {
       <EngineMarquee />
       <BentoGrid />
       <Comparison />
-      <Pipeline />
+      {showPipeline && <Pipeline />}
       <FeatureExplorer />
       <ClosingCta />
     </div>
