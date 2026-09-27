@@ -45,6 +45,7 @@ export default function SearchSettings() {
   const [ttsVoice, setTtsVoice] = useLocalStorage("ttsSpeaker", "angus")
   const [systemInstructions, setSystemInstructions] = useLocalStorage("systemInstructions", "")
   const [followupQuestions, setFollowupQuestions] = useLocalStorage("maxFollowupQuestions", "4")
+  const [openRouterApiKey, setOpenRouterApiKey] = useLocalStorage("openRouterApiKey", "")
 
   return (
     <div className="p-4 space-y-5 text-sm">
@@ -107,6 +108,18 @@ export default function SearchSettings() {
             <option key={o.value} value={o.value}>{o.name}</option>
           ))}
         </select>
+      </div>
+
+      <div className="space-y-1">
+        <label className="font-medium text-gray-800">OpenRouter API Key</label>
+        <div className="text-xs text-gray-500 mb-1">Your OpenRouter API key. Get one free at <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai/keys</a> - includes free access to Llama 3.3 70B, Nemotron, and other models.</div>
+        <input
+          type="password"
+          value={openRouterApiKey}
+          onChange={(e) => setOpenRouterApiKey(e.target.value)}
+          placeholder="sk-or-v1-..."
+          className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+        />
       </div>
     </div>
   )

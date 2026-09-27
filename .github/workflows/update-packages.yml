@@ -1,0 +1,109 @@
+name: Update pnpm packages
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 16 * * 1" # Weekly, Monday 16:00 UTC
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pnpm-package-updates
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Update workspace dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Find package manifests and update dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Exclude dependency/vendor/generated directories. Each remaining package.json
+          # is treated as an independent pnpm project unless it belongs to a root workspace.
+          mapfile -d '' manifests < <(
+            find . \
+              -type d \( -name node_modules -o -name .git -o -name vendor -o -name dist -o -name build -o -name .next \) -prune -o \
+              -type f -name package.json -print0
+          )
+
+          if [ "${#manifests[@]}" -eq 0 ]; then
+            echo "No package.json files found."
+            exit 0
+          fi
+
+          printf 'Found package manifests:\n'
+          printf ' - %s\n' "${manifests[@]}"
+
+          # First update the root project. If it is a pnpm workspace, --recursive
+          # updates every workspace package and keeps the shared lockfile consistent.
+          if [ -f package.json ]; then
+            if [ -f pnpm-workspace.yaml ] || [ -f pnpm-workspace.yml ]; then
+              pnpm update --latest --recursive
+            else
+              pnpm update --latest
+            fi
+          fi
+
+          # Update package directories outside the root workspace. Directories that
+          # already have a pnpm-lock.yaml in an ancestor are skipped because the root
+          # workspace update above already covers them.
+          declare -A visited
+          for manifest in "${manifests[@]}"; do
+            dir="$(dirname "$manifest")"
+            [ "$dir" = "." ] && continue
+
+            # Avoid running twice for duplicate paths and skip nested workspace members.
+            if [ -n "${visited[$dir]:-}" ]; then
+              continue
+            fi
+            visited[$dir]=1
+
+            if [ -f pnpm-workspace.yaml ] || [ -f pnpm-workspace.yml ]; then
+              if pnpm --dir . list -r --depth -1 --json 2>/dev/null | grep -Fq "\"path\": \"$(cd "$dir" && pwd)\""; then
+                echo "Skipping workspace package: $dir"
+                continue
+              fi
+            fi
+
+            echo "Updating standalone package: $dir"
+            pnpm --dir "$dir" update --latest
+          done
+
+      - name: Create or update dependency-update pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore(deps): update pnpm dependencies"
+          branch: "automation/pnpm-dependency-updates"
+          delete-branch: true
+          title: "chore(deps): update pnpm dependencies"
+          body: |
+            Automated dependency update using `pnpm update --latest`.
+
+            This workflow scans the repository for `package.json` files, updates the
+            root pnpm workspace recursively when present, and updates standalone pnpm
+            projects found in subdirectories.
+          labels: dependencies, automated
+          draft: false
