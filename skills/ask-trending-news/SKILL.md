@@ -15,7 +15,7 @@ The widget needs an `apiEndpoint`; there is no bundled fallback data. Inside thi
 monorepo it already has one: qwksearch-web serves the handler at
 **`/api/news/trending`** (`app/api/news/trending/route.ts` → `lib/news/trending.ts`),
 and `researchAgentUIConfig.trendingNewsApiUrl` points the homepage widget there, so the
-only setup is the `THENEWSAPI_API_KEY` env var. The `trendingNewsApiUrl` **setting**
+only setup is the `THE_NEWS_API_KEY` env var. The `trendingNewsApiUrl` **setting**
 overrides that per user, for reading from a separately deployed worker instead.
 
 Topics come from one of three places, in this order: the visitor's **My News Topics**
@@ -24,12 +24,12 @@ ranking. See [In qwksearch-web](#in-qwksearch-web) below.
 
 ## Setup
 
-Serving it from the app (what qwksearch-web does) — set `THENEWSAPI_API_KEY` in
+Serving it from the app (what qwksearch-web does) — set `THE_NEWS_API_KEY` in
 `.env`, or as a Worker secret in production:
 
 ```bash
 cd apps/qwksearch-web
-bunx wrangler secret put THENEWSAPI_API_KEY
+bunx wrangler secret put THE_NEWS_API_KEY
 ```
 
 Or deploy the standalone worker and paste its URL into the *Trending News API URL*
@@ -38,7 +38,7 @@ setting:
 ```bash
 cd packages/trending-news-api
 bun run worker:deploy                      # then set the secret:
-bunx wrangler secret put THENEWSAPI_API_KEY --config worker/wrangler.jsonc
+bunx wrangler secret put THE_NEWS_API_KEY --config worker/wrangler.jsonc
 ```
 
 ```tsx
@@ -151,11 +151,24 @@ hardcoded default silently overriding it.
 
 ## Troubleshooting
 
+Start at **Admin → News Widget → Diagnostics**. It checks each dependency live
+(the widget switch, `THE_NEWS_API_KEY`, a test News API search, the Wikipedia
+ranking, the KV binding), prints the upstream's own error message for whichever
+fails, and renders a preview of `/api/news/trending` with `showErrors`, so the
+reason the homepage widget is hidden is on screen. Outside the admin panel, pass
+`showErrors` to `<TrendingNews>` to see the failure in place of an empty widget.
+
+The server queries The News API's **`/v1/news/all?search=`** endpoint (there is
+no `/v1/news/search`). A News API failure on one topic drops that topic; when
+*every* search fails (bad token, exhausted quota) the handler answers **502**
+with the API's message, e.g. `The News API: An invalid API token was supplied.
+(invalid_api_token)`, rather than an empty list.
+
 | Symptom | Cause → fix |
 | --- | --- |
 | `trending-news-api: apiEndpoint is required` | The option is mandatory. The hook simply returns `loading: false` with no data instead of throwing. |
-| `THENEWSAPI_API_KEY is not configured` (500) | Set the env var on whichever side serves the data — the app (`.env` / `wrangler secret put`) or the standalone worker. |
-| The homepage widget is blank on a self-hosted instance | Same cause: no `THENEWSAPI_API_KEY`. `/api/news/trending` answers 500 and the widget hides itself rather than showing a broken card. |
+| `THE_NEWS_API_KEY is not configured` (500) | Set the env var on whichever side serves the data — the app (`.env` / `wrangler secret put`) or the standalone worker. |
+| The homepage widget is blank on a self-hosted instance | Same cause: no `THE_NEWS_API_KEY`. `/api/news/trending` answers 500 and the widget hides itself rather than showing a broken card. |
 | Stale trending data for a while after fixing the key | `/api/news/trending` caches in KV for the admin's *Cache (minutes)* (default 10), but never caches an error — a failure clears as soon as the next request succeeds. |
 | The widget shows old headlines with no obvious error | It is serving the D1 archive because the upstream failed. Check `X-Trending-News-Cache: STORED` and the `stale: true` flag, then the API key. |
 | A user's topics are ignored | Either the admin turned off *Let each user set their own topics*, or the list parsed to nothing (all blanks). `/api/news/settings` reports `allowUserTopics`. |
@@ -164,7 +177,8 @@ hardcoded default silently overriding it.
 | `Failed to fetch Wikipedia trends` (500) | The pageviews API was unreachable or has no data for that date. It usually resolves on the next day boundary. |
 | Topics include "Main Page" or `Special:`/`Portal:` entries | The worker filters those with `NON_ARTICLE_TITLE`. Seeing them means an older deployment — redeploy. |
 | Stale data after changing the endpoint | The 10-minute cache is keyed by URL. `clearTrendingNewsCache()`. |
-| Nothing renders and no error | `data.topics` is empty — The News API returned nothing for those topics (quota, or a plan restriction). |
+| Nothing renders and no error | `data.topics` is empty — The News API returned nothing for those topics. An empty *daily* list is never cached in KV and falls back to the archive. |
+| 502 `The News API: …` | Every news search was refused. The message is the API's own — fix the key, plan or quota it names. |
 | The chevron does nothing | `expandable` only applies with `compact`. |
 | SSR crashes on `localStorage` | The cache guards on `typeof window`; the component is client-side. Mark the host boundary `'use client'`. |
 | CORS errors | The worker sets `Access-Control-Allow-Origin: *` and `Cache-Control: no-store`; a proxy in front may be stripping them. |

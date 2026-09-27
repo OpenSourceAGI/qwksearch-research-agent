@@ -1,7 +1,6 @@
 /**
  * @module SidebarFooter
- * @description Bottom icon bar of the sidebar. Renders the storage-source
- * switcher, trash, a settings link, and panel view controls.
+ * @description Bottom icon bar of the sidebar. Renders trash, a settings link, and panel view controls.
  */
 import { Button } from './app-ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './app-ui/tooltip';
@@ -12,9 +11,9 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from './app-ui/dropdown-menu';
-import { Settings, Trash2, RotateCcw, Check } from 'lucide-react';
+import { Settings, Trash2, RotateCcw } from 'lucide-react';
 import type { AnyFileSource } from './app-types/fileSource';
-import { getSourceIcon, getSourceTypeLabel } from './fileSourceUtils';
+import { StorageSourceMenu } from './StorageSourceMenu';
 import type { Document } from './documents/DocumentTree';
 import type { SidebarPanelType } from './layout/sidebar/types';
 import { SidebarViewMenu } from './SidebarViewMenu';
@@ -53,8 +52,8 @@ interface SidebarFooterProps {
 }
 
 /**
- * Compact icon row pinned to the bottom of the sidebar. Includes the storage
- * source switcher, a trash dropdown (restore deleted docs), a settings link
+ * Compact icon row pinned to the bottom of the sidebar. Includes a storage
+ * source switcher (only when the Files panel is hidden), a trash dropdown (restore deleted docs), a settings link
  * to the settings page, and a panel view dropdown.
  */
 export const SidebarFooter = ({
@@ -75,60 +74,28 @@ export const SidebarFooter = ({
     <div className="border-t border-sidebar-border py-1">
       <TooltipProvider delayDuration={300}>
         <nav className="flex items-center justify-around gap-1">
-          {/* Storage Source Dropdown */}
-          {onFileSourceChange && (
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-9 w-9 p-0 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
-                    >
-                      {getSourceIcon(activeSource?.type ?? 'local')}
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  <p>Storage Source: {activeSource?.name || 'Select Source'}</p>
-                </TooltipContent>
-              </Tooltip>
-              <DropdownMenuContent align="start" side="top" className="w-56">
-                {sources.map((source, index) => (
-                  <div key={source.id}>
-                    {index > 0 && sources[index - 1]?.type !== source.type && (
-                      <DropdownMenuSeparator />
-                    )}
-                    <DropdownMenuItem
-                      onClick={() => onSourceSelect?.(source.id)}
-                      className="flex items-center justify-between cursor-pointer"
-                    >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        {getSourceIcon(source.type)}
-                        <div className="flex flex-col flex-1 min-w-0">
-                          <span className="truncate text-sm">{source.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {getSourceTypeLabel(source.type)}
-                          </span>
-                        </div>
-                      </div>
-                      {source.id === activeFileSourceId && (
-                        <Check className="h-4 w-4 ml-2 shrink-0" />
-                      )}
-                    </DropdownMenuItem>
-                  </div>
-                ))}
-                {sources.length === 1 && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem disabled className="text-xs text-center text-muted-foreground">
-                      Add sources in Settings
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {/* Storage Source Dropdown — fallback for when the Files panel
+              (which hosts it in its header) isn't in the left sidebar */}
+          {onFileSourceChange && !leftPanels.includes('files') && (
+            <StorageSourceMenu
+              sources={sources}
+              activeSource={activeSource}
+              activeFileSourceId={activeFileSourceId}
+              onSourceSelect={onSourceSelect}
+              side="top"
+              align="start"
+              renderTrigger={(icon, label) => (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  title={label}
+                  aria-label={label}
+                  className="h-9 w-9 p-0 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                >
+                  {icon}
+                </Button>
+              )}
+            />
           )}
 
           {/* Trash Dropdown */}

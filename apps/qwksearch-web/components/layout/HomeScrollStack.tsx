@@ -238,7 +238,7 @@ export function HomeScrollStack() {
                   }
             }
           >
-            <FeaturesView />
+            <FeaturesView showPipeline={false} />
           </div>
         </div>
       )}

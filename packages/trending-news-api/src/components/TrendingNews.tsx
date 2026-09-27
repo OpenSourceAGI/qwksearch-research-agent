@@ -24,6 +24,12 @@ type Props = TrendingNewsOptions & {
    * when the server answered with a custom topic list.
    */
   heading?: string;
+  /**
+   * Render the failure message instead of nothing when the request fails.
+   * Off by default so the widget never breaks the page it sits on; an admin
+   * or debugging view turns it on to see *why* it is empty.
+   */
+  showErrors?: boolean;
 };
 
 function ChevronIcon({ up }: { up?: boolean }) {
@@ -132,6 +138,7 @@ const styles = {
   fullTopicHeader: { display: 'flex', alignItems: 'baseline', gap: 8 } as React.CSSProperties,
   article: { fontSize: 13 } as React.CSSProperties,
   articleLink: { color: 'inherit', textDecoration: 'none' } as React.CSSProperties,
+  error: { color: '#dc2626', fontSize: 13, fontFamily: 'ui-monospace, monospace' } as React.CSSProperties,
 };
 
 function ArticleLine({ article, showImage }: { article: TrendingTopic['articles'][number]; showImage?: boolean }) {
@@ -188,6 +195,7 @@ export function TrendingNews(props: Props) {
     expandedMaxTopics = 15,
     showImages = true,
     heading,
+    showErrors,
     ...options
   } = props;
   const { data, loading, error } = useTrendingNews(options);
@@ -195,8 +203,20 @@ export function TrendingNews(props: Props) {
 
   if (!options.apiEndpoint) return null;
   if (loading && !data) return null;
-  if (error) return null;
-  if (!data || data.topics.length === 0) return null;
+  if (error) {
+    return showErrors ? (
+      <div role="alert" className={className} style={{ ...styles.compactRoot, ...style, ...styles.error }}>
+        {error.message}
+      </div>
+    ) : null;
+  }
+  if (!data || data.topics.length === 0) {
+    return showErrors && data ? (
+      <div className={className} style={{ ...styles.compactRoot, ...style, opacity: 0.7, fontSize: 13 }}>
+        The endpoint answered with no topics.
+      </div>
+    ) : null;
+  }
 
   const topics = data.topics.slice(0, maxTopics);
 

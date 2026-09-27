@@ -140,7 +140,7 @@ Searches run five at a time either way.
 ```bash
 cd packages/trending-news-api
 npm run worker:deploy
-npx wrangler secret put THENEWSAPI_API_KEY --config worker/wrangler.jsonc
+npx wrangler secret put THE_NEWS_API_KEY --config worker/wrangler.jsonc
 ```
 
 Use the resulting `*.workers.dev` URL (or a custom route) as `apiEndpoint`.
@@ -157,7 +157,7 @@ skip the second deployment. QwkSearch does this at `/api/news/trending` — see
 import { handleTrendingNewsRequest } from 'trending-news-api/server';
 
 export const GET = (request: Request) =>
-  handleTrendingNewsRequest(request, { apiKey: process.env.THENEWSAPI_API_KEY });
+  handleTrendingNewsRequest(request, { apiKey: process.env.THE_NEWS_API_KEY });
 ```
 
 The individual steps are exported too, for a route that wants to cache or reshape the data:

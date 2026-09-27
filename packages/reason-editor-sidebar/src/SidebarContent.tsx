@@ -40,6 +40,7 @@ import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { X, XCircle, ArrowDownFromLine, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, FolderPlus, Folders, Trash2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import './split-pane.css';
+import { StorageSourceMenu } from './StorageSourceMenu';
 
 import type { DocumentTreeHandle } from './file-tree/filetree';
 import { useExpandCycle } from './file-tree/useExpandCycle';
@@ -96,6 +97,11 @@ export const SidebarContent = ({
   onFileManagerOpen,
   deletedDocs = [],
   onRestore,
+  sources = [],
+  activeSource,
+  activeFileSourceId,
+  onSourceSelect,
+  onFileSourceChange,
 }: SidebarContentProps) => {
   // Track copied document for copy/paste operations
   const [copiedDocId, setCopiedDocId] = useState<string | null>(null);
@@ -341,10 +347,23 @@ export const SidebarContent = ({
     'h-5 w-5 flex items-center justify-center rounded text-muted-foreground hover:bg-sidebar-accent hover:text-foreground';
 
   const renderFiles = () => (
-    <div className="h-full overflow-auto">
-      <div className="flex items-center justify-between px-3 py-1">
+    <div className="h-full overflow-hidden flex flex-col">
+      <div className="shrink-0 flex items-center justify-between px-3 py-1">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Files</p>
         <div className="flex items-center gap-0.5">
+          {onFileSourceChange && (
+            <StorageSourceMenu
+              sources={sources}
+              activeSource={activeSource}
+              activeFileSourceId={activeFileSourceId}
+              onSourceSelect={onSourceSelect}
+              renderTrigger={(icon, label) => (
+                <button className={panelHeaderButtonClass} title={label} aria-label={label}>
+                  {icon}
+                </button>
+              )}
+            />
+          )}
           <button
             className={panelHeaderButtonClass}
             title="New File"
@@ -425,31 +444,33 @@ export const SidebarContent = ({
           )}
         </div>
       </div>
-      <FileTree
-        ref={effectiveTreeRef}
-        documents={activeDocuments}
-        onExpandStateChange={expandCycle.onExpandStateChange}
-        onExpandedFoldersChange={onSetExpandedFolders}
-        activeId={activeId}
-        onSelect={handleSelect}
-        onMove={onMove}
-        onRename={onRename}
-        onDelete={onDelete}
-        onDuplicate={onDuplicate}
-        onAddChild={(parentId) => onAdd(parentId, false)}
-        onAddChildFolder={(parentId) => onAdd(parentId, true)}
-        onAddSibling={(itemId) => {
-          const item = activeDocuments.find(d => d.id === itemId);
-          onAdd(item?.parentId || null, false);
-        }}
-        onAddSiblingFolder={(itemId) => {
-          const item = activeDocuments.find(d => d.id === itemId);
-          onAdd(item?.parentId || null, true);
-        }}
-        onCopy={handleCopy}
-        onPaste={handlePaste}
-        onManageTags={handleManageTags}
-      />
+      <div className="flex-1 overflow-auto">
+        <FileTree
+          ref={effectiveTreeRef}
+          documents={activeDocuments}
+          onExpandStateChange={expandCycle.onExpandStateChange}
+          onExpandedFoldersChange={onSetExpandedFolders}
+          activeId={activeId}
+          onSelect={handleSelect}
+          onMove={onMove}
+          onRename={onRename}
+          onDelete={onDelete}
+          onDuplicate={onDuplicate}
+          onAddChild={(parentId) => onAdd(parentId, false)}
+          onAddChildFolder={(parentId) => onAdd(parentId, true)}
+          onAddSibling={(itemId) => {
+            const item = activeDocuments.find(d => d.id === itemId);
+            onAdd(item?.parentId || null, false);
+          }}
+          onAddSiblingFolder={(itemId) => {
+            const item = activeDocuments.find(d => d.id === itemId);
+            onAdd(item?.parentId || null, true);
+          }}
+          onCopy={handleCopy}
+          onPaste={handlePaste}
+          onManageTags={handleManageTags}
+        />
+      </div>
     </div>
   );
 
