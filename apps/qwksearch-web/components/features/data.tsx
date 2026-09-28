@@ -144,37 +144,37 @@ export const PIPELINE: {
   body: string;
   icon: React.ElementType;
 }[] = [
-  {
-    step: "01",
-    title: "Ask",
-    body: "Type, paste a URL, drop a file, or hold to speak. Autocomplete predicts the next word as you go.",
-    icon: Search,
-  },
-  {
-    step: "02",
-    title: "Search",
-    body: "The query fans out across 100+ engines in 13 categories, deduped and ranked by domain authority.",
-    icon: Network,
-  },
-  {
-    step: "03",
-    title: "Extract",
-    body: "Top results are fetched and parsed — PDFs, YouTube transcripts, and JS-rendered pages included.",
-    icon: FileSearch,
-  },
-  {
-    step: "04",
-    title: "Answer",
-    body: "Your chosen model streams a response grounded in the extracted text, with inline citations.",
-    icon: Bot,
-  },
-  {
-    step: "05",
-    title: "Write",
-    body: "Send quotes, sources, and the answer straight into REASON to build the finished document.",
-    icon: PenLine,
-  },
-];
+    {
+      step: "01",
+      title: "Ask",
+      body: "Type, paste a URL, drop a file, or hold to speak. Autocomplete predicts the next word as you go.",
+      icon: Search,
+    },
+    {
+      step: "02",
+      title: "Search",
+      body: "The query fans out across 100+ engines in 13 categories, deduped and ranked by domain authority.",
+      icon: Network,
+    },
+    {
+      step: "03",
+      title: "Extract",
+      body: "Top results are fetched and parsed — PDFs, YouTube transcripts, and JS-rendered pages included.",
+      icon: FileSearch,
+    },
+    {
+      step: "04",
+      title: "Answer",
+      body: "Your chosen model streams a response grounded in the extracted text, with inline citations.",
+      icon: Bot,
+    },
+    {
+      step: "05",
+      title: "Write",
+      body: "Send quotes, sources, and the answer straight into REASON to build the finished document.",
+      icon: PenLine,
+    },
+  ];
 
 export const FEATURE_TABS: FeatureTab[] = [
   {
@@ -433,40 +433,39 @@ export const COMPARISON_COLUMNS: {
   /** Domain handed to the Google favicon service for the header icon. */
   domain: string;
 }[] = [
-  {
-    name: "QwkSearch",
-    highlight: true,
-    href: "https://qwksearch.com",
-    domain: "qwksearch.com",
-  },
-  {
-    name: "Perplexity",
-    href: "https://www.perplexity.ai",
-    domain: "perplexity.ai",
-  },
-  { name: "ChatGPT", href: "https://chatgpt.com", domain: "chatgpt.com" },
-  { name: "Claude", href: "https://claude.ai", domain: "claude.ai" },
-  {
-    name: "Google",
-    detail: "Search / Gemini",
-    href: "https://gemini.google.com",
-    domain: "google.com",
-  },
-  { name: "Grok", href: "https://grok.com", domain: "grok.com" },
-  { name: "Venice.ai", href: "https://venice.ai", domain: "venice.ai" },
-  { name: "Notion.ai", href: "https://notion.com", domain: "notion.so" },
-  {
-    name: "Open WebUI",
-    href: "https://openwebui.com",
-    domain: "openwebui.com",
-  },
-  {
-    name: "AnythingLLM",
-    href: "https://anythingllm.com",
-    domain: "anythingllm.com",
-  },
-  { name: "Onyx", href: "https://onyx.app", domain: "onyx.app" },
-];
+    {
+      name: "QwkSearch",
+      highlight: true,
+      href: "https://qwksearch.com",
+      domain: "qwksearch.com",
+    },
+    {
+      name: "Perplexity",
+      href: "https://www.perplexity.ai",
+      domain: "perplexity.ai",
+    },
+    { name: "ChatGPT", href: "https://chatgpt.com", domain: "chatgpt.com" },
+    { name: "Claude", href: "https://claude.ai", domain: "claude.ai" },
+    {
+      name: "Google",
+      href: "https://gemini.google.com",
+      domain: "google.com",
+    },
+    { name: "Grok", href: "https://grok.com", domain: "grok.com" },
+    { name: "Venice", href: "https://venice.ai", domain: "venice.ai" },
+    { name: "Notion", href: "https://notion.com", domain: "notion.so" },
+    {
+      name: "Open WebUI",
+      href: "https://openwebui.com",
+      domain: "openwebui.com",
+    },
+    {
+      name: "Anything",
+      href: "https://anythingllm.com",
+      domain: "anythingllm.com",
+    },
+    { name: "Onyx", href: "https://onyx.app", domain: "onyx.app" },
+  ];
 
 /**
  * Google's public favicon service. Used rather than checking a dozen logo files
