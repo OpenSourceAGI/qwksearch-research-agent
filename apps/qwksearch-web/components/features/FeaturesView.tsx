@@ -29,6 +29,7 @@ import {
   Pill,
   Reveal,
   SpotlightCard,
+  cardTint,
 } from "@/components/features/effects";
 import {
   APP_SCREENSHOT,
@@ -44,7 +45,7 @@ import {
   faviconUrl,
   type ComparisonStatus,
 } from "@/components/features/data";
-import { config } from "@/lib/config/site";
+import { config, listFooterLinks, type FooterLink } from "@/lib/config/site";
 import { cn } from "@/lib/utils";
 
 /**
@@ -277,122 +278,115 @@ function EngineMarquee() {
   );
 }
 
-function BentoGrid() {
+/**
+ * The whole loop, ask → search → read → cite → write. Lives in the last tab of
+ * `FeatureExplorer` rather than in a section of its own, so it renders the
+ * grid alone: the tab supplies the headline and blurb around it.
+ */
+function ResearchLoopGrid() {
   return (
-    <section className="relative px-4 py-20 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <SectionHeading
-          id="the-loop"
-          eyebrow="The loop"
-          title="Ask, search, read, cite, write — without leaving the tab"
-          blurb="Most research tools stop at a list of links. This one carries a question all the way to a finished, sourced document."
-        />
+    <div className="grid gap-4 md:grid-cols-3">
+      <Reveal className="md:col-span-2">
+        <SpotlightCard className="qs-tint h-full" style={cardTint(0)}>
+          <div className="flex h-full flex-col p-7">
+            <div className="qs-accent-soft mb-5 inline-flex size-11 w-fit items-center justify-center rounded-xl border">
+              <Search className="size-5" />
+            </div>
+            <h3 className="text-xl font-semibold">
+              Search 100+ sites in 13 categories
+            </h3>
+            <p className="text-muted-foreground mt-2 leading-relaxed">
+              General engines, academic databases, code registries, video
+              platforms, news wires, and archives — queried in parallel,
+              deduplicated, and ranked by domain authority.
+            </p>
+            <div className="mt-auto flex flex-wrap gap-2 pt-6">
+              {SEARCH_CATEGORIES.map((category) => (
+                <Badge
+                  key={category.label}
+                  variant="soft"
+                  className="qs-accent-soft gap-1.5 px-3 py-1"
+                >
+                  <category.icon />
+                  {category.label}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </SpotlightCard>
+      </Reveal>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <Reveal className="md:col-span-2">
-            <SpotlightCard className="h-full">
-              <div className="flex h-full flex-col p-7">
-                <div className="qs-accent-soft mb-5 inline-flex size-11 w-fit items-center justify-center rounded-xl border">
-                  <Search className="size-5" />
-                </div>
-                <h3 className="text-xl font-semibold">
-                  Search 100+ sites in 13 categories
-                </h3>
-                <p className="text-muted-foreground mt-2 leading-relaxed">
-                  General engines, academic databases, code registries, video
-                  platforms, news wires, and archives — queried in parallel,
-                  deduplicated, and ranked by domain authority.
-                </p>
-                <div className="mt-auto flex flex-wrap gap-2 pt-6">
-                  {SEARCH_CATEGORIES.map((category) => (
-                    <Badge
-                      key={category.label}
-                      variant="soft"
-                      className="qs-accent-soft gap-1.5 px-3 py-1"
-                    >
-                      <category.icon />
-                      {category.label}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </SpotlightCard>
-          </Reveal>
+      <Reveal delay={80}>
+        <SpotlightCard className="qs-tint h-full" style={cardTint(1)}>
+          <div className="p-7">
+            <div className="qs-accent-soft mb-5 inline-flex size-11 items-center justify-center rounded-xl border">
+              <Bot className="size-5" />
+            </div>
+            <h3 className="text-xl font-semibold">Any model you trust</h3>
+            <p className="text-muted-foreground mt-2 leading-relaxed">
+              Swap providers per conversation, or bring your own key.
+            </p>
+            <ul className="mt-5 space-y-2">
+              {PROVIDERS.slice(0, 6).map((provider) => (
+                <li key={provider} className="flex items-center gap-2 text-sm">
+                  <Check className="qs-accent-text size-3.5 shrink-0" />
+                  {provider}
+                </li>
+              ))}
+              <li className="text-muted-foreground text-sm">
+                + {PROVIDERS.length - 6} more providers
+              </li>
+            </ul>
+          </div>
+        </SpotlightCard>
+      </Reveal>
 
-          <Reveal delay={80}>
-            <SpotlightCard className="h-full">
-              <div className="p-7">
-                <div className="qs-accent-soft mb-5 inline-flex size-11 items-center justify-center rounded-xl border">
-                  <Bot className="size-5" />
-                </div>
-                <h3 className="text-xl font-semibold">Any model you trust</h3>
-                <p className="text-muted-foreground mt-2 leading-relaxed">
-                  Swap providers per conversation, or bring your own key.
-                </p>
-                <ul className="mt-5 space-y-2">
-                  {PROVIDERS.slice(0, 6).map((provider) => (
-                    <li key={provider} className="flex items-center gap-2 text-sm">
-                      <Check className="qs-accent-text size-3.5 shrink-0" />
-                      {provider}
-                    </li>
-                  ))}
-                  <li className="text-muted-foreground text-sm">
-                    + {PROVIDERS.length - 6} more providers
-                  </li>
-                </ul>
-              </div>
-            </SpotlightCard>
-          </Reveal>
+      <Reveal delay={40}>
+        <SpotlightCard className="qs-tint h-full" style={cardTint(2)}>
+          <div className="p-7">
+            <div className="qs-accent-soft mb-5 inline-flex size-11 items-center justify-center rounded-xl border">
+              <Layers className="size-5" />
+            </div>
+            <h3 className="text-xl font-semibold">Read before you click</h3>
+            <p className="text-muted-foreground mt-2 leading-relaxed">
+              Every result expands into cleaned article text with an APA
+              citation and a summary — including PDFs and YouTube transcripts.
+            </p>
+          </div>
+        </SpotlightCard>
+      </Reveal>
 
-          <Reveal delay={40}>
-            <SpotlightCard className="h-full">
-              <div className="p-7">
-                <div className="qs-accent-soft mb-5 inline-flex size-11 items-center justify-center rounded-xl border">
-                  <Layers className="size-5" />
+      <Reveal delay={120} className="md:col-span-2">
+        <SpotlightCard className="qs-tint h-full" style={cardTint(3)}>
+          <div className="flex h-full flex-col p-7">
+            <div className="qs-accent-soft mb-5 inline-flex size-11 w-fit items-center justify-center rounded-xl border">
+              <PenLine className="size-5" />
+            </div>
+            <h3 className="text-xl font-semibold">
+              REASON: the writing half of research
+            </h3>
+            <p className="text-muted-foreground mt-2 max-w-xl leading-relaxed">
+              A Lexical-based editor with a nested document tree, AI rewriting,
+              collaborative editing, research quotes, and Word, PDF, and Google
+              Docs import and export.
+            </p>
+            <div className="mt-auto grid gap-2 pt-6 sm:grid-cols-2">
+              {[
+                "Nested document tree",
+                "Slash commands & Mermaid",
+                "Yjs collaboration",
+                "20+ interface languages",
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-2 text-sm">
+                  <Check className="qs-accent-text size-3.5 shrink-0" />
+                  {item}
                 </div>
-                <h3 className="text-xl font-semibold">Read before you click</h3>
-                <p className="text-muted-foreground mt-2 leading-relaxed">
-                  Every result expands into cleaned article text with an APA
-                  citation and a summary — including PDFs and YouTube
-                  transcripts.
-                </p>
-              </div>
-            </SpotlightCard>
-          </Reveal>
-
-          <Reveal delay={120} className="md:col-span-2">
-            <SpotlightCard className="h-full">
-              <div className="flex h-full flex-col p-7">
-                <div className="qs-accent-soft mb-5 inline-flex size-11 w-fit items-center justify-center rounded-xl border">
-                  <PenLine className="size-5" />
-                </div>
-                <h3 className="text-xl font-semibold">
-                  REASON: the writing half of research
-                </h3>
-                <p className="text-muted-foreground mt-2 max-w-xl leading-relaxed">
-                  A Lexical-based editor with a nested document tree, AI
-                  rewriting, collaborative editing, research quotes, and Word,
-                  PDF, and Google Docs import and export.
-                </p>
-                <div className="mt-auto grid gap-2 pt-6 sm:grid-cols-2">
-                  {[
-                    "Nested document tree",
-                    "Slash commands & Mermaid",
-                    "Yjs collaboration",
-                    "20+ interface languages",
-                  ].map((item) => (
-                    <div key={item} className="flex items-center gap-2 text-sm">
-                      <Check className="qs-accent-text size-3.5 shrink-0" />
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </SpotlightCard>
-          </Reveal>
-        </div>
-      </div>
-    </section>
+              ))}
+            </div>
+          </div>
+        </SpotlightCard>
+      </Reveal>
+    </div>
   );
 }
 
@@ -403,7 +397,11 @@ const COMPARISON_STATUS_META: Record<
   yes: { icon: Check, className: "text-emerald-500", label: "Yes" },
   partial: { icon: Minus, className: "text-amber-500", label: "Partial" },
   no: { icon: X, className: "text-muted-foreground/40", label: "No" },
-  paid: { icon: CircleDollarSign, className: "text-muted-foreground", label: "Paid" },
+  paid: {
+    icon: CircleDollarSign,
+    className: "text-muted-foreground",
+    label: "Paid",
+  },
 };
 
 function Comparison() {
@@ -601,7 +599,7 @@ function FeatureExplorer() {
         <SectionHeading
           id="every-feature"
           eyebrow="Every feature"
-          title="Four surfaces, one stack"
+          title="Five surfaces, one stack"
           blurb="Pick a surface to see everything it ships with today."
         />
 
@@ -632,21 +630,31 @@ function FeatureExplorer() {
                   </p>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {tab.features.map((feature) => (
-                    <SpotlightCard key={feature.title} className="h-full">
-                      <div className="group/feature p-6">
-                        <div className="qs-accent-soft mb-4 inline-flex size-10 items-center justify-center rounded-xl border transition-transform duration-300 group-hover/feature:scale-110">
-                          <feature.icon className="size-5" />
+                {/* The loop tab carries a hand-laid-out grid, not a list of
+                    feature cards; everything else is driven by its data. */}
+                {tab.value === "loop" ? (
+                  <ResearchLoopGrid />
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {tab.features.map((feature, index) => (
+                      <SpotlightCard
+                        key={feature.title}
+                        className="qs-tint h-full"
+                        style={cardTint(index)}
+                      >
+                        <div className="group/feature p-6">
+                          <div className="qs-accent-soft mb-4 inline-flex size-10 items-center justify-center rounded-xl border transition-transform duration-300 group-hover/feature:scale-110">
+                            <feature.icon className="size-5" />
+                          </div>
+                          <h4 className="font-semibold">{feature.title}</h4>
+                          <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+                            {feature.description}
+                          </p>
                         </div>
-                        <h4 className="font-semibold">{feature.title}</h4>
-                        <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                          {feature.description}
-                        </p>
-                      </div>
-                    </SpotlightCard>
-                  ))}
-                </div>
+                      </SpotlightCard>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
             ))}
           </Tabs>
@@ -672,7 +680,7 @@ function ClosingCta() {
                 Free to start
               </Pill>
               <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-                Ask something you actually need answered
+                Reimagine the Internet as a Self-Organizing Mind Map
               </h2>
               <p className="text-muted-foreground mx-auto mt-4 max-w-xl leading-relaxed text-pretty">
                 No setup, no key required. Bring your own model when you want
@@ -700,18 +708,125 @@ function ClosingCta() {
   );
 }
 
-export function FeaturesView({ showPipeline = true }: { showPipeline?: boolean } = {}) {
+/**
+ * Footer for this page only. The community and legal columns are pulled from
+ * the app-wide `listFooterLinks` — the same set the dock renders — so a link
+ * added there shows up here without a second edit; product and in-page links
+ * are the ones specific to this surface.
+ */
+const FOOTER_SECTIONS: { title: string; links: FooterLink[] }[] = [
+  {
+    title: "Product",
+    links: [
+      { url: "/", text: "Research agent" },
+      { url: "/workspace", text: "REASON editor" },
+      { url: "/#downloads", text: "Downloads" },
+      { url: "/enterprise", text: "Enterprise" },
+    ],
+  },
+  {
+    title: "On this page",
+    links: [
+      { url: "#every-feature", text: "Every feature" },
+      { url: "#how-it-works", text: "How it works" },
+      { url: "#how-it-compares", text: "How it compares" },
+      { url: "/docs", text: "Documentation" },
+    ],
+  },
+  {
+    title: "Community",
+    links: listFooterLinks.filter((link) => link.url.startsWith("http")),
+  },
+  {
+    title: "Legal",
+    links: listFooterLinks.filter((link) => link.url.startsWith("/legal")),
+  },
+];
+
+function SiteFooter() {
+  return (
+    <footer className="relative border-t px-4 pt-14 pb-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid gap-10 md:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,1fr))]">
+          <div>
+            <div className="text-lg font-semibold tracking-tight">
+              {config.appName}
+            </div>
+            <p className="text-muted-foreground mt-3 max-w-xs text-sm leading-relaxed">
+              The open-source research IDE: search 100+ sites, read the results,
+              cite them, and write it up — all in one tab.
+            </p>
+            <Button asChild size="sm" className="group mt-5">
+              <Link href="/">
+                Start researching
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </Button>
+          </div>
+
+          {FOOTER_SECTIONS.map((section) => (
+            <div key={section.title}>
+              <h3 className="text-xs font-semibold tracking-wide uppercase">
+                {section.title}
+              </h3>
+              <ul className="mt-4 space-y-2.5">
+                {section.links.map((link) => (
+                  <li key={link.text}>
+                    <Link
+                      href={link.url}
+                      target={
+                        link.url.startsWith("http") ? "_blank" : undefined
+                      }
+                      rel={
+                        link.url.startsWith("http")
+                          ? "noopener noreferrer"
+                          : undefined
+                      }
+                      className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                    >
+                      {link.text}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-muted-foreground mt-12 flex flex-col gap-2 border-t pt-6 text-xs sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} {config.appName}. Open source, MIT
+            licensed.
+          </p>
+          <p>
+            Questions?{" "}
+            <a
+              href={`mailto:${config.appEmail}`}
+              className="hover:text-foreground transition-colors"
+            >
+              {config.appEmail}
+            </a>
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+export function FeaturesView({
+  showPipeline = true,
+}: { showPipeline?: boolean } = {}) {
   return (
     <div className="qs-features relative min-h-screen md:pl-20">
       <Hero />
       <Screenshot />
       <VideoDemo />
       <EngineMarquee />
-      <BentoGrid />
       <Comparison />
       {showPipeline && <Pipeline />}
       <FeatureExplorer />
       <ClosingCta />
+      <SiteFooter />
     </div>
   );
 }

@@ -577,6 +577,21 @@ pre[class*="language-"] {
   color: white;
 }
 
+/* Per-card hover hue. A card in a grid carries its own pair (set inline by
+   `cardTint` in components/features/effects.tsx) and only adopts it while
+   hovered, so a row of cards lights up one color at a time. Everything
+   downstream — the cursor spotlight, the rotating border beam, `qs-accent-soft`
+   icon chips — reads `--qs-accent`, so the whole card shifts together. */
+.qs-tint:hover {
+  --qs-accent: var(--qs-card-hue);
+  --qs-accent-2: var(--qs-card-hue-2);
+}
+
+.dark .qs-tint:hover {
+  --qs-accent: var(--qs-card-hue-dark);
+  --qs-accent-2: var(--qs-card-hue-dark-2);
+}
+
 @keyframes qs-marquee {
   from {
     transform: translateX(0);

@@ -21,6 +21,7 @@ import { useLocalStorage } from "../app-hooks/useLocalStorage";
 import { useIsMobile } from "../app-hooks/use-mobile";
 import { useDocumentSync } from "../app-hooks/useDocumentSync";
 import { toast } from "sonner";
+import { nextDocumentId, readUploadedFile } from "./fileUpload";
 
 /**
  * Aggregates all Reason Docs application state into a single hook.
@@ -234,6 +235,74 @@ export function useReasonDocsState(openFilesSidebarSignal?: number | string) {
     }
 
     toast.success(isFolder ? "Folder created" : "Note created");
+  };
+
+  /**
+   * Creates a file or folder requested by the file manager modal, by either
+   * "Add new" or "Upload file".
+   *
+   * Uploads arrive as a browser `File`; text-like ones are read into the
+   * document body so the note opens with something in it, while binary
+   * files become a placeholder note that records the original name and size
+   * (the editor has no way to render them).
+   *
+   * @param request - Destination, name, kind, and the uploaded file if any.
+   */
+  const handleCreateFile = async ({
+    parentId,
+    name,
+    isFolder,
+    file,
+  }: {
+    parentId: string | null;
+    name: string;
+    isFolder: boolean;
+    file?: File;
+  }) => {
+    const title = name.trim() || (isFolder ? "New Folder" : "Untitled");
+    const parentDoc = parentId
+      ? documents.find((doc) => doc.id === parentId)
+      : undefined;
+    // A file can only live inside a folder; dropping a file onto another
+    // file puts it beside that file instead of nesting under it.
+    const resolvedParentId = parentDoc?.isFolder ? parentDoc.id : null;
+
+    const content = file ? await readUploadedFile(file) : "";
+
+    const newDoc: Document = {
+      id: nextDocumentId(documents),
+      title,
+      content,
+      parentId: resolvedParentId,
+      children: [],
+      isExpanded: isFolder,
+      isFolder,
+      tags: [],
+    };
+
+    setDocuments([...documents, newDoc]);
+    if (resolvedParentId) {
+      setDocuments((docs) =>
+        docs.map((doc) =>
+          doc.id === resolvedParentId ? { ...doc, isExpanded: true } : doc,
+        ),
+      );
+    }
+
+    if (enableDatabaseSync) {
+      await saveDocument(newDoc);
+    }
+
+    if (!isFolder) {
+      setActiveDocId(newDoc.id);
+      setOpenTabs(
+        openTabs.includes(newDoc.id) ? openTabs : [...openTabs, newDoc.id],
+      );
+    }
+
+    toast.success(
+      file ? `Uploaded ${title}` : isFolder ? "Folder created" : "Note created",
+    );
   };
 
   /**
@@ -807,6 +876,7 @@ export function useReasonDocsState(openFilesSidebarSignal?: number | string) {
 
     // Handlers
     handleAddDocument,
+    handleCreateFile,
     handleDeleteDocument,
     handleDuplicateDocument,
     handleUpdateDocument,

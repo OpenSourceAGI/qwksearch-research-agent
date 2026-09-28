@@ -14,15 +14,24 @@ import {
   Dialog,
   DialogContent
 } from "../app-ui/dialog";
-import { getData, getPathToDocIdMap } from "./filemanager-data";
+import { getData, getPathToDocIdMap, getPathToNodeIdMap } from "./filemanager-data";
 import { defaultDocuments } from "../documents/defaultDocuments";
 import type { Document } from "../documents/DocumentTree";
+import type { FileManagerCreateRequest } from "../layout/sidebar/types";
+
+export type { FileManagerCreateRequest };
 
 interface FileManagerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   documents?: Document[];
   onSelectDocument?: (docId: string) => void;
+  /**
+   * Persists a new file or folder. Without it "Add new" and "Upload file"
+   * are inert: the file manager has no storage of its own, so nothing would
+   * survive the next re-render.
+   */
+  onCreateFile?: (request: FileManagerCreateRequest) => void | Promise<void>;
 }
 
 export function FileManagerModal({
@@ -30,6 +39,7 @@ export function FileManagerModal({
   onOpenChange,
   documents = defaultDocuments,
   onSelectDocument,
+  onCreateFile,
 }: FileManagerModalProps) {
   const data = useMemo(
     () =>
@@ -44,14 +54,19 @@ export function FileManagerModal({
   );
 
   const pathToDocId = useMemo(() => getPathToDocIdMap(documents), [documents]);
+  const pathToNodeId = useMemo(() => getPathToNodeIdMap(documents), [documents]);
 
   // Keep handlers in refs so the init callback never needs to re-run.
   const pathToDocIdRef = useRef(pathToDocId);
   pathToDocIdRef.current = pathToDocId;
+  const pathToNodeIdRef = useRef(pathToNodeId);
+  pathToNodeIdRef.current = pathToNodeId;
   const onSelectDocumentRef = useRef(onSelectDocument);
   onSelectDocumentRef.current = onSelectDocument;
   const onOpenChangeRef = useRef(onOpenChange);
   onOpenChangeRef.current = onOpenChange;
+  const onCreateFileRef = useRef(onCreateFile);
+  onCreateFileRef.current = onCreateFile;
 
   const init = useCallback((api: IApi) => {
     api.on("open-file", ({ id }: { id: string }) => {
@@ -61,6 +76,35 @@ export function FileManagerModal({
         onOpenChangeRef.current(false);
       }
     });
+
+    // Covers both "Add new" and "Upload file": SVAR turns the upload's
+    // selected `File` into a `create-file` call too, so there is nothing
+    // upload-specific left to handle here.
+    api.on(
+      "create-file",
+      ({
+        file,
+        parent,
+      }: {
+        file: { name?: string; type?: string; file?: File };
+        parent: string;
+      }) => {
+        const handler = onCreateFileRef.current;
+        if (!handler) return;
+
+        const parentId =
+          !parent || parent === "0"
+            ? null
+            : pathToNodeIdRef.current.get(parent) ?? null;
+
+        return handler({
+          parentId,
+          name: (file?.name || "").trim() || "Untitled",
+          isFolder: file?.type === "folder",
+          file: file?.file,
+        });
+      },
+    );
   }, []);
 
   return (

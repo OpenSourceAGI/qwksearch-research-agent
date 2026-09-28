@@ -138,7 +138,12 @@ export const PROVIDERS = [
 ];
 
 /** The five stages a question passes through, end to end. */
-export const PIPELINE: { step: string; title: string; body: string; icon: React.ElementType }[] = [
+export const PIPELINE: {
+  step: string;
+  title: string;
+  body: string;
+  icon: React.ElementType;
+}[] = [
   {
     step: "01",
     title: "Ask",
@@ -450,8 +455,16 @@ export const COMPARISON_COLUMNS: {
   { name: "Grok", href: "https://grok.com", domain: "grok.com" },
   { name: "Venice.ai", href: "https://venice.ai", domain: "venice.ai" },
   { name: "Notion.ai", href: "https://notion.com", domain: "notion.so" },
-  { name: "Open WebUI", href: "https://openwebui.com", domain: "openwebui.com" },
-  { name: "AnythingLLM", href: "https://anythingllm.com", domain: "anythingllm.com" },
+  {
+    name: "Open WebUI",
+    href: "https://openwebui.com",
+    domain: "openwebui.com",
+  },
+  {
+    name: "AnythingLLM",
+    href: "https://anythingllm.com",
+    domain: "anythingllm.com",
+  },
   { name: "Onyx", href: "https://onyx.app", domain: "onyx.app" },
 ];
 
@@ -546,7 +559,10 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
       { status: "no", note: "Workspace search only, no web search" },
       { status: "partial", note: "Web search via plugins (SearXNG, Brave…)" },
       { status: "partial", note: "Optional web-search agent skill" },
-      { status: "partial", note: "Connectors + web search, enterprise-focused" },
+      {
+        status: "partial",
+        note: "Connectors + web search, enterprise-focused",
+      },
     ],
   },
   {
@@ -600,7 +616,10 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
   {
     feature: "Writing & notes editor",
     cells: [
-      { status: "yes", note: "Full Lexical-based editor with outline notation (REASON)" },
+      {
+        status: "yes",
+        note: "Full Lexical-based editor with outline notation (REASON)",
+      },
       { status: "no" },
       { status: "no" },
       { status: "no" },
@@ -779,18 +798,48 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
 ];
 
 export const PACKAGES: { name: string; blurb: string }[] = [
-  { name: "search-web-api", blurb: "70+ engines across 13 categories behind one Hono API." },
-  { name: "extract-webpage", blurb: "Search, extract, cite, and outline any page." },
+  {
+    name: "search-web-api",
+    blurb: "70+ engines across 13 categories behind one Hono API.",
+  },
+  {
+    name: "extract-webpage",
+    blurb: "Search, extract, cite, and outline any page.",
+  },
   { name: "extract-pdf", blurb: "PDF to structural HTML, zero runtime deps." },
-  { name: "extract-youtube", blurb: "Serverless transcript extraction, no browser." },
-  { name: "render-url-to-html", blurb: "Stealth rendering strategies for stubborn pages." },
-  { name: "chat-agent-toolkit", blurb: "Multi-provider agent loop with tools and memory." },
+  {
+    name: "extract-youtube",
+    blurb: "Serverless transcript extraction, no browser.",
+  },
+  {
+    name: "render-url-to-html",
+    blurb: "Stealth rendering strategies for stubborn pages.",
+  },
+  {
+    name: "chat-agent-toolkit",
+    blurb: "Multi-provider agent loop with tools and memory.",
+  },
   { name: "write-language", blurb: "One interface over 10+ LLM providers." },
-  { name: "domain-rank", blurb: "Tranco + CommonCrawl authority for any domain." },
-  { name: "reason-editor", blurb: "The Lexical editor, documents manager, and outlines." },
-  { name: "research-agent-ui", blurb: "The whole chat UI, droppable into any Next.js app." },
-  { name: "shadcn-app-dock", blurb: "macOS-style dock with a shadcn theme switcher." },
-  { name: "qwksearch-api-client", blurb: "Typed bindings generated from the OpenAPI spec." },
+  {
+    name: "domain-rank",
+    blurb: "Tranco + CommonCrawl authority for any domain.",
+  },
+  {
+    name: "reason-editor",
+    blurb: "The Lexical editor, documents manager, and outlines.",
+  },
+  {
+    name: "research-agent-ui",
+    blurb: "The whole chat UI, droppable into any Next.js app.",
+  },
+  {
+    name: "shadcn-app-dock",
+    blurb: "macOS-style dock with a shadcn theme switcher.",
+  },
+  {
+    name: "qwksearch-api-client",
+    blurb: "Typed bindings generated from the OpenAPI spec.",
+  },
 ];
 
 export interface ProjectBadge {
@@ -912,4 +961,3 @@ export const APP_SCREENSHOT = {
   caption:
     "Search, the extracted article with its cites, and the REASON editor — one screen.",
 };
-

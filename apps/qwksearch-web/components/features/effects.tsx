@@ -135,27 +135,45 @@ export function SpotlightCard({
  * lower-chroma pair `.qs-tint` swaps in under `prefers: dark`/`.dark`.
  */
 const CARD_ACCENTS: { light: [string, string]; dark: [string, string] }[] = [
-  { light: ["oklch(0.62 0.17 250)", "oklch(0.63 0.19 295)"], dark: ["oklch(0.75 0.14 250)", "oklch(0.76 0.15 295)"] },
-  { light: ["oklch(0.62 0.15 160)", "oklch(0.63 0.13 200)"], dark: ["oklch(0.76 0.13 160)", "oklch(0.77 0.11 200)"] },
-  { light: ["oklch(0.66 0.16 75)", "oklch(0.64 0.18 40)"], dark: ["oklch(0.79 0.14 75)", "oklch(0.77 0.15 40)"] },
-  { light: ["oklch(0.62 0.19 15)", "oklch(0.63 0.2 340)"], dark: ["oklch(0.75 0.16 15)", "oklch(0.76 0.17 340)"] },
-  { light: ["oklch(0.6 0.16 320)", "oklch(0.61 0.18 265)"], dark: ["oklch(0.74 0.14 320)", "oklch(0.75 0.15 265)"] },
-  { light: ["oklch(0.62 0.13 215)", "oklch(0.63 0.16 180)"], dark: ["oklch(0.76 0.11 215)", "oklch(0.77 0.13 180)"] },
+  {
+    light: ["oklch(0.62 0.17 250)", "oklch(0.63 0.19 295)"],
+    dark: ["oklch(0.75 0.14 250)", "oklch(0.76 0.15 295)"],
+  },
+  {
+    light: ["oklch(0.62 0.15 160)", "oklch(0.63 0.13 200)"],
+    dark: ["oklch(0.76 0.13 160)", "oklch(0.77 0.11 200)"],
+  },
+  {
+    light: ["oklch(0.66 0.16 75)", "oklch(0.64 0.18 40)"],
+    dark: ["oklch(0.79 0.14 75)", "oklch(0.77 0.15 40)"],
+  },
+  {
+    light: ["oklch(0.62 0.19 15)", "oklch(0.63 0.2 340)"],
+    dark: ["oklch(0.75 0.16 15)", "oklch(0.76 0.17 340)"],
+  },
+  {
+    light: ["oklch(0.6 0.16 320)", "oklch(0.61 0.18 265)"],
+    dark: ["oklch(0.74 0.14 320)", "oklch(0.75 0.15 265)"],
+  },
+  {
+    light: ["oklch(0.62 0.13 215)", "oklch(0.63 0.16 180)"],
+    dark: ["oklch(0.76 0.11 215)", "oklch(0.77 0.13 180)"],
+  },
 ];
 
 /**
- * Per-card tint, cycling through `CARD_ACCENTS` so a grid of cards gets a
- * different hover color each. Pair with the `qs-tint` class: it swaps in the
- * dark pair when the page is dark. Nothing is themed at rest — the card only
- * takes the color while hovered.
+ * Per-card hover tint, cycling through `CARD_ACCENTS` so a grid of cards gets a
+ * different color each instead of all glowing the same sky blue. The card only
+ * adopts the hue while hovered (see `.qs-tint` in `app/globals.css`), so the
+ * grid stays neutral at rest.
  */
 export function cardTint(index: number): React.CSSProperties {
   const { light, dark } = CARD_ACCENTS[index % CARD_ACCENTS.length];
   return {
-    "--qs-accent": light[0],
-    "--qs-accent-2": light[1],
-    "--qs-accent-dark": dark[0],
-    "--qs-accent-dark-2": dark[1],
+    "--qs-card-hue": light[0],
+    "--qs-card-hue-2": light[1],
+    "--qs-card-hue-dark": dark[0],
+    "--qs-card-hue-dark-2": dark[1],
   } as React.CSSProperties;
 }
 
@@ -164,7 +182,10 @@ export function AuroraBackdrop({ className }: { className?: string }) {
   return (
     <div
       aria-hidden
-      className={cn("pointer-events-none absolute inset-0 -z-10 overflow-hidden", className)}
+      className={cn(
+        "pointer-events-none absolute inset-0 -z-10 overflow-hidden",
+        className,
+      )}
     >
       <div className="bg-background absolute inset-0" />
       <div
@@ -337,7 +358,8 @@ export function AnchorLink({
   );
 
   const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      return;
 
     const clipboard =
       typeof navigator === "undefined" ? undefined : navigator.clipboard;

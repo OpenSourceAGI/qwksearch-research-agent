@@ -78,6 +78,22 @@ export interface SidebarTopicsProps {
   onSearchTopic?: (topic: string) => void;
 }
 
+/**
+ * A file or folder created from the file manager modal, by either "Add new"
+ * (a typed name) or "Upload file" (a browser `File`). Both funnel through
+ * the same `create-file` action, so they arrive as one shape.
+ */
+export interface FileManagerCreateRequest {
+  /** Destination document ID, or `null` for the file manager's root. */
+  parentId: string | null;
+  /** Name typed by the user, or the uploaded file's name. */
+  name: string;
+  /** `true` for "Add new > Folder"; `false` for a note or an upload. */
+  isFolder: boolean;
+  /** The browser `File` for uploads. Absent for manually named entries. */
+  file?: File;
+}
+
 export interface SidebarProps {
   documents: Document[];
   activeId: string | null;
@@ -86,6 +102,13 @@ export interface SidebarProps {
   onAdd: (parentId: string | null, isFolder?: boolean) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
+  /**
+   * Persists a file or folder created from the file manager modal, by either
+   * "Add new" or "Upload file". `parentId` is `null` for the file manager's
+   * root. Hosts that omit it leave those two actions inert — the file
+   * manager keeps no storage of its own.
+   */
+  onCreateFile?: (request: FileManagerCreateRequest) => void | Promise<void>;
   onToggleExpand: (id: string) => void;
   /**
    * Replaces the set of expanded folders wholesale, used by the toolbar's

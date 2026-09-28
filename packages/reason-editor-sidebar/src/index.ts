@@ -27,6 +27,7 @@ export type {
   SidebarAiProps,
   SidebarTipsProps,
   SidebarTopicsProps,
+  FileManagerCreateRequest,
 } from './layout/sidebar/types';
 export { PANEL_OPTIONS, togglePanel, sortPanels } from './layout/sidebar/panelOptions';
 
@@ -55,6 +56,7 @@ export type { Document } from './documents/DocumentTree';
 export { defaultDocuments } from './documents/defaultDocuments';
 export type { TocEntry } from './app-types/toc';
 export { FileManagerModal } from './dialogs/FileManagerModal';
+export { pathOf, getPathToNodeIdMap } from './dialogs/filemanager-data';
 
 // The file-source API: types and localStorage-backed CRUD helpers for every
 // supported storage backend (local, SSH, S3, R2, B2, Google Docs, Turso DB).

@@ -29,6 +29,7 @@ export const Sidebar = ({
   onAdd,
   onDelete,
   onDuplicate,
+  onCreateFile,
   onSetExpandedFolders,
   onMove,
   onManageTags,
@@ -244,7 +245,7 @@ export const Sidebar = ({
               <SidebarContent {...contentProps} />
             </div>
             <SidebarFooter {...footerProps} />
-            <FileManagerModal open={isFileManagerOpen} onOpenChange={setIsFileManagerOpen} documents={activeDocuments} onSelectDocument={onSelect} />
+            <FileManagerModal open={isFileManagerOpen} onOpenChange={setIsFileManagerOpen} documents={activeDocuments} onSelectDocument={onSelect} onCreateFile={onCreateFile} />
           </aside>
         </SheetContent>
       </Sheet>
@@ -259,7 +260,7 @@ export const Sidebar = ({
         <SidebarContent {...contentProps} />
       </div>
       <SidebarFooter {...footerProps} />
-      <FileManagerModal open={isFileManagerOpen} onOpenChange={setIsFileManagerOpen} documents={activeDocuments} onSelectDocument={onSelect} />
+      <FileManagerModal open={isFileManagerOpen} onOpenChange={setIsFileManagerOpen} documents={activeDocuments} onSelectDocument={onSelect} onCreateFile={onCreateFile} />
     </aside>
   );
 };

@@ -320,6 +320,7 @@ const Index = ({
     onAdd: handleAdd,
     onDelete: state.handleDeleteDocument,
     onDuplicate: state.handleDuplicateDocument,
+    onCreateFile: state.handleCreateFile,
     onToggleExpand: state.handleToggleExpand,
     onSetExpandedFolders: state.handleSetExpandedFolders,
     onMove: state.handleMoveDocument,
