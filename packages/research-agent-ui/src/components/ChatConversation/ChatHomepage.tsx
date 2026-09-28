@@ -2,14 +2,12 @@
  * @fileoverview Full-screen homepage with a randomised AI-themed background artwork (image or video), the QuantumWaveOrbital animation, recent history chips, the main chat input box, and an app footer.
  */
 'use client';
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { GradientBlur } from '../../ui/gradient-blur';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
 import Footer from '../Footer';
-import DownloadsDialog from './DownloadsDialog';
-import { WeatherForecast, type WeatherLocationInput } from 'use-weather-forecast';
-import { TrendingNews } from 'trending-news-api';
+import type { WeatherLocationInput } from 'use-weather-forecast';
 import { useChat } from '../../hooks/useChat';
 import { getBackgroundArtwork } from './background-art';
 import { researchAgentUIConfig } from '../../config';
@@ -17,6 +15,18 @@ import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 // Stylesheet is imported by the host app (globals.css) inside a named cascade
 // layer instead of here — it's a Tailwind v3 build with an unlayered `*`
 // reset that would otherwise beat every Tailwind v4 utility in the app.
+
+// Split out of the homepage's first-load bundle: the chat input is what the
+// first screen is for, so it should not wait on code for widgets that are
+// waiting on their own network requests anyway, or for a dialog nobody has
+// opened yet.
+const WeatherForecast = lazy(() =>
+  import('use-weather-forecast').then((mod) => ({ default: mod.WeatherForecast })),
+);
+const TrendingNews = lazy(() =>
+  import('trending-news-api').then((mod) => ({ default: mod.TrendingNews })),
+);
+const DownloadsDialog = lazy(() => import('./DownloadsDialog'));
 
 /**
  * Topics the widget shows once expanded — and therefore how many the endpoint
@@ -84,6 +94,25 @@ function parseWeatherLocations(raw: string | null): WeatherLocationInput[] {
     });
 }
 
+const isVideo = (url: string) => url.endsWith('.webm') || url.endsWith('.mp4');
+
+/**
+ * Resolves once a background is ready to show, so a crossfade never reveals a
+ * half-loaded image. Images are fetched and decoded off-screen; videos stream
+ * on their own once mounted, so they resolve straight away rather than being
+ * downloaded twice. Resolves `false` for an image that failed to load.
+ */
+function preloadBackground(url: string): Promise<boolean> {
+  if (isVideo(url)) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = url;
+  });
+}
+
 /**
  * The homepage component for the chat interface.
  * Displays a background artwork (image or video), a settings button,
@@ -95,6 +124,9 @@ export default function ChatHomepage() {
   const [nextBackgroundUrl, setNextBackgroundUrl] = useState<string | null>(null);
   const [fading, setFading] = useState(false);
   const [downloadsOpen, setDownloadsOpen] = useState(false);
+  // The dialog's chunk is only fetched on first open, and it then stays
+  // mounted so its close animation still plays.
+  const [downloadsRequested, setDownloadsRequested] = useState(false);
   const [weatherLocations, setWeatherLocations] = useState<WeatherLocationInput[]>([]);
   const [showWeatherWidget, setShowWeatherWidget] = useState(true);
   const [weatherForecastDays, setWeatherForecastDays] = useState(5);
@@ -112,7 +144,15 @@ export default function ChatHomepage() {
   // Off by default; enabled via the "Cursor Glow Trail" setting.
   const [cursorGlowTrail, setCursorGlowTrail] = useState(false);
   const footerLinks = researchAgentUIConfig.footerLinks.map((link) =>
-    link.url === '/#downloads' ? { ...link, onClick: () => setDownloadsOpen(true) } : link,
+    link.url === '/#downloads'
+      ? {
+          ...link,
+          onClick: () => {
+            setDownloadsRequested(true);
+            setDownloadsOpen(true);
+          },
+        }
+      : link,
   );
   // The host app serves trending news itself (`/api/news/trending` by default,
   // so the News API key stays on the server); the setting only has to be filled
@@ -179,23 +219,62 @@ export default function ChatHomepage() {
     const showBg = localStorage.getItem('showBackgroundArt');
     if (showBg === 'false') return;
 
-    setBackgroundUrl(getBackgroundArtwork());
+    // The artwork is decoration, and some of it is multi-megabyte video: fetch
+    // none of it until the page itself has loaded and the browser is idle, so
+    // it never competes with the app's own scripts for the first-load
+    // bandwidth. The next piece is only faded in once it has downloaded, and
+    // the rotation pauses while the tab is hidden.
+    let cancelled = false;
+    let interval: ReturnType<typeof setInterval> | undefined;
+    let fadeTimer: ReturnType<typeof setTimeout> | undefined;
+    let cancelStart: (() => void) | undefined;
 
-    const interval = setInterval(() => {
+    const rotate = () => {
+      if (document.hidden) return;
       const next = getBackgroundArtwork();
-      setNextBackgroundUrl(next);
-      setFading(true);
-      setTimeout(() => {
-        setBackgroundUrl(next);
-        setFading(false);
-        setNextBackgroundUrl(null);
-      }, 1000);
-    }, 20000);
+      preloadBackground(next).then((ok) => {
+        if (cancelled || !ok) return;
+        setNextBackgroundUrl(next);
+        setFading(true);
+        fadeTimer = setTimeout(() => {
+          setBackgroundUrl(next);
+          setFading(false);
+          setNextBackgroundUrl(null);
+        }, 1000);
+      });
+    };
 
-    return () => clearInterval(interval);
+    const start = () => {
+      if (cancelled) return;
+      const first = getBackgroundArtwork();
+      preloadBackground(first).then((ok) => {
+        if (cancelled) return;
+        if (ok) setBackgroundUrl(first);
+        interval = setInterval(rotate, 20000);
+      });
+    };
+
+    const scheduleStart = () => {
+      if (typeof window.requestIdleCallback === 'function') {
+        const handle = window.requestIdleCallback(start, { timeout: 3000 });
+        cancelStart = () => window.cancelIdleCallback(handle);
+      } else {
+        const handle = window.setTimeout(start, 1000);
+        cancelStart = () => window.clearTimeout(handle);
+      }
+    };
+
+    if (document.readyState === 'complete') scheduleStart();
+    else window.addEventListener('load', scheduleStart, { once: true });
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('load', scheduleStart);
+      cancelStart?.();
+      clearInterval(interval);
+      clearTimeout(fadeTimer);
+    };
   }, []);
-
-  const isVideo = (url: string) => url.endsWith('.webm') || url.endsWith('.mp4');
 
   const renderBackground = (url: string, opacity: string) =>
     isVideo(url) ? (
@@ -213,6 +292,7 @@ export default function ChatHomepage() {
         key={url}
         src={url}
         alt=""
+        decoding="async"
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${opacity}`}
       />
     );
@@ -243,48 +323,50 @@ export default function ChatHomepage() {
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
             {(showWeatherWidget || showNewsWidget) && (
-              <div className="flex flex-col gap-2 w-full">
-                {/* News sits on top, with the compact weather widget below it.
-                    The weather widget is fluid, so it spans the full column
-                    width on its own row (current conditions on the left, the
-                    next days on the right). */}
-                {showNewsWidget && (
-                  <TrendingNews
-                    compact
-                    expandable
-                    maxTopics={newsMaxTopics}
-                    expandedMaxTopics={TRENDING_NEWS_EXPANDED_TOPICS}
-                    showImages={newsShowImages}
-                    apiEndpoint={trendingNewsEndpoint}
-                    topics={newsTopics}
-                    limit={TRENDING_NEWS_EXPANDED_TOPICS}
-                    className="rounded-2xl w-full"
-                    style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      color: 'inherit',
-                      backdropFilter: 'blur(8px)',
-                      maxWidth: '100%',
-                    }}
-                  />
-                )}
-                {showWeatherWidget && (
-                  <WeatherForecast
-                    compact
-                    forecastDays={weatherForecastDays}
-                    forecastHours={weatherForecastHours}
-                    temperatureUnit={weatherTemperatureUnit}
-                    locations={weatherLocations.length > 0 ? weatherLocations : undefined}
-                    className="rounded-2xl w-full"
-                    style={{
-                      background: 'rgba(255,255,255,0.08)',
-                      border: '1px solid rgba(255,255,255,0.15)',
-                      color: 'inherit',
-                      backdropFilter: 'blur(8px)',
-                    }}
-                  />
-                )}
-              </div>
+              <Suspense fallback={null}>
+                <div className="flex flex-col gap-2 w-full">
+                  {/* News sits on top, with the compact weather widget below it.
+                      The weather widget is fluid, so it spans the full column
+                      width on its own row (current conditions on the left, the
+                      next days on the right). */}
+                  {showNewsWidget && (
+                    <TrendingNews
+                      compact
+                      expandable
+                      maxTopics={newsMaxTopics}
+                      expandedMaxTopics={TRENDING_NEWS_EXPANDED_TOPICS}
+                      showImages={newsShowImages}
+                      apiEndpoint={trendingNewsEndpoint}
+                      topics={newsTopics}
+                      limit={TRENDING_NEWS_EXPANDED_TOPICS}
+                      className="rounded-2xl w-full"
+                      style={{
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        color: 'inherit',
+                        backdropFilter: 'blur(8px)',
+                        maxWidth: '100%',
+                      }}
+                    />
+                  )}
+                  {showWeatherWidget && (
+                    <WeatherForecast
+                      compact
+                      forecastDays={weatherForecastDays}
+                      forecastHours={weatherForecastHours}
+                      temperatureUnit={weatherTemperatureUnit}
+                      locations={weatherLocations.length > 0 ? weatherLocations : undefined}
+                      className="rounded-2xl w-full"
+                      style={{
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        color: 'inherit',
+                        backdropFilter: 'blur(8px)',
+                      }}
+                    />
+                  )}
+                </div>
+              </Suspense>
             )}
             <ChatInputBox />
           </div>
@@ -292,7 +374,11 @@ export default function ChatHomepage() {
       </div>
 
       <Footer listFooterLinks={footerLinks} />
-      <DownloadsDialog open={downloadsOpen} onOpenChange={setDownloadsOpen} />
+      {downloadsRequested && (
+        <Suspense fallback={null}>
+          <DownloadsDialog open={downloadsOpen} onOpenChange={setDownloadsOpen} />
+        </Suspense>
+      )}
     </div>
   );
 }
