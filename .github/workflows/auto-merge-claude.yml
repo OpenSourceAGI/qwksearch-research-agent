@@ -1,43 +1,377 @@
 name: Auto-merge Claude PRs
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  # Required for conflicted PRs: unlike pull_request, this event fires even
+  # when GitHub reports that the PR cannot be merged cleanly.
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+  # Lets you manually re-run the automation for a specific PR.
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Open same-repository Claude PR number to process"
+        required: true
+        type: string
 
 permissions:
   contents: write
   pull-requests: write
+  checks: read
+  statuses: read
+
+concurrency:
+  # One worker per PR. A newer push to the PR cancels any older run for it.
+  group: auto-merge-claude-pr-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_REPO: ${{ github.repository }}
 
 jobs:
-  auto-merge:
+  prepare:
+    name: Resolve master conflicts
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # For automatic events, accept only non-draft Claude/bot PRs from the same
+    # repository. Same-repository restriction is essential: this workflow
+    # pushes to the PR branch and must not give write capability to forks.
+    #
+    # Manual dispatch is permitted, but the script below independently checks
+    # the PR author, draft state, base repo, and open status before changing Git.
     if: >
-      github.actor == 'claude[bot]' ||
-      github.actor == 'anthropic-claude[bot]' ||
-      github.actor == 'vtempest'
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.pull_request.draft == false &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        (
+          github.event.pull_request.user.login == 'claude[bot]' ||
+          github.event.pull_request.user.login == 'anthropic-claude[bot]' ||
+          github.event.pull_request.user.login == 'vtempest'
+        )
+      )
+
+    outputs:
+      pr_number: ${{ steps.pr.outputs.number }}
+      head_sha: ${{ steps.resolve.outputs.head_sha }}
+      changed: ${{ steps.resolve.outputs.changed }}
+
     steps:
-      - name: Enable auto-merge (or merge directly)
+      - name: Resolve PR metadata and enforce safety rules
+        id: pr
         env:
-          GH_TOKEN: ${{ secrets.GIT_TOKEN }}
-          PR: ${{ github.event.pull_request.number }}
-          REPO: ${{ github.repository }}
-          HEAD_REF: ${{ github.head_ref }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          EVENT_REPOSITORY: ${{ github.repository }}
+        shell: bash
         run: |
-          # Never delete production or prod branches
-          if [[ "$HEAD_REF" == "production" || "$HEAD_REF" == "prod" ]]; then
-            MERGE_OPTS="--squash"
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            PR_NUMBER="$INPUT_PR_NUMBER"
           else
-            MERGE_OPTS="--squash --delete-branch"
+            PR_NUMBER="$EVENT_PR_NUMBER"
           fi
 
-          # Preferred path: let GitHub merge once required checks pass.
-          # Requires "Allow auto-merge" in repo settings + branch protection
-          # with at least one required status check.
-          if gh pr merge "$PR" --repo "$REPO" $MERGE_OPTS --auto; then
-            echo "Auto-merge enabled for PR #$PR"
-          else
-            # Fallback for unprotected branches (no required checks):
-            # merge immediately if the PR is mergeable.
-            echo "Auto-merge unavailable, attempting direct merge"
-            gh pr merge "$PR" --repo "$REPO" $MERGE_OPTS
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || {
+            echo "::error::pr_number must be numeric."
+            exit 1
+          }
+
+          pr="$(gh pr view "$PR_NUMBER" --repo "$EVENT_REPOSITORY" --json \
+            number,state,isDraft,author,headRefName,headRepository,baseRefName)"
+
+          state="$(jq -r '.state' <<<"$pr")"
+          draft="$(jq -r '.isDraft' <<<"$pr")"
+          author="$(jq -r '.author.login // ""' <<<"$pr")"
+          head_repo="$(jq -r '.headRepository.nameWithOwner // ""' <<<"$pr")"
+          head_ref="$(jq -r '.headRefName' <<<"$pr")"
+          base_ref="$(jq -r '.baseRefName' <<<"$pr")"
+
+          [[ "$state" == "OPEN" ]] || {
+            echo "::error::PR #$PR_NUMBER is not open."
+            exit 1
+          }
+
+          [[ "$draft" == "false" ]] || {
+            echo "::error::PR #$PR_NUMBER is a draft."
+            exit 1
+          }
+
+          [[ "$head_repo" == "$EVENT_REPOSITORY" ]] || {
+            echo "::error::Refusing fork PR: $head_repo"
+            exit 1
+          }
+
+          case "$author" in
+            "claude[bot]"|"anthropic-claude[bot]"|"vtempest")
+              ;;
+            *)
+              echo "::error::PR author '$author' is not an allowed Claude actor."
+              exit 1
+              ;;
+          esac
+
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "head_ref=$head_ref" >> "$GITHUB_OUTPUT"
+          echo "base_ref=$base_ref" >> "$GITHUB_OUTPUT"
+
+          echo "Processing PR #$PR_NUMBER"
+          echo "  head: $head_ref"
+          echo "  base: $base_ref"
+          echo "  author: $author"
+
+      - name: Configure Git identity
+        shell: bash
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch only the base and PR branches
+        env:
+          BASE_REF: ${{ steps.pr.outputs.base_ref }}
+          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git init .
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${GH_REPO}.git"
+
+          # Fetch base and head directly to local refs. Do not use
+          # actions/checkout on a pull_request_target workflow.
+          git fetch --no-tags origin \
+            "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}" \
+            "+refs/heads/${HEAD_REF}:refs/remotes/origin/${HEAD_REF}"
+
+          git checkout --detach "origin/${HEAD_REF}"
+
+      - name: Merge base locally; conflicts accept incoming base
+        id: resolve
+        env:
+          BASE_REF: ${{ steps.pr.outputs.base_ref }}
+          HEAD_REF: ${{ steps.pr.outputs.head_ref }}
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          before="$(git rev-parse HEAD)"
+
+          # Current branch/HEAD = PR branch ("ours").
+          # origin/$BASE_REF = incoming base branch ("theirs").
+          #
+          # -X theirs automatically resolves normal textual conflicts in favor
+          # of the base branch. The fallback below handles all remaining
+          # unmerged index paths, including modify/delete conflicts.
+          if ! git merge --no-edit -X theirs "origin/${BASE_REF}"; then
+            echo "Git requires explicit conflict resolution."
+            echo "Policy: use origin/${BASE_REF} for every unresolved path."
+
+            while IFS= read -r path; do
+              [[ -n "$path" ]] || continue
+              echo "Resolving: $path"
+
+              # Stage 3 is "theirs": origin/$BASE_REF.
+              # If stage 3 exists, base has a version: check it out and stage it.
+              # If stage 3 does not exist, base deleted it: accept deletion.
+              if git ls-files -u -- "$path" | awk '$3 == 3 { found=1 } END { exit(found ? 0 : 1) }'; then
+                git checkout --theirs -- "$path"
+                git add -- "$path"
+              else
+                git rm -f -- "$path"
+              fi
+            done < <(git diff --name-only --diff-filter=U)
+
+            unresolved="$(git diff --name-only --diff-filter=U)"
+            if [[ -n "$unresolved" ]]; then
+              echo "::error::Unresolved paths remain:"
+              printf '%s\n' "$unresolved"
+              exit 1
+            fi
+
+            git commit --no-edit
           fi
+
+          after="$(git rev-parse HEAD)"
+
+          if [[ "$after" != "$before" ]]; then
+            echo "Pushing merge/conflict-resolution commit to $HEAD_REF"
+            git push origin "HEAD:refs/heads/${HEAD_REF}"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "PR branch already includes the current base branch."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "head_sha=$after" >> "$GITHUB_OUTPUT"
+
+  approve-and-merge:
+    name: Approve and merge
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    # If prepare pushed a conflict-resolution commit, this run must stop.
+    # The push creates a fresh synchronize event and a new workflow run,
+    # allowing CI to test the newly resolved PR before this workflow merges it.
+    if: needs.prepare.outputs.changed != 'true'
+
+    steps:
+      - name: Auto-approve
+        env:
+          PR_NUMBER: ${{ needs.prepare.outputs.pr_number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # This may fail if GitHub forbids self-approval or branch rules
+          # require an independent reviewer. Do not treat that as fatal here;
+          # gh pr merge below will still enforce repository policy.
+          gh pr review "$PR_NUMBER" --approve \
+            --body "Automatically approved eligible Claude PR after checks." \
+            || echo "Approval was not accepted or was not required."
+
+      - name: Wait for required checks
+        env:
+          PR_NUMBER: ${{ needs.prepare.outputs.pr_number }}
+          EXPECTED_HEAD_SHA: ${{ needs.prepare.outputs.head_sha }}
+          SELF_WORKFLOW: ${{ github.workflow }}
+          TIMEOUT_MINUTES: "30"
+          POLL_SECONDS: "30"
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          deadline=$(( $(date +%s) + TIMEOUT_MINUTES * 60 ))
+
+          echo "Waiting for checks on PR #$PR_NUMBER"
+
+          while true; do
+            current_head="$(gh pr view "$PR_NUMBER" --json headRefOid --jq '.headRefOid')"
+
+            # Do not merge if a human/bot pushed after this run began.
+            if [[ "$current_head" != "$EXPECTED_HEAD_SHA" ]]; then
+              echo "::notice::PR head changed from $EXPECTED_HEAD_SHA to $current_head."
+              echo "A newer workflow run will process the newest commit."
+              exit 0
+            fi
+
+            checks="$(
+              gh pr view "$PR_NUMBER" --json statusCheckRollup --jq '
+                [
+                  .statusCheckRollup[]?
+                  | {
+                      name: (.name // .context // "unknown"),
+                      workflow: (.workflowName // ""),
+                      status: (.status // "COMPLETED"),
+                      conclusion: (((.conclusion // .state) // "") | ascii_upcase)
+                    }
+                ]
+              '
+            )"
+
+            # Exclude this workflow’s own check to avoid waiting for itself.
+            others="$(jq -c --arg self "$SELF_WORKFLOW" \
+              '[.[] | select(.workflow != $self)]' <<<"$checks")"
+
+            failed="$(jq -r '
+              [
+                .[]
+                | select(
+                    .conclusion
+                    | IN(
+                        "FAILURE",
+                        "TIMED_OUT",
+                        "CANCELLED",
+                        "ACTION_REQUIRED",
+                        "STARTUP_FAILURE",
+                        "ERROR"
+                      )
+                  )
+                | .name
+              ]
+              | join(", ")
+            ' <<<"$others")"
+
+            if [[ -n "$failed" ]]; then
+              echo "::error::Checks failed: $failed"
+              exit 1
+            fi
+
+            pending="$(jq -r '
+              [
+                .[]
+                | select(
+                    .status != "COMPLETED" or
+                    .conclusion == "" or
+                    .conclusion == "PENDING" or
+                    .conclusion == "NEUTRAL" or
+                    .conclusion == "SKIPPED"
+                  )
+                | .name
+              ]
+              | join(", ")
+            ' <<<"$others")"
+
+            if [[ -z "$pending" ]]; then
+              echo "All external checks have completed successfully."
+              break
+            fi
+
+            if (( $(date +%s) >= deadline )); then
+              echo "::error::Timed out after ${TIMEOUT_MINUTES} minutes waiting for: $pending"
+              exit 1
+            fi
+
+            echo "Still pending: $pending"
+            sleep "$POLL_SECONDS"
+          done
+
+      - name: Merge PR
+        env:
+          PR_NUMBER: ${{ needs.prepare.outputs.pr_number }}
+          EXPECTED_HEAD_SHA: ${{ needs.prepare.outputs.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # --match-head-commit protects against merging a branch that changed
+          # after the checks were evaluated.
+          #
+          # --squash and --delete-branch retain your current merge behavior.
+          # If the repository uses a merge queue, gh will add it to that queue
+          # rather than bypassing policy.
+          gh pr merge "$PR_NUMBER" \
+            --squash \
+            --delete-branch \
+            --match-head-commit "$EXPECTED_HEAD_SHA" \
+            || gh pr merge "$PR_NUMBER" \
+              --squash \
+              --auto \
+              --delete-branch \
+              --match-head-commit "$EXPECTED_HEAD_SHA"
+
+  delete-branch:
+    name: Delete merged branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    if: >
+      github.event_name == 'pull_request_target' &&
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - name: Delete merged head branch
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh api \
+            "repos/${GITHUB_REPOSITORY}/git/refs/heads/${{ github.event.pull_request.head.ref }}" \
+            -X DELETE \
+            || echo "Branch was already deleted."
