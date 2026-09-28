@@ -2,16 +2,19 @@
  * @fileoverview Utilities for exporting article/chat HTML content as Markdown, DOCX, PDF, or to Google Docs.
  *
  * DOCX and PDF export lazily load their heavy dependencies (docx, jsPDF) from
- * a CDN via cdn-loader rather than bundling them directly.
+ * a CDN via cdn-loader rather than bundling them directly. The PDF renderer
+ * (html2canvas) and the Markdown converter (turndown) are dynamic imports for
+ * the same reason: this module is reachable from the homepage's chat input, so
+ * a static import would ship them in the first-load bundle to every visitor,
+ * nearly none of whom export anything.
  */
-import html2canvas from 'html2canvas';
-import TurndownService from 'turndown';
 import { loadDocx, loadJsPDF } from './cdn-loader';
 
 /**
  * Convert HTML content to Markdown
  */
 export async function exportAsMarkdown(title: string, htmlContent: string): Promise<void> {
+  const { default: TurndownService } = await import('turndown');
   const turndownService = new TurndownService({
     headingStyle: 'atx',
     codeBlockStyle: 'fenced',
@@ -191,7 +194,10 @@ export async function exportAsPdf(title: string, htmlContent: string): Promise<v
   document.body.appendChild(container);
 
   try {
-    const jsPDF = await loadJsPDF();
+    const [jsPDF, { default: html2canvas }] = await Promise.all([
+      loadJsPDF(),
+      import('html2canvas'),
+    ]);
     // Convert to canvas
     const canvas = await html2canvas(container, {
       scale: 2,
@@ -240,6 +246,7 @@ export async function exportAsPdf(title: string, htmlContent: string): Promise<v
 export async function exportToGoogleDocs(title: string, htmlContent: string): Promise<void> {
   try {
     // Convert HTML to plain text with basic formatting
+    const { default: TurndownService } = await import('turndown');
     const turndownService = new TurndownService();
     const markdown = turndownService.turndown(htmlContent);
     const content = `${title}\n\n${markdown}`;
