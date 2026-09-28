@@ -26,7 +26,8 @@ import '@/lib/debug/marks/home-workspace-mount-end';
 
 /**
  * Marketing content nobody sees until they scroll past the workspace — kept out
- * of the homepage's first-load bundle and streamed in behind the fold instead.
+ * of the homepage's first-load bundle, and not mounted at all until the reader
+ * scrolls near it (see `useNearViewport`).
  * The placeholder reserves a screen of height so the cue below always has
  * somewhere to scroll to while the chunk is still in flight.
  */
@@ -44,6 +45,43 @@ function findScrollParent(node: HTMLElement | null): HTMLElement | null {
     el = el.parentElement;
   }
   return null;
+}
+
+/**
+ * Flips to true — once, and for good — as soon as the reader starts scrolling
+ * `ref` into view (or asks for it via the scroll cue). Keeps the features slab (its chunk, its screenshot and ~30 badge,
+ * logo and favicon images, the demo video embed) off the network entirely for
+ * a visitor who never scrolls past the workspace.
+ */
+function useNearViewport(ref: React.RefObject<HTMLElement | null>, enabled: boolean) {
+  const [near, setNear] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = enabled && !near ? ref.current : null;
+    if (!el) return;
+    if (typeof IntersectionObserver !== 'function') {
+      setNear(true);
+      return;
+    }
+
+    const root = document.getElementById('app-scroll-root') ?? findScrollParent(el);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // `intersectionRatio > 0`, not `isIntersecting`: the slab starts
+        // exactly at the fold, and an edge-adjacent, zero-area hit already
+        // counts as "intersecting" — which would load it before any scroll.
+        // The extra 0.01 threshold is what makes the observer fire again on
+        // the first real pixel; with `[0]` alone, going from that edge hit to
+        // partly visible is not a crossing and no callback ever comes.
+        if (entries.some((entry) => entry.intersectionRatio > 0)) setNear(true);
+      },
+      { root, threshold: [0, 0.01] },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, enabled, near]);
+
+  return [near, () => setNear(true)] as const;
 }
 
 function usePrefersReducedMotion() {
@@ -181,6 +219,7 @@ export function HomeScrollStack() {
   });
 
   const progress = useEnterProgress(featuresRef, showFeatures);
+  const [featuresNear, loadFeatures] = useNearViewport(featuresRef, showFeatures);
 
   // Flip the cue only once the features cover more than half the screen —
   // pointing "up" any earlier would strand a reader who is still on their way
@@ -213,7 +252,10 @@ export function HomeScrollStack() {
       {showCue && (
         <ScrollCue
           direction={showingFeatures ? 'up' : 'down'}
-          onClick={() => scrollTo(showingFeatures ? workspaceRef : featuresRef)}
+          onClick={() => {
+            if (!showingFeatures) loadFeatures();
+            scrollTo(showingFeatures ? workspaceRef : featuresRef);
+          }}
         />
       )}
 
@@ -238,7 +280,11 @@ export function HomeScrollStack() {
                   }
             }
           >
-            <FeaturesView showPipeline={false} />
+            {featuresNear ? (
+              <FeaturesView showPipeline={false} />
+            ) : (
+              <div className="min-h-screen" />
+            )}
           </div>
         </div>
       )}

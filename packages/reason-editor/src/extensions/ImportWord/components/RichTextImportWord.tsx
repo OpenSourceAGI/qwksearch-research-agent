@@ -4,8 +4,6 @@
 
 import { useRef, useState } from 'react';
 
-import { convertDocxToHTML } from '@/extensions/ImportWord/docx-to-html';
-
 import { ActionButton, useToast } from '@/components';
 import { Image } from '@/extensions/Image';
 import { ImportWord } from '@/extensions/ImportWord/ImportWord';
@@ -109,6 +107,10 @@ export function RichTextImportWord() {
         const result = await convert(importFile);
         handleResult(result);
       } else {
+        // The converter drags in docx-preview, JSZip, htmlparser2 and linkedom;
+        // load it only when a Word file is actually imported so none of that
+        // ships with the editor's first load.
+        const { convertDocxToHTML } = await import('@/extensions/ImportWord/docx-to-html');
         const html = await convertDocxToHTML(importFile);
         handleResult(html);
       }

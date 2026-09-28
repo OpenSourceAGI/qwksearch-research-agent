@@ -2,9 +2,49 @@
  * @fileoverview Footer component that renders a bar of links (with optional Lucide icons) pinned to the bottom of the screen, collapsing into an info-icon popover on mobile.
  */
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
 import Link from "next/link";
-import * as LucideIcons from "lucide-react";
+import {
+    Bot,
+    BookOpen,
+    Building2,
+    Download,
+    HelpCircle,
+    Info,
+    Lock,
+    Mail,
+    MessageCircle,
+    Newspaper,
+    Sparkles,
+} from "lucide-react";
+
+type IconComponent = ComponentType<{ size?: number }>;
+
+/**
+ * The icons footer links are configured with, imported by name so only these
+ * ship with the homepage. `import * as LucideIcons` (or any dynamic
+ * `import("lucide-react")`) would pull every one of lucide's ~1,500 icons into
+ * the first-load bundle just to look up eight. A link naming an icon not
+ * listed here renders without one — add it to this map to use it.
+ */
+const FOOTER_ICONS: Record<string, IconComponent> = {
+    Bot,
+    BookOpen,
+    Building2,
+    Download,
+    HelpCircle,
+    Info,
+    Lock,
+    Mail,
+    MessageCircle,
+    Newspaper,
+    Sparkles,
+};
+
+function FooterIcon({ name }: { name: string }) {
+    const Icon = FOOTER_ICONS[name];
+    return Icon ? <Icon size={14} /> : null;
+}
 
 interface FooterLink {
     url: string;
@@ -55,8 +95,6 @@ export default function Footer({
 
     const renderLinks = () =>
         listFooterLinks.map(({ url, text, icon, onClick }) => {
-            const IconComponent = icon ? (LucideIcons as any)[icon] : null;
-
             const isExternal = url.startsWith("http");
             const linkProps = isExternal
                 ? { target: "_blank", rel: "noopener noreferrer" }
@@ -64,7 +102,7 @@ export default function Footer({
 
             const content = (
                 <>
-                    {optionShowIcons && IconComponent && <IconComponent size={14} />}
+                    {optionShowIcons && icon && <FooterIcon name={icon} />}
                     <span
                         className="font-semibold tracking-wide text-md"
                         style={{ fontVariant: "small-caps" }}
@@ -108,8 +146,6 @@ export default function Footer({
             );
         });
 
-    const InfoIcon = (LucideIcons as any).Info;
-
     return (
         <>
             {/* Desktop: full footer bar pinned bottom-center */}
@@ -140,7 +176,7 @@ export default function Footer({
                     aria-expanded={open}
                     className={`flex items-center justify-center h-8 w-8 rounded-full text-slate-200 ${optionBackgroundColor} shadow-lg backdrop-blur-sm hover:text-white transition-all duration-300`}
                 >
-                    {InfoIcon ? <InfoIcon size={16} /> : "i"}
+                    <Info size={16} />
                 </button>
             </div>
         </>
