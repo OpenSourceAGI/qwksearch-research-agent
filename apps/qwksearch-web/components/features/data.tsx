@@ -28,6 +28,7 @@ import {
   Puzzle,
   Quote,
   Replace,
+  Repeat,
   Search,
   Server,
   ShieldCheck,
@@ -390,6 +391,18 @@ export const FEATURE_TABS: FeatureTab[] = [
           "chat-agent-toolkit orchestrates providers, tools, and memory over the Vercel AI SDK, Mastra, and MCP.",
       },
     ],
+  },
+  {
+    // The whole loop, which used to be its own section above the tabs. Its
+    // cards are hand-laid-out rather than `features`, so the view renders
+    // them itself (see `ResearchLoopGrid`).
+    value: "loop",
+    label: "End to End",
+    icon: Repeat,
+    headline: "Ask, search, read, cite, write — without leaving the tab",
+    blurb:
+      "Most research tools stop at a list of links. This one carries a question all the way to a finished, sourced document.",
+    features: [],
   },
 ];
 

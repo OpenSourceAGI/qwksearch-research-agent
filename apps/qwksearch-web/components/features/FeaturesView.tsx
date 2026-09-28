@@ -154,27 +154,6 @@ function Hero() {
             your IDE.
           </p>
         </Reveal>
-
-        <Reveal delay={240}>
-          <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg" className="group">
-              <Link href="/">
-                Start researching
-                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/workspace">
-                <PenLine />
-                Open REASON editor
-              </Link>
-            </Button>
-          </div>
-        </Reveal>
-
-        <Reveal delay={300} className="mx-auto mt-10 max-w-3xl">
-          <BadgeWall />
-        </Reveal>
       </div>
 
       {/* Search engines QwkSearch queries, orbiting the index. Deliberately
@@ -184,8 +163,12 @@ function Hero() {
       </Reveal>
 
       <div className="mx-auto max-w-5xl text-center">
+        <Reveal delay={380} className="mx-auto max-w-3xl">
+          <BadgeWall />
+        </Reveal>
+
         <Reveal delay={400}>
-          <dl className="mx-auto mt-16 grid max-w-4xl grid-cols-2 gap-px overflow-hidden rounded-2xl border sm:grid-cols-3 lg:grid-cols-5">
+          <dl className="mx-auto mt-10 grid max-w-4xl grid-cols-2 gap-px overflow-hidden rounded-2xl border sm:grid-cols-3 lg:grid-cols-5">
             {STATS.map((stat) => (
               <div
                 key={stat.label}

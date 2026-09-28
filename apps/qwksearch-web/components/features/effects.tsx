@@ -75,6 +75,7 @@ export function SpotlightCard({
   className,
   beam = true,
   spotlightSize = 420,
+  style,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -82,6 +83,8 @@ export function SpotlightCard({
   beam?: boolean;
   /** Radius of the cursor highlight, in px. */
   spotlightSize?: number;
+  /** Custom properties from `cardTint` — see `CARD_ACCENTS`. */
+  style?: React.CSSProperties;
 }) {
   const ref = React.useRef<HTMLDivElement>(null);
   const [spot, setSpot] = React.useState({ x: 0, y: 0, on: false });
@@ -107,6 +110,7 @@ export function SpotlightCard({
         beam && "qs-border-beam",
         className,
       )}
+      style={style}
     >
       <div className="bg-card/80 relative z-10 h-full rounded-[calc(1rem-1px)] border backdrop-blur-sm transition-colors duration-300 group-hover/spotlight:border-transparent">
         <div
@@ -121,6 +125,38 @@ export function SpotlightCard({
       </div>
     </div>
   );
+}
+
+/**
+ * Hover hues for cards in a grid, so neighbours light up in different colors
+ * instead of all glowing the same sky blue. Each entry is a hue pair — the
+ * first drives the cursor spotlight, the second the second stop of the
+ * rotating border beam. `light` is used as-is; `dark` is the brighter,
+ * lower-chroma pair `.qs-tint` swaps in under `prefers: dark`/`.dark`.
+ */
+const CARD_ACCENTS: { light: [string, string]; dark: [string, string] }[] = [
+  { light: ["oklch(0.62 0.17 250)", "oklch(0.63 0.19 295)"], dark: ["oklch(0.75 0.14 250)", "oklch(0.76 0.15 295)"] },
+  { light: ["oklch(0.62 0.15 160)", "oklch(0.63 0.13 200)"], dark: ["oklch(0.76 0.13 160)", "oklch(0.77 0.11 200)"] },
+  { light: ["oklch(0.66 0.16 75)", "oklch(0.64 0.18 40)"], dark: ["oklch(0.79 0.14 75)", "oklch(0.77 0.15 40)"] },
+  { light: ["oklch(0.62 0.19 15)", "oklch(0.63 0.2 340)"], dark: ["oklch(0.75 0.16 15)", "oklch(0.76 0.17 340)"] },
+  { light: ["oklch(0.6 0.16 320)", "oklch(0.61 0.18 265)"], dark: ["oklch(0.74 0.14 320)", "oklch(0.75 0.15 265)"] },
+  { light: ["oklch(0.62 0.13 215)", "oklch(0.63 0.16 180)"], dark: ["oklch(0.76 0.11 215)", "oklch(0.77 0.13 180)"] },
+];
+
+/**
+ * Per-card tint, cycling through `CARD_ACCENTS` so a grid of cards gets a
+ * different hover color each. Pair with the `qs-tint` class: it swaps in the
+ * dark pair when the page is dark. Nothing is themed at rest — the card only
+ * takes the color while hovered.
+ */
+export function cardTint(index: number): React.CSSProperties {
+  const { light, dark } = CARD_ACCENTS[index % CARD_ACCENTS.length];
+  return {
+    "--qs-accent": light[0],
+    "--qs-accent-2": light[1],
+    "--qs-accent-dark": dark[0],
+    "--qs-accent-dark-2": dark[1],
+  } as React.CSSProperties;
 }
 
 /** Full-bleed backdrop: grid lines, radial mask, and drifting aurora blobs. */
