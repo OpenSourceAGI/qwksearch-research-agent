@@ -1,7 +1,7 @@
 <!-- template-git-repo:badges:start -->
 <p align="center">
+    <img src="https://i.imgur.com/2ks47qa.png" /><br />
     <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
-    <br />
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
     <a href="https://www.npmjs.com/package/extract-pdf"><img src="https://img.shields.io/npm/dm/extract-pdf.svg" alt="NPM Monthly Downloads" /></a>
     <a href="https://www.npmjs.com/package/extract-pdf"><img src="https://img.shields.io/npm/v/extract-pdf.svg" alt="npm version" /></a>
