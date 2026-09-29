@@ -1,6 +1,6 @@
 {
   "name": "qwksearch-mcp-server",
-  "version": "1.0.255",
+  "version": "1.0.256",
   "description": "MCP server exposing web search and content extraction tools via stdio transport",
   "repository": {
     "type": "git",
