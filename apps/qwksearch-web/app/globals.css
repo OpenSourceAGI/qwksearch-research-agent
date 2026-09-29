@@ -40,6 +40,7 @@
 @source "../../../packages/shadcn-app-dock/src";
 @source "../../../packages/shadcn-settings/src";
 @source "../../../packages/research-agent-ui/src";
+@source "../../../packages/search-autocomplete/src";
 @source "../../../packages/reason-editor/src";
 @source "../../../packages/reason-editor-sidebar/src";
 /* Fumadocs ships its own utility lists as `@source inline(…)` inside

@@ -30,6 +30,7 @@ things look similar:
 | Agent orchestration, Mastra, MCP, memory, model registry | `chat-agent-toolkit` | ask-chat-agent-toolkit |
 | One text generation call across 10+ LLM providers | `write-language` | ask-write-language |
 | Query 75 search engines, dedupe and rank | `search-web-api` | ask-search-web-api |
+| Search box autocomplete, fastest suggest engine, site suggestions | `search-autocomplete` | ask-search-autocomplete |
 | Self-hosted SearXNG meta-search backend | `searxng-search-cloudflare` | ask-searxng-search |
 | URL → article + APA citation, keyphrases, tokenizing | `extract-webpage` | ask-extract-webpage |
 | PDF → structured HTML, optional Docling OCR | `extract-pdf` | ask-extract-pdf |

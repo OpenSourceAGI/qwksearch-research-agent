@@ -183,6 +183,7 @@
         "remark-gfm": "^4.0.1",
         "research-agent-ui": "workspace:*",
         "scroll-into-view-if-needed": "^3.1.0",
+        "search-autocomplete": "workspace:*",
         "search-web-api": "workspace:*",
         "shadcn-app-dock": "workspace:*",
         "shadcn-settings": "workspace:*",
@@ -235,7 +236,7 @@
     },
     "packages/chat-agent-toolkit": {
       "name": "chat-agent-toolkit",
-      "version": "1.2.396",
+      "version": "1.2.424",
       "dependencies": {
         "@ai-sdk/anthropic": "^4.0.50",
         "@ai-sdk/google": "^4.0.65",
@@ -283,7 +284,7 @@
     },
     "packages/domain-rank": {
       "name": "domain-rank",
-      "version": "0.1.385",
+      "version": "0.1.413",
       "dependencies": {
         "fuse.js": "^7.5.0",
         "grab-url": "^1.6.22",
@@ -302,7 +303,7 @@
     },
     "packages/extract-pdf": {
       "name": "extract-pdf",
-      "version": "0.1.380",
+      "version": "0.1.407",
       "dependencies": {
         "grab-url": "^1.6.22",
       },
@@ -327,7 +328,7 @@
     },
     "packages/extract-webpage": {
       "name": "extract-webpage",
-      "version": "1.2.390",
+      "version": "1.2.418",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "ai": "^7.0.94",
@@ -376,7 +377,7 @@
     },
     "packages/extract-youtube": {
       "name": "extract-youtube",
-      "version": "1.0.384",
+      "version": "1.0.412",
       "bin": {
         "extract-youtube": "dist/cli.js",
       },
@@ -414,7 +415,7 @@
     },
     "packages/html-renderer-api": {
       "name": "html-renderer-api",
-      "version": "1.0.268",
+      "version": "1.0.296",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.4.0",
       },
@@ -425,7 +426,7 @@
     },
     "packages/investing": {
       "name": "investing",
-      "version": "0.1.89",
+      "version": "0.1.120",
       "dependencies": {
         "@alpacahq/alpaca-trade-api": "^3.1.3",
         "@langchain/core": "^1.1.8",
@@ -472,7 +473,7 @@
     },
     "packages/legal-terms-privacy-policy": {
       "name": "legal-terms-privacy-policy",
-      "version": "0.1.73",
+      "version": "0.1.101",
       "devDependencies": {
         "@testing-library/react": "^16.3.3",
         "@types/react": "^19.2.18",
@@ -491,7 +492,7 @@
     },
     "packages/notebooklm-api-client": {
       "name": "notebooklm-api-client",
-      "version": "0.1.339",
+      "version": "0.1.367",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.4.0",
       },
@@ -505,7 +506,7 @@
     },
     "packages/qwksearch-api-client": {
       "name": "qwksearch-api-client",
-      "version": "1.0.68",
+      "version": "1.0.96",
       "dependencies": {
         "api2client": "^1.0.1",
       },
@@ -525,7 +526,7 @@
     },
     "packages/qwksearch-mcp-server": {
       "name": "qwksearch-mcp-server",
-      "version": "1.0.232",
+      "version": "1.0.260",
       "bin": {
         "qwksearch-mcp": "./bin/qwksearch-mcp.ts",
       },
@@ -542,7 +543,7 @@
     },
     "packages/react-weather-forecast": {
       "name": "use-weather-forecast",
-      "version": "0.1.210",
+      "version": "0.1.238",
       "dependencies": {
         "grab-url": "^1.6.22",
       },
@@ -568,7 +569,7 @@
     },
     "packages/reason-editor": {
       "name": "react-reason-editor",
-      "version": "1.0.198",
+      "version": "1.0.226",
       "dependencies": {
         "@ariakit/react": "^0.4.39",
         "@emoji-mart/data": "1.2.1",
@@ -776,7 +777,7 @@
     },
     "packages/reason-editor-sidebar": {
       "name": "react-reason-editor-sidebar",
-      "version": "0.1.115",
+      "version": "0.1.143",
       "dependencies": {
         "@headless-tree/core": "^1.7.0",
         "@headless-tree/react": "^1.7.0",
@@ -905,7 +906,7 @@
     },
     "packages/research-agent-ui": {
       "name": "research-agent-ui",
-      "version": "0.1.263",
+      "version": "0.1.291",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "@radix-ui/react-dialog": "^1.1.23",
@@ -918,12 +919,10 @@
         "chat-agent-toolkit": "workspace:*",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
-        "domain-rank": "workspace:*",
         "dompurify": "^3.4.15",
         "drizzle-orm": "^0.45.2",
         "extract-webpage": "workspace:*",
         "framer-motion": "^13.2.0",
-        "fuse.js": "^7.5.0",
         "grab-url": "^1.6.22",
         "html2canvas": "^1.4.1",
         "kokoro-js": "^1.2.1",
@@ -936,13 +935,13 @@
         "react-icons": "^5.7.0",
         "react-native-app-buttons": "^0.1.4",
         "react-textarea-autosize": "^8.5.9",
+        "search-autocomplete": "workspace:*",
         "search-web-api": "workspace:*",
         "shadcn-app-dock": "workspace:*",
         "shadcn-theme-menu": "^1.1.47",
         "sonner": "^2.0.8",
         "streamdown": "^2.6.0",
         "tailwind-merge": "^3.6.0",
-        "tldts": "^7.4.12",
         "trending-news-api": "workspace:*",
         "turndown": "^7.2.4",
         "use-voice-control": "^0.1.95",
@@ -980,9 +979,38 @@
         "react-dom": ">=18",
       },
     },
+    "packages/search-autocomplete": {
+      "name": "search-autocomplete",
+      "version": "0.1.0",
+      "dependencies": {
+        "domain-rank": "workspace:*",
+        "fuse.js": "^7.5.0",
+        "lucide-react": "^1.43.0",
+        "motion": "^13.2.0",
+        "tldts": "^7.4.12",
+      },
+      "devDependencies": {
+        "@testing-library/react": "^16.3.3",
+        "@types/node": "^26.5.0",
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.7",
+        "@vitejs/plugin-react": "^6.1.1",
+        "@vitest/coverage-v8": "^5.0.0",
+        "jsdom": "^30.0.1",
+        "react": "^19.2.8",
+        "react-dom": "^19.2.8",
+        "typescript": "^7.0.2",
+        "vite": "^8.2.2",
+        "vitest": "^5.0.0",
+      },
+      "peerDependencies": {
+        "react": ">=18",
+        "react-dom": ">=18",
+      },
+    },
     "packages/search-web-api": {
       "name": "search-web-api",
-      "version": "1.0.248",
+      "version": "1.0.276",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "@scalar/hono-api-reference": "^0.12.1",
@@ -1002,7 +1030,7 @@
     },
     "packages/shadcn-app-dock": {
       "name": "shadcn-app-dock",
-      "version": "0.1.246",
+      "version": "0.1.274",
       "dependencies": {
         "@radix-ui/react-dropdown-menu": "^2.1.24",
         "@radix-ui/react-slot": "^1.3.3",
@@ -1035,7 +1063,7 @@
     },
     "packages/shadcn-settings": {
       "name": "shadcn-settings",
-      "version": "0.1.124",
+      "version": "0.1.152",
       "dependencies": {
         "@radix-ui/react-select": "^2.3.7",
         "@radix-ui/react-switch": "^1.3.7",
@@ -1064,7 +1092,7 @@
     },
     "packages/trending-news-api": {
       "name": "trending-news-api",
-      "version": "0.1.124",
+      "version": "0.1.152",
       "devDependencies": {
         "@cloudflare/workers-types": "^5.20260908.1",
         "@testing-library/react": "^16.3.3",
@@ -1087,7 +1115,7 @@
     },
     "packages/use-voice-control": {
       "name": "use-voice-control",
-      "version": "0.1.205",
+      "version": "0.1.233",
       "bin": {
         "use-voice-control": "bin/use-voice-control.mjs",
       },
@@ -1149,7 +1177,7 @@
     },
     "packages/write-language": {
       "name": "write-language",
-      "version": "0.1.266",
+      "version": "0.1.294",
       "dependencies": {
         "@ai-sdk/amazon-bedrock": "^5.0.78",
         "@ai-sdk/anthropic": "^4.0.50",
@@ -6216,6 +6244,8 @@
     "scrypt-js": ["scrypt-js@3.0.1", "", {}, "sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA=="],
 
     "scule": ["scule@1.3.0", "", {}, "sha512-6FtHJEvt+pVMIB9IBY+IcCJ6Z5f1iQnytgyfKMhDKgmzYG+TeH/wx1y3l27rshSbLiSanrR9ffZDrEsmjlQF2g=="],
+
+    "search-autocomplete": ["search-autocomplete@workspace:packages/search-autocomplete"],
 
     "search-web-api": ["search-web-api@workspace:packages/search-web-api"],
 

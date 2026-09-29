@@ -1,0 +1,41 @@
+name: Autocomplete benchmark
+
+# Measures every search-autocomplete engine from a datacenter runner — closer to
+# the Worker's egress than a laptop is — and prints which one is fastest. The
+# result is informational: DEFAULT_ENGINE in packages/search-autocomplete is
+# changed by hand, from these numbers.
+on:
+  workflow_dispatch:
+    inputs:
+      rounds:
+        description: Times each query is repeated per engine
+        default: "5"
+  push:
+    branches: [master]
+    paths:
+      - packages/search-autocomplete/src/engines.ts
+      - packages/search-autocomplete/src/benchmark.ts
+      - packages/search-autocomplete/scripts/benchmark.ts
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      # The script and the engine adapters import nothing outside node: and
+      # their own src/, so no install step.
+      - name: Benchmark engines
+        working-directory: packages/search-autocomplete
+        run: |
+          bun scripts/benchmark.ts --rounds "${{ inputs.rounds || '5' }}" --json > benchmark.json || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          bun -e 'const r = await Bun.file("benchmark.json").json(); const { formatReport } = await import("./src/benchmark.ts"); console.log(formatReport(r)); console.log(`DEFAULT_ENGINE: ${r.defaultEngine}`)' | tee -a "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: autocomplete-benchmark
+          path: packages/search-autocomplete/benchmark.json

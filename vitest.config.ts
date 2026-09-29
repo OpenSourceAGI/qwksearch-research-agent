@@ -49,6 +49,7 @@ export default defineConfig({
       'packages/render-url-to-html/scraper-jsdom',
       'packages/render-url-to-html/scraper-puppeteer',
       'packages/research-agent-ui',
+      'packages/search-autocomplete',
       'packages/search-web-api',
       'packages/shadcn-app-dock',
       'packages/shadcn-settings',

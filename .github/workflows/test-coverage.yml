@@ -32,6 +32,7 @@ jobs:
           - { flag: react-weather-forecast, dir: packages/react-weather-forecast }
           - { flag: reason-editor, dir: packages/reason-editor }
           - { flag: research-agent-ui, dir: packages/research-agent-ui }
+          - { flag: search-autocomplete, dir: packages/search-autocomplete }
           - { flag: search-web-api, dir: packages/search-web-api }
           - { flag: shadcn-app-dock, dir: packages/shadcn-app-dock }
           - { flag: shadcn-settings, dir: packages/shadcn-settings }

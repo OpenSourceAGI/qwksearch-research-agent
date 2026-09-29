@@ -74,7 +74,7 @@ memory), `language-model-training` (a GPT on Tinygrad, Python, its own toolchain
 `qwksearch-mcp-server` (search/extract/render as MCP tools over stdio),
 `notebooklm-api-client` (Worker + sleeping Python container driving NotebookLM).
 
-**UI** — `research-agent-ui`, `reason-editor`, `reason-editor-sidebar`,
+**UI** — `research-agent-ui`, `search-autocomplete`, `reason-editor`, `reason-editor-sidebar`,
 `shadcn-app-dock`, `shadcn-settings`, `react-weather-forecast`,
 `trending-news-api`, `use-voice-control`, `user-help-docs`.
 
