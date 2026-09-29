@@ -271,7 +271,7 @@ describe('handleTrendingNewsRequest', () => {
     expect(response.headers.get('content-type')).toContain('application/json');
     const body = (await response.json()) as { topics: unknown[] };
     expect(body.topics).toHaveLength(2);
-    expect(calls[0]).toContain('top-per-article');
+    expect(calls[0]).toContain('/metrics/pageviews/top/en.wikipedia.org/all-access/');
   });
 
   it('serves headlines for a single topic without touching Wikipedia', async () => {
