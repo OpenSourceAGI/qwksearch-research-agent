@@ -1,14 +1,10 @@
 "use client"
 
 import type React from "react"
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/lib/hooks/use-toast"
+import { EnterpriseSignupForm } from "@/components/features/EnterpriseSignupForm"
 import {
   Palette,
   Code,
@@ -19,8 +15,6 @@ import {
   Check,
   Rocket,
   Building2,
-  Loader2,
-  Send,
 } from "lucide-react"
 
 function SpotlightCard({ children }: { children: React.ReactNode }) {
@@ -322,24 +316,6 @@ function PricingSection() {
   )
 }
 function ContactFormSection() {
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setLoading(true)
-
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    toast({
-      title: "Thank you for your interest!",
-      description: "We'll be in touch within 24 hours to discuss your needs.",
-    })
-
-    setLoading(false)
-      ; (e.target as HTMLFormElement).reset()
-  }
-
   return (
     <section className="relative py-20 px-4 sm:px-6 lg:px-8">
       <div className="absolute inset-0 bg-gradient-to-t from-cyan-500/10 via-transparent to-transparent pointer-events-none" />
@@ -352,151 +328,13 @@ function ContactFormSection() {
           </p>
         </div>
 
-        <Card className="bg-gradient-to-b from-gray-900 to-black border-gray-800 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  required
-                  placeholder="John Doe"
-                  className="bg-gray-950 border-gray-800 text-white"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Work Email *</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="john@company.com"
-                  className="bg-gray-950 border-gray-800 text-white"
-                />
-              </div>
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
-
-              {/*               <div className="space-y-2">
-                <Label htmlFor="company">Company Name *</Label>
-                <Input
-                  id="company"
-                  name="company"
-                  required
-                  placeholder="Acme Inc."
-                  className="bg-gray-950 border-gray-800 text-white"
-                />
-              </div> */}
-
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="business-type">Business Type *</Label>
-                <select
-                  id="business-type"
-                  name="business-type"
-                  required
-                  className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="" disabled>Select business type</option>
-                  <option value="startup">Startup</option>
-                  <option value="agency">Agency</option>
-                  <option value="saas">SaaS Company</option>
-                  <option value="enterprise">Enterprise</option>
-                  <option value="ecommerce">E-commerce</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="team-size">Team Size *</Label>
-                <select
-                  id="team-size"
-                  name="team-size"
-                  required
-                  className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="" disabled>Select team size</option>
-                  <option value="1-10">1-10 employees</option>
-                  <option value="11-50">11-50 employees</option>
-                  <option value="51-200">51-200 employees</option>
-                  <option value="201-1000">201-1000 employees</option>
-                  <option value="1000+">1000+ employees</option>
-                </select>
-              </div>
-            </div>
-
-
-            {/* 
-            <div className="space-y-2">
-              <Label>Key Features You Need</Label>
-              <div className="grid md:grid-cols-2 gap-4 mt-2">
-                {[
-                  "White-label branding",
-                  "API integration",
-                  "Custom model training",
-                  "Advanced analytics",
-                  "Multiple integrations",
-                  "Dedicated support",
-                ].map((feature) => (
-                  <div key={feature} className="flex items-center space-x-2">
-                    <Checkbox id={feature} name="features" value={feature} />
-                    <label htmlFor={feature} className="text-sm text-gray-300 cursor-pointer">
-                      {feature}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div> */}
-
-            <div className="space-y-2">
-              <Label htmlFor="message">Tell Us About Your Needs</Label>
-              <Textarea
-                id="message"
-                name="message"
-                placeholder="What challenges are you looking to solve? What are your main requirements?"
-                className="bg-gray-950 border-gray-800 text-white min-h-32"
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox id="consent" name="consent" required />
-              <label htmlFor="consent" className="text-sm text-gray-400">
-                I agree to receive communications about Chat Agent UI and accept the privacy policy *
-              </label>
-            </div>
-
-            <Button
-              type="submit"
-              size="lg"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 w-4 h-4 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 w-4 h-4" />
-                  Submit Request
-                </>
-              )}
-            </Button>
-          </form>
+        {/* This page is always black, so the shared (theme-token) form is
+            pinned to the dark palette here. */}
+        <Card className="dark bg-gradient-to-b from-gray-900 to-black border-gray-800 p-8 text-foreground">
+          <EnterpriseSignupForm />
         </Card>
-
-        <p className="text-center text-sm text-gray-500 mt-8">
-          By submitting this form, you agree to our terms of service and privacy policy. We typically respond within 24
-          hours.
-        </p>
       </div>
-    </section >
+    </section>
   )
 }
 

@@ -5,9 +5,9 @@ import Link from "next/link";
 import {
   ArrowRight,
   Bot,
+  Building2,
   Check,
   CircleDollarSign,
-  Download,
   Globe,
   Layers,
   Minus,
@@ -45,6 +45,7 @@ import {
   faviconUrl,
   type ComparisonStatus,
 } from "@/components/features/data";
+import { EnterpriseSignupForm } from "@/components/features/EnterpriseSignupForm";
 import { config, listFooterLinks, type FooterLink } from "@/lib/config/site";
 import { cn } from "@/lib/utils";
 
@@ -664,42 +665,52 @@ function FeatureExplorer() {
   );
 }
 
+/**
+ * The page's one conversion box: the free start and the enterprise &
+ * white-label sign-up together, closing the page right above the footer.
+ */
 function ClosingCta() {
   return (
     <section className="relative px-4 pt-10 pb-28 sm:px-6 lg:px-8">
-      <Reveal className="mx-auto max-w-4xl">
+      <Reveal className="mx-auto max-w-6xl">
         <div className="qs-border-beam relative isolate overflow-hidden rounded-3xl p-px">
-          <div className="bg-card/90 relative z-10 rounded-[calc(1.5rem-1px)] border px-8 py-14 text-center backdrop-blur-sm">
+          <div className="bg-card/90 relative z-10 rounded-[calc(1.5rem-1px)] border px-6 py-12 backdrop-blur-sm sm:px-10 lg:py-14">
             <div
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sky-500/10 to-transparent"
             />
-            <div className="relative">
-              <Pill className="mb-5">
-                <Globe className="size-3.5" />
-                Free to start
-              </Pill>
-              <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-                Reimagine the Internet as a Self-Organizing Mind Map
-              </h2>
-              <p className="text-muted-foreground mx-auto mt-4 max-w-xl leading-relaxed text-pretty">
-                No setup, no key required. Bring your own model when you want
-                more control, or self-host the whole stack.
-              </p>
-              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                <Button asChild size="lg" className="group">
-                  <Link href="/">
-                    Start researching
-                    <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link href="/enterprise">
-                    <Download />
-                    Enterprise & white-label
-                  </Link>
-                </Button>
+            <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-14">
+              <div className="flex flex-col justify-center text-center lg:text-left">
+                <Pill className="mx-auto mb-5 w-fit lg:mx-0">
+                  <Building2 className="size-3.5" />
+                  Enterprise & white-label
+                </Pill>
+                <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
+                  Reimagine the Internet as a Self-Organizing Mind Map
+                </h2>
+                <p className="text-muted-foreground mt-4 leading-relaxed text-pretty">
+                  No setup, no key required. Bring your own model when you want
+                  more control, or self-host the whole stack.
+                </p>
+                <p className="text-muted-foreground mt-3 leading-relaxed text-pretty">
+                  Tell us about your business and we'll create a custom
+                  solution tailored to your needs.
+                </p>
+                <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
+                  <Button asChild size="lg" variant="outline" className="group">
+                    <Link href="/">
+                      <Globe />
+                      Start researching
+                      <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  </Button>
+                  <Button asChild size="lg" variant="ghost">
+                    <Link href="/enterprise">See enterprise pricing</Link>
+                  </Button>
+                </div>
               </div>
+
+              <EnterpriseSignupForm />
             </div>
           </div>
         </div>
@@ -721,7 +732,6 @@ const FOOTER_SECTIONS: { title: string; links: FooterLink[] }[] = [
       { url: "/", text: "Research agent" },
       { url: "/workspace", text: "REASON editor" },
       { url: "/#downloads", text: "Downloads" },
-      { url: "/enterprise", text: "Enterprise" },
     ],
   },
   {
