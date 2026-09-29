@@ -1,7 +1,3 @@
-# Changelog
-
-Commit counts are commits authored that month on the default branch, merge commits included. Each month is a bullet list, one bullet per change.
-
 # MVP Phase (2026)
 
 ## September 2026 — 72 commits
