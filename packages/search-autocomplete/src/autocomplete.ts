@@ -18,8 +18,9 @@ import {
  * The engine autocomplete asks when the caller names none.
  *
  * Chosen by `bun run benchmark` (scripts/benchmark.ts): lowest median latency
- * among the engines that answered every query. Re-run it before changing this;
- * the numbers it was chosen from are in this package's README.
+ * among the engines that answered at least 90% of queries — 34ms median from a
+ * GitHub runner on 2026-09-29, against 48ms for the runner-up (brave). Re-run it
+ * before changing this; the full table is in this package's README.
  */
 export const DEFAULT_ENGINE: EngineName = "google";
 

@@ -79,8 +79,24 @@ runs it on a datacenter runner on demand and whenever an engine adapter changes.
 ### Current default
 
 <!-- benchmark-results -->
-`DEFAULT_ENGINE` is `google`. Results from the benchmark workflow are recorded here
-when the default is chosen or changed.
+`DEFAULT_ENGINE` is **`google`**. Measured 2026-09-29 by the *Autocomplete benchmark*
+workflow on a GitHub `ubuntu-latest` runner, 5 rounds × 8 queries per engine:
+
+| # | Engine | Answered | Median ms | p90 ms |
+| --- | --- | --- | --- | --- |
+| 1 | google | 100% | 34 | 39 |
+| 2 | brave | 100% | 48 | 62 |
+| 3 | bing | 100% | 61 | 66 |
+| 4 | duckduckgo | 100% | 73 | 86 |
+| 5 | qwant | 100% | 148 | 177 |
+| 6 | baidu | 100% | 211 | 222 |
+| 7 | yandex | 100% | 213 | 259 |
+| — | wikipedia | 75% | 18 | 153 |
+| — | startpage | 0% | — | — |
+
+Wikipedia is quickest when it answers but only completes article titles, so a
+quarter of ordinary queries came back empty — below the 90% bar. Startpage returned
+an empty body to every request from the runner.
 <!-- /benchmark-results -->
 
 ## License
