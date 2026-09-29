@@ -18,7 +18,9 @@
    sits below `components`/`utilities` so our own Tailwind classes keep
    winning against it. */
 @layer vendor, theme, base, vendor-ui, components, utilities;
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&family=Merriweather:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Nunito:wght@400;600;700&family=Open+Sans:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=PT+Sans:wght@400;700&family=Raleway:wght@400;500;600;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&family=Roboto+Slab:wght@400;500;700&family=Source+Code+Pro:wght@400;500;700&family=Source+Sans+3:wght@400;500;600;700&family=Ubuntu:wght@400;500;700&display=swap");
+/* Google Fonts are loaded from `app/layout.tsx`, not `@import`ed here: an
+   `@import` of a remote stylesheet blocks the first paint. See
+   `lib/fonts/google-fonts.ts`. */
 @import "tailwindcss";
 @import "tw-animate-css";
 /* /docs help site (Fumadocs). `neutral.css`/`preset.css` only define

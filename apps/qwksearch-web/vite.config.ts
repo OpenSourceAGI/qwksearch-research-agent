@@ -5,6 +5,7 @@ import rsc from "@vitejs/plugin-rsc";
 import { helpDocsMdxPlugin } from "user-help-docs/vite";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { stripGoogleFontsImports } from "./lib/fonts/google-fonts";
 
 const logger = createLogger();
 const _warn = logger.warn.bind(logger);
@@ -87,6 +88,13 @@ export default defineConfig(({ command }) => ({
     // ship as static assets and don't count toward the Worker limit.
     rsc: { build: { sourcemap: false } },
     ssr: { build: { sourcemap: false } },
+    // `minify: false` above is for the Worker, whose stack traces are read
+    // straight from the deployed chunks. It was also shipping the browser
+    // bundle unminified: the homepage downloaded ~15MB of JavaScript (3.5MB
+    // gzipped), whitespace, comments and long local names included, and
+    // parsed all of it before the workspace became interactive. Browsers get
+    // the minified build; the client source maps above still resolve it.
+    client: { build: { minify: true } },
   },
   ssr: {
     // Bundle workspace packages into the standalone output instead of treating
@@ -106,6 +114,20 @@ export default defineConfig(({ command }) => ({
     ],
   },
   plugins: [
+    {
+      // A remote `@import` inside a stylesheet blocks the first paint until
+      // fonts.googleapis.com has answered. `shadcn-theme-menu/themes.css` opens
+      // with one, and it is not ours to edit, so drop it (and any other Google
+      // Fonts import) from the CSS here; `app/layout.tsx` loads the same
+      // stylesheets without blocking. See lib/fonts/google-fonts.ts.
+      name: "defer-google-fonts-imports",
+      enforce: "pre",
+      transform(code, id) {
+        if (!/\.css(?:$|\?)/.test(id) || !code.includes("fonts.googleapis.com")) return null;
+        const stripped = stripGoogleFontsImports(code);
+        return stripped === code ? null : { code: stripped, map: null };
+      },
+    },
     // Compiles the `/docs` help content (packages/user-help-docs) to modules at
     // build time. Without it the docs would have to compile MDX per request,
     // which needs `new Function` — workerd refuses, 500ing every docs page.

@@ -16,6 +16,7 @@ import '@/lib/debug/marks/layout-providers-begin';
 import { Providers } from '@/components/layout/Providers';
 import '@/lib/debug/marks/layout-providers-end';
 import { logSsrError, traceSsr } from '@/lib/debug/ssr-trace';
+import { googleFontsLoaderScript } from '@/lib/fonts/google-fonts';
 
 export const metadata: Metadata = {
   title: config.appName + ' - Reimagine the Web as a Self-Organizing Mind Map',
@@ -61,6 +62,10 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`theme-${theme}`}>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Non-blocking Google Fonts; see lib/fonts/google-fonts.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: googleFontsLoaderScript() }} />
         <script dangerouslySetInnerHTML={{
           __html: `var __name = function(fn, name) { Object.defineProperty(fn, 'name', { value: name, configurable: true }); return fn; };`
         }} />
