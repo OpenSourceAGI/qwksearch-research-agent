@@ -150,6 +150,52 @@ function nodeConditionResolver(ids: string[]): Plugin {
   };
 }
 
+// KaTeX's stylesheet offers every glyph font three times — woff2, woff and
+// ttf — and a library build inlines *every* `url()` its CSS reaches as base64,
+// whatever `assetsInlineLimit` says. So `import 'katex/dist/katex.min.css'`
+// put all sixty files (~1MB of fonts, ~2.9MB once base64-encoded) into
+// dist/style.css — about 85% of it. The web app imports that stylesheet in
+// its global CSS, so every page on the site downloaded and parsed it before
+// first paint, math or no math.
+//
+// A browser only ever fetches the first `src` entry it can decode, and every
+// browser this editor runs in decodes woff2, so the woff/ttf fallbacks were
+// bytes nobody used. Keep the woff2 entry of each KaTeX `@font-face`. This
+// runs before Vite's own url rewriting, so the dropped files are never read.
+//
+// The fonts were also in there twice: `@platejs/math` pins its own
+// katex@0.16.22 and imports that copy's stylesheet, next to this package's
+// katex@0.18. Both declare the same twenty families with the same descriptors,
+// and the later declaration wins, so the pinned copy's faces were never used.
+// Drop the `@font-face` rules of any KaTeX stylesheet but our own; its other
+// rules stay, exactly as they cascaded before.
+const ownKatexCss = fs.realpathSync(
+  createRequire(path.resolve(__dirname, 'package.json')).resolve('katex/dist/katex.min.css'),
+);
+
+function katexWoff2Only() {
+  return {
+    postcssPlugin: 'reason-editor-katex-woff2-only',
+    AtRule: {
+      'font-face': (rule: any) => {
+        const file = rule.source?.input?.file;
+        const isKatexFace = rule.some((node: any) => node.prop === 'font-family' && node.value.includes('KaTeX_'));
+        if (isKatexFace && file && /[\\/]katex[\\/]dist[\\/]/.test(file) && fs.realpathSync(file) !== ownKatexCss) {
+          rule.remove();
+          return;
+        }
+        rule.walkDecls('src', (decl: any) => {
+          if (!decl.value.includes('KaTeX_')) return;
+          const sources: string[] = decl.value.split(/,(?=\s*url\()/);
+          const woff2 = sources.filter((source) => /format\(\s*["']?woff2["']?\s*\)/.test(source));
+          if (woff2.length > 0 && woff2.length < sources.length) decl.value = woff2.join(',');
+        });
+      },
+    },
+  };
+}
+katexWoff2Only.postcss = true;
+
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
   const isDev = mode !== 'production';
@@ -266,6 +312,7 @@ export default defineConfig(async ({ mode }) => {
     css: {
       postcss: {
         plugins: [
+          katexWoff2Only(),
           tailwindcss3({ config: path.resolve(__dirname, 'tailwind.config.js') }),
           autoprefixer(),
           postcssReplace({
