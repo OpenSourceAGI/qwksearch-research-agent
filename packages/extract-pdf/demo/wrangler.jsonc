@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "extract-pdf-demo",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-09-01",
+  // grab-url (used by extract-pdf) touches a few Node.js globals.
+  "compatibility_flags": ["nodejs_compat"],
+  // extract-pdf lazy-loads Node-only / multi-GB optional engines (LiteParse
+  // native addon, Granite Docling via transformers.js, @napi-rs/canvas).
+  // None of them run in Workers, so alias them to a stub that rejects on
+  // import. This keeps the bundle to extract-pdf + pdfjs-serverless (~1 MB gzipped).
+  "alias": {
+    "@llamaindex/liteparse": "./src/unsupported.js",
+    "@llamaindex/liteparse-wasm": "./src/unsupported.js",
+    "@huggingface/transformers": "./src/unsupported.js",
+    "@napi-rs/canvas": "./src/unsupported.js"
+  },
+  "vars": {
+    // Largest PDF (in MB) the demo will accept, by upload or by URL.
+    "MAX_PDF_MB": "15"
+  },
+  "observability": { "enabled": true }
+  // Workers Paid plan only: raise the per-request CPU budget for big PDFs.
+  // The Free plan caps CPU at 10 ms and rejects this setting on deploy.
+  // "limits": { "cpu_ms": 30000 }
+}
