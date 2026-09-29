@@ -125,7 +125,7 @@ Commit counts are commits authored that month on the default branch, merge commi
 - Improved **Cloudflare Workers** configuration.
 
 
-# Prototype Phase (2024)
+# Prototype Phase (2024) [Demo](https://web.archive.org/web/20241216043527/http://qwksearch.com/)
 
 ## December 2024 — 6 commits
 
