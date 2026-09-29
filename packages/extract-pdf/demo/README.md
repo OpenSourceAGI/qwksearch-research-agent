@@ -7,13 +7,15 @@ A small Cloudflare Worker that runs [`extract-pdf`](../README.md) at the edge. I
 
 It uses the default `ts-block-algorithm` parser with `processor: "frontend"`. That path reads only the PDF text layer and needs no OCR, no model and no native code, so it runs entirely inside the Workers runtime.
 
+Optionally it can enhance the pages that path handles badly (scans, tables, figures) with Granite Docling OCR running on a [Hugging Face Space](../docling-space). The fast result never waits for it; see [OCR follow-up](#ocr-follow-up-optional).
+
 ```
 demo/
 ├── package.json        # extract-pdf + pdfjs-serverless, wrangler as dev dep
 ├── wrangler.jsonc      # Worker config (aliases, vars, optional CPU limit)
 └── src/
-    ├── worker.js       # routes + request parsing
-    ├── page.js         # the HTML demo page
+    ├── worker.js       # routes + request parsing, OCR forwarding
+    ├── page.js         # the HTML demo page (renders flagged pages for OCR)
     └── unsupported.js  # stub for Node-only optional engines
 ```
 
@@ -64,13 +66,23 @@ Response:
 ```json
 {
   "source": "https://arxiv.org/pdf/1706.03762",
+  "status": "ready",
   "title": "…",
   "author": "…",
   "html": "<p id=\"page-1\">…",
   "bytes": 2215244,
-  "ms": 1377
+  "ms": 1377,
+  "ocr": {
+    "needed": true,
+    "pageCount": 15,
+    "pagesNeedingOcr": [3, 7],
+    "reasons": { "3": ["table-caption", "numeric-grid"], "7": ["sparse-text", "figure-caption"] },
+    "enhance": null
+  }
 }
 ```
+
+`ocr` is the text-layer scan (`scanPagesForOCR`): the pages that look scanned or carry tables and figures, and why. `status` is `"ready_with_pending_ocr"` when pages were flagged and OCR is configured, in which case `enhance` is `{ "endpoint": "/api/enhance", "maxPages": 10 }`.
 
 Errors come back as `{ "error": "…" }` with status 400 (bad input), 413 (too large), 422 (unparseable PDF) or 502 (the URL couldn't be fetched).
 
@@ -165,11 +177,38 @@ The Free plan rejects this setting on deploy, which is why it ships commented ou
 
 Other platform limits worth knowing: request bodies are capped at 100 MB (Free/Pro), and memory is 128 MB per isolate. Keep `MAX_PDF_MB` well below what fits in memory, since the PDF bytes, PDF.js's parsed objects and the output HTML are all held at once.
 
+## OCR follow-up (optional)
+
+Workers have no canvas, so they can't rasterize pages, and a vision model is far too slow to run inside a request anyway. The demo splits the work:
+
+1. `POST /api/convert` returns the text-layer HTML immediately, plus the pages the scan flagged.
+2. The page renders only those pages to PNG in the browser with PDF.js (for a URL source it re-reads the PDF through `GET /api/source?url=…`).
+3. It sends each image to `POST /api/enhance` (`{ "page": 3, "imageBase64": "…" }`). The Worker forwards it to the Docling processor with the secrets, and returns `{ page, html, ms }` with sanitized HTML.
+4. The page swaps each OCR'd page into the result as `<section class="ocr-page" id="page-N">`, one at a time. A page whose OCR fails keeps its text-layer version.
+
+To turn it on, deploy [`../docling-space`](../docling-space) and give the Worker its URL and token:
+
+```sh
+npx wrangler secret put DOCLING_PROCESSOR_URL   # https://YOUR_HF_USERNAME-extract-pdf-docling.hf.space
+npx wrangler secret put DOCLING_API_TOKEN       # the Space's DOCLING_API_TOKEN secret
+npx wrangler secret put HF_SPACE_TOKEN          # private Space only: a Hugging Face read token
+```
+
+For `npm run dev`, copy `.dev.vars.example` to `.dev.vars` and point it at a local run of the Space. Without `DOCLING_PROCESSOR_URL` the demo works as before and just reports which pages would benefit from OCR.
+
+This keeps no state: the browser drives the follow-up and holds the result. A multi-user app would move the same steps into a job layer (the PDF and page images in R2, job status in D1, OCR requests on a Queue) and send the Space short-lived signed image URLs instead of base64.
+
 ## Configuration
 
 | Setting | Where | Default | Purpose |
 | --- | --- | --- | --- |
 | `MAX_PDF_MB` | `vars` in `wrangler.jsonc`, or dashboard → Settings → Variables | `15` | Max upload / download size |
+| `DOCLING_PROCESSOR_URL` | secret | unset | Docling processor base URL. Unset turns OCR off. |
+| `DOCLING_API_TOKEN` | secret | unset | Sent as `X-Docling-Token` |
+| `HF_SPACE_TOKEN` | secret | unset | Sent as `Authorization: Bearer`, for a private Space |
+| `DOCLING_MAX_PAGES` | var | `10` | Most pages the page will send for OCR per document |
+| `DOCLING_MAX_TOKENS` | var | `1500` | `maxTokens` per page |
+| `DOCLING_MAX_IMAGE_MB` | var | `8` | Largest page image `/api/enhance` accepts |
 | `limits.cpu_ms` | `wrangler.jsonc` | commented out | CPU ceiling (Paid only) |
 | `observability.enabled` | `wrangler.jsonc` | `true` | Logs in the dashboard. Use `npm run tail` to stream them live. |
 
@@ -181,6 +220,7 @@ The demo is open by default: anyone who finds the URL can make it fetch and pars
 - **Restrict who can use it** with [Cloudflare Access](https://developers.cloudflare.com/cloudflare-one/applications/) in front of the Worker, or by checking a shared secret header (`npx wrangler secret put API_KEY`) in `worker.js`.
 - **Lock down CORS**: `CORS_HEADERS` in `worker.js` allows `*`. Set it to your site's origin if only your frontend should call the API.
 - **Lower `MAX_PDF_MB`** to what you actually need.
+- **`/api/enhance` spends your Space's compute.** With OCR configured, anyone who can reach the demo can queue pages on it. Put it behind the same rate limit or Access policy as `/api/convert`.
 
 ## Using the local source instead of npm
 
@@ -196,4 +236,4 @@ The demo depends on the published `extract-pdf` package, so it can be copied out
 
 ## What's not in the demo
 
-The OCR paths (`processor: "hybrid" | "docling"`, or a processor URL) aren't wired up, even when a remote Docling server does the inference. Those modes rasterize PDF pages to PNG before OCR, which needs a canvas (DOM canvas, `OffscreenCanvas` or `@napi-rs/canvas`). The Workers runtime has none of them. For OCR, keep this Worker for fast text-layer parsing and use [`detectPdfNeedsOcr`](../README.md#detecting-whether-a-pdf-needs-ocr)-style routing. Send documents that need OCR to a Node.js host running the full package and the Docling server from [`../server`](../server).
+`processor: "hybrid" | "docling"` (or a processor URL) isn't called from the Worker. Those modes rasterize PDF pages to PNG inside `convertPDFToHTML`, which needs a canvas (DOM canvas, `OffscreenCanvas` or `@napi-rs/canvas`), and the Workers runtime has none. The [OCR follow-up](#ocr-follow-up-optional) gets the same result by rasterizing in the browser. On a Node.js host, `processor: "hybrid"` with `processorUrl` and `doclingOptions.processorHeaders` does it in one call.

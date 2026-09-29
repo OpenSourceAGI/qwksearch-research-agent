@@ -18,6 +18,13 @@
   "vars": {
     // Largest PDF (in MB) the demo will accept, by upload or by URL.
     "MAX_PDF_MB": "15"
+    // Optional Granite Docling OCR follow-up (see ../docling-space). Set the
+    // processor URL and tokens as secrets, not here:
+    //   npx wrangler secret put DOCLING_PROCESSOR_URL   # https://USER-extract-pdf-docling.hf.space
+    //   npx wrangler secret put DOCLING_API_TOKEN       # same value as the Space secret
+    //   npx wrangler secret put HF_SPACE_TOKEN          # private Space only: HF read token
+    // Tuning vars, all optional: DOCLING_MAX_PAGES (10), DOCLING_MAX_TOKENS (1500),
+    // DOCLING_MAX_IMAGE_MB (8).
   },
   "observability": { "enabled": true }
   // Workers Paid plan only: raise the per-request CPU budget for big PDFs.

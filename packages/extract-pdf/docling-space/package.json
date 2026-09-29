@@ -1,0 +1,22 @@
+{
+  "name": "extract-pdf-docling-space",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Granite Docling OCR processor for extract-pdf, packaged as a Hugging Face Docker Space: page image in, doctags or sanitized HTML out.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node --watch server/server.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.1",
+    "@huggingface/transformers": "^4.2.0",
+    "extract-pdf": "^0.1.406",
+    "hono": "^4.13.7",
+    "sanitize-html": "^2.17.0",
+    "zod": "^4.5.4"
+  }
+}

@@ -64,7 +64,7 @@ const { html } = await convertPDFToHTML(buffer, { addPageNumbers: true });
 | `processor`       | `"frontend"`           | Where OCR happens — `"frontend"`, `"hybrid"`, `"docling"`, or a processor URL (see below)   |
 | `processorUrl`    | —                      | Remote docling-compatible API used by `"hybrid"`/`"docling"` instead of the in-process model |
 | `ocrScanOptions`  | `{}`                   | Threshold tuning for the hybrid page scan (`scanPagesForOCR`)                              |
-| `doclingOptions`  | `{}`                   | `prompt`, `maxTokens`, `scale` for the Docling OCR model                                   |
+| `doclingOptions`  | `{}`                   | `prompt`, `maxTokens`, `scale` for the Docling OCR model, and `processorHeaders` sent to `processorUrl` |
 
 ### Return value
 
@@ -180,6 +180,33 @@ bun run serve:docling   # or dev:docling for --watch; port 3000
 A `server/wrangler.jsonc` is included for deploying it as a Cloudflare Worker.
 Any deployment of it (or any API with the same contract) can be passed as the
 `processor`/`processorUrl` option above.
+
+### Hosting the processor on Hugging Face Spaces
+
+[`docling-space/`](./docling-space) packages the same model as a Hugging Face
+Docker Space: token auth, one generation at a time with a bounded queue, the
+model loaded lazily, and optional sanitized HTML output. Its README has the
+deploy steps. Send the Space's token (and, for a private Space, a Hugging Face
+read token) with `doclingOptions.processorHeaders`:
+
+```ts
+const { html } = await convertPDFToHTML(buffer, {
+  processor: "hybrid",
+  processorUrl: "https://YOUR_HF_USERNAME-extract-pdf-docling.hf.space",
+  doclingOptions: {
+    processorHeaders: {
+      "X-Docling-Token": process.env.DOCLING_API_TOKEN,
+      Authorization: `Bearer ${process.env.HF_SPACE_TOKEN}`, // private Space only
+    },
+    maxTokens: 1500,
+  },
+});
+```
+
+Hybrid mode still waits for every flagged page before it returns. To answer at
+once and enhance afterwards, run `processor: "frontend"`, return its HTML, and
+OCR `ocrScan.pagesNeedingOcr` as a follow-up; the [Workers demo](./demo) does
+exactly that.
 
 ## Detecting whether a PDF needs OCR
 

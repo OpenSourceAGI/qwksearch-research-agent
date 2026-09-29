@@ -63,12 +63,21 @@ driving this package's OCR path.
 | Docling doctags → HTML | `doctagsToHtml(doctags)` |
 | The pdfjs instance | `loadPdfJs()` |
 | Host the OCR model yourself | `bun run serve:docling` (`server/`) — Hono + `@hono/zod-openapi`, Swagger UI, `/api/v1/convert-base64`, `/health` |
+| Host it on Hugging Face | `docling-space/` — Docker Space with token auth and a one-job queue; see its README |
 
 ## Recipes
 
 **Point at your own OCR service.** Deploy `server/` (it has its own `wrangler.jsonc`),
-then pass `processor: "https://…"` or `processorUrl`. The client POSTs base64 page
-images to `{processorUrl}/api/v1/convert-base64`.
+or `docling-space/` as a Hugging Face Docker Space, then pass `processor: "https://…"`
+or `processorUrl`. The client POSTs base64 page images to
+`{processorUrl}/api/v1/convert-base64`; auth headers go in
+`doclingOptions.processorHeaders` (the Space wants `X-Docling-Token`, plus
+`Authorization: Bearer hf_…` when it is private).
+
+**Answer fast, OCR later.** `"hybrid"` waits for every flagged page. For an instant
+result, run `"frontend"`, return its HTML, and OCR `ocrScan.pagesNeedingOcr`
+afterwards. The Workers demo (`demo/`) does this: Workers have no canvas, so the
+browser rasterizes the flagged pages and the Worker forwards each image to the Space.
 
 **Tune the hybrid scan.** `ocrScanOptions` (see `ScanPagesForOCROptions`) sets the
 thresholds that decide "this page looks like a figure/table". Widen them before

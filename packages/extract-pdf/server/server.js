@@ -124,7 +124,7 @@ app.post("/api/v1/convert-stream", async (c) => {
                 const streamer = new TextStreamer(processor.tokenizer, {
                     skip_prompt: true,
                     skip_special_tokens: false,
-                    on_finalized_text: (chunk) => {
+                    callback_function: (chunk) => {
                         fullText += chunk;
                         send({ text: chunk, done: false });
                     },

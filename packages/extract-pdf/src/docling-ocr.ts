@@ -24,6 +24,13 @@ export interface DoclingOcrOptions {
    * in-process.
    */
   processorUrl?: string;
+  /**
+   * Extra headers sent with every request to `processorUrl`, e.g. a service
+   * token and, for a private Hugging Face Space, an HF access token:
+   * `{ "X-Docling-Token": "…", Authorization: "Bearer hf_…" }`.
+   * Ignored when the model runs in-process.
+   */
+  processorHeaders?: Record<string, string>;
   /** Instruction for the model. default="Convert this page to docling." */
   prompt?: string;
   /** Max tokens generated per page. default=4096 */
@@ -66,6 +73,7 @@ export async function ocrImageWithDocling(
 ): Promise<string> {
   const {
     processorUrl,
+    processorHeaders,
     prompt = DEFAULT_PROMPT,
     maxTokens = 4096,
   } = options;
@@ -75,16 +83,19 @@ export async function ocrImageWithDocling(
       `${processorUrl.replace(/\/$/, "")}/api/v1/convert-base64`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...processorHeaders, "Content-Type": "application/json" },
         body: JSON.stringify({
           imageBase64,
           mimeType: "image/png",
           prompt,
           maxTokens,
+          // This client converts doctags itself; processors that can also
+          // return HTML (docling-space/) default to doctags, but say so.
+          output: "doctags",
         }),
       },
     );
-    const data: any = await response.json();
+    const data: any = await response.json().catch(() => null);
     if (!response.ok || !data?.success)
       throw new Error(data?.error || `Processor error ${response.status}`);
     return data.result;

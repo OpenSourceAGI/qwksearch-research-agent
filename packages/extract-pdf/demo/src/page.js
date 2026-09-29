@@ -2,7 +2,14 @@
  * @file page.js
  * @description The single-page demo UI served at `/`. Posts to /api/convert
  * and shows the result both rendered (in a sandboxed iframe) and as source.
+ * When the response flags pages for OCR and the Worker has a Docling
+ * processor, it renders those pages with PDF.js and swaps in the OCR'd HTML
+ * one page at a time, after the fast result is already on screen.
  */
+
+/** PDF.js for rendering flagged pages in the browser (the Worker has no canvas). */
+const PDFJS_CDN = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/";
+
 export function renderPage({ maxMb }) {
   return `<!doctype html>
 <html lang="en">
@@ -45,7 +52,7 @@ export function renderPage({ maxMb }) {
 <body>
 <main>
   <h1>extract-pdf demo</h1>
-  <p class="lead">PDF to structured HTML (headings, lists, footnotes, code blocks) running on Cloudflare Workers. No OCR and no model, just the PDF text layer.</p>
+  <p class="lead">PDF to structured HTML (headings, lists, footnotes, code blocks) running on Cloudflare Workers. The text layer comes back at once; pages that look scanned or hold tables and figures can then be enhanced with Granite Docling OCR.</p>
 
   <form id="form">
     <label class="drop" id="drop">
@@ -81,9 +88,14 @@ export function renderPage({ maxMb }) {
   </footer>
 </main>
 <script>
+const PDFJS_CDN = "${PDFJS_CDN}";
 const $ = (id) => document.getElementById(id);
 const form = $("form"), fileInput = $("file"), drop = $("drop");
 let lastHtml = "", lastName = "document";
+// Per-page HTML of the current result (null when it can't be split), the
+// source the pages are rendered from for OCR, and a counter that stops an
+// enhancement still running for an older result.
+let pages = null, baseHtml = "", appended = [], source = null, numbered = false, run = 0;
 
 fileInput.addEventListener("change", () => {
   const f = fileInput.files[0];
@@ -107,6 +119,8 @@ form.addEventListener("submit", async (ev) => {
   data.set("addPageNumbers", form.addPageNumbers.checked);
   data.set("addCitation", form.addCitation.checked);
 
+  source = hasFile ? { file: fileInput.files[0] } : { url: data.get("url") };
+  numbered = form.addPageNumbers.checked;
   $("go").disabled = true;
   setStatus("Converting…");
   try {
@@ -115,6 +129,7 @@ form.addEventListener("submit", async (ev) => {
     if (!res.ok || out.error) throw new Error(out.error || "HTTP " + res.status);
     show(out);
     setStatus("");
+    offerOcr(out.ocr);
   } catch (err) {
     setStatus(err.message, true);
   } finally {
@@ -123,16 +138,108 @@ form.addEventListener("submit", async (ev) => {
 });
 
 function show(out) {
-  lastHtml = out.html || "";
+  run++;
+  baseHtml = out.html || "";
+  pages = splitPages(baseHtml, out.ocr && out.ocr.pageCount);
+  appended = [];
   lastName = (out.title || out.source || "document").replace(/[^\\w.-]+/g, "_").slice(0, 60);
   const meta = [];
   if (out.title) meta.push("<strong>" + esc(out.title) + "</strong>");
   if (out.author) meta.push(esc(out.author));
   meta.push((out.bytes / 1048576).toFixed(2) + " MB in " + out.ms + " ms");
   $("meta").innerHTML = meta.join(" · ");
-  $("preview").srcdoc = "<!doctype html><meta charset=utf-8><style>body{font:16px/1.6 Georgia,serif;max-width:720px;margin:24px auto;padding:0 16px;color:#1d1d1b}pre{background:#f3f3f0;padding:12px;overflow:auto}</style>" + lastHtml;
-  $("source").firstChild.textContent = lastHtml;
+  render();
   $("result").style.display = "block";
+}
+
+function render() {
+  lastHtml = (pages ? pages.join("") : baseHtml) + appended.join("");
+  $("preview").srcdoc = "<!doctype html><meta charset=utf-8><style>body{font:16px/1.6 Georgia,serif;max-width:720px;margin:24px auto;padding:0 16px;color:#1d1d1b}pre{background:#f3f3f0;padding:12px;overflow:auto}.ocr-page{border-left:3px solid #2f5bd3;padding-left:12px}table{border-collapse:collapse}td,th{border:1px solid #ccc;padding:2px 6px}</style>" + lastHtml;
+  $("source").firstChild.textContent = lastHtml;
+}
+
+// Each page opens with <p id="page-N">; later paragraphs of the page carry
+// other ids, so a page starts where the next page number first appears.
+function splitPages(html, count) {
+  const starts = [];
+  let next = 1;
+  for (const m of html.matchAll(/<p id="page-(\\d+)">/g)) {
+    if (Number(m[1]) === next) { starts.push(m.index); next++; }
+  }
+  if (!count || starts.length !== count || starts[0] !== 0) return null;
+  return starts.map((start, i) => html.slice(start, i + 1 < starts.length ? starts[i + 1] : html.length));
+}
+
+function listPages(nums) {
+  return nums.length === 1 ? "page " + nums[0] : "pages " + nums.slice(0, -1).join(", ") + " and " + nums[nums.length - 1];
+}
+
+function offerOcr(ocr) {
+  if (!ocr || !ocr.needed) return;
+  if (!ocr.enhance) {
+    return setStatus(listPages(ocr.pagesNeedingOcr) + " may be scanned or hold tables or figures. OCR enhancement is not configured on this deployment.");
+  }
+  enhance(ocr.pagesNeedingOcr.slice(0, ocr.enhance.maxPages), ocr.enhance.endpoint).catch((err) => setStatus("OCR enhancement failed: " + err.message, true));
+}
+
+async function enhance(targets, endpoint) {
+  const mine = run, done = [], failed = [];
+  setStatus("Enhancing " + listPages(targets) + "…");
+  const pdfjs = await import(PDFJS_CDN + "pdf.min.mjs");
+  pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_CDN + "pdf.worker.min.mjs";
+  const bytes = source.file
+    ? await source.file.arrayBuffer()
+    : await fetch("/api/source?url=" + encodeURIComponent(source.url)).then((res) => {
+        if (!res.ok) throw new Error("could not fetch the PDF again (HTTP " + res.status + ")");
+        return res.arrayBuffer();
+      });
+  const doc = await pdfjs.getDocument({ data: bytes }).promise;
+  for (const n of targets) {
+    if (mine !== run) return;
+    setStatus("Enhancing " + listPages([n]) + " (" + (done.length + failed.length + 1) + " of " + targets.length + ")…");
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ page: n, imageBase64: await renderPage(doc, n) }),
+      });
+      const out = await res.json().catch(() => ({ error: "HTTP " + res.status }));
+      if (!res.ok || out.error) throw new Error(out.error || "HTTP " + res.status);
+      if (mine !== run) return;
+      const section = '<section class="ocr-page" id="page-' + n + '">' + (numbered ? " [" + n + "] " : "") + out.html + "</section>";
+      if (pages && pages[n - 1] !== undefined) pages[n - 1] = section;
+      else appended.push(section);
+      render();
+      done.push(n);
+    } catch (err) {
+      console.error("OCR of page " + n + " failed:", err);
+      failed.push(n);
+    }
+  }
+  if (mine !== run) return;
+  const parts = [];
+  if (done.length) parts.push("Enhanced " + listPages(done) + " with OCR.");
+  if (failed.length) parts.push("OCR failed for " + listPages(failed) + "; the text-layer version is kept.");
+  setStatus(parts.join(" "), failed.length > 0 && !done.length);
+}
+
+/** Renders one page to a PNG (longest side at most 2000px) as base64. */
+async function renderPage(doc, n) {
+  const page = await doc.getPage(n);
+  const base = page.getViewport({ scale: 1 });
+  const viewport = page.getViewport({ scale: Math.min(2, 2000 / Math.max(base.width, base.height)) });
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.ceil(viewport.width);
+  canvas.height = Math.ceil(viewport.height);
+  await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  const dataUrl = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+  return String(dataUrl).split(",")[1];
 }
 
 $("toggle").onclick = () => {
