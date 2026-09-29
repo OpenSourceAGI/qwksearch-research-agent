@@ -306,8 +306,8 @@ export default function ChatHomepage() {
       </div>
 
       <div className="relative z-10">
-        {/* Content: centered on desktop, bottom-aligned on mobile so the input sits
-            just above the app dock with almost no gap */}
+        {/* Content: centered on desktop, bottom-aligned on mobile so the column
+            sits just above the app dock with almost no gap */}
         <div className="flex flex-col items-center justify-end md:justify-center min-h-[calc(100dvh-64px)] md:min-h-screen max-w-screen-sm mx-auto p-2 pb-1 md:pb-2">
           <div
             style={{ height: '200px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -322,6 +322,8 @@ export default function ChatHomepage() {
 
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
+            {/* The input leads the column; the news and weather widgets sit below it. */}
+            <ChatInputBox />
             {(showWeatherWidget || showNewsWidget) && (
               <Suspense fallback={null}>
                 <div className="flex flex-col gap-2 w-full">
@@ -368,7 +370,6 @@ export default function ChatHomepage() {
                 </div>
               </Suspense>
             )}
-            <ChatInputBox />
           </div>
         </div>
       </div>
