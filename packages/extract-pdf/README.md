@@ -37,6 +37,10 @@ For OCR-grade fidelity on pages with infographics, charts, and tables, the packa
 bun add extract-pdf
 ```
 
+## Cloudflare Workers demo
+
+[`demo/`](./demo) is a ready-to-deploy Worker with an upload page and a `/api/convert` JSON endpoint. Run it with `cd demo && npm install && npm run dev`, then deploy with `npm run deploy`. See [demo/README.md](./demo/README.md) for the full hosting guide: CI deploys, custom domains, CPU limits and hardening.
+
 ## Usage
 
 ```ts
