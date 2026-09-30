@@ -15,6 +15,12 @@
  *    fetch and read back when the upstream fails. The News API is metered and
  *    third-party: without the archive a missing key or a 429 turns the
  *    homepage card into a blank space.
+ * 4. **A last-good copy in KV**, kept for as long as the archive would serve
+ *    an answer. It is the fallback when the archive has nothing — its table
+ *    not yet migrated, or D1 unreachable. On 2026-09-30 production answered
+ *    502 for exactly that reason: every News API search failed and
+ *    `news_articles` had never been created, so there was nothing to fall
+ *    back to.
  */
 import {
   fetchWikipediaTopPages,
@@ -35,6 +41,13 @@ const CACHE_PREFIX = "trending-news:v2:";
  * week-old headline presented as news is worse than an absent widget.
  */
 const FALLBACK_MAX_AGE_DAYS = 7;
+
+/** Where the last successful answer for a cache key is kept (see step 4 above). */
+const LAST_GOOD_PREFIX = "trending-news:last-good:v2:";
+
+function lastGoodKey(key: string): string {
+  return LAST_GOOD_PREFIX + key.slice(CACHE_PREFIX.length);
+}
 
 /**
  * The News API token. Worker secrets are only on the Cloudflare env; local dev
@@ -191,6 +204,11 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
     if (kv) {
       try {
         await kv.put(key, body, { expirationTtl: cacheSeconds });
+        if (!singleTopic) {
+          await kv.put(lastGoodKey(key), body, {
+            expirationTtl: FALLBACK_MAX_AGE_DAYS * 24 * 60 * 60,
+          });
+        }
       } catch (error) {
         console.error("Trending news cache write failed:", error);
       }
@@ -209,6 +227,22 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
     });
     if (stored) {
       return jsonResponse(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
+    }
+
+    if (kv) {
+      try {
+        const lastGood = await kv.get(lastGoodKey(key));
+        if (lastGood) {
+          return jsonResponse(
+            JSON.stringify({ ...JSON.parse(lastGood), stale: true }),
+            200,
+            "STORED",
+            0,
+          );
+        }
+      } catch (error) {
+        console.error("Trending news last-good read failed:", error);
+      }
     }
   }
 

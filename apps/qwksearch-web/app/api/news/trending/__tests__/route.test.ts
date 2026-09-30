@@ -169,7 +169,10 @@ describe('GET /api/news/trending', () => {
     await GET(request('?limit=99999'))
     await GET(request('?limit=50'))
 
-    expect([...kv.store.keys()]).toEqual(['trending-news:v2:top:6', 'trending-news:v2:top:50'])
+    expect([...kv.store.keys()].filter((k) => k.startsWith('trending-news:v2:'))).toEqual([
+      'trending-news:v2:top:6',
+      'trending-news:v2:top:50',
+    ])
   })
 
   it('does not cache a failure', async () => {
@@ -275,7 +278,9 @@ describe('GET /api/news/trending — admin settings', () => {
     await GET(request('?topics=AI%2C%20climate'))
     await GET(request('?topics=climate%2Cai'))
 
-    expect([...kv.store.keys()]).toEqual(['trending-news:v2:topics:ai|climate'])
+    expect([...kv.store.keys()].filter((k) => k.startsWith('trending-news:v2:'))).toEqual([
+      'trending-news:v2:topics:ai|climate',
+    ])
     expect(mockHandle).toHaveBeenCalledTimes(1)
   })
 
@@ -362,6 +367,54 @@ describe('GET /api/news/trending — stored articles', () => {
     expect(kv.put).not.toHaveBeenCalled()
     expect(mockStore).not.toHaveBeenCalled()
     expect(response.headers.get('X-Trending-News-Cache')).toBe('STORED')
+  })
+
+  it('keeps a last-good copy and serves it when the archive has nothing', async () => {
+    const kv = fakeKV()
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    upstream(TOPICS)
+    await GET(request('?limit=15'))
+    expect(kv.put).toHaveBeenCalledWith(
+      'trending-news:last-good:v2:top:15',
+      JSON.stringify(TOPICS),
+      { expirationTtl: 7 * 24 * 60 * 60 },
+    )
+
+    // The short cache window has passed; the News API now refuses every search.
+    kv.store.delete('trending-news:v2:top:15')
+    upstream({ error: 'The News API: Usage limit reached.' }, 502)
+
+    const response = await GET(request('?limit=15'))
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('X-Trending-News-Cache')).toBe('STORED')
+    expect(await response.json()).toMatchObject({ ...TOPICS, stale: true })
+  })
+
+  it('prefers the archive over the last-good copy', async () => {
+    const kv = fakeKV({ 'trending-news:last-good:v2:top:6': JSON.stringify(TOPICS) })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    upstream({ error: 'The News API: Usage limit reached.' }, 502)
+    const archived = {
+      source: 'wikipedia_daily_top',
+      date: '2024-01-02',
+      topics: [{ topic: 'Comet', news_count: 1, articles: [] }],
+    }
+    mockReadStored.mockResolvedValue(archived)
+
+    const response = await GET(request('?limit=6'))
+
+    expect(await response.json()).toMatchObject({ ...archived, stale: true })
+  })
+
+  it('does not keep a last-good copy of a single-topic lookup', async () => {
+    const kv = fakeKV()
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    upstream({ topic: 'Eclipse', news_count: 0, articles: [] })
+
+    await GET(request('?topic=Eclipse'))
+
+    expect([...kv.store.keys()]).toEqual(['trending-news:v2:topic:eclipse'])
   })
 
   it('still reports the failure when the archive is empty too', async () => {
