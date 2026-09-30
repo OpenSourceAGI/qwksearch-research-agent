@@ -8,7 +8,8 @@ Worker. Started from `template-fumadocs` in dev-tools-starter-agent.
 - **MDX is compiled at build time** by `fumadocs-mdx/vite` into `.source/`.
   Workers refuse `new Function`, so nothing may compile MDX per request.
 - Site-wide links (the live demo, Storybook, npm, GitHub) are in
-  `lib/fumadocs/customize-docs.ts`. The demo URL is also written into a few
+  `lib/fumadocs/customize-docs.ts`. The demo is https://youtube.js.org (Storybook at
+  `/storybook/`); that URL is also written into a few
   pages' `<Card>` links; change them together.
 - `zod` is pinned to fumadocs-mdx's own range on purpose. With two zods, bun
   links two copies of `fumadocs-core` and `bun run typecheck` fails on

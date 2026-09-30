@@ -9,7 +9,7 @@
  * library) is deployed. Change it here and every link on the site follows,
  * including the Storybook link, which is served from `${DEMO_URL}/storybook/`.
  */
-export const DEMO_URL = 'https://extract-youtube-demo.qwksearch.workers.dev';
+export const DEMO_URL = 'https://youtube.js.org';
 
 /** Storybook for the React components, published alongside the demo. */
 export const STORYBOOK_URL = `${DEMO_URL}/storybook/`;

@@ -1,5 +1,7 @@
 # extract-youtube live demo
 
+**Live at [youtube.js.org](https://youtube.js.org).** The Storybook is at [youtube.js.org/storybook](https://youtube.js.org/storybook/).
+
 Everything in [`extract-youtube`](../../packages/extract-youtube) on one
 Cloudflare Worker, plus a Storybook of every React component.
 

@@ -26,6 +26,9 @@
 
 # Extract YouTube Transcript 
 .
+
+**[Live demo at youtube.js.org](https://youtube.js.org)** · [Storybook](https://youtube.js.org/storybook/)
+
 ⚡ **No API keys, no headless browsers, no dependencies. Only the fastest, most optimized YouTube transcript extractor.**
 
 A production-ready TypeScript port of the popular Python [`extract-youtube`](https://github.com/dbeley/youtube_extract) (100k+ monthly PyPI downloads), optimized for serverless environments and edge computing. No API keys, no headless browsers, no dependencies bloat.
@@ -569,6 +572,8 @@ Full guides: [video grid and list](../../apps/extract-youtube-docs/content/docs/
 [admin components](../../apps/extract-youtube-docs/content/docs/admin/admin-components.mdx).
 
 ## Live Demo and Storybook
+
+**Live demo: [youtube.js.org](https://youtube.js.org)** · Storybook: [youtube.js.org/storybook](https://youtube.js.org/storybook/)
 
 [`apps/extract-youtube-demo`](../../apps/extract-youtube-demo) runs all of
 this on one Cloudflare Worker: the library grid and list, the admin screens,
