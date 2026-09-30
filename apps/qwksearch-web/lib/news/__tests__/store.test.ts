@@ -13,7 +13,10 @@ vi.mock('@/lib/database', () => {
 
 import { getDB } from '@/lib/database'
 import { createFakeDb, type FakeDb } from '../../../app/api/__tests__/helpers/fake-db'
+import { drizzle } from 'drizzle-orm/sqlite-proxy'
+import { newsArticles } from '@/lib/database/schema'
 import {
+  INSERT_CHUNK,
   getNewsStoreStats,
   readStoredTrendingNews,
   storeTrendingNews,
@@ -94,6 +97,44 @@ describe('storeTrendingNews', () => {
       title: 'One',
       wikiRank: 1,
     })
+  })
+
+  it('splits a large fetch into statements D1 will accept', async () => {
+    const db = fakeDb()
+    const many = Array.from({ length: 25 }, (_, i) => article(`Story ${i}`))
+
+    const written = await storeTrendingNews(
+      payload([
+        { topic: 'Eclipse', articles: many.slice(0, 20) },
+        { topic: 'Elections', articles: many.slice(20) },
+      ]),
+    )
+
+    expect(written).toBe(25)
+    const batches = db.calls.values.map(([rows]) => (rows as unknown[]).length)
+    expect(batches.reduce((a, b) => a + b, 0)).toBe(25)
+    expect(Math.max(...batches)).toBeLessThanOrEqual(INSERT_CHUNK)
+  })
+
+  it('keeps each insert within D1’s 100 bound parameters', () => {
+    const rowForInsert = {
+      topic: 't',
+      topicSource: 'wikipedia_daily_top',
+      title: 'x',
+      url: 'https://example.com',
+      source: 'example.com',
+      imageUrl: null,
+      publishedAt: null,
+      wikiRank: 1,
+      wikiViews: 2,
+      fetchedAt: new Date(),
+    }
+    const query = drizzle(async () => ({ rows: [] }))
+      .insert(newsArticles)
+      .values(Array(INSERT_CHUNK).fill(rowForInsert))
+      .toSQL()
+
+    expect(query.params.length).toBeLessThanOrEqual(100)
   })
 
   it('updates on conflict, so a re-fetch does not duplicate an article', async () => {
