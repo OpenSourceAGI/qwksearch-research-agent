@@ -51,6 +51,8 @@ owns the writing surface.
 | `qwksearch-ext` | WXT browser extension | `entrypoints/{background,content,popup,sidepanel,offscreen}`. **Own** `pnpm-workspace.yaml` and lockfile — install inside it too. |
 | `qwk-vscode-ext` | esbuild host + two Vite webviews | Host/auth/API proxy in `src/`; chat sidebar in `webview-ui/`; editor in `webview-ui-editor/`. `bun run compile` builds all three. |
 | `qwk-in-lobe` | LobeHub monorepo, pnpm | The qwksearch.com engine build. A **separate workspace** — see below. |
+| `extract-youtube-demo` | Vite React SPA + Worker, Storybook 10 | Live demo of `packages/extract-youtube`: grid/list/admin over its library API, the floating player, `/api/transcript`, and the Storybook at `/storybook/`. |
+| `extract-youtube-docs` | Fumadocs on vinext → Cloudflare Workers | `extract-youtube`'s own docs site, from template-fumadocs. |
 
 The Yjs rooms behind collaborative editing used to be an app of their own
 (`collaboration-server`). They are now part of `qwksearch-web`: the Hocuspocus

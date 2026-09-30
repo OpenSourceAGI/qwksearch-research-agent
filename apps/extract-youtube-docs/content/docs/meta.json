@@ -1,0 +1,17 @@
+{
+  "title": "extract-youtube",
+  "pages": [
+    "---Getting started---",
+    "index",
+    "live-demo",
+    "transcripts",
+    "formatters",
+    "cli",
+    "proxies",
+    "deploy-cloudflare",
+    "---React components---",
+    "...react",
+    "---Admin---",
+    "...admin"
+  ]
+}

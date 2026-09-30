@@ -53,7 +53,7 @@ npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent 
 | [ask-searxng-search](./ask-searxng-search/SKILL.md) | `searxng-search-cloudflare` | A private SearXNG instance: settings, JSON output, engine flags |
 | [ask-extract-webpage](./ask-extract-webpage/SKILL.md) | `extract-webpage` | URL → cited article, scraping, Readability/Mercury, SEEKTOPIC, tokenizers |
 | [ask-extract-pdf](./ask-extract-pdf/SKILL.md) | `extract-pdf` | PDF → structured HTML, the `method`/`processor` switches, Docling OCR |
-| [ask-extract-youtube](./ask-extract-youtube/SKILL.md) | `extract-youtube` | Transcripts without a browser, proxies for IP bans, formatters, the CLI |
+| [ask-extract-youtube](./ask-extract-youtube/SKILL.md) | `extract-youtube` | Transcripts without a browser, proxies for IP bans, formatters, the CLI, the video library admin API and its grid and admin components |
 | [ask-domain-rank](./ask-domain-rank/SKILL.md) | `domain-rank` | Offline domain rank, source titles, favicons, URL parsing |
 | [ask-render-url-to-html](./ask-render-url-to-html/SKILL.md) | `render-url-to-html` | Self-hosted Puppeteer-stealth and JSDOM renderers |
 | [ask-html-renderer-api](./ask-html-renderer-api/SKILL.md) | `html-renderer-api` | The Cloudflare rendering Worker: sessions, cookies, challenge bypass |

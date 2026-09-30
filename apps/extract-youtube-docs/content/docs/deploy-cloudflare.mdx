@@ -1,0 +1,138 @@
+---
+title: Deploy to Cloudflare
+description: Serve transcripts from a Cloudflare Worker — the endpoint the React components talk to, with caching and the edge proxy caveat.
+icon: Cloud
+---
+
+`extract-youtube` has no filesystem access and no native modules, so it runs on Cloudflare Workers as-is. This page builds the transcript endpoint the [React components](/docs/react/floating-player) expect.
+
+## A transcript Worker
+
+<Steps>
+<Step>
+
+### Create the Worker and install the package
+
+```bash
+npm create cloudflare@latest transcripts -- --type hello-world --lang ts
+cd transcripts
+npm install extract-youtube
+```
+
+</Step>
+<Step>
+
+### Enable Node compatibility
+
+The package's optional proxy support imports Node built-ins, so turn on `nodejs_compat` in `wrangler.jsonc`:
+
+```jsonc title="wrangler.jsonc"
+{
+  "name": "transcripts",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"]
+}
+```
+
+</Step>
+<Step>
+
+### Write the handler
+
+```ts title="src/index.ts"
+import { YouTubeTranscriptApi, extractVideoId } from 'extract-youtube';
+
+const api = new YouTubeTranscriptApi();
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const raw = new URL(request.url).searchParams.get('videoId') ?? '';
+    const videoId = extractVideoId(raw);
+    if (!videoId) return Response.json({ error: 'Missing videoId' }, { status: 400 });
+
+    try {
+      const transcript = await api.fetchTranscript(videoId, { languages: ['en'] });
+      return Response.json({ videoId, snippets: transcript.toRawData() });
+    } catch (error) {
+      // 200 + `error`: the React components treat this as "no captions", not a crash.
+      return Response.json({
+        videoId,
+        snippets: [],
+        error: error instanceof Error ? error.message : 'Failed to fetch transcript',
+      });
+    }
+  },
+} satisfies ExportedHandler;
+```
+
+</Step>
+<Step>
+
+### Deploy
+
+```bash
+npx wrangler deploy
+```
+
+Point the components at it: `transcriptUrl="https://transcripts.<your-subdomain>.workers.dev"`. If the page and the Worker are on different origins, add an `Access-Control-Allow-Origin` header to the responses.
+
+</Step>
+</Steps>
+
+## Cache transcripts
+
+Each request to YouTube costs time, and a proxy costs money. Put a cache in front — the Workers Cache API needs no bindings:
+
+```ts
+export default {
+  async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
+    const cache = caches.default;
+    const hit = await cache.match(request);
+    if (hit) return hit;
+
+    const response = await handle(request); // the handler above
+    const body = await response.clone().json<{ error?: string }>();
+
+    // Transcripts don't change: keep them a day. Keep failures briefly — a block is transient.
+    response.headers.set('Cache-Control', body.error ? 'public, max-age=300' : 'public, max-age=86400');
+    ctx.waitUntil(cache.put(request, response.clone()));
+    return response;
+  },
+};
+```
+
+For a cache that survives across data centres, store `toRawData()` in KV or R2 keyed by video ID instead.
+
+## Proxies on Workers
+
+`proxyConfig` does **nothing** on Workers: it relies on a Node socket agent, which the Workers runtime ignores, so requests silently go out direct. When YouTube starts blocking the Worker's IPs, use a fetch-through proxy injected as a custom `httpClient` — see [Proxies on edge runtimes](/docs/proxies#2-cloudflare-workers-and-vercel-edge-a-custom-httpclient).
+
+## Other serverless platforms
+
+The same handler works anywhere `fetch` does:
+
+```ts title="AWS Lambda"
+import { YouTubeTranscriptApi } from 'extract-youtube';
+
+export const handler = async (event: { videoId: string }) => {
+  const transcript = await new YouTubeTranscriptApi().fetch(event.videoId);
+  return { statusCode: 200, body: JSON.stringify(transcript.toRawData()) };
+};
+```
+
+```ts title="Vercel Edge"
+import { YouTubeTranscriptApi } from 'extract-youtube';
+
+export const config = { runtime: 'edge' };
+
+export default async function handler(req: Request) {
+  const videoId = new URL(req.url).searchParams.get('videoId')!;
+  const transcript = await new YouTubeTranscriptApi().fetch(videoId);
+  return Response.json(transcript.toRawData());
+}
+```
+
+## A video library on the same Worker
+
+The library admin API from `extract-youtube/library` runs on Workers too, over D1. See [Library admin API](/docs/admin/library-api#quick-start-on-a-worker) for the setup, and the [live demo](/docs/live-demo) for a Worker that serves transcripts, the library API, the app and its Storybook together.

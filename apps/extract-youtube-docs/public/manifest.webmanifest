@@ -1,0 +1,15 @@
+{
+  "name": "extract-youtube docs",
+  "short_name": "extract-youtube",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "theme_color": "#dc2626",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}

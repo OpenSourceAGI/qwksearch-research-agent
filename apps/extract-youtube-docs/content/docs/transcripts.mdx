@@ -1,0 +1,155 @@
+---
+title: Fetching transcripts
+description: Fetch captions, choose languages, list available tracks, translate, and handle errors.
+icon: Captions
+---
+
+All transcript fetching goes through one class, `YouTubeTranscriptApi`. Create it once and reuse it — it holds no per-video state.
+
+```ts
+import { YouTubeTranscriptApi } from 'extract-youtube';
+
+const api = new YouTubeTranscriptApi();
+```
+
+The constructor takes two optional settings:
+
+| Option | Type | Description |
+| --- | --- | --- |
+| `proxyConfig` | `ProxyConfig` | Route every request through a proxy. See [Proxies](/docs/proxies). Node/Bun/Lambda only. |
+| `httpClient` | `HttpClient` | Replace the HTTP layer entirely — the seam for fetch-through proxies on edge runtimes. |
+
+## Fetch a transcript
+
+```ts
+const transcript = await api.fetchTranscript('dQw4w9WgXcQ');
+// `api.fetch()` is an alias of `fetchTranscript()`.
+```
+
+Options:
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `languages` | `string[]` | `['en']` | Language codes in descending priority. The first one with a track wins. |
+| `preserveFormatting` | `boolean` | `false` | Keep YouTube's inline HTML formatting (italics, bold) in the text. |
+
+```ts
+// Try German first, then English.
+const transcript = await api.fetchTranscript('dQw4w9WgXcQ', { languages: ['de', 'en'] });
+```
+
+### The result
+
+`fetchTranscript` resolves to a `FetchedTranscript`:
+
+| Property / method | Description |
+| --- | --- |
+| `snippets` | Array of `{ text, start, duration }` — times in seconds. |
+| `videoId` | The video ID. |
+| `language` | Language name, e.g. `"English"`. |
+| `languageCode` | Language code, e.g. `"en"`. |
+| `isGenerated` | `true` for YouTube's auto-generated captions. |
+| `toRawData()` | The snippets as a plain array, for JSON. |
+| `get(i)` | The snippet at index `i`. |
+| iteration | `for (const snippet of transcript)` works directly. |
+
+## Video IDs and URLs
+
+The API wants the 11-character video ID. `extractVideoId` accepts every URL shape YouTube uses — `watch`, `youtu.be`, `embed`, `shorts`, `live` — or a bare ID, and returns `null` when it finds none:
+
+```ts
+import { extractVideoId } from 'extract-youtube';
+
+extractVideoId('https://www.youtube.com/watch?v=dQw4w9WgXcQ'); // 'dQw4w9WgXcQ'
+extractVideoId('https://youtu.be/dQw4w9WgXcQ?t=30');           // 'dQw4w9WgXcQ'
+extractVideoId('https://www.youtube.com/shorts/dQw4w9WgXcQ');  // 'dQw4w9WgXcQ'
+extractVideoId('not a video');                                 // null
+```
+
+Use it on anything a user pastes in before calling the API.
+
+## List the available tracks
+
+```ts
+const list = await api.listTranscripts('dQw4w9WgXcQ');
+// `api.list()` is an alias.
+
+for (const track of list) {
+  console.log(track.language, track.languageCode, track.isGenerated ? '(auto)' : '');
+}
+```
+
+A `TranscriptList` can pick a track for you:
+
+| Method | Returns |
+| --- | --- |
+| `findTranscript(codes)` | Walks the codes in priority order; for each code a manual track wins over a generated one. |
+| `findManuallyCreatedTranscript(codes)` | Only human-made tracks. |
+| `findGeneratedTranscript(codes)` | Only auto-generated tracks. |
+
+Each returns a `Transcript`; call `.fetch()` on it to download the snippets.
+
+## Translate
+
+YouTube can machine-translate a translatable track into 100+ languages:
+
+```ts
+const list = await api.listTranscripts('dQw4w9WgXcQ');
+const english = list.findTranscript(['en']);
+
+const german = await english.translate('de').fetch();
+const spanish = await english.translate('es').fetch();
+```
+
+`transcript.translationLanguages` lists the target languages on offer. Translating a track that cannot be translated throws `NotTranslatable`; asking for a language not on offer throws `TranslationLanguageNotAvailable`.
+
+## Errors
+
+Every failure is a typed error, all extending `CouldNotRetrieveTranscript` (which extends `YouTubeTranscriptApiException`):
+
+| Error | When |
+| --- | --- |
+| `TranscriptsDisabled` | The video has captions turned off. |
+| `NoTranscriptFound` | No track in any of the requested languages. |
+| `VideoUnavailable` | The video does not exist or was removed. |
+| `VideoUnplayable` | YouTube refuses to play it (private, region-locked…). |
+| `InvalidVideoId` | You passed a URL or something that is not an ID. |
+| `AgeRestricted` | Age-gated; needs an authenticated session. |
+| `RequestBlocked` / `IpBlocked` | YouTube is bot-checking your IP. See [Proxies](/docs/proxies). |
+| `PoTokenRequired` | YouTube demanded a proof-of-origin token for this request. |
+| `NotTranslatable` / `TranslationLanguageNotAvailable` | Translation not possible. |
+| `YouTubeRequestFailed` / `YouTubeDataUnparsable` | Network failure or an unexpected response shape. |
+
+```ts
+import { IpBlocked, NoTranscriptFound, TranscriptsDisabled } from 'extract-youtube';
+
+try {
+  const transcript = await api.fetchTranscript(videoId, { languages: ['en', 'de', 'es'] });
+} catch (error) {
+  if (error instanceof TranscriptsDisabled) {
+    // Captions are off — no retry will change that.
+  } else if (error instanceof NoTranscriptFound) {
+    // No track in the requested languages.
+  } else if (error instanceof IpBlocked) {
+    // Transient: retry later, or through a proxy.
+  } else {
+    throw error;
+  }
+}
+```
+
+<Callout title="Missing vs blocked">
+A video without captions will never grow them on a retry, but a block is transient. Cache "no captions" for hours and a block for minutes at most.
+</Callout>
+
+## Common uses
+
+```ts
+// Plain text for an LLM prompt
+const text = transcript.snippets.map((s) => s.text).join(' ');
+
+// Find where a keyword is spoken
+for (const snippet of transcript) {
+  if (snippet.text.toLowerCase().includes('keyword')) console.log(`${snippet.start}s`);
+}
+```

@@ -1,7 +1,7 @@
 {
   "name": "extract-youtube",
   "version": "1.0.414",
-  "description": "Fast, no-browser serverless-optimized YouTube transcript extractor, with optional React UI: a floating YouTube player and a synced-transcript modal",
+  "description": "Fast, no-browser serverless-optimized YouTube transcript extractor, with a video library admin API (D1 or in-memory) and React UI: a floating YouTube player, a synced-transcript modal, video grid/list components and library admin screens",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -15,6 +15,11 @@
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.mjs",
       "require": "./dist/react/index.cjs"
+    },
+    "./library": {
+      "types": "./dist/library/index.d.ts",
+      "import": "./dist/library/index.mjs",
+      "require": "./dist/library/index.cjs"
     }
   },
   "//bin": "Spelled out as an object with a relative path. npm normalizes the string form itself and prints a notice for it on every publish.",
@@ -28,19 +33,19 @@
   ],
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "build": "npm run clean && npm run build:lib && npm run build:cli && npm run build:react && npm run build:types",
+    "build": "npm run clean && npm run build:lib && npm run build:cli && npm run build:react && npm run build:library && npm run build:types",
     "build:types": "tsc --emitDeclarationOnly --declaration --declarationMap",
     "build:lib": "vite build",
     "build:cli": "BUILD_CLI=true vite build",
     "build:react": "BUILD_REACT=true vite build",
-    "build:bundle": "npm run build:lib && npm run build:cli && npm run build:react",
+    "build:library": "BUILD_LIBRARY=true vite build",
+    "build:bundle": "npm run build:lib && npm run build:cli && npm run build:react && npm run build:library",
     "build:legacy": "tsc",
     "ship": "npm run build && npx standard-version --release-as patch; npm publish",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:speeds": "bun src/cli.ts dQw4w9WgXcQ -f speeds",
-    "lint": "eslint src --ext .ts",
-    "demo": "cd demo && npm install && npm run dev"
+    "lint": "eslint src --ext .ts"
   },
   "keywords": [
     "youtube",
@@ -67,7 +72,12 @@
     "picture-in-picture",
     "video-player",
     "youtube-player",
-    "playlist"
+    "playlist",
+    "video-library",
+    "video-grid",
+    "admin",
+    "cloudflare-d1",
+    "storybook"
   ],
   "author": "",
   "license": "rights.institute/PROSPER",

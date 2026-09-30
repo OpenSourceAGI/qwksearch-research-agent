@@ -1,0 +1,78 @@
+---
+title: Custom fields
+description: Add your own columns to the video library, such as a speaker, a level or a slides link. They are validated, stored, searched and rendered without a schema change.
+icon: SlidersHorizontal
+---
+
+debate-ai.com's video library had a dozen debate-only columns: tournament, round, the teams, the judges' decision. extract-youtube keeps none of them. Instead, you declare the fields your library needs, and every part of the package handles them:
+
+- the **handler** validates and coerces them on every write;
+- the **store** persists them (a JSON column in D1);
+- **search** matches the ones marked `searchable`;
+- the **admin form** renders an input for each;
+- the **grid** shows them as badges and the **list** as sortable columns.
+
+## Declare them once
+
+```ts title="fields.ts"
+import type { CustomFieldDef } from 'extract-youtube/library';
+
+export const fields: CustomFieldDef[] = [
+  { key: 'speaker', label: 'Speaker', type: 'text', searchable: true, showOnCard: true, showInList: true },
+  { key: 'level', label: 'Level', type: 'select', options: ['Beginner', 'Intermediate', 'Advanced'], showOnCard: true },
+  { key: 'slides', label: 'Slides', type: 'url', help: 'Link to the slides, if any.' },
+  { key: 'minutes', label: 'Length (min)', type: 'number', showInList: true },
+  { key: 'captioned', label: 'Human captions', type: 'boolean' },
+];
+```
+
+Pass the same array to the server and to the components:
+
+```ts
+createVideoLibraryHandler({ store, authorize, customFields: fields });
+```
+
+```tsx
+<VideoGrid videos={videos} customFields={fields} />
+<VideoLibraryAdmin client={client} customFields={fields} />
+```
+
+The admin screen can also load them from the server's `GET /fields`, so the declarations live in one place. The live demo's admin tab does this.
+
+## Field options
+
+| Option | |
+| --- | --- |
+| `key` | Where the value is stored in `video.custom`. Letters, digits, `_` and `-`. |
+| `label` | The form label, list column header and badge text for booleans. |
+| `type` | `text`, `textarea`, `number`, `boolean`, `url` or `select`. Decides the input and the coercion. |
+| `options` | The allowed values of a `select`. |
+| `help` | A hint under the input. |
+| `searchable` | Include the value in what `q` searches. |
+| `showOnCard` | Render the value as a badge on grid cards. |
+| `showInList` | Add a sortable column in `<VideoList />` and the admin table. |
+
+## How values are coerced
+
+The server coerces every submitted value by its field's type, so a bad value is dropped (stored as `null`), never kept as garbage:
+
+| `type` | Input | Stored as | Rejected |
+| --- | --- | --- | --- |
+| `text` | text box | trimmed string, up to 4,000 characters | empty |
+| `textarea` | multi-line box | same as `text` | empty |
+| `number` | number box | finite number | `NaN`, `Infinity`, words |
+| `boolean` | checkbox | `true` for `true`, `"true"`, `"1"`, `1` or `"on"`; `false` for any other value | nothing (empty stays empty) |
+| `url` | URL box | string | anything not starting `http://` or `https://`, so a `javascript:` link can never reach a card |
+| `select` | dropdown | one of `options` | anything outside `options` |
+
+With `customFields` set, the handler keeps only declared keys. The admin API does not become a free-form key-value store for whoever holds the token. Without it, any key matching the pattern is kept, with primitive values only.
+
+## Changing fields later
+
+Values live in one JSON column, so adding, renaming or removing a field needs no migration:
+
+- **Add** a field and it starts empty on every video.
+- **Remove** one and its values stay in storage, unused, until a row is next edited.
+- **Rename** one by declaring the new key and copying values with an import or a one-off script over `store.all()`.
+
+The same helpers the server uses are exported for your own code: `coerceCustomValue(def, value)`, `mergeCustomFields(current, patch, defs)`, `formatCustomValue(def, value)` for badges, and `formatCustomCell(def, value)` for table cells.

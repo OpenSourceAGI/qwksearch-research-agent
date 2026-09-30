@@ -10,7 +10,9 @@
     "apps/qwk-vscode-ext",
     "apps/qwksearch-desktop",
     "apps/qwksearch-browser-ext",
-    "apps/qwksearch-web"
+    "apps/qwksearch-web",
+    "apps/extract-youtube-demo",
+    "apps/extract-youtube-docs"
   ],
   "scripts": {
     "dev": "turbo dev --filter=qwksearch-web",

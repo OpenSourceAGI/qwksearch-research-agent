@@ -90,6 +90,13 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
 
+      # extract-youtube's jest suite runs its D1 library store against
+      # `node:sqlite`, which Node only ships from 22.5. Pin it rather than
+      # depend on whatever the runner image defaults to.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Install dependencies
         run: bun install
 

@@ -1,0 +1,165 @@
+---
+title: Floating player
+description: A draggable, resizable YouTube player that keeps playing while people move around your app — with picture-in-picture, a queue, resume and synced captions.
+icon: PictureInPicture2
+---
+
+`<FloatingYouTubePlayer />` comes from `extract-youtube/react`, the package's UI entry point. It is ported from the player used in production on [debate-ai.com](https://debate-ai.com) with everything app-specific stripped out: no design system, no state library, no CSS framework. It injects its own small scoped stylesheet and drops into any React app.
+
+```package-install
+extract-youtube react react-dom lucide-react
+```
+
+<Callout title="Why a separate entry point">
+`extract-youtube` (the main entry) never imports React, and `extract-youtube/react` never imports the transcript-fetching code. React, ReactDOM and `lucide-react` (for the icons) are peer dependencies.
+</Callout>
+
+## Mount it once
+
+Put it near the root of your app. It renders through a portal into `document.body`, so nothing around it can clip it, hide it, or remount the playing video on a route change. Until something asks it to play, it renders nothing at all.
+
+```tsx title="app/layout.tsx"
+import { FloatingYouTubePlayer } from 'extract-youtube/react';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      {children}
+      <FloatingYouTubePlayer transcriptUrl="/api/transcript" />
+    </>
+  );
+}
+```
+
+## Play from anywhere
+
+No context provider, no prop drilling — call `youtubePlayer.play()` from a grid, a search result, a keyboard shortcut:
+
+```tsx
+import { thumbnailUrl, usePlayerState, youtubePlayer } from 'extract-youtube/react';
+
+function VideoCard({ videoId, title }: { videoId: string; title: string }) {
+  const { activeVideo } = usePlayerState();
+
+  return (
+    <button onClick={() => youtubePlayer.play({ videoId, title })}>
+      <img src={thumbnailUrl(videoId)} alt="" />
+      {title} {activeVideo?.videoId === videoId && '(playing)'}
+    </button>
+  );
+}
+```
+
+## What you get
+
+| Feature | Behaviour |
+| --- | --- |
+| **Drag and resize** | Drag by the title bar; resize from either side edge or a bottom corner, clamped to the viewport. Mouse and touch. |
+| **Minimize** | Collapses to the title bar. The iframe is hidden with CSS, never unmounted, so playback isn't interrupted. |
+| **Picture-in-picture** | Pops the video into an always-on-top OS window via the Document Picture-in-Picture API, where supported. The node is *moved*, not cloned, so playback continues. |
+| **Queue** | `addToQueue` / `setQueue` / `playNext`, with an "Up next" strip under the video. |
+| **Synced captions** | An optional subtitles panel: caption cues are regrouped into whole sentences, the spoken one highlights and auto-scrolls, and clicking a sentence seeks. Needs `transcriptUrl` or `fetchTranscript`. |
+| **Resume** | Remembers what was playing, and how far in, across a reload — plus a per-video position for the last 50 videos, for 24 hours. `storageKey={null}` turns it off. |
+| **Error recovery** | Reads the IFrame API's error codes, explains them ("this video is private", "the owner doesn't allow embedding"), and offers Retry or Watch on YouTube. |
+| **Theming** | Colours are CSS custom properties on `.eytp-root` and follow `prefers-color-scheme` by default. Override them to match your app. |
+
+## Props
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `transcriptUrl` | `string` | Your captions endpoint (see [below](#captions-need-a-server-endpoint)). Enables the subtitles button. |
+| `fetchTranscript` | `(videoId: string) => Promise<{ snippets, error? }>` | A custom caption loader, instead of `transcriptUrl`. |
+| `extraControls` | `ReactNode \| (ctx: PlayerControlContext) => ReactNode` | Your own buttons, rendered in the control strip. |
+| `renderTitle` | `(ctx: PlayerControlContext) => ReactNode` | Custom title-bar content. Defaults to the video title. |
+| `showSubtitles` | `boolean` | Force the captions button on or off. By default it appears only for videos that turn out to have a transcript. |
+| `showPictureInPicture` | `boolean` | Show the PiP button where supported. Default `true`. |
+| `storageKey` | `string \| null` | localStorage key for resume-after-reload. `null` disables persistence. |
+| `className` | `string` | Extra class on the player root, for positioning or theming. |
+| `onClose` | `() => void` | Called when the user closes the player. |
+| `minWidth` / `maxWidth` | `number` | Resize bounds in px. Default 256 / 800. |
+
+## The imperative API
+
+Everything the player can do is on `youtubePlayer`, importable anywhere:
+
+```ts
+import { getPlayerState, usePlayerSelector, usePlayerState, youtubePlayer } from 'extract-youtube/react';
+
+youtubePlayer.play({ videoId, title, meta }); // `meta` is yours; passed back untouched
+youtubePlayer.play({ videoId }, { startSeconds: 120 });
+youtubePlayer.togglePlay();
+youtubePlayer.seekTo(90);
+youtubePlayer.setPlaybackRate(1.5);
+youtubePlayer.addToQueue({ videoId, title });
+youtubePlayer.setQueue(videos); // e.g. "play all" over a grid
+youtubePlayer.playNext();
+youtubePlayer.getCurrentTime(); // seconds
+youtubePlayer.close();
+
+usePlayerState(); // in a component: { activeVideo, isPlaying, isMinimized, playbackRate, queue, startTime }
+usePlayerSelector((state) => state.activeVideo?.videoId === id); // re-renders only when this value changes
+getPlayerState(); // the same, outside React
+```
+
+In a list of many items, use `usePlayerSelector` rather than `usePlayerState`. Each item then re-renders only when its own answer changes, not on every player update. The [video grid](/docs/react/video-grid) cards do this.
+
+Also exported for building your own UI around it: `buildEmbedUrl`, `watchUrl`, `thumbnailUrl`, `describePlayerError`, `loadTranscript`, `useTranscript`, `formatTime` and `groupIntoSentences`.
+
+## Custom controls belong to your app
+
+The built-in control strip only holds buttons that mean the same thing for any YouTube video: play/pause, skip, captions, picture-in-picture, minimize, close. Anything specific to *your* product — a bookmark, a share menu, a speed control framed for your users — is yours to render through `extraControls`:
+
+```tsx
+import { Gauge } from 'lucide-react';
+import { FloatingYouTubePlayer } from 'extract-youtube/react';
+
+<FloatingYouTubePlayer
+  transcriptUrl="/api/transcript"
+  extraControls={({ playbackRate, player }) => (
+    <button
+      // The player's own control classes, so custom buttons match the built-ins.
+      className={`eytp-btn${playbackRate !== 1 ? ' eytp-btn-active' : ''}`}
+      onClick={() => player.setPlaybackRate(playbackRate !== 1 ? 1 : 0.65)}
+      title="Slow it down"
+    >
+      <Gauge size={13} />
+    </button>
+  )}
+/>;
+```
+
+debate-ai.com uses exactly this seam for its "slow the debate spread down" button. The package stays generic: it exposes `player.setPlaybackRate()` and reports the current `playbackRate`, and the host decides what the button says and does. `renderTitle` is the same idea for the title bar.
+
+## Captions need a server endpoint
+
+Neither React component talks to YouTube's caption endpoints directly — browsers can't (no CORS). Expose one small backend endpoint that calls `YouTubeTranscriptApi`, and point the components at it with `transcriptUrl`:
+
+```ts title="app/api/transcript/route.ts"
+import { NextRequest, NextResponse } from 'next/server';
+import { YouTubeTranscriptApi, extractVideoId } from 'extract-youtube';
+
+const api = new YouTubeTranscriptApi();
+
+export async function GET(req: NextRequest) {
+  const raw = req.nextUrl.searchParams.get('videoId');
+  const videoId = raw ? extractVideoId(raw) : null;
+  if (!videoId) {
+    return NextResponse.json({ error: 'Missing videoId' }, { status: 400 });
+  }
+
+  try {
+    const transcript = await api.fetchTranscript(videoId, { languages: ['en'] });
+    return NextResponse.json({ videoId, snippets: transcript.toRawData() });
+  } catch (error) {
+    // 200 + an `error` field: "no captions for this video" is not a server failure,
+    // and the components check this field either way.
+    return NextResponse.json({
+      videoId,
+      snippets: [],
+      error: error instanceof Error ? error.message : 'Failed to fetch transcript',
+    });
+  }
+}
+```
+
+The `videoId` query parameter is appended for you, and one request is shared per video across every component asking for it. The same endpoint on Cloudflare Workers is on [Deploy to Cloudflare](/docs/deploy-cloudflare).

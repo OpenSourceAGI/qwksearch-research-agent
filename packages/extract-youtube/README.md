@@ -471,40 +471,127 @@ function VideoCard({ url, title }: { url: string; title: string }) {
 | `trigger` | `ReactNode` | Custom element that opens the modal on click. Defaults to a small captions-icon button. |
 | `onOpenChange` | `(open: boolean) => void` | Called whenever the modal opens or closes. |
 
-### Demo: a video library, a floating player, synced subtitles
+## Video Library: Grid, List and Admin
 
-The `demo/` folder is a small standalone app — an Express server for the
-transcript endpoint plus a Vite/React page — that puts the whole thing
-together: a **grid of saved favorite videos** to pick from, the floating
-player they open in, a queue, and per-card transcripts.
+Ported from the video library on [debate-ai.com](https://debate-ai.com) (its
+`debate-videos` grid package and its admin API routes), with everything
+debate-specific generalised into **custom fields** you declare yourself.
 
-```bash
-cd packages/extract-youtube
-npm run build          # builds dist/ (main lib + dist/react), which the demo depends on
-npm run demo           # installs the demo's own deps and starts it
+| Entry point | What you get |
+| --- | --- |
+| `extract-youtube/library` | Storage (in-memory or Cloudflare D1), one framework-agnostic HTTP handler with public and admin routes, a typed client, stacked playlists, grouping, YouTube Data API resync and auto-fill. No React, no Node built-ins: it runs on Workers. |
+| `extract-youtube/react` | `<VideoGrid />`, `<VideoList />`, `<VideoCard />`, `<StackedVideoCard />`, `<StackNav />`, `useVideoLibrary()`, and the admin screens `<VideoLibraryAdmin />`, `<VideoEditDialog />`, `<CustomFieldInput />` and `<VideoAvailabilityPanel />`. |
+
+### Serve the library (Cloudflare Worker + D1)
+
+```ts
+import { bearerTokenAuth, createD1LibraryStore, createVideoLibraryHandler, type CustomFieldDef } from 'extract-youtube/library';
+
+const fields: CustomFieldDef[] = [
+  { key: 'speaker', label: 'Speaker', type: 'text', searchable: true, showOnCard: true, showInList: true },
+  { key: 'level', label: 'Level', type: 'select', options: ['Beginner', 'Advanced'] },
+];
+
+export default {
+  async fetch(request: Request, env: { DB: D1Database; ADMIN_TOKEN: string; YOUTUBE_API_KEY?: string }) {
+    const store = createD1LibraryStore(env.DB);
+    await store.ensureSchema();
+    const library = createVideoLibraryHandler({
+      store,
+      authorize: bearerTokenAuth(env.ADMIN_TOKEN), // omit it and every admin route answers 403
+      customFields: fields,
+      youtubeApiKey: env.YOUTUBE_API_KEY, // optional: resync + richer auto-fill
+    });
+    return (await library.handle(request)) ?? new Response('Not found', { status: 404 });
+  },
+};
 ```
 
-`npm run demo` runs `cd demo && npm install && npm run dev`, which starts
-both the Express transcript API (port 8787) and the Vite dev server
-(port 5173, proxying `/api` to 8787) together. Open
-**http://localhost:5173** and click any video in the grid: it opens in the
-floating player, which you can drag, resize, minimize or pop out while you
-keep browsing. Star videos to favorite them, queue more up, hit **Play all**
-to run the grid as a playlist, or turn on the captions button to follow a
-synced transcript.
+Routes live under `/api/library`: public `GET /videos` (search, filter,
+sort, page), `/videos/:id`, `/stacks`, `/categories`, `/fields`, `/session`;
+admin `POST/PATCH/DELETE /videos`, `/autofill`, `/resync`, `/availability`,
+`/import`, `/stacks/recompute` and `/exclusions`. The same handler mounts in
+Next.js, vinext, Hono, Bun or Deno, since it only takes a `Request`. Use
+`createMemoryLibraryStore()` for tests and demos, or implement
+`VideoLibraryStore` for any other database.
 
-Run the two halves separately if you'd rather:
+### Show it
 
-```bash
-cd packages/extract-youtube/demo
-npm install
-npm run server   # Express API on :8787
-npm run dev      # in another terminal — Vite dev server on :5173
+```tsx
+import { createLibraryClient } from 'extract-youtube/library';
+import { FloatingYouTubePlayer, VideoGrid, VideoList, useVideoLibrary } from 'extract-youtube/react';
+
+const client = createLibraryClient({ baseUrl: '/api/library' });
+
+function Library() {
+  const { videos, stacks } = useVideoLibrary(client, { sort: 'views', availability: 'available' });
+  return (
+    <>
+      <VideoGrid videos={videos} stacks={stacks} customFields={fields} transcriptUrl="/api/transcript" />
+      <VideoList videos={videos} stacks={stacks} customFields={fields} groupBy={['year', 'channel']} />
+      <FloatingYouTubePlayer transcriptUrl="/api/transcript" />
+    </>
+  );
+}
 ```
 
-See `demo/README.md` for what each file does — including
-`demo/src/SpeedButton.jsx`, the worked example of an app-supplied custom
-control.
+- **Cards** show title, channel, date, views, category, "Top pick" and your
+  custom fields as badges, with opt-in favorite, hide, queue, transcript and
+  YouTube actions.
+- **Stacked playlists**: videos whose descriptions link each other ("Part 2:
+  https://youtu.be/…") fold into one card with `<` / `>` arrows.
+- **The list** is a table with sortable, resizable columns, one column per
+  custom field, and `groupBy` for a tree by year, channel, category or any
+  custom field, collapsible level by level.
+- Styles are scoped (`eytg-` classes) and injected once, follow dark mode,
+  and theme through `--eytg-*` CSS variables.
+
+### Curate it
+
+```tsx
+import { VideoAvailabilityPanel, VideoLibraryAdmin } from 'extract-youtube/react';
+
+const admin = createLibraryClient({ baseUrl: '/api/library', headers: () => ({ authorization: `Bearer ${token}` }) });
+
+<VideoLibraryAdmin client={admin} />      // search, sort, page, add, auto-fill, edit, feature, delete, resync
+<VideoAvailabilityPanel client={admin} /> // videos YouTube no longer plays
+```
+
+Edits send only the fields that changed and mark the row `adminEdited`, so
+bulk imports leave it alone. Deletes record an exclusion, so imports don't
+bring the video back. Auto-fill reads the YouTube Data API (or oEmbed with no
+key) and then your own `suggest` hook, and never overwrites what the admin
+typed.
+
+Full guides: [video grid and list](../../apps/extract-youtube-docs/content/docs/react/video-grid.mdx),
+[library admin API](../../apps/extract-youtube-docs/content/docs/admin/library-api.mdx),
+[custom fields](../../apps/extract-youtube-docs/content/docs/admin/custom-fields.mdx) and
+[admin components](../../apps/extract-youtube-docs/content/docs/admin/admin-components.mdx).
+
+## Live Demo and Storybook
+
+[`apps/extract-youtube-demo`](../../apps/extract-youtube-demo) runs all of
+this on one Cloudflare Worker: the library grid and list, the admin screens,
+the floating player with captions from `/api/transcript`, the library API at
+`/api/library`, and a Storybook with a story for every component at
+`/storybook/`.
+
+```bash
+bun install                           # from the monorepo root
+cd apps/extract-youtube-demo
+bun run dev                           # app + Worker on one port
+bun run storybook                     # Storybook on :6006
+bun run build && bunx wrangler deploy # app, Worker and Storybook in one deploy
+```
+
+With no secrets set it runs as a sandbox (an in-memory library anyone can
+edit, reset per Worker isolate). Set `ADMIN_TOKEN` to require a token, bind a
+D1 database as `DB` to persist, and set `YOUTUBE_API_KEY` for resync. The
+docs site is [`apps/extract-youtube-docs`](../../apps/extract-youtube-docs),
+built from template-fumadocs and also deployed to Workers.
+
+The demo's `src/SpeedButton.tsx` is the worked example of an app-supplied
+custom control, passed in through `<FloatingYouTubePlayer extraControls />`.
 
 ## Features
 

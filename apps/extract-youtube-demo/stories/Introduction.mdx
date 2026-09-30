@@ -1,0 +1,44 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+# extract-youtube components
+
+Every React component `extract-youtube/react` ships, one story file each. Each
+has a **Docs** page listing its props, and stories you can change live from the
+Controls panel.
+
+| Group | Components | What they are for |
+| --- | --- | --- |
+| **Grid** | `VideoCard`, `StackedVideoCard`, `StackNav`, `VideoGrid`, `VideoList` | Showing a library of videos as cards or as a sortable, groupable table. Ported from debate-ai.com's `debate-videos` package and made generic. |
+| **Admin** | `VideoLibraryAdmin`, `VideoEditDialog`, `CustomFieldInput`, `VideoAvailabilityPanel` | Editing that library through the admin API in `extract-youtube/library`: add, auto-fill, edit, delete, resync, stacks. |
+| **Player** | `FloatingYouTubePlayer`, `YouTubeTranscriptModal` | Playing a video in a draggable floating window with synced captions, or next to its full transcript. |
+
+## Where the data comes from
+
+The grid components take plain arrays: any object with a `videoId` renders.
+The admin components take a `VideoLibraryClient`. In these stories that
+client is `createLocalLibraryClient`, which runs the real HTTP handler
+in-process over an in-memory store. Edits made in a story are real edits, and
+they last until you reload.
+
+In an app, the client is `createLibraryClient({ baseUrl: '/api/library' })`
+pointed at a server running `createVideoLibraryHandler`. The
+[live demo](/) this Storybook is published with does exactly that on a
+Cloudflare Worker.
+
+## Custom fields
+
+The stories declare five fields of their own: `speaker`, `level`, `slides`,
+`minutes` and `captioned`. extract-youtube stores, validates, searches and
+renders them without knowing what they mean. Declare yours as
+`CustomFieldDef[]` and pass the same array to the server handler and to the
+components.
+
+## Styling
+
+Components style themselves with scoped class names (`eytg-` for the grid and
+admin, `eytp-` for the player) and CSS variables. Each one injects its
+stylesheet once, however many are on the page. They follow the system dark
+mode, or a `.dark` / `[data-theme="dark"]` ancestor. Override any `--eytg-*`
+variable to theme them.

@@ -1,0 +1,62 @@
+---
+title: CLI
+description: Extract a transcript from the terminal with npx extract-youtube.
+icon: Terminal
+---
+
+The package ships an `extract-youtube` binary. Run it once with `npx`, or install it globally:
+
+```bash
+npx extract-youtube <video-id> [options]
+
+# or
+npm install -g extract-youtube
+extract-youtube <video-id> [options]
+```
+
+The transcript is printed to stdout, so you can pipe or redirect it:
+
+```bash
+extract-youtube jNQXAC9IVRw -f srt > me-at-the-zoo.srt
+```
+
+## Examples
+
+```bash
+# JSON (the default)
+extract-youtube jNQXAC9IVRw
+
+# SRT subtitles
+extract-youtube jNQXAC9IVRw -f srt
+
+# Prefer English, fall back to German
+extract-youtube jNQXAC9IVRw -l en,de
+
+# Plain text, keeping YouTube's inline formatting
+extract-youtube jNQXAC9IVRw -f text -p
+
+# Through a proxy
+extract-youtube jNQXAC9IVRw --proxy http://user:pass@proxy.example.com:8080
+
+# Through Webshare rotating residential proxies
+extract-youtube jNQXAC9IVRw --webshare-user "$WEBSHARE_PROXY_USERNAME" --webshare-pass "$WEBSHARE_PROXY_PASSWORD"
+```
+
+## Options
+
+| Option | Description |
+| --- | --- |
+| `-h`, `--help` | Show help. |
+| `-v`, `--version` | Show the version. |
+| `-l`, `--languages <codes>` | Comma-separated language codes in priority order, e.g. `en,de,fr`. Default `en`. |
+| `-f`, `--format <type>` | `json` (default), `text`, `srt`, `webvtt`, `pretty` or `speeds`. |
+| `-p`, `--preserve-formatting` | Keep inline HTML formatting in the caption text. |
+| `--proxy <url>` | An HTTP/HTTPS proxy URL. Credentials go in the URL. |
+| `--webshare-user <username>` | Webshare proxy username (use with `--webshare-pass`). |
+| `--webshare-pass <password>` | Webshare proxy password. |
+
+`-f speeds` prints `{ html, word_count, speeds }` from `encodeTranscriptSpeeds` — see [Formatters](/docs/formatters#article-format-and-timestamp-maps).
+
+When both are given, the Webshare flags win over `--proxy`. Nothing is read from environment variables automatically; pass them in explicitly as above.
+
+The CLI exits with status `1` and prints `Error: …` to stderr when a transcript cannot be fetched — see [Errors](/docs/transcripts#errors) for what each message means.
