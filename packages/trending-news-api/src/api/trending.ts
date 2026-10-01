@@ -1,5 +1,9 @@
 import type { NewsArticle, TrendingNewsData, TrendingNewsOptions, TrendingNewsTopicData } from '../types';
-import { readCachedTrendingNews, writeCachedTrendingNews } from '../lib/cache';
+import {
+  readCachedTrendingNews,
+  readStaleCachedTrendingNews,
+  writeCachedTrendingNews,
+} from '../lib/cache';
 
 type WorkerArticle = {
   title?: string;
@@ -100,6 +104,41 @@ async function requestError(response: Response): Promise<Error> {
 }
 
 /**
+ * Fetches `url`, falling back to the last good response for that key when the
+ * request fails for any reason.
+ *
+ * A trending-news widget is decoration on a page whose job is something else,
+ * and the endpoint is a metered third party: a 502 from a rate limit, a dropped
+ * connection or an offline tab should not blank it out. A week-old response is
+ * strictly better than no response, so the cached copy is returned instead of
+ * throwing — but only as a fallback, never in place of a fresh answer.
+ *
+ * `stale` is true when the cached copy was used, so a caller can tell the
+ * difference between news and old news.
+ */
+async function fetchJson(
+  url: string,
+  key: string
+): Promise<{ data: unknown; stale: boolean }> {
+  let response: Response;
+  try {
+    response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+  } catch (error) {
+    const cached = readStaleCachedTrendingNews<unknown>(key);
+    if (cached) return { data: cached, stale: true };
+    throw error;
+  }
+
+  if (!response.ok) {
+    const cached = readStaleCachedTrendingNews<unknown>(key);
+    if (cached) return { data: cached, stale: true };
+    throw await requestError(response);
+  }
+
+  return { data: await response.json(), stale: false };
+}
+
+/**
  * Fetches trending topics (or, when `options.topic` is set, news for a
  * single topic) from a deployed instance of `worker/index.ts`.
  */
@@ -110,19 +149,35 @@ export async function getTrendingNews(options: TrendingNewsOptions): Promise<Tre
 
   const url = buildUrl(options.apiEndpoint, options);
 
-  const cached = readCachedTrendingNews<TrendingNewsData>(url);
-  if (cached) return cached;
+  // The raw wire body is what gets cached, so a stored answer and a fresh one
+  // go through exactly the same mapping below.
+  const cached = readCachedTrendingNews<WorkerTopicsResponse>(url);
+  if (cached) return mapTopicsResponse(cached, options);
 
-  const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
-  if (!response.ok) throw await requestError(response);
+  const { data, stale } = await fetchJson(url, url);
+  const payload = data as WorkerTopicsResponse;
 
-  const data = (await response.json()) as WorkerTopicsResponse;
-  if (data.error) throw new Error(data.error);
+  // A 200 carrying an error is still an error; the stale fallback has already
+  // been tried by `fetchJson` for the statuses that trigger it.
+  if (!stale && payload.error) {
+    const cachedOnError = readStaleCachedTrendingNews<WorkerTopicsResponse>(url);
+    if (cachedOnError) return mapTopicsResponse(cachedOnError, options);
+    throw new Error(payload.error);
+  }
 
+  if (!stale) writeCachedTrendingNews(url, payload);
+  return mapTopicsResponse(payload, options);
+}
+
+/** Maps a wire body to the public shape, truncating the daily ranking only. */
+function mapTopicsResponse(
+  data: WorkerTopicsResponse,
+  options: TrendingNewsOptions
+): TrendingNewsData {
   // A custom topic list is exactly what the caller asked for, so it is never
   // truncated — only the daily ranking is.
   const limit = cleanTopics(options.topics).length > 0 ? Infinity : (options.limit ?? 25);
-  const result: TrendingNewsData = {
+  return {
     date: data.date,
     source: data.source,
     topics: (data.topics ?? []).slice(0, limit).map((t) => ({
@@ -133,9 +188,6 @@ export async function getTrendingNews(options: TrendingNewsOptions): Promise<Tre
       articles: mapArticles(t.articles),
     })),
   };
-
-  writeCachedTrendingNews(url, result);
-  return result;
 }
 
 /** Fetches news articles for a single topic. */
@@ -149,21 +201,26 @@ export async function getTrendingNewsForTopic(
 
   const url = buildUrl(options.apiEndpoint, { ...options, topic });
 
-  const cached = readCachedTrendingNews<TrendingNewsTopicData>(url);
-  if (cached) return cached;
+  const cached = readCachedTrendingNews<WorkerTopicResponse>(url);
+  if (cached) return mapTopicResponse(cached);
 
-  const response = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
-  if (!response.ok) throw await requestError(response);
+  const { data, stale } = await fetchJson(url, url);
+  const payload = data as WorkerTopicResponse;
 
-  const data = (await response.json()) as WorkerTopicResponse;
-  if (data.error) throw new Error(data.error);
+  if (!stale && payload.error) {
+    const cachedOnError = readStaleCachedTrendingNews<WorkerTopicResponse>(url);
+    if (cachedOnError) return mapTopicResponse(cachedOnError);
+    throw new Error(payload.error);
+  }
 
-  const result: TrendingNewsTopicData = {
+  if (!stale) writeCachedTrendingNews(url, payload);
+  return mapTopicResponse(payload);
+}
+
+function mapTopicResponse(data: WorkerTopicResponse): TrendingNewsTopicData {
+  return {
     topic: data.topic,
     newsCount: data.news_count,
     articles: mapArticles(data.articles),
   };
-
-  writeCachedTrendingNews(url, result);
-  return result;
 }

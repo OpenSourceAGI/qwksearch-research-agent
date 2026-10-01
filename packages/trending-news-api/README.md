@@ -36,7 +36,7 @@ Cloudflare Worker so the News API key never reaches the browser.
 - Article thumbnail images, shown alongside headlines (toggle off with `showImages={false}`).
 - Single-topic headline lookup.
 - Compact card row or full article-list layouts.
-- `localStorage` response caching (10 minutes).
+- `localStorage` response caching (24 hours, with a week-long stale fallback when a request fails).
 - Runs as a standalone Cloudflare Worker, or from a route your own app already serves.
 - TypeScript + tsup library scaffold.
 
@@ -167,12 +167,22 @@ optional `fetchImpl` so it can be tested without network access.
 
 ## Caching
 
-`getTrendingNews` / `getTrendingNewsForTopic` cache each response in `localStorage` for 10
-minutes, keyed by the exact request URL (which includes `limit`). Call
-`clearTrendingNewsCache()` to evict everything (e.g. in tests). The cache is a no-op in non-browser environments (SSR) or when `localStorage`
-is unavailable/full.
+`getTrendingNews` / `getTrendingNewsForTopic` cache each response in `localStorage` for 24
+hours, keyed by the exact request URL (which includes `limit`). The window matches the data: the
+topic ranking is a single UTC day's pageviews, so a response fetched this morning is still exactly
+true this evening. Call `clearTrendingNewsCache()` to evict everything (e.g. in tests). The cache is
+a no-op in non-browser environments (SSR) or when `localStorage` is unavailable/full.
+
+A cached response stays readable for a week after it expires, and is returned instead of an error
+when a request fails — a 502 from an exhausted News API key, a dropped connection or an offline
+tab. Yesterday's headlines render; the widget does not disappear.
 
 ## Notes
 
 - Wikimedia's Pageviews API powers the trending topic list.
 - The News API (thenewsapi.com) powers the headlines — you'll need a free or paid API key.
+- Upstream calls have an 8s timeout and retry up to 3 times with backoff on rate limits (429), 5xx
+  and network failures. A rejected or exhausted token is not retried — it would cost three times
+  the quota to reach the same answer.
+- A News API failure answers `502` with a `kind` of `auth`, `rate_limit` or `upstream`. A host app
+  that caches the response should treat that as "serve whatever you had", not "show an error".

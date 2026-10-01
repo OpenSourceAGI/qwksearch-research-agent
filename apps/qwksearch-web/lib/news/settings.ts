@@ -38,18 +38,24 @@ export const DEFAULT_NEWS_WIDGET_SETTINGS: NewsWidgetSettings = {
   allowUserTopics: true,
   maxTopics: 6,
   showImages: true,
-  cacheMinutes: 10,
+  cacheMinutes: 24 * 60,
   retentionDays: 30,
 };
 
 /**
- * Bounds for the numeric settings. `cacheMinutes` has a floor because each
- * cold answer costs one Wikipedia call plus one News API search *per topic* —
- * a zero-minute cache would spend the day's quota on a single popular hour.
+ * Bounds for the numeric settings.
+ *
+ * `cacheMinutes` has a floor because each cold answer costs one Wikipedia call
+ * plus one News API search *per topic* — a zero-minute cache would spend the
+ * day's quota on a single popular hour. The default is a full day, and the
+ * ceiling is a week, because this is a widget about *daily* news: the ranking
+ * it reads from Wikipedia only changes once a day, so refreshing more often
+ * than that buys nothing and costs quota on every refresh. It also means a
+ * rate-limited upstream is met once a day rather than once a page view.
  */
 const LIMITS = {
   maxTopics: { min: 1, max: 20 },
-  cacheMinutes: { min: 1, max: 24 * 60 },
+  cacheMinutes: { min: 1, max: 7 * 24 * 60 },
   retentionDays: { min: 1, max: 365 },
 } as const;
 

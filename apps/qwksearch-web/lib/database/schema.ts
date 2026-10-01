@@ -497,8 +497,11 @@ export const newsWidgetSettings = sqliteTable("news_widget_settings", {
   showImages: integer("show_images", { mode: "boolean" })
     .notNull()
     .default(true),
-  /** How long a fetched answer is cached before the upstream is asked again. */
-  cacheMinutes: integer("cache_minutes").notNull().default(10),
+  /**
+   * How long a fetched answer is cached before the upstream is asked again.
+   * A day, because the daily ranking this feeds only changes once a day.
+   */
+  cacheMinutes: integer("cache_minutes").notNull().default(24 * 60),
   /** How long stored articles are kept before the retention sweep drops them. */
   retentionDays: integer("retention_days").notNull().default(30),
   updatedAt: integer("updated_at", { mode: "timestamp" })

@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   MAX_CUSTOM_TOPICS,
+  NewsApiError,
   getCustomTopicNews,
   getTrendingTopics,
   handleTrendingNewsRequest,
   parseTopicLimit,
   parseTopicList,
+  searchNewsForTopic,
 } from '../src/server';
 import { getTrendingNews } from '../src/api/trending';
 import { clearTrendingNewsCache } from '../src/lib/cache';
@@ -323,6 +325,7 @@ describe('handleTrendingNewsRequest', () => {
       error: 'The News API: An invalid API token was supplied. (invalid_api_token)',
       code: 'invalid_api_token',
       upstream_status: 401,
+      kind: 'auth',
     });
   });
 
@@ -499,5 +502,80 @@ describe('handleTrendingNewsRequest with ?topics=', () => {
 
     expect(data.source).toBe('custom_topics');
     expect(data.topics.map((t) => t.topic)).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('upstream resilience', () => {
+  beforeEach(() => {
+    clearTrendingNewsCache();
+    vi.restoreAllMocks();
+  });
+
+  it('retries a rate-limited search and succeeds', async () => {
+    let calls = 0;
+    const fetchImpl = vi.fn(async () => {
+      calls += 1;
+      if (calls < 3) {
+        return {
+          ok: false,
+          status: 429,
+          json: async () => ({ error: { code: 'rate_limit', message: 'Too many requests.' } }),
+        } as any;
+      }
+      return { ok: true, status: 200, json: async () => ({ data: [{ title: 'Recovered' }] }) } as any;
+    });
+
+    const articles = await searchNewsForTopic('k', 'eclipse', 5, fetchImpl as any);
+
+    expect(articles).toHaveLength(1);
+    expect(calls).toBe(3);
+  });
+
+  it('does not retry a rejected token, and classifies it as an auth failure', async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({
+        error: { code: 'invalid_api_token', message: 'An invalid API token was supplied.' },
+      }),
+    })) as any;
+
+    const error = await searchNewsForTopic('k', 'eclipse', 5, fetchImpl).catch((e) => e);
+
+    expect(error).toBeInstanceOf(NewsApiError);
+    expect((error as NewsApiError).kind).toBe('auth');
+    // Three attempts would spend three times the quota to reach the same answer.
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('classifies a 429 as a rate limit and a 5xx as an upstream failure', async () => {
+    const failing = (status: number) =>
+      vi.fn(async () => ({
+        ok: false,
+        status,
+        json: async () => ({ error: { message: 'nope' } }),
+      })) as any;
+
+    await expect(
+      searchNewsForTopic('k', 'x', 5, failing(429))
+    ).rejects.toMatchObject({ kind: 'rate_limit' });
+    await expect(
+      searchNewsForTopic('k', 'x', 5, failing(503))
+    ).rejects.toMatchObject({ kind: 'upstream' });
+  });
+
+  it('retries a Wikipedia fetch that fails before giving up', async () => {
+    let calls = 0;
+    const fetchImpl = vi.fn(async () => {
+      calls += 1;
+      if (calls < 2) throw new Error('socket hang up');
+      return { ok: true, status: 200, json: async () => ({ items: [{ article: 'Eclipse', views: 5 }] }) } as any;
+    });
+
+    const { fetchWikipediaTopPages } = await import('../src/server');
+    const pages = await fetchWikipediaTopPages(new Date(Date.UTC(2024, 0, 1)), 5, fetchImpl as any);
+
+    expect(pages).toEqual([{ rank: 1, article: 'Eclipse', views: 5 }]);
+    expect(calls).toBe(2);
   });
 });

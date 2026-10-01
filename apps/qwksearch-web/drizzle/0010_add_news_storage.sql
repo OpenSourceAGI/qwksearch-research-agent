@@ -26,7 +26,7 @@ CREATE TABLE `news_widget_settings` (
 	`allow_user_topics` integer DEFAULT true NOT NULL,
 	`max_topics` integer DEFAULT 6 NOT NULL,
 	`show_images` integer DEFAULT true NOT NULL,
-	`cache_minutes` integer DEFAULT 10 NOT NULL,
+	`cache_minutes` integer DEFAULT 1440 NOT NULL,
 	`retention_days` integer DEFAULT 30 NOT NULL,
 	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
 	`updated_by` text

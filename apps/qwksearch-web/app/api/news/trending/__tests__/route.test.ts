@@ -60,7 +60,18 @@ function fakeKV(initial: Record<string, string> = {}) {
     put: vi.fn(async (key: string, value: string) => {
       store.set(key, value)
     }),
+    delete: vi.fn(async (key: string) => {
+      store.delete(key)
+    }),
   }
+}
+
+/**
+ * The cache keys holding served answers, with the long-lived "last good" and
+ * failure-marker copies filtered out — those share a key prefix, not a meaning.
+ */
+function answerKeys(kv: ReturnType<typeof fakeKV>): string[] {
+  return [...kv.store.keys()].filter((key) => !key.includes(':stale'))
 }
 
 function stubEnv(env: Record<string, unknown>) {
@@ -130,11 +141,15 @@ describe('GET /api/news/trending', () => {
 
     const first = await GET(request('?limit=6'))
     expect(first.headers.get('X-Trending-News-Cache')).toBe('MISS')
-    expect(kv.put).toHaveBeenCalledWith(
-      'trending-news:v2:top:6',
-      JSON.stringify(TOPICS),
-      { expirationTtl: 600 },
-    )
+    // A day by default: the ranking this widget reads only changes once a day,
+    // so a shorter window would re-fetch an identical body.
+    expect(kv.put).toHaveBeenCalledWith('trending-news:v2:top:6', JSON.stringify(TOPICS), {
+      expirationTtl: 86400,
+    })
+    // A second, week-long copy is what a failed refresh falls back on.
+    expect(kv.put).toHaveBeenCalledWith('trending-news:v2:top:6:stale', JSON.stringify(TOPICS), {
+      expirationTtl: 604800,
+    })
 
     const second = await GET(request('?limit=6'))
     expect(second.headers.get('X-Trending-News-Cache')).toBe('HIT')
@@ -151,7 +166,7 @@ describe('GET /api/news/trending', () => {
     await GET(request('?topic=Eclipse'))
     await GET(request('?topic=Elections'))
 
-    expect([...kv.store.keys()]).toEqual([
+    expect(answerKeys(kv)).toEqual([
       'trending-news:v2:topic:eclipse',
       'trending-news:v2:topic:elections',
     ])
@@ -169,10 +184,10 @@ describe('GET /api/news/trending', () => {
     await GET(request('?limit=99999'))
     await GET(request('?limit=50'))
 
-    expect([...kv.store.keys()]).toEqual(['trending-news:v2:top:6', 'trending-news:v2:top:50'])
+    expect(answerKeys(kv)).toEqual(['trending-news:v2:top:6', 'trending-news:v2:top:50'])
   })
 
-  it('does not cache a failure', async () => {
+  it('does not cache a failure as an answer', async () => {
     const kv = fakeKV()
     stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
     upstream({ error: 'Failed to fetch Wikipedia trends' }, 500)
@@ -181,7 +196,10 @@ describe('GET /api/news/trending', () => {
 
     expect(response.status).toBe(500)
     expect(response.headers.get('Cache-Control')).toBe('no-store')
-    expect(kv.put).not.toHaveBeenCalled()
+    // The error body is never stored as the answer for the next visitor...
+    expect(answerKeys(kv)).toEqual([])
+    // ...only a short-lived marker, so the failing upstream isn't hammered.
+    expect(kv.store.get('trending-news:v2:top:25:stale:fail')).toBe('1')
   })
 
   it('still answers when KV is unavailable', async () => {
@@ -275,7 +293,7 @@ describe('GET /api/news/trending — admin settings', () => {
     await GET(request('?topics=AI%2C%20climate'))
     await GET(request('?topics=climate%2Cai'))
 
-    expect([...kv.store.keys()]).toEqual(['trending-news:v2:topics:ai|climate'])
+    expect(answerKeys(kv)).toEqual(['trending-news:v2:topics:ai|climate'])
     expect(mockHandle).toHaveBeenCalledTimes(1)
   })
 
@@ -359,7 +377,7 @@ describe('GET /api/news/trending — stored articles', () => {
 
     const response = await GET(request('?limit=6'))
 
-    expect(kv.put).not.toHaveBeenCalled()
+    expect(answerKeys(kv)).toEqual([])
     expect(mockStore).not.toHaveBeenCalled()
     expect(response.headers.get('X-Trending-News-Cache')).toBe('STORED')
   })
@@ -370,5 +388,161 @@ describe('GET /api/news/trending — stored articles', () => {
     const response = await GET(request())
 
     expect(response.status).toBe(500)
+  })
+})
+
+describe('GET /api/news/trending — surviving an upstream 502', () => {
+  beforeEach(() => {
+    delete process.env.THE_NEWS_API_KEY
+    siteSettings()
+    mockStore.mockResolvedValue(0)
+    mockReadStored.mockResolvedValue(null)
+    stubEnv({ THE_NEWS_API_KEY: 'k' })
+  })
+
+  /**
+   * A KV holding only the long-lived copy of one good answer — the state a
+   * request finds once the day's cache window has expired but the week's
+   * fallback has not.
+   */
+  const withLastGood = (key: string) => ({ [`${key}:stale`]: JSON.stringify(TOPICS) })
+
+  it('serves the last good answer instead of a 502 when the archive is empty', async () => {
+    const kv = fakeKV(withLastGood('trending-news:v2:top:6'))
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    // The real 502 shape: every News API search for the batch failed.
+    upstream({ error: 'The News API: quota exceeded', upstream_status: 429, kind: 'rate_limit' }, 502)
+
+    const response = await GET(request('?limit=6'))
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('X-Trending-News-Cache')).toBe('STALE')
+    expect(await response.json()).toMatchObject({ stale: true, topics: TOPICS.topics })
+  })
+
+  it('still refreshes from the upstream after serving a stale answer', async () => {
+    const kv = fakeKV(withLastGood('trending-news:v2:top:6'))
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    upstream({ error: 'The News API: quota exceeded' }, 502)
+
+    await GET(request('?limit=6'))
+
+    // The failure marker is short-lived, so the next request retries rather
+    // than pinning the widget to old news for the rest of the day.
+    expect(kv.store.get('trending-news:v2:top:6:stale:fail')).toBe('1')
+  })
+
+  it('serves the stale answer without re-calling an upstream already failing', async () => {
+    const kv = fakeKV({
+      ...withLastGood('trending-news:v2:top:6'),
+      'trending-news:v2:top:6:stale:fail': '1',
+    })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    upstream(TOPICS)
+
+    const response = await GET(request('?limit=6'))
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('X-Trending-News-Cache')).toBe('STALE')
+    expect(mockHandle).not.toHaveBeenCalled()
+  })
+
+  it('prefers the archive over the KV copy, since it is the more precise match', async () => {
+    const kv = fakeKV(withLastGood('trending-news:v2:top:6'))
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    upstream({ error: 'The News API: quota exceeded' }, 502)
+    mockReadStored.mockResolvedValue({
+      source: 'wikipedia_daily_top',
+      date: '2024-01-01',
+      topics: [{ topic: 'Eclipse', news_count: 1, articles: [] }],
+    })
+
+    const response = await GET(request('?limit=6'))
+
+    expect(response.headers.get('X-Trending-News-Cache')).toBe('STORED')
+  })
+
+  it('serves stored articles for a single-topic lookup too', async () => {
+    upstream({ error: 'The News API: quota exceeded' }, 502)
+    mockReadStored.mockResolvedValue({
+      source: 'custom_topics',
+      date: '2024-01-01',
+      topics: [{ topic: 'Eclipse', news_count: 1, articles: [] }],
+    })
+
+    const response = await GET(request('?topic=Eclipse'))
+
+    expect(response.status).toBe(200)
+    expect(mockReadStored).toHaveBeenCalledWith(
+      expect.objectContaining({ topics: ['Eclipse'], limit: 1 }),
+    )
+  })
+
+  it('reports 503 rather than 502 while cooling down with nothing to show', async () => {
+    const kv = fakeKV({ 'trending-news:v2:top:6:stale:fail': '1' })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    upstream(TOPICS)
+
+    const response = await GET(request('?limit=6'))
+
+    // Retry-After makes the client back off; 503 says "try later", where a 502
+    // would read as "this endpoint is broken".
+    expect(response.status).toBe(503)
+    expect(mockHandle).not.toHaveBeenCalled()
+  })
+
+  it('collapses concurrent cold requests into one upstream fetch', async () => {
+    const kv = fakeKV()
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    // Held open so all three requests are demonstrably waiting on the same call.
+    let release: () => void = () => {}
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    mockHandle.mockImplementation(async () => {
+      await gate
+      return new Response(JSON.stringify(TOPICS), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    })
+
+    const inFlight = Promise.all([
+      GET(request('?limit=6')),
+      GET(request('?limit=6')),
+      GET(request('?limit=6')),
+    ])
+    await vi.waitFor(() => expect(mockHandle).toHaveBeenCalledTimes(1))
+    release()
+    const responses = await inFlight
+
+    // Three visitors missing on a cold cache must not mean three searches per
+    // topic — that burst is what trips the API's rate limit in the first place.
+    expect(mockHandle).toHaveBeenCalledTimes(1)
+    for (const response of responses) {
+      expect(response.status).toBe(200)
+      expect(await response.json()).toEqual(TOPICS)
+    }
+  })
+
+  it('clears the failure marker once the upstream recovers', async () => {
+    const kv = fakeKV({ 'trending-news:v2:top:6:stale:fail': '1' })
+    stubEnv({ THE_NEWS_API_KEY: 'k', KV: kv })
+    // The marker has expired, so this request goes upstream and succeeds.
+    upstream(TOPICS)
+    kv.store.delete('trending-news:v2:top:6:stale:fail')
+
+    await GET(request('?limit=6'))
+
+    expect(kv.delete).toHaveBeenCalledWith('trending-news:v2:top:6:stale:fail')
+    expect(kv.store.has('trending-news:v2:top:6:stale:fail')).toBe(false)
+  })
+
+  it('still reports the 502 when there is no good answer anywhere', async () => {
+    upstream({ error: 'The News API: quota exceeded' }, 502)
+
+    const response = await GET(request('?limit=6'))
+
+    expect(response.status).toBe(502)
   })
 })

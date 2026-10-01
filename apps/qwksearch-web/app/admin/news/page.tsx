@@ -355,11 +355,14 @@ export default function AdminNewsPage() {
                 onChange={(e) => edit("maxTopics", Number(e.target.value))}
               />
             </Field>
-            <Field label="Cache (minutes)" hint="Each refresh costs one news search per topic.">
+            <Field
+              label="Cache (minutes)"
+              hint="1440 = one day. Each refresh costs one news search per topic."
+            >
               <input
                 type="number"
                 min={1}
-                max={1440}
+                max={10080}
                 className={inputClass}
                 value={draft.cacheMinutes}
                 onChange={(e) => edit("cacheMinutes", Number(e.target.value))}

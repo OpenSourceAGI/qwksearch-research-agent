@@ -10,11 +10,20 @@
  * 2. **A KV cache**, because each cold answer costs one Wikipedia call plus
  *    one News API search *per topic*. The browser caches the same response in
  *    `localStorage`; this cache is what keeps the *first* visit of the next
- *    cache window cheap.
+ *    cache window cheap. Each success is written twice: once under the
+ *    configured window (a day, so the widget refreshes daily rather than on
+ *    every page view) and once as a week-long "last good" copy.
  * 3. **The D1 archive** (`./store`), written through on every successful
  *    fetch and read back when the upstream fails. The News API is metered and
  *    third-party: without the archive a missing key or a 429 turns the
  *    homepage card into a blank space.
+ *
+ * The last two are what keep a 502 off the page. When the upstream refuses, a
+ * request that has any good answer behind it — the archive, or the KV
+ * "last good" copy — is served that answer marked `stale`; a 502 is only
+ * reported when there is genuinely nothing to show. Concurrent cold requests
+ * share one upstream fetch, so a cache miss cannot stampede the API into the
+ * rate limit that caused it.
  */
 import {
   fetchWikipediaTopPages,
@@ -31,10 +40,59 @@ import { readStoredTrendingNews, storeTrendingNews } from "./store";
 const CACHE_PREFIX = "trending-news:v2:";
 
 /**
+ * Suffix for the long-lived copy of the last good answer.
+ *
+ * The primary entry expires after the configured window (a day by default) so
+ * the widget actually refreshes. This second entry is what the refresh falls
+ * back to: a visitor arriving while The News API is rate-limiting, out of
+ * quota, or briefly down gets yesterday's headlines with a 200 instead of a
+ * 502 they can do nothing about. It is kept for a week — long enough to ride
+ * out a weekend or a billing hiccup, short enough that it can't become the
+ * permanent answer.
+ */
+const STALE_SUFFIX = ":stale";
+const STALE_TTL_SECONDS = 7 * 24 * 60 * 60;
+
+/**
  * How stale a stored answer may be before we would rather show nothing. A
  * week-old headline presented as news is worse than an absent widget.
  */
 const FALLBACK_MAX_AGE_DAYS = 7;
+
+/**
+ * How long a failed upstream keeps its failure cached, in seconds.
+ *
+ * Errors are deliberately *not* written to the primary cache (a blip must not
+ * pin the widget for a day), but a persistent failure would otherwise have
+ * every visitor re-running the same failing fan-out, which is what turns one
+ * rate limit into a self-sustaining outage. A short negative window breaks that
+ * loop; the stale answer is served from KV meanwhile.
+ */
+const FAILURE_TTL_SECONDS = 60;
+
+/**
+ * Upstream fetches already in flight, keyed by cache key.
+ *
+ * Without this, a cold cache on a busy page has every concurrent request
+ * discover the miss at the same moment and each spend the full Wikipedia +
+ * per-topic News API cost — the classic thundering herd behind a 429, and the
+ * main way this route produced 502s. Sharing one promise per key means a cold
+ * start costs exactly one fetch.
+ */
+const inFlight = new Map<string, Promise<{ body: string; status: number }>>();
+
+/** Fetches upstream once per cache key, no matter how many requests arrive. */
+async function fetchOnce(
+  key: string,
+  run: () => Promise<{ body: string; status: number }>,
+): Promise<{ body: string; status: number }> {
+  const existing = inFlight.get(key);
+  if (existing) return existing;
+
+  const promise = run().finally(() => inFlight.delete(key));
+  inFlight.set(key, promise);
+  return promise;
+}
 
 /**
  * The News API token. Worker secrets are only on the Cloudflare env; local dev
@@ -82,7 +140,7 @@ function cacheKey(url: URL, topics: string[]): string {
 function jsonResponse(
   body: string,
   status: number,
-  cache: "HIT" | "MISS" | "BYPASS" | "STORED" | "OFF",
+  cache: "HIT" | "MISS" | "BYPASS" | "STORED" | "STALE" | "OFF",
   cacheSeconds: number,
 ): Response {
   return new Response(body, {
@@ -155,28 +213,51 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
     ? []
     : resolveTopics(settings, url.searchParams.get("topics"));
   const key = cacheKey(url, topics);
+  const staleKey = `${key}${STALE_SUFFIX}`;
+  const failKey = `${key}${STALE_SUFFIX}:fail`;
 
   if (kv && apiKey) {
     try {
       const cached = await kv.get(key);
       if (cached) return jsonResponse(cached, 200, "HIT", cacheSeconds);
+      // A recent failure is answered from the archive below rather than by
+      // re-running an upstream that is known to be refusing us.
+      const coolingDown = await kv.get(failKey);
+      if (coolingDown) {
+        const stale = await kv.get(staleKey);
+        if (stale) {
+          return jsonResponse(markStale(stale), 200, "STALE", FAILURE_TTL_SECONDS);
+        }
+        const stored = await readArchive(topics, url, singleTopic);
+        if (stored) {
+          return jsonResponse(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
+        }
+        return jsonResponse(
+          JSON.stringify({ error: "The News API is temporarily unavailable" }),
+          503,
+          "MISS",
+          0,
+        );
+      }
     } catch (error) {
       console.error("Trending news cache read failed:", error);
     }
   }
 
-  const response = await handleTrendingNewsRequest(upstreamRequest(request, topics), {
-    apiKey,
+  // One upstream fetch per cache key, however many requests are waiting on it.
+  const { body, status } = await fetchOnce(key, async () => {
+    const response = await handleTrendingNewsRequest(upstreamRequest(request, topics), {
+      apiKey,
+    });
+    return { body: await response.text(), status: response.status };
   });
-  const body = await response.text();
 
   // An empty daily ranking is a failure in disguise (every topic came back
   // without headlines): don't pin it in KV for the whole cache window, and
   // let the archive below answer instead.
-  const emptyDaily =
-    response.status === 200 && !singleTopic && topics.length === 0 && isEmptyList(body);
+  const emptyDaily = status === 200 && !singleTopic && topics.length === 0 && isEmptyList(body);
 
-  if (response.status === 200 && !emptyDaily) {
+  if (status === 200 && !emptyDaily) {
     if (!singleTopic) {
       // Write-through. D1 is awaited rather than backgrounded because this
       // runtime hands route handlers no `waitUntil`; it only happens on a
@@ -191,6 +272,14 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
     if (kv) {
       try {
         await kv.put(key, body, { expirationTtl: cacheSeconds });
+        // The long-lived copy that a failed refresh falls back to. Written on
+        // every success, so it tracks the newest good answer rather than
+        // whichever one happened to be fetched first.
+        await kv.put(staleKey, body, { expirationTtl: STALE_TTL_SECONDS });
+        // A success ends the cooldown: without this the marker would outlive
+        // the upstream outage it describes and delay the *next* refresh by up
+        // to its TTL.
+        if (typeof kv.delete === "function") await kv.delete(failKey);
       } catch (error) {
         console.error("Trending news cache write failed:", error);
       }
@@ -199,20 +288,65 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
     return jsonResponse(body, 200, kv ? "MISS" : "BYPASS", cacheSeconds);
   }
 
-  // The upstream is unhappy (no key, rate-limited, down). Serve the archive
-  // if it has anything recent enough to be worth showing.
-  if (!singleTopic) {
-    const stored = await readStoredTrendingNews({
-      topics,
-      limit: topics.length > 0 ? topics.length : parseTopicLimit(url.searchParams.get("limit")),
-      maxAgeDays: FALLBACK_MAX_AGE_DAYS,
-    });
-    if (stored) {
-      return jsonResponse(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
+  // The upstream is unhappy (no key, rate-limited, down). Serve something real
+  // rather than a 502: the D1 archive first (it survives KV being empty), then
+  // the last good KV answer. Only a request with no good answer ever behind it
+  // reports the failure.
+  if (kv) {
+    try {
+      await kv.put(failKey, "1", { expirationTtl: FAILURE_TTL_SECONDS });
+    } catch (error) {
+      console.error("Trending news failure marker write failed:", error);
     }
   }
 
-  return jsonResponse(body, response.status, kv ? "MISS" : "BYPASS", cacheSeconds);
+  const stored = await readArchive(topics, url, singleTopic);
+  if (stored) {
+    return jsonResponse(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
+  }
+
+  if (kv) {
+    try {
+      const stale = await kv.get(staleKey);
+      if (stale) return jsonResponse(markStale(stale), 200, "STALE", 0);
+    } catch (error) {
+      console.error("Trending news stale cache read failed:", error);
+    }
+  }
+
+  return jsonResponse(body, status, kv ? "MISS" : "BYPASS", cacheSeconds);
+}
+
+/**
+ * The last good answer for this request, rebuilt from the D1 archive.
+ *
+ * A single `?topic=` lookup is included: it is a metered search like any other,
+ * and serving yesterday's headlines for that topic beats returning a 502 the
+ * visitor cannot act on.
+ */
+async function readArchive(
+  topics: string[],
+  url: URL,
+  singleTopic: string | null,
+): Promise<TrendingNewsWireResponse | null> {
+  return readStoredTrendingNews({
+    topics: singleTopic ? [singleTopic] : topics,
+    limit: singleTopic
+      ? 1
+      : topics.length > 0
+        ? topics.length
+        : parseTopicLimit(url.searchParams.get("limit")),
+    maxAgeDays: FALLBACK_MAX_AGE_DAYS,
+  });
+}
+
+/** Tags a served-but-old body so the widget can say so. */
+function markStale(body: string): string {
+  try {
+    return JSON.stringify({ ...(JSON.parse(body) as object), stale: true });
+  } catch {
+    return body;
+  }
 }
 
 /**

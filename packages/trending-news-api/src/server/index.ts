@@ -101,19 +101,89 @@ const WIKI_USER_AGENT =
   'trending-news-api (https://github.com/OpenSourceAGI/qwksearch-research-agent)';
 
 /**
+ * Why a News API call failed, in the terms the caller can act on:
+ *
+ * - `auth` — the token is missing, wrong or on a plan that forbids the call.
+ *   Retrying is pointless until a human changes something.
+ * - `rate_limit` — the meter or the burst limit was hit. Retryable, and the
+ *   reason a 502 is worth caching-and-serving-stale rather than re-fetching.
+ * - `upstream` — a 5xx or a dead socket on their side.
+ */
+export type NewsApiFailure = 'auth' | 'rate_limit' | 'upstream';
+
+/**
  * A failure talking to The News API — bad or missing token, exhausted quota,
  * plan restriction, rate limit. Carries the API's own message so it can be
- * shown to whoever has to fix it instead of turning into an empty widget.
+ * shown to whoever has to fix it instead of turning into an empty widget, and
+ * a `kind` so a host app can decide between retrying, serving a stale answer,
+ * and reporting the failure to a human.
  */
 export class NewsApiError extends Error {
   status: number;
   code?: string;
-  constructor(message: string, status: number, code?: string) {
+  kind: NewsApiFailure;
+  constructor(message: string, status: number, code?: string, kind?: NewsApiFailure) {
     super(message);
     this.name = 'NewsApiError';
     this.status = status;
     this.code = code;
+    this.kind = kind ?? classifyNewsApiStatus(status);
   }
+}
+
+/** Maps an HTTP status from The News API onto an actionable failure kind. */
+function classifyNewsApiStatus(status: number): NewsApiFailure {
+  if (status === 429) return 'rate_limit';
+  if (status === 401 || status === 402 || status === 403) return 'auth';
+  return 'upstream';
+}
+
+/**
+ * How long one upstream call may take before it is abandoned. Without this a
+ * hung upstream holds the widget's request open until the platform kills it,
+ * which surfaces to the visitor as a 502/524 they can do nothing about.
+ */
+const UPSTREAM_TIMEOUT_MS = 8_000;
+
+/**
+ * Attempts per upstream call, and the delay before each retry (multiplied by
+ * the attempt number). Only transient failures are retried: a 401 or a
+ * rejected token would spend three times the quota to reach the same answer.
+ */
+const UPSTREAM_MAX_ATTEMPTS = 3;
+const UPSTREAM_RETRY_BASE_MS = 250;
+
+/** The errors worth a second try: rate limits, 5xx, timeouts and dead sockets. */
+function isRetryable(error: unknown): boolean {
+  if (error instanceof NewsApiError) return error.kind !== 'auth';
+  // A thrown error from `fetch` is a network or timeout failure, not an answer.
+  return error instanceof Error;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Runs `fn`, retrying transient upstream failures with a linear backoff.
+ *
+ * Retryable failures here are exactly the ones that produce a 502 for the
+ * visitor (a 429 from The News API, a 5xx from Wikipedia, a socket that never
+ * answered), so this is what keeps a momentary upstream wobble from emptying
+ * the widget.
+ */
+async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= UPSTREAM_MAX_ATTEMPTS; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt === UPSTREAM_MAX_ATTEMPTS || !isRetryable(error)) throw error;
+      await sleep(UPSTREAM_RETRY_BASE_MS * attempt);
+    }
+  }
+  throw lastError;
 }
 
 const CORS_HEADERS = {
@@ -197,17 +267,29 @@ export async function fetchWikipediaTopPages(
     return `https://wikimedia.org/api/rest_v1/metrics/pageviews/top-per-article/en.wikipedia.org/all-access/all-agents/${year}/${month}/${day}`;
   };
 
-  let res = await fetchImpl(url(date), { headers: { 'User-Agent': WIKI_USER_AGENT } });
-  // Yesterday's ranking is usually published a few hours into the UTC day;
-  // before then the API answers 404, so fall back to the day before.
-  if (res.status === 404) {
-    const earlier = new Date(date);
-    earlier.setUTCDate(earlier.getUTCDate() - 1);
-    res = await fetchImpl(url(earlier), { headers: { 'User-Agent': WIKI_USER_AGENT } });
-  }
-  if (!res.ok) {
-    throw new Error(`Failed to fetch Wikipedia top pages: ${res.status}`);
-  }
+  // The whole request, not just the socket, is inside the retry: a 503 is
+  // returned as a perfectly good response, so retrying around `fetch` alone
+  // would never see it.
+  const res = await withRetry(async () => {
+    const first = await fetchImpl(url(date), {
+      headers: { 'User-Agent': WIKI_USER_AGENT },
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+    });
+    // Yesterday's ranking is usually published a few hours into the UTC day;
+    // before then the API answers 404, so fall back to the day before.
+    if (first.status === 404) {
+      const earlier = new Date(date);
+      earlier.setUTCDate(earlier.getUTCDate() - 1);
+      return fetchImpl(url(earlier), {
+        headers: { 'User-Agent': WIKI_USER_AGENT },
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+      });
+    }
+    if (!first.ok) {
+      throw new Error(`Failed to fetch Wikipedia top pages: ${first.status}`);
+    }
+    return first;
+  });
 
   type Entry = { article: string; views: number; rank?: number };
   const data = (await res.json()) as { items?: Array<Entry | { articles?: Entry[] }> };
@@ -256,23 +338,30 @@ export async function searchNewsForTopic(
   url.searchParams.set('language', 'en');
   url.searchParams.set('limit', String(limit));
 
-  const res = await fetchImpl(url.toString());
-  let data: { data?: NewsApiArticle[]; error?: { code?: string; message?: string } } = {};
-  try {
-    data = (await res.json()) as typeof data;
-  } catch {
-    // Non-JSON body; fall through with what the status says.
-  }
-  if (!res.ok || data.error) {
-    const code = data.error?.code;
-    const message = data.error?.message ?? `HTTP ${res.status}`;
-    throw new NewsApiError(
-      `The News API: ${message}${code ? ` (${code})` : ''}`,
-      res.status,
-      code
-    );
-  }
-  return data.data ?? [];
+  // Retried around the status check as well as the socket: The News API
+  // reports a rate limit as a normal 429 response, so a retry that only
+  // wrapped `fetch` would return the 429 to the caller on the first attempt.
+  return withRetry(async () => {
+    const res = await fetchImpl(url.toString(), {
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+    });
+    let data: { data?: NewsApiArticle[]; error?: { code?: string; message?: string } } = {};
+    try {
+      data = (await res.json()) as typeof data;
+    } catch {
+      // Non-JSON body; fall through with what the status says.
+    }
+    if (!res.ok || data.error) {
+      const code = data.error?.code;
+      const message = data.error?.message ?? `HTTP ${res.status}`;
+      throw new NewsApiError(
+        `The News API: ${message}${code ? ` (${code})` : ''}`,
+        res.status,
+        code
+      );
+    }
+    return data.data ?? [];
+  });
 }
 
 /**
@@ -485,7 +574,10 @@ export async function handleTrendingNewsRequest(
     // A News API failure (bad key, quota) is the actionable part — say that,
     // rather than blaming the step that happened to be running.
     if (e instanceof NewsApiError) {
-      return jsonResponse({ error: e.message, code: e.code, upstream_status: e.status }, 502);
+      return jsonResponse(
+        { error: e.message, code: e.code, upstream_status: e.status, kind: e.kind },
+        502
+      );
     }
     return jsonResponse(
       {
