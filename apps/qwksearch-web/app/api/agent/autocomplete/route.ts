@@ -1,4 +1,4 @@
-import { createAutocompleteHandler } from "research-agent-ui/api";
+import { createAutocompleteHandler } from "search-autocomplete/server";
 import { withCors, corsPreflight } from "@/lib/cors";
 
 const handler = createAutocompleteHandler();

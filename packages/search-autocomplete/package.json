@@ -1,0 +1,80 @@
+{
+  "name": "search-autocomplete",
+  "description": "Search box with query autocomplete from the single fastest search engine, site suggestions from a ranked domain list, and a benchmark that picks the engine",
+  "version": "0.1.0",
+  "author": "vtempest",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/search-autocomplete"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.cjs"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "scripts",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "vite build && tsc --project tsconfig.build.json",
+    "benchmark": "bun scripts/benchmark.ts",
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "bun run build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "autocomplete",
+    "search-box",
+    "search-suggestions",
+    "query-completion",
+    "benchmark",
+    "react"
+  ],
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "dependencies": {
+    "domain-rank": "workspace:*",
+    "fuse.js": "^7.5.0",
+    "lucide-react": "^1.43.0",
+    "motion": "^13.2.0",
+    "tldts": "^7.4.12"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.5.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.0.0",
+    "jsdom": "^30.0.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
+  },
+  "license": "rights.institute/PROSPER"
+}

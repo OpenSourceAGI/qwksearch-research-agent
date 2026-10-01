@@ -27,11 +27,15 @@ import type {
 const STORED_ARTICLES_PER_TOPIC = 20;
 
 /**
- * Rows written in one statement. D1 binds parameters per statement and each
- * article is eleven of them, so a 25-topic fetch has to be chunked rather than
- * sent as one 500-row insert.
+ * D1 refuses a statement with more than 100 bound parameters, and Drizzle
+ * binds ten per article (every column but the `null` id and the defaulted
+ * `first_seen_at`). The old chunk of 25 rows was 250 parameters, so every
+ * write failed — silently, since `storeTrendingNews` swallows errors — and
+ * the archive stayed empty in production.
  */
-const INSERT_CHUNK = 25;
+const D1_MAX_BOUND_PARAMETERS = 100;
+const BOUND_PARAMETERS_PER_ROW = 10;
+export const INSERT_CHUNK = Math.floor(D1_MAX_BOUND_PARAMETERS / BOUND_PARAMETERS_PER_ROW);
 
 type StorableArticle = {
   topic: string;

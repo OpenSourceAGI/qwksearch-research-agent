@@ -188,6 +188,16 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           DEPLOY_ENV: ${{ inputs.environment }}
         run: |
+          # Secrets pasted into the GitHub UI often carry a trailing newline
+          # or spaces, and wrangler rejects an account ID containing them.
+          CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "${CLOUDFLARE_ACCOUNT_ID}" | tr -d '[:space:]')"
+          CLOUDFLARE_API_KEY="$(printf '%s' "${CLOUDFLARE_API_KEY}" | tr -d '[:space:]')"
+          CLOUDFLARE_EMAIL="$(printf '%s' "${CLOUDFLARE_EMAIL}" | tr -d '[:space:]')"
+          export CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_API_KEY CLOUDFLARE_EMAIL
+          if [[ -z "${CLOUDFLARE_ACCOUNT_ID}" ]]; then
+            echo "::error::CLOUDFLARE_ACCOUNT_ID secret is empty."
+            exit 1
+          fi
           if [[ -n "${DEPLOY_ENV}" ]]; then
             bunx wrangler deploy --env "${DEPLOY_ENV}"
           else

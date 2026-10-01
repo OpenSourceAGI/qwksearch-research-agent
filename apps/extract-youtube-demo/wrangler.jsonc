@@ -1,0 +1,30 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "extract-youtube-demo",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // Wrangler deletes plaintext Variables set in the Cloudflare dashboard on
+  // every deploy unless keep_vars is set. Secrets are never deleted.
+  "keep_vars": true,
+  "assets": {
+    // Unknown paths get index.html, so the SPA's own tabs survive a reload.
+    "not_found_handling": "single-page-application",
+    // Only the API reaches the Worker; everything else (the app, /storybook/)
+    // is served straight from dist/client without invoking it.
+    "run_worker_first": ["/api/*"]
+  },
+  // Optional, all of them. With none set the demo runs as a sandbox: an
+  // in-memory library per isolate that anyone can edit, reset on redeploy.
+  //
+  //   wrangler secret put ADMIN_TOKEN      – require this bearer token to edit
+  //   wrangler secret put YOUTUBE_API_KEY  – enables Resync and richer Auto-fill
+  //
+  // To keep the library in D1 instead, create a database and bind it as DB:
+  //
+  //   wrangler d1 create extract-youtube-demo
+  //   "d1_databases": [{ "binding": "DB", "database_name": "extract-youtube-demo", "database_id": "<id>" }]
+  //
+  // The Worker creates its tables on first request. A D1-backed library with
+  // no ADMIN_TOKEN is read-only, so a public deploy is never open to edits.
+}

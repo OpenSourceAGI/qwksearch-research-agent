@@ -50,6 +50,11 @@ it belongs in a package.
   never seen by the other ones, so a toggle appears to work and then reverts.
   `lib/news/settings.ts` (one row in `news_widget_settings`, edited from
   `/admin/news`) is the pattern to copy.
+- **Everything `app/globals.css` imports is on every page's critical path.** It
+  is render-blocking CSS for the whole site, so a remote `@import url(...)` or a
+  package stylesheet with inlined fonts slows every first paint. Google Fonts
+  load from `app/layout.tsx` instead (`lib/fonts/google-fonts.ts`), and the
+  build strips any Google Fonts `@import` a dependency brings in.
 - The `test-web-api.yml` workflow is path-filtered to this app and two packages;
   a change elsewhere won't run it.
 

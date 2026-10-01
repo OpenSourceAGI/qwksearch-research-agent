@@ -1,0 +1,124 @@
+---
+title: Proxies
+description: Keep fetching when YouTube rate-limits your server — generic proxies, Webshare residential IPs, and fetch-through proxies on edge runtimes.
+icon: Shield
+---
+
+YouTube rate-limits and bot-checks server IPs. A datacenter IP that has been fetching transcripts for a while starts getting `LOGIN_REQUIRED` / "Sign in to confirm you're not a bot" instead of caption tracks — which surfaces from this package as `IpBlocked` / `RequestBlocked`. Routing the fetcher through a proxy (ideally a rotating residential one) is the fix.
+
+There are three ways in, depending on where the fetcher runs.
+
+## 1. Node, Bun, Lambda: `proxyConfig`
+
+`YouTubeTranscriptApi` takes a `proxyConfig`. Everything it fetches — the InnerTube/watch requests *and* the caption track downloads — then goes through the proxy.
+
+### Any HTTP/HTTPS/SOCKS proxy
+
+```ts
+import { YouTubeTranscriptApi, GenericProxyConfig } from 'extract-youtube';
+
+const api = new YouTubeTranscriptApi({
+  proxyConfig: new GenericProxyConfig({
+    httpUrl: 'http://user:pass@proxy.example.com:8080',
+    httpsUrl: 'http://user:pass@proxy.example.com:8080',
+  }),
+});
+
+const transcript = await api.fetchTranscript('jNQXAC9IVRw');
+```
+
+Only one of the two URLs is required — whichever you give is used for both schemes. Credentials go in the URL's userinfo, so URL-encode a password containing `@` or `:`.
+
+### Webshare rotating residential proxies
+
+The most reliable option, and the one the config class is tuned for: buy a **Residential** package (not "Proxy Server", not "Static Residential"), then pass the *proxy* username and password from [the Webshare proxy settings](https://dashboard.webshare.io/proxy/settings):
+
+```ts
+import { YouTubeTranscriptApi, WebshareProxyConfig } from 'extract-youtube';
+
+const api = new YouTubeTranscriptApi({
+  proxyConfig: new WebshareProxyConfig({
+    proxyUsername: process.env.WEBSHARE_PROXY_USERNAME!,
+    proxyPassword: process.env.WEBSHARE_PROXY_PASSWORD!,
+    // Optional: restrict the IP pool to given countries — lower latency, and
+    // it works around location-based restrictions.
+    filterIpLocations: ['us', 'de'],
+    // Optional: a blocked IP is retried this many times, and each retry
+    // rotates to a different IP. Defaults to 10.
+    retriesWhenBlocked: 10,
+  }),
+});
+```
+
+`WebshareProxyConfig` appends `-rotate` to the username itself, so pass the plain username — with or without the suffix, both work.
+
+### From the CLI
+
+```bash
+# Generic proxy
+extract-youtube jNQXAC9IVRw --proxy http://user:pass@proxy.example.com:8080
+
+# Webshare residential
+extract-youtube jNQXAC9IVRw \
+  --webshare-user "$WEBSHARE_PROXY_USERNAME" \
+  --webshare-pass "$WEBSHARE_PROXY_PASSWORD"
+```
+
+Nothing reads proxy settings from the environment on its own. To drive the library from env vars, build the config yourself:
+
+```ts
+const proxyUrl = process.env.YOUTUBE_PROXY_URL;
+const api = new YouTubeTranscriptApi({
+  proxyConfig: proxyUrl ? new GenericProxyConfig({ httpUrl: proxyUrl }) : undefined,
+});
+```
+
+## 2. Cloudflare Workers and Vercel Edge: a custom `httpClient`
+
+`proxyConfig` works by attaching an [`https-proxy-agent`](https://www.npmjs.com/package/https-proxy-agent) to each request. Agents are a Node socket-level feature — edge runtimes have no `net`/`tls` and ignore the `agent` option entirely, so **on Workers a `proxyConfig` silently fetches direct**.
+
+What works there is a *fetch-through* proxy: an HTTP endpoint that takes the target URL and fetches it for you (Bright Data, ScrapingBee and ScraperAPI all offer this shape, and it is about fifteen lines to run your own on another Worker or a small VPS). Inject it as the API's `httpClient` — that interface is the seam the package fetches through:
+
+```ts
+import { YouTubeTranscriptApi, type HttpClient } from 'extract-youtube';
+
+/** Sends every request through a fetch-through proxy endpoint. */
+class ProxiedHttpClient implements HttpClient {
+  constructor(
+    private endpoint: string,
+    private apiKey: string,
+  ) {}
+
+  private proxied(url: string): string {
+    return `${this.endpoint}?api_key=${this.apiKey}&url=${encodeURIComponent(url)}`;
+  }
+
+  get(url: string, options?: RequestInit) {
+    return fetch(this.proxied(url), { ...options, method: 'GET' });
+  }
+
+  post(url: string, options?: RequestInit) {
+    return fetch(this.proxied(url), { ...options, method: 'POST' });
+  }
+}
+
+const api = new YouTubeTranscriptApi({
+  httpClient: new ProxiedHttpClient(env.PROXY_ENDPOINT, env.PROXY_API_KEY),
+});
+```
+
+A proxy endpoint has to preserve two things for this to work: the request method and body (the InnerTube calls are POSTs with a JSON body), and the response body verbatim (caption payloads are JSON or XML, not HTML — a proxy that "renders" pages hands back the wrong thing).
+
+## 3. Put your own cache in front
+
+A proxy costs money per request, so don't spend one on a video you already have. Cache transcripts keyed by `videoId` (plus language, if you fetch more than one) in whatever store the app already has — a database table, KV, R2 — and only fall through to the fetcher on a miss. Two consequences worth planning for:
+
+- **Cache the negative case too, briefly.** A video genuinely without captions will never grow them on a retry, but a bot-check failure is transient. Store "no captions" for hours and a rate-limit failure for minutes at most, so a bad afternoon doesn't get baked in.
+- **Retry blocked requests, not missing ones.** `retriesWhenBlocked` only rotates IPs for requests that were *blocked*; a video with no caption tracks fails immediately and no proxy will change that.
+
+## When it still fails
+
+`IpBlocked` / `RequestBlocked` with a proxy configured means one of two things:
+
+- **The proxy's IP is blocked too.** Datacenter proxies get burned quickly; rotating residential IPs are what actually hold up.
+- **The proxy was never used.** On an edge runtime `proxyConfig` is ignored outright (section 2). Elsewhere, the fastest check is from the other side — point the same proxy URL at an IP-echo service with plain `curl -x` and confirm it answers with the proxy's IP, not the machine's.

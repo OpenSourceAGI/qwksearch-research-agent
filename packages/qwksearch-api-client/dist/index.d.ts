@@ -423,7 +423,7 @@ export declare type AutocompleteData = {
         q: string;
         locale?: string;
         /**
-         * Comma-separated: google, ddg, wikipedia
+         * Suggest engine to use (google, bing, duckduckgo/ddg, wikipedia, brave, …). Only the first of a comma-separated list is asked; omit for the server's benchmarked default.
          */
         backends?: string;
         limit?: number;

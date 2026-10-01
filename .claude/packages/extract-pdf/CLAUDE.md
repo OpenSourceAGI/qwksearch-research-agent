@@ -16,6 +16,9 @@ documents. Published; built.
   through it; don't silently skip it for a scanned one.
 - Hostile and corrupt PDFs are expected input: encrypted, truncated, with broken
   xref tables, or built to expand pathologically. Fail diagnosably.
+- **`docling-space/` is not published.** It is the Hugging Face Docker Space
+  for the OCR model, pushed to the Space by hand. Its `server/model.js` is a
+  copy of `server/model.js`; change both (a test compares them).
 - This package is a **coverage-build dependency** in CI — it is one of the
   packages the coverage jobs build first.
 

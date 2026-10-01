@@ -17,13 +17,12 @@
  *    fetch and read back when the upstream fails. The News API is metered and
  *    third-party: without the archive a missing key or a 429 turns the
  *    homepage card into a blank space.
- *
- * The last two are what keep a 502 off the page. When the upstream refuses, a
- * request that has any good answer behind it — the archive, or the KV
- * "last good" copy — is served that answer marked `stale`; a 502 is only
- * reported when there is genuinely nothing to show. Concurrent cold requests
- * share one upstream fetch, so a cache miss cannot stampede the API into the
- * rate limit that caused it.
+ * 4. **A last-good copy in KV**, kept for as long as the archive would serve
+ *    an answer. It is the fallback when the archive has nothing — its table
+ *    not yet migrated, or D1 unreachable. On 2026-09-30 production answered
+ *    502 for exactly that reason: every News API search failed and
+ *    `news_articles` had never been created, so there was nothing to fall
+ *    back to.
  */
 import {
   fetchWikipediaTopPages,
@@ -58,6 +57,13 @@ const STALE_TTL_SECONDS = 7 * 24 * 60 * 60;
  * week-old headline presented as news is worse than an absent widget.
  */
 const FALLBACK_MAX_AGE_DAYS = 7;
+
+/** Where the last successful answer for a cache key is kept (see step 4 above). */
+const LAST_GOOD_PREFIX = "trending-news:last-good:v2:";
+
+function lastGoodKey(key: string): string {
+  return LAST_GOOD_PREFIX + key.slice(CACHE_PREFIX.length);
+}
 
 /**
  * How long a failed upstream keeps its failure cached, in seconds.
@@ -272,14 +278,11 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
     if (kv) {
       try {
         await kv.put(key, body, { expirationTtl: cacheSeconds });
-        // The long-lived copy that a failed refresh falls back to. Written on
-        // every success, so it tracks the newest good answer rather than
-        // whichever one happened to be fetched first.
-        await kv.put(staleKey, body, { expirationTtl: STALE_TTL_SECONDS });
-        // A success ends the cooldown: without this the marker would outlive
-        // the upstream outage it describes and delay the *next* refresh by up
-        // to its TTL.
-        if (typeof kv.delete === "function") await kv.delete(failKey);
+        if (!singleTopic) {
+          await kv.put(lastGoodKey(key), body, {
+            expirationTtl: FALLBACK_MAX_AGE_DAYS * 24 * 60 * 60,
+          });
+        }
       } catch (error) {
         console.error("Trending news cache write failed:", error);
       }
@@ -297,6 +300,22 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
       await kv.put(failKey, "1", { expirationTtl: FAILURE_TTL_SECONDS });
     } catch (error) {
       console.error("Trending news failure marker write failed:", error);
+    }
+
+    if (kv) {
+      try {
+        const lastGood = await kv.get(lastGoodKey(key));
+        if (lastGood) {
+          return jsonResponse(
+            JSON.stringify({ ...JSON.parse(lastGood), stale: true }),
+            200,
+            "STORED",
+            0,
+          );
+        }
+      } catch (error) {
+        console.error("Trending news last-good read failed:", error);
+      }
     }
   }
 

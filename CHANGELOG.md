@@ -1,7 +1,3 @@
-# Changelog
-
-Commit counts are commits authored that month on the default branch, merge commits included. Each month is a bullet list, one bullet per change.
-
 # MVP Phase (2026)
 
 ## September 2026 — 72 commits
@@ -125,7 +121,7 @@ Commit counts are commits authored that month on the default branch, merge commi
 - Improved **Cloudflare Workers** configuration.
 
 
-# Prototype Phase (2024)
+# Prototype Phase (2024) [Demo](https://web.archive.org/web/20241216043527/http://qwksearch.com/)
 
 ## December 2024 — 6 commits
 

@@ -5,9 +5,11 @@ import { readFileSync } from 'fs';
 // Read package.json for external dependencies
 const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 
-// Check which entry we're building: the CLI, the React modal, or the main library
+// Check which entry we're building: the CLI, the React components, the video
+// library (`extract-youtube/library`), or the main transcript library
 const buildCli = process.env.BUILD_CLI === 'true';
 const buildReact = process.env.BUILD_REACT === 'true';
+const buildLibrary = process.env.BUILD_LIBRARY === 'true';
 
 const libEntry = buildCli
   ? {
@@ -23,7 +25,15 @@ const libEntry = buildCli
         formats: ['es', 'cjs'] as const,
         fileName: (format: string) => `react/index.${format === 'es' ? 'mjs' : 'cjs'}`,
       }
-    : {
+    : buildLibrary
+      ? {
+          // No dependencies at all — plain fetch and SQL — so nothing to externalize.
+          entry: resolve(__dirname, 'src/library/index.ts'),
+          name: 'ExtractYoutubeLibrary',
+          formats: ['es', 'cjs'] as const,
+          fileName: (format: string) => `library/index.${format === 'es' ? 'mjs' : 'cjs'}`,
+        }
+      : {
         entry: resolve(__dirname, 'src/index.ts'),
         name: 'YouTubeTranscriptApi',
         formats: ['es', 'cjs'] as const,
@@ -45,7 +55,9 @@ export default defineConfig({
       // under require(); bundling its ESM source avoids the broken entry.
       external: buildReact
         ? ['react', 'react-dom', 'react/jsx-runtime', 'lucide-react']
-        : [
+        : buildLibrary
+          ? []
+          : [
             ...Object.keys(pkg.dependencies || {}).filter((d) => d !== 'grab-url'),
             'node:http',
             'node:https',

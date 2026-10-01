@@ -1,0 +1,64 @@
+---
+title: Transcript modal
+description: A popout modal with the video on one side and a transcript that highlights and scrolls with playback on the other.
+icon: Captions
+---
+
+`<YouTubeTranscriptModal />` opens a modal with the video on the left and the transcript on the right. The current line highlights and scrolls into view as the video plays; click any line to seek to it.
+
+```tsx
+import { YouTubeTranscriptModal } from 'extract-youtube/react';
+import { extractVideoId } from 'extract-youtube';
+
+function VideoCard({ url, title }: { url: string; title: string }) {
+  const videoId = extractVideoId(url);
+  if (!videoId) return null;
+
+  return <YouTubeTranscriptModal videoId={videoId} title={title} transcriptUrl="/api/transcript" />;
+}
+```
+
+By default it renders a small captions-icon button that opens the modal. Pass `trigger` to open it from your own element instead.
+
+## Props
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `videoId` | `string` | **Required.** The YouTube video ID — not a full URL; run it through `extractVideoId` first if needed. |
+| `title` | `string` | Shown in the modal header and used as the iframe's accessible title. |
+| `transcriptUrl` | `string` | Your backend endpoint. Fetched when the modal opens; `videoId` is appended as a query parameter if not already present. |
+| `fetchTranscript` | `(videoId: string) => Promise<{ snippets, error? }>` | Load the transcript some other way, e.g. from a React Query cache. |
+| `snippets` | `TranscriptSnippet[]` | Pass transcript data directly and skip fetching — e.g. when you already loaded it on the server. |
+| `trigger` | `ReactNode` | A custom element that opens the modal on click. |
+| `onOpenChange` | `(open: boolean) => void` | Called whenever the modal opens or closes. |
+
+## Where the transcript comes from
+
+Exactly one of these, checked in this order:
+
+1. `snippets` — used as-is, no request.
+2. `fetchTranscript(videoId)` — your own loader.
+3. `transcriptUrl` — a `GET` to your endpoint, which returns `{ snippets }` or `{ snippets: [], error }`.
+
+The endpoint is the same one the [floating player](/docs/react/floating-player#captions-need-a-server-endpoint) uses; see that page for a Next.js route handler, or [Deploy to Cloudflare](/docs/deploy-cloudflare) for a Worker.
+
+## Pre-loaded transcripts
+
+If you render on the server and already have the transcript, hand it over and the modal never makes a request:
+
+```tsx
+import { YouTubeTranscriptApi } from 'extract-youtube';
+import { YouTubeTranscriptModal } from 'extract-youtube/react';
+
+export default async function Page() {
+  const transcript = await new YouTubeTranscriptApi().fetchTranscript('jNQXAC9IVRw');
+
+  return (
+    <YouTubeTranscriptModal
+      videoId="jNQXAC9IVRw"
+      title="Me at the zoo"
+      snippets={transcript.toRawData()}
+    />
+  );
+}
+```

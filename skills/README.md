@@ -53,7 +53,7 @@ npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent 
 | [ask-searxng-search](./ask-searxng-search/SKILL.md) | `searxng-search-cloudflare` | A private SearXNG instance: settings, JSON output, engine flags |
 | [ask-extract-webpage](./ask-extract-webpage/SKILL.md) | `extract-webpage` | URL → cited article, scraping, Readability/Mercury, SEEKTOPIC, tokenizers |
 | [ask-extract-pdf](./ask-extract-pdf/SKILL.md) | `extract-pdf` | PDF → structured HTML, the `method`/`processor` switches, Docling OCR |
-| [ask-extract-youtube](./ask-extract-youtube/SKILL.md) | `extract-youtube` | Transcripts without a browser, proxies for IP bans, formatters, the CLI |
+| [ask-extract-youtube](./ask-extract-youtube/SKILL.md) | `extract-youtube` | Transcripts without a browser, proxies for IP bans, formatters, the CLI, the video library admin API and its grid and admin components |
 | [ask-domain-rank](./ask-domain-rank/SKILL.md) | `domain-rank` | Offline domain rank, source titles, favicons, URL parsing |
 | [ask-render-url-to-html](./ask-render-url-to-html/SKILL.md) | `render-url-to-html` | Self-hosted Puppeteer-stealth and JSDOM renderers |
 | [ask-html-renderer-api](./ask-html-renderer-api/SKILL.md) | `html-renderer-api` | The Cloudflare rendering Worker: sessions, cookies, challenge bypass |
@@ -79,6 +79,7 @@ npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent 
 | [ask-research-agent-ui](./ask-research-agent-ui/SKILL.md) | `research-agent-ui` | The chat/search UI, the two entry points, providers, API handler factories |
 | [ask-reason-editor](./ask-reason-editor/SKILL.md) | `react-reason-editor` | The document editor: Plate vs Tiptap, `ReasonDocs`, 59 extensions, locales |
 | [ask-reason-editor-sidebar](./ask-reason-editor-sidebar/SKILL.md) | `react-reason-editor-sidebar` | File tree, open tabs, outline, split view, file-source backends |
+| [ask-search-autocomplete](./ask-search-autocomplete/SKILL.md) | `search-autocomplete` | The search box, single-engine autocomplete, the engine benchmark |
 | [ask-shadcn-app-dock](./ask-shadcn-app-dock/SKILL.md) | `shadcn-app-dock` | The dock, its dropdown render prop, the shadcn theme switcher |
 | [ask-shadcn-settings](./ask-shadcn-settings/SKILL.md) | `shadcn-settings` | Schema-driven settings forms and custom field renderers |
 | [ask-use-voice-control](./ask-use-voice-control/SKILL.md) | `use-voice-control` | TTS/STT/read-aloud, the five subpath entries, the CLI |

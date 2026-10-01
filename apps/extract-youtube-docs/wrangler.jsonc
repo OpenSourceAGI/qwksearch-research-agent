@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "extract-youtube-docs",
+  // vinext's App Router request handler. `vinext build` bundles it (through
+  // @cloudflare/vite-plugin) into dist/extract-youtube-docs/, and writes
+  // .wrangler/deploy/config.json so `wrangler deploy` / `wrangler dev` use
+  // the built output rather than this source config.
+  "main": "vinext/server/app-router-entry",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // Wrangler deletes plaintext Variables set in the Cloudflare dashboard on
+  // every deploy unless keep_vars is set (this config declares no `vars`).
+  // Secrets are never deleted either way. Top-level only.
+  "keep_vars": true,
+  "assets": {
+    "not_found_handling": "none",
+    "binding": "ASSETS"
+  }
+}

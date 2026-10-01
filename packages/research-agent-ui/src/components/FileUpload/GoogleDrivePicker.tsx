@@ -1,66 +1,69 @@
 /**
  * @fileoverview Hook that lazily loads the Google Picker API and exposes a function to open it.
  *
- * `useGooglePicker` loads the Google API client and Picker scripts on mount, then returns `openPicker`,
- * which lets the user select files from Google Drive using an OAuth access token.
+ * `useGooglePicker` returns `openPicker`, which loads the Google API client and Picker scripts the
+ * first time it is called, then lets the user select files from Google Drive using an OAuth access
+ * token.
  */
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { researchAgentUIConfig } from '../../config';
 
 // Type assertion helpers for Google APIs
 const getGapi = () => window.gapi as GapiAPI | undefined;
 const getGoogle = () => window.google as GoogleAPI | undefined;
 
+/**
+ * The two Google scripts used to load when the upload menu *mounted* — and the
+ * menu is part of the chat input, so every page view paid for two third-party
+ * scripts (and whatever they pull in) that only the rare Drive import uses.
+ * They now load on the first `openPicker` call; the promise is shared, and
+ * dropped on failure so the next attempt retries.
+ */
+let pickerApis: Promise<void> | null = null;
+
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Failed to load ${src}`));
+    document.body.appendChild(script);
+  });
+}
+
+function loadPickerApis(): Promise<void> {
+  if (getGapi() && getGoogle()?.picker) return Promise.resolve();
+  if (!pickerApis) {
+    // The Google API client library, then its picker module.
+    const gapiReady = (getGapi() ? Promise.resolve() : loadScript('https://apis.google.com/js/api.js')).then(
+      () => new Promise<void>((resolve) => getGapi()!.load('client:picker', () => resolve())),
+    );
+    // The Google Picker API.
+    const pickerReady = getGoogle()?.picker ? Promise.resolve() : loadScript('https://www.google.com/jsapi');
+    pickerApis = Promise.all([gapiReady, pickerReady]).then(() => undefined);
+    pickerApis.catch(() => {
+      pickerApis = null;
+    });
+  }
+  return pickerApis;
+}
 
 export const useGooglePicker = () => {
-  const pickerApiLoaded = useRef(false);
-  const gapiLoaded = useRef(false);
-
-  useEffect(() => {
-    // Load the Google API client library
-    const loadGapi = () => {
-      const script = document.createElement('script');
-      script.src = 'https://apis.google.com/js/api.js';
-      script.onload = () => {
-        getGapi()?.load('client:picker', () => {
-          gapiLoaded.current = true;
-        });
-      };
-      document.body.appendChild(script);
-    };
-
-    // Load the Google Picker API
-    const loadPicker = () => {
-      const script = document.createElement('script');
-      script.src = 'https://www.google.com/jsapi';
-      script.onload = () => {
-        pickerApiLoaded.current = true;
-      };
-      document.body.appendChild(script);
-    };
-
-    if (!getGapi()) {
-      loadGapi();
-    } else {
-      gapiLoaded.current = true;
-    }
-
-    if (!getGoogle()?.picker) {
-      loadPicker();
-    } else {
-      pickerApiLoaded.current = true;
-    }
-  }, []);
-
   const openPicker = async (
     accessToken: string,
     onFilesSelected: (files: google.picker.DocumentObject[]) => void,
     onError?: (error: string) => void
   ) => {
+    try {
+      await loadPickerApis();
+    } catch {
+      onError?.('Google Picker API could not be loaded. Please try again.');
+      return;
+    }
     const googleApi = getGoogle();
-    if (!gapiLoaded.current || !googleApi?.picker) {
+    if (!googleApi?.picker) {
       onError?.('Google Picker API not loaded yet. Please try again.');
       return;
     }

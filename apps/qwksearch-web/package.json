@@ -120,6 +120,7 @@
     "remark-gfm": "^4.0.1",
     "research-agent-ui": "workspace:*",
     "scroll-into-view-if-needed": "^3.1.0",
+    "search-autocomplete": "workspace:*",
     "search-web-api": "workspace:*",
     "shadcn-app-dock": "workspace:*",
     "shadcn-settings": "workspace:*",

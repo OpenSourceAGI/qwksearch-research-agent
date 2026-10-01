@@ -32,6 +32,7 @@ jobs:
           - { flag: react-weather-forecast, dir: packages/react-weather-forecast }
           - { flag: reason-editor, dir: packages/reason-editor }
           - { flag: research-agent-ui, dir: packages/research-agent-ui }
+          - { flag: search-autocomplete, dir: packages/search-autocomplete }
           - { flag: search-web-api, dir: packages/search-web-api }
           - { flag: shadcn-app-dock, dir: packages/shadcn-app-dock }
           - { flag: shadcn-settings, dir: packages/shadcn-settings }
@@ -88,6 +89,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: oven-sh/setup-bun@v2
+
+      # extract-youtube's jest suite runs its D1 library store against
+      # `node:sqlite`, which Node only ships from 22.5. Pin it rather than
+      # depend on whatever the runner image defaults to.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
       - name: Install dependencies
         run: bun install

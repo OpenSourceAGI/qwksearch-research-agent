@@ -138,7 +138,9 @@ requests **yesterday's** UTC date.
 - **Every successful fetch is written to `news_articles`**, and a failed upstream (no
   key, 429, outage) is served from there, marked `stale: true` with
   `X-Trending-News-Cache: STORED` and no `max-age` so the next request retries. Nothing
-  older than 7 days is served that way.
+  older than 7 days is served that way. When the archive has nothing (its migration not
+  applied, D1 down), the last successful answer kept in KV under
+  `trending-news:last-good:v2:*` for 7 days is served the same way.
 - **Reads degrade, writes report.** Every read path in `settings.ts`/`store.ts` returns
   a default or `null` on a database failure — the widget is decoration on a search
   page. `saveNewsWidgetSettings` is the exception: an admin has to know a change did
@@ -178,7 +180,7 @@ with the API's message, e.g. `The News API: An invalid API token was supplied.
 | Topics include "Main Page" or `Special:`/`Portal:` entries | The worker filters those with `NON_ARTICLE_TITLE`. Seeing them means an older deployment — redeploy. |
 | Stale data after changing the endpoint | The 10-minute cache is keyed by URL. `clearTrendingNewsCache()`. |
 | Nothing renders and no error | `data.topics` is empty — The News API returned nothing for those topics. An empty *daily* list is never cached in KV and falls back to the archive. |
-| 502 `The News API: …` | Every news search was refused. The message is the API's own — fix the key, plan or quota it names. |
+| 502 `The News API: …` | Every news search was refused and there was nothing stored to fall back to. The message is the API's own — fix the key, plan or quota it names. If it happens while headlines were served earlier, check that `0010_add_news_storage.sql` is applied (`bun run db:migrate:status`): without `news_articles` the archive fallback silently has nothing. |
 | The chevron does nothing | `expandable` only applies with `compact`. |
 | SSR crashes on `localStorage` | The cache guards on `typeof window`; the component is client-side. Mark the host boundary `'use client'`. |
 | CORS errors | The worker sets `Access-Control-Allow-Origin: *` and `Cache-Control: no-store`; a proxy in front may be stripping them. |

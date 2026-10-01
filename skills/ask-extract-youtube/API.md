@@ -79,8 +79,42 @@ Enums: `PlayabilityStatus`, `PlayabilityFailedReason`.
 
 ## React (`extract-youtube/react`)
 
-`YouTubeTranscriptModal`, `YouTubeTranscriptModalProps`, `TranscriptSnippet`.
 Peers: `react`, `react-dom`, `lucide-react`.
+
+| Group | Exports |
+| --- | --- |
+| Transcript modal | `YouTubeTranscriptModal`, `YouTubeTranscriptModalProps`, `loadTranscript`, `useTranscript`, `formatTime`, `groupIntoSentences`, `TranscriptSnippet`, `TranscriptSource` |
+| Floating player | `FloatingYouTubePlayer`, `youtubePlayer`, `usePlayerState`, `usePlayerSelector`, `getPlayerState`, `sendPlayerCommand`, `buildEmbedUrl`, `watchUrl`, `thumbnailUrl`, `describePlayerError`, `PlayerVideo`, `PlayerState`, `PlayerControlContext` |
+| Grid | `VideoCard`, `StackedVideoCard`, `StackNav`, `defaultStackLabel`, `VideoGrid`, `VideoList`, `HideConfirm`, `useVideoLibrary`, `useResizableColumns`, `ColumnResizeHandle`, `GridStylesProvider`, `GRID_STYLES` |
+| Grid helpers | `formatViewCount`, `formatVideoDate`, `formatCustomValue` (badge text), `formatCustomCell` (table cell), `toPlayerVideo`, `thumbnailFor`, `groupByYear`, `groupByChannel`, `groupByCategory`, `groupByCustomField` |
+| Admin | `VideoLibraryAdmin` (`client`, `customFields?`, `pageSize` 25, `hideMaintenance`, `onChange`), `VideoEditDialog` (`client`, `video \| null`, `customFields`, `categories`, `onClose`, `onSaved`), `CustomFieldInput` (`def`, `value`, `onChange`), `VideoAvailabilityPanel` (`client`, `limit` 100, `onChange`) |
+
+`VideoActionProps` (shared by card, grid, list): `favorites`, `hidden`,
+`onToggleFavorite`, `onHide`, `onUnhide`, `onPlay`, `showQueueButton`,
+`showYouTubeLink`, `onBadgeClick`, `customFields`, `getProgress`, `renderActions`,
+`transcriptUrl` / `fetchTranscript`.
+
+## Library (`extract-youtube/library`)
+
+No React, no Node built-ins.
+
+| Area | Exports |
+| --- | --- |
+| Types | `LibraryVideo`, `VideoItem`, `CustomFieldDef` (`key`, `label`, `type`: text/textarea/number/boolean/url/select, `options`, `help`, `searchable`, `showOnCard`, `showInList`), `LibraryQuery`, `LibraryPage`, `LibrarySort`, `LibraryVideoPatch`, `VideoAvailability`, `LibraryExclusion` |
+| Fields | `isVideoId`, `coerceCustomValue`, `mergeCustomFields`, `buildLibraryUpdate`, `buildNewLibraryVideo`, `normalizeLibraryVideo`, `searchTextFor`, `normalizeTags` |
+| Query | `parseLibraryQuery(URLSearchParams)`, `libraryQueryToParams`, `applyLibraryQuery` (reference semantics), `compareLibraryVideos`, `clampLimit` (25 default, 100 max) |
+| Stacks | `extractLinkedVideoIds`, `buildVideoStacks`, `assignVideoStacks`, `buildVideoSlots`, `stackKeyOf`, `collectStackKeys`, `MAX_LINKS_PER_DESCRIPTION` (8), `MAX_STACK_SIZE` (12) |
+| Tree | `buildVideoTree`, `resolveGroupers`, `BUILT_IN_GROUPERS`, `groupBy*`, `videoTreeDepth`, `sortVideoTreeLeaves`, `countVideoTreeLeaves`, `groupKeysFromDepth`, `UNGROUPED_LABEL` |
+| Stores | `createMemoryLibraryStore({ seed, customFields })`, `createD1LibraryStore(db, { tablePrefix = 'eyt_' })` + `ensureSchema()`, `librarySchemaSql(prefix)`, `VideoLibraryStore`, `D1DatabaseLike` |
+| Operations | `createLibraryVideo`, `updateLibraryVideo`, `deleteLibraryVideo`, `importLibraryVideos`, `recomputeStacks`, `resyncLibrary`, `resyncQuotaCost`, `autofillVideo` |
+| YouTube | `fetchYouTubeMetadata` (Data API, 50 per call), `classifyAvailability`, `fetchYouTubeOEmbed`, `YouTubeDataApiError` |
+| HTTP | `createVideoLibraryHandler({ store, basePath = '/api/library', authorize, customFields, youtubeApiKey, suggest, fetch, onError })` → `{ handle, fetch }`, `bearerTokenAuth(token)`, `json()` |
+| Client | `createLibraryClient({ baseUrl, headers, fetch })`, `createLocalLibraryClient({ store, customFields, latencyMs })`, `LibraryApiError` (`status`) |
+
+Routes (under `basePath`): public `GET /videos`, `/videos/:id`, `/stacks?keys=`,
+`/categories`, `/fields`, `/session`; admin `POST /videos`, `PATCH|DELETE /videos/:id`,
+`POST /autofill`, `GET|POST /resync`, `GET|POST /availability`, `POST /import`,
+`POST /stacks/recompute`, `GET /exclusions`, `DELETE /exclusions/:id`.
 
 ## CLI (`extract-youtube <video-id>`)
 
@@ -95,5 +129,5 @@ Peers: `react`, `react-dom`, `lucide-react`.
 
 ## Build
 
-`bun run build` = `clean` + `build:lib` + `build:cli` + `build:react` + `build:types`.
+`bun run build` = `clean` + `build:lib` + `build:cli` + `build:react` + `build:library` + `build:types`.
 Tests run under **jest** (`bun run test`), not vitest.

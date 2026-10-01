@@ -136,7 +136,7 @@
         "parameters": [
           { "name": "q", "in": "query", "required": true, "schema": { "type": "string" } },
           { "name": "locale", "in": "query", "schema": { "type": "string", "default": "en-US" } },
-          { "name": "backends", "in": "query", "description": "Comma-separated: google, ddg, wikipedia", "schema": { "type": "string" } },
+          { "name": "backends", "in": "query", "description": "Suggest engine to use (google, bing, duckduckgo/ddg, wikipedia, brave, …). Only the first of a comma-separated list is asked; omit for the server's benchmarked default.", "schema": { "type": "string" } },
           { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
         ],
         "responses": {

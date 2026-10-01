@@ -1,0 +1,110 @@
+---
+title: Admin components
+description: React screens for curating a video library. They cover a searchable admin table, an add and edit dialog with auto-fill, custom-field inputs and an availability panel.
+icon: ShieldCheck
+---
+
+The admin components drive the [library admin API](/docs/admin/library-api) through a `VideoLibraryClient`. They come from `extract-youtube/react`, style themselves like the [grid](/docs/react/video-grid), and follow dark mode.
+
+<Cards>
+  <Card title="Live demo" href="https://youtube.js.org/#admin" description="The admin tab runs these on a Worker, in sandbox mode." />
+  <Card title="Storybook" href="https://youtube.js.org/storybook/?path=/docs/admin-videolibraryadmin--docs" description="Each one with working in-memory data." />
+</Cards>
+
+## Wire up a client
+
+```tsx title="app/admin/page.tsx"
+'use client';
+
+import { createLibraryClient } from 'extract-youtube/library';
+import { VideoAvailabilityPanel, VideoLibraryAdmin } from 'extract-youtube/react';
+
+const client = createLibraryClient({
+  baseUrl: '/api/library',
+  // Sent with every request. Any auth your `authorize` hook checks works here.
+  headers: () => ({ authorization: `Bearer ${sessionStorage.getItem('admin-token') ?? ''}` }),
+});
+
+export default function AdminPage() {
+  return (
+    <>
+      <VideoLibraryAdmin client={client} />
+      <VideoAvailabilityPanel client={client} />
+    </>
+  );
+}
+```
+
+If your admin page runs behind a session cookie, a same-origin client needs no headers at all: the cookie rides along and `authorize` reads it.
+
+## `<VideoLibraryAdmin />`
+
+The whole library as a paged table, hidden videos included, with everything an editor needs.
+
+- **Filters**: search (debounced 250 ms), category, availability and "Top picks". Each is a query param on `GET /videos`.
+- **Sorting**: click Video, Published or Views. The first click sorts titles A→Z and the others newest or largest first.
+- **Row actions**: the star toggles `featured`. The pencil opens `<VideoEditDialog />`. The bin deletes after a confirm and records an exclusion, so an import will not bring the video back.
+- **Maintenance**: "Resync from YouTube" refreshes view counts and availability. It is disabled, with a tooltip, when the server has no `youtubeApiKey`, and its tooltip shows the quota cost. "Recompute stacks" rebuilds every stacked playlist.
+- Custom fields marked `showInList` get a column. Stack membership shows as a badge.
+
+| Prop | Default | |
+| --- | --- | --- |
+| `client` | required | A `VideoLibraryClient`. |
+| `customFields` | loaded from `GET /fields` | Pass them to skip the round trip. |
+| `pageSize` | `25` | Rows per page. |
+| `hideMaintenance` | `false` | Hide Resync and Recompute, for editors who should only edit. |
+| `onChange` | | Called after any successful write, to refresh other views. |
+| `className` | | For theming. |
+
+## `<VideoEditDialog />`
+
+The add and edit form, as a modal. `<VideoLibraryAdmin />` opens it for you. Use it directly to add videos from elsewhere in your app.
+
+```tsx
+<VideoEditDialog
+  client={client}
+  video={null} // null adds; a LibraryVideo edits
+  customFields={fields}
+  categories={['Talks', 'Tutorials']}
+  onClose={() => setOpen(false)}
+  onSaved={(video) => toast(`Saved ${video.title}`)}
+/>
+```
+
+- **Adding**: paste any YouTube URL (watch, youtu.be, embed, shorts, live) or an 11-character id. The id is extracted as you type.
+- **Auto-fill** calls `POST /autofill`: the Data API or oEmbed, then your `suggest` hook. Anything already typed in the form wins over what it finds. Warnings, such as "no API key, used oEmbed", show under the form.
+- **Editing** sends only the fields you changed, so an edit never overwrites a field someone else changed in the meantime. A saved edit marks the row `adminEdited`, so imports leave it alone.
+- **Fields**: title, channel, published date, category (with suggestions from `categories`), views, tags, description, featured, hidden, availability, and one input per custom field.
+- The server's validation message shows in the dialog when a save is refused, for example a duplicate id.
+
+## `<CustomFieldInput />`
+
+One input for one custom field, picked by its type. It is what the dialog renders under "Custom fields". Use it to put custom fields in a form of your own:
+
+```tsx
+<CustomFieldInput def={fields[0]} value={value} onChange={setValue} />
+```
+
+`value` is a string for text-like and number inputs and a boolean for checkboxes. The server does the final coercion. See [custom fields](/docs/admin/custom-fields#how-values-are-coerced).
+
+## `<VideoAvailabilityPanel />`
+
+Videos YouTube no longer plays, from `GET /availability`, with why and when each was last checked.
+
+- **Mark available** when a private video came back.
+- **Remove** deletes it from the library and records an exclusion.
+
+| Prop | Default | |
+| --- | --- | --- |
+| `client` | required | |
+| `limit` | `100` | Rows to load. |
+| `onChange` | | Called after a change. |
+
+## Permissions in the UI
+
+The components do not hide themselves from non-admins. They show the server's 403 as an error banner. Gate the admin page in your app, and use `client.session()` (`{ admin }`) to decide what to render:
+
+```tsx
+const { admin } = await client.session();
+if (!admin) return <SignIn />;
+```

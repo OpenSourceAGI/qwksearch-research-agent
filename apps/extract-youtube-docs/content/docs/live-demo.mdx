@@ -1,0 +1,72 @@
+---
+title: Live demo and Storybook
+description: The live demo is at youtube.js.org. It runs everything in the package on one Cloudflare Worker, with a Storybook of every React component at youtube.js.org/storybook.
+icon: MonitorPlay
+---
+
+<Cards>
+  <Card title="Open the live demo" href="https://youtube.js.org" description="The library grid and list, the admin screens, and the floating player with captions." />
+  <Card title="Open the Storybook" href="https://youtube.js.org/storybook/" description="58 stories across 11 components, each with a props table." />
+</Cards>
+
+The live demo is at **[youtube.js.org](https://youtube.js.org)**, and its Storybook is at **[youtube.js.org/storybook](https://youtube.js.org/storybook/)**.
+
+The demo lives in the monorepo at `apps/extract-youtube-demo`. It is one Cloudflare Worker that serves three things:
+
+| Path | What |
+| --- | --- |
+| `/` | A React app. The **Library** tab shows `<VideoGrid />` and `<VideoList />` over `useVideoLibrary()`. The **Admin** tab shows `<VideoLibraryAdmin />` and `<VideoAvailabilityPanel />`. `<FloatingYouTubePlayer />` is mounted once for both. |
+| `/api/transcript?videoId=` | `YouTubeTranscriptApi` from the main entry, answering the `{ snippets }` shape the player and transcript modal read. |
+| `/api/library/*` | `createVideoLibraryHandler` from `extract-youtube/library`, the whole admin API. |
+| `/storybook/` | The Storybook, built into the same static assets. |
+
+## Modes
+
+The Worker picks how open its library is from what is configured:
+
+| `ADMIN_TOKEN` secret | `DB` (D1) binding | Mode |
+| --- | --- | --- |
+| unset | unbound | **Sandbox.** Anyone can edit an in-memory copy of the library. It lives as long as the Worker isolate and resets on its own. |
+| set | either | **Token.** Paste the token on the Admin tab. The client sends it as a bearer token. |
+| unset | bound | **Read-only.** The library persists in D1, so nobody can edit it without a token. |
+
+`YOUTUBE_API_KEY`, when set, turns on Resync and richer auto-fill. Without it, auto-fill uses oEmbed for the title and channel.
+
+## Run it locally
+
+```bash
+bun install                      # from the monorepo root
+cd apps/extract-youtube-demo
+bun run dev                      # the app and the Worker, on one port
+bun run storybook                # Storybook on :6006
+```
+
+The demo imports the package from `packages/extract-youtube/src` through Vite aliases, so an edit to a component shows up on the next reload with no package build.
+
+## Deploy your own
+
+```bash
+cd apps/extract-youtube-demo
+bun run build                    # the app, the Worker, and the Storybook into dist/client/storybook
+bunx wrangler deploy
+```
+
+Then, optionally:
+
+```bash
+bunx wrangler secret put ADMIN_TOKEN
+bunx wrangler secret put YOUTUBE_API_KEY
+bunx wrangler d1 create extract-youtube-demo   # and add the binding to wrangler.jsonc as DB
+```
+
+A D1 library is seeded with the demo videos on its first request, and its tables are created then too.
+
+## The stories
+
+Stories live in `apps/extract-youtube-demo/stories`, one file per component. Each has a docs page built from the component's props and the descriptions in the file. The admin stories use `createLocalLibraryClient`, which runs the real handler in memory, so every button in them works.
+
+| Group | Components |
+| --- | --- |
+| Grid | `VideoCard`, `StackedVideoCard`, `StackNav`, `VideoGrid`, `VideoList` |
+| Admin | `VideoLibraryAdmin`, `VideoEditDialog`, `CustomFieldInput`, `VideoAvailabilityPanel` |
+| Player | `FloatingYouTubePlayer`, `YouTubeTranscriptModal` |

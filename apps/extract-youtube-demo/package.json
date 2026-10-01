@@ -1,0 +1,42 @@
+{
+  "name": "extract-youtube-demo",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Live demo of extract-youtube on Cloudflare Workers: the video grid, list and library admin screens over the library API, the floating player with synced captions, and a Storybook of every component served at /storybook/.",
+  "license": "rights.institute/PROSPER",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "apps/extract-youtube-demo"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && bun run build-storybook",
+    "build:app": "vite build",
+    "preview": "wrangler dev",
+    "deploy": "bun run build && wrangler deploy",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build --quiet -o dist/client/storybook",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "extract-youtube": "workspace:*",
+    "lucide-react": "^1.43.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.62.2",
+    "@storybook/addon-docs": "^10.6.0",
+    "@storybook/react-vite": "^10.6.0",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "storybook": "^10.6.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.2.2",
+    "wrangler": "^4.144.0"
+  }
+}

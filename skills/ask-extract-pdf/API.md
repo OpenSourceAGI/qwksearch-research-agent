@@ -35,6 +35,7 @@ Returns the HTML string (or an object, for the LiteParse paths).
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `processorUrl` | — | POST page images to `{url}/api/v1/convert-base64` instead of running locally |
+| `processorHeaders` | — | Extra headers for those requests, e.g. `{ "X-Docling-Token": "…", Authorization: "Bearer hf_…" }` |
 | `prompt` | `"Convert this page to docling."` | Model instruction |
 | `maxTokens` | `4096` | Tokens generated per page |
 | `scale` | `2` | Rasterization scale (1 = 72 DPI) |
@@ -80,6 +81,22 @@ Swagger UI, and its own `wrangler.jsonc` for deploying to Cloudflare.
 | `POST /api/v1/convert-base64` | Convert a base64 image — the endpoint `processorUrl` targets |
 
 Body fields: `imageUrl`/image data, `prompt`, `maxTokens`, `streaming`.
+
+## Hugging Face Space (`docling-space/`)
+
+The same model packaged as a Docker Space (port 7860), deployed on its own and not
+published to npm. `server/model.js` is copied into it; a test fails if they drift.
+
+| Route | Purpose |
+| --- | --- |
+| `GET /health` | `{ status, modelLoaded, busy, queueDepth, uptime }`, no auth, no model load |
+| `POST /api/v1/warmup` | Load the model now |
+| `POST /api/v1/convert`, `/api/v1/convert-base64` | One page image (`imageUrl` or `imageBase64`) → `result` |
+
+`output: "doctags"` (default, what `processorUrl` expects) or `"html"` (sanitized with
+`sanitize-html`). Auth is `X-Docling-Token` (or `Authorization: Bearer`) against the
+`DOCLING_API_TOKEN` secret; without the secret, production answers 503. One job runs
+at a time; past `DOCLING_MAX_QUEUE` (8) it answers 503 `BUSY`.
 
 ## Scripts
 

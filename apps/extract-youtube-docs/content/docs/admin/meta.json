@@ -1,0 +1,4 @@
+{
+  "title": "Admin",
+  "pages": ["library-api", "custom-fields", "admin-components"]
+}

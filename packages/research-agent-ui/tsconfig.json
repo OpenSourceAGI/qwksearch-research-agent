@@ -17,6 +17,9 @@
     "paths": {
       "chat-agent-toolkit": ["../chat-agent-toolkit/src/index.ts"],
       "chat-agent-toolkit/*": ["../chat-agent-toolkit/src/*"],
+      "search-autocomplete": ["../search-autocomplete/src/index.ts"],
+      "search-autocomplete/server": ["../search-autocomplete/src/server.ts"],
+      "search-autocomplete/react": ["../search-autocomplete/src/react/index.ts"],
       "search-web-api": ["../search-web-api/src/index.ts"],
       "search-web-api/*": ["../search-web-api/src/*"],
       "extract-webpage": ["../extract-webpage/src/index.ts"],

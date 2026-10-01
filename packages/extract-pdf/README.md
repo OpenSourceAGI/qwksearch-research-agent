@@ -1,7 +1,7 @@
 <!-- template-git-repo:badges:start -->
 <p align="center">
+    <img src="https://i.imgur.com/2ks47qa.png" /><br />
     <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
-    <br />
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
     <a href="https://www.npmjs.com/package/extract-pdf"><img src="https://img.shields.io/npm/dm/extract-pdf.svg" alt="NPM Monthly Downloads" /></a>
     <a href="https://www.npmjs.com/package/extract-pdf"><img src="https://img.shields.io/npm/v/extract-pdf.svg" alt="npm version" /></a>
@@ -37,6 +37,10 @@ For OCR-grade fidelity on pages with infographics, charts, and tables, the packa
 bun add extract-pdf
 ```
 
+## Cloudflare Workers demo
+
+[`demo/`](./demo) is a ready-to-deploy Worker with an upload page and a `/api/convert` JSON endpoint. Run it with `cd demo && npm install && npm run dev`, then deploy with `npm run deploy`. See [demo/README.md](./demo/README.md) for the full hosting guide: CI deploys, custom domains, CPU limits and hardening.
+
 ## Usage
 
 ```ts
@@ -60,7 +64,7 @@ const { html } = await convertPDFToHTML(buffer, { addPageNumbers: true });
 | `processor`       | `"frontend"`           | Where OCR happens — `"frontend"`, `"hybrid"`, `"docling"`, or a processor URL (see below)   |
 | `processorUrl`    | —                      | Remote docling-compatible API used by `"hybrid"`/`"docling"` instead of the in-process model |
 | `ocrScanOptions`  | `{}`                   | Threshold tuning for the hybrid page scan (`scanPagesForOCR`)                              |
-| `doclingOptions`  | `{}`                   | `prompt`, `maxTokens`, `scale` for the Docling OCR model                                   |
+| `doclingOptions`  | `{}`                   | `prompt`, `maxTokens`, `scale` for the Docling OCR model, and `processorHeaders` sent to `processorUrl` |
 
 ### Return value
 
@@ -176,6 +180,33 @@ bun run serve:docling   # or dev:docling for --watch; port 3000
 A `server/wrangler.jsonc` is included for deploying it as a Cloudflare Worker.
 Any deployment of it (or any API with the same contract) can be passed as the
 `processor`/`processorUrl` option above.
+
+### Hosting the processor on Hugging Face Spaces
+
+[`docling-space/`](./docling-space) packages the same model as a Hugging Face
+Docker Space: token auth, one generation at a time with a bounded queue, the
+model loaded lazily, and optional sanitized HTML output. Its README has the
+deploy steps. Send the Space's token (and, for a private Space, a Hugging Face
+read token) with `doclingOptions.processorHeaders`:
+
+```ts
+const { html } = await convertPDFToHTML(buffer, {
+  processor: "hybrid",
+  processorUrl: "https://YOUR_HF_USERNAME-extract-pdf-docling.hf.space",
+  doclingOptions: {
+    processorHeaders: {
+      "X-Docling-Token": process.env.DOCLING_API_TOKEN,
+      Authorization: `Bearer ${process.env.HF_SPACE_TOKEN}`, // private Space only
+    },
+    maxTokens: 1500,
+  },
+});
+```
+
+Hybrid mode still waits for every flagged page before it returns. To answer at
+once and enhance afterwards, run `processor: "frontend"`, return its HTML, and
+OCR `ocrScan.pagesNeedingOcr` as a follow-up; the [Workers demo](./demo) does
+exactly that.
 
 ## Detecting whether a PDF needs OCR
 

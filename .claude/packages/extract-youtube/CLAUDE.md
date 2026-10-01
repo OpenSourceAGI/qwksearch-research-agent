@@ -18,6 +18,25 @@ runs on a Cloudflare Worker. Published; built.
 - Transcripts may be auto-generated, translated, absent, or region-blocked.
   "No transcript" is a normal outcome, not an error.
 
+## Three entry points, kept apart
+
+- `extract-youtube` — transcripts. Never imports React.
+- `extract-youtube/library` — the video library and its admin API. **No React
+  and no Node built-ins**: it runs in a Worker, and its client half runs in the
+  browser. Stores go through `VideoLibraryStore`; `applyLibraryQuery` is the
+  reference listing semantics every store must match (the D1 store is tested
+  against it over `node:sqlite`, which needs Node 22+).
+- `extract-youtube/react` — the player, transcript modal, grid, list and admin
+  screens. Imports `library/` for types and helpers, never the transcript code.
+
+The grid and admin code was ported from debate-ai.com's `debate-videos`
+package and its `app/api/admin/videos/**` routes; debate-only columns became
+`CustomFieldDef`s. Keep it generic.
+
+Every React component has a story in `apps/extract-youtube-demo/stories/` and
+a page in `apps/extract-youtube-docs/content/docs/`. A new or changed
+component updates both.
+
 This package is also a **coverage-build dependency** in CI.
 
 ```bash

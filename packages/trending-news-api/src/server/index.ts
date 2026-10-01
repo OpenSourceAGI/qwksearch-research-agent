@@ -264,7 +264,7 @@ export async function fetchWikipediaTopPages(
 ): Promise<WikiTopPage[]> {
   const url = (d: Date) => {
     const [year, month, day] = formatDate(d).split('-');
-    return `https://wikimedia.org/api/rest_v1/metrics/pageviews/top-per-article/en.wikipedia.org/all-access/all-agents/${year}/${month}/${day}`;
+    return `https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/${year}/${month}/${day}`;
   };
 
   // The whole request, not just the socket, is inside the retry: a 503 is

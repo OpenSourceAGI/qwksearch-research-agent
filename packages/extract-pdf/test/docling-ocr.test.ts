@@ -1,5 +1,5 @@
-import { describe, it, expect } from "bun:test";
-import { doctagsToHtml } from "../src/docling-ocr";
+import { afterEach, describe, it, expect } from "bun:test";
+import { doctagsToHtml, ocrImageWithDocling } from "../src/docling-ocr";
 
 describe("doctagsToHtml", () => {
   it("strips doctag wrapper and location tokens", () => {
@@ -46,5 +46,60 @@ describe("doctagsToHtml", () => {
 
   it("returns empty string for empty input", () => {
     expect(doctagsToHtml("")).toBe("");
+  });
+});
+
+describe("ocrImageWithDocling with a remote processor", () => {
+  const realFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+  });
+
+  function mockFetch(status: number, body: string) {
+    const calls: Array<{ url: string; init: any }> = [];
+    globalThis.fetch = (async (url: any, init: any) => {
+      calls.push({ url: String(url), init });
+      return new Response(body, { status });
+    }) as any;
+    return calls;
+  }
+
+  it("POSTs to convert-base64 with processorHeaders and asks for doctags", async () => {
+    const calls = mockFetch(
+      200,
+      JSON.stringify({ success: true, result: "<text>Hi</text>" }),
+    );
+    const doctags = await ocrImageWithDocling("iVBORw0KGgo=", {
+      processorUrl: "https://me-extract-pdf-docling.hf.space/",
+      processorHeaders: {
+        "X-Docling-Token": "service-token",
+        Authorization: "Bearer hf_space_token",
+      },
+      maxTokens: 1500,
+    });
+    expect(doctags).toBe("<text>Hi</text>");
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toBe(
+      "https://me-extract-pdf-docling.hf.space/api/v1/convert-base64",
+    );
+    expect(calls[0].init.headers).toEqual({
+      "X-Docling-Token": "service-token",
+      Authorization: "Bearer hf_space_token",
+      "Content-Type": "application/json",
+    });
+    const body = JSON.parse(calls[0].init.body);
+    expect(body).toMatchObject({
+      imageBase64: "iVBORw0KGgo=",
+      mimeType: "image/png",
+      maxTokens: 1500,
+      output: "doctags",
+    });
+  });
+
+  it("reports the HTTP status when the processor answers with a non-JSON error page", async () => {
+    mockFetch(401, "<html>Unauthorized</html>");
+    await expect(
+      ocrImageWithDocling("iVBORw0KGgo=", { processorUrl: "https://x.hf.space" }),
+    ).rejects.toThrow("Processor error 401");
   });
 });

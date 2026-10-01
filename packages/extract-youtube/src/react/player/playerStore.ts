@@ -70,6 +70,22 @@ export function usePlayerState(): PlayerState {
   return useSyncExternalStore(subscribe, getPlayerState, () => initialState);
 }
 
+/**
+ * Subscribe to one derived value of the player's state — e.g.
+ * `usePlayerSelector((s) => s.activeVideo?.videoId === id)`. The component
+ * re-renders only when that value changes, which is what a grid of hundreds
+ * of cards needs: with `usePlayerState` every card re-renders on every
+ * play/pause, queue add or rate change. Return a primitive (or a stable
+ * reference), not a fresh object, or it re-renders every time.
+ */
+export function usePlayerSelector<T>(selector: (state: PlayerState) => T): T {
+  return useSyncExternalStore(
+    subscribe,
+    () => selector(state),
+    () => selector(initialState),
+  );
+}
+
 /** The live embed, registered by the mounted player so commands can reach it. */
 export const playerIframeRef: { current: HTMLIFrameElement | null } = { current: null };
 

@@ -14,6 +14,8 @@ apps/qwk-vscode-ext
 apps/qwksearch-desktop
 apps/qwksearch-ext
 apps/qwksearch-web
+apps/extract-youtube-demo       # extract-youtube's live demo + Storybook (Worker)
+apps/extract-youtube-docs       # extract-youtube's docs site (Fumadocs on vinext, Worker)
 ```
 
 The apps are listed one by one rather than globbed as `apps/*`, so that a root
