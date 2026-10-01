@@ -1,5 +1,5 @@
 /**
- * @fileoverview Full-screen homepage with a randomised AI-themed background artwork (image or video), the QuantumWaveOrbital animation, recent history chips, the main chat input box, and an app footer.
+ * @fileoverview Full-screen homepage with a rotating AI-themed background artwork (image or video, served from a local cache), the QuantumWaveOrbital animation, recent history chips, the main chat input box, and an app footer.
  */
 'use client';
 import { lazy, Suspense, useEffect, useState } from 'react';
@@ -9,7 +9,14 @@ import RecentHistoryChips from './RecentHistoryChips';
 import Footer from '../Footer';
 import type { WeatherLocationInput } from 'use-weather-forecast';
 import { useChat } from '../../hooks/useChat';
-import { getBackgroundArtwork } from './background-art';
+import {
+  MAX_CACHED_BACKGROUNDS,
+  cacheBackground,
+  loadCachedBackground,
+  pickCachedBackground,
+  pickUncachedBackground,
+  readCachedBackgroundList,
+} from './background-cache';
 import { researchAgentUIConfig } from '../../config';
 import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 // Stylesheet is imported by the host app (globals.css) inside a named cascade
@@ -97,19 +104,28 @@ function parseWeatherLocations(raw: string | null): WeatherLocationInput[] {
 const isVideo = (url: string) => url.endsWith('.webm') || url.endsWith('.mp4');
 
 /**
- * Resolves once a background is ready to show, so a crossfade never reveals a
- * half-loaded image. Images are fetched and decoded off-screen; videos stream
- * on their own once mounted, so they resolve straight away rather than being
- * downloaded twice. Resolves `false` for an image that failed to load.
+ * A background on screen: `url` is the artwork's own address (what the cache
+ * is keyed by, and what says whether it is a video); `src` is what the element
+ * loads, usually an object URL of the cached copy.
  */
-function preloadBackground(url: string): Promise<boolean> {
+type Background = { url: string; src: string };
+
+const isObjectUrl = (src: string) => src.startsWith('blob:');
+
+/**
+ * Resolves once a background is ready to show, so a crossfade never reveals a
+ * half-loaded image. Images are decoded off-screen; videos resolve straight
+ * away and stream (or play from their blob) once mounted. Resolves `false` for
+ * an image that failed to load.
+ */
+function preloadBackground({ url, src }: Background): Promise<boolean> {
   if (isVideo(url)) return Promise.resolve(true);
   return new Promise((resolve) => {
     const img = new Image();
     img.decoding = 'async';
     img.onload = () => resolve(true);
     img.onerror = () => resolve(false);
-    img.src = url;
+    img.src = src;
   });
 }
 
@@ -120,8 +136,8 @@ function preloadBackground(url: string): Promise<boolean> {
  */
 export default function ChatHomepage() {
   const { sendMessage } = useChat();
-  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
-  const [nextBackgroundUrl, setNextBackgroundUrl] = useState<string | null>(null);
+  const [background, setBackground] = useState<Background | null>(null);
+  const [nextBackground, setNextBackground] = useState<Background | null>(null);
   const [fading, setFading] = useState(false);
   const [downloadsOpen, setDownloadsOpen] = useState(false);
   // The dialog's chunk is only fetched on first open, and it then stays
@@ -219,37 +235,111 @@ export default function ChatHomepage() {
     const showBg = localStorage.getItem('showBackgroundArt');
     if (showBg === 'false') return;
 
-    // The artwork is decoration, and some of it is multi-megabyte video: fetch
-    // none of it until the page itself has loaded and the browser is idle, so
-    // it never competes with the app's own scripts for the first-load
-    // bandwidth. The next piece is only faded in once it has downloaded, and
-    // the rotation pauses while the tab is hidden.
+    // First paint never waits on Imgur: a returning visitor gets a piece read
+    // straight out of Cache Storage (see `background-cache.ts`), and a first
+    // visit starts on the plain page. Downloading — some of the artwork is
+    // multi-megabyte video — waits until the page has loaded and the browser
+    // is idle, so it never competes with the app's own scripts. From then on
+    // the next piece is always prepared one rotation ahead, the cache grows by
+    // one piece per rotation until it is full, and the rotation pauses while
+    // the tab is hidden.
     let cancelled = false;
     let interval: ReturnType<typeof setInterval> | undefined;
     let fadeTimer: ReturnType<typeof setTimeout> | undefined;
     let cancelStart: (() => void) | undefined;
+    let current: Background | null = null;
+    let upcoming: Promise<Background | null> | null = null;
+    // Every object URL handed out, so none outlives the page.
+    const objectUrls = new Set<string>();
 
-    const rotate = () => {
-      if (document.hidden) return;
-      const next = getBackgroundArtwork();
-      preloadBackground(next).then((ok) => {
-        if (cancelled || !ok) return;
-        setNextBackgroundUrl(next);
-        setFading(true);
-        fadeTimer = setTimeout(() => {
-          setBackgroundUrl(next);
-          setFading(false);
-          setNextBackgroundUrl(null);
-        }, 1000);
-      });
+    const track = (bg: Background | null) => {
+      if (bg && isObjectUrl(bg.src)) objectUrls.add(bg.src);
+      return bg;
+    };
+    const release = (bg: Background | null) => {
+      if (bg && isObjectUrl(bg.src)) {
+        URL.revokeObjectURL(bg.src);
+        objectUrls.delete(bg.src);
+      }
     };
 
-    const start = () => {
+    /** Loads a piece and waits until it can be shown without a half-drawn frame. */
+    const ready = async (bg: Background | null) => {
+      if (!bg) return null;
+      if (cancelled || !(await preloadBackground(bg))) {
+        release(bg);
+        return null;
+      }
+      return bg;
+    };
+
+    const fromCache = async (url: string | null) => {
+      if (!url) return null;
+      const src = await loadCachedBackground(url);
+      return ready(track(src ? { url, src } : null));
+    };
+
+    /**
+     * The piece after `after`: a new one, downloaded into the cache, while the
+     * cache has room; otherwise one already cached. Either way it falls back to
+     * the other, so a failed download still rotates.
+     */
+    const prepareNext = async (after: Background | null) => {
+      const fresh =
+        readCachedBackgroundList().length < MAX_CACHED_BACKGROUNDS
+          ? pickUncachedBackground()
+          : null;
+      if (fresh) {
+        const src = await cacheBackground(fresh);
+        const bg = await ready(track(src ? { url: fresh, src } : null));
+        if (bg) return bg;
+      }
+      return fromCache(pickCachedBackground(after?.url));
+    };
+
+    const show = (bg: Background) => {
+      const previous = current;
+      current = bg;
+      if (!previous) {
+        setBackground(bg);
+        return;
+      }
+      setNextBackground(bg);
+      setFading(true);
+      fadeTimer = setTimeout(() => {
+        setBackground(bg);
+        setFading(false);
+        setNextBackground(null);
+        release(previous);
+      }, 1000);
+    };
+
+    // A download slower than the interval must not let two rotations show the
+    // same prepared piece.
+    let rotating = false;
+    const rotate = async () => {
+      if (document.hidden || rotating) return;
+      rotating = true;
+      const bg = await (upcoming ?? prepareNext(current));
+      upcoming = null;
+      rotating = false;
       if (cancelled) return;
-      const first = getBackgroundArtwork();
-      preloadBackground(first).then((ok) => {
+      if (bg) show(bg);
+      upcoming = prepareNext(current);
+    };
+
+    // A returning visitor's first piece comes out of the cache, not the network.
+    const initial = fromCache(pickCachedBackground()).then((bg) => {
+      if (bg && !cancelled) show(bg);
+    });
+
+    const start = () => {
+      initial.then(() => {
         if (cancelled) return;
-        if (ok) setBackgroundUrl(first);
+        // A first visit has nothing on screen yet: fetch one now instead of
+        // leaving the page bare for a whole rotation.
+        if (!current) rotate();
+        else upcoming = prepareNext(current);
         interval = setInterval(rotate, 20000);
       });
     };
@@ -273,14 +363,15 @@ export default function ChatHomepage() {
       cancelStart?.();
       clearInterval(interval);
       clearTimeout(fadeTimer);
+      for (const src of objectUrls) URL.revokeObjectURL(src);
     };
   }, []);
 
-  const renderBackground = (url: string, opacity: string) =>
+  const renderBackground = ({ url, src }: Background, opacity: string) =>
     isVideo(url) ? (
       <video
-        key={url}
-        src={url}
+        key={src}
+        src={src}
         autoPlay
         loop
         muted
@@ -289,8 +380,8 @@ export default function ChatHomepage() {
       />
     ) : (
       <img
-        key={url}
-        src={url}
+        key={src}
+        src={src}
         alt=""
         decoding="async"
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${opacity}`}
@@ -300,8 +391,8 @@ export default function ChatHomepage() {
   return (
     <div className="relative min-h-screen w-full">
       <div className="absolute inset-0 z-0">
-        {backgroundUrl && renderBackground(backgroundUrl, fading ? 'opacity-0' : 'opacity-30')}
-        {nextBackgroundUrl && renderBackground(nextBackgroundUrl, fading ? 'opacity-30' : 'opacity-0')}
+        {background && renderBackground(background, fading ? 'opacity-0' : 'opacity-30')}
+        {nextBackground && renderBackground(nextBackground, fading ? 'opacity-30' : 'opacity-0')}
         {cursorGlowTrail && <GradientBlur />}
       </div>
 
