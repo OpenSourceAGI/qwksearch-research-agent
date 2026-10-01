@@ -3,7 +3,7 @@ import { cn, formatMessageTime, formatTimeDifference } from '../src/lib/utils';
 
 // The package's main barrel export (src/index.ts) eagerly re-exports every
 // component and hook, including ones that pull in browser/audio-only
-// dependencies (@ricky0123/vad-web, kokoro-js, next/navigation) which don't
+// dependencies (kokoro-js, next/navigation) which don't
 // resolve cleanly in a plain Vitest/jsdom run. src/lib/utils.ts is a pure,
 // side-effect-free module that is itself re-exported from the public API
 // (see src/index.ts "Utilities" section), so it's used here as a safe smoke

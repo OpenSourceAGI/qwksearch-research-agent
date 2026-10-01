@@ -130,8 +130,10 @@ describe('EditorArea engine selection', () => {
     title: 'Doc',
   } as any;
 
-  function mountArea(engine?: 'plate' | 'tiptap') {
-    act(() => {
+  // Both engines are lazy chunks behind a Suspense boundary, so the first
+  // render shows the loading placeholder; wait for the engine to replace it.
+  async function mountArea(engine?: 'plate' | 'tiptap') {
+    await act(async () => {
       root.render(
         <EditorArea
           activeDocId='doc-1'
@@ -145,19 +147,41 @@ describe('EditorArea engine selection', () => {
         />,
       );
     });
+    await vi.waitFor(async () => {
+      await act(async () => {});
+      expect(container.querySelector('[aria-label="Loading the editor"]')).toBeNull();
+    }, { timeout: 20_000 });
   }
 
-  it('mounts Plate when no engine is named', () => {
-    mountArea();
+  it('shows a placeholder while the editor chunk loads', () => {
+    act(() => {
+      root.render(
+        <EditorArea
+          activeDocId='doc-1'
+          activeDocument={activeDocument}
+          documents={[activeDocument]}
+          isMobile={false}
+          onCloseSplitView={() => {}}
+          onUpdateDocument={() => {}}
+          splitViewDocId={null}
+        />,
+      );
+    });
+
+    expect(container.querySelector('[aria-label="Loading the editor"]')).not.toBeNull();
+  });
+
+  it('mounts Plate when no engine is named', async () => {
+    await mountArea();
 
     expect(container.querySelector('[data-slate-editor="true"]')).not.toBeNull();
     expect(container.querySelector('.ProseMirror')).toBeNull();
-  });
+  }, 30_000);
 
-  it('mounts Tiptap when asked for it', () => {
-    mountArea('tiptap');
+  it('mounts Tiptap when asked for it', async () => {
+    await mountArea('tiptap');
 
     expect(container.querySelector('.ProseMirror')).not.toBeNull();
     expect(container.querySelector('[data-slate-editor="true"]')).toBeNull();
-  });
+  }, 30_000);
 });

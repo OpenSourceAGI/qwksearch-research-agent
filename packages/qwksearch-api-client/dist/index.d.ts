@@ -202,6 +202,7 @@ export declare type AgentChatData = {
         thinkingTimeLimit?: number;
         systemInstructions?: string;
         queryExpansionPrompt?: string;
+        queryExpansionEnabled?: boolean;
     };
     path?: never;
     query?: never;

@@ -288,6 +288,12 @@ export const LEGACY_SEARCH_FIELDS: readonly LegacySearchField[] = [
   },
   {
     destination:
+      'Query expansion on/off switch for the search retriever (off by default). No engine control; see packages/builtin-tool-web-browsing (1.4).',
+    key: 'queryExpansionEnabled',
+    kind: 'gap',
+  },
+  {
+    destination:
       'Query expansion prompt, used by the search retriever. No engine control; see packages/builtin-tool-web-browsing (1.4).',
     key: 'queryExpansionPrompt',
     kind: 'gap',

@@ -60,6 +60,13 @@ the sources and the ranking be tested without mounting the app.
   degrades to an inert context instead of throwing, and
   `test/mainViewBoundary.test.tsx` asserts the mounts stay on the right side of
   the provider.
+- **Keep what the homepage downloads small.** The workspace entry is mounted on
+  the homepage, but the editor only loads when a document is opened (see
+  `reason-editor`'s note), and the article reader only when a source is opened
+  (`ChatConversationThread` lazy-loads `ArticleExtractPanel`). Don't import
+  editor stylesheets or KaTeX from `src/workspace/`; the editor brings its own.
+  Panels, dialogs and heavy widgets that start closed should be `lazy()` and
+  mounted the first time they open.
 - **`tsconfig.build.json` clears `paths` on purpose.** The dev config points
   `chat-agent-toolkit`, `search-web-api` and `extract-webpage` at their
   `src/*.ts`. Declaration emit runs with `rootDir: ./src`, so those sibling

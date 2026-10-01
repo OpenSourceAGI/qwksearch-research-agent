@@ -41,6 +41,14 @@ So:
   type-checks cleanly and then throws in the browser. When you re-run the
   generator or copy a new component in, re-point its plugin calls and cover the
   wiring with a test — `test/docs-agent/plate-slash-ai.test.ts` is the pattern.
+- **The `ReasonDocs` shell never statically imports an editor engine.**
+  Hosts mount `ReasonDocs` even when its main area shows something else
+  (research-agent-ui puts the chat window there, on the homepage), so its static
+  graph is downloaded on every page view. `EditorArea` loads the Plate and
+  Tiptap wrappers with `import()`, and `ReasonDocs` does the same for its
+  dialogs and the floating outline. `test/reason-docs-lazy-editor.test.ts`
+  fails if a static path from the shell to `platejs`, `@tiptap/*`, `katex` or
+  `easydrawer` comes back.
 - The sidebar is a separate package: `reason-editor-sidebar`.
 - This package is a **coverage-build dependency** in CI (as
   `react-reason-editor`).

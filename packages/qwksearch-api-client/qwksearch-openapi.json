@@ -199,7 +199,8 @@
                   "sourceExtractionEnabled": { "type": "boolean" },
                   "thinkingTimeLimit": { "type": "integer", "minimum": 0 },
                   "systemInstructions": { "type": "string" },
-                  "queryExpansionPrompt": { "type": "string" }
+                  "queryExpansionPrompt": { "type": "string" },
+                  "queryExpansionEnabled": { "type": "boolean", "default": false }
                 }
               }
             }

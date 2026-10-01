@@ -1,7 +1,10 @@
 /**
  * @fileoverview Orchestrator for complex research queries.
- * Manages query expansion, web search execution, and result synthesis using
- * LLMs through the Vercel AI SDK (generateText/streamText).
+ * Runs the web search, streams the result list to the client, and synthesizes
+ * an answer from the result titles and snippets using LLMs through the Vercel
+ * AI SDK (generateText/streamText). LLM query expansion before the search is
+ * opt-in: by default the user's message is searched as typed, so the first
+ * model call is the answer itself.
  */
 import { generateText, streamText, type LanguageModel } from "ai";
 import { LineOutputParser, LineListOutputParser } from "../../utils/outputParser";
@@ -82,6 +85,30 @@ const interpolatePrompt = (
   );
 };
 
+/** Matches the http(s) URLs a user pastes into a message. */
+const URL_PATTERN = /https?:\/\/[^\s<>"'`]+/gi;
+
+/**
+ * Keeps a search query to something a search engine can use. A rephraser that
+ * answered instead of rephrasing, or a pasted essay, becomes its first
+ * sentence — or, failing that, the start of the user's own message.
+ */
+const toSearchQuery = (question: string, fallback: string): string => {
+  question = question.replace(/<think>.*?<\/think>/g, "").trim();
+  if (question.length === 0) return "latest information";
+
+  if (question.length > 500 || question.split(/[.!?]\s+/).length > 5) {
+    console.warn(`[MetaSearchAgent] Query is too long (${question.length} chars), truncating or using fallback`);
+    const firstSentence = question.split(/[.!?]\s+/)[0].trim();
+    if (firstSentence.length > 0 && firstSentence.length < 200) {
+      return firstSentence;
+    }
+    return fallback.slice(0, 200);
+  }
+
+  return question;
+};
+
 class MetaSearchAgent implements MetaSearchAgentType {
   private config: Config;
 
@@ -90,20 +117,16 @@ class MetaSearchAgent implements MetaSearchAgentType {
   }
 
   /**
-   * Rephrases the user's query into a standalone search question (and any
-   * URLs to summarize), runs the web search, and returns the documents to
-   * use as answer context.
+   * Asks the LLM to rephrase the message into a standalone search question,
+   * and to pick out any URLs to summarize. This is a full model round trip
+   * before the search can start, so it only runs when query expansion is on.
    */
-  private async retrieveSearchDocs(
+  private async expandQuery(
     llm: LanguageModel,
     chatHistory: string,
     query: string,
-    category: string = "general",
-    sourceExtractionEnabled = false,
-    thinkingTimeLimit = 0,
-    emitter?: EventEmitter,
     queryGeneratorPromptOverride?: string,
-  ): Promise<{ query: string; docs: Document[] }> {
+  ): Promise<{ question: string; links: string[] }> {
     // A user-authored query-expansion prompt (Settings → Search Settings)
     // replaces the focus mode's built-in one. Blank or whitespace-only text
     // means "use the built-in prompt".
@@ -146,37 +169,55 @@ class MetaSearchAgent implements MetaSearchAgentType {
       question = "latest information";
     }
 
+    return { question, links };
+  }
+
+  /**
+   * Runs the web search and returns its results as answer-context documents:
+   * each one the result's title and search snippet, nothing fetched yet.
+   *
+   * The message is searched as typed unless `queryExpansionEnabled` is set,
+   * in which case the LLM rephrases it first (see {@link expandQuery}).
+   * `fromLinks` marks documents built from URLs in the message rather than a
+   * search, which already carry their pages' text.
+   */
+  private async retrieveSearchDocs(
+    llm: LanguageModel,
+    chatHistory: string,
+    query: string,
+    category: string = "general",
+    emitter?: EventEmitter,
+    queryGeneratorPromptOverride?: string,
+    queryExpansionEnabled = false,
+  ): Promise<{ query: string; docs: Document[]; fromLinks?: boolean }> {
+    let question: string;
+    let links: string[];
+
+    if (queryExpansionEnabled) {
+      ({ question, links } = await this.expandQuery(
+        llm,
+        chatHistory,
+        query,
+        queryGeneratorPromptOverride,
+      ));
+    } else {
+      links = query.match(URL_PATTERN) ?? [];
+      question =
+        links.length > 0 && this.config.getDocumentsFromLinks
+          ? query.replace(URL_PATTERN, " ").replace(/\s+/g, " ").trim()
+          : query;
+    }
+
     if (links.length > 0 && this.config.getDocumentsFromLinks) {
       if (question.length === 0) question = "summarize";
 
       const linkDocs = await this.config.getDocumentsFromLinks({ links });
       const docs = await groupAndSummarizeDocs(llm, linkDocs, question);
 
-      return { query: question, docs };
+      return { query: question, docs, fromLinks: true };
     }
 
-    question = question.replace(/<think>.*?<\/think>/g, "");
-    if (!question || question.trim().length === 0) {
-      question = "latest information";
-    }
-
-    // Validate and sanitize the query before sending to search APIs
-    // If the LLM returned a long response instead of a concise query, extract the first sentence
-    // or use the original user query as fallback
-    question = question.trim();
-    if (question.length > 500 || question.split(/[.!?]\s+/).length > 5) {
-      // Query is too long or contains too many sentences - likely the LLM returned a full response
-      console.warn(`[MetaSearchAgent] Query is too long (${question.length} chars), truncating or using fallback`);
-
-      // Try to extract first sentence as the query
-      const firstSentence = question.split(/[.!?]\s+/)[0].trim();
-      if (firstSentence.length > 0 && firstSentence.length < 200) {
-        question = firstSentence;
-      } else {
-        // Fallback to original user query
-        question = query.slice(0, 200);
-      }
-    }
+    question = toSearchQuery(question, query);
 
     // Emit "searching" progress event so the client can show live status
     const categoryLabel = this.config.activeEngines.length > 0
@@ -288,6 +329,23 @@ class MetaSearchAgent implements MetaSearchAgentType {
 
     emitSearching("done", question);
 
+    return { query: question, docs: documents };
+  }
+
+  /**
+   * Replaces the search snippets of the top web results with text fetched
+   * from their pages, in place, when the user has turned source extraction on
+   * or set a thinking-time budget. Uploaded files are left alone.
+   *
+   * This runs after the result list has been sent to the client, so the
+   * sources appear while the pages are still loading.
+   */
+  private async extractTopSources(
+    documents: Document[],
+    sourceExtractionEnabled: boolean,
+    thinkingTimeLimit: number,
+    emitter: EventEmitter,
+  ): Promise<void> {
     // Determine extraction budget from thinkingTimeLimit (seconds).
     // thinkingTimeLimit === 0 means unlimited; use server config.
     let scrapeCount: number;
@@ -307,10 +365,18 @@ class MetaSearchAgent implements MetaSearchAgentType {
     }
 
     if (scrapeCount > 0) {
-      const docsToScrape = documents.slice(0, scrapeCount);
-      emitSearching("running", `Extracting top ${docsToScrape.length} sources`, "extract");
+      const emitExtracting = (status: SearchingEvent["status"], query: string) => {
+        emitter.emit("data", JSON.stringify({
+          type: "searching",
+          data: { query, category: "extract", status } satisfies SearchingEvent,
+        }));
+      };
+      const docsToScrape = documents
+        .filter((doc) => doc.metadata?.url && doc.metadata.url !== "File")
+        .slice(0, scrapeCount);
+      emitExtracting("running", `Extracting top ${docsToScrape.length} sources`);
 
-      const extractionTasks = this.config.scrapeURL ? docsToScrape.map(async (doc, idx) => {
+      const extractionTasks = this.config.scrapeURL ? docsToScrape.map(async (doc) => {
         const url = doc.metadata?.url;
         if (!url || !this.config.scrapeURL) return;
         try {
@@ -325,7 +391,7 @@ class MetaSearchAgent implements MetaSearchAgentType {
               .trim()
               .slice(0, 5000);
             if (text.length > 100) {
-              documents[idx].pageContent = text;
+              doc.pageContent = text;
             }
           }
         } catch {
@@ -334,10 +400,8 @@ class MetaSearchAgent implements MetaSearchAgentType {
       }) : [];
 
       await Promise.allSettled(extractionTasks);
-      emitSearching("done", `Extracting top ${docsToScrape.length} sources`, "extract");
+      emitExtracting("done", `Extracting top ${docsToScrape.length} sources`);
     }
-
-    return { query: question, docs: documents };
   }
 
   /**
@@ -356,26 +420,9 @@ class MetaSearchAgent implements MetaSearchAgentType {
     sourceExtractionEnabled: boolean,
     thinkingTimeLimit: number,
     queryExpansionPrompt?: string,
+    queryExpansionEnabled = false,
   ): Promise<void> {
     try {
-      let docs: Document[] | null = null;
-      let query = message;
-
-      if (this.config.searchWeb) {
-        const result = await this.retrieveSearchDocs(
-          llm,
-          formatChatHistoryAsString(history),
-          message,
-          category,
-          sourceExtractionEnabled,
-          thinkingTimeLimit,
-          emitter,
-          queryExpansionPrompt,
-        );
-        query = result.query;
-        docs = result.docs;
-      }
-
       const r2Credentials: R2CredentialsInput | undefined = process.env.R2_ACCOUNT_ID
         ? {
             accountId: process.env.R2_ACCOUNT_ID,
@@ -388,7 +435,30 @@ class MetaSearchAgent implements MetaSearchAgentType {
       // Resolved once and shared below: the answer context needs the text and
       // the message needs the images, and fetching each attachment twice is how
       // a handful of large uploads used to reach the isolate's memory ceiling.
-      const uploads = await loadUploads(fileIds, r2Credentials);
+      // Started before the search so the two waits overlap; loadUploads never
+      // rejects (a file it cannot resolve is dropped).
+      const uploadsPromise = loadUploads(fileIds, r2Credentials);
+
+      let docs: Document[] | null = null;
+      let query = message;
+      let fromLinks = false;
+
+      if (this.config.searchWeb) {
+        const result = await this.retrieveSearchDocs(
+          llm,
+          formatChatHistoryAsString(history),
+          message,
+          category,
+          emitter,
+          queryExpansionPrompt,
+          queryExpansionEnabled,
+        );
+        query = result.query;
+        docs = result.docs;
+        fromLinks = result.fromLinks ?? false;
+      }
+
+      const uploads = await uploadsPromise;
 
       const sortedDocs = await rerankDocs(
         query,
@@ -402,6 +472,18 @@ class MetaSearchAgent implements MetaSearchAgentType {
       const sources = normalizeSourcesOutput(sortedDocs, message);
       console.log("[MetaSearchAgent] emitting sources:", sources.length);
       emitter.emit("data", JSON.stringify({ type: "sources", data: sources }));
+
+      // The result list is on screen; only now spend time fetching pages, and
+      // only when the user asked for it. By default the answer is written from
+      // the result titles and snippets alone.
+      if (this.config.searchWeb && !fromLinks) {
+        await this.extractTopSources(
+          sortedDocs,
+          sourceExtractionEnabled,
+          thinkingTimeLimit,
+          emitter,
+        );
+      }
 
       const systemPrompt = interpolatePrompt(this.config.responsePrompt, {
         systemInstructions,
@@ -490,6 +572,7 @@ class MetaSearchAgent implements MetaSearchAgentType {
     sourceExtractionEnabled = false,
     thinkingTimeLimit = 0,
     queryExpansionPrompt?: string,
+    queryExpansionEnabled = false,
   ) {
     const emitter = new EventEmitter();
 
@@ -508,6 +591,7 @@ class MetaSearchAgent implements MetaSearchAgentType {
         sourceExtractionEnabled,
         thinkingTimeLimit,
         queryExpansionPrompt,
+        queryExpansionEnabled,
       );
     }, 0);
 

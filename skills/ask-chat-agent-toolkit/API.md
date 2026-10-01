@@ -44,12 +44,21 @@ searchAndAnswer(
   category = "general",
   sourceExtractionEnabled = false,
   thinkingTimeLimit = 0,
+  queryExpansionPrompt?: string,       // replaces queryGeneratorPrompt when non-blank
+  queryExpansionEnabled = false,       // LLM-rephrase the message before searching
 ): Promise<EventEmitter>
 ```
 
 Returns an `EventEmitter`; the pipeline starts on the next macrotask so listeners can
 be attached first. Data events include `SearchingEvent` (`{ query, category?, status }`),
 sources, and streamed response chunks.
+
+Order of work, fastest first: the message is searched **as typed** (no LLM call)
+unless `queryExpansionEnabled` is set; `sources` is emitted as soon as the search
+returns; only then are the top pages fetched, and only when `sourceExtractionEnabled`
+or `thinkingTimeLimit > 0` asks for it. The answer prompt's context is the results'
+titles and snippets (or the extracted text, when fetched). With expansion off, URLs
+in the message still go to `getDocumentsFromLinks` when one is configured.
 
 ## Mastra
 
