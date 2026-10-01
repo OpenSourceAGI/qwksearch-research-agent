@@ -47,6 +47,7 @@ import {
 } from "@/components/features/data";
 import { EnterpriseSignupForm } from "@/components/features/EnterpriseSignupForm";
 import { config, listFooterLinks, type FooterLink } from "@/lib/config/site";
+import { useSiteFooterVisible } from "@/lib/hooks/useSiteFooter";
 import { cn } from "@/lib/utils";
 
 /**
@@ -823,9 +824,24 @@ function SiteFooter() {
   );
 }
 
+export interface FeaturesViewProps {
+  showPipeline?: boolean;
+  /**
+   * Render the closing "Enterprise & white-label" sign-up and the site footer
+   * under it. Left unset, it follows the embedding site's `?footer=` choice
+   * (see `lib/site-footer.ts`) and shows by default; a boolean here overrides
+   * that.
+   */
+  showFooter?: boolean;
+}
+
 export function FeaturesView({
   showPipeline = true,
-}: { showPipeline?: boolean } = {}) {
+  showFooter,
+}: FeaturesViewProps = {}) {
+  const embedderShowsFooter = useSiteFooterVisible();
+  const footer = showFooter ?? embedderShowsFooter;
+
   return (
     <div className="qs-features relative min-h-screen md:pl-20">
       <Hero />
@@ -835,8 +851,12 @@ export function FeaturesView({
       <Comparison />
       {showPipeline && <Pipeline />}
       <FeatureExplorer />
-      <ClosingCta />
-      <SiteFooter />
+      {footer && (
+        <>
+          <ClosingCta />
+          <SiteFooter />
+        </>
+      )}
     </div>
   );
 }

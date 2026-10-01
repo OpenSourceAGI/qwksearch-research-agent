@@ -140,6 +140,26 @@ RSC fetches are never challenged.
 | `TURNSTILE_TTL_SECONDS` | How long one pass lasts. Default 604800 (7 days), clamped to 5 minutes – 30 days. | — |
 | `TURNSTILE_COOKIE_DOMAIN` | Shares one pass across subdomains, e.g. `.qwksearch.com`. | — |
 
+## Embedding in an iframe
+
+Any site may frame the app (`frame-ancestors *` in
+[`next.config.mjs`](./next.config.mjs)). The homepage and `/features` end with
+a marketing close: the "Enterprise & white-label" sign-up form and the
+QwkSearch footer (Product, On this page, Community and Legal links). An
+embedding site can leave both out by adding `footer=0` to the iframe URL:
+
+```html
+<iframe src="https://qwksearch.com/?footer=0" width="100%" height="800"></iframe>
+```
+
+`0`, `false`, `off`, `no` and `hide` all hide it; `1`, `true`, `on`, `yes` and
+`show` bring it back. The choice is kept in `sessionStorage` for the rest of
+the session, so it survives the app's own navigation after the query string is
+gone. Without the parameter the footer shows, as it does on qwksearch.com.
+
+In code, `<FeaturesView showFooter={false} />` forces the same thing and
+overrides the URL. The logic is in [`lib/site-footer.ts`](./lib/site-footer.ts).
+
 ## Scripts
 
 Run from the repository root so Turborepo builds the workspace packages first,
