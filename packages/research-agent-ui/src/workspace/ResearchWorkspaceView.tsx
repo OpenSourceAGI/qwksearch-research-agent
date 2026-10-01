@@ -16,10 +16,6 @@ import { useChatTabs } from '../app/useChatTabs';
 import { getPageTips, htmlToPlainText } from './page-tips';
 import { getTopicSearches } from './topic-searches';
 
-import 'katex/dist/katex.min.css';
-import 'easydrawer/styles.css';
-import 'katex/contrib/mhchem';
-
 export function ResearchWorkspaceView() {
   const { activeView, toggleToDocs, toggleToResearch, filesSidebarRequestId } = useMainView();
   const { chatTabs, activeChatId, openChat, newChat, closeChat, closeChats } = useChatTabs();

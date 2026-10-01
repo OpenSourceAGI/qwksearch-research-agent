@@ -5,17 +5,21 @@
  */
 'use client';
 
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import MessageBox from './ChatMessageBubble';
 import RandomLoadingAnimation from './RandomLoadingAnimation';
 
 import { useChat } from '../../hooks/useChat';
 import { useExtractPanel } from '../ArticleReader/ExtractPanelContext';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
-import ArticleExtractPanel from '../ArticleReader/ArticleExtractPanel';
 import { researchAgentUIConfig } from '../../config';
 import HistoryDropdown from '../ChatHistoryDropdown';
 import { useSession } from '../../hooks/useSession';
+
+// The article reader is fetched the first time a source is opened, not with
+// the conversation. Once mounted it stays mounted, so its state across opens
+// is the same as when it was imported statically.
+const ArticleExtractPanel = lazy(() => import('../ArticleReader/ArticleExtractPanel'));
 
 /**
  * Main chat conversation thread component.
@@ -29,6 +33,11 @@ const Chat = () => {
   const { sections, chatTurns, loading, messageAppeared, newChat, chatId } = useChat();
   const { isOpen: isPanelOpen, panelWidth } = useExtractPanel();
   const { isAuthenticated } = useSession();
+
+  const [panelMounted, setPanelMounted] = useState(false);
+  useEffect(() => {
+    if (isPanelOpen) setPanelMounted(true);
+  }, [isPanelOpen]);
 
   const [isDesktop, setIsDesktop] = useState(false);
   const dividerRef = useRef<HTMLDivElement | null>(null);
@@ -110,7 +119,11 @@ const Chat = () => {
       </div>
 
       {/* Global Article Extract Panel - single instance */}
-      <ArticleExtractPanel />
+      {(panelMounted || isPanelOpen) && (
+        <Suspense fallback={null}>
+          <ArticleExtractPanel />
+        </Suspense>
+      )}
     </>
   );
 };

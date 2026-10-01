@@ -6,12 +6,10 @@
  */
 import { EditorArea, type ReasonEditorEngine } from './EditorArea';
 import { RightPanel } from './RightPanel';
-import { ReasonDocsDialogs } from './ReasonDocsDialogs';
 import { useReasonDocsState } from './useReasonDocsState';
-import { DynamicIslandTOC } from '../search/DynamicIslandTOC';
 import { Button } from '../app-ui/button';
 import { useTheme } from 'next-themes';
-import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
 import { ssrSafeLocalStorage } from '../utils/storage';
@@ -20,6 +18,17 @@ import type { OpenTabItem, SidebarProps, SidebarContentProps, Document } from 'r
 import { useDocumentAccessRequest } from '../app-hooks/useDocumentAccessRequest';
 import { DocumentAccessDialog } from '../dialogs/DocumentAccessDialog';
 import '../app-styles/split-pane.css';
+
+// Loaded on demand, like the editor in `EditorArea`: the dialogs (settings,
+// teams, search, invite, tags) only matter once one of them is opened, and the
+// floating outline only once an open document has headings. Neither belongs in
+// the chunk that draws the shell.
+const ReasonDocsDialogs = lazy(() =>
+  import('./ReasonDocsDialogs').then((mod) => ({ default: mod.ReasonDocsDialogs })),
+);
+const DynamicIslandTOC = lazy(() =>
+  import('../search/DynamicIslandTOC').then((mod) => ({ default: mod.DynamicIslandTOC })),
+);
 
 /** A non-document tab (e.g. a chat conversation) supplied by the host app. */
 export interface ReasonDocsExtraTab {
@@ -153,6 +162,20 @@ const Index = ({
 }: ReasonDocsProps) => {
   const { theme, setTheme } = useTheme();
   const state = useReasonDocsState(openFilesSidebarSignal);
+
+  // The dialogs mount the first time any of them opens and then stay mounted,
+  // so their close animations and their own state behave exactly as before.
+  const anyDialogOpen =
+    state.isSearchModalOpen ||
+    state.isSettingsOpen ||
+    state.isTeamsOpen ||
+    state.isInviteModalOpen ||
+    state.isTagDialogOpen;
+  const [dialogsMounted, setDialogsMounted] = useState(false);
+  useEffect(() => {
+    if (anyDialogOpen) setDialogsMounted(true);
+  }, [anyDialogOpen]);
+
   const [tips, setTips] = useState<string[]>([]);
   const [isTipsLoading, setIsTipsLoading] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
@@ -508,37 +531,43 @@ const Index = ({
       )}
 
       {state.headings.length > 0 && state.rightPanels.length === 0 && state.showDynamicIsland && (
-        <DynamicIslandTOC
-          headings={state.headings}
-          onNavigate={(key) => state.editorRef.current?.scrollToHeading(key)}
-          editorRef={state.editorRef}
-        />
+        <Suspense fallback={null}>
+          <DynamicIslandTOC
+            headings={state.headings}
+            onNavigate={(key) => state.editorRef.current?.scrollToHeading(key)}
+            editorRef={state.editorRef}
+          />
+        </Suspense>
       )}
 
-      <ReasonDocsDialogs
-        isSearchModalOpen={state.isSearchModalOpen}
-        setIsSearchModalOpen={state.setIsSearchModalOpen}
-        isSettingsOpen={state.isSettingsOpen}
-        setIsSettingsOpen={state.setIsSettingsOpen}
-        isTeamsOpen={state.isTeamsOpen}
-        setIsTeamsOpen={state.setIsTeamsOpen}
-        isInviteModalOpen={state.isInviteModalOpen}
-        setIsInviteModalOpen={state.setIsInviteModalOpen}
-        isTagDialogOpen={state.isTagDialogOpen}
-        setIsTagDialogOpen={state.setIsTagDialogOpen}
-        documents={state.documents}
-        activeDocument={state.activeDocument}
-        tagManagementDocId={state.tagManagementDocId}
-        defaultSidebarView={state.defaultSidebarView}
-        setDefaultSidebarView={state.setDefaultSidebarView}
-        enableDatabaseSync={state.enableDatabaseSync}
-        setEnableDatabaseSync={state.setEnableDatabaseSync}
-        setDocuments={state.setDocuments}
-        onSelectDocument={handleSelect}
-        onToggleTheme={handleToggleTheme}
-        currentTheme={theme}
-        onUpdateTags={state.handleUpdateTags}
-      />
+      {(dialogsMounted || anyDialogOpen) && (
+        <Suspense fallback={null}>
+          <ReasonDocsDialogs
+            isSearchModalOpen={state.isSearchModalOpen}
+            setIsSearchModalOpen={state.setIsSearchModalOpen}
+            isSettingsOpen={state.isSettingsOpen}
+            setIsSettingsOpen={state.setIsSettingsOpen}
+            isTeamsOpen={state.isTeamsOpen}
+            setIsTeamsOpen={state.setIsTeamsOpen}
+            isInviteModalOpen={state.isInviteModalOpen}
+            setIsInviteModalOpen={state.setIsInviteModalOpen}
+            isTagDialogOpen={state.isTagDialogOpen}
+            setIsTagDialogOpen={state.setIsTagDialogOpen}
+            documents={state.documents}
+            activeDocument={state.activeDocument}
+            tagManagementDocId={state.tagManagementDocId}
+            defaultSidebarView={state.defaultSidebarView}
+            setDefaultSidebarView={state.setDefaultSidebarView}
+            enableDatabaseSync={state.enableDatabaseSync}
+            setEnableDatabaseSync={state.setEnableDatabaseSync}
+            setDocuments={state.setDocuments}
+            onSelectDocument={handleSelect}
+            onToggleTheme={handleToggleTheme}
+            currentTheme={theme}
+            onUpdateTags={state.handleUpdateTags}
+          />
+        </Suspense>
+      )}
 
       <DocumentAccessDialog
         state={accessState}

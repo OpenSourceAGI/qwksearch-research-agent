@@ -7,11 +7,18 @@
  * in `./editor-contract.ts`. The default is Plate; `'tiptap'` keeps the previous
  * engine reachable for the features not yet ported to it — today that is inline
  * comments (see the module comment in `./PlateEditorWrapper.tsx`).
+ *
+ * Both engines are loaded lazily. Each wrapper carries its whole editor stack
+ * (Plate or Tiptap, KaTeX, the drawing canvas, the toolbars and the library
+ * stylesheet), and `ReasonDocs` imports this module even when the host fills
+ * the main area with its own `mainContent` and never shows an editor. A static
+ * import would put all of that in the shell's chunk; behind `lazy` it is
+ * fetched the first time a document is actually opened, and only for the
+ * engine in use.
  */
+import { forwardRef, lazy, Suspense } from 'react';
 import type { TocEntry, Document } from 'react-reason-editor-sidebar';
 import type { ReasonEditorHandle, ReasonEditorProps } from './editor-contract';
-import { PlateEditorWrapper } from './PlateEditorWrapper';
-import { TiptapEditorWrapper } from './TiptapEditorWrapper';
 import { FileText, X } from 'lucide-react';
 import { Button } from '../app-ui/button';
 import { SplitPane, Pane } from 'react-split-pane';
@@ -19,14 +26,42 @@ import { SplitPane, Pane } from 'react-split-pane';
 /** The editors `EditorArea` can mount. */
 export type ReasonEditorEngine = 'plate' | 'tiptap';
 
-const EDITORS: Record<
-  ReasonEditorEngine,
-  React.ForwardRefExoticComponent<
-    ReasonEditorProps & React.RefAttributes<ReasonEditorHandle>
-  >
-> = {
-  plate: PlateEditorWrapper,
-  tiptap: TiptapEditorWrapper,
+type EditorComponent = React.ForwardRefExoticComponent<
+  ReasonEditorProps & React.RefAttributes<ReasonEditorHandle>
+>;
+
+/** Holds the editor's place while its chunk is in flight. */
+function EditorLoading() {
+  return (
+    <div
+      className="flex h-full items-center justify-center bg-editor-bg"
+      aria-busy="true"
+      aria-label="Loading the editor"
+    >
+      <div className="size-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-foreground/60" />
+    </div>
+  );
+}
+
+/**
+ * An editor wrapper fetched on first render, behind its own Suspense boundary
+ * so the tabs, sidebar and split-pane chrome around it stay on screen while
+ * the chunk loads. The ref is forwarded, so `editorRef` still reaches the
+ * engine's imperative handle once it mounts.
+ */
+function lazyEditor(load: () => Promise<EditorComponent>): EditorComponent {
+  const Lazy = lazy(() => load().then((component) => ({ default: component })));
+  const LazyEditor = forwardRef<ReasonEditorHandle, ReasonEditorProps>((props, ref) => (
+    <Suspense fallback={<EditorLoading />}>
+      <Lazy ref={ref} {...props} />
+    </Suspense>
+  ));
+  return LazyEditor;
+}
+
+const EDITORS: Record<ReasonEditorEngine, EditorComponent> = {
+  plate: lazyEditor(() => import('./PlateEditorWrapper').then((mod) => mod.PlateEditorWrapper)),
+  tiptap: lazyEditor(() => import('./TiptapEditorWrapper').then((mod) => mod.TiptapEditorWrapper)),
 };
 
 /**
