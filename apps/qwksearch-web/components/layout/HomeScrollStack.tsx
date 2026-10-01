@@ -281,7 +281,7 @@ export function HomeScrollStack() {
             }
           >
             {featuresNear ? (
-              <FeaturesView showPipeline={false} />
+              <FeaturesView showPipeline={false} showEnterpriseSignup={false} />
             ) : (
               <div className="min-h-screen" />
             )}
