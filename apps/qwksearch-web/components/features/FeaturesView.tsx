@@ -669,8 +669,13 @@ function FeatureExplorer() {
 /**
  * The page's one conversion box: the free start and the enterprise &
  * white-label sign-up together, closing the page right above the footer.
+ *
+ * Without `showSignup` it is only the closing statement — no buttons and no
+ * contact form. The homepage renders it that way: the reader is already in the
+ * research agent, so "Start researching" leads nowhere new, and the sales form
+ * stays on /features and /enterprise.
  */
-function ClosingCta() {
+function ClosingCta({ showSignup = true }: { showSignup?: boolean }) {
   return (
     <section className="relative px-4 pt-10 pb-28 sm:px-6 lg:px-8">
       <Reveal className="mx-auto max-w-6xl">
@@ -680,9 +685,20 @@ function ClosingCta() {
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-gradient-to-b from-sky-500/10 to-transparent"
             />
-            <div className="relative grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-14">
-              <div className="flex flex-col justify-center text-center lg:text-left">
-                <Pill className="mx-auto mb-5 w-fit lg:mx-0">
+            <div
+              className={cn(
+                "relative grid gap-10",
+                showSignup &&
+                  "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-14",
+              )}
+            >
+              <div
+                className={cn(
+                  "flex flex-col justify-center text-center",
+                  showSignup && "lg:text-left",
+                )}
+              >
+                <Pill className={cn("mx-auto mb-5 w-fit", showSignup && "lg:mx-0")}>
                   <Building2 className="size-3.5" />
                   Enterprise & white-label
                 </Pill>
@@ -693,25 +709,29 @@ function ClosingCta() {
                   No setup, no key required. Bring your own model when you want
                   more control, or self-host the whole stack.
                 </p>
-                <p className="text-muted-foreground mt-3 leading-relaxed text-pretty">
-                  Tell us about your business and we'll create a custom
-                  solution tailored to your needs.
-                </p>
-                <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
-                  <Button asChild size="lg" variant="outline" className="group">
-                    <Link href="/">
-                      <Globe />
-                      Start researching
-                      <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="ghost">
-                    <Link href="/enterprise">See enterprise pricing</Link>
-                  </Button>
-                </div>
+                {showSignup && (
+                  <>
+                    <p className="text-muted-foreground mt-3 leading-relaxed text-pretty">
+                      Tell us about your business and we'll create a custom
+                      solution tailored to your needs.
+                    </p>
+                    <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
+                      <Button asChild size="lg" variant="outline" className="group">
+                        <Link href="/">
+                          <Globe />
+                          Start researching
+                          <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                        </Link>
+                      </Button>
+                      <Button asChild size="lg" variant="ghost">
+                        <Link href="/enterprise">See enterprise pricing</Link>
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
 
-              <EnterpriseSignupForm />
+              {showSignup && <EnterpriseSignupForm />}
             </div>
           </div>
         </div>
@@ -827,6 +847,12 @@ function SiteFooter() {
 export interface FeaturesViewProps {
   showPipeline?: boolean;
   /**
+   * Keep the "Start researching" / "See enterprise pricing" buttons and the
+   * enterprise contact form in the closing box. Default true; the homepage
+   * turns it off.
+   */
+  showEnterpriseSignup?: boolean;
+  /**
    * Render the closing "Enterprise & white-label" sign-up and the site footer
    * under it. Left unset, it follows the embedding site's `?footer=` choice
    * (see `lib/site-footer.ts`) and shows by default; a boolean here overrides
@@ -837,6 +863,7 @@ export interface FeaturesViewProps {
 
 export function FeaturesView({
   showPipeline = true,
+  showEnterpriseSignup = true,
   showFooter,
 }: FeaturesViewProps = {}) {
   const embedderShowsFooter = useSiteFooterVisible();
@@ -853,7 +880,7 @@ export function FeaturesView({
       <FeatureExplorer />
       {footer && (
         <>
-          <ClosingCta />
+          <ClosingCta showSignup={showEnterpriseSignup} />
           <SiteFooter />
         </>
       )}
