@@ -1,0 +1,27 @@
+---
+title: Citations
+description: extractCite reads the author, date, title and publisher of a page from its meta tags and markup, and formats the author for a citation.
+icon: Quote
+---
+
+```ts
+import { extractCite } from 'extract-webpage';
+
+const cite = extractCite(html, { url: 'https://example.com/post' });
+// { author, author_cite, author_short, author_type, date, title, source }
+```
+
+`extractCite` takes an HTML string or a DOM `document`. `extractContent` runs it for you, and for a URL it also builds an APA-style `cite` from these fields: the author (or the publisher when there is none), the date, the title in bold, the publisher in italics, and a link.
+
+## Where each field comes from
+
+| Field | Read from |
+| --- | --- |
+| `title` | Meta tags (`og:title`, `twitter:title`, `dc.title`), then the page itself. |
+| `author` | Meta tags (`author`, `article:author`, `dc.creator`, `og:creator`), then common byline class names. |
+| `date` | Meta tags (`article:published_time`, `og:pubdate`, `dc.date`, …), then dates in the page, normalized to `YYYY-MM-DD` with chrono. |
+| `source` | The site name (`og:site_name`, `twitter:site`), or the page's domain. |
+
+## Person or organization
+
+A citation reverses a person's name ("Last, F.") but not an organization's. To tell them apart, author strings are checked against a list of about 90,000 first and last names, accounting for affixes and titles such as "Dr." or "Jr.". `author_type` says which it found, and `author_cite` and `author_short` are formatted to match.

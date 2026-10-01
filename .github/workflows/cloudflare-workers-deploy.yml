@@ -5,13 +5,20 @@ on:
   push:
     paths:
       - 'apps/**'
+      # A package's own site (docs + live demo as one Worker), e.g.
+      # packages/extract-youtube/site. It bundles the package from source, so
+      # a change to the package itself redeploys the site too.
+      - 'packages/*/site/**'
+      - 'packages/extract-youtube/src/**'
+      - 'packages/extract-pdf/src/**'
+      - 'packages/extract-webpage/src/**'
       - '.github/workflows/cloudflare-workers-deploy.yml'
 
   # Allows a manual deployment of one selected app.
   workflow_dispatch:
     inputs:
       app:
-        description: 'Optional directory name under apps/. Leave empty to deploy every app that has a Wrangler config.'
+        description: 'Optional app to deploy: a directory name under apps/, or a path such as packages/extract-pdf/site. Leave empty to deploy every app that has a Wrangler config.'
         required: false
         type: string
       environment:
@@ -54,8 +61,12 @@ jobs:
           # extension with no Worker, so `wrangler deploy` failed on it, while
           # `qwk-in-lobe` carries a wrangler.jsonc and was never deployed at
           # all.
+          #
+          # Candidates are apps/* and packages/*/site (a package's docs and
+          # live demo served as one Worker). Each is named by its path from
+          # the repository root.
           has_wrangler() {
-            local dir="apps/$1"
+            local dir="$1"
             [[ -f "${dir}/wrangler.jsonc" || -f "${dir}/wrangler.json" || -f "${dir}/wrangler.toml" ]]
           }
 
@@ -71,7 +82,7 @@ jobs:
           # documents as "the one job in this repository that installs
           # apps/qwk-in-lobe".
           owns_its_workspace() {
-            [[ -f "apps/$1/pnpm-workspace.yaml" ]]
+            [[ -f "$1/pnpm-workspace.yaml" ]]
           }
 
           deployable() {
@@ -79,27 +90,31 @@ jobs:
           }
 
           if [[ -n "${REQUESTED_APP}" ]]; then
-            if [[ ! -d "apps/${REQUESTED_APP}" ]]; then
-              echo "::error::Directory apps/${REQUESTED_APP} does not exist."
+            # A bare name means a directory under apps/, as before.
+            requested="${REQUESTED_APP%/}"
+            [[ "${requested}" == */* ]] || requested="apps/${requested}"
+
+            if [[ ! -d "${requested}" ]]; then
+              echo "::error::Directory ${requested} does not exist."
               exit 1
             fi
 
-            if ! has_wrangler "${REQUESTED_APP}"; then
-              echo "::error::apps/${REQUESTED_APP} has no wrangler.jsonc/.json/.toml, so it is not a Workers app."
+            if ! has_wrangler "${requested}"; then
+              echo "::error::${requested} has no wrangler.jsonc/.json/.toml, so it is not a Workers app."
               exit 1
             fi
 
-            if owns_its_workspace "${REQUESTED_APP}"; then
-              echo "::error::apps/${REQUESTED_APP} declares its own pnpm-workspace.yaml and is built by its own workflow, not this one."
+            if owns_its_workspace "${requested}"; then
+              echo "::error::${requested} declares its own pnpm-workspace.yaml and is built by its own workflow, not this one."
               exit 1
             fi
 
-            apps=$(jq -cn --arg app "${REQUESTED_APP}" '[ $app ]')
+            apps=$(jq -cn --arg app "${requested}" '[ $app ]')
           else
             apps=$(
-              for dir in apps/*/; do
+              for dir in apps/*/ packages/*/site/; do
                 [[ -d "${dir}" ]] || continue
-                app=$(basename "${dir}")
+                app="${dir%/}"
                 if deployable "${app}"; then echo "${app}"; fi
               done | jq -Rsc 'split("\n") | map(select(length > 0))'
             )
@@ -110,8 +125,8 @@ jobs:
           # made it permanently red for a repository with nothing to deploy.
           # The deploy job is skipped instead.
           if [[ "${apps}" == "[]" ]]; then
-            echo "No directory under apps/ is a Worker this job can build — nothing to deploy."
-            find apps -mindepth 1 -maxdepth 1 -type d -printf ' - %f\n' 2>/dev/null || true
+            echo "No directory under apps/ or packages/*/site is a Worker this job can build — nothing to deploy."
+            find apps -mindepth 1 -maxdepth 1 -type d -printf ' - %p\n' 2>/dev/null || true
             echo "apps=[]" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
@@ -135,7 +150,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: apps/${{ matrix.app }}
+        working-directory: ${{ matrix.app }}
 
     steps:
       - name: Check out repository

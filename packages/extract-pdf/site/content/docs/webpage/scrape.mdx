@@ -1,0 +1,33 @@
+---
+title: Scraping
+description: scrapeURL fetches a page's HTML with bot-detection checks, and falls back to a Cloudflare Puppeteer scraper and Jina Reader when a plain fetch fails.
+icon: Download
+---
+
+```ts
+import { scrapeURL } from 'extract-webpage';
+
+const html = await scrapeURL('https://example.com', { timeout: 5 });
+```
+
+`scrapeURL` is what `extractContent` uses for a URL. It answers with the page's HTML, or an object with `error` when every path failed.
+
+## The fallback chain
+
+1. **fetch.** A plain request with a crawler or desktop user agent, a timeout, limited redirects and an optional Google referer.
+2. **Cloudflare Puppeteer scraper.** When the fetch fails or comes back as a bot-detection page, the URL is rendered in headless Chromium on Cloudflare, which handles client-rendered pages and light bot protection.
+3. **Jina Reader.** The last resort, which answers in Markdown; `extractContent` converts it back to HTML.
+
+## Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `timeout` | `5` | Seconds before a request is aborted. |
+| `maxRedirects` | `3` | Redirects to follow. |
+| `checkBotDetection` | `true` | Treat a "verify you are human" page as a failure and fall back. |
+| `changeReferer` | `0` | Send `https://www.google.com/` as the referer. |
+| `userAgentIndex` | `0` | `0` for Googlebot, `1` for desktop Chrome. |
+| `proxy` | `null` | A fetch-through proxy URL to prefix the request with. |
+| `checkRobotsAllowed` | `false` | Read `robots.txt` first and refuse paths it disallows. |
+
+Sites that block datacenter IPs need a residential proxy; pass it as `proxy`.

@@ -1,0 +1,4 @@
+{
+  "title": "extract-pdf",
+  "pages": ["index", "parse-methods", "ocr", "workers"]
+}

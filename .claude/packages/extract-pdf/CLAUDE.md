@@ -19,6 +19,9 @@ documents. Published; built.
 - **`docling-space/` is not published.** It is the Hugging Face Docker Space
   for the OCR model, pushed to the Space by hand. Its `server/model.js` is a
   copy of `server/model.js`; change both (a test compares them).
+- **`site/` is the docs and live demo** for this package and extract-webpage,
+  one Cloudflare Worker; see [`site/CLAUDE.md`](site/CLAUDE.md). It is not
+  published (`files` ships `dist`, `src`, `server`).
 - This package is a **coverage-build dependency** in CI — it is one of the
   packages the coverage jobs build first.
 

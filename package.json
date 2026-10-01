@@ -11,8 +11,8 @@
     "apps/qwksearch-desktop",
     "apps/qwksearch-browser-ext",
     "apps/qwksearch-web",
-    "apps/extract-youtube-demo",
-    "apps/extract-youtube-docs"
+    "packages/extract-youtube/site",
+    "packages/extract-pdf/site"
   ],
   "scripts": {
     "dev": "turbo dev --filter=qwksearch-web",

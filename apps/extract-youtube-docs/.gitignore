@@ -1,9 +1,0 @@
-node_modules
-.vinext
-dist
-.source
-.wrangler
-.dev.vars
-*.tsbuildinfo
-.next
-next-env.d.ts

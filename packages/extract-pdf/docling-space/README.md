@@ -96,7 +96,7 @@ const result = await convertPDFToHTML(pdfBytes, {
 });
 ```
 
-The Cloudflare Workers demo in [`../demo`](../demo) uses it as a follow-up step: it returns text-layer HTML at once, then the browser renders the flagged pages and the Worker forwards each image here.
+The live demo in [`../site`](../site) uses it as a follow-up step: it returns text-layer HTML at once, then the browser renders the flagged pages and the Worker forwards each image here.
 
 ## Run locally
 

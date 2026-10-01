@@ -1,4 +1,0 @@
-# Copy to .dev.vars for `npm run dev`. Leave these out to run without OCR.
-DOCLING_PROCESSOR_URL=http://127.0.0.1:7860
-DOCLING_API_TOKEN=local-test-token
-# HF_SPACE_TOKEN=hf_...   # only for a private Hugging Face Space

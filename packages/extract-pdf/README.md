@@ -37,9 +37,9 @@ For OCR-grade fidelity on pages with infographics, charts, and tables, the packa
 bun add extract-pdf
 ```
 
-## Cloudflare Workers demo
+## Docs and live demo
 
-[`demo/`](./demo) is a ready-to-deploy Worker with an upload page and a `/api/convert` JSON endpoint. Run it with `cd demo && npm install && npm run dev`, then deploy with `npm run deploy`. See [demo/README.md](./demo/README.md) for the full hosting guide: CI deploys, custom domains, CPU limits and hardening.
+[`site/`](./site) is one Cloudflare Worker serving the docs for this package and [extract-webpage](../extract-webpage), plus a live demo at `/demo`: upload a PDF or paste a URL and get HTML back from `/api/convert`, with the Docling OCR follow-up, or extract a webpage through `/api/extract`. Run it with `bun install` at the repository root, then `cd site && bun run dev`. CI deploys it on every push that touches it. See [site/README.md](./site/README.md) for secrets, custom domains, CPU limits and hardening.
 
 ## Usage
 
@@ -205,7 +205,7 @@ const { html } = await convertPDFToHTML(buffer, {
 
 Hybrid mode still waits for every flagged page before it returns. To answer at
 once and enhance afterwards, run `processor: "frontend"`, return its HTML, and
-OCR `ocrScan.pagesNeedingOcr` as a follow-up; the [Workers demo](./demo) does
+OCR `ocrScan.pagesNeedingOcr` as a follow-up; the [live demo](./site) does
 exactly that.
 
 ## Detecting whether a PDF needs OCR

@@ -76,7 +76,7 @@ or `processorUrl`. The client POSTs base64 page images to
 
 **Answer fast, OCR later.** `"hybrid"` waits for every flagged page. For an instant
 result, run `"frontend"`, return its HTML, and OCR `ocrScan.pagesNeedingOcr`
-afterwards. The Workers demo (`demo/`) does this: Workers have no canvas, so the
+afterwards. The live demo in `site/` (`components/demo/PdfDemo.tsx` with `worker/api.ts`) does this: Workers have no canvas, so the
 browser rasterizes the flagged pages and the Worker forwards each image to the Space.
 
 **Tune the hybrid scan.** `ocrScanOptions` (see `ScanPagesForOCROptions`) sets the

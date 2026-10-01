@@ -1,0 +1,69 @@
+---
+title: Overview
+description: Fast, no-browser YouTube transcript extraction for Node, serverless and Cloudflare Workers — with optional React components.
+icon: House
+---
+
+`extract-youtube` fetches the captions of any YouTube video straight from YouTube's own caption endpoints. There is no headless browser, no Puppeteer, and no YouTube Data API key — just `fetch`, which is why the same code runs in Node, Bun, AWS Lambda, Vercel Edge and Cloudflare Workers.
+
+The package has three independent entry points:
+
+| Entry point | What it is | Pulls in React? |
+| --- | --- | --- |
+| `extract-youtube` | The transcript API, formatters, proxy configs and the CLI | No |
+| `extract-youtube/library` | A video library with an admin API: in-memory or D1 storage, one HTTP handler, a typed client | No |
+| `extract-youtube/react` | A floating YouTube player, a synced-transcript modal, video grid and list components, and library admin screens | Yes (peer dependency) |
+
+Import only what you need; the rest never ends up in your bundle. Everything runs on Cloudflare Workers, and the [live demo](/demo) shows all three together on the same Worker as these docs, with a [Storybook](/storybook/) of every component.
+
+## Install
+
+```package-install
+extract-youtube
+```
+
+Or run it once without installing:
+
+```bash
+npx extract-youtube dQw4w9WgXcQ
+```
+
+For the React components, also install the peer dependencies:
+
+```package-install
+extract-youtube react react-dom lucide-react
+```
+
+## Quick start
+
+```ts
+import { YouTubeTranscriptApi } from 'extract-youtube';
+
+const api = new YouTubeTranscriptApi();
+const transcript = await api.fetch('dQw4w9WgXcQ');
+
+for (const snippet of transcript) {
+  console.log(`${snippet.start}s: ${snippet.text}`);
+}
+```
+
+Every snippet has `text`, `start` (seconds) and `duration` (seconds). `transcript.toRawData()` gives you the same as a plain array, ready for `JSON.stringify`.
+
+## What's in the box
+
+- **[Transcripts](/docs/transcripts)** — fetch, pick languages, list available tracks, translate, handle typed errors.
+- **[Formatters](/docs/formatters)** — JSON, plain text, SRT, WebVTT, pretty-print and an article format.
+- **[CLI](/docs/cli)** — `extract-youtube <video-id> -f srt` from any terminal.
+- **[Proxies](/docs/proxies)** — keep working when YouTube starts rate-limiting your server's IP.
+- **[Deploy to Cloudflare](/docs/deploy-cloudflare)** — a transcript endpoint on Workers.
+- **[Floating player](/docs/react/floating-player)** and **[transcript modal](/docs/react/transcript-modal)** — React UI for watching with synced captions.
+- **[Video grid and list](/docs/react/video-grid)**: cards, a grouped table and stacked playlists for browsing a video library.
+- **[Library admin API](/docs/admin/library-api)**, **[custom fields](/docs/admin/custom-fields)** and **[admin components](/docs/admin/admin-components)**: store and curate that library, on D1 or in memory.
+- **[Live demo and Storybook](/docs/live-demo)**: all of it running on the Cloudflare Worker that serves this site, at [/demo](/demo).
+
+## Why this package
+
+- **Proven approach.** A TypeScript port of the widely used Python `youtube-transcript-api` caption-fetching logic.
+- **Serverless-first.** No filesystem access, no native modules, nothing that needs a Node-only socket — so it fits Lambda, Vercel Edge and Workers.
+- **Typed end to end.** Full TypeScript types and a typed error for every failure mode (`TranscriptsDisabled`, `NoTranscriptFound`, `IpBlocked`, …).
+- **Small.** ESM and CJS builds, tree-shakeable, a handful of small dependencies.

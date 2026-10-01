@@ -566,36 +566,35 @@ bring the video back. Auto-fill reads the YouTube Data API (or oEmbed with no
 key) and then your own `suggest` hook, and never overwrites what the admin
 typed.
 
-Full guides: [video grid and list](../../apps/extract-youtube-docs/content/docs/react/video-grid.mdx),
-[library admin API](../../apps/extract-youtube-docs/content/docs/admin/library-api.mdx),
-[custom fields](../../apps/extract-youtube-docs/content/docs/admin/custom-fields.mdx) and
-[admin components](../../apps/extract-youtube-docs/content/docs/admin/admin-components.mdx).
+Full guides: [video grid and list](./site/content/docs/react/video-grid.mdx),
+[library admin API](./site/content/docs/admin/library-api.mdx),
+[custom fields](./site/content/docs/admin/custom-fields.mdx) and
+[admin components](./site/content/docs/admin/admin-components.mdx).
 
 ## Live Demo and Storybook
 
-**Live demo: [youtube.js.org](https://youtube.js.org)** · Storybook: [youtube.js.org/storybook](https://youtube.js.org/storybook/)
+**Docs: [youtube.js.org](https://youtube.js.org)** · Live demo: [youtube.js.org/demo](https://youtube.js.org/demo) · Storybook: [youtube.js.org/storybook](https://youtube.js.org/storybook/)
 
-[`apps/extract-youtube-demo`](../../apps/extract-youtube-demo) runs all of
-this on one Cloudflare Worker: the library grid and list, the admin screens,
-the floating player with captions from `/api/transcript`, the library API at
-`/api/library`, and a Storybook with a story for every component at
-`/storybook/`.
+[`site/`](./site) runs all of this on one Cloudflare Worker: the docs at
+`/docs`, the live demo at `/demo` (the library grid and list, the admin
+screens, the floating player with captions from `/api/transcript`), the
+library API at `/api/library`, and a Storybook with a story for every
+component at `/storybook/`.
 
 ```bash
 bun install                           # from the monorepo root
-cd apps/extract-youtube-demo
-bun run dev                           # app + Worker on one port
+cd packages/extract-youtube/site
+bun run dev                           # docs, demo and /api on one port
 bun run storybook                     # Storybook on :6006
-bun run build && bunx wrangler deploy # app, Worker and Storybook in one deploy
+bun run build && bunx wrangler deploy # docs, demo, Worker and Storybook in one deploy
 ```
 
 With no secrets set it runs as a sandbox (an in-memory library anyone can
 edit, reset per Worker isolate). Set `ADMIN_TOKEN` to require a token, bind a
-D1 database as `DB` to persist, and set `YOUTUBE_API_KEY` for resync. The
-docs site is [`apps/extract-youtube-docs`](../../apps/extract-youtube-docs),
-built from template-fumadocs and also deployed to Workers.
+D1 database as `DB` to persist, and set `YOUTUBE_API_KEY` for resync. CI
+deploys the site on every push that touches it.
 
-The demo's `src/SpeedButton.tsx` is the worked example of an app-supplied
+The demo's `site/components/demo/SpeedButton.tsx` is the worked example of an app-supplied
 custom control, passed in through `<FloatingYouTubePlayer extraControls />`.
 
 ## Features

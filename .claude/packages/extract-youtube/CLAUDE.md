@@ -33,9 +33,10 @@ The grid and admin code was ported from debate-ai.com's `debate-videos`
 package and its `app/api/admin/videos/**` routes; debate-only columns became
 `CustomFieldDef`s. Keep it generic.
 
-Every React component has a story in `apps/extract-youtube-demo/stories/` and
-a page in `apps/extract-youtube-docs/content/docs/`. A new or changed
-component updates both.
+Every React component has a story in `site/stories/` and a page in
+`site/content/docs/`. A new or changed component updates both. The site (docs,
+live demo and Storybook as one Worker) has its own note in
+[`site/CLAUDE.md`](site/CLAUDE.md).
 
 This package is also a **coverage-build dependency** in CI.
 

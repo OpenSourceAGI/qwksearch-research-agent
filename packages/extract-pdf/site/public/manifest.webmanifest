@@ -1,0 +1,15 @@
+{
+  "name": "extract-pdf and extract-webpage docs",
+  "short_name": "extract-pdf",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "theme_color": "#2f5bd3",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}

@@ -1,0 +1,47 @@
+---
+title: Overview
+description: Two packages that turn PDFs and webpages into clean, structured HTML, in Node, the browser and Cloudflare Workers.
+icon: BookOpen
+---
+
+<Cards>
+  <Card title="Try the live demo" href="/demo" description="Convert a PDF or extract a webpage on the Worker that serves these docs." />
+  <Card title="extract-pdf" href="/docs/pdf" description="A PDF to structured HTML, with OCR only for the pages that need it." />
+  <Card title="extract-webpage" href="/docs/webpage" description="Any URL to its main content and a citation." />
+</Cards>
+
+When people hand a research tool a document, they expect an answer at once, not after minutes of OCR. These two packages are built around that:
+
+| Package | Input | Output |
+| --- | --- | --- |
+| `extract-pdf` | A PDF URL or `ArrayBuffer` | Structured HTML (headings, lists, footnotes, code and quote blocks, Table of Contents links), the title and author, and a per-page scan of which pages would benefit from OCR. |
+| `extract-webpage` | A URL, an HTML string, a DOM `document`, or a DOCX buffer | The main content as basic HTML, plus title, author, date, publisher, an APA-style citation and a word count. |
+
+`extract-webpage` uses `extract-pdf` itself: a URL that turns out to be a PDF is converted by it, and a YouTube URL is turned into a transcript by [`extract-youtube`](https://youtube.js.org).
+
+## Install
+
+```bash
+npm i extract-pdf extract-webpage
+# or
+bun add extract-pdf extract-webpage
+```
+
+## A first call
+
+```ts
+import { convertPDFToHTML } from 'extract-pdf';
+import { extractContent } from 'extract-webpage';
+
+const pdf = await convertPDFToHTML('https://arxiv.org/pdf/1706.03762');
+const page = await extractContent('https://en.wikipedia.org/wiki/Web_scraping');
+
+console.log(pdf.title, pdf.ocrScan.pagesNeedingOcr);
+console.log(page.cite, page.word_count);
+```
+
+## Where to go next
+
+- **[Live demo](/docs/live-demo)**: what the demo runs, its API, and how to deploy your own.
+- **[extract-pdf](/docs/pdf)**: options, [parse methods](/docs/pdf/parse-methods), [OCR](/docs/pdf/ocr) and [running on Workers](/docs/pdf/workers).
+- **[extract-webpage](/docs/webpage)**: [citations](/docs/webpage/cite), [scraping](/docs/webpage/scrape) and [text tools](/docs/webpage/text-tools).

@@ -32,6 +32,8 @@ Search, extract, cite, and outline the web for a topic with AI Research Agent. T
 npm install extract-webpage
 ```
 
+Try it in the browser: the live demo for this package and [extract-pdf](../extract-pdf), with their docs, is one Cloudflare Worker built from [`packages/extract-pdf/site`](../extract-pdf/site) (open `/demo#webpage`).
+
 ---
 
 ### 🚜📜 Tractor the Text Extractor

@@ -14,12 +14,15 @@ apps/qwk-vscode-ext
 apps/qwksearch-desktop
 apps/qwksearch-ext
 apps/qwksearch-web
-apps/extract-youtube-demo       # extract-youtube's live demo + Storybook (Worker)
-apps/extract-youtube-docs       # extract-youtube's docs site (Fumadocs on vinext, Worker)
+packages/extract-youtube/site   # extract-youtube's docs + live demo + Storybook (one Worker)
+packages/extract-pdf/site       # extract-pdf + extract-webpage docs + live demo (one Worker)
 ```
 
 The apps are listed one by one rather than globbed as `apps/*`, so that a root
 `bun install` cannot walk into `apps/qwk-in-lobe`. A new app is a new line here.
+
+A package's `site/` is its docs site and live demo as one Cloudflare Worker.
+`packages/*` does not reach two levels down, so each `site/` is listed too.
 
 Not covered by that list, and deliberately separate:
 

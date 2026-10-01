@@ -1,0 +1,49 @@
+---
+title: Text tools
+description: Sentence splitting, semantic chunks, stemming, autocomplete and SEEKTOPIC keyphrases, for working with what you extracted.
+icon: Rows3
+---
+
+Once a page is text, a research agent needs to cut it up, index it and summarize it. These are exported from `extract-webpage` as well.
+
+## Sentences and chunks
+
+```ts
+import { splitTextSemanticChars, splitTextToSentences } from 'extract-webpage';
+
+const sentences = splitTextToSentences(text, { minSize: 20, maxSize: 500 });
+const chunks = splitTextSemanticChars(markdown); // headings, paragraphs, list items, code blocks
+```
+
+`splitTextToSentences` accounts for abbreviations, numbers and URLs, so their periods do not end a sentence. `splitTextSemanticChars` splits Markdown or text into units an LLM can take one at a time.
+
+## Stems and topic tokens
+
+```ts
+import { convertTextToTokens, stemWordToRoot } from 'extract-webpage';
+
+stemWordToRoot('running'); // "run" (Porter stemmer)
+```
+
+`convertTextToTokens` tokenizes by phrase rather than by word, so "white house" and "state of the art" are kept whole for search.
+
+## Autocomplete
+
+```ts
+import { suggestNextWordCompletions } from 'extract-webpage';
+
+const suggestions = await suggestNextWordCompletions('state of the', { phrasesModel, limitMaxResults: 10 });
+```
+
+Search-on-keystroke completion of words and phrases, ranked by inverse document frequency. It needs a `phrasesModel` (a trie of phrases with their frequencies), which you load and pass in.
+
+## SEEKTOPIC keyphrases
+
+```ts
+import { extractSEEKTOPIC } from 'extract-webpage/seektopic/seektopic-keyphrases';
+
+const keyphrases = await extractSEEKTOPIC(articleText, { phrasesModel });
+// [{ keyphrase: "machine learning", weight: 84 }, …]
+```
+
+SEEKTOPIC (Summarization by Extracting Entities, Keyword Tokens, and Outline Phrases Important to Context) pulls out the phrases a document is about and ranks its sentences by how central they are to them. It extracts noun n-grams, merges the ones contained in larger ones, weights them by how specific they are to the document's field, and runs TextRank over a graph of phrases and sentences. With an LLM available it asks the model for the topic phrases first and uses embeddings to find the sentences that support each one.

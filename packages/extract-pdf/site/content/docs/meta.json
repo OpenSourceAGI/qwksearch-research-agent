@@ -1,0 +1,12 @@
+{
+  "title": "extract-pdf + extract-webpage",
+  "pages": [
+    "---Getting started---",
+    "index",
+    "live-demo",
+    "---extract-pdf---",
+    "...pdf",
+    "---extract-webpage---",
+    "...webpage"
+  ]
+}

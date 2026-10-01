@@ -93,8 +93,9 @@ Styles are injected once per subtree by `GridStylesProvider` (`eytg-` classes,
 the affected card re-renders. The admin table loads custom fields from `GET /fields`
 when not given them and disables Resync when the server has no YouTube API key.
 
-Live demo + a story per component: `apps/extract-youtube-demo`. Docs site:
-`apps/extract-youtube-docs`.
+Docs, live demo and a story per component, as one Worker:
+`packages/extract-youtube/site` (https://youtube.js.org, demo at `/demo`,
+Storybook at `/storybook/`).
 
 ## Troubleshooting
 

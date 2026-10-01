@@ -1,0 +1,41 @@
+---
+title: Parse methods
+description: The pure-TypeScript block algorithm runs everywhere; LiteParse runs natively in Node or as WASM in browsers and Workers.
+icon: Layers
+---
+
+`options.method` picks one of three interchangeable engines:
+
+| Method | Engine | Environments | OCR |
+| --- | --- | --- | --- |
+| `"ts-block-algorithm"` (default) | This package's own pipeline | Node.js, Cloudflare Workers, browser | No |
+| `"liteparse"` | [LiteParse](https://github.com/run-llama/liteparse), native (`@llamaindex/liteparse`) | Node.js only | Optional |
+| `"liteparse-wasm"` | LiteParse's WebAssembly build (`@llamaindex/liteparse-wasm`) | Node.js, Cloudflare Workers, browser | Optional, through a callback |
+
+```ts
+import { convertPDFToHTML } from 'extract-pdf';
+
+const { html } = await convertPDFToHTML(buffer, { method: 'liteparse' });
+
+// The WASM build also runs in browsers and on Workers:
+const { html: same } = await convertPDFToHTML(buffer, { method: 'liteparse-wasm' });
+```
+
+Both LiteParse packages are optional dependencies: install the one you use (`bun add @llamaindex/liteparse`). If it is missing, `convertPDFToHTML` resolves to `{ error }` instead of throwing. Both LiteParse paths run with OCR off (`ocrEnabled: false`) unless you pass `liteParseOptions`. The WASM build has no OCR engine of its own; pass a `liteParseOptions.ocrEngine` callback, for example one backed by tesseract.js.
+
+## Should this PDF get OCR?
+
+`detectPdfNeedsOcr` runs a cheap text-layer-only pass and reports whether each page needs OCR or other heavy parsing, so you can route a document before committing to a slow parse. Like `"liteparse"`, it is Node.js only.
+
+```ts
+import { convertPDFToHTML, detectPdfNeedsOcr } from 'extract-pdf';
+
+const assessment = await detectPdfNeedsOcr(buffer);
+// { needsOcr: boolean, pages: PageComplexityStats[], reasons: string[] }
+
+const { html } = assessment.needsOcr
+  ? await convertPDFToHTML(buffer, { method: 'liteparse', liteParseOptions: { ocrEnabled: true } })
+  : await convertPDFToHTML(buffer, { method: 'liteparse' });
+```
+
+`reasons` collects every signal found across pages: `"scanned"`, `"no-text"`, `"sparse-text"`, `"embedded-images"`, `"garbled"` or `"vector-text"`.

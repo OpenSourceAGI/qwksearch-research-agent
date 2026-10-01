@@ -1,0 +1,203 @@
+---
+title: Video grid and list
+description: Cards, a responsive grid, a sortable and groupable table, and stacked playlists for browsing a library of videos that open in the floating player.
+icon: LayoutGrid
+---
+
+The grid components render a library of videos. `<VideoGrid />` lays them out as cards and `<VideoList />` as a table. A Play button on either opens the video in the [floating player](/docs/react/floating-player). They were ported from the `debate-videos` package on [debate-ai.com](https://debate-ai.com). Everything debate-specific was taken out, and custom fields you declare yourself took its place.
+
+<Cards>
+  <Card title="Live demo" href="/demo" description="The grid and list over the library API on a Cloudflare Worker." />
+  <Card title="Storybook" href="/storybook/" description="Every component with its props, one story per state." />
+</Cards>
+
+```package-install
+extract-youtube react react-dom lucide-react
+```
+
+## What you pass in
+
+The components take plain arrays. The only required field is `videoId`, so a hand-written playlist renders as well as a full library row:
+
+```ts
+import type { VideoItem } from 'extract-youtube/react';
+
+const videos: VideoItem[] = [
+  { videoId: 'aircAruvnKk', title: 'But what is a neural network?', channel: '3Blue1Brown', publishedAt: '2017-10-05', viewCount: 21_000_000 },
+  { videoId: 'jNQXAC9IVRw' }, // renders too: the thumbnail comes from YouTube's image CDN
+];
+```
+
+| Field | Shown as |
+| --- | --- |
+| `videoId` | Thumbnail, the Play and Queue actions, the YouTube link. Required. |
+| `title`, `channel` | Card heading and subheading. |
+| `publishedAt` | `Oct 2017`, or `Oct 5, 2017` with `showFullDate`. Date-only strings are not shifted by time zone. |
+| `viewCount` | `21M views`. |
+| `category` | A badge. Clickable with `onBadgeClick`. |
+| `featured` | A "Top pick" badge. |
+| `description` | Up to three lines, with `showDescription`. |
+| `custom` | Badges for fields with `showOnCard`, columns for fields with `showInList`. See [custom fields](/docs/admin/custom-fields). |
+| `stackKey`, `stackPosition` | Folds the video into a [stacked playlist](#stacked-playlists). |
+
+A `LibraryVideo` from the [library API](/docs/admin/library-api) satisfies `VideoItem`, so a listing goes straight in.
+
+## `<VideoGrid />`
+
+```tsx
+import { FloatingYouTubePlayer, VideoGrid } from 'extract-youtube/react';
+
+export function Library({ videos }: { videos: VideoItem[] }) {
+  const [favorites, setFavorites] = useState<string[]>([]);
+  return (
+    <>
+      <VideoGrid
+        videos={videos}
+        favorites={favorites}
+        onToggleFavorite={(id) => setFavorites((list) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]))}
+        transcriptUrl="/api/transcript"
+      />
+      <FloatingYouTubePlayer transcriptUrl="/api/transcript" />
+    </>
+  );
+}
+```
+
+| Prop | Default | |
+| --- | --- | --- |
+| `videos` | required | In display order. |
+| `stacks` | formed from `videos` | Members of each stacked playlist, keyed by stack key. See below. |
+| `stacksEnabled` | `true` | `false` shows every video as its own card. |
+| `stackLabel` | category, else "Part N" | `(video, index) => string` for the flip control. |
+| `showThumbnails` | `true` | `false` for compact text cards. |
+| `showDescription`, `showFullDate` | `false` | Roomier cards. |
+| `minCardWidth` | `240` | Column width, in px or any CSS length. |
+| `emptyState` | "No videos to show." | What to render when `videos` is empty. |
+| `containerRef` | | Ref to the grid element, for infinite-scroll sentinels. |
+
+All the [card actions](#card-actions) are accepted too and passed to every card.
+
+## Card actions
+
+Every action is opt-in by callback. An action whose callback is missing is not rendered, so a read-only gallery is just `<VideoGrid videos={videos} />`.
+
+| Prop | Adds |
+| --- | --- |
+| `favorites`, `onToggleFavorite` | A star. `favorites` is an array or `Set` of ids. |
+| `hidden`, `onHide`, `onUnhide` | A hide button behind a confirm. Hidden videos render dimmed with "Unhide". |
+| `onPlay` | Replaces the default play action (`youtubePlayer.play`). |
+| `showQueueButton` | "Add to queue" (default on). |
+| `showYouTubeLink` | "Open on YouTube" (default on). |
+| `transcriptUrl` or `fetchTranscript` | A captions button opening the [transcript modal](/docs/react/transcript-modal). |
+| `onBadgeClick` | Makes channel, category and custom-field badges clickable, for example to search for them. |
+| `customFields` | Your field declarations, for badges and columns. |
+| `getProgress` | Watch progress `0…1`, drawn as a bar under the thumbnail. |
+| `renderActions` | `(video) => ReactNode`: your own buttons at the end of the row. Give them `className="eytg-icon-btn"` to match. |
+
+Each card reads the player's state, so the one playing shows "Playing" and queued ones show "Queued". Cards re-render only when their own state changes, not on every tick of the player.
+
+## `<VideoCard />`
+
+The card on its own, for layouts of your own. It takes a single `video` and every action prop above, plus:
+
+- `showThumbnail`, `showDescription` and `showFullDate`;
+- `overlay`, rendered over the thumbnail's top-left corner, which is where `<StackedVideoCard />` puts its flip control.
+
+## Stacked playlists
+
+Talks often come in parts, and debates come with their Q&A. When one video's description links another ("Part 2: https://youtu.be/…"), the library joins them into a **stack**. The grid then shows the stack as one card with `<` / `>` arrows, and the list shows it as one row.
+
+- Links are read from `watch?v=`, `youtu.be/`, `embed/`, `shorts/` and `live/` URLs. A description linking more than 8 videos is a link list, not a series, so it is ignored. A group of more than 12 videos is not stacked.
+- Members are ordered oldest first. The oldest one's id is the stack's `stackKey`.
+- The library API computes stacks when videos are added or their descriptions change. `recomputeStacks()` rebuilds them all.
+
+A stack's other members are often not on the same page as the video that links them. Pass `stacks` with every member so the arrows reach all of them. `useVideoLibrary()` does this for you, and so does the API's `GET /stacks?keys=…`. When `stacks` is omitted, the grid forms stacks from `videos` alone.
+
+| Component | Use it for |
+| --- | --- |
+| `<StackedVideoCard videos={members} />` | One stack as a card, with `initialIndex` and `stackLabel`. `VideoGrid` builds these for you. |
+| `<StackNav index count label onSelect variant />` | The flip control alone. `variant="overlay"` sits on a thumbnail and `"inline"` sits in a row. Wrap it in `<GridStylesProvider>` outside the grid components. |
+
+The same logic is exported for use without React from `extract-youtube/library`: `extractLinkedVideoIds`, `buildVideoStacks`, `assignVideoStacks` and `buildVideoSlots`.
+
+## `<VideoList />`
+
+The library as a table. A row click plays the video.
+
+```tsx
+import { VideoList, groupByCustomField } from 'extract-youtube/react';
+
+<VideoList
+  videos={videos}
+  stacks={stacks}
+  customFields={fields}
+  groupBy={['year', groupByCustomField('speaker')]}
+  defaultCollapseDepth={1}
+/>;
+```
+
+- **Columns**: video, channel, date, views, and one per custom field with `showInList`. Drag a header's edge to resize. `hideChannelColumn` drops the channel column for a one-channel library.
+- **Sorting**: click a header. Title and channel open A→Z, the rest open newest or largest first, and a second click flips the order. `defaultSort={{ column: 'views', direction: 'desc' }}` sets the start. A custom column sorts as `custom:<key>`.
+- **Grouping**: `groupBy` nests rows under headings, outermost first. Each heading shows how many videos it holds and their total views.
+- **Levels**: with grouping on, the L1…Ln buttons collapse the tree to that depth. `defaultCollapseDepth` sets where it opens.
+- **Thumbnails**: `showThumbnails` adds a small one to each row.
+
+### Groupers
+
+| Grouper | Groups by |
+| --- | --- |
+| `'year'` | Publish year, newest first. Undated videos go under "Undated", last. |
+| `'channel'` | Channel, A→Z. |
+| `'category'` | Category, A→Z. |
+| `groupByCustomField(key, { skipEmpty })` | A custom field's value. Videos without one land under "Unsorted", or skip this level with `skipEmpty`. |
+| your own | Any `VideoGrouper`: `(video) => { kind, label, sortValue, trailing? } \| null`. Returning `null` ends the path, so the video sits as a loose row one level up. |
+
+The tree helpers the list uses are exported from `extract-youtube/library` for server-side rendering or your own tree UI: `buildVideoTree`, `videoTreeDepth`, `sortVideoTreeLeaves`, `countVideoTreeLeaves` and `groupKeysFromDepth`.
+
+## `useVideoLibrary()`
+
+Loads one page of the library through a [client](/docs/admin/library-api#the-client), plus every stack on it, fetching each stack once:
+
+```tsx
+import { createLibraryClient } from 'extract-youtube/library';
+import { VideoGrid, useVideoLibrary } from 'extract-youtube/react';
+
+const client = createLibraryClient({ baseUrl: '/api/library' });
+
+function Library() {
+  const { videos, stacks, loading, error, reload } = useVideoLibrary(client, { q: 'python', sort: 'views', limit: 50 });
+  if (error) return <p>{error}</p>;
+  return <VideoGrid videos={videos} stacks={stacks} emptyState={loading ? 'Loading…' : 'Nothing found'} />;
+}
+```
+
+It returns `page` (with `total`, `page` and `pageCount`), `videos`, `stacks`, `loading`, `error` and `reload()`. The query takes the same fields as `GET /videos`: `q`, `category`, `availability`, `featured`, `ids`, `sort`, `dir`, `page` and `limit`. Pass `availability: 'available'` to keep videos YouTube no longer plays out of a public page.
+
+## Play all
+
+`toPlayerVideo()` turns a grid item into what the player takes, so "play everything I can see" is two calls:
+
+```ts
+import { toPlayerVideo, youtubePlayer } from 'extract-youtube/react';
+
+const [first, ...rest] = visible;
+youtubePlayer.play(toPlayerVideo(first));
+youtubePlayer.setQueue(rest.map(toPlayerVideo));
+```
+
+## Styling and dark mode
+
+The components style themselves. Each one injects a scoped stylesheet (`eytg-` classes) once per page, however many are mounted, so nothing needs importing and nothing leaks out. Colors are CSS variables, so a theme is a few overrides:
+
+```css
+.my-library {
+  --eytg-accent: #7c3aed;
+  --eytg-radius: 4px;
+}
+```
+
+Dark mode follows the system preference, or a `.dark` or `[data-theme="dark"]` ancestor. Pass `className` to any component to scope your overrides. `<GridStylesProvider>` and the raw `GRID_STYLES` string are exported for rendering the sheet yourself.
+
+## Formatting helpers
+
+`formatViewCount(21_000_000)` gives `21M`. `formatVideoDate('2017-10-05', true)` gives `Oct 5, 2017`. `formatCustomValue(def, value)` gives a badge's text, and `formatCustomCell(def, value)` gives a table cell's text. `thumbnailFor(videoId)` gives YouTube's thumbnail URL.

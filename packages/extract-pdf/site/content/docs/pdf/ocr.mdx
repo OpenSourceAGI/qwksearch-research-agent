@@ -1,0 +1,69 @@
+---
+title: OCR with Granite Docling
+description: Answer from the text layer at once, then OCR only the pages with scans, tables or figures, in-process or on a remote processor.
+icon: ScanText
+---
+
+Separately from `method`, the `processor` option decides whether pages go through the [Granite Docling](https://huggingface.co/ibm-granite/granite-docling-258M) OCR model, which keeps layout, tables, charts, code and formulas at the cost of model inference per page:
+
+| `processor` | What happens |
+| --- | --- |
+| `"frontend"` (default) | Every page parsed from the text layer. No OCR, no model, instant. |
+| `"hybrid"` | The text layer everywhere, plus a regex scan (`scanPagesForOCR`) that flags pages with figures, tables or no usable text; only those are rasterized and OCR'd. |
+| `"docling"` | Every page rasterized and OCR'd. |
+| `"https://…"` | Like `"docling"`, but each page is POSTed to that processor instead of running the model in-process. |
+
+```ts
+// Hybrid: fast parse, OCR only the pages that need it
+const { html, ocrScan } = await convertPDFToHTML(buffer, { processor: 'hybrid' });
+console.log(ocrScan.pagesNeedingOcr); // e.g. [3, 7]
+
+// Hybrid, with the OCR on a remote processor
+const result = await convertPDFToHTML(buffer, {
+  processor: 'hybrid',
+  processorUrl: 'https://YOUR_HF_USERNAME-extract-pdf-docling.hf.space',
+  doclingOptions: {
+    processorHeaders: {
+      'X-Docling-Token': process.env.DOCLING_API_TOKEN,
+      Authorization: `Bearer ${process.env.HF_SPACE_TOKEN}`, // private Space only
+    },
+    maxTokens: 1500,
+  },
+});
+```
+
+OCR'd pages come back as `<section class="ocr-page" id="page-N">`, with real `<table>` markup, `<figcaption>` captions and `<code class="formula">` formulas. A page whose OCR fails keeps its text-layer HTML.
+
+The scan's reasons per page are `"table-caption"`, `"figure-caption"`, `"table-rows"`, `"numeric-grid"`, `"no-text"`, `"sparse-text"` and `"garbled-text"`.
+
+## Answer first, enhance after
+
+Hybrid mode still waits for every flagged page before it returns. To answer at once, run `processor: "frontend"`, return its HTML, and OCR `ocrScan.pagesNeedingOcr` as a follow-up. The [live demo](/docs/live-demo#the-ocr-follow-up) does exactly that: the browser renders the flagged pages and the Worker forwards each image to the processor.
+
+## Running the model in-process
+
+In-process Docling needs the optional `@huggingface/transformers` dependency. The ONNX model (`onnx-community/granite-docling-258M-ONNX`, about 1 GB) downloads on first use. In Node.js, page rasterization also needs `@napi-rs/canvas`; browsers use `OffscreenCanvas`.
+
+The scanner and the OCR helpers are exported on their own:
+
+```ts
+import { doctagsToHtml, ocrImageWithDocling, scanPagesForOCR } from 'extract-pdf';
+
+const scan = scanPagesForOCR(pageTexts); // string[] of per-page text
+```
+
+## Hosting the processor
+
+`packages/extract-pdf/docling-space` packages the model as a Hugging Face Docker Space: token auth, one generation at a time with a bounded queue, the model loaded lazily, and optional sanitized HTML output. It takes one page image per request and never sees a whole PDF.
+
+1. Create a Space named `extract-pdf-docling`, SDK **Docker**, hardware **CPU Basic** to start. Make it private if people upload their own documents.
+2. Add the `DOCLING_API_TOKEN` secret (`openssl rand -hex 32`).
+3. Copy the folder into the Space's repository and push.
+
+| Route | Auth | Does |
+| --- | --- | --- |
+| `GET /health` | none | `{ status, modelLoaded, busy, queueDepth, uptime }` |
+| `POST /api/v1/warmup` | token | Loads the model now instead of on the first conversion. |
+| `POST /api/v1/convert-base64` | token | `{ imageBase64, mimeType?, prompt?, maxTokens?, output? }`, the route `processorUrl` calls. |
+
+The package's own `server/` folder has the same model behind a Hono API (`bun run serve:docling`, Swagger UI at `/docs`) for running it on your own machine.

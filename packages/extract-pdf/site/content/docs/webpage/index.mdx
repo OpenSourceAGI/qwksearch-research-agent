@@ -1,0 +1,74 @@
+---
+title: Extract a webpage
+description: extractContent turns a URL, an HTML string, a DOM document or a DOCX buffer into the main content as basic HTML, with its citation.
+icon: Globe
+---
+
+```ts
+import { extractContent } from 'extract-webpage';
+
+const article = await extractContent('https://en.wikipedia.org/wiki/Web_scraping');
+```
+
+`extractContent` picks a path from what it is given:
+
+| Input | What happens |
+| --- | --- |
+| A URL to a page | Fetched with [`scrapeURL`](/docs/webpage/scrape), then the main content and citation are extracted. |
+| A URL to a PDF | Converted by [`extract-pdf`](/docs/pdf). A URL is treated as a PDF when it ends in `.pdf` or its first bytes are `%PDF-`. |
+| A YouTube URL | The transcript, through `extract-youtube`. |
+| A Google Docs or Drive link | Rewritten to its HTML export or file download first. |
+| An HTML or Markdown string | Extracted directly; nothing is fetched. Pass `url` to make links absolute. |
+| A DOM `document` | Extracted directly, for browser extensions and in-page use. |
+| A DOCX `ArrayBuffer`, `Uint8Array` or `Buffer` | Converted to HTML through JSZip. |
+
+## Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `images` | `true` | Keep images. |
+| `links` | `true` | Keep links. |
+| `formatting` | `true` | Keep bold, italics and other inline formatting. |
+| `absoluteURLs` | `true` | Rewrite relative links and image sources against the page URL. |
+| `timeout` | `5` | Seconds before the fetch is aborted. |
+| `proxy` | `null` | A fetch-through proxy URL to prefix the request with. |
+| `url` | | The page's URL, when you pass HTML instead of a URL. |
+| `citeFormatMonthFull` | `false` | Spell out the month in `cite`. |
+| `citeFormatAuthorFull` | `true` | Use the author's full name in `cite`. |
+| `languages` | | Preferred transcript languages for YouTube URLs. |
+
+## Return value
+
+```ts
+{
+  html?: string;        // the main content as basic HTML
+  title?: string;
+  author?: string;      // as found on the page
+  author_cite?: string; // "Last, First" for a person; unchanged for an organization
+  author_short?: string;
+  author_type?: string | number;
+  date?: string;
+  source?: string;      // the publisher or site
+  cite?: string;        // APA-style citation, as HTML (<b>title</b>, <i>source</i>, a link)
+  url?: string;
+  word_count?: number;
+  error?: string | number;
+}
+```
+
+`url`, `cite` and `word_count` are added for inputs that are fetched or converted (a URL, a DOM `document`, a DOCX buffer). For an HTML or Markdown string, `extractContent` returns `extractContentAndCite`'s result as it is, without them.
+
+When nothing usable comes back, the result is `{ error }` instead of a thrown error.
+
+## How the main content is found
+
+1. **Two extractors.** Mozilla Readability and Postlight Mercury both run over the page, and the longer result wins. Mercury brings over 100 site-specific adapters for article, author and date markup.
+2. **A floor.** If the winner has under 400 characters of text, the whole page is used instead, so a short page is not reduced to nothing.
+3. **Basic HTML.** The result is simplified to headings, paragraphs, lists, quotes, code, images and links, which is what a reader view or a research note wants.
+4. **Markdown in, HTML out.** Some scrape paths, such as Jina Reader, answer in Markdown; it is detected, stripped of navigation, and converted before extraction.
+
+The pieces are exported on their own: `extractContentAndCite(html, options)` runs steps 1 to 4 on HTML you already have, and `extractCite` reads only the [citation](/docs/webpage/cite).
+
+## On Cloudflare Workers
+
+`extractContent` parses HTML with `linkedom`, not jsdom, so it runs in a Worker with `nodejs_compat`. This site's `/api/extract` route is the working example: see [the live demo](/docs/live-demo#the-webpage-api).

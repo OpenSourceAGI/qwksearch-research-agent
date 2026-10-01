@@ -1,0 +1,67 @@
+---
+title: Convert a PDF
+description: convertPDFToHTML turns a PDF URL or ArrayBuffer into structured HTML, with the title, author and a per-page OCR scan.
+icon: FileText
+---
+
+```ts
+import { convertPDFToHTML } from 'extract-pdf';
+
+const { html, title, author } = await convertPDFToHTML('https://example.com/paper.pdf');
+
+// or an ArrayBuffer from fs.readFile, fetch, or a file upload
+const { html } = await convertPDFToHTML(buffer, { addPageNumbers: true });
+```
+
+**Slim by default.** The package bundles no PDF engine. PDF.js is loaded at runtime from jsDelivr's ESM build of `pdfjs-serverless`, a single minified redistribution of Mozilla PDF.js built for serverless and edge runtimes. Node.js, Bun and Cloudflare Workers cannot import a remote URL, so there the loader falls back to the installed `pdfjs-serverless` optional dependency. Everything OCR-related is optional too and imported only when used.
+
+## Options
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `addPageNumbers` | `false` | Inserts `[n]` markers at each page boundary. |
+| `addCitation` | `true` | Reads the PDF metadata and the first-page heading to fill `title` and `author`. |
+| `method` | `"ts-block-algorithm"` | The parsing engine. See [parse methods](/docs/pdf/parse-methods). |
+| `liteParseOptions` | `{}` | Passed to LiteParse's constructor when `method` is a LiteParse one. |
+| `processor` | `"frontend"` | Where OCR happens: `"frontend"`, `"hybrid"`, `"docling"`, or a processor URL. See [OCR](/docs/pdf/ocr). |
+| `processorUrl` | | A remote Docling-compatible API used by `"hybrid"` and `"docling"` instead of the in-process model. |
+| `ocrScanOptions` | `{}` | Threshold tuning for the page scan (`scanPagesForOCR`). |
+| `doclingOptions` | `{}` | `prompt`, `maxTokens` and `scale` for the Docling model, and `processorHeaders` sent to `processorUrl`. |
+
+## Return value
+
+```ts
+{
+  html: string;
+  title?: string;
+  author?: string;
+  format: 'pdf';
+  processor: string;
+  ocrScan: OcrScanResult; // { needsOcr, pagesNeedingOcr: number[], pages: [{ page, needsOcr, reasons, captions }] }
+}
+```
+
+A PDF that cannot be parsed resolves to `{ error }` instead of throwing.
+
+Each page's HTML starts with `<p id="page-N">`, so a caller can split the result by page, which is how the [live demo](/docs/live-demo#the-ocr-follow-up) swaps OCR'd pages in.
+
+## The pipeline
+
+The default method runs a chain of transformations over the text items PDF.js reports:
+
+```
+Raw pdfjs text spans
+  → CalculateGlobalStats      font heights, distances, format map
+  → CompactLines              merge spans on the same line
+  → RemoveRepetitiveElements  strip recurring page headers and footers
+  → VerticalToHorizontal      rotate vertical character runs
+  → DetectTOC                 find Table of Contents pages, link headings
+  → DetectHeaders             H1–H6 by font height
+  → DetectListItems           bullet and numbered items
+  → GatherBlocks              group adjacent lines of the same type
+  → DetectCodeQuoteBlocks     indented blocks become code
+  → DetectListLevels          nested list indentation
+  → ToTextBlocks → ToHTML     <p>, <h1>–<h6>, <ul>, <code>
+```
+
+Headings are inferred from the spread of text heights: a line much taller than the document's mean is a heading, and its level follows from how far above the mean it is.

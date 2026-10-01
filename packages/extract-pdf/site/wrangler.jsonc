@@ -1,0 +1,44 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // The name of the extract-pdf demo Worker this site replaces, kept so its
+  // URL and its OCR secrets (below) carry over.
+  "name": "extract-pdf-demo",
+  // Hand-written entry (worker/index.ts): the demo's /api/* first, then
+  // vinext's App Router for the docs and /demo. `vinext build` bundles it
+  // (through @cloudflare/vite-plugin) into dist/, and writes
+  // .wrangler/deploy/config.json so `wrangler deploy` / `wrangler dev` use the
+  // built output rather than this source config.
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-09-01",
+  // grab-url (used by extract-pdf and extract-webpage) touches a few Node.js
+  // globals.
+  "compatibility_flags": ["nodejs_compat"],
+  // Wrangler deletes plaintext Variables set in the Cloudflare dashboard on
+  // every deploy unless keep_vars is set. Secrets are never deleted.
+  "keep_vars": true,
+  "assets": {
+    "not_found_handling": "none",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    // Largest PDF (in MB) the demo will accept, by upload or by URL.
+    "MAX_PDF_MB": "15",
+    // Largest pasted HTML (in MB) /api/extract accepts.
+    "MAX_HTML_MB": "2"
+    // Optional Granite Docling OCR follow-up (see ../docling-space). Set the
+    // processor URL and tokens as secrets, not here:
+    //   bunx wrangler secret put DOCLING_PROCESSOR_URL   # https://USER-extract-pdf-docling.hf.space
+    //   bunx wrangler secret put DOCLING_API_TOKEN       # same value as the Space secret
+    //   bunx wrangler secret put HF_SPACE_TOKEN          # private Space only: HF read token
+    // Tuning vars, all optional: DOCLING_MAX_PAGES (10), DOCLING_MAX_TOKENS (1500),
+    // DOCLING_MAX_IMAGE_MB (8).
+  },
+  "observability": { "enabled": true }
+  // Workers Paid plan only: raise the per-request CPU budget for big PDFs.
+  // The Free plan caps CPU at 10 ms and rejects this setting on deploy.
+  // "limits": { "cpu_ms": 30000 }
+  //
+  // Custom domain: none yet. Once a zone is in this account, add
+  //   "routes": [{ "pattern": "docs.example.com", "custom_domain": true }]
+  // and set SITE_URL in lib/fumadocs/customize-docs.ts.
+}
