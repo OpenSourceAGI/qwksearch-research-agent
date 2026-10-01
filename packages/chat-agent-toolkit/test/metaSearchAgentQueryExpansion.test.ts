@@ -5,6 +5,9 @@
  * configured per focus mode, but Settings → Search Settings lets a user replace
  * it. These tests pin the precedence: a non-blank override wins, anything blank
  * falls back to the focus mode's built-in prompt.
+ *
+ * Query expansion itself is opt-in, so every run here switches it on; the
+ * default (off) path is covered in metaSearchAgentFastPath.test.ts.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -48,6 +51,7 @@ const runWithOverride = async (queryExpansionPrompt?: string) => {
     false,
     0,
     queryExpansionPrompt,
+    true,
   );
 
   await new Promise<void>((resolve) => {

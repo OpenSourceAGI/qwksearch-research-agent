@@ -20,7 +20,9 @@ export interface DrainableEmitter extends EventEmitter {
 export interface MetaSearchAgentType {
     searchAndAnswer: (message: string, history: ChatTurnMessage[], llm: LanguageModel, optimizationMode: "speed" | "balanced" | "quality", fileIds: string[], systemInstructions: string, category?: string, sourceExtractionEnabled?: boolean, thinkingTimeLimit?: number, 
     /** User-authored replacement for the focus mode's query-expansion prompt. */
-    queryExpansionPrompt?: string) => Promise<DrainableEmitter>;
+    queryExpansionPrompt?: string, 
+    /** Rephrase the message with the LLM before searching. Off by default. */
+    queryExpansionEnabled?: boolean) => Promise<DrainableEmitter>;
 }
 /** Emitted on the EventEmitter data channel to report live search progress. */
 export interface SearchingEvent {

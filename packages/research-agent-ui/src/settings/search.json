@@ -95,11 +95,20 @@
     "scope": "client"
   },
   {
+    "name": "Query Expansion",
+    "key": "queryExpansionEnabled",
+    "type": "switch",
+    "required": false,
+    "description": "Have the AI rewrite your message into a standalone search query before searching. Helps with follow-up questions, but waits on an extra AI call before results appear. Off by default: your message is searched as typed.",
+    "default": false,
+    "scope": "client"
+  },
+  {
     "name": "Query Expansion Prompt",
     "key": "queryExpansionPrompt",
     "type": "textarea",
     "required": false,
-    "description": "Prompt that rewrites your message into a standalone web-search query before sources are fetched. Keep returning the query inside a <question> block, and any URLs inside a <links> block. Clear the box to restore the built-in prompt.",
+    "description": "Prompt that rewrites your message into a standalone web-search query before sources are fetched, when Query Expansion is on. Keep returning the query inside a <question> block, and any URLs inside a <links> block. Clear the box to restore the built-in prompt.",
     "placeholder": "Leave blank to use the built-in query expansion prompt.",
     "default": "",
     "rows": 14,

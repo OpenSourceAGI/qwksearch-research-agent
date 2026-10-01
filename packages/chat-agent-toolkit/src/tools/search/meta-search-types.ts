@@ -41,6 +41,11 @@ export interface MetaSearchAgentType {
     thinkingTimeLimit?: number,
     /** User-authored replacement for the focus mode's query-expansion prompt. */
     queryExpansionPrompt?: string,
+    /**
+     * Rephrase the message with the LLM before searching. Off by default: the
+     * message is searched as typed, which saves a model round trip.
+     */
+    queryExpansionEnabled?: boolean,
   ) => Promise<DrainableEmitter>;
 }
 

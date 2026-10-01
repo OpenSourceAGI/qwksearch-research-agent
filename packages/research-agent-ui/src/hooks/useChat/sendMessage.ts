@@ -479,6 +479,10 @@ export async function sendMessage(
         // (Settings → Search Settings). Blank means "use the built-in one".
         queryExpansionPrompt:
           localStorage.getItem("queryExpansionPrompt") ?? undefined,
+        // Off unless switched on in Settings → Search Settings: rephrasing
+        // costs a model round trip before the search can start.
+        queryExpansionEnabled:
+          localStorage.getItem("queryExpansionEnabled") === "true",
       },
       // A chat POST is not idempotent — retrying re-sends the message and
       // hammers the backend while the user sees nothing. Fail fast instead.

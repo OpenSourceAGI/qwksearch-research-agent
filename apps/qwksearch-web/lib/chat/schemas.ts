@@ -79,6 +79,7 @@ export const chatModelSchema: z.ZodType<ModelWithProvider> = z.object({
  * @property {boolean}   [sourceExtractionEnabled=false] - Whether to extract and return source content.
  * @property {string|null} [systemInstructions=""]  - Custom system instructions to prepend to the prompt.
  * @property {string|null} [queryExpansionPrompt=""] - Custom prompt used to rephrase the query for search.
+ * @property {boolean}   [queryExpansionEnabled=false] - Whether to rephrase the query with the LLM before searching.
  */
 export const bodySchema = z.object({
   /** The user's chat message. */
@@ -116,6 +117,12 @@ export const bodySchema = z.object({
    * (edited in Settings → Search Settings). Blank means "use the built-in one".
    */
   queryExpansionPrompt: z.string().nullable().optional().default(""),
+  /**
+   * Rephrase the message with the LLM before searching. Off by default: that
+   * is a whole model round trip before the search can start, so the message is
+   * searched as typed and the first model call is the answer itself.
+   */
+  queryExpansionEnabled: z.boolean().optional().default(false),
   /**
    * Max seconds to spend extracting source content.
    * 0 = unlimited (uses server default); >0 = budget spread across top 3 sources.
