@@ -147,7 +147,7 @@ describe('GET /api/news/trending', () => {
       expirationTtl: 86400,
     })
     // A second, week-long copy is what a failed refresh falls back on.
-    expect(kv.put).toHaveBeenCalledWith('trending-news:v2:top:6:stale', JSON.stringify(TOPICS), {
+    expect(kv.put).toHaveBeenCalledWith('trending-news:last-good:v2:top:6', JSON.stringify(TOPICS), {
       expirationTtl: 604800,
     })
 
