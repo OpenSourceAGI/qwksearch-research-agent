@@ -184,7 +184,7 @@ describe('GET /api/news/trending', () => {
     await GET(request('?limit=99999'))
     await GET(request('?limit=50'))
 
-    expect([...kv.store.keys()].filter((k) => k.startsWith('trending-news:v2:'))).toEqual([
+    expect([...kv.store.keys()].filter((k) => k.startsWith('trending-news:v2:') && !k.includes(':stale'))).toEqual([
       'trending-news:v2:top:6',
       'trending-news:v2:top:50',
     ])
@@ -296,7 +296,7 @@ describe('GET /api/news/trending — admin settings', () => {
     await GET(request('?topics=AI%2C%20climate'))
     await GET(request('?topics=climate%2Cai'))
 
-    expect([...kv.store.keys()].filter((k) => k.startsWith('trending-news:v2:'))).toEqual([
+    expect([...kv.store.keys()].filter((k) => k.startsWith('trending-news:v2:') && !k.includes(':stale'))).toEqual([
       'trending-news:v2:topics:ai|climate',
     ])
     expect(mockHandle).toHaveBeenCalledTimes(1)

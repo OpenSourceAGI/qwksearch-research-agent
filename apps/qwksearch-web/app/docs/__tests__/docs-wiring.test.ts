@@ -89,7 +89,9 @@ describe('the route modules serve the docs', () => {
 
     expect((await route.GET()).ok).toBe(true);
     expect(fs.existsSync(path.join(routeDir(docsConfig.searchApi), 'route.ts'))).toBe(true);
-  });
+    // Cold-imports the whole docs search index, which exceeds the 5s default when
+    // the full suite is loading other modules at the same time.
+  }, 30_000);
 
   it('serves llms-full.txt', async () => {
     const route = await import('../llms-full.txt/route');

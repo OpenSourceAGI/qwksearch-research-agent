@@ -278,7 +278,11 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
     if (kv) {
       try {
         await kv.put(key, body, { expirationTtl: cacheSeconds });
+        // The upstream is healthy again: stop answering from the archive.
+        await kv.delete(failKey);
         if (!singleTopic) {
+          // A second, week-long copy is what a failed refresh falls back on.
+          await kv.put(staleKey, body, { expirationTtl: STALE_TTL_SECONDS });
           await kv.put(lastGoodKey(key), body, {
             expirationTtl: FALLBACK_MAX_AGE_DAYS * 24 * 60 * 60,
           });
@@ -302,26 +306,27 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
       console.error("Trending news failure marker write failed:", error);
     }
 
-    if (kv) {
-      try {
-        const lastGood = await kv.get(lastGoodKey(key));
-        if (lastGood) {
-          return jsonResponse(
-            JSON.stringify({ ...JSON.parse(lastGood), stale: true }),
-            200,
-            "STORED",
-            0,
-          );
-        }
-      } catch (error) {
-        console.error("Trending news last-good read failed:", error);
-      }
-    }
   }
 
   const stored = await readArchive(topics, url, singleTopic);
   if (stored) {
     return jsonResponse(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
+  }
+
+  if (kv) {
+    try {
+      const lastGood = await kv.get(lastGoodKey(key));
+      if (lastGood) {
+        return jsonResponse(
+          JSON.stringify({ ...JSON.parse(lastGood), stale: true }),
+          200,
+          "STORED",
+          0,
+        );
+      }
+    } catch (error) {
+      console.error("Trending news last-good read failed:", error);
+    }
   }
 
   if (kv) {
