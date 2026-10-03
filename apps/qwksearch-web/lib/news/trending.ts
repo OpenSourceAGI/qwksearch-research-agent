@@ -50,7 +50,6 @@ const CACHE_PREFIX = "trending-news:v2:";
  * permanent answer.
  */
 const STALE_SUFFIX = ":stale";
-const STALE_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 /**
  * How stale a stored answer may be before we would rather show nothing. A
@@ -278,6 +277,9 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
     if (kv) {
       try {
         await kv.put(key, body, { expirationTtl: cacheSeconds });
+        // The upstream answered, so a failure marker from an earlier miss is
+        // out of date; clear it rather than wait for it to expire.
+        await kv.delete(failKey);
         if (!singleTopic) {
           await kv.put(lastGoodKey(key), body, {
             expirationTtl: FALLBACK_MAX_AGE_DAYS * 24 * 60 * 60,
@@ -301,22 +303,6 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
     } catch (error) {
       console.error("Trending news failure marker write failed:", error);
     }
-
-    if (kv) {
-      try {
-        const lastGood = await kv.get(lastGoodKey(key));
-        if (lastGood) {
-          return jsonResponse(
-            JSON.stringify({ ...JSON.parse(lastGood), stale: true }),
-            200,
-            "STORED",
-            0,
-          );
-        }
-      } catch (error) {
-        console.error("Trending news last-good read failed:", error);
-      }
-    }
   }
 
   const stored = await readArchive(topics, url, singleTopic);
@@ -326,6 +312,8 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
 
   if (kv) {
     try {
+      const lastGood = await kv.get(lastGoodKey(key));
+      if (lastGood) return jsonResponse(markStale(lastGood), 200, "STORED", 0);
       const stale = await kv.get(staleKey);
       if (stale) return jsonResponse(markStale(stale), 200, "STALE", 0);
     } catch (error) {
