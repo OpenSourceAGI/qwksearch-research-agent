@@ -55,7 +55,7 @@ rejects content scripts that contain them.
 
 ```bash
 bun install                 # from the repo root
-cd apps/qwksearch-ext
+cd apps/qwksearch-browser-ext
 
 bun run dev                 # Chrome, with a live-reloading dev profile
 bun run dev:firefox         # Firefox
