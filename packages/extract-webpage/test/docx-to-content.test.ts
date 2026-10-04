@@ -78,7 +78,7 @@ describe('convertDOCXToHTML — formatting', () => {
       'font-style: italic',
       'text-decoration: underline',
       'text-decoration: line-through',
-      'color: FF0000',
+      'color: #FF0000',
       'background-color: yellow',
       'font-size: 14pt',
       'font-family: Arial',
@@ -102,7 +102,7 @@ describe('convertDOCXToHTML — formatting', () => {
     const html = await convertDOCXToHTML(
       await docx(para(run('Fancy text'), '<w:pStyle w:val="Fancy"/>'), { 'word/styles.xml': styles }),
     );
-    expect(html).toContain('color: 00FF00');
+    expect(html).toContain('color: #00FF00');
     expect(html).toContain('text-align: right');
   });
 
@@ -111,7 +111,9 @@ describe('convertDOCXToHTML — formatting', () => {
       `<w:styles ${W}><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri"/><w:sz w:val="22"/><w:color w:val="333333"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>`;
     const html = await convertDOCXToHTML(await docx(para(run('x')), { 'word/styles.xml': styles }));
     expect(html).toContain('<style>');
-    expect(html).toContain('color: 333333');
+    expect(html).toContain('color: #333333');
+    expect(html).toContain('font-family: Calibri');
+    expect(html).toContain('font-size: 11pt');
   });
 
   it('skips style parsing when includeStyles is false', async () => {

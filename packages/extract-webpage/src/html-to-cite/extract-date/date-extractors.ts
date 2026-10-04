@@ -197,6 +197,29 @@ function discard_unwanted(tree) {
     return [tree, myDiscarded];
 }
 
+/**
+ * Format a Date built from local calendar components (`new Date(y, m, d)`) as
+ * YYYY-MM-DD. `toISOString()` converts to UTC first and shifts the day in any
+ * timezone ahead of UTC, so read the local fields instead.
+ */
+function localYMD(date) {
+    const pad = (n, width = 2) => String(n).padStart(width, '0');
+    return `${pad(date.getFullYear(), 4)}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/**
+ * Parse a date string without letting the host timezone move the day:
+ * date-only ISO strings are pinned to UTC midnight (matching the UTC
+ * formatting used for string-parsed dates); everything else defers to Date.
+ */
+function parseDateString(string) {
+    const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(string);
+    if (dateOnly) {
+        return new Date(Date.UTC(parseInt(dateOnly[1]), parseInt(dateOnly[2]) - 1, parseInt(dateOnly[3])));
+    }
+    return new Date(string);
+}
+
 function extract_url_date(testurl, options) {
     if (testurl) {
         const match = COMPLETE_URL.exec(testurl);
@@ -205,7 +228,7 @@ function extract_url_date(testurl, options) {
             try {
                 const dateObject = new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
                 if (is_valid_date(dateObject, options.format, options.min, options.max)) {
-                    return dateObject.toISOString().slice(0, 10);
+                    return localYMD(dateObject);
                 }
             } catch (err) {
                 LOGGER.debug(`conversion error: ${match[0]} ${err}`);
@@ -261,7 +284,7 @@ function custom_parse(string, outputformat, min_date, max_date) {
             }
         } else {
             try {
-                candidate = new Date(string);
+                candidate = parseDateString(string);
             } catch (err) {
                 LOGGER.debug(`not an ISO date string: ${string}`);
                 try {
@@ -273,7 +296,7 @@ function custom_parse(string, outputformat, min_date, max_date) {
         }
         if (candidate && is_valid_date(candidate, outputformat, min_date, max_date)) {
             LOGGER.debug(`parsing result: ${candidate}`);
-            return candidate.toISOString().slice(0, 10);
+            return string.slice(4, 8).match(/^\d{4}$/) ? localYMD(candidate) : candidate.toISOString().slice(0, 10);
         }
     }
 
@@ -284,7 +307,7 @@ function custom_parse(string, outputformat, min_date, max_date) {
             const candidate = new Date(year, month - 1, day);
             if (is_valid_date(candidate, '%Y-%m-%d', min_date, max_date)) {
                 LOGGER.debug(`YYYYMMDD match: ${candidate}`);
-                return candidate.toISOString().slice(0, 10);
+                return localYMD(candidate);
             }
         } catch (err) {
             LOGGER.debug(`YYYYMMDD value error: ${match[0]}`);
@@ -305,7 +328,7 @@ function custom_parse(string, outputformat, min_date, max_date) {
             const candidate = new Date(year, month - 1, day);
             if (is_valid_date(candidate, '%Y-%m-%d', min_date, max_date)) {
                 LOGGER.debug(`regex match: ${candidate}`);
-                return candidate.toISOString().slice(0, 10);
+                return localYMD(candidate);
             }
         } catch (err) {
             LOGGER.debug(`regex value error: ${ymdMatch[0]}`);
@@ -324,7 +347,7 @@ function custom_parse(string, outputformat, min_date, max_date) {
             const candidate = new Date(year, month - 1, 1);
             if (is_valid_date(candidate, '%Y-%m-%d', min_date, max_date)) {
                 LOGGER.debug(`Y-M match: ${candidate}`);
-                return candidate.toISOString().slice(0, 10);
+                return localYMD(candidate);
             }
         } catch (err) {
             LOGGER.debug(`Y-M value error: ${ymMatch[0]}`);
@@ -335,7 +358,7 @@ function custom_parse(string, outputformat, min_date, max_date) {
     if (is_valid_date(dateObject, outputformat, min_date, max_date)) {
         try {
             LOGGER.debug(`custom parse result: ${dateObject}`);
-            return dateObject.toISOString().slice(0, 10);
+            return localYMD(dateObject);
         } catch (err) {
             LOGGER.error(`value error during conversion: ${string} ${err}`);
         }
@@ -346,7 +369,7 @@ function custom_parse(string, outputformat, min_date, max_date) {
 function external_date_parser(string, outputformat) {
     LOGGER.debug(`send to external parser: ${string}`);
     try {
-        const target = new Date(string);
+        const target = parseDateString(string);
         if (isNaN(target.getTime())) {
             return null;
         }
@@ -406,14 +429,16 @@ function pattern_search(text, date_pattern, options) {
 }
 
 function json_search(tree, options) {
-    // const json_pattern = options.original ? JSON_PUBLISHED : JSON_MODIFIED;
-    const json_pattern = JSON_MODIFIED;
+    const json_pattern = options.original ? JSON_PUBLISHED : JSON_MODIFIED;
     const elements = tree.querySelectorAll('script[type="application/ld+json"], script[type="application/settings+json"]');
     for (const elem of elements) {
         if (!elem.textContent || !elem.textContent.includes('"date')) {
             continue;
         }
-        return pattern_search(elem.textContent, json_pattern, options);
+        const found = pattern_search(elem.textContent, json_pattern, options);
+        if (found) {
+            return found;
+        }
     }
     return null;
 }
@@ -432,7 +457,7 @@ function idiosyncrasies_search(htmlstring, options) {
                 candidate = new Date(year, month - 1, day);
             }
             if (is_valid_date(candidate, "%Y-%m-%d", options.min, options.max)) {
-                return candidate.toISOString().slice(0, 10);
+                return localYMD(candidate);
             }
         } catch (err) {
             LOGGER.debug(`cannot process idiosyncrasies: ${match[0]}`);
