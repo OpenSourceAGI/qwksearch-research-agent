@@ -156,6 +156,10 @@ export default function ChatHomepage() {
   const [trendingNewsShowImages, setTrendingNewsShowImages] = useState<boolean | null>(null);
   const [trendingNewsCustomTopics, setTrendingNewsCustomTopics] = useState<string[]>([]);
   const [newsSiteSettings, setNewsSiteSettings] = useState<NewsSiteSettings | null>(null);
+  // The weather and news widgets (their chunks and their API calls) wait until
+  // the page has loaded and the browser is idle, so they never compete with the
+  // orb, the input and the background for first paint.
+  const [widgetsReady, setWidgetsReady] = useState(false);
   const [orbHoverGlow, setOrbHoverGlow] = useState(false);
   // Off by default; enabled via the "Cursor Glow Trail" setting.
   const [cursorGlowTrail, setCursorGlowTrail] = useState(false);
@@ -228,6 +232,25 @@ export default function ChatHomepage() {
     return () => {
       window.removeEventListener('client-config-changed', readLocations);
       window.removeEventListener('storage', readLocations);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancel: (() => void) | undefined;
+    const ready = () => {
+      if (typeof window.requestIdleCallback === 'function') {
+        const handle = window.requestIdleCallback(() => setWidgetsReady(true), { timeout: 2500 });
+        cancel = () => window.cancelIdleCallback(handle);
+      } else {
+        const handle = window.setTimeout(() => setWidgetsReady(true), 800);
+        cancel = () => window.clearTimeout(handle);
+      }
+    };
+    if (document.readyState === 'complete') ready();
+    else window.addEventListener('load', ready, { once: true });
+    return () => {
+      window.removeEventListener('load', ready);
+      cancel?.();
     };
   }, []);
 
@@ -415,7 +438,7 @@ export default function ChatHomepage() {
             <RecentHistoryChips />
             {/* The input leads the column; the news and weather widgets sit below it. */}
             <ChatInputBox />
-            {(showWeatherWidget || showNewsWidget) && (
+            {widgetsReady && (showWeatherWidget || showNewsWidget) && (
               <Suspense fallback={null}>
                 <div className="flex flex-col gap-2 w-full">
                   {/* News sits on top, with the compact weather widget below it.
