@@ -151,12 +151,7 @@ export async function getTrendingNews(options: TrendingNewsOptions): Promise<Tre
 
   // The raw wire body is what gets cached, so a stored answer and a fresh one
   // go through exactly the same mapping below.
-  // The daily ranking is randomised by the server on every request, so a fresh
-  // local copy would pin the first draw for a day and a page refresh would show
-  // the same news. Skip the fresh read for it (the stale fallback below still
-  // covers a failed request); a named topic list is stable and keeps its cache.
-  const randomised = !options.topic && cleanTopics(options.topics).length === 0;
-  const cached = randomised ? null : readCachedTrendingNews<WorkerTopicsResponse>(url);
+  const cached = readCachedTrendingNews<WorkerTopicsResponse>(url);
   if (cached) return mapTopicsResponse(cached, options);
 
   const { data, stale } = await fetchJson(url, url);

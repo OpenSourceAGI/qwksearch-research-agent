@@ -4,7 +4,6 @@ import {
   NewsApiError,
   getCustomTopicNews,
   getTrendingTopics,
-  sampleTrendingResponse,
   handleTrendingNewsRequest,
   parseTopicLimit,
   parseTopicList,
@@ -375,43 +374,6 @@ describe('server and client agree on the wire format', () => {
         ],
       },
     ]);
-  });
-});
-
-describe('sampling the daily ranking', () => {
-  const pool = {
-    source: 'wikipedia_daily_top',
-    date: '2024-01-01',
-    topics: Array.from({ length: 9 }, (_, i) => ({
-      topic: `T${i}`,
-      news_count: 3,
-      articles: [{ title: 'a' }, { title: 'b' }, { title: 'c' }],
-    })),
-  };
-
-  it('picks `limit` topics from the pool, differently for different draws', () => {
-    const a = sampleTrendingResponse(pool, 3, () => 0.1);
-    const b = sampleTrendingResponse(pool, 3, () => 0.9);
-    expect(a.topics).toHaveLength(3);
-    expect(a.topics.map((t) => t.topic)).not.toEqual(b.topics.map((t) => t.topic));
-    expect(a.topics[0].articles.map((x) => x.title).sort()).toEqual(['a', 'b', 'c']);
-  });
-
-  it('leaves a caller-named topic list alone', () => {
-    const custom = { ...pool, source: 'custom_topics' };
-    expect(sampleTrendingResponse(custom, 3)).toBe(custom);
-  });
-
-  it('gathers a pool three times the limit and serves a sample of it', async () => {
-    const request = (q: string) => new Request(`https://example.com/${q}`);
-    const { fetchImpl } = stubUpstreams({ wiki: wikiItems(10) });
-    const pooled = await getTrendingTopics({ apiKey: 'k', limit: 2, fetchImpl, pool: true });
-    expect(pooled.topics).toHaveLength(6);
-
-    const res = await handleTrendingNewsRequest(request('?limit=2'), { apiKey: 'k', fetchImpl });
-    expect((await res.json()).topics).toHaveLength(2);
-    const raw = await handleTrendingNewsRequest(request('?limit=2'), { apiKey: 'k', fetchImpl, sample: false });
-    expect((await raw.json()).topics).toHaveLength(6);
   });
 });
 

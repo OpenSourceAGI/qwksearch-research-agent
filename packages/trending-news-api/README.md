@@ -33,8 +33,7 @@ Cloudflare Worker so the News API key never reaches the browser.
 - Daily trending topics, ranked by Wikipedia pageviews.
 - Or your own topic list, followed in the order you give it.
 - Matching headlines per topic from The News API.
-- Article thumbnail images, shown alongside headlines (toggle off with `showImages={false}`). A failed image moves to the next headline's image, then back to the last one that loaded.
-- A different random pick of the day's top Wikipedia topics (and headline order) on every refresh.
+- Article thumbnail images, shown alongside headlines (toggle off with `showImages={false}`).
 - Single-topic headline lookup.
 - Compact card row or full article-list layouts.
 - `localStorage` response caching (24 hours, with a week-long stale fallback when a request fails).
@@ -169,11 +168,7 @@ optional `fetchImpl` so it can be tested without network access.
 ## Caching
 
 `getTrendingNews` / `getTrendingNewsForTopic` cache each response in `localStorage` for 24
-hours, keyed by the exact request URL (which includes `limit`). The one exception is the daily
-ranking (no `topic`/`topics`): the server draws a fresh random sample on every request
-(`sampleTrendingResponse`, from a pool of 3× `limit` topics), so the client always asks the server
-and uses its stored copy only as the failure fallback. A host app that caches the pool passes
-`sample: false` to `handleTrendingNewsRequest` and samples after its cache. The window matches the data: the
+hours, keyed by the exact request URL (which includes `limit`). The window matches the data: the
 topic ranking is a single UTC day's pageviews, so a response fetched this morning is still exactly
 true this evening. Call `clearTrendingNewsCache()` to evict everything (e.g. in tests). The cache is
 a no-op in non-browser environments (SSR) or when `localStorage` is unavailable/full.

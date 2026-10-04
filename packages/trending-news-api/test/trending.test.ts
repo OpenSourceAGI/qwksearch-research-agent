@@ -172,31 +172,14 @@ describe('getTrendingNews', () => {
     await expect(getTrendingNews({ apiEndpoint: ENDPOINT })).rejects.toThrow('upstream unavailable');
   });
 
-  it('serves a repeat request for named topics from the cache', async () => {
+  it('serves a repeat request from the cache', async () => {
     const fetchMock = mockFetch(workerTopics());
 
-    const first = await getTrendingNews({ apiEndpoint: ENDPOINT, topics: ['Eclipse'] });
-    const second = await getTrendingNews({ apiEndpoint: ENDPOINT, topics: ['Eclipse'] });
+    const first = await getTrendingNews({ apiEndpoint: ENDPOINT });
+    const second = await getTrendingNews({ apiEndpoint: ENDPOINT });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(second).toEqual(first);
-  });
-
-  it('asks the server again on every call for the randomised daily ranking', async () => {
-    const fetchMock = mockFetch(workerTopics());
-
-    await getTrendingNews({ apiEndpoint: ENDPOINT });
-    await getTrendingNews({ apiEndpoint: ENDPOINT });
-
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
-
-  it('still falls back to the stored copy when the daily ranking request fails', async () => {
-    mockFetch(workerTopics());
-    const first = await getTrendingNews({ apiEndpoint: ENDPOINT });
-
-    mockFetch({ error: 'down' }, { ok: false, status: 502, statusText: 'Bad Gateway' });
-    expect(await getTrendingNews({ apiEndpoint: ENDPOINT })).toEqual(first);
   });
 
   it('caches per topic rather than per endpoint', async () => {
