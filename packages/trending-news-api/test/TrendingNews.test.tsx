@@ -202,30 +202,6 @@ describe('<TrendingNews />', () => {
     expect(img?.getAttribute('src')).toBe('https://example.com/a.jpg');
   });
 
-  it('moves to the next headline image, then the last good one, when an image fails', async () => {
-    const topic = (name: string, imgs: string[]) => ({
-      topic: name,
-      newsCount: imgs.length,
-      articles: imgs.map((imageUrl, i) => ({ title: `${name} ${i}`, url: `https://example.com/${name}${i}`, imageUrl })),
-    });
-    vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue(
-      data({ topics: [topic('Good', ['https://example.com/good.jpg']), topic('Bad', ['https://x/bad1.jpg', 'https://x/bad2.jpg'])] })
-    );
-
-    render(<TrendingNews apiEndpoint={ENDPOINT} compact />);
-
-    const imgOf = (name: string) => screen.getByText(name).closest('a')?.querySelector('img') as HTMLImageElement | null;
-    await screen.findByText('Good');
-    fireEvent.load(imgOf('Good')!);
-
-    fireEvent.error(imgOf('Bad')!);
-    expect(imgOf('Bad')?.getAttribute('src')).toBe('https://x/bad2.jpg');
-    fireEvent.error(imgOf('Bad')!);
-    expect(imgOf('Bad')?.getAttribute('src')).toBe('https://example.com/good.jpg');
-    fireEvent.error(imgOf('Bad')!);
-    expect(imgOf('Bad')).toBeNull();
-  });
-
   it('omits thumbnails when showImages is false', async () => {
     vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue(data());
 
