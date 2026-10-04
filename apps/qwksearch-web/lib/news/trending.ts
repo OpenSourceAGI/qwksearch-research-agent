@@ -29,6 +29,8 @@ import {
   handleTrendingNewsRequest,
   parseTopicLimit,
   parseTopicList,
+  POOL_MULTIPLIER,
+  sampleTrendingResponse,
   searchNewsForTopic,
 } from "trending-news-api/server";
 import type { TrendingNewsWireResponse } from "trending-news-api/server";
@@ -36,7 +38,9 @@ import { getCloudflareContext } from "../cloudflare/context";
 import { getNewsWidgetSettings, resolveTopics } from "./settings";
 import { readStoredTrendingNews, storeTrendingNews } from "./store";
 
-const CACHE_PREFIX = "trending-news:v2:";
+// v3: the daily entry is now a pool several times the requested size, sampled
+// per request, so an older entry (exactly `limit` topics) must not be read.
+const CACHE_PREFIX = "trending-news:v3:";
 
 /**
  * Suffix for the long-lived copy of the last good answer.
@@ -58,7 +62,7 @@ const STALE_SUFFIX = ":stale";
 const FALLBACK_MAX_AGE_DAYS = 7;
 
 /** Where the last successful answer for a cache key is kept (see step 4 above). */
-const LAST_GOOD_PREFIX = "trending-news:last-good:v2:";
+const LAST_GOOD_PREFIX = "trending-news:last-good:v3:";
 
 function lastGoodKey(key: string): string {
   return LAST_GOOD_PREFIX + key.slice(CACHE_PREFIX.length);
@@ -221,23 +225,37 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
   const staleKey = `${key}${STALE_SUFFIX}`;
   const failKey = `${key}${STALE_SUFFIX}:fail`;
 
+  // The Wikipedia ranking is a cached pool; every answer drawn from it (fresh,
+  // cached, stale or archived) is sampled again so a page refresh shows
+  // different topics and headlines. It is therefore never browser-cacheable.
+  const randomised = !singleTopic && topics.length === 0;
+  const respond = (
+    body: string,
+    status: number,
+    cache: Parameters<typeof jsonResponse>[2],
+    seconds: number,
+  ): Response =>
+    randomised && status === 200
+      ? jsonResponse(sampleBody(body, url), status, cache, 0)
+      : jsonResponse(body, status, cache, seconds);
+
   if (kv && apiKey) {
     try {
       const cached = await kv.get(key);
-      if (cached) return jsonResponse(cached, 200, "HIT", cacheSeconds);
+      if (cached) return respond(cached, 200, "HIT", cacheSeconds);
       // A recent failure is answered from the archive below rather than by
       // re-running an upstream that is known to be refusing us.
       const coolingDown = await kv.get(failKey);
       if (coolingDown) {
         const stale = await kv.get(staleKey);
         if (stale) {
-          return jsonResponse(markStale(stale), 200, "STALE", FAILURE_TTL_SECONDS);
+          return respond(markStale(stale), 200, "STALE", FAILURE_TTL_SECONDS);
         }
         const stored = await readArchive(topics, url, singleTopic);
         if (stored) {
-          return jsonResponse(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
+          return respond(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
         }
-        return jsonResponse(
+        return respond(
           JSON.stringify({ error: "The News API is temporarily unavailable" }),
           503,
           "MISS",
@@ -253,6 +271,8 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
   const { body, status } = await fetchOnce(key, async () => {
     const response = await handleTrendingNewsRequest(upstreamRequest(request, topics), {
       apiKey,
+      // The pool is what gets cached; each request samples it below.
+      sample: false,
     });
     return { body: await response.text(), status: response.status };
   });
@@ -290,7 +310,7 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
       }
     }
 
-    return jsonResponse(body, 200, kv ? "MISS" : "BYPASS", cacheSeconds);
+    return respond(body, 200, kv ? "MISS" : "BYPASS", cacheSeconds);
   }
 
   // The upstream is unhappy (no key, rate-limited, down). Serve something real
@@ -307,21 +327,21 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
 
   const stored = await readArchive(topics, url, singleTopic);
   if (stored) {
-    return jsonResponse(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
+    return respond(JSON.stringify({ ...stored, stale: true }), 200, "STORED", 0);
   }
 
   if (kv) {
     try {
       const lastGood = await kv.get(lastGoodKey(key));
-      if (lastGood) return jsonResponse(markStale(lastGood), 200, "STORED", 0);
+      if (lastGood) return respond(markStale(lastGood), 200, "STORED", 0);
       const stale = await kv.get(staleKey);
-      if (stale) return jsonResponse(markStale(stale), 200, "STALE", 0);
+      if (stale) return respond(markStale(stale), 200, "STALE", 0);
     } catch (error) {
       console.error("Trending news stale cache read failed:", error);
     }
   }
 
-  return jsonResponse(body, status, kv ? "MISS" : "BYPASS", cacheSeconds);
+  return respond(body, status, kv ? "MISS" : "BYPASS", cacheSeconds);
 }
 
 /**
@@ -342,9 +362,22 @@ async function readArchive(
       ? 1
       : topics.length > 0
         ? topics.length
-        : parseTopicLimit(url.searchParams.get("limit")),
+        : // The daily ranking is sampled afterwards, so hand it the whole pool.
+          Math.min(50, parseTopicLimit(url.searchParams.get("limit")) * POOL_MULTIPLIER),
     maxAgeDays: FALLBACK_MAX_AGE_DAYS,
   });
+}
+
+/** Draws this request's random sample from a cached pool body. */
+function sampleBody(body: string, url: URL): string {
+  try {
+    const limit = parseTopicLimit(url.searchParams.get("limit"));
+    return JSON.stringify(
+      sampleTrendingResponse(JSON.parse(body) as TrendingNewsWireResponse, limit),
+    );
+  } catch {
+    return body;
+  }
 }
 
 /** Tags a served-but-old body so the widget can say so. */
@@ -375,6 +408,7 @@ export async function refreshStoredNews(): Promise<{
 
   const response = await handleTrendingNewsRequest(new Request(url.toString()), {
     apiKey,
+    sample: false,
   });
   const payload = (await response.json()) as TrendingNewsWireResponse & {
     error?: string;
