@@ -56,7 +56,7 @@ routed to `extract-pdf` via a dynamic import.
 | `extractCite(document, options)` | `ExtractCiteResult` — the whole citation block |
 | `convertURLToDomain(url)`, `isURLValid(url)` | Root domain, multi-part TLD aware |
 
-Internals worth knowing when a citation is wrong: `html-to-cite/extract-author.ts`,
+Citation code now lives in the **`extract-cite`** package (see [ask-extract-cite](../ask-extract-cite/SKILL.md)); `extract-webpage` re-exports `extractCite`, `convertURLToDomain` and `isURLValid`. Internals worth knowing when a citation is wrong, in `extract-cite/src/html-to-cite/`: `extract-author.ts`,
 `extract-title.ts`, `extract-source.ts`, `human-names-recognize.ts` (the first/last-name
 database that decides `author_type`), and `extract-date/` (`date-extractors.ts`,
 `date-validators.ts`, `extract-date-quick.ts`).

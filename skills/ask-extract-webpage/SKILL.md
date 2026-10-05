@@ -34,7 +34,7 @@ a DOM `Document`, an HTML or Markdown **string**, or an `ArrayBuffer`/`Buffer`/
 | Site-specific extraction rules | `fetchScrapingRules(url)` |
 | Content + citation from HTML you already have | `extractContentAndCite(documentOrHTML, options)` |
 | One extraction algorithm on its own | `extractMainContentFromHTML(...)` (Readability) / `extractMainContentFromHTML2(...)` (Mercury) |
-| Citation metadata only | `extractCite(document, options)` |
+| Citation metadata only | `extractCite(document, options)` (from `extract-cite`; for a full LLM-completed citation use `extractCiteLLM`) |
 | Keyphrases, or keyphrases + summary sentences | `extractSEEKTOPIC(text, options)` |
 | Sentences / chunks / stems / topic tokens | `splitTextToSentences`, `splitTextSemanticChars`, `stemWordToRoot`, `convertTextToTokens`, `isWordCommonIgnored` |
 | Query completions | `suggestNextWordCompletions(...)` |

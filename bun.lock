@@ -301,6 +301,23 @@
         "vite": "^8.2.2",
       },
     },
+    "packages/extract-cite": {
+      "name": "extract-cite",
+      "version": "1.0.0",
+      "dependencies": {
+        "chrono-node": "^2.10.1",
+        "linkedom": "^0.18.13",
+      },
+      "devDependencies": {
+        "@types/node": "^26.5.0",
+        "@vitest/coverage-v8": "^5.0.0",
+        "terser": "^5.51.2",
+        "typescript": "^7.0.2",
+        "vite": "^8.2.2",
+        "vite-plugin-dts": "^5.1.0",
+        "vitest": "^5.0.0",
+      },
+    },
     "packages/extract-pdf": {
       "name": "extract-pdf",
       "version": "0.1.409",
@@ -333,6 +350,7 @@
         "@radix-ui/react-slot": "^1.2.4",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
+        "extract-cite": "workspace:*",
         "extract-pdf": "workspace:*",
         "extract-webpage": "workspace:*",
         "fumadocs-core": "^16.15.17",
@@ -368,8 +386,8 @@
         "@huggingface/transformers": "^4.2.0",
         "ai": "^7.0.94",
         "chat-agent-toolkit": "workspace:*",
-        "chrono-node": "^2.10.1",
         "drizzle-orm": "^0.45.2",
+        "extract-cite": "workspace:*",
         "extract-pdf": "workspace:*",
         "extract-youtube": "workspace:*",
         "html-entities": "^2.6.0",
@@ -4591,6 +4609,8 @@
     "extend-shallow": ["extend-shallow@2.0.1", "", { "dependencies": { "is-extendable": "^0.1.0" } }, "sha512-zCnTtlxNoAiDc3gqY2aYAWFx7XWWiasuF2K8Me5WbN8otHKTUKBwjPtNpRs/rbUZm7KxWAaNj7P1a/p52GbVug=="],
 
     "extendable-error": ["extendable-error@0.1.7", "", {}, "sha512-UOiS2in6/Q0FK0R0q6UY9vYpQ21mr/Qn1KOnte7vsACuNJf514WvCCUHSRCPcgjPT2bAhNIJdlE6bVap1GKmeg=="],
+
+    "extract-cite": ["extract-cite@workspace:packages/extract-cite"],
 
     "extract-pdf": ["extract-pdf@workspace:packages/extract-pdf"],
 

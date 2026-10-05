@@ -27,6 +27,7 @@ apps/qwksearch-web            Next.js on Cloudflare Workers (via vinext)
         │
         ├─► packages/search-web-api        query 71 engine adapters, dedupe, rank
         ├─► packages/extract-webpage       URL → cited article
+        │       ├─► packages/extract-cite      citations: regex pass + LLM pass (APA/MLA/Chicago)
         │       ├─► packages/extract-pdf       PDF → structured HTML (+ Docling OCR)
         │       ├─► packages/extract-youtube   transcripts, no browser
         │       ├─► packages/domain-rank       source label, rank, favicon
@@ -58,7 +59,7 @@ by the same workflow as the apps.
 | Site | Stack | Owns |
 | --- | --- | --- |
 | `packages/extract-youtube/site` | Fumadocs on vinext → Cloudflare Workers, Storybook 10 | `extract-youtube`'s docs at `/docs`, the live demo at `/demo` (grid/list/admin over its library API, the floating player, `/api/transcript`), and the Storybook at `/storybook/`. Domain: youtube.js.org. |
-| `packages/extract-pdf/site` | Fumadocs on vinext → Cloudflare Workers | Docs for `extract-pdf` and `extract-webpage`, and one live demo at `/demo` with a PDF tab (`/api/convert`, Docling OCR follow-up) and a Webpage tab (`/api/extract`). |
+| `packages/extract-pdf/site` | Fumadocs on vinext → Cloudflare Workers | Docs for `extract-pdf` and `extract-webpage`, and one live demo at `/demo` with a PDF tab (`/api/convert`, Docling OCR follow-up), a Webpage tab (`/api/extract`) and a Citation tab (`/api/cite`, extract-cite). |
 
 The Yjs rooms behind collaborative editing used to be an app of their own
 (`collaboration-server`). They are now part of `qwksearch-web`: the Hocuspocus

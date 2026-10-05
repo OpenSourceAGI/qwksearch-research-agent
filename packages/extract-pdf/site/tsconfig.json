@@ -19,6 +19,7 @@
       "@/*": ["./*"],
       "fumadocs-mdx:collections/*": ["./.source/*"],
       "extract-pdf": ["./types/extract-pdf.d.ts"],
+      "extract-cite": ["./types/extract-cite.d.ts"],
       "extract-webpage/url-to-content/url-to-content": ["./types/extract-webpage-url-to-content.d.ts"]
     }
   },

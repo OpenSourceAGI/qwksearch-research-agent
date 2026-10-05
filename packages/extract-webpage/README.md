@@ -49,7 +49,7 @@ Try it in the browser: the live demo for this package and [extract-pdf](../extra
 3. **YouTube Transcript Processing**: When a YouTube video URL is detected, retrieve the complete video transcript including both manual captions and auto-generated subtitles, maintaining proper timestamp synchronization.
 4. **DOCX Extraction**: Extracts text and structure from Word documents.
 5. **PDF to HTML**: Extracts formatted text from PDF with parsing of linebreaks, page headers, footnotes, and section headings. Supports fonts, links, bold, italics, lists, headings, headers, footnotes, Table of Contents, Quotes, and Code Blocks. Uses [pdfjs-serverless](https://github.com/johannschopplich/pdfjs-serverless) to work in Cloudflare workers, serverless, Node.js, and front-end environments.
-6. **Cite**: Identify and extract citation metadata including author names, publication dates, sources, and titles using HTML meta tags and common class name patterns. Validates author names against a database of 90,000 first and last names to distinguish personal from organizational authors.
+6. **Cite** (now the `extract-cite` package, re-exported here): Identify and extract citation metadata including author names, publication dates, sources, and titles using HTML meta tags and common class name patterns. Validates author names against a database of 90,000 first and last names to distinguish personal from organizational authors.
 
 ---
 

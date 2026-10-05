@@ -7,6 +7,7 @@ icon: MonitorPlay
 <Cards>
   <Card title="PDF to HTML" href="/demo" description="Upload a PDF or paste a URL. Flagged pages can be enhanced with OCR." />
   <Card title="Webpage to article" href="/demo#webpage" description="Paste a URL or some HTML. Get the main content and its citation." />
+  <Card title="Full citation with an LLM" href="/demo#cite" description="Pick a news, journal or reference page. Get APA, MLA, Chicago and more, with confidence per part and author qualifications." />
 </Cards>
 
 The site lives in the monorepo at `packages/extract-pdf/site`. It is one Cloudflare Worker that serves:
@@ -19,7 +20,8 @@ The site lives in the monorepo at `packages/extract-pdf/site`. It is one Cloudfl
 | `/api/enhance` | Forwards one rendered page image to a Granite Docling processor. |
 | `/api/source?url=` | The PDF at `url`, so the browser can render flagged pages. |
 | `/api/extract` | `extractContent` from `extract-webpage`. |
-| `/api/health` | `{ status, maxPdfMb, ocr }`. |
+| `/api/cite` | `extractCiteLLM` from `extract-cite`: a full citation from an LLM. POST only. |
+| `/api/health` | `{ status, maxPdfMb, ocr, cite }`. |
 
 `worker/index.ts` is the Worker's entry: it answers `/api/*` from `worker/api.ts` and hands every other request to the docs.
 
@@ -93,6 +95,16 @@ curl -X POST -H 'Content-Type: application/json' \
 
 The response is `extractContent`'s article plus where it came from: `{ input, ms, title, author, author_cite, date, source, cite, url, word_count, html }`. Flags `images`, `links` and `formatting` default to true. Pasted HTML is capped by `MAX_HTML_MB` (2).
 
+## The citation API
+
+```bash
+curl -X POST -H 'Content-Type: application/json' \
+  -d '{"url": "https://arxiv.org/abs/1706.03762", "apiKey": "sk-or-…", "model": "anthropic/claude-haiku-4.5"}' \
+  https://YOUR-SITE/api/cite
+```
+
+`apiKey` is an [OpenRouter](https://openrouter.ai) key, used for that one request and never stored. Leave it out when the Worker has its own (`bunx wrangler secret put OPENROUTER_API_KEY`; `CITE_MODEL` sets the default model). `html` can replace `url` for pages that block server fetches, and `styles` narrows the output. The response is [`extractCiteLLM`'s result](/docs/cite) plus `input`. Errors are `{ "error": "…" }` with 401 (no key, or the provider rejected it), 429 (the provider's rate limit), 400, 413 or 502.
+
 ## Run it locally
 
 ```bash
@@ -101,7 +113,7 @@ cd packages/extract-pdf/site
 bun run dev                      # the docs, /demo and its /api/*, on one port
 ```
 
-The site imports `extract-pdf`, `extract-webpage` and `extract-youtube` from their source through Vite aliases, so there is no package build first. Under `bun run dev` the API runs in Node, and its variables come from the shell, for example `DOCLING_PROCESSOR_URL=http://127.0.0.1:7860 DOCLING_API_TOKEN=local-test-token bun run dev`. `bun run preview` runs the built Worker in workerd.
+The site imports `extract-pdf`, `extract-webpage`, `extract-cite` and `extract-youtube` from their source through Vite aliases, so there is no package build first. Under `bun run dev` the API runs in Node, and its variables come from the shell, for example `DOCLING_PROCESSOR_URL=http://127.0.0.1:7860 DOCLING_API_TOKEN=local-test-token bun run dev`. `bun run preview` runs the built Worker in workerd.
 
 ## Deploy your own
 

@@ -1,8 +1,9 @@
 /**
  * Module aliases for the site, shared by the Worker build and `vinext dev`.
  *
- * - `extract-pdf`, `extract-webpage` and `extract-youtube` (which
- *   extract-webpage uses for YouTube URLs) resolve to the packages' own
+ * - `extract-pdf`, `extract-webpage`, `extract-cite` (which extract-webpage
+ *   uses for citations) and `extract-youtube` (which extract-webpage uses for
+ *   YouTube URLs) resolve to the packages' own
  *   TypeScript source, so the demo always runs the code in this repo with no
  *   package build first.
  * - extract-pdf's optional engines that cannot run on Workers (LiteParse's
@@ -19,6 +20,8 @@ const unsupported = here('./worker/unsupported.ts');
 
 export const aliases: Alias[] = [
   { find: /^extract-pdf$/, replacement: here('../src/pdf-to-html.ts') },
+  { find: /^extract-cite\/(.*)$/, replacement: `${here('../../extract-cite/src')}/$1` },
+  { find: /^extract-cite$/, replacement: here('../../extract-cite/src/index.ts') },
   { find: /^extract-webpage\/(.*)$/, replacement: `${here('../../extract-webpage/src')}/$1` },
   { find: /^extract-webpage$/, replacement: here('../../extract-webpage/src/index.ts') },
   { find: /^extract-youtube$/, replacement: here('../../extract-youtube/src/index.ts') },

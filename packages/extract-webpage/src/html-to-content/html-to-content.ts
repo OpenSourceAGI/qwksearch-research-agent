@@ -4,14 +4,13 @@
  * Cleans boilerplate (nav, footer, ads) to produce clean Markdown or text.
  */
 import { parseHTML } from "linkedom";
-import { extractCite } from "../html-to-cite/extract-cite";
+import { extractCite, extractHumanName } from "extract-cite";
 import { convertHTMLToBasicHTML } from "./html-to-basic-html";
 import {
   convertMarkdownToFormattedHTML,
   detectMarkdown,
   removeMarkdownNavigation,
 } from "./html-utils";
-import { extractHumanName } from "../html-to-cite/human-names-recognize";
 import { extractMainContentFromHTML } from "./extract-content/extract-content-readability";
 import { extractMainContentFromHTML2 } from "./extract-content/extract-content-mercury";
 

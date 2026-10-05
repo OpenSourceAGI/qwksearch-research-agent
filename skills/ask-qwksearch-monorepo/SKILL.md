@@ -33,6 +33,7 @@ things look similar:
 | Search box autocomplete, fastest suggest engine, site suggestions | `search-autocomplete` | ask-search-autocomplete |
 | Self-hosted SearXNG meta-search backend | `searxng-search-cloudflare` | ask-searxng-search |
 | URL → article + APA citation, keyphrases, tokenizing | `extract-webpage` | ask-extract-webpage |
+| Full citation (APA/MLA/Chicago) with an LLM, confidence, author bios | `extract-cite` | ask-extract-cite |
 | PDF → structured HTML, optional Docling OCR | `extract-pdf` | ask-extract-pdf |
 | YouTube transcripts without a browser | `extract-youtube` | ask-extract-youtube |
 | Domain rank, source label, favicon | `domain-rank` | ask-domain-rank |
