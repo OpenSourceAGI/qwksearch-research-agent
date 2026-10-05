@@ -3,8 +3,9 @@
  * @description Entry point of the Granite Docling Hugging Face Space: binds
  * the API to 0.0.0.0:$PORT (7860, the Space's `app_port`).
  *
- * The model is NOT loaded here. `/health` answers immediately; the model
- * downloads and loads on the first conversion or on `POST /api/v1/warmup`.
+ * `/health` answers immediately. The model starts loading in the background
+ * as soon as the app is created (set DOCLING_WARMUP_ON_START=false to wait
+ * for the first `POST /api/v1/warmup` or conversion instead).
  */
 import { serve } from "@hono/node-server";
 

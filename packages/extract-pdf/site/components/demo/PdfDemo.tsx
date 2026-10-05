@@ -9,10 +9,13 @@
  * a PNG, and `POST /api/enhance` forwards it with the Worker's secrets. Each
  * OCR'd page replaces its text-layer version as
  * `<section class="ocr-page" id="page-N">`; a page whose OCR fails keeps it.
+ *
+ * When OCR is configured the tab calls `/api/warmup` as soon as it opens, so
+ * a sleeping Space boots and loads its model while the visitor picks a file.
  */
-import { useRef, useState, type DragEvent, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type DragEvent, type FormEvent } from 'react';
 
-import type { ConvertResponse, OcrSummary } from '../../worker/api';
+import type { ConvertResponse, OcrSummary, WarmupResponse } from '../../worker/api';
 import { ResultView, safeFileName } from './ResultView';
 
 /** PDF.js for rendering flagged pages in the browser. */
@@ -42,7 +45,7 @@ interface PdfJs {
   getDocument(options: { data: ArrayBuffer }): { promise: Promise<PdfDocument> };
 }
 
-export function PdfDemo({ maxMb }: { maxMb: number | null }) {
+export function PdfDemo({ maxMb, ocr }: { maxMb: number | null; ocr: boolean }) {
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState('');
   const [addPageNumbers, setAddPageNumbers] = useState(false);
@@ -55,6 +58,18 @@ export function PdfDemo({ maxMb }: { maxMb: number | null }) {
   // older result stops instead of writing into the new one.
   const run = useRef(0);
   const fileInput = useRef<HTMLInputElement>(null);
+  // Whether the last warmup found the model ready; null until it answers.
+  const modelReady = useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (!ocr) return;
+    fetch('/api/warmup', { method: 'POST' })
+      .then((res) => (res.ok ? (res.json() as Promise<WarmupResponse>) : null))
+      .then((out) => {
+        modelReady.current = out?.modelLoaded ?? null;
+      })
+      .catch(() => {});
+  }, [ocr]);
 
   const chooseFile = (next: File | null) => {
     setFile(next);
@@ -110,7 +125,8 @@ export function PdfDemo({ maxMb }: { maxMb: number | null }) {
     const failed: number[] = [];
     let current = base;
     try {
-      setStatus({ text: `Enhancing ${listPages(targets)}…` });
+      const cold = modelReady.current === false ? ' The OCR model is still starting, so the first page can take a few minutes.' : '';
+      setStatus({ text: `Enhancing ${listPages(targets)}…${cold}` });
       const pdfjs = (await import(/* @vite-ignore */ `${PDFJS_CDN}pdf.min.mjs`)) as PdfJs;
       pdfjs.GlobalWorkerOptions.workerSrc = `${PDFJS_CDN}pdf.worker.min.mjs`;
       const bytes =

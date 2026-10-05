@@ -54,7 +54,7 @@ const scan = scanPagesForOCR(pageTexts); // string[] of per-page text
 
 ## Hosting the processor
 
-`packages/extract-pdf/docling-space` packages the model as a Hugging Face Docker Space: token auth, one generation at a time with a bounded queue, the model loaded lazily, and optional sanitized HTML output. It takes one page image per request and never sees a whole PDF.
+`packages/extract-pdf/docling-space` packages the model as a Hugging Face Docker Space: token auth, one generation at a time with a bounded queue, the model loaded as soon as the Space boots, and optional sanitized HTML output. It takes one page image per request, never sees a whole PDF, and keeps no image: each one is decoded in memory and dropped with the request.
 
 1. Create a Space named `extract-pdf-docling`, SDK **Docker**, hardware **CPU Basic** to start. Make it private if people upload their own documents.
 2. Add the `DOCLING_API_TOKEN` secret (`openssl rand -hex 32`).
@@ -62,8 +62,25 @@ const scan = scanPagesForOCR(pageTexts); // string[] of per-page text
 
 | Route | Auth | Does |
 | --- | --- | --- |
-| `GET /health` | none | `{ status, modelLoaded, busy, queueDepth, uptime }` |
-| `POST /api/v1/warmup` | token | Loads the model now instead of on the first conversion. |
-| `POST /api/v1/convert-base64` | token | `{ imageBase64, mimeType?, prompt?, maxTokens?, output? }`, the route `processorUrl` calls. |
+| `GET /health` | none | `{ status, modelLoaded, loading, busy, queueDepth, uptime, limits }` |
+| `GET` or `POST /api/v1/warmup` | none | Starts loading the model and answers at once: 202 while loading, 200 once ready. |
+| `POST /api/v1/convert` | token | The image itself as the body (`Content-Type: image/png`, options in the query), or JSON `{ imageBase64 \| imageUrl, prompt?, maxTokens?, output? }`. `/api/v1/convert-base64`, the path `processorUrl` calls, is the same handler. |
+
+```bash
+curl -X POST "$SPACE/api/v1/convert?output=html" \
+  -H "X-Docling-Token: $DOCLING_API_TOKEN" -H "Content-Type: image/png" --data-binary @page-3.png
+```
+
+### Limits
+
+| Limit | Default | When it is hit |
+| --- | --- | --- |
+| Image size | 10 MB (`DOCLING_MAX_IMAGE_MB`) | 413 |
+| Pages per request | 1 | the caller loops |
+| Generations at once | 1 | later requests queue |
+| Queue, running plus waiting | 8 (`DOCLING_MAX_QUEUE`) | 503 `BUSY` with `Retry-After` |
+| Output tokens per page | 1500, capped at 4096 (`DOCLING_MAX_TOKENS`) | output is cut off |
+
+On CPU Basic (2 vCPUs) expect tens of seconds or more per page, and a free Space sleeps after 48 hours idle, so the first request after that waits for a boot and a model load. The queue and image caps are worth keeping: a fast 503 the caller can retry beats a pile of requests that time out. The Space has no per-caller rate limit because only the token holder can convert; a public front end such as the demo Worker is where a per-visitor limit would go. The [Space README](https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/extract-pdf/docling-space#limits) has the full list.
 
 The package's own `server/` folder has the same model behind a Hono API (`bun run serve:docling`, Swagger UI at `/docs`) for running it on your own machine.
