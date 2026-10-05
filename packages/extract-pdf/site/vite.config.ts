@@ -80,6 +80,7 @@ function demoApiInDev(): Plugin {
     'DOCLING_MAX_IMAGE_MB',
     'OPENROUTER_API_KEY',
     'CITE_MODEL',
+    'ADMIN_PASSWORD',
   ];
   const env = Object.fromEntries(names.map((name) => [name, process.env[name] || undefined]));
   return {

@@ -124,3 +124,13 @@ bunx wrangler deploy
 ```
 
 PDF parsing is CPU-bound. On the Workers Free plan (10 ms of CPU per request) most real PDFs fail with error 1102; on the Paid plan uncomment `"limits": { "cpu_ms": 30000 }` in `wrangler.jsonc`. See [Running on Workers](/docs/pdf/workers).
+
+## Admin panel
+
+`/admin` signs in with a password and sets the site's global keys (the OpenRouter key and default model for the Citation tab, and the Docling OCR URL and tokens) without a redeploy. A value saved there wins over the same name in the Worker's dashboard; clearing it falls back to the dashboard value.
+
+```bash
+bunx wrangler secret put ADMIN_PASSWORD   # until set, /admin is disabled
+```
+
+Keys are stored in the `SETTINGS` KV namespace (created on first deploy) and are shown masked, never sent back to the browser. Sessions last 8 hours in an HttpOnly, SameSite=Strict cookie signed with the password, so changing the password signs everyone out. Eight failed logins from one IP lock it out for 15 minutes. Use a long random password.

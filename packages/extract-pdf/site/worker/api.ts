@@ -17,6 +17,7 @@
  *   GET  /api/extract?url=...       a webpage → article HTML + citation
  *                                   (extract-webpage's `extractContent`)
  *   POST /api/extract               JSON `{ url }` or `{ html, url? }`
+ *   /api/admin/*                    the admin panel's login and global keys (worker/admin.ts)
  *   POST /api/cite                  JSON `{ url, apiKey?, model?, styles?, html? }` →
  *                                   a full citation from an LLM (extract-cite)
  *
@@ -29,6 +30,7 @@
  * demo page renders those pages in the browser and sends each image to
  * /api/enhance, which forwards it with the secrets the browser never sees.
  */
+import { handleAdmin, withStoredSettings, type AdminEnv } from './admin';
 import { convertPDFToHTML } from 'extract-pdf';
 import { extractContent } from 'extract-webpage/url-to-content/url-to-content';
 import {
@@ -39,7 +41,7 @@ import {
   type ExtractCiteLLMResult,
 } from 'extract-cite';
 
-export interface Env {
+export interface Env extends AdminEnv {
   /** Largest PDF (in MB) accepted, by upload or by URL. Default 15. */
   MAX_PDF_MB?: string;
   /** Largest pasted HTML (in MB) /api/extract accepts. Default 2. */
@@ -118,11 +120,16 @@ type Fields = Record<string, unknown>;
  * Answers the demo's `/api/*` routes, or returns `null` for any other path so
  * the caller can hand the request to the docs.
  */
-export async function handleApi(request: Request, env: Env): Promise<Response | null> {
+export async function handleApi(request: Request, workerEnv: Env): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith('/api/')) return null;
 
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
+  // The admin panel's own routes: same-origin only, no CORS.
+  if (url.pathname.startsWith('/api/admin/')) return handleAdmin(request, url, workerEnv);
+
+  // Global keys saved in the admin panel sit over the Worker's own vars.
+  const env = await withStoredSettings(workerEnv);
 
   const maxBytes = Number(env.MAX_PDF_MB || 15) * 1024 * 1024;
 

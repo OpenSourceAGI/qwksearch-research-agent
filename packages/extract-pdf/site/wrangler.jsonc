@@ -36,6 +36,10 @@
     // Tuning vars, all optional: DOCLING_MAX_PAGES (10), DOCLING_MAX_TOKENS (1500),
     // DOCLING_MAX_IMAGE_MB (8).
   },
+  // Global keys saved in the admin panel (/admin). Wrangler creates the
+  // namespace on first deploy; no id needed. Set the panel's password with
+  //   bunx wrangler secret put ADMIN_PASSWORD
+  "kv_namespaces": [{ "binding": "SETTINGS" }],
   "observability": { "enabled": true }
   // Workers Paid plan only: raise the per-request CPU budget for big PDFs.
   // The Free plan caps CPU at 10 ms and rejects this setting on deploy.
