@@ -2,7 +2,7 @@
   "name": "qwksearch-extension-wxt",
   "description": "QwkSearch Tab Manager AI",
   "private": true,
-  "version": "6.0.0",
+  "version": "6.1.0",
   "type": "module",
   "overrides": {
     "@vitejs/plugin-react": "6.0.3"
@@ -16,7 +16,8 @@
     "zip:firefox": "bun x wxt zip -b firefox",
     "compile": "tsc --noEmit",
     "precompile": "bun x wxt prepare",
-    "test": "vitest run",
+    "test": "vitest run && bun run test:leotabs",
+    "test:leotabs": "node --test leotabs/tests/*.test.mjs",
     "test:coverage": "bun x wxt prepare && vitest run --coverage",
     "pretest": "bun x wxt prepare"
   },

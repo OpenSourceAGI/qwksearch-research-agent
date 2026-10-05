@@ -1,5 +1,9 @@
 # LeoTabs
 
+> **In this repository** LeoTabs ships inside the QwkSearch extension as its
+> Organize tab; see [`../README.md`](../README.md#leotabs-inside-this-extension).
+> `extension/` still loads on its own as the standalone LeoTabs extension.
+
 A tab manager and keyboard switcher for Chrome and Edge. Save tabs as collections, organise them into spaces, and reopen a project when you're ready to continue.
 
 [Add to Chrome](https://chromewebstore.google.com/detail/leotabs/heolckkdeandgagkiefggcneodniojhb) · [User guide](https://ringlochid.me/leotabs/docs/) · [Website](https://ringlochid.me/leotabs/) · [Contribute](#contribute)

@@ -10,6 +10,7 @@ import { placeCollectionItems, syncCollectionOrder } from './lib/collection-orde
 import {nativeOrganisation} from './lib/native-organisation.js';
 import {libraryAccess} from './lib/library-access.js';
 import {handleInstalled} from './lib/lifecycle.js';
+import {isEmbedded} from './lib/host.js';
 import { updateIdentity, invalidateIdentity } from './lib/identity.js';
 import { providerEndpoint, aiConnectionId, readAIKeys, PROVIDERS } from './lib/providers.js';
 import * as db from './lib/db.js';
@@ -1242,13 +1243,16 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
 chrome.runtime.onInstalled.addListener((details) => {
   chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' }).catch(() => {});
   db.getState().catch(() => {});
-  handleInstalled(chrome, details).catch(() => {});
+  // Inside QwkSearch the host opens its own welcome page (see lib/host.js).
+  if (!isEmbedded(chrome)) handleInstalled(chrome, details).catch(() => {});
 });
-chrome.action.onClicked.addListener((tab) =>
-  dispatch('open-library', { windowId: tab?.incognito ? undefined : tab?.windowId }).catch(
-    () => {},
-  ),
-);
+// Inside QwkSearch the toolbar button opens the side panel instead.
+if (!isEmbedded(chrome))
+  chrome.action.onClicked.addListener((tab) =>
+    dispatch('open-library', { windowId: tab?.incognito ? undefined : tab?.windowId }).catch(
+      () => {},
+    ),
+  );
 export function handleCommand(command, tab) {
   if (command === 'open-library') dispatch('open-library').catch(() => {});
   if (command === 'open-switcher') return openSwitcher(tab);

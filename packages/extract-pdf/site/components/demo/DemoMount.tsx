@@ -70,7 +70,7 @@ export function DemoMount() {
         {tab === null ? (
           <p className="status">Loading the live demo…</p>
         ) : tab === 'pdf' ? (
-          <PdfDemo maxMb={health?.maxPdfMb ?? null} />
+          <PdfDemo maxMb={health?.maxPdfMb ?? null} ocr={health?.ocr ?? false} />
         ) : tab === 'webpage' ? (
           <WebpageDemo />
         ) : (

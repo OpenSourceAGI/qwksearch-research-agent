@@ -1,6 +1,7 @@
 
 import {colorHex, colorInk, validColor} from './colors.js';
 import {DEFAULT_IDENTITY_COLOR, IDENTITY_VIEWBOX, IDENTITY_PATHS, IDENTITY_STROKE_WIDTH} from './identity-art.js';
+import {defaultAction} from './host.js';
 export {DEFAULT_IDENTITY_COLOR} from './identity-art.js';
 export const identityColor = color => validColor(color) ? colorHex(color) : DEFAULT_IDENTITY_COLOR;
 // Preserve the collection's exact fill; only the fine contour adapts for contrast.
@@ -34,11 +35,11 @@ export function updatePageIdentity(document, collection) {
   document.title=collection?'LeoTabs · '+collection.name:'LeoTabs · Library';
 }
 export async function updateIdentity(browser, library, active) {
-  const present = new Set();
+  const present = new Set(), fallback = defaultAction(browser);
   for (const tab of await browser.tabs.query({})) {
     if(tab.incognito) continue;
     const c=library.collections.find(c=>c.id===active[tab.windowId]?.collectionId);
-    const title=c ? `LeoTabs · ${c.name} · Open library` : 'Open LeoTabs library';
+    const title=c ? `LeoTabs · ${c.name} · Open library` : fallback.title;
     present.add(tab.id);
     const signature=title+':'+c?.color;
     if(identityCache.get(tab.id)?.signature===signature && identityCache.get(tab.id).applied)continue;
@@ -50,7 +51,7 @@ export async function updateIdentity(browser, library, active) {
       drawIdentity(context,size,c.color); images[size]=context.getImageData(0,0,size,size);
     }
     try {
-      await browser.action.setIcon({tabId:tab.id,...(c?{imageData:images}:{path:{16:'icons/16.png',20:'icons/20.png',24:'icons/24.png',32:'icons/32.png'}})});
+      await browser.action.setIcon({tabId:tab.id,...(c?{imageData:images}:{path:fallback.path})});
       await browser.action.setTitle({tabId:tab.id,title});
       // Navigation can invalidate this entry while the browser calls are pending.
       if(identityCache.get(tab.id)===entry) entry.applied=true;

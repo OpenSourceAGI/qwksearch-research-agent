@@ -1,7 +1,20 @@
 # CLAUDE.md — `apps/qwksearch-ext`
 
-The browser extension (WXT). Entrypoints:
-`entrypoints/{background,content,popup,sidepanel,offscreen}`.
+The browser extension (WXT), at `apps/qwksearch-browser-ext`. Entrypoints:
+`entrypoints/{background,content,sidepanel,offscreen,welcome}`.
+
+## LeoTabs is merged in
+
+`leotabs/` is the LeoTabs tab organizer, a plain-JS MV3 extension kept as-is
+(MPL-2.0; it used to be `apps/qwktabs`). Its pages are copied into the build by
+the `build:publicAssets` hook in `wxt.config.ts`; its `background.js` is
+imported by `entrypoints/background.ts`; its own `manifest.json` is ignored, so
+a permission or command it needs must be added to `wxt.config.ts`.
+`leotabs/extension/lib/host.js` is the switch between embedded and standalone.
+Its tests are `node --test` (`bun run test:leotabs`), not Vitest.
+
+The toolbar click opens the side panel unless the "Open in a full tab" setting
+(`chrome.storage.local` `qwkOpenInTab`, off by default) is on.
 
 ## It has its own workspace — install inside it
 

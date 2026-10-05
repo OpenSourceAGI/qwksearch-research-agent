@@ -11,7 +11,8 @@ Worker. [Fumadocs](https://fumadocs.dev) on Next.js App Router source, built by
 | `/`, `/docs/*` | The docs for both packages. |
 | `/demo` | The live demo. **PDF** tab: upload or URL → `/api/convert`, then the OCR follow-up. **Webpage** tab (`/demo#webpage`): URL or pasted HTML → `/api/extract`. |
 | `/api/convert` | `convertPDFToHTML` (text layer only), with the pages the OCR scan flagged. |
-| `/api/enhance` | One rendered page image → the Granite Docling processor, with the Worker's secrets. |
+| `/api/enhance` | One rendered page image → the Granite Docling processor, with the Worker's secrets. Nothing is stored. |
+| `/api/warmup` | Wakes the Docling processor and starts its model loading; the PDF tab calls it on open. |
 | `/api/source?url=` | The PDF at `url`, for the browser to render flagged pages. |
 | `/api/extract` | `extractContent` from extract-webpage: main content + citation. |
 | `/api/health` | `{ status, maxPdfMb, ocr }`. |
