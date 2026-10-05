@@ -17,7 +17,7 @@ When people hand a research tool a document, they expect an answer at once, not 
 | `extract-pdf` | A PDF URL or `ArrayBuffer` | Structured HTML (headings, lists, footnotes, code and quote blocks, Table of Contents links), the title and author, and a per-page scan of which pages would benefit from OCR. |
 | `extract-webpage` | A URL, an HTML string, a DOM `document`, or a DOCX buffer | The main content as basic HTML, plus title, author, date, publisher, an APA-style citation and a word count. |
 
-`extract-webpage` uses `extract-pdf` itself: a URL that turns out to be a PDF is converted by it, and a YouTube URL is turned into a transcript by [`extract-youtube`](https://youtube.js.org).
+`extract-webpage` uses `extract-pdf` itself: a URL that turns out to be a PDF is converted by it.
 
 ## Install
 

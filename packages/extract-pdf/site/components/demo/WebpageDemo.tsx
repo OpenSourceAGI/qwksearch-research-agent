@@ -4,8 +4,8 @@
  * Worker and answers with the main content as basic HTML plus the citation
  * fields it found: title, author, date, publisher and an APA-style cite.
  *
- * A URL that turns out to be a PDF goes through extract-pdf, and a YouTube URL
- * through extract-youtube's transcript fetcher, both inside `extractContent`.
+ * A URL that turns out to be a PDF goes through extract-pdf, inside
+ * `extractContent`.
  */
 import { useState, type FormEvent } from 'react';
 

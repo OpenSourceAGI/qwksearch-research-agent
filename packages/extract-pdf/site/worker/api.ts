@@ -363,7 +363,7 @@ function processorHeaders(env: Env): Record<string, string> {
 /**
  * A webpage (by URL, or pasted HTML) → its main content as basic HTML, plus
  * citation fields. A URL that turns out to be a PDF goes through extract-pdf,
- * and a YouTube URL through extract-youtube, inside `extractContent`.
+ * inside `extractContent`.
  */
 async function extractWebpage(request: Request, url: URL, env: Env): Promise<ExtractResponse> {
   let fields: Fields = Object.fromEntries(url.searchParams);

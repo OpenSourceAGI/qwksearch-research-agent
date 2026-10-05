@@ -76,8 +76,8 @@ const featureCategories: { category: string; tagline: string; features: Feature[
       },
       {
         icon: Globe,
-        title: 'PDFs, DOCX and YouTube too',
-        description: 'A PDF URL goes through extract-pdf, a YouTube URL through extract-youtube, and a DOCX buffer through JSZip.',
+        title: 'PDFs and DOCX too',
+        description: 'A PDF URL goes through extract-pdf, and a DOCX buffer through JSZip.',
         href: '/docs/webpage',
       },
       {
