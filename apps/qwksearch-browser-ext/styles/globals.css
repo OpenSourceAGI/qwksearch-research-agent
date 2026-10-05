@@ -1,7 +1,7 @@
+/* Tailwind v4 entry. The v3 `@tailwind base/components/utilities` directives
+   generated almost no utilities under v4, which left the side panel unstyled. */
+@import "tailwindcss";
 @config "../tailwind.config.ts";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @layer base {
   :root {
