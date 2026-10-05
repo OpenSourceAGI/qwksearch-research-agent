@@ -18,6 +18,7 @@ and re-exports `extractCite`, `convertURLToDomain`, `isURLValid`.
 | Same, for a page you already hold | `extractCiteLLM({ html, url })` or `{ text }` |
 | Another provider | `baseUrl` — any OpenAI-compatible chat-completions API |
 | One style from existing data | `formatCitation(citation, "mla")` |
+| Is the extracted article complete, or a paywall stub? What to cut? | `extractCiteLLM({ html, url, content: article.html })` → `contentCheck` |
 
 ## How the LLM pass works (`src/llm`)
 
@@ -26,6 +27,7 @@ and re-exports `extractCite`, `convertURLToDomain`, `isURLValid`.
 3. `callLLM` — one `chat/completions` call, `temperature: 0`, JSON object reply. Defaults: OpenRouter, `anthropic/claude-haiku-4.5`, key from `apiKey` or `OPENROUTER_API_KEY`.
 4. `parseCitationReply` normalizes and **checks** the reply (see below) and builds `needsReview`.
 5. `formatCitations` writes the requested styles.
+6. Content check (`content-check.ts`, on unless `checkContent: false`): `prepareContent` sends the first `contentWords` (3000) words of `content` (default: the page text) and `pageOutline`, the page's blocks as selectors; `CONTENT_CHECK_PROMPT` is appended to the system prompt; `parseContentCheck` returns `contentCheck` (verdict, signals, note, tips, `contentSelector`, `selectors` in the per-domain-selector shape). Not `full` → a `content` item in `needsReview`.
 
 ## Checks that must stay
 
@@ -33,6 +35,8 @@ Author names must appear in the page text (else capped at 0.2 and flagged);
 qualification `evidence` must be quoted from the page (else the qualifications
 are dropped and flagged); dates must be real `YYYY[-MM[-DD]]`; strings lose markup;
 a missing author/title/date is flagged, not invented. Regex/LLM agreement adds 0.1.
+Content-check signals and examples must appear in the text, and selectors must
+be valid and match an element on the page, or they are dropped.
 
 ## Gotchas
 

@@ -19,7 +19,9 @@
  *   POST /api/extract               JSON `{ url }` or `{ html, url? }`
  *   /api/admin/*                    the admin panel's login and global keys (worker/admin.ts)
  *   POST /api/cite                  JSON `{ url, apiKey?, model?, styles?, html? }` →
- *                                   a full citation from an LLM (extract-cite)
+ *                                   a full citation from an LLM (extract-cite),
+ *                                   plus a check that extract-webpage's article
+ *                                   is the full text and not a paywall stub
  *
  * /api/convert flags: `addPageNumbers`, `addCitation` (query, JSON or form).
  * /api/extract flags: `images`, `links`, `formatting`.
@@ -37,6 +39,7 @@ import {
   CITATION_STYLES,
   CiteLLMError,
   extractCiteLLM,
+  fetchPageHTML,
   type CitationStyle,
   type ExtractCiteLLMResult,
 } from 'extract-cite';
@@ -374,8 +377,10 @@ export type CiteResponse = ExtractCiteLLMResult & { input: string };
 /**
  * A webpage (URL, or pasted HTML) → a full citation: the regex pass, then one
  * model call that completes the APA parts, scores them and reads the author
- * bios. The key comes from the request or the Worker's OPENROUTER_API_KEY; it
- * is passed to the provider and never stored or echoed.
+ * bios. The same call checks the article extract-webpage pulls out of the page:
+ * is it the full text or a paywall stub, and which header, nav, sidebar and
+ * footer blocks it still holds. The key comes from the request or the Worker's
+ * OPENROUTER_API_KEY; it is passed to the provider and never stored or echoed.
  */
 async function citePage(request: Request, env: Env): Promise<CiteResponse> {
   const maxHtmlBytes = Number(env.MAX_HTML_MB || 2) * 1024 * 1024;
@@ -401,9 +406,11 @@ async function citePage(request: Request, env: Env): Promise<CiteResponse> {
     : undefined;
 
   try {
+    const pageHtml = html.trim() ? html : await fetchPageHTML(pageUrl);
     const result = await extractCiteLLM({
       url: pageUrl || undefined,
-      html: html.trim() ? html : undefined,
+      html: pageHtml,
+      content: await extractedArticle(pageHtml, pageUrl),
       apiKey,
       model: str(fields.model) || env.CITE_MODEL || undefined,
       styles: styles?.length ? styles : undefined,
@@ -412,6 +419,20 @@ async function citePage(request: Request, env: Env): Promise<CiteResponse> {
   } catch (err) {
     if (err instanceof CiteLLMError) throw httpError(err.status === 401 || err.status === 402 || err.status === 429 ? err.status : 502, err.message);
     throw httpError(502, (err as Error).message);
+  }
+}
+
+/**
+ * The article extract-webpage pulls out of a page, for the content check.
+ * Undefined when extraction fails: the check then reads the page's own text.
+ */
+async function extractedArticle(html: string, pageUrl: string): Promise<string | undefined> {
+  try {
+    // extractContent reads a string as a URL only when it starts with "http".
+    const article = await extractContent(html.trimStart(), { url: pageUrl, images: false, links: false, timeout: 10 });
+    return article && !article.error && article.html ? article.html : undefined;
+  } catch {
+    return undefined;
   }
 }
 

@@ -1,15 +1,18 @@
 /**
  * @fileoverview `extractCiteLLM`: the cheap regex/metadata pass first, then one
  * model call that is handed what was found and what is still missing, completes
- * the APA parts, scores each one, and reads the authors' qualifications.
+ * the APA parts, scores each one, and reads the authors' qualifications. The
+ * same call checks that the extracted content is the full article, not a
+ * paywall stub, and names the header, nav, sidebar and footer blocks to cut.
  */
 import { parseHTML } from "linkedom";
 import { extractCite } from "../html-to-cite/extract-cite";
 import { callLLM } from "./call-llm";
+import { parseContentCheck, prepareContent } from "./content-check";
 import { formatCitations } from "./format-citation";
 import { fetchPageHTML, preparePage } from "./page-text";
 import { parseCitationReply } from "./parse-reply";
-import { buildUserPrompt, missingFields, SYSTEM_PROMPT } from "./prompt";
+import { buildUserPrompt, missingFields, systemPrompt } from "./prompt";
 import {
   CITATION_STYLES,
   type CitationField,
@@ -29,6 +32,8 @@ import {
  * cite.formatted.apa?.text;  // full APA 7 entry
  * cite.needsReview;          // fields to check by hand
  * cite.citation.authors[0].qualifications; // bio facts, quoted from the page
+ * cite.contentCheck?.verdict; // "full", "paywalled", "truncated", …
+ * cite.contentCheck?.tips;    // header, nav, sidebar, footer blocks to cut
  * ```
  *
  * Throws when the page cannot be fetched or the model call fails; a missing
@@ -36,7 +41,7 @@ import {
  */
 export async function extractCiteLLM(options: ExtractCiteLLMOptions): Promise<ExtractCiteLLMResult> {
   const started = Date.now();
-  const { url, reviewThreshold = 0.7, styles = [...CITATION_STYLES] } = options;
+  const { url, reviewThreshold = 0.7, styles = [...CITATION_STYLES], checkContent = true } = options;
 
   let html = options.html;
   if (!html && options.text === undefined) {
@@ -51,6 +56,9 @@ export async function extractCiteLLM(options: ExtractCiteLLMOptions): Promise<Ex
 
   // 2. One model call with the partial in hand.
   const page = preparePage(html, { text: options.text, maxChars: options.maxChars });
+  const content = checkContent
+    ? prepareContent(html, { content: options.content, text: options.text, words: options.contentWords })
+    : undefined;
   const { json, model } = await callLLM({
     apiKey: options.apiKey,
     model: options.model,
@@ -58,8 +66,8 @@ export async function extractCiteLLM(options: ExtractCiteLLMOptions): Promise<Ex
     headers: options.headers,
     timeoutMs: options.timeoutMs,
     fetch: options.fetch,
-    system: SYSTEM_PROMPT,
-    user: buildUserPrompt({ url, partial, missing, page }),
+    system: systemPrompt(checkContent),
+    user: buildUserPrompt({ url, partial, missing, page, content }),
   });
 
   // 3. Validate it against the page and score it.
@@ -70,6 +78,24 @@ export async function extractCiteLLM(options: ExtractCiteLLMOptions): Promise<Ex
     partial,
     reviewThreshold
   );
+
+  // 4. The content check, held to the same standard: quotes must be in the
+  // text, selectors must match the page.
+  const contentCheck = content
+    ? parseContentCheck(
+        (json as { contentCheck?: unknown } | null)?.contentCheck,
+        content,
+        [content.text, page.text, page.pageTitle].join("\n")
+      )
+    : undefined;
+  if (contentCheck && !contentCheck.isFullContent && contentCheck.verdict !== "unknown") {
+    parsed.needsReview.push({
+      field: "content",
+      confidence: contentCheck.confidence,
+      reason: `${contentCheck.verdict}: ${contentCheck.note || contentCheck.signals[0] || "not the full article"}`,
+    });
+    parsed.needsReview.sort((a, b) => a.confidence - b.confidence);
+  }
 
   // `agree` means the regex pass and the model read the same value; anything
   // else the model supplied, because the regex pass had nothing or was overruled.
@@ -92,6 +118,7 @@ export async function extractCiteLLM(options: ExtractCiteLLMOptions): Promise<Ex
     missing,
     origin,
     formatted: formatCitations(parsed.citation, styles),
+    contentCheck,
     model,
     ms: Date.now() - started,
   };

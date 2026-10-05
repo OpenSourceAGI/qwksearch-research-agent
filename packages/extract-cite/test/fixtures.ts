@@ -26,6 +26,14 @@ const field = (value: string | null, confidence: number, extra: object = {}) => 
 
 export const GOOD_REPLY = {
   sourceType: "news-article",
+  contentCheck: {
+    verdict: "full",
+    confidence: 0.9,
+    signals: [],
+    note: "The whole article is there.",
+    contentSelector: "article",
+    tips: [],
+  },
   title: field("Oceans Hit Record Heat", 0.98),
   containerTitle: field("Example Times", 0.97),
   publisher: field(null, 0.9),
@@ -68,6 +76,19 @@ export const GOOD_REPLY = {
     ],
   },
 };
+
+/** A news page whose body stops at a subscribe wall, with a header, nav and sidebar around it. */
+export const PAYWALL_HTML = `<!doctype html><html><head><title>Rates Rise Again - Example Ledger</title></head><body>
+<header class="site-header"><a href="/">Example Ledger</a> <a href="/login">Sign in</a> <a href="/subscribe">Subscribe now</a></header>
+<nav id="main-nav"><a>Markets</a> <a>Economy</a> <a>Opinion</a> <a>Technology</a></nav>
+<main><article class="story-body">
+<h1>Rates Rise Again</h1>
+<p>The central bank raised rates for the third time this year, citing stubborn inflation in services.</p>
+<div class="paywall">Subscribe to continue reading. Already a subscriber? Sign in.</div>
+</article>
+<aside class="sidebar"><h2>Most read</h2><p>Ten stocks to watch this week and why they matter</p></aside></main>
+<footer class="site-footer">Copyright Example Ledger. Terms of use. Privacy policy.</footer>
+</body></html>`;
 
 /** A fetch that answers the model call with `reply` and records the request. */
 export function mockModelFetch(reply: unknown, status = 200) {

@@ -1,11 +1,13 @@
 /**
  * @fileoverview The prompt: the regex pass's partial citation goes in as
  * candidates to verify, the still-missing parts are named, and the page text
- * is fenced as untrusted data.
+ * is fenced as untrusted data. With the content check on, the same call also
+ * judges whether the extracted content is the full article and what to cut.
  */
 import type { ExtractCiteResult } from "../html-to-cite/extract-cite";
-import { CITATION_FIELDS, SOURCE_TYPES, type CitationField } from "./types";
+import { CITATION_FIELDS, CONTENT_VERDICTS, PAGE_REGIONS, SOURCE_TYPES, type CitationField } from "./types";
 import type { PageInput } from "./page-text";
+import type { ContentInput } from "./content-check";
 
 export const SYSTEM_PROMPT = `You build bibliographic citations from web pages for students and researchers. A wrong author or date is worse than a missing one, so never guess.
 
@@ -44,6 +46,37 @@ Reply with one JSON object and nothing else:
   }
 }`;
 
+/**
+ * Appended to `SYSTEM_PROMPT` when the content check is on: `<content>` is the
+ * start of the extracted text, `<outline>` the page's blocks as selectors.
+ */
+export const CONTENT_CHECK_PROMPT = `
+Also check the content. <content> is the start of the text extracted from this page as the article (or the page's own text when nothing was extracted), and <outline> lists the page's blocks as CSS selectors with their word counts and opening words. Readers will get this text as the article, so say whether it is the whole article and what clutter to cut.
+
+- verdict, one of: ${CONTENT_VERDICTS.filter((v) => v !== "unknown").join(", ")}.
+  "full": the article body is there, from its opening to its end, or it runs past the sample with no sign of stopping. A short article is still full.
+  "paywalled": a subscribe, sign-in or register wall replaces or cuts off the body, usually a teaser paragraph and then a prompt to pay or log in.
+  "truncated": the body stops early with no wall: a "Read more" or "Continue reading" link, a cut mid-sentence, or only an abstract or summary where the page promises more.
+  "blocked": a bot check, captcha, cookie or consent wall, access-denied or error page instead of the article.
+  "not-article": a home page, index, search results or listing, not one article.
+  Judge only by what the text shows, not by what you know about the site.
+- signals: up to 5 short phrases copied exactly from the text that show the verdict ("Subscribe to continue reading", "Already a subscriber? Sign in"). Empty when the verdict is full.
+- tips: the clutter in <content> that is not the article, so it can be cut for readability: the site header and top bar, navigation menus, sidebars, footers, ads, related-article lists, newsletter and subscribe boxes, share buttons, comments, cookie banners. For each: region (one of ${PAGE_REGIONS.join(", ")}), the selector from <outline> that holds it (copy it exactly; null if no outline line fits, never invent one), a short example copied exactly from the text, and a one-sentence tip on how to cut it. Biggest first, at most 8. None when the content is clean.
+- contentSelector: the selector from <outline> of the element that holds the article body, or null.
+- note: one or two plain sentences for the reader: is this the full article, and if not, what is missing.
+
+Add this key to the JSON object:
+  "contentCheck": {
+    "verdict": string, "confidence": number, "signals": string[], "note": string,
+    "contentSelector": string|null,
+    "tips": [ { "region": string, "selector": string|null, "example": string|null, "tip": string } ]
+  }`;
+
+/** The system prompt, with the content check appended when it is on. */
+export function systemPrompt(checkContent = true): string {
+  return checkContent ? SYSTEM_PROMPT + CONTENT_CHECK_PROMPT : SYSTEM_PROMPT;
+}
+
 /** Which candidate fields the regex pass filled, for the prompt. */
 export function describeCandidates(partial: ExtractCiteResult): Record<string, string | null> {
   return {
@@ -72,15 +105,17 @@ export function missingFields(partial: ExtractCiteResult): CitationField[] {
 }
 
 /** Stops page text from closing the fence it is wrapped in. */
-const unfence = (text: string) => text.replace(/<\/?(page|text|meta|json-ld|title)\b[^>]*>/gi, "");
+const unfence = (text: string) => text.replace(/<\/?(page|text|meta|json-ld|title|content|outline)\b[^>]*>/gi, "");
 
 export function buildUserPrompt(args: {
   url?: string;
   partial: ExtractCiteResult;
   missing: CitationField[];
   page: PageInput;
+  /** The content check's input; leave out to skip the check. */
+  content?: ContentInput;
 }): string {
-  const { url, partial, missing, page } = args;
+  const { url, partial, missing, page, content } = args;
   const parts = [
     `URL: ${url || "(none given)"}`,
     `Candidates from the regex pass: ${JSON.stringify(describeCandidates(partial))}`,
@@ -90,6 +125,13 @@ export function buildUserPrompt(args: {
   ];
   if (page.meta) parts.push(`<meta>\n${unfence(page.meta)}\n</meta>`);
   if (page.jsonLd) parts.push(`<json-ld>\n${unfence(page.jsonLd)}\n</json-ld>`);
-  parts.push(`<text>\n${unfence(page.text)}\n</text>`, "</page>");
+  parts.push(`<text>\n${unfence(page.text)}\n</text>`);
+  if (content) {
+    parts.push(
+      `<content words="${content.words}">\n${unfence(content.text)}\n</content>`,
+      `<outline>\n${unfence(content.outline) || "(no blocks with an id, class or role)"}\n</outline>`
+    );
+  }
+  parts.push("</page>");
   return parts.join("\n");
 }
