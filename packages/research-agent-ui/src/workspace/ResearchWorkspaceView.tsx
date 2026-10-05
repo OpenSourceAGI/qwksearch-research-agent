@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ReasonDocs } from 'react-reason-editor/reason-docs';
 import { themeActions } from 'react-reason-editor/theme';
@@ -16,8 +16,29 @@ import { useChatTabs } from '../app/useChatTabs';
 import { getPageTips, htmlToPlainText } from './page-tips';
 import { getTopicSearches } from './topic-searches';
 
-export function ResearchWorkspaceView() {
-  const { activeView, toggleToDocs, toggleToResearch, filesSidebarRequestId } = useMainView();
+export interface ResearchWorkspaceViewProps {
+  /**
+   * Replaces the REASON files/outline sidebar. A host embedding the workspace
+   * uses it to wrap `Sidebar` with its own chrome (e.g. its app dock) while the
+   * column stays the research agent's own sidebar.
+   */
+  SidebarComponent?: ComponentType<any>;
+  /** Replaces the sidebar's right-panel body. Defaults to the REASON pair's. */
+  SidebarContentComponent?: ComponentType<any>;
+  /**
+   * Name of a `window` event that opens the files sidebar when dispatched. The
+   * host's toolbar button is outside this tree, so this is how it reaches the
+   * sidebar the workspace owns (below `md` that sidebar is a slide-over sheet).
+   */
+  openSidebarEvent?: string;
+}
+
+export function ResearchWorkspaceView({
+  SidebarComponent = Sidebar,
+  SidebarContentComponent = SidebarContent,
+  openSidebarEvent,
+}: ResearchWorkspaceViewProps = {}) {
+  const { activeView, toggleToDocs, toggleToResearch, filesSidebarRequestId, requestFilesSidebar } = useMainView();
   const { chatTabs, activeChatId, openChat, newChat, closeChat, closeChats } = useChatTabs();
   const { sendMessage } = useChat();
   const { signIn } = useSession();
@@ -26,6 +47,12 @@ export function ResearchWorkspaceView() {
   const [initialDocId, setInitialDocId] = useState<string | null>(null);
   const [hasRestoredFromUrl, setHasRestoredFromUrl] = useState(false);
   const [pendingTopicQuery, setPendingTopicQuery] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!openSidebarEvent) return;
+    window.addEventListener(openSidebarEvent, requestFilesSidebar);
+    return () => window.removeEventListener(openSidebarEvent, requestFilesSidebar);
+  }, [openSidebarEvent, requestFilesSidebar]);
 
   useEffect(() => {
     localeActions.setLang('en');
@@ -156,16 +183,16 @@ export function ResearchWorkspaceView() {
 
   return activeView === 'docs' ? (
     <ReasonDocs
-      SidebarComponent={Sidebar}
-      SidebarContentComponent={SidebarContent}
+      SidebarComponent={SidebarComponent}
+      SidebarContentComponent={SidebarContentComponent}
       belowMainContent={<ChatInputBox />}
       openFilesSidebarSignal={filesSidebarRequestId}
       {...extraTabProps}
     />
   ) : (
     <ReasonDocs
-      SidebarComponent={Sidebar}
-      SidebarContentComponent={SidebarContent}
+      SidebarComponent={SidebarComponent}
+      SidebarContentComponent={SidebarContentComponent}
       mainContent={<ChatWindow />}
       openFilesSidebarSignal={filesSidebarRequestId}
       {...extraTabProps}
