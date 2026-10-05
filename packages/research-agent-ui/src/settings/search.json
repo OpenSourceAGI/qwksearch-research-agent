@@ -170,6 +170,15 @@
     "scope": "server"
   },
   {
+    "name": "Show Education Playlists Widget",
+    "key": "showEducationPlaylistsWidget",
+    "type": "switch",
+    "required": false,
+    "description": "Show the Learn widget on the chat homepage: self-paced playlists of MIT OpenCourseWare lectures and courseware, sorted by category, major and program, plus an AI planner that builds a custom playlist.",
+    "default": true,
+    "scope": "client"
+  },
+  {
     "name": "Show Weather Widget",
     "key": "showWeatherWidget",
     "type": "switch",

@@ -72,6 +72,15 @@ export interface ResearchAgentUIConfig {
    */
   trendingNewsSettingsUrl: string;
   /**
+   * The education-playlists planner endpoint (`education-playlists/server`
+   * mounted by the host). Defaults to this app's `/api/learn`. Set it to an
+   * empty string on a host without that route: the homepage widget then plans
+   * locally from its bundled catalog, without AI.
+   */
+  educationPlaylistsApiUrl: string;
+  /** Full-page education playlists view the homepage card links to. Empty hides the link. */
+  educationPlaylistsPageUrl: string;
+  /**
    * Requests that the settings UI be opened. Lets the consuming app render
    * settings in a modal (e.g. on large desktop screens) instead of navigating
    * to the `/settings` route. Return `true` when the request was handled — the
@@ -105,6 +114,8 @@ export const researchAgentUIConfig: ResearchAgentUIConfig = {
   appIconUrl: '/apple-touch-icon.png',
   trendingNewsApiUrl: '/api/news/trending',
   trendingNewsSettingsUrl: '/api/news/settings',
+  educationPlaylistsApiUrl: '/api/learn',
+  educationPlaylistsPageUrl: '/learn',
 };
 
 /**

@@ -111,6 +111,8 @@ export default defineConfig(({ command }) => ({
       "research-agent-ui",
       // `/api/news/trending` imports `trending-news-api/server`.
       "trending-news-api",
+      // `/api/learn` imports `education-playlists/server`.
+      "education-playlists",
     ],
   },
   plugins: [
