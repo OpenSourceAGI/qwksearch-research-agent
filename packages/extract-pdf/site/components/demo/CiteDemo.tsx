@@ -8,7 +8,7 @@
  * the Worker has its own OPENROUTER_API_KEY (`/api/health` → `cite`) the field
  * is optional.
  */
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 
 import type { CiteResponse } from '../../worker/api';
 import type { CitationField, CitationStyle } from 'extract-cite';
@@ -65,6 +65,9 @@ const FIELD_LABEL: Record<CitationField, string> = {
   pages: 'Pages',
 };
 
+/** OpenRouter's free-model router, so the demo works without spending credit. */
+const DEFAULT_MODEL = 'openrouter/free';
+
 const ORIGIN_LABEL = { regex: 'regex', llm: 'LLM', both: 'regex + LLM' } as const;
 
 function valueOf(result: CiteResponse, field: CitationField): string {
@@ -77,13 +80,14 @@ export function CiteDemo({ serverKey }: { serverKey: boolean }) {
   const [url, setUrl] = useState('');
   const [html, setHtml] = useState('');
   const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState('');
+  const [model, setModel] = useState(DEFAULT_MODEL);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ text: string; error?: boolean }>({ text: '' });
   const [note, setNote] = useState('');
   const [result, setResult] = useState<CiteResponse | null>(null);
   const [style, setStyle] = useState<CitationStyle>('apa');
   const [copied, setCopied] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -91,12 +95,15 @@ export function CiteDemo({ serverKey }: { serverKey: boolean }) {
     if (mode === 'html' && !html.trim()) return setStatus({ text: 'Paste some HTML.', error: true });
     if (!apiKey.trim() && !serverKey) return setStatus({ text: 'Paste an OpenRouter API key.', error: true });
 
+    const controller = new AbortController();
+    abortRef.current = controller;
     setBusy(true);
     setStatus({ text: 'Reading the page, then asking the model…' });
     try {
       const res = await fetch('/api/cite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           url: url.trim() || undefined,
           html: mode === 'html' ? html : undefined,
@@ -109,11 +116,15 @@ export function CiteDemo({ serverKey }: { serverKey: boolean }) {
       setResult(out);
       setStatus({ text: '' });
     } catch (err) {
-      setStatus({ text: (err as Error).message, error: true });
+      if (controller.signal.aborted) setStatus({ text: 'Cancelled.' });
+      else setStatus({ text: (err as Error).message, error: true });
     } finally {
+      if (abortRef.current === controller) abortRef.current = null;
       setBusy(false);
     }
   };
+
+  const cancel = () => abortRef.current?.abort();
 
   const copy = async (text: string) => {
     try {
@@ -183,7 +194,12 @@ export function CiteDemo({ serverKey }: { serverKey: boolean }) {
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
           />
-          <input type="text" placeholder="Model (default anthropic/claude-haiku-4.5)" value={model} onChange={(e) => setModel(e.target.value)} />
+          <input type="text" placeholder="Model (default openrouter/free)" value={model} onChange={(e) => setModel(e.target.value)} />
+          {busy && (
+            <button className="ghost" type="button" onClick={cancel}>
+              Cancel
+            </button>
+          )}
           <button className="primary" type="submit" disabled={busy}>
             Cite
           </button>
