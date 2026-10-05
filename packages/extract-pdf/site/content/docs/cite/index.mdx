@@ -1,0 +1,58 @@
+---
+title: Cite with an LLM
+description: extractCiteLLM completes a webpage's full citation with one model call, scores every part, flags what needs review, reads author qualifications, and writes APA, MLA, Chicago, Harvard, IEEE and BibTeX.
+icon: Quote
+---
+
+```ts
+import { extractCiteLLM } from 'extract-cite';
+
+const cite = await extractCiteLLM({
+  url: 'https://www.npr.org/2023/12/28/1221827923/2023-hottest-year-record-climate-change',
+  apiKey: process.env.OPENROUTER_API_KEY,
+  model: 'anthropic/claude-haiku-4.5', // optional
+});
+
+cite.formatted.apa?.text;   // the full APA 7 entry
+cite.needsReview;           // [{ field, confidence, reason }]
+```
+
+The regex pass ([`extractCite`](/docs/webpage/cite)) is instant and free but partial: it cannot tell a byline from a job title, never finds a DOI, and misses dates a page only writes in prose. `extractCiteLLM` runs it first, then sends the model the page text, its citation `<meta>` tags and JSON-LD, **the partial citation as candidates to verify**, and the list of parts still missing.
+
+## Options
+
+| Option | Default | |
+| --- | --- | --- |
+| `url` | | The page. Fetched unless `html` or `text` is given. |
+| `html`, `text` | | A page you already have, for sites that block server fetches. |
+| `apiKey` | `OPENROUTER_API_KEY` | Key for the provider. |
+| `model` | `anthropic/claude-haiku-4.5` | Any model id the endpoint serves. |
+| `baseUrl` | `https://openrouter.ai/api/v1` | Any OpenAI-compatible chat-completions API. |
+| `styles` | all | A subset of `apa`, `mla`, `chicago`, `harvard`, `ieee`, `bibtex`. |
+| `reviewThreshold` | `0.7` | Parts scoring below this are flagged. |
+| `maxChars` | `12000` | Page text sent to the model: the start and the end, where bylines and bios sit. |
+
+## What comes back
+
+- `citation`: every part a bibliography entry needs: `authors` (given, family, suffix, or an organization), `title`, `containerTitle`, `publisher`, `publishedDate` (as precise as the page is), `doi`, `volume`, `issue`, `pages`, `sourceType`.
+- `confidence`: a 0–1 score per part, and `overallConfidence`.
+- `needsReview`: the parts to check by hand, each with a reason: low confidence, missing, an invalid date, an author the page never prints, or the model asking for review.
+- `origin`: whether the regex pass and the model agreed (`both`) or the model supplied it (`llm`). Agreement raises confidence.
+- `partial` and `missing`: what the regex pass found and what it left for the model.
+- `formatted`: one `{ text, html }` per style. The HTML is escaped apart from `<i>`.
+
+## Author qualifications
+
+For each author the page describes, `citation.authors[n].qualifications` holds `jobTitle`, `affiliation`, `credentials`, `expertise`, `highlights` and `evidence`, the bio sentence copied from the page. It is read in the same call as the citation, from the author bio, byline tagline or JSON-LD, and only from those: a bio quote that is not actually on the page discards the qualifications and flags them.
+
+## Checks on the model
+
+The page is untrusted text, so the prompt fences it and tells the model to ignore instructions in it. The reply is never trusted as it comes: strings are stripped of markup and length-capped, dates must be real, an author whose name the page never prints is capped at 0.2 confidence and flagged, and qualifications need a verbatim quote.
+
+## Re-style without another call
+
+`formatCitation(cite.citation, 'mla')` and `formatCitations(citation, styles)` are pure and offline.
+
+## Hosted demo
+
+The **Citation** tab of the [live demo](/demo#cite) has presets for news (New York Times, NPR, Scientific American), academic (arXiv, Nature), organization and reference pages (WHO, Wikipedia) and an essay blog. See [its API](/docs/live-demo).

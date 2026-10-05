@@ -7,6 +7,8 @@
     "---extract-pdf---",
     "...pdf",
     "---extract-webpage---",
-    "...webpage"
+    "...webpage",
+    "---extract-cite---",
+    "...cite"
   ]
 }

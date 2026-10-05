@@ -33,6 +33,7 @@ things look similar:
 | Search box autocomplete, fastest suggest engine, site suggestions | `search-autocomplete` | ask-search-autocomplete |
 | Self-hosted SearXNG meta-search backend | `searxng-search-cloudflare` | ask-searxng-search |
 | URL → article + APA citation, keyphrases, tokenizing | `extract-webpage` | ask-extract-webpage |
+| Full citation (APA/MLA/Chicago) with an LLM, confidence, author bios | `extract-cite` | ask-extract-cite |
 | PDF → structured HTML, optional Docling OCR | `extract-pdf` | ask-extract-pdf |
 | YouTube transcripts without a browser | `extract-youtube` | ask-extract-youtube |
 | Domain rank, source label, favicon | `domain-rank` | ask-domain-rank |
@@ -53,7 +54,7 @@ things look similar:
 |---|---|---|
 | `apps/qwksearch-web` | Next.js + vinext on Cloudflare Workers, D1 via Drizzle | Routes, `/api` handlers, auth, DB migrations. Deploy `bun run deploy`; migrations `bun run db:migrate`. |
 | `apps/qwksearch-desktop` | SvelteKit + Tauri (`src-tauri/`) | Global hotkey ("select text, press `` ` ``"), tray, autostart, the quick-search popup. Native behaviour is Rust-side, not `src/`. |
-| `apps/qwksearch-ext` | WXT browser extension | `entrypoints/{background,content,popup,sidepanel,offscreen}`. Has its **own** `pnpm-workspace.yaml` and lockfile — run install inside it too. |
+| `apps/qwksearch-browser-ext` | WXT browser extension | `entrypoints/{background,content,popup,sidepanel,offscreen}`. Has its **own** `pnpm-workspace.yaml` and lockfile — run install inside it too. |
 | `apps/qwk-vscode-ext` | esbuild extension host + two Vite webviews | Host/auth/API proxy in `src/`; chat sidebar in `webview-ui/`; document editor in `webview-ui-editor/`. `bun run compile` builds all three. |
 | `apps/qwk-in-lobe` | LobeHub monorepo (pnpm) | The qwksearch.com engine build. A separate pnpm workspace inside `apps/` — the root `bun install` does not cover it, and the root `workspaces` list names the other apps one by one so it cannot. |
 
@@ -101,5 +102,5 @@ a tool in `chat-agent-toolkit` or an entry in that panel — not a file in `skil
 | `turbo build` skips a package that clearly is a local dependency | Turbo only treats a dependency as internal when the declared semver range matches the workspace version (e.g. `research-agent-ui` asks for `use-voice-control@^0.1.95` while the workspace is older). `.github/scripts/workspace-build-order.mjs` keys edges by package *name*, which is why the prebuild script covers it and turbo does not. |
 | Root `bun run test` doesn't run a package's tests | The root `vitest.config.ts` lists projects explicitly, and `domain-rank`/`extract-pdf` (bun test), `extract-youtube` (jest) and `language-model-training` (pytest) are deliberately absent. Run their own `test` script. |
 | A root `vitest.workspace.ts` you remember is gone | Vitest 4 dropped it; it was silently ignored. Projects now live in the root `vitest.config.ts` — add new packages there. |
-| Extension dependencies look missing after a root install | `apps/qwksearch-ext` is a semi-independent workspace with its own lockfile. Install inside it. |
+| Extension dependencies look missing after a root install | `apps/qwksearch-browser-ext` is a semi-independent workspace with its own lockfile. Install inside it. |
 | README says the editor is Lexical | It is Tiptap (plus some Plate extensions). `packages/readme.md` is stale on this point; the source is authoritative. |

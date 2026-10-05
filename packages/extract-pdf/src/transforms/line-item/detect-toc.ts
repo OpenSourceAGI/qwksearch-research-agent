@@ -43,7 +43,7 @@ export default class DetectTOC extends ToLineItemTransformation {
       var lastLine;
       // find lines with words containing only "." ...
       const tocLines = page.items.filter((line) =>
-        line.words.includes((word) => hasOnly(word.string, ".")),
+        line.words.some((word) => hasOnly(word.string, ".")),
       );
       // ... and ending with a number per page
       tocLines.forEach((line) => {

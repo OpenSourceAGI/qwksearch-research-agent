@@ -10,9 +10,9 @@ import { DemoMount } from '@/components/demo/DemoMount';
 import '@/components/demo/demo.css';
 
 export const metadata: Metadata = {
-  title: 'Live demo — extract-pdf + extract-webpage',
+  title: 'Live demo — extract-pdf, extract-webpage + extract-cite',
   description:
-    'Convert a PDF to structured HTML with an optional Granite Docling OCR follow-up, or extract a webpage’s main content and citation, on Cloudflare Workers.',
+    'Convert a PDF to structured HTML with an optional Granite Docling OCR follow-up, extract a webpage’s main content and citation, or build a full APA citation with an LLM, on Cloudflare Workers.',
 };
 
 export default function DemoPage() {

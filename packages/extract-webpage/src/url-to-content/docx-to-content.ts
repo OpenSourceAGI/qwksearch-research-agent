@@ -155,8 +155,8 @@ export async function convertDOCXToHTML(input, options = {}) {
       const defaults = defaultMatch[0];
       // Parse font, size, etc.
       styles.document = {
-        fontFamily: /<w:rFonts[^>]*w:ascii="([^"]+)"/.exec(defaults)?.[1],
-        fontSize: /<w:sz[^>]*w:val="([^"]+)"/.exec(defaults)?.[1],
+        font: /<w:rFonts[^>]*w:ascii="([^"]+)"/.exec(defaults)?.[1],
+        size: /<w:sz[^>]*w:val="([^"]+)"/.exec(defaults)?.[1],
         color: /<w:color[^>]*w:val="([^"]+)"/.exec(defaults)?.[1],
       };
     }
@@ -429,10 +429,14 @@ function generateHtml(content, styles) {
   function styleToCSS(style) {
     if (!style) return "";
 
+    // OOXML stores colours as bare hex ("FF0000"); CSS needs the "#".
+    const cssColor = (value) =>
+      /^[0-9a-f]{6}$/i.test(String(value)) ? `#${value}` : value;
     const cssMap = {
-      alignment: "text-align",
-      color: "color",
-      highlight: "background-color",
+      alignment: (value) =>
+        `text-align: ${value === "both" || value === "distribute" ? "justify" : value}`,
+      color: (value) => `color: ${cssColor(value)}`,
+      highlight: (value) => `background-color: ${cssColor(value)}`,
       size: (value) => `font-size: ${parseInt(value) / 2}pt`,
       spacing: (value) => `line-height: ${parseInt(value) / 240}`,
       indentation: (value) => `margin-left: ${parseInt(value) / 20}pt`,

@@ -13,6 +13,8 @@ const cite = extractCite(html, { url: 'https://example.com/post' });
 
 `extractCite` takes an HTML string or a DOM `document`. `extractContent` runs it for you, and for a URL it also builds an APA-style `cite` from these fields: the author (or the publisher when there is none), the date, the title in bold, the publisher in italics, and a link.
 
+> The regex pass is partial by design. [`extract-cite`](/docs/cite) now owns this code (it moved out of `extract-webpage`, which still re-exports `extractCite`), and adds an LLM pass that completes the full APA citation.
+
 ## Where each field comes from
 
 | Field | Read from |

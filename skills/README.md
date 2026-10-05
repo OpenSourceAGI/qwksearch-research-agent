@@ -51,6 +51,7 @@ npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent 
 | --- | --- | --- |
 | [ask-search-web-api](./ask-search-web-api/SKILL.md) | `search-web-api` | The `Search` class, 71 engine adapters, dedupe and scoring, autocomplete |
 | [ask-searxng-search](./ask-searxng-search/SKILL.md) | `searxng-search-cloudflare` | A private SearXNG instance: settings, JSON output, engine flags |
+| [ask-extract-cite](./ask-extract-cite/SKILL.md) | `extract-cite` | Regex + LLM citations: APA/MLA/Chicago, confidence, review flags, author qualifications |
 | [ask-extract-webpage](./ask-extract-webpage/SKILL.md) | `extract-webpage` | URL → cited article, scraping, Readability/Mercury, SEEKTOPIC, tokenizers |
 | [ask-extract-pdf](./ask-extract-pdf/SKILL.md) | `extract-pdf` | PDF → structured HTML, the `method`/`processor` switches, Docling OCR |
 | [ask-extract-youtube](./ask-extract-youtube/SKILL.md) | `extract-youtube` | Transcripts without a browser, proxies for IP bans, formatters, the CLI, the video library admin API and its grid and admin components |

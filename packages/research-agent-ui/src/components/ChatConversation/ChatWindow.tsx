@@ -3,15 +3,21 @@
  */
 'use client';
 
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Document } from 'chat-agent-toolkit';
-import Chat from './ChatConversationThread';
 import ChatHomepage from './ChatHomepage';
 import { useChat } from '../../hooks/useChat';
 import { useSession } from '../../hooks/useSession';
 import Loader from '../../ui/Loader';
 import ConfigError from '../ConfigError';
+
+// The thread (markdown renderer, message bubbles, voice, sources) is only
+// needed once a conversation exists, so the empty landing screen does not
+// carry it. Once the browser is idle on the landing screen it is fetched
+// anyway, so the first message does not wait on the network.
+const loadThread = () => import('./ChatConversationThread');
+const Chat = lazy(loadThread);
 
 /**
  * Base interface for all chat message types.
@@ -119,6 +125,17 @@ const ChatWindow = () => {
   const { hasError, isReady, notFound, messages } = useChat();
   const { isAuthenticated } = useSession();
 
+  const isLanding = isReady && !notFound && messages.length === 0;
+  useEffect(() => {
+    if (!isLanding) return;
+    if (typeof window.requestIdleCallback === 'function') {
+      const handle = window.requestIdleCallback(() => void loadThread(), { timeout: 5000 });
+      return () => window.cancelIdleCallback(handle);
+    }
+    const handle = window.setTimeout(() => void loadThread(), 3000);
+    return () => window.clearTimeout(handle);
+  }, [isLanding]);
+
   // Redirect guests to homepage if chat not found (e.g., localStorage cleared)
   useEffect(() => {
     if (isReady && notFound && !isAuthenticated) {
@@ -156,7 +173,15 @@ const ChatWindow = () => {
         {messages.length > 0 ? (
           <>
             {/* <Navbar /> */}
-            <Chat />
+            <Suspense
+              fallback={
+                <div className="flex flex-row items-center justify-center min-h-screen">
+                  <Loader />
+                </div>
+              }
+            >
+              <Chat />
+            </Suspense>
           </>
         ) : (
           <ChatHomepage />

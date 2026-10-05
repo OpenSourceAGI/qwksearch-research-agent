@@ -21,9 +21,10 @@ jobs:
         include:
           - { flag: qwk-vscode-ext, dir: apps/qwk-vscode-ext }
           - { flag: qwksearch-desktop, dir: apps/qwksearch-desktop }
-          - { flag: qwksearch-ext, dir: apps/qwksearch-ext }
+          - { flag: qwksearch-browser-ext, dir: apps/qwksearch-browser-ext }
           - { flag: qwksearch-web, dir: apps/qwksearch-web }
           - { flag: chat-agent-toolkit, dir: packages/chat-agent-toolkit }
+          - { flag: extract-cite, dir: packages/extract-cite }
           - { flag: extract-webpage, dir: packages/extract-webpage }
           - { flag: html-renderer-api, dir: packages/html-renderer-api }
           - { flag: notebooklm-api-client, dir: packages/notebooklm-api-client }
@@ -50,7 +51,7 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      # extract-pdf, extract-youtube, react-reason-editor and
+      # extract-cite, extract-pdf, extract-youtube, react-reason-editor and
       # use-voice-control are consumed by other workspace packages through
       # their built `dist` output. They used to get built implicitly by a
       # `prepare` script that ran on every `bun install`, but that script
@@ -58,7 +59,7 @@ jobs:
       # environments (see https://github.com/oven-sh/bun/issues/19088), so
       # the build is now explicit here instead.
       - name: Build workspace libraries consumed via dist
-        run: bunx turbo build --filter=extract-pdf --filter=extract-youtube --filter=react-reason-editor --filter=use-voice-control
+        run: bunx turbo build --filter=extract-cite --filter=extract-pdf --filter=extract-youtube --filter=react-reason-editor --filter=use-voice-control --filter=use-weather-forecast --filter=trending-news-api
 
       - name: Run tests with coverage
         working-directory: ${{ matrix.dir }}

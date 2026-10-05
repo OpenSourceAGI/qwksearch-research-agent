@@ -335,6 +335,8 @@ function examine_header(tree, options) {
             (ITEMPROP_ATTRS_MODIFIED.has(attribute) && !options.original)
           ) {
             headerdate = attempt;
+          } else {
+            reserve = attempt;
           }
         }
       } else if (attribute === "copyrightyear") {
@@ -807,7 +809,7 @@ function search_page(htmlstring, options) {
       LOGGER.debug(
         `date found for pattern "${SIMPLE_PATTERN}": ${bestmatch[0]}`
       );
-      return dateobject.toISOString().slice(0, 10);
+      return format_date(dateobject, options.format);
     }
   }
 

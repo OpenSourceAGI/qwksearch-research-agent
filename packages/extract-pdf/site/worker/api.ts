@@ -17,6 +17,9 @@
  *   GET  /api/extract?url=...       a webpage → article HTML + citation
  *                                   (extract-webpage's `extractContent`)
  *   POST /api/extract               JSON `{ url }` or `{ html, url? }`
+ *   /api/admin/*                    the admin panel's login and global keys (worker/admin.ts)
+ *   POST /api/cite                  JSON `{ url, apiKey?, model?, styles?, html? }` →
+ *                                   a full citation from an LLM (extract-cite)
  *
  * /api/convert flags: `addPageNumbers`, `addCitation` (query, JSON or form).
  * /api/extract flags: `images`, `links`, `formatting`.
@@ -27,10 +30,18 @@
  * demo page renders those pages in the browser and sends each image to
  * /api/enhance, which forwards it with the secrets the browser never sees.
  */
+import { handleAdmin, withStoredSettings, type AdminEnv } from './admin';
 import { convertPDFToHTML } from 'extract-pdf';
 import { extractContent } from 'extract-webpage/url-to-content/url-to-content';
+import {
+  CITATION_STYLES,
+  CiteLLMError,
+  extractCiteLLM,
+  type CitationStyle,
+  type ExtractCiteLLMResult,
+} from 'extract-cite';
 
-export interface Env {
+export interface Env extends AdminEnv {
   /** Largest PDF (in MB) accepted, by upload or by URL. Default 15. */
   MAX_PDF_MB?: string;
   /** Largest pasted HTML (in MB) /api/extract accepts. Default 2. */
@@ -44,6 +55,10 @@ export interface Env {
   DOCLING_MAX_PAGES?: string;
   DOCLING_MAX_TOKENS?: string;
   DOCLING_MAX_IMAGE_MB?: string;
+  /** OpenRouter key /api/cite uses when the request brings none. Unset: visitors must bring their own. */
+  OPENROUTER_API_KEY?: string;
+  /** Default model for /api/cite. Default: extract-cite's own. */
+  CITE_MODEL?: string;
 }
 
 /** A /api/health response. */
@@ -53,6 +68,8 @@ export interface HealthResponse {
   maxPdfMb: number;
   /** Whether /api/enhance has a Docling processor to call. */
   ocr: boolean;
+  /** Whether /api/cite has a server-side key, so the demo can leave the key field optional. */
+  cite: boolean;
 }
 
 /** The OCR part of a /api/convert response. */
@@ -103,11 +120,16 @@ type Fields = Record<string, unknown>;
  * Answers the demo's `/api/*` routes, or returns `null` for any other path so
  * the caller can hand the request to the docs.
  */
-export async function handleApi(request: Request, env: Env): Promise<Response | null> {
+export async function handleApi(request: Request, workerEnv: Env): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith('/api/')) return null;
 
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
+  // The admin panel's own routes: same-origin only, no CORS.
+  if (url.pathname.startsWith('/api/admin/')) return handleAdmin(request, url, workerEnv);
+
+  // Global keys saved in the admin panel sit over the Worker's own vars.
+  const env = await withStoredSettings(workerEnv);
 
   const maxBytes = Number(env.MAX_PDF_MB || 15) * 1024 * 1024;
 
@@ -118,6 +140,7 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
           status: 'ok',
           maxPdfMb: maxBytes / 1024 / 1024,
           ocr: Boolean(env.DOCLING_PROCESSOR_URL),
+          cite: Boolean(env.OPENROUTER_API_KEY),
         };
         return json(body);
       }
@@ -158,6 +181,11 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
       case '/api/extract':
         if (request.method !== 'GET' && request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
         return json(await extractWebpage(request, url, env));
+
+      case '/api/cite':
+        // POST only: the visitor's API key travels in the body, never the URL.
+        if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+        return json(await citePage(request, env));
 
       default:
         return json({ error: 'Not found' }, 404);
@@ -338,6 +366,53 @@ async function extractWebpage(request: Request, url: URL, env: Env): Promise<Ext
     word_count: article.word_count,
     html: article.html,
   };
+}
+
+/** A /api/cite response: extract-cite's result, plus where it came from. */
+export type CiteResponse = ExtractCiteLLMResult & { input: string };
+
+/**
+ * A webpage (URL, or pasted HTML) → a full citation: the regex pass, then one
+ * model call that completes the APA parts, scores them and reads the author
+ * bios. The key comes from the request or the Worker's OPENROUTER_API_KEY; it
+ * is passed to the provider and never stored or echoed.
+ */
+async function citePage(request: Request, env: Env): Promise<CiteResponse> {
+  const maxHtmlBytes = Number(env.MAX_HTML_MB || 2) * 1024 * 1024;
+  const text = await request.text();
+  if (text.length > maxHtmlBytes) throw httpError(413, `Body is larger than ${maxHtmlBytes / 1024 / 1024} MB`);
+  let fields: Fields;
+  try {
+    fields = JSON.parse(text) as Fields;
+  } catch {
+    throw httpError(400, 'Send JSON: `{ "url": "…", "apiKey": "…", "model": "…" }`.');
+  }
+
+  const str = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+  const pageUrl = str(fields.url);
+  const html = typeof fields.html === 'string' ? fields.html : '';
+  if (pageUrl) checkHttpUrl(pageUrl);
+  if (!pageUrl && !html.trim()) throw httpError(400, 'Provide a `url`, or `html` to cite.');
+
+  const apiKey = str(fields.apiKey) || env.OPENROUTER_API_KEY;
+  if (!apiKey) throw httpError(401, 'Paste an OpenRouter API key: this demo has no server-side key.');
+  const styles = Array.isArray(fields.styles)
+    ? (fields.styles.filter((style): style is CitationStyle => CITATION_STYLES.includes(style as CitationStyle)))
+    : undefined;
+
+  try {
+    const result = await extractCiteLLM({
+      url: pageUrl || undefined,
+      html: html.trim() ? html : undefined,
+      apiKey,
+      model: str(fields.model) || env.CITE_MODEL || undefined,
+      styles: styles?.length ? styles : undefined,
+    });
+    return { input: pageUrl || 'pasted HTML', ...result };
+  } catch (err) {
+    if (err instanceof CiteLLMError) throw httpError(err.status === 401 || err.status === 402 || err.status === 429 ? err.status : 502, err.message);
+    throw httpError(502, (err as Error).message);
+  }
 }
 
 function checkHttpUrl(value: string): URL {

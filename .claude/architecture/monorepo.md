@@ -12,7 +12,7 @@ packages/*
 packages/render-url-to-html/*     # the two scrapers are their own workspaces
 apps/qwk-vscode-ext
 apps/qwksearch-desktop
-apps/qwksearch-ext
+apps/qwksearch-browser-ext
 apps/qwksearch-web
 packages/extract-youtube/site   # extract-youtube's docs + live demo + Storybook (one Worker)
 packages/extract-pdf/site       # extract-pdf + extract-webpage docs + live demo (one Worker)
@@ -27,7 +27,7 @@ A package's `site/` is its docs site and live demo as one Cloudflare Worker.
 Not covered by that list, and deliberately separate:
 
 - `apps/qwk-in-lobe/` — its own **pnpm** workspace, inside `apps/` but not of it.
-- `apps/qwksearch-ext` — its own `pnpm-workspace.yaml` and lockfile. A root
+- `apps/qwksearch-browser-ext` — its own `pnpm-workspace.yaml` and lockfile. A root
   install does not cover it; install inside it as well.
 
 ## Commands

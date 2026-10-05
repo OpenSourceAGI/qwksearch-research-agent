@@ -61,6 +61,11 @@ export interface TrendingTopicsOptions {
   date?: Date;
   /** Injected for tests; defaults to the global `fetch`. */
   fetchImpl?: typeof fetch;
+  /**
+   * Return a pool of `limit * POOL_MULTIPLIER` topics instead of exactly
+   * `limit`, so the caller can sample from it (see `sampleTrendingResponse`).
+   */
+  pool?: boolean;
 }
 
 type WikiTopPage = {
@@ -80,6 +85,13 @@ type NewsApiArticle = {
 
 export const DEFAULT_TOPIC_LIMIT = 25;
 export const MAX_TOPIC_LIMIT = 50;
+
+/**
+ * How many times more topics than asked for are gathered when the answer is
+ * going to be sampled. The pool is what makes a refresh show different
+ * topics; it is fetched once and cached, then sampled on every request.
+ */
+export const POOL_MULTIPLIER = 3;
 
 /** Headlines requested per topic in the daily list, and for a single topic. */
 const ARTICLES_PER_TOPIC = 20;
@@ -411,7 +423,8 @@ export async function getTrendingTopics(
   options: TrendingTopicsOptions
 ): Promise<TrendingNewsWireResponse> {
   const { apiKey, fetchImpl = fetch } = options;
-  const limit = parseTopicLimit(options.limit);
+  const asked = parseTopicLimit(options.limit);
+  const limit = options.pool ? Math.min(MAX_TOPIC_LIMIT, asked * POOL_MULTIPLIER) : asked;
   const date = options.date ?? defaultPageviewsDate();
 
   const candidates = await fetchWikipediaTopPages(
@@ -458,6 +471,39 @@ export async function getTrendingTopics(
     source: 'wikipedia_daily_top',
     date: formatDate(date),
     topics: results.slice(0, limit),
+  };
+}
+
+/** Fisher–Yates shuffle into a new array. `random` is injectable for tests. */
+export function shuffle<T>(items: readonly T[], random: () => number = Math.random): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+/**
+ * Picks a random `limit` of the pool's topics, in random order, and shuffles
+ * the headlines inside each so the lead article differs too.
+ *
+ * Only the Wikipedia ranking is sampled: a caller-named topic list is exactly
+ * what was asked for and keeps its order. Cheap and pure, so it runs on every
+ * request, after the cache, which is how each page refresh gets a different
+ * answer without a new upstream search.
+ */
+export function sampleTrendingResponse(
+  response: TrendingNewsWireResponse,
+  limit: number,
+  random: () => number = Math.random
+): TrendingNewsWireResponse {
+  if (response.source !== 'wikipedia_daily_top') return response;
+  return {
+    ...response,
+    topics: shuffle(response.topics ?? [], random)
+      .slice(0, limit)
+      .map((t) => ({ ...t, articles: shuffle(t.articles ?? [], random) })),
   };
 }
 
@@ -540,9 +586,18 @@ export async function getTopicHeadlines(
  */
 export async function handleTrendingNewsRequest(
   request: Request,
-  options: { apiKey: string | undefined; fetchImpl?: typeof fetch }
+  options: {
+    apiKey: string | undefined;
+    fetchImpl?: typeof fetch;
+    /**
+     * Randomise the daily ranking per request (default true). A host app that
+     * caches the answer passes false to receive the whole pool, and calls
+     * `sampleTrendingResponse` itself after its cache.
+     */
+    sample?: boolean;
+  }
 ): Promise<Response> {
-  const { apiKey, fetchImpl } = options;
+  const { apiKey, fetchImpl, sample = true } = options;
   if (!apiKey) {
     return jsonResponse({ error: 'THE_NEWS_API_KEY is not configured' }, 500);
   }
@@ -563,13 +618,9 @@ export async function handleTrendingNewsRequest(
       return jsonResponse(await getCustomTopicNews(customTopics, { apiKey, fetchImpl }));
     }
 
-    return jsonResponse(
-      await getTrendingTopics({
-        apiKey,
-        limit: parseTopicLimit(params.get('limit')),
-        fetchImpl,
-      })
-    );
+    const limit = parseTopicLimit(params.get('limit'));
+    const pool = await getTrendingTopics({ apiKey, limit, fetchImpl, pool: true });
+    return jsonResponse(sample ? sampleTrendingResponse(pool, limit) : pool);
   } catch (e) {
     // A News API failure (bad key, quota) is the actionable part — say that,
     // rather than blaming the step that happened to be running.

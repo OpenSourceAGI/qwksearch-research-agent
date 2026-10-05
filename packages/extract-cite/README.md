@@ -1,0 +1,56 @@
+# extract-cite
+
+Cite any webpage. Two passes:
+
+1. **`extractCite`**: reads author, date, title and source straight off the HTML (meta tags, bylines, JSON-LD, URL patterns, a 92k-name database that tells people from organizations). Instant, offline, partial.
+2. **`extractCiteLLM`**: one model call (OpenRouter by default) that is given the partial citation and the parts still missing, completes the full APA citation, **scores the confidence of every part**, **flags parts for review**, and reads **author qualifications** from the page's bio. Output in APA 7, MLA 9, Chicago, Harvard, IEEE and BibTeX.
+
+```bash
+bun add extract-cite
+```
+
+```ts
+import { extractCiteLLM } from "extract-cite";
+
+const cite = await extractCiteLLM({
+  url: "https://www.npr.org/2023/12/28/1221827923/2023-hottest-year-record-climate-change",
+  apiKey: process.env.OPENROUTER_API_KEY, // default provider: OpenRouter
+  model: "anthropic/claude-haiku-4.5",    // default
+  // baseUrl: "https://api.openai.com/v1" // any OpenAI-compatible API
+});
+
+cite.formatted.apa?.text;                  // full APA 7 entry
+cite.formatted.mla?.html;                  // with <i> italics, HTML-escaped
+cite.confidence;                           // { title: 0.98, publishedDate: 0.95, … }
+cite.needsReview;                          // [{ field, confidence, reason }]
+cite.citation.authors[0].qualifications;   // { jobTitle, affiliation, credentials, evidence, … }
+```
+
+| Option | Default | |
+| --- | --- | --- |
+| `url` / `html` / `text` | | The page. A `url` alone is fetched; pass `html` or `text` for sites that block servers. |
+| `apiKey` | `OPENROUTER_API_KEY` | |
+| `model` | `anthropic/claude-haiku-4.5` | |
+| `baseUrl` | `https://openrouter.ai/api/v1` | |
+| `styles` | all | `apa`, `mla`, `chicago`, `harvard`, `ieee`, `bibtex` |
+| `reviewThreshold` | `0.7` | Parts below this go in `needsReview`. |
+| `maxChars` | `12000` | Page text sent to the model (head and tail). |
+| `fetch` | global | Replaces `fetch` for both the page and the model call. |
+
+`formatCitation(citation, style)` and `formatCitations(citation, styles)` re-style a result offline.
+
+## What it will not do
+
+The model's reply is not trusted. Text is fenced as untrusted data; strings are stripped of markup; dates must be real; an author whose name the page never prints is capped at 0.2 confidence and flagged; author qualifications need a verbatim quote that is on the page, or they are dropped. A part the page does not state comes back empty and flagged, not guessed. Still: **check `needsReview` before you cite**.
+
+## Moved from extract-webpage
+
+`extractCite`, `convertURLToDomain` and `isURLValid` used to live in `extract-webpage` (`src/html-to-cite`). That code moved here unchanged; `extract-webpage` re-exports those three, so existing imports keep working.
+
+## Demo
+
+The Citation tab of the [extract-pdf site](../extract-pdf/site) (`/demo#cite`) runs this against news, journal, organization and blog URLs.
+
+```bash
+cd packages/extract-cite && bun run test
+```
