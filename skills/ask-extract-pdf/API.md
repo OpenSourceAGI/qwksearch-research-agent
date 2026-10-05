@@ -89,14 +89,15 @@ published to npm. `server/model.js` is copied into it; a test fails if they drif
 
 | Route | Purpose |
 | --- | --- |
-| `GET /health` | `{ status, modelLoaded, busy, queueDepth, uptime }`, no auth, no model load |
-| `POST /api/v1/warmup` | Load the model now |
-| `POST /api/v1/convert`, `/api/v1/convert-base64` | One page image (`imageUrl` or `imageBase64`) → `result` |
+| `GET /health` | `{ status, modelLoaded, loading, busy, queueDepth, uptime, limits }`, no auth |
+| `GET`/`POST /api/v1/warmup` | No auth. Starts the model load and answers at once (202 loading, 200 ready). Also runs at boot unless `DOCLING_WARMUP_ON_START=false` |
+| `POST /api/v1/convert`, `/api/v1/convert-base64` | One page image → `result`: a raw `image/*` body (options in the query) or JSON `imageUrl` / `imageBase64` |
 
 `output: "doctags"` (default, what `processorUrl` expects) or `"html"` (sanitized with
 `sanitize-html`). Auth is `X-Docling-Token` (or `Authorization: Bearer`) against the
 `DOCLING_API_TOKEN` secret; without the secret, production answers 503. One job runs
-at a time; past `DOCLING_MAX_QUEUE` (8) it answers 503 `BUSY`.
+at a time; past `DOCLING_MAX_QUEUE` (8) it answers 503 `BUSY`. Images are decoded in
+memory and never stored; responses are `Cache-Control: no-store`.
 
 ## Scripts
 

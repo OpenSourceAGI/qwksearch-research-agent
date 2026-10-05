@@ -13,6 +13,8 @@
  *                                   JSON `{ url }`, or a raw application/pdf body
  *   POST /api/enhance               OCR one page image with the remote Docling
  *                                   processor (JSON `{ page, imageBase64 }`)
+ *   GET|POST /api/warmup            wake the Docling processor and start its
+ *                                   model loading; answers within a few seconds
  *   GET  /api/source?url=...        the PDF at `url`, for the page to rasterize
  *   GET  /api/extract?url=...       a webpage → article HTML + citation
  *                                   (extract-webpage's `extractContent`)
@@ -29,6 +31,9 @@
  * processor is configured (DOCLING_PROCESSOR_URL, see ../docling-space) the
  * demo page renders those pages in the browser and sends each image to
  * /api/enhance, which forwards it with the secrets the browser never sees.
+ * The demo page calls /api/warmup when it opens, so a sleeping Space is
+ * booting while the visitor picks a file. Page images pass through in memory
+ * and are never stored.
  */
 import { handleAdmin, withStoredSettings, type AdminEnv } from './admin';
 import { convertPDFToHTML } from 'extract-pdf';
@@ -70,6 +75,15 @@ export interface HealthResponse {
   ocr: boolean;
   /** Whether /api/cite has a server-side key, so the demo can leave the key field optional. */
   cite: boolean;
+}
+
+/** A /api/warmup response. */
+export interface WarmupResponse {
+  /** Whether a Docling processor is configured at all. */
+  ocr: boolean;
+  modelLoaded: boolean;
+  /** The model is loading, or the Space is still waking up. */
+  loading: boolean;
 }
 
 /** The OCR part of a /api/convert response. */
@@ -169,6 +183,10 @@ export async function handleApi(request: Request, workerEnv: Env): Promise<Respo
       case '/api/enhance':
         if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
         return json(await enhancePage(request, env));
+
+      case '/api/warmup':
+        if (request.method !== 'GET' && request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+        return json(await warmProcessor(env));
 
       case '/api/source': {
         if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405);
@@ -282,12 +300,11 @@ async function enhancePage(request: Request, env: Env): Promise<{ page: number; 
   if (typeof imageBase64 !== 'string' || !imageBase64) throw httpError(400, 'Provide `imageBase64`.');
   if ((imageBase64.length * 3) / 4 > maxImageBytes) throw httpError(413, 'Page image is too large.');
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (env.DOCLING_API_TOKEN) headers['X-Docling-Token'] = env.DOCLING_API_TOKEN;
-  if (env.HF_SPACE_TOKEN) headers.Authorization = `Bearer ${env.HF_SPACE_TOKEN}`;
+  const headers = processorHeaders(env);
+  headers['Content-Type'] = 'application/json';
 
   const started = Date.now();
-  const res = await fetch(`${env.DOCLING_PROCESSOR_URL.replace(/\/+$/, '')}/api/v1/convert-base64`, {
+  const res = await fetch(`${processorBase(env)}/api/v1/convert`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -303,6 +320,41 @@ async function enhancePage(request: Request, env: Env): Promise<{ page: number; 
     throw httpError(status, `Docling processor: ${out?.error || `HTTP ${res.status}`}`);
   }
   return { page, html: out.result ?? '', ms: Date.now() - started };
+}
+
+/**
+ * Wakes the Docling processor and asks it to start loading the model. The
+ * Space answers at once (202 while loading); a sleeping Hugging Face Space
+ * takes longer to answer at all, so after a few seconds this reports it as
+ * still loading instead of holding the page's request open.
+ */
+async function warmProcessor(env: Env): Promise<WarmupResponse> {
+  if (!env.DOCLING_PROCESSOR_URL) return { ocr: false, modelLoaded: false, loading: false };
+  try {
+    const res = await fetch(`${processorBase(env)}/api/v1/warmup`, {
+      method: 'POST',
+      headers: processorHeaders(env),
+      signal: AbortSignal.timeout(8000),
+    });
+    const out = (await res.json().catch(() => null)) as { modelLoaded?: boolean } | null;
+    const modelLoaded = res.ok && out?.modelLoaded === true;
+    return { ocr: true, modelLoaded, loading: !modelLoaded };
+  } catch {
+    // Timed out or unreachable: the request itself is what wakes the Space.
+    return { ocr: true, modelLoaded: false, loading: true };
+  }
+}
+
+function processorBase(env: Env): string {
+  return (env.DOCLING_PROCESSOR_URL ?? '').replace(/\/+$/, '');
+}
+
+/** The service token, and for a private Space a Hugging Face read token. */
+function processorHeaders(env: Env): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (env.DOCLING_API_TOKEN) headers['X-Docling-Token'] = env.DOCLING_API_TOKEN;
+  if (env.HF_SPACE_TOKEN) headers.Authorization = `Bearer ${env.HF_SPACE_TOKEN}`;
+  return headers;
 }
 
 /**
@@ -478,6 +530,7 @@ function httpError(status: number, message: string): Error & { status: number } 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS },
+    // no-store: responses carry content derived from visitors' documents.
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...CORS_HEADERS },
   });
 }

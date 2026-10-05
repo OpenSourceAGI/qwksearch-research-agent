@@ -18,6 +18,7 @@ The site lives in the monorepo at `packages/extract-pdf/site`. It is one Cloudfl
 | `/demo` | The demo page. The **PDF** tab calls `/api/convert`; the **Webpage** tab (`/demo#webpage`) calls `/api/extract`. |
 | `/api/convert` | `convertPDFToHTML` from `extract-pdf`, text layer only. |
 | `/api/enhance` | Forwards one rendered page image to a Granite Docling processor. |
+| `/api/warmup` | Wakes the Docling processor and starts its model loading. The demo calls it when it opens. |
 | `/api/source?url=` | The PDF at `url`, so the browser can render flagged pages. |
 | `/api/extract` | `extractContent` from `extract-webpage`. |
 | `/api/cite` | `extractCiteLLM` from `extract-cite`: a full citation from an LLM. POST only. |
@@ -72,6 +73,10 @@ Workers have no canvas, so they cannot rasterize pages, and a vision model is fa
 2. The page renders only those pages to PNG in the browser with PDF.js. For a URL source it reads the PDF again through `/api/source`.
 3. It sends each image to `POST /api/enhance` as `{ "page": 3, "imageBase64": "…" }`. The Worker forwards it to the Docling processor with its secrets and returns `{ page, html, ms }`.
 4. The page swaps each OCR'd page into the result as `<section class="ocr-page" id="page-N">`, one at a time. A page whose OCR fails keeps its text-layer version.
+
+Page images pass through the Worker and the Space in memory only: neither stores them, and every API response is `Cache-Control: no-store`.
+
+When OCR is configured, the PDF tab calls `POST /api/warmup` as soon as it opens. The Worker asks the Space to start loading its model and answers within a few seconds with `{ ocr, modelLoaded, loading }`, so a Space that was asleep is booting while the visitor picks a file.
 
 To turn it on, deploy the [Docling Space](/docs/pdf/ocr#hosting-the-processor) and give the Worker its URL and token:
 
