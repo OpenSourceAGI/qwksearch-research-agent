@@ -31,6 +31,9 @@ The regex pass ([`extractCite`](/docs/webpage/cite)) is instant and free but par
 | `styles` | all | A subset of `apa`, `mla`, `chicago`, `harvard`, `ieee`, `bibtex`. |
 | `reviewThreshold` | `0.7` | Parts scoring below this are flagged. |
 | `maxChars` | `12000` | Page text sent to the model: the start and the end, where bylines and bios sit. |
+| `content` | page text | The article you extracted (HTML or text), for the content check. |
+| `checkContent` | `true` | Run the content check in the same call. |
+| `contentWords` | `3000` | Words of content the check reads, from the start. |
 
 ## What comes back
 
@@ -40,6 +43,19 @@ The regex pass ([`extractCite`](/docs/webpage/cite)) is instant and free but par
 - `origin`: whether the regex pass and the model agreed (`both`) or the model supplied it (`llm`). Agreement raises confidence.
 - `partial` and `missing`: what the regex pass found and what it left for the model.
 - `formatted`: one `{ text, html }` per style. The HTML is escaped apart from `<i>`.
+- `contentCheck`: whether the extracted content is the full article. See below.
+
+## Content check
+
+The same call reads the first `contentWords` (3000) words of `content`, which is the article you extracted or, by default, the page's own text, along with an outline of the page's blocks as CSS selectors, their word counts and opening words. It returns:
+
+- `verdict`: `full`, `paywalled` (a subscribe or sign-in wall cuts the body), `truncated` (a teaser, abstract or "Read more" with no wall), `blocked` (bot check, consent wall, error page), `not-article` (a home page or listing), or `unknown` when the model gave none. `isFullContent` is true only for `full`.
+- `signals`: the phrases that show it, such as "Subscribe to continue reading", and a `note` for the reader.
+- `tips`: clutter the content still holds (`header`, `nav`, `sidebar`, `footer`, `ads`, `related`, `newsletter`, `share`, `comments`, `cookie-banner`), each with the `selector` that holds it, an `example` and a one-line tip on cutting it.
+- `contentSelector`: the element that holds the article body.
+- `selectors`: `{ content, remove }`, the shape of an entry in extract-webpage's `extract-selectors-per-domain.json`, so a site's tips can be pasted in as a rule for the Readability and Mercury extractors.
+
+Signals and examples must be in the text and selectors must match an element on the page, or they are dropped. Anything but `full` is also added to `needsReview` as `field: "content"`. Pass `checkContent: false` to skip it.
 
 ## Author qualifications
 
@@ -55,4 +71,4 @@ The page is untrusted text, so the prompt fences it and tells the model to ignor
 
 ## Hosted demo
 
-The **Citation** tab of the [live demo](/demo#cite) has presets for news (New York Times, NPR, Scientific American), academic (arXiv, Nature), organization and reference pages (WHO, Wikipedia) and an essay blog. See [its API](/docs/live-demo).
+The **Citation** tab of the [live demo](/demo#cite) runs the content check on the article extract-webpage pulls out of the page, and has presets for news (New York Times, NPR, Scientific American), academic (arXiv, Nature), organization and reference pages (WHO, Wikipedia) and an essay blog. See [its API](/docs/live-demo).

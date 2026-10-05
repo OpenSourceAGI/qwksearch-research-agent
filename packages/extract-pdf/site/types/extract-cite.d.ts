@@ -97,10 +97,78 @@ export declare const CITATION_FIELDS: CitationField[];
 
 /** A field (or one author's qualifications) a human should check. */
 export interface ReviewItem {
-  /** A citation field, or `qualifications:<author name>`. */
+  /** A citation field, `qualifications:<author name>`, or `content` when the content check found no full article. */
   field: string;
   confidence: number;
   reason: string;
+}
+
+/** What the content check concluded about the extracted text. */
+export type ContentVerdict =
+  /** The article body is all there. */
+  | "full"
+  /** A subscribe or sign-in wall replaces or cuts the body. */
+  | "paywalled"
+  /** The body stops early without a wall: a teaser, an abstract, "Read more". */
+  | "truncated"
+  /** A bot check, consent wall, access-denied or error page instead of the article. */
+  | "blocked"
+  /** A home page, index or listing, with no single article. */
+  | "not-article"
+  /** The model gave no usable verdict. */
+  | "unknown";
+
+export declare const CONTENT_VERDICTS: ContentVerdict[];
+
+/** The kinds of clutter a readability tip can be about. */
+export type PageRegion =
+  | "header"
+  | "nav"
+  | "sidebar"
+  | "footer"
+  | "ads"
+  | "related"
+  | "newsletter"
+  | "share"
+  | "comments"
+  | "cookie-banner"
+  | "other";
+
+export declare const PAGE_REGIONS: PageRegion[];
+
+/** Clutter the extraction kept, and how to cut it. */
+export interface ReadabilityTip {
+  region: PageRegion;
+  /** CSS selector of the block to cut. Kept only when it matches an element on the page. */
+  selector?: string;
+  /** A short snippet of the clutter, kept only when it is in the text. */
+  example?: string;
+  /** How to cut it, in a sentence. */
+  tip: string;
+}
+
+/** Whether the extracted content is the full article, and how to make it cleaner. */
+export interface ContentCheck {
+  verdict: ContentVerdict;
+  /** True only for `"full"`. */
+  isFullContent: boolean;
+  /** 0–1. */
+  confidence: number;
+  /** Phrases from the text that show the verdict ("Subscribe to continue reading"); only ones that are in the text are kept. */
+  signals: string[];
+  /** One or two sentences for the reader. */
+  note: string;
+  /** CSS selector of the element that holds the article body. Kept only when it matches. */
+  contentSelector?: string;
+  /** Clutter the content still holds (header, nav, sidebar, footer, …), biggest first. */
+  tips: ReadabilityTip[];
+  /**
+   * The checked selectors in the shape of an `extract-webpage`
+   * `extract-selectors-per-domain.json` entry, ready to paste.
+   */
+  selectors: { content: string[]; remove: string[] };
+  /** Words of content the model was shown. */
+  wordsChecked: number;
 }
 
 export interface FormattedCitation {
@@ -126,6 +194,8 @@ export interface ExtractCiteLLMResult {
   origin: Partial<Record<CitationField, "regex" | "llm" | "both">>;
   /** One entry per requested style. */
   formatted: Partial<Record<CitationStyle, FormattedCitation>>;
+  /** Full article or paywall stub, plus tips for cutting clutter. Absent with `checkContent: false`. */
+  contentCheck?: ContentCheck;
   model: string;
   ms: number;
 }
@@ -149,6 +219,15 @@ export interface ExtractCiteLLMOptions {
   reviewThreshold?: number;
   /** Characters of page text sent to the model. Default 12000. */
   maxChars?: number;
+  /**
+   * The content extracted from the page (HTML or text), e.g. extract-webpage's
+   * `html`, for the content check. Default: the page's own visible text.
+   */
+  content?: string;
+  /** Check that the content is the full article and suggest what to cut. Default true. */
+  checkContent?: boolean;
+  /** Words of content the check is shown, from the start. Default 3000. */
+  contentWords?: number;
   /** Abort the model call after this many milliseconds. Default 60000. */
   timeoutMs?: number;
   /** ISO date printed as the access date. Default: today. */

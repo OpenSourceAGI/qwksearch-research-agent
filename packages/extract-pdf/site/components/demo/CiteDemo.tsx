@@ -2,7 +2,9 @@
  * The extract-cite half of the demo: a URL (or pasted HTML) through
  * `POST /api/cite`, which runs extract-cite's regex pass and then one LLM call
  * (OpenRouter by default) that completes the APA parts, scores every one, flags
- * the doubtful ones for review and reads the authors' qualifications.
+ * the doubtful ones for review and reads the authors' qualifications. The same
+ * call checks the extracted article: full text or paywall stub, and which
+ * header, nav, sidebar and footer blocks to cut for readability.
  *
  * The API key is typed here and sent with the request; it is not stored. When
  * the Worker has its own OPENROUTER_API_KEY (`/api/health` → `cite`) the field
@@ -11,7 +13,7 @@
 import { useRef, useState, type FormEvent } from 'react';
 
 import type { CiteResponse } from '../../worker/api';
-import type { CitationField, CitationStyle } from 'extract-cite';
+import type { CitationField, CitationStyle, ContentCheck, ContentVerdict } from 'extract-cite';
 
 const STYLES: { id: CitationStyle; label: string }[] = [
   { id: 'apa', label: 'APA 7' },
@@ -69,6 +71,86 @@ const FIELD_LABEL: Record<CitationField, string> = {
 const DEFAULT_MODEL = 'openrouter/free';
 
 const ORIGIN_LABEL = { regex: 'regex', llm: 'LLM', both: 'regex + LLM' } as const;
+
+const VERDICT_LABEL: Record<ContentVerdict, string> = {
+  full: 'Full article',
+  paywalled: 'Paywalled',
+  truncated: 'Truncated',
+  blocked: 'Blocked',
+  'not-article': 'Not an article',
+  unknown: 'Not checked',
+};
+
+/** The checked selectors as an entry for extract-webpage's extract-selectors-per-domain.json. */
+function domainRule(check: ContentCheck, url?: string): string {
+  let domain = 'example.com';
+  try {
+    if (url) domain = new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    // Pasted HTML with no URL: keep the placeholder.
+  }
+  return JSON.stringify({ [domain]: check.selectors }, null, 2);
+}
+
+/** Is the extracted text the whole article, and what clutter is left in it. */
+function ContentCheckPanel({ check, url }: { check: ContentCheck; url?: string }) {
+  const bad = !check.isFullContent && check.verdict !== 'unknown';
+  return (
+    <section className={`content-check${bad ? ' bad' : ''}`}>
+      <h3>
+        Content check: <span className="verdict">{VERDICT_LABEL[check.verdict]}</span>
+        <span className="hint">
+          {' '}
+          · {Math.round(check.confidence * 100)}% · first {check.wordsChecked} words checked
+        </span>
+      </h3>
+      {check.note && <p>{check.note}</p>}
+      {check.signals.length > 0 && (
+        <ul className="signals">
+          {check.signals.map((signal) => (
+            <li key={signal}>“{signal}”</li>
+          ))}
+        </ul>
+      )}
+      {check.tips.length > 0 && (
+        <table className="cite-parts">
+          <thead>
+            <tr>
+              <th>Cut</th>
+              <th>Selector</th>
+              <th>Tip</th>
+            </tr>
+          </thead>
+          <tbody>
+            {check.tips.map((tip, i) => (
+              <tr key={i}>
+                <td>{tip.region}</td>
+                <td>{tip.selector ? <code>{tip.selector}</code> : <em>none on the page</em>}</td>
+                <td>
+                  {tip.tip}
+                  {tip.example && <div className="hint">“{tip.example}”</div>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      {check.contentSelector && (
+        <p className="hint">
+          Article body: <code>{check.contentSelector}</code>
+        </p>
+      )}
+      {(check.selectors.content.length > 0 || check.selectors.remove.length > 0) && (
+        <details>
+          <summary>As a rule for extract-webpage’s per-domain selectors</summary>
+          <pre>
+            <code>{domainRule(check, url)}</code>
+          </pre>
+        </details>
+      )}
+    </section>
+  );
+}
 
 function valueOf(result: CiteResponse, field: CitationField): string {
   if (field === 'authors') return result.citation.authors.map((a) => a.name).join('; ');
@@ -268,6 +350,8 @@ export function CiteDemo({ serverKey }: { serverKey: boolean }) {
                 })}
             </tbody>
           </table>
+
+          {result.contentCheck && <ContentCheckPanel check={result.contentCheck} url={result.citation.url} />}
 
           {result.citation.authors.some((a) => a.qualifications) && (
             <dl className="cite">

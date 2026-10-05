@@ -108,7 +108,7 @@ curl -X POST -H 'Content-Type: application/json' \
   https://YOUR-SITE/api/cite
 ```
 
-`apiKey` is an [OpenRouter](https://openrouter.ai) key, used for that one request and never stored. Leave it out when the Worker has its own (`bunx wrangler secret put OPENROUTER_API_KEY`; `CITE_MODEL` sets the default model). `html` can replace `url` for pages that block server fetches, and `styles` narrows the output. The response is [`extractCiteLLM`'s result](/docs/cite) plus `input`. Errors are `{ "error": "…" }` with 401 (no key, or the provider rejected it), 429 (the provider's rate limit), 400, 413 or 502.
+`apiKey` is an [OpenRouter](https://openrouter.ai) key, used for that one request and never stored. Leave it out when the Worker has its own (`bunx wrangler secret put OPENROUTER_API_KEY`; `CITE_MODEL` sets the default model). `html` can replace `url` for pages that block server fetches, and `styles` narrows the output. The Worker first runs extract-webpage on the page and passes the article as `content`, so `contentCheck` says whether that extraction is the full article or a paywall stub, and which blocks to cut. The response is [`extractCiteLLM`'s result](/docs/cite) plus `input`. Errors are `{ "error": "…" }` with 401 (no key, or the provider rejected it), 429 (the provider's rate limit), 400, 413 or 502.
 
 ## Run it locally
 

@@ -3,7 +3,7 @@
 Cite any webpage. Two passes:
 
 1. **`extractCite`**: reads author, date, title and source straight off the HTML (meta tags, bylines, JSON-LD, URL patterns, a 92k-name database that tells people from organizations). Instant, offline, partial.
-2. **`extractCiteLLM`**: one model call (OpenRouter by default) that is given the partial citation and the parts still missing, completes the full APA citation, **scores the confidence of every part**, **flags parts for review**, and reads **author qualifications** from the page's bio. Output in APA 7, MLA 9, Chicago, Harvard, IEEE and BibTeX.
+2. **`extractCiteLLM`**: one model call (OpenRouter by default) that is given the partial citation and the parts still missing, completes the full APA citation, **scores the confidence of every part**, **flags parts for review**, and reads **author qualifications** from the page's bio. Output in APA 7, MLA 9, Chicago, Harvard, IEEE and BibTeX. The same call **checks the content**: is the extracted text the full article or a paywall stub, and which header, nav, sidebar and footer blocks to cut for readability.
 
 ```bash
 bun add extract-cite
@@ -24,6 +24,8 @@ cite.formatted.mla?.html;                  // with <i> italics, HTML-escaped
 cite.confidence;                           // { title: 0.98, publishedDate: 0.95, … }
 cite.needsReview;                          // [{ field, confidence, reason }]
 cite.citation.authors[0].qualifications;   // { jobTitle, affiliation, credentials, evidence, … }
+cite.contentCheck?.verdict;                // "full" | "paywalled" | "truncated" | "blocked" | "not-article" | "unknown"
+cite.contentCheck?.tips;                   // [{ region: "sidebar", selector: "aside.sidebar", example, tip }]
 ```
 
 | Option | Default | |
@@ -35,13 +37,20 @@ cite.citation.authors[0].qualifications;   // { jobTitle, affiliation, credentia
 | `styles` | all | `apa`, `mla`, `chicago`, `harvard`, `ieee`, `bibtex` |
 | `reviewThreshold` | `0.7` | Parts below this go in `needsReview`. |
 | `maxChars` | `12000` | Page text sent to the model (head and tail). |
+| `content` | page text | The article you extracted (HTML or text, e.g. extract-webpage's `html`), for the content check. |
+| `checkContent` | `true` | Run the content check in the same call. |
+| `contentWords` | `3000` | Words of content the check reads, from the start. |
 | `fetch` | global | Replaces `fetch` for both the page and the model call. |
+
+### Content check
+
+The model reads the first `contentWords` words of `content` and an outline of the page's blocks (`header.site-header (6 words) "Example Ledger Sign in…"`) and returns `contentCheck`: a `verdict`, the `signals` that show it ("Subscribe to continue reading"), a `note` for the reader, the `contentSelector` that holds the article body, and `tips` for the clutter the content still holds (header, nav, sidebar, footer, ads, related, newsletter, share, comments, cookie banner). `selectors` is the same as `{ content, remove }`, the shape of an entry in extract-webpage's `extract-selectors-per-domain.json`. A verdict other than `full` also lands in `needsReview` as `field: "content"`.
 
 `formatCitation(citation, style)` and `formatCitations(citation, styles)` re-style a result offline.
 
 ## What it will not do
 
-The model's reply is not trusted. Text is fenced as untrusted data; strings are stripped of markup; dates must be real; an author whose name the page never prints is capped at 0.2 confidence and flagged; author qualifications need a verbatim quote that is on the page, or they are dropped. A part the page does not state comes back empty and flagged, not guessed. Still: **check `needsReview` before you cite**.
+The model's reply is not trusted. Text is fenced as untrusted data; strings are stripped of markup; dates must be real; an author whose name the page never prints is capped at 0.2 confidence and flagged; author qualifications need a verbatim quote that is on the page, or they are dropped. A part the page does not state comes back empty and flagged, not guessed. Content-check signals and examples must be in the text, and its selectors must match an element on the page, or they are dropped. Still: **check `needsReview` before you cite**.
 
 ## Moved from extract-webpage
 
