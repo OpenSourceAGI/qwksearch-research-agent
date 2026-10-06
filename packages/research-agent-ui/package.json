@@ -114,6 +114,7 @@
     "streamdown": "^2.6.0",
     "tailwind-merge": "^3.6.0",
     "trending-news-api": "workspace:*",
+    "education-playlists": "workspace:*",
     "turndown": "^7.2.4",
     "use-voice-control": "^0.1.95",
     "use-weather-forecast": "workspace:*"

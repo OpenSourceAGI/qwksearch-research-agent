@@ -17,7 +17,19 @@ describe('grab', () => {
 
     await grab('/api/agent/providers');
 
-    expect(fetchMock).toHaveBeenCalledWith('https://qwksearch.com/api/agent/providers', undefined);
+    expect(fetchMock).toHaveBeenCalledWith('https://qwksearch.com/api/agent/providers', {
+      credentials: 'include',
+    });
+  });
+
+  it('resolves a bare path under /api/, like grab-url does', async () => {
+    const fetchMock = mockFetch({ providers: [] });
+
+    await grab('agent/providers');
+
+    expect(fetchMock).toHaveBeenCalledWith('https://qwksearch.com/api/agent/providers', {
+      credentials: 'include',
+    });
   });
 
   it('leaves an absolute URL alone', async () => {
@@ -40,7 +52,10 @@ describe('grab', () => {
 
     await grab('/api/agent/chat', options);
 
-    expect(fetchMock).toHaveBeenCalledWith('https://qwksearch.com/api/agent/chat', options);
+    expect(fetchMock).toHaveBeenCalledWith('https://qwksearch.com/api/agent/chat', {
+      credentials: 'include',
+      ...options,
+    });
   });
 
   it('returns null instead of throwing on a failed response', async () => {

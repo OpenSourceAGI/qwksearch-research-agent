@@ -19,6 +19,15 @@
 A browser extension (Chrome and Firefox) that turns the sidebar into a tab
 manager and a research assistant over whatever you have open.
 
+- **Organize** tab: the [LeoTabs](./leotabs) tab organizer — collections,
+  spaces, stash and switch, grouping, recovery — plus its visual switcher
+  (<kbd>Alt</kbd>+<kbd>Q</kbd>), search (<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd>)
+  and full library (<kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>Q</kbd>)
+- **AI** (LLM) button in the header for the research chat, and **Log in** to
+  your QwkSearch account
+- Optional **Open in a full tab** setting (off by default) that opens the whole
+  extension as a browser tab instead of the side panel
+- A welcome page on first install listing every feature and how to reach it
 - Vertical tabs sidebar with sorting and a context menu
 - Search inside the page content of every open tab
 - Select text, press <kbd>Tab</kbd> to search; <kbd>Tab</kbd> again opens the first result
@@ -51,6 +60,43 @@ Next.js nor a local server:
 after Vite's minifier converts `\uXXXX` back to literal characters — Chrome
 rejects content scripts that contain them.
 
+### The side panel
+
+```
+QwkSearch logo ............ [AI] [Log in] [pop-out] [settings]
+[Organize] [Tabs] [History] [Favorites] [Downloads]
+```
+
+| Piece | Where |
+| --- | --- |
+| Header (LLM button, login, pop-out, settings) | `components/AppHeader.tsx` |
+| Organize tab — LeoTabs `app.html` framed with `?window=` | `components/OrganizerFrame.tsx` |
+| Settings view, incl. the full-tab toggle | `components/ExtensionSettings.tsx`, `lib/extension-settings.ts` |
+| QwkSearch login — the web app's session cookie, read cross-origin | `lib/qwksearch-auth.ts` |
+| Welcome page and the feature list it renders | `entrypoints/welcome/`, `lib/welcome.ts` |
+
+Signing in opens `https://qwksearch.com/login`; the panel then reads the
+session from `/api/auth/get-session` with the cookie, and `/api/*` calls made
+through the `grab-url` shim carry it too.
+
+### LeoTabs inside this extension
+
+[`leotabs/`](./leotabs) is the LeoTabs tab organizer (MPL-2.0), kept as its own
+plain-JavaScript extension with its own `node --test` suite rather than
+rewritten in React:
+
+- Its **pages and modules** (`app.html`, `quick.html`, `parked.html`, `ui/`,
+  `lib/`, `overlay.js`, …) are copied to the root of the build by the
+  `build:publicAssets` hook in `wxt.config.ts`, where its
+  `runtime.getURL('app.html')` calls expect them.
+- Its **service worker** is imported by `entrypoints/background.ts`; the two
+  share one worker.
+- Its **manifest** is not used: permissions, its three commands and the
+  `tabs` omnibox keyword are merged into `wxt.config.ts`.
+- `leotabs/extension/lib/host.js` detects the host (a manifest with a side
+  panel) so LeoTabs leaves the toolbar click and the install page to
+  QwkSearch. Loaded on its own, `leotabs/extension` still works standalone.
+
 ## Setup
 
 ```bash
@@ -59,7 +105,7 @@ cd apps/qwksearch-browser-ext
 
 bun run dev                 # Chrome, with a live-reloading dev profile
 bun run dev:firefox         # Firefox
-bun run test                # vitest
+bun run test                # vitest, then the LeoTabs node --test suite
 bun run compile             # tsc --noEmit
 ```
 

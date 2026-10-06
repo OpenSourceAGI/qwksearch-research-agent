@@ -1,24 +1,26 @@
 import { useState } from 'react';
 import {
+  configureResearchAgentUI,
   SessionProvider,
   ExtractPanelProvider,
   ChatProvider,
   ChatWindow,
   useChat,
 } from 'research-agent-ui';
-import type { ResearchAgentAuthClient } from 'research-agent-ui';
 import { FileText, MessageSquareText } from 'lucide-react';
 import { Button } from './ui/button';
 import { formatOpenTabsMessage, isContextableTab } from '@/lib/open-tabs-context';
 import extractTabContent from '@/lib/extract-tab-content';
+import { extensionAuthClient } from '@/lib/qwksearch-auth';
+import { API_BASE } from '@/lib/grab-url-shim';
 
-// Minimal no-op auth client — the extension runs without a backend auth session.
-const noopAuthClient: ResearchAgentAuthClient = {
-  getSession: async () => ({ data: null }),
-  oneTap: () => {},
-  signIn: { social: () => {} },
-  signOut: async () => {},
-};
+// These are fetched directly rather than through grab(), so a relative default
+// would resolve against the extension's own origin.
+configureResearchAgentUI({
+  appIconUrl: '/images/qwksearch-mark.png',
+  trendingNewsApiUrl: `${API_BASE}/api/news/trending`,
+  trendingNewsSettingsUrl: `${API_BASE}/api/news/settings`,
+});
 
 function OpenTabsContextButton() {
   const { sendMessage, loading } = useChat();
@@ -35,7 +37,7 @@ function OpenTabsContextButton() {
       type="button"
       variant="outline"
       size="sm"
-      className="m-2 self-start"
+      className="h-8"
       disabled={loading}
       onClick={handleClick}
     >
@@ -71,7 +73,7 @@ function OpenTabsContentButton() {
       type="button"
       variant="outline"
       size="sm"
-      className="m-2 self-start"
+      className="h-8"
       disabled={loading || extracting}
       onClick={handleClick}
     >
@@ -83,13 +85,19 @@ function OpenTabsContentButton() {
 
 export default function ResearchTab() {
   return (
-    <div className="h-full overflow-auto">
-      <SessionProvider authClient={noopAuthClient}>
+    <div className="flex h-full flex-col">
+      <SessionProvider authClient={extensionAuthClient} enableGoogleOneTap={false}>
         <ExtractPanelProvider>
           <ChatProvider>
-            <OpenTabsContextButton />
-            <OpenTabsContentButton />
-            <ChatWindow />
+            {/* Outside the chat's scroll area: the chat is at least a screen tall
+                and scrolls to its input, which would push these out of view. */}
+            <div className="flex shrink-0 flex-wrap gap-1 pb-1">
+              <OpenTabsContextButton />
+              <OpenTabsContentButton />
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              <ChatWindow />
+            </div>
           </ChatProvider>
         </ExtractPanelProvider>
       </SessionProvider>

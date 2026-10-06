@@ -56,3 +56,14 @@ test('toolbar identity restores invalidated colours, isolates windows and retrie
   assert.equal(icons.get(901).path[16],'icons/16.png');
   assert.equal(icons.get(902).imageData[16].ink,colorHex('rose'));
 });
+test('inside a host extension the toolbar falls back to the host manifest icon and title',async()=>{
+  const icons=new Map(),titles=new Map();
+  const browser={
+    runtime:{getManifest:()=>({side_panel:{default_path:'sidepanel.html'},action:{default_title:'QwkSearch',default_icon:{16:'icon/16.png',32:'icon/32.png'}}})},
+    tabs:{query:async()=>[{id:7,windowId:1}]},
+    action:{setIcon:async o=>icons.set(o.tabId,o),setTitle:async o=>titles.set(o.tabId,o.title)},
+  };
+  await updateIdentity(browser,{collections:[]},{});
+  assert.deepEqual(icons.get(7).path,{16:'icon/16.png',32:'icon/32.png'});
+  assert.equal(titles.get(7),'QwkSearch');
+});

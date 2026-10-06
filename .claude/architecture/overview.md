@@ -85,7 +85,7 @@ memory), `language-model-training` (a GPT on Tinygrad, Python, its own toolchain
 
 **UI** — `research-agent-ui`, `search-autocomplete`, `reason-editor`, `reason-editor-sidebar`,
 `shadcn-app-dock`, `shadcn-settings`, `react-weather-forecast`,
-`trending-news-api`, `use-voice-control`, `user-help-docs`.
+`trending-news-api`, `education-playlists`, `use-voice-control`, `user-help-docs`.
 
 **Finance** — `investing` (vendored from `ai-broker-investing-agent`): Alpaca, stock
 data, Polymarket sync over D1, LangGraph debate agents, and the PredictOS
