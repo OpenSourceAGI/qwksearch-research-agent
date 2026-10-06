@@ -24,6 +24,7 @@ jobs:
           - { flag: qwksearch-browser-ext, dir: apps/qwksearch-browser-ext }
           - { flag: qwksearch-web, dir: apps/qwksearch-web }
           - { flag: chat-agent-toolkit, dir: packages/chat-agent-toolkit }
+          - { flag: education-playlists, dir: packages/education-playlists }
           - { flag: extract-cite, dir: packages/extract-cite }
           - { flag: extract-webpage, dir: packages/extract-webpage }
           - { flag: html-renderer-api, dir: packages/html-renderer-api }
@@ -59,7 +60,7 @@ jobs:
       # environments (see https://github.com/oven-sh/bun/issues/19088), so
       # the build is now explicit here instead.
       - name: Build workspace libraries consumed via dist
-        run: bunx turbo build --filter=extract-cite --filter=extract-pdf --filter=extract-youtube --filter=react-reason-editor --filter=use-voice-control --filter=use-weather-forecast --filter=trending-news-api
+        run: bunx turbo build --filter=extract-cite --filter=extract-pdf --filter=extract-youtube --filter=react-reason-editor --filter=use-voice-control --filter=use-weather-forecast --filter=trending-news-api --filter=education-playlists
 
       - name: Run tests with coverage
         working-directory: ${{ matrix.dir }}

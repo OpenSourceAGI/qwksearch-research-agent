@@ -33,6 +33,9 @@ const WeatherForecast = lazy(() =>
 const TrendingNews = lazy(() =>
   import('trending-news-api').then((mod) => ({ default: mod.TrendingNews })),
 );
+const EducationPlaylists = lazy(() =>
+  import('education-playlists').then((mod) => ({ default: mod.EducationPlaylists })),
+);
 const DownloadsDialog = lazy(() => import('./DownloadsDialog'));
 
 /**
@@ -156,6 +159,7 @@ export default function ChatHomepage() {
   const [trendingNewsShowImages, setTrendingNewsShowImages] = useState<boolean | null>(null);
   const [trendingNewsCustomTopics, setTrendingNewsCustomTopics] = useState<string[]>([]);
   const [newsSiteSettings, setNewsSiteSettings] = useState<NewsSiteSettings | null>(null);
+  const [showEducationWidget, setShowEducationWidget] = useState(true);
   // The weather and news widgets (their chunks and their API calls) wait until
   // the page has loaded and the browser is idle, so they never compete with the
   // orb, the input and the background for first paint.
@@ -223,6 +227,7 @@ export default function ChatHomepage() {
       const showImages = localStorage.getItem('trendingNewsShowImages');
       setTrendingNewsShowImages(showImages === null ? null : showImages !== 'false');
       setTrendingNewsCustomTopics(parseCustomTopics(localStorage.getItem('trendingNewsCustomTopics')));
+      setShowEducationWidget(localStorage.getItem('showEducationPlaylistsWidget') !== 'false');
       setOrbHoverGlow(localStorage.getItem('orbHoverGlow') === 'true');
       setCursorGlowTrail(localStorage.getItem('cursorGlowTrail') === 'true');
     };
@@ -436,15 +441,31 @@ export default function ChatHomepage() {
 
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
-            {/* The input leads the column; the news and weather widgets sit below it. */}
+            {/* The input leads the column; the Learn, news and weather widgets sit below it. */}
             <ChatInputBox />
-            {widgetsReady && (showWeatherWidget || showNewsWidget) && (
+            {widgetsReady && (showEducationWidget || showWeatherWidget || showNewsWidget) && (
               <Suspense fallback={null}>
                 <div className="flex flex-col gap-2 w-full">
-                  {/* News sits on top, with the compact weather widget below it.
-                      The weather widget is fluid, so it spans the full column
-                      width on its own row (current conditions on the left, the
-                      next days on the right). */}
+                  {/* Learn (education playlists) sits on top, then news, with
+                      the compact weather widget below them. The weather widget
+                      is fluid, so it spans the full column width on its own
+                      row (current conditions on the left, the next days on the
+                      right). */}
+                  {showEducationWidget && (
+                    <EducationPlaylists
+                      compact
+                      planEndpoint={researchAgentUIConfig.educationPlaylistsApiUrl || undefined}
+                      openHref={researchAgentUIConfig.educationPlaylistsPageUrl || undefined}
+                      className="rounded-2xl w-full"
+                      style={{
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        color: 'inherit',
+                        backdropFilter: 'blur(8px)',
+                        maxWidth: '100%',
+                      }}
+                    />
+                  )}
                   {showNewsWidget && (
                     <TrendingNews
                       compact

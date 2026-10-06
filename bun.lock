@@ -141,6 +141,7 @@
         "dotenv": "^17.4.2",
         "drizzle-orm": "^0.45.2",
         "easydrawer": "^0.0.18",
+        "education-playlists": "workspace:*",
         "extract-webpage": "workspace:*",
         "framer-motion": "^13.2.0",
         "frimousse": "^0.3.0",
@@ -299,6 +300,27 @@
         "tsx": "^4.23.13",
         "typescript": "^7.0.2",
         "vite": "^8.2.2",
+      },
+    },
+    "packages/education-playlists": {
+      "name": "education-playlists",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@testing-library/react": "^16.3.3",
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.7",
+        "@vitejs/plugin-react": "^6.1.1",
+        "@vitest/coverage-v8": "^5.0.0",
+        "jsdom": "^30.0.1",
+        "react": "^19.2.8",
+        "react-dom": "^19.2.8",
+        "tsup": "^8.5.1",
+        "typescript": "^7.0.2",
+        "vitest": "^5.0.0",
+      },
+      "peerDependencies": {
+        "react": "^18 || ^19",
+        "react-dom": "^18 || ^19",
       },
     },
     "packages/extract-cite": {
@@ -1009,6 +1031,7 @@
         "clsx": "^2.1.1",
         "dompurify": "^3.4.15",
         "drizzle-orm": "^0.45.2",
+        "education-playlists": "workspace:*",
         "extract-webpage": "workspace:*",
         "grab-url": "^1.6.22",
         "html2canvas": "^1.4.1",
@@ -4405,6 +4428,8 @@
     "easydrawer": ["easydrawer@0.0.18", "", { "dependencies": { "bezier-js": "^6.1.4" } }, "sha512-fp7jzxnwyFgB+VNcUEdTd3+W0DUwPDEmwruNlrCYi6vROcz9W3vjwJDk2W2Otugn4Ouf/FZwqkRZnB0YKhrCsg=="],
 
     "ecdsa-sig-formatter": ["ecdsa-sig-formatter@1.0.11", "", { "dependencies": { "safe-buffer": "^5.0.1" } }, "sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ=="],
+
+    "education-playlists": ["education-playlists@workspace:packages/education-playlists"],
 
     "ee-first": ["ee-first@1.1.1", "", {}, "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow=="],
 

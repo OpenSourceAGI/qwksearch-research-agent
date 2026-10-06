@@ -44,6 +44,7 @@ export default defineConfig({
       // Subpath exports resolve through the package's built `dist`, which CI
       // does not build before running these tests — point them at the source.
       'trending-news-api/server': resolve(__dirname, '../../packages/trending-news-api/src/server/index.ts'),
+      'education-playlists/server': resolve(__dirname, '../../packages/education-playlists/src/server/index.ts'),
       'write-language': resolve(__dirname, '../../packages/write-language/src'),
       'chat-agent-toolkit/models/registry': resolve(__dirname, '../../packages/chat-agent-toolkit/src/models/registry.ts'),
     },

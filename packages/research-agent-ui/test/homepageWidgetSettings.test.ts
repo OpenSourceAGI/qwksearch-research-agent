@@ -33,6 +33,7 @@ const WIDGET_KEYS = [
   'trendingNewsMaxTopics',
   'trendingNewsShowImages',
   'trendingNewsCustomTopics',
+  'showEducationPlaylistsWidget',
 ];
 
 describe('homepage widget settings', () => {
@@ -56,6 +57,18 @@ describe('homepage widget settings', () => {
     // Blank means "whatever the site shows by default" — the widget must not
     // start out following an opinionated list nobody chose.
     expect(field!.default).toBe('');
+  });
+});
+
+describe('education playlists widget configuration', () => {
+  it('points the homepage card at the host app’s planner and full page', () => {
+    expect(researchAgentUIConfig.educationPlaylistsApiUrl).toBe('/api/learn');
+    expect(researchAgentUIConfig.educationPlaylistsPageUrl).toBe('/learn');
+  });
+
+  it('mounts the Learn widget above the news widget', () => {
+    expect(homepageSource.indexOf('<EducationPlaylists')).toBeGreaterThan(-1);
+    expect(homepageSource.indexOf('<EducationPlaylists')).toBeLessThan(homepageSource.indexOf('<TrendingNews'));
   });
 });
 
