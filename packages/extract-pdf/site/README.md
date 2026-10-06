@@ -3,8 +3,7 @@
 The documentation site **and** the live demo for the [`extract-pdf`](..) and
 [`extract-webpage`](../../extract-webpage) npm packages, as one Cloudflare
 Worker. [Fumadocs](https://fumadocs.dev) on Next.js App Router source, built by
-[vinext](https://vinext.dev) (Vite). Same layout as
-[`packages/extract-youtube/site`](../../extract-youtube/site).
+[vinext](https://vinext.dev) (Vite).
 
 | Path | What |
 | --- | --- |
@@ -44,7 +43,7 @@ bun run typecheck   # generate .source + route types, then tsc --noEmit
 | `app/(home)/demo` + `components/demo/` | The demo page. Client-only (`DemoMount`), styled by `demo.css`, which is scoped to `.epd-demo`. |
 | `worker/index.ts` | The Worker entry: `/api/*` from `worker/api.ts`, everything else to vinext. Hand-written; keep it. |
 | `worker/api.ts` | The demo's API. |
-| `aliases.ts` | Points `extract-pdf`, `extract-webpage` and `extract-youtube` at their source, and stubs extract-pdf's Node-only engines with `worker/unsupported.ts`. |
+| `aliases.ts` | Points `extract-pdf`, `extract-webpage` and `extract-cite` at their source, stubs `extract-youtube` with `worker/no-youtube.ts` (YouTube URLs are not supported), and stubs extract-pdf's Node-only engines with `worker/unsupported.ts`. |
 
 ## Variables and secrets
 

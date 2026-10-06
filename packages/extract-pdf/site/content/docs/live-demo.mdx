@@ -118,7 +118,7 @@ cd packages/extract-pdf/site
 bun run dev                      # the docs, /demo and its /api/*, on one port
 ```
 
-The site imports `extract-pdf`, `extract-webpage`, `extract-cite` and `extract-youtube` from their source through Vite aliases, so there is no package build first. Under `bun run dev` the API runs in Node, and its variables come from the shell, for example `DOCLING_PROCESSOR_URL=http://127.0.0.1:7860 DOCLING_API_TOKEN=local-test-token bun run dev`. `bun run preview` runs the built Worker in workerd.
+The site imports `extract-pdf`, `extract-webpage` and `extract-cite` from their source through Vite aliases, so there is no package build first. Under `bun run dev` the API runs in Node, and its variables come from the shell, for example `DOCLING_PROCESSOR_URL=http://127.0.0.1:7860 DOCLING_API_TOKEN=local-test-token bun run dev`. `bun run preview` runs the built Worker in workerd.
 
 ## Deploy your own
 
