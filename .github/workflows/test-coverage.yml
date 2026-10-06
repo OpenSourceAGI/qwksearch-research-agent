@@ -23,6 +23,7 @@ jobs:
           - { flag: qwksearch-desktop, dir: apps/qwksearch-desktop }
           - { flag: qwksearch-browser-ext, dir: apps/qwksearch-browser-ext }
           - { flag: qwksearch-web, dir: apps/qwksearch-web }
+          - { flag: ads-in-chat-answers, dir: packages/ads-in-chat-answers }
           - { flag: chat-agent-toolkit, dir: packages/chat-agent-toolkit }
           - { flag: education-playlists, dir: packages/education-playlists }
           - { flag: extract-cite, dir: packages/extract-cite }

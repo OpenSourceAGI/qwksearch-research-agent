@@ -1,0 +1,55 @@
+{
+  "name": "ads-in-chat-answers",
+  "version": "0.1.0",
+  "description": "Sponsored placements for AI chat answers: a product-carousel ad under an answer, a sponsored follow-up question, a keyword auction that picks them, and an advertiser panel where an LLM suggests the keywords to buy",
+  "keywords": ["react", "ads", "advertising", "chat", "llm", "sponsored", "keywords", "auction", "component-library"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/ads-in-chat-answers"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./server": {
+      "types": "./dist/server/index.d.ts",
+      "import": "./dist/server/index.js",
+      "require": "./dist/server/index.cjs"
+    },
+    "./styles.css": "./dist/styles.css"
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": ["**/*.css"],
+  "peerDependencies": {
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.0.0",
+    "jsdom": "^30.0.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tsup": "^8.5.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  },
+  "scripts": {
+    "build": "tsup && tsc --project tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "demo:dev": "cd demo && bun install && bun run dev",
+    "demo:build": "cd demo && bun install && bun run build"
+  }
+}

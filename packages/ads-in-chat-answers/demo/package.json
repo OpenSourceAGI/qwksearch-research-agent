@@ -1,0 +1,21 @@
+{
+  "name": "ads-in-chat-answers-demo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Live demo of ads-in-chat-answers: a chat UI with sponsored answer carousels and follow-up questions, and the advertiser panel. Deploys to Vercel.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/vercel-output.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "esbuild": "^0.28.2",
+    "vite": "^8.3.3"
+  }
+}
