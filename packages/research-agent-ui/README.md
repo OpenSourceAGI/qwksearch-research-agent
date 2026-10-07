@@ -330,7 +330,7 @@ The flow, from your server's side:
 4. `GET /api/connect/me` with the key as `X-API-Key` refreshes the profile and
    plan later — e.g. after the user follows `upgrade_url` to upgrade.
 
-`redirect_uri` must be on QwkSearch's allowlist (debate-ai.com and localhost
+`redirect_uri` must be on QwkSearch's allowlist (debate-ai.com, ebate.app and localhost
 by default; more via the `QWKSEARCH_CONNECT_ORIGINS` env var on qwksearch-web).
 
 ## Configuration

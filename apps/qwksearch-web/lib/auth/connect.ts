@@ -33,12 +33,16 @@ export const CONNECT_CODE_TTL_SECONDS = 120;
 export const DEFAULT_CONNECT_ORIGINS = [
   "https://debate-ai.com",
   "https://*.debate-ai.com",
+  // Debate AI's short-domain rebrand; it serves the same app.
+  "https://ebate.app",
+  "https://*.ebate.app",
   "http://localhost:*",
 ];
 
 /** Display names for known partners, keyed by registrable host. */
 const KNOWN_CLIENTS: Record<string, string> = {
   "debate-ai.com": "Debate AI",
+  "ebate.app": "Debate AI",
 };
 
 export interface ConnectClient {
