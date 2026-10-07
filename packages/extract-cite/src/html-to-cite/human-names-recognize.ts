@@ -1,8 +1,9 @@
 /**
  * @fileoverview Advanced human name recognition and normalization utility.
- * Distinguishes between person names and organizations using a 92k-entry name database.
+ * Distinguishes between person names and organizations using word heuristics,
+ * plus the 92k-entry name database when one is loaded (see human-names-db.ts).
  */
-import dataHumanNames from "./human-names-92k.json";
+import { getHumanNamesDB } from "./human-names-db";
 
 // Common organization terms for detection - extended list from provided code
 const TERMS_ORG =
@@ -381,13 +382,17 @@ function isOrganization(nameString) {
     return true;
   }
 
-  // Check if the name contains any human name parts according to our database
+  // Check if the name contains any human name parts according to our database.
+  // The slim build has no database loaded, so this check is skipped there.
+  // Database keys are lowercase, and so is every word here.
+  const dataHumanNames = getHumanNamesDB();
   let hasHumanNamePart = false;
-  for (const word of words) {
-    const nameTitle = word[0]?.toUpperCase() + word.slice(1)?.toLowerCase();
-    if (dataHumanNames[nameTitle] === 1 || dataHumanNames[nameTitle] === 2) {
-      hasHumanNamePart = true;
-      break;
+  if (dataHumanNames) {
+    for (const word of words) {
+      if (dataHumanNames[word] === 1 || dataHumanNames[word] === 2) {
+        hasHumanNamePart = true;
+        break;
+      }
     }
   }
 

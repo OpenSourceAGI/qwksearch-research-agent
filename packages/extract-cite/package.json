@@ -18,6 +18,11 @@
       "import": "./dist/extract-cite.es.js",
       "require": "./dist/extract-cite.cjs.js"
     },
+    "./full": {
+      "types": "./dist/full.d.ts",
+      "import": "./dist/extract-cite-full.es.js",
+      "require": "./dist/extract-cite-full.cjs.js"
+    },
     "./*": {
       "types": "./src/*.ts",
       "import": "./src/*",

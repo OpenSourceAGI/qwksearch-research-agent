@@ -16,6 +16,7 @@ export default defineConfig({
     lib: {
       entry: {
         "extract-cite": resolve(__dirname, "src/index.ts"),
+        "extract-cite-full": resolve(__dirname, "src/full.ts"),
       },
       formats: ["es", "cjs"],
       fileName: (format, entryName) => `${entryName}.${format}.js`,
@@ -25,8 +26,10 @@ export default defineConfig({
       // being bundled. Bundling deps dragged in Node-only modules (fs, etc.)
       // that then needed browser polyfills and a missing fs-mock alias.
       external: (id) => !id.startsWith(".") && !id.startsWith("/") && !id.startsWith("\0"),
+      // Two entries (slim and /full) share one chunk, so both see the same
+      // human-names database once either registers or lazy-loads it.
       output: {
-        codeSplitting: false,
+        chunkFileNames: "extract-cite-[name].[format].js",
       },
     },
     minify: "terser",

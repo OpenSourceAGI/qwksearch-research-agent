@@ -37,6 +37,7 @@ export default defineConfig({
       'apps/qwksearch-desktop',
       'apps/qwksearch-browser-ext',
       'apps/qwksearch-web',
+      'packages/ads-in-chat-answers',
       'packages/chat-agent-toolkit',
       'packages/education-playlists',
       'packages/extract-cite',
