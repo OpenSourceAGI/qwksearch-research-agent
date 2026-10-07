@@ -117,6 +117,7 @@ function FloatingPlayerWidget({
   const {
     isSupported: isPipSupported,
     isActive: isPipActive,
+    pipWindow,
     toggle: togglePip,
     exit: exitPip,
   } = useDocumentPictureInPicture(videoWrapperRef);
@@ -245,7 +246,8 @@ function FloatingPlayerWidget({
     playStartedAtRef.current = null;
   }, [videoId, startTime]);
 
-  // Listen for the embed's state, error and playback-time messages.
+  // Listen for the embed's state, error and playback-time messages. While
+  // popped out the embed's parent is the PiP window, so listen there too.
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.origin !== 'https://www.youtube.com') return;
@@ -306,8 +308,12 @@ function FloatingPlayerWidget({
     };
 
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [persistState, subtitlesOpen, playbackRate]);
+    pipWindow?.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      pipWindow?.removeEventListener('message', handleMessage);
+    };
+  }, [persistState, subtitlesOpen, playbackRate, pipWindow]);
 
   // Re-send the "listening" handshake for a few seconds after every embed load.
   // `onLoad` alone isn't enough: React's delegated events stop reaching the

@@ -1,7 +1,8 @@
 /**
  * @fileoverview Hook that pops a DOM node into a floating always-on-top
  * window via the Document Picture-in-Picture API. The node is physically
- * moved (not cloned), so a live iframe keeps playing without reloading.
+ * moved (not cloned). An iframe inside it still reloads on the move, as
+ * browsers reload any iframe that changes documents.
  */
 
 'use client';
@@ -41,9 +42,35 @@ function copyStyles(pipWindow: Window): void {
   });
 }
 
+/**
+ * Give the PiP document this page's URL, so iframes moved into it are
+ * requested with a `Referer` again.
+ *
+ * The PiP window opens on `about:blank`, and a request made from an
+ * `about:blank` document carries no referrer at all, whatever the iframe's
+ * `referrerpolicy` says. YouTube answers an embed with no referrer with
+ * error 153 ("Video player configuration error"); the `origin` and
+ * `widget_referrer` embed parameters do not stand in for the header.
+ * `document.open()` called from this page sets the PiP document's URL to this
+ * page's (HTML's "document open steps"), which restores the referrer. It runs
+ * before anything is added to the window, since it clears the document.
+ */
+function adoptOpenerUrl(pipWindow: Window): void {
+  try {
+    const doc = pipWindow.document;
+    doc.open();
+    doc.write('<!doctype html><html><head></head><body></body></html>');
+    doc.close();
+  } catch {
+    // Keep the blank document; the embed may then report error 153.
+  }
+}
+
 export function useDocumentPictureInPicture(nodeRef: RefObject<HTMLElement | null>) {
   const [isSupported, setIsSupported] = useState(false);
   const [isActive, setIsActive] = useState(false);
+  // The open PiP window, so callers can listen to what its iframes post.
+  const [pipWindow, setPipWindow] = useState<Window | null>(null);
   // Comment node left behind in the original spot, so the moved node can be
   // put back exactly where it came from.
   const anchorRef = useRef<Comment | null>(null);
@@ -61,6 +88,7 @@ export function useDocumentPictureInPicture(nodeRef: RefObject<HTMLElement | nul
     }
     anchorRef.current = null;
     setIsActive(false);
+    setPipWindow(null);
   }, [nodeRef]);
 
   const exit = useCallback(() => {
@@ -85,12 +113,14 @@ export function useDocumentPictureInPicture(nodeRef: RefObject<HTMLElement | nul
     anchorRef.current = anchor;
 
     const pipWindow = await docPip.requestWindow({ width: 480, height: 270 });
+    adoptOpenerUrl(pipWindow);
     copyStyles(pipWindow);
     pipWindow.document.body.style.margin = '0';
     pipWindow.document.body.style.background = '#000';
     pipWindow.document.body.style.overflow = 'hidden';
     pipWindow.document.body.appendChild(node);
     setIsActive(true);
+    setPipWindow(pipWindow);
 
     pipWindow.addEventListener('pagehide', restoreNode, { once: true });
   }, [nodeRef, exit, restoreNode]);
@@ -98,5 +128,5 @@ export function useDocumentPictureInPicture(nodeRef: RefObject<HTMLElement | nul
   // Put the node back if the player unmounts while still popped out.
   useEffect(() => () => exit(), [exit]);
 
-  return { isSupported, isActive, toggle, exit };
+  return { isSupported, isActive, pipWindow, toggle, exit };
 }

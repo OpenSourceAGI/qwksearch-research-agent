@@ -2,13 +2,16 @@
  * @fileoverview Builds YouTube embed URLs for the floating player, and talks
  * to a live embed over `postMessage`.
  *
- * With `enablejsapi=1` YouTube verifies who is embedding the player and
- * answers "Video player configuration error" (error 153) when it cannot tell.
- * The document Picture-in-Picture window is the common way to hit that: moving
- * the iframe into the PiP document reloads it from an `about:blank` document,
- * so no usable referrer reaches YouTube. Passing `origin` (and
- * `widget_referrer`) states the embedding page explicitly, which is what the
- * IFrame API docs require whenever the JS API is enabled.
+ * YouTube identifies the embedding site by the HTTP `Referer` of the embed
+ * request and answers "Video player configuration error" (error 153) when
+ * there is none. The iframe sets `referrerpolicy="strict-origin-when-cross-origin"`
+ * so a page-wide `no-referrer` policy cannot strip it. The document
+ * Picture-in-Picture window is the other way to lose it: moving the iframe
+ * into the PiP document reloads it from `about:blank`, which sends no
+ * referrer — `useDocumentPictureInPicture` gives that document the page's URL
+ * first. `origin` (and `widget_referrer`) are still passed, because the IFrame
+ * API docs require `origin` whenever the JS API is enabled, but neither
+ * replaces the header.
  */
 
 /** The YouTube origin every embed message is scoped to. */
