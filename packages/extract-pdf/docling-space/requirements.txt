@@ -1,0 +1,7 @@
+gradio>=5.0.0
+torch>=2.3.0
+transformers>=4.45.0
+accelerate>=0.33.0
+pillow>=10.0.0
+requests>=2.31.0
+safetensors>=0.4.0

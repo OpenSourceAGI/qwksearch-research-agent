@@ -3,95 +3,99 @@ title: Extract PDF Docling Processor
 emoji: 📄
 colorFrom: blue
 colorTo: indigo
-sdk: docker
-app_port: 7860
+sdk: gradio
+sdk_version: "5.0.0"
+python_version: "3.11"
+app_file: app.py
 pinned: false
 ---
 
-# extract-pdf Docling processor
+# extract-pdf Docling processor (Gradio)
 
-Remote [Granite Docling](https://huggingface.co/onnx-community/granite-docling-258M-ONNX) OCR for [`extract-pdf`](https://www.npmjs.com/package/extract-pdf), packaged as a Hugging Face Docker Space.
+Remote [Granite Docling](https://huggingface.co/ibm-granite/granite-docling-258M) OCR for [`extract-pdf`](https://www.npmjs.com/package/extract-pdf), packaged as a Hugging Face **Gradio** Space with ZeroGPU support.
 
-It takes **one already-rasterized page image** and returns the model's doctags, or sanitized HTML. It never sees a whole PDF. Parsing, deciding which pages need OCR (`scanPagesForOCR`) and rasterizing them stay with the caller, so one long document can't monopolize a small CPU Space.
+It takes **one already-rasterized page image** and returns the model's doctags, or sanitized HTML. It never sees a whole PDF. Parsing, deciding which pages need OCR (`scanPagesForOCR`) and rasterizing them stay with the caller, so one long document can't monopolize a small Space.
 
 This folder lives in the `extract-pdf` package so it is versioned with the client that calls it. Only this folder is pushed to the Space.
 
 ## API
 
-Three routes. Everything else is a 404.
+The Gradio app provides both a web UI and HTTP API endpoints:
 
-| Route | Auth | What it does |
+| Endpoint | Method | Description |
 | --- | --- | --- |
-| `GET /health` | none | `{ status, modelLoaded, loading, busy, queueDepth, uptime, limits }`. Answers immediately. |
-| `GET` or `POST /api/v1/warmup` | none | Starts loading the model and answers at once: `202 { modelLoaded: false, loading: true }` while it loads, `200 { modelLoaded: true }` once it is ready. |
-| `POST /api/v1/convert` | token | One page image in, doctags or HTML out. |
-
-`/api/v1/convert-base64` is the same handler under the path `extract-pdf`'s `processorUrl` client calls.
-
-**Warmup is on by default.** The Space starts loading the model as soon as it boots (`DOCLING_WARMUP_ON_START=false` turns that off), and the demo page calls warmup when it opens, so a Space that was asleep is loading while the visitor picks a file. Warmup needs no token because it takes no input and does nothing once the model is loaded. A failed load is reported as `loadError` and retried by the next warmup or conversion.
+| `/health` | GET | Health check with model status |
+| `/api/v1/warmup` | GET/POST | Start model loading |
+| `/api/v1/convert` | POST | Convert image to doctags/HTML |
 
 ### Convert
 
-Send the image itself as the body, with options in the query string:
-
+**Raw image body** (for `extract-pdf` client compatibility):
 ```sh
-curl -X POST "$SPACE/api/v1/convert?output=html" \
+curl -X POST "$SPACE/api/v1/convert?output=html&prompt=Convert+this+page+to+docling.&maxTokens=1500" \
   -H "X-Docling-Token: $DOCLING_API_TOKEN" \
   -H "Content-Type: image/png" --data-binary @page-3.png
 ```
 
-Or send JSON:
+**JSON**:
+```sh
+curl -X POST "$SPACE/api/v1/convert" \
+  -H "X-Docling-Token: $DOCLING_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"imageUrl": "https://example.com/page.png", "prompt": "Convert this page to docling.", "maxTokens": 1500, "output": "doctags"}'
+```
 
 | Field | Default | Notes |
 | --- | --- | --- |
-| `imageBase64` | | Base64 image, with or without a `data:` prefix. |
-| `imageUrl` | | An `http(s)` URL the Space downloads, such as a short-lived signed R2 URL. One of the two is required. |
+| `imageUrl` | | An `http(s)` URL the Space downloads. One of `imageUrl` or `imageBase64` required. |
+| `imageBase64` | | Base64 image, with or without `data:` prefix. |
 | `mimeType` | `image/png` | For `imageBase64`. |
-| `prompt` | `Convert this page to docling.` | Also a query parameter for a raw body. |
-| `maxTokens` | `1500` | Clamped to `DOCLING_MAX_TOKENS`. Also a query parameter. |
-| `output` | `doctags` | `doctags` keeps the contract `extract-pdf` expects (it converts to HTML itself). `html` returns sanitized HTML in `result`. Also a query parameter. |
+| `prompt` | `Convert this page to docling.` | Instruction for the model. |
+| `maxTokens` | `1500` | Clamped to `DOCLING_MAX_TOKENS` (default 4096). |
+| `output` | `doctags` | `doctags` or `html`. |
 
-Response: `{ success: true, output, result, doctags, html?, metadata: { processingTime, queueTime, queueDepth } }`. Errors are `{ success: false, error, code }` with 400 (bad input), 401 (token), 413 (too large), 500 (model) or 503 (`BUSY` with `Retry-After`, or `NOT_CONFIGURED`).
+Response: `{ success: true, output, result, doctags, html?, metadata }`. Errors: `{ success: false, error, code }` with 400, 401, 413, 500, 503.
 
-HTML output is `extract-pdf`'s own `doctagsToHtml`, passed through `sanitize-html` with a tag allowlist: model output and document content are both untrusted.
+HTML output is sanitized with a tag allowlist: model output and document content are both untrusted.
 
-### Images are not kept
+## ZeroGPU Configuration
 
-Each image is read into memory, decoded, run through the model and dropped when the request ends. Nothing is written to disk, cached or logged, and every response carries `Cache-Control: no-store`. The only files the Space writes are the model weights in `/data/.cache/huggingface`. The demo Worker in [`../site`](../site) forwards page images the same way and stores none of them either.
+This Space uses **ZeroGPU** for GPU acceleration. The model (`ibm-granite/granite-docling-258M`, ~258M params, ~1 GB) fits comfortably in ZeroGPU's 16 GB VRAM.
+
+In the Space settings, enable **ZeroGPU** and set the hardware to **ZeroGPU**. The app automatically uses CUDA when available.
 
 ## Configuration
 
-Set these under the Space's **Settings → Variables and secrets**. Spaces pass both to the container as environment variables.
+Set these under the Space's **Settings → Variables and secrets**:
 
 | Name | Kind | Default | Purpose |
 | --- | --- | --- | --- |
 | `DOCLING_API_TOKEN` | secret | | Required. Callers send it as `X-Docling-Token` (or `Authorization: Bearer`). Without it every model route answers 503. |
 | `DOCLING_MAX_TOKENS` | variable | `4096` | Upper bound on `maxTokens`. |
-| `DOCLING_MAX_QUEUE` | variable | `8` | Jobs running plus waiting before 503. |
 | `DOCLING_MAX_IMAGE_MB` | variable | `10` | Largest image. |
-| `DOCLING_WARMUP_ON_START` | variable | `true` | Load the model when the Space boots. `false` waits for the first warmup or conversion. |
 | `ALLOWED_ORIGIN` | variable | | Comma-separated origins allowed to call from a browser. Leave unset for server-to-server use. |
 
 `X-Docling-Token` is checked before `Authorization`, so on a **private** Space the caller can send a Hugging Face read token as `Authorization: Bearer hf_…` for Hugging Face's own access check and the service token alongside it.
 
 ## Deploy
 
-1. [Create a Space](https://huggingface.co/new-space) named `extract-pdf-docling`, SDK **Docker**, hardware **CPU Basic** to start. Make it private if users upload their own documents.
+1. [Create a Space](https://huggingface.co/new-space) named `extract-pdf-docling`, SDK **Gradio**, hardware **ZeroGPU**. Make it private if users upload their own documents.
 2. Add the `DOCLING_API_TOKEN` secret (`openssl rand -hex 32`).
-3. Optionally attach persistent storage so the model cache in `/data` survives restarts.
-4. Push this folder to the Space:
-
-   ```sh
-   git clone https://huggingface.co/spaces/YOUR_HF_USERNAME/extract-pdf-docling
-   cp -r packages/extract-pdf/docling-space/. extract-pdf-docling/
-   cd extract-pdf-docling
-   git add . && git commit -m "Deploy Granite Docling processor" && git push
-   ```
-
-The Space builds the image, logs `Docling processor listening on port 7860` and starts loading the model. Check on it with:
+3. Push this folder to the Space:
 
 ```sh
-curl https://YOUR_HF_USERNAME-extract-pdf-docling.hf.space/api/v1/warmup \
+git clone https://huggingface.co/spaces/YOUR_HF_USERNAME/extract-pdf-docling
+cp -r packages/extract-pdf/docling-space/. extract-pdf-docling/
+cd extract-pdf-docling
+git add . && git commit -m "Deploy Granite Docling processor (Gradio)" && git push
+```
+
+The Space installs dependencies from `requirements.txt`, downloads the model (~1 GB), and starts the Gradio server on port 7860.
+
+Check on it with:
+```sh
+curl https://YOUR_HF_USERNAME-extract-pdf-docling.hf.space/health
+curl -X POST https://YOUR_HF_USERNAME-extract-pdf-docling.hf.space/api/v1/warmup \
   -H "Authorization: Bearer $HF_TOKEN"     # private Space only
 ```
 
@@ -121,57 +125,50 @@ The live demo in [`../site`](../site) uses it as a follow-up step: it returns te
 
 ```sh
 cd packages/extract-pdf/docling-space
-ONNXRUNTIME_NODE_INSTALL=skip npm install
-DOCLING_API_TOKEN=local-test-token PORT=7860 npm start
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+DOCLING_API_TOKEN=local-test-token python app.py
+```
 
+Then open http://localhost:7860 or test the API:
+```sh
 curl localhost:7860/health
 curl -X POST "localhost:7860/api/v1/convert?output=html" -H "Content-Type: image/png" \
   -H "X-Docling-Token: local-test-token" --data-binary @page-3.png
 ```
 
-Or build the image exactly as the Space does:
-
-```sh
-docker build -t extract-pdf-docling-space .
-docker run --rm -p 7860:7860 -e DOCLING_API_TOKEN=local-test-token extract-pdf-docling-space
-```
-
-Without `NODE_ENV=production` and without a token, the model routes are open, which is only meant for local development. The image sets `NODE_ENV=production`, so a Space without the secret fails closed.
+Without `DOCLING_API_TOKEN` set, the model routes are open (development only).
 
 ## Limits
-
-What the Space enforces, per instance:
 
 | Limit | Default | Set by | When it is hit |
 | --- | --- | --- | --- |
 | Image size | 10 MB | `DOCLING_MAX_IMAGE_MB` | 413 `TOO_LARGE` |
 | Pages per request | 1 | the API shape | the caller loops over pages |
-| Generations at once | 1 | fixed | later requests wait in the queue |
-| Queue (running plus waiting) | 8 | `DOCLING_MAX_QUEUE` | 503 `BUSY`, `Retry-After: 30` |
-| Output tokens per page | 1500 default, 4096 cap | `maxTokens`, `DOCLING_MAX_TOKENS` | the page's output is cut off |
+| Output tokens per page | 1500 default, 4096 cap | `maxTokens`, `DOCLING_MAX_TOKENS` | output is cut off |
 | Prompt | 4000 characters | fixed | 400 |
 | `imageUrl` download | 15 s | fixed | 400 `IMAGE_LOAD_ERROR` |
 
-What the hardware and Hugging Face add (inferred from the platform's published terms and the model's size, not measured here):
-
-- **CPU Basic is 2 vCPUs and 16 GB.** The model is about 1 GB and fits, but expect tens of seconds or more per page. With one generation at a time and a queue of 8, the last request in a full queue waits for the seven ahead of it, so callers need long timeouts. Measure, then move to a larger CPU or a GPU tier (remove `ONNXRUNTIME_NODE_INSTALL=skip` from the `Dockerfile` for GPU).
-- **A free Space sleeps after 48 hours without traffic.** The next request wakes it; booting and reloading the model takes minutes, plus a fresh ~1 GB download unless persistent storage is attached at `/data`. Warmup exists for exactly this.
-- **There is no per-caller rate limit.** Conversions need the token, so the only caller is whoever holds it: in this repo, the demo Worker. The Worker caps each document at `DOCLING_MAX_PAGES` (10) pages and 8 MB per image, but anyone who can open the demo can spend the Space's time.
-
-Do the limits make sense? The queue cap and the image cap do: without them one busy client piles up work the Space can never finish and requests time out anyway, so a fast 503 the caller can retry is better. One page per request keeps any one document from holding the model for minutes. The missing piece is a per-visitor limit on the demo Worker's `/api/enhance` (Cloudflare's Rate Limiting binding would do), which only matters once the demo gets real traffic. Warmup needs no limit: it does nothing once the model is loaded.
-
-Prefer `imageUrl` or a raw image body over `imageBase64` in production: base64 inflates the body by a third. Give a signed URL enough lifetime to cover the queue wait.
+ZeroGPU adds:
+- **16 GB VRAM** — the model (~1 GB) fits with room for batch processing.
+- **Automatic sleep** — Space sleeps after inactivity; model reloads on next request (warmup helps).
+- **No per-caller rate limit** — only the token holder can call.
 
 ## Files
 
 ```
 docling-space/
 ├── README.md               # this file; the front matter configures the Space
-├── Dockerfile
-├── package.json            # + package-lock.json, used by `npm ci` in the image
-└── server/
-    ├── server.js           # binds 0.0.0.0:$PORT
-    ├── app.js              # routes, auth, queue, validation
-    ├── model.js            # copy of ../server/model.js (a test keeps them identical)
-    └── doctags-to-html.js  # extract-pdf's doctagsToHtml + sanitize-html
+├── app.py                  # Gradio app with HTTP API endpoints
+├── requirements.txt        # Python dependencies
+├── Dockerfile              # (legacy) Docker Space config
+├── package.json            # (legacy) Node.js dependencies
+└── server/                 # (legacy) Node.js server implementation
+    ├── server.js
+    ├── app.js
+    ├── model.js
+    └── doctags-to-html.js
 ```
+
+The Gradio app (`app.py`) is the primary entry point. The `server/` folder contains the original Node.js implementation for reference.
