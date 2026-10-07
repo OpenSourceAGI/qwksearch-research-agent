@@ -571,6 +571,71 @@ Full guides: [video grid and list](./site/content/docs/react/video-grid.mdx),
 [custom fields](./site/content/docs/admin/custom-fields.mdx) and
 [admin components](./site/content/docs/admin/admin-components.mdx).
 
+## Media Download: Audio, Video, Subtitles (`extract-youtube/download`)
+
+For what captions can't give you — a video with **no transcript at all** — the
+`extract-youtube/download` entry downloads the media itself, built on
+[`cloud-ytdl`](https://github.com/cloudkuimages/cloud-ytdl) (YouTube's Android
+InnerTube client, with signature/cipher decoding handled internally). Pull the
+audio, then hand it to a speech-to-text model.
+
+It is **Node-only** (undici streams, and `ffmpeg` for MP3), so it is its own
+entry point and `cloud-ytdl` is an *optional* peer — a transcript-only install
+never pulls it in, and the other entries stay Worker-safe.
+
+```bash
+npm install extract-youtube cloud-ytdl   # plus ffmpeg on PATH for MP3
+```
+
+```ts
+import { createMediaExtractor } from 'extract-youtube/download';
+import { createWriteStream } from 'node:fs';
+
+const media = createMediaExtractor({ cookies: process.env.YOUTUBE_COOKIES });
+
+const info = await media.getInfo('dQw4w9WgXcQ');   // title, length, every stream, caption languages
+const audio = await media.downloadAudio('dQw4w9WgXcQ', {
+  container: 'mp3',     // or 'm4a' / 'webm' — YouTube's own stream, untouched, no ffmpeg
+  bitrateKbps: 48,      // speech needs no more; ~21 MB an hour
+  mono: true,
+  sampleRate: 16000,
+});
+audio.stream.pipe(createWriteStream(audio.filename));
+
+await media.downloadVideo(id, { quality: 'highest' });   // or 'highestvideo', or an itag
+await media.getSubtitles(id, { lang: 'en', format: 'srt' });
+await media.getPlaylist('https://www.youtube.com/playlist?list=PL…');
+await media.getPost('https://www.youtube.com/post/Ugkx…');
+```
+
+### Run it as a cloud service
+
+A Cloudflare Worker can't run `cloud-ytdl` or ffmpeg, so deploy the media API on
+any Node host and call it over HTTP. `createMediaHandler` is a fetch-style
+`(Request) => Response`; `serveMediaApi` wraps it in `node:http`:
+
+```bash
+MEDIA_API_KEY=… YOUTUBE_COOKIES=… npx extract-youtube serve-media --port 8787
+curl -H "Authorization: Bearer $MEDIA_API_KEY" \
+  "http://localhost:8787/audio?v=dQw4w9WgXcQ&format=mp3&bitrate=48&mono=1&rate=16000" -o round.mp3
+```
+
+| Route | Query | Answers |
+| --- | --- | --- |
+| `GET …/info` | `v` | video info and stream list (JSON) |
+| `GET …/audio` | `v`, `format` (`mp3`/`m4a`/`webm`), `bitrate`, `mono`, `rate` | the audio file |
+| `GET …/video` | `v`, `quality` | the video file |
+| `GET …/subtitles` | `v`, `lang`, `format` (`srt`/`xml`) | the captions |
+| `GET …/playlist` | `url` | playlist JSON |
+| `GET …/post` | `url` | community post JSON |
+
+Routes match on the last path segment, so the handler mounts under any prefix.
+Always set `MEDIA_API_KEY` (or `apiKey`) on a public host — an open download
+proxy is bandwidth anyone can spend. Treat cookie strings as passwords. Use it
+within YouTube's Terms of Service.
+
+From the CLI: `extract-youtube audio <id> [--format mp3|m4a|webm] [--bitrate 64] [--mono] [-o file]`.
+
 ## Live Demo and Storybook
 
 **Docs: [youtube.js.org](https://youtube.js.org)** · Live demo: [youtube.js.org/demo](https://youtube.js.org/demo) · Storybook: [youtube.js.org/storybook](https://youtube.js.org/storybook/)

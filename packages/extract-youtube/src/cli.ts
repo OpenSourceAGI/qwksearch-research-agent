@@ -112,6 +112,11 @@ EXAMPLES:
 
   # Extract speech speed encoding with joined text and timestamps
   extract-youtube jNQXAC9IVRw -f speeds
+
+MEDIA (needs the optional peer: npm install cloud-ytdl; MP3 also needs ffmpeg):
+  extract-youtube audio <video-id> [--format mp3|m4a|webm] [--bitrate 64] [--mono] [-o file]
+  extract-youtube serve-media [--port 8787]   # HTTP API; set MEDIA_API_KEY to require a key
+  Cookies for restricted videos: YOUTUBE_COOKIES env var. Proxy: --proxy <url>.
 `);
 }
 
@@ -120,7 +125,43 @@ function showVersion() {
   console.log(`extract-youtube v${pkg.version}`);
 }
 
+/** `audio` and `serve-media`: the cloud-ytdl backed `extract-youtube/download` entry. */
+async function runMediaCommand(command: string, args: string[]) {
+  const { createMediaExtractor, serveMediaApi } = await import('./download');
+  const flag = (name: string) => {
+    const i = args.indexOf(name);
+    return i >= 0 ? args[i + 1] : undefined;
+  };
+  const shared = { cookies: process.env.YOUTUBE_COOKIES, proxy: flag('--proxy') };
+
+  if (command === 'serve-media') {
+    const port = Number(flag('--port') ?? process.env.PORT ?? 8787);
+    await serveMediaApi({ ...shared, port, apiKey: process.env.MEDIA_API_KEY });
+    console.error(`extract-youtube media API listening on :${port}${process.env.MEDIA_API_KEY ? '' : ' (no MEDIA_API_KEY: open to anyone)'}`);
+    return;
+  }
+
+  const videoId = args.find((a, i) => !a.startsWith('-') && !args[i - 1]?.startsWith('-'));
+  if (!videoId) throw new Error('Usage: extract-youtube audio <video-id> [--format mp3|m4a|webm] [-o file]');
+  const download = await createMediaExtractor(shared).downloadAudio(videoId, {
+    container: (flag('--format') ?? 'mp3') as 'mp3' | 'm4a' | 'webm',
+    bitrateKbps: flag('--bitrate') ? Number(flag('--bitrate')) : undefined,
+    mono: args.includes('--mono'),
+  });
+  const file = flag('-o') ?? flag('--output') ?? download.filename;
+  const fs = await import('node:fs');
+  const { pipeline } = await import('node:stream/promises');
+  await pipeline(download.stream, fs.createWriteStream(file));
+  console.error(`Saved ${download.info.title} to ${file}`);
+}
+
 async function main() {
+  const [command, ...rest] = process.argv.slice(2);
+  if (command === 'audio' || command === 'serve-media') {
+    await runMediaCommand(command, rest);
+    return;
+  }
+
   const options = parseArgs();
 
   if (options.help) {
@@ -203,4 +244,7 @@ async function main() {
   }
 }
 
-main();
+main().catch((error) => {
+  console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+});

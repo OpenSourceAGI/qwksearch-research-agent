@@ -18,7 +18,7 @@ runs on a Cloudflare Worker. Published; built.
 - Transcripts may be auto-generated, translated, absent, or region-blocked.
   "No transcript" is a normal outcome, not an error.
 
-## Three entry points, kept apart
+## Four entry points, kept apart
 
 - `extract-youtube` — transcripts. Never imports React.
 - `extract-youtube/library` — the video library and its admin API. **No React
@@ -26,6 +26,12 @@ runs on a Cloudflare Worker. Published; built.
   browser. Stores go through `VideoLibraryStore`; `applyLibraryQuery` is the
   reference listing semantics every store must match (the D1 store is tested
   against it over `node:sqlite`, which needs Node 22+).
+- `extract-youtube/download` — media download over the optional peer
+  `cloud-ytdl` (audio/MP3, video, subtitles, playlists, posts) and an HTTP API
+  to host it. **The one Node-only entry** — undici streams and an `ffmpeg`
+  child process — which is why it is separate and its peer is optional and
+  imported lazily. Never import it from the other entries, and never make
+  `cloud-ytdl` a hard dependency. Tests inject a fake `ytdl` and `spawn`.
 - `extract-youtube/react` — the player, transcript modal, grid, list and admin
   screens. Imports `library/` for types and helpers, never the transcript code.
 
