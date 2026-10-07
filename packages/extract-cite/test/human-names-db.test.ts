@@ -64,5 +64,7 @@ describe('human names database', () => {
     expect(db).not.toBeNull();
     expect(Object.keys(db!).length).toBeGreaterThan(90000);
     expect(extractHumanName('Mary Ann Smith').author_type).toBe(0);
-  });
+    // A cold import transforms the whole ~90k-name JSON, which overruns the
+    // 5s default on slower CI runners.
+  }, 30_000);
 });

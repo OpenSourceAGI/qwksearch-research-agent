@@ -23,7 +23,7 @@
     src="https://uptime.betterstack.com/status-badges/v1/monitor/2yp1l.svg"
     alt="Production uptime"
   ></a>
-     <a href="https://app.codecov.io/gh/OpenSourceAGI/qwksearch-research-agent"><img src="https://img.shields.io/badge/%EB%AA%A8%20lines-18k-yellow" /></a>
+     <a href="https://app.codecov.io/gh/OpenSourceAGI/qwksearch-research-agent"><img src="https://img.shields.io/badge/%EB%AA%A8%20lines-22k-yellow" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls?q=is%3Apr+is%3Aclosed"><img src="https://img.shields.io/github/issues-pr-closed/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs%20merged&color=8957e5" alt="Merged Pull Requests" /></a>
     <a href="https://discord.gg/SJdBqBz3tV"><img src="https://img.shields.io/discord/1110227955554209923.svg?label=Chat&logo=Discord&colorB=7289da&style=flat" alt="Join Discord" /></a>
     <br />
