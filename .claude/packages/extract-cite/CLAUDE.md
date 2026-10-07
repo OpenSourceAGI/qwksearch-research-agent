@@ -18,6 +18,9 @@ built — rebuild after editing, because `extract-webpage` consumes `dist`.
 - No dependency on `extract-webpage` (it depends on this). The LLM call is a
   plain `fetch` to an OpenAI-compatible endpoint, OpenRouter by default; keep
   it provider-neutral and keep `fetch` injectable so tests never hit a network.
+- **The default entry stays slim.** Never import `human-names-92k.json` outside
+  `src/full.ts`; everything else reads it through `getHumanNamesDB()` in
+  `human-names-db.ts` (set by `/full` or `loadHumanNamesDB()` from the CDN).
 - `extract-pdf/site/types/extract-cite.d.ts` is a hand copy of `src/llm/types.ts`
   for the site's strict `tsc`: update it with the types.
 

@@ -2,7 +2,7 @@
 
 Cite any webpage. Two passes:
 
-1. **`extractCite`**: reads author, date, title and source straight off the HTML (meta tags, bylines, JSON-LD, URL patterns, a 92k-name database that tells people from organizations). Instant, offline, partial.
+1. **`extractCite`**: reads author, date, title and source straight off the HTML (meta tags, bylines, JSON-LD, URL patterns, and optionally a 92k-name database that tells people from organizations). Instant, offline, partial.
 2. **`extractCiteLLM`**: one model call (OpenRouter by default) that is given the partial citation and the parts still missing, completes the full APA citation, **scores the confidence of every part**, **flags parts for review**, and reads **author qualifications** from the page's bio. Output in APA 7, MLA 9, Chicago, Harvard, IEEE and BibTeX. The same call **checks the content**: is the extracted text the full article or a paywall stub, and which header, nav, sidebar and footer blocks to cut for readability.
 
 ```bash
@@ -41,6 +41,21 @@ cite.contentCheck?.tips;                   // [{ region: "sidebar", selector: "a
 | `checkContent` | `true` | Run the content check in the same call. |
 | `contentWords` | `3000` | Words of content the check reads, from the start. |
 | `fetch` | global | Replaces `fetch` for both the page and the model call. |
+
+### Slim default vs. `extract-cite/full`
+
+The default entry is slim (~60 kB): it does **not** bundle the 92k human-names JSON (~1 MB), so person-vs-organization detection uses word heuristics only. To get the names database:
+
+```ts
+// Lazy-load it from the jsDelivr CDN (shared, cached; resolves null on failure)
+import { extractCite, loadHumanNamesDB } from "extract-cite";
+await loadHumanNamesDB(); // or { url, fetch } to self-host
+
+// Or bundle it: same API, names database registered on import
+import { extractCite } from "extract-cite/full";
+```
+
+`setHumanNamesDB(db)` registers a copy you already hold. Both entries share one database, so importing `extract-cite/full` once enables it for the slim import too.
 
 ### Content check
 

@@ -17,6 +17,7 @@ and re-exports `extractCite`, `convertURLToDomain`, `isURLValid`.
 | Full citation + confidence + review flags + author bios | `await extractCiteLLM({ url, apiKey, model })` |
 | Same, for a page you already hold | `extractCiteLLM({ html, url })` or `{ text }` |
 | Another provider | `baseUrl` — any OpenAI-compatible chat-completions API |
+| Person-vs-org detection with the 92k names DB | `await loadHumanNamesDB()` (lazy, from CDN) or import `extract-cite/full` (bundled) |
 | One style from existing data | `formatCitation(citation, "mla")` |
 | Is the extracted article complete, or a paywall stub? What to cut? | `extractCiteLLM({ html, url, content: article.html })` → `contentCheck` |
 
@@ -42,6 +43,7 @@ be valid and match an element on the page, or they are dropped.
 
 | Symptom | Cause |
 | --- | --- |
+| Three-word person name cited as an organization | Slim entry: no names DB loaded. `await loadHumanNamesDB()` (CDN) or import `extract-cite/full`. |
 | `extract-webpage` tests can't resolve `extract-cite` | It is consumed as built `dist`. `bun run build` in `packages/extract-cite` (CI does it). |
 | `401 No API key` | Neither `apiKey` nor `OPENROUTER_API_KEY` is set. |
 | NYT and other sites 403 | They block server fetches. Fetch the HTML elsewhere and pass `html`. |
