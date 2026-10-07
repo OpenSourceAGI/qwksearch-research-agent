@@ -116,6 +116,24 @@ Routes (under `basePath`): public `GET /videos`, `/videos/:id`, `/stacks?keys=`,
 `POST /autofill`, `GET|POST /resync`, `GET|POST /availability`, `POST /import`,
 `POST /stacks/recompute`, `GET /exclusions`, `DELETE /exclusions/:id`.
 
+## Download (`extract-youtube/download`)
+
+Node-only; needs the optional peer `cloud-ytdl` (and `ffmpeg` for MP3).
+
+- `createMediaExtractor({ ytdl?, cookies?, proxy?, ffmpegPath?, spawn? })` →
+  `getInfo(idOrUrl)` (`MediaInfo`: title, author, lengthSeconds, audio/video/progressive
+  formats sorted best-first, captionLanguages), `downloadAudio(idOrUrl, { container:
+  'mp3'|'m4a'|'webm', bitrateKbps, mono, sampleRate })`, `downloadVideo(idOrUrl, { quality })`
+  — both resolve a `MediaDownload` (`stream`, `mimeType`, `filename`, `contentLength`,
+  `format`, `info`) — plus `getSubtitles`, `getPlaylist`, `getPost`.
+- `pickAudioFormat(formats, container)`, `summarizeFormat`, `safeFilename`.
+- `MediaExtractionError` — `code` is `invalid` (400), `unavailable` (404),
+  `dependency` (501: no `cloud-ytdl` / no ffmpeg) or `failed` (502).
+- `createMediaHandler({ apiKey, ...extractorOptions })` — fetch-style handler for
+  `…/info`, `…/audio`, `…/video`, `…/subtitles`, `…/playlist`, `…/post`;
+  `serveMediaApi({ port })` serves it over `node:http`. CLI: `extract-youtube audio <id>`,
+  `extract-youtube serve-media` (`MEDIA_API_KEY`, `YOUTUBE_COOKIES`).
+
 ## CLI (`extract-youtube <video-id>`)
 
 | Flag | Meaning |

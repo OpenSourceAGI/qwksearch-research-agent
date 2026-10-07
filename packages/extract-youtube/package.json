@@ -1,7 +1,7 @@
 {
   "name": "extract-youtube",
   "version": "1.0.414",
-  "description": "Fast, no-browser serverless-optimized YouTube transcript extractor, with a video library admin API (D1 or in-memory) and React UI: a floating YouTube player, a synced-transcript modal, video grid/list components and library admin screens",
+  "description": "Fast, no-browser serverless-optimized YouTube transcript extractor, with optional cloud-ytdl audio/video download (MP3 via ffmpeg) and a media HTTP API, with a video library admin API (D1 or in-memory) and React UI: a floating YouTube player, a synced-transcript modal, video grid/list components and library admin screens",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -20,6 +20,11 @@
       "types": "./dist/library/index.d.ts",
       "import": "./dist/library/index.mjs",
       "require": "./dist/library/index.cjs"
+    },
+    "./download": {
+      "types": "./dist/download/index.d.ts",
+      "import": "./dist/download/index.mjs",
+      "require": "./dist/download/index.cjs"
     }
   },
   "//bin": "Spelled out as an object with a relative path. npm normalizes the string form itself and prints a notice for it on every publish.",
@@ -33,13 +38,14 @@
   ],
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
-    "build": "npm run clean && npm run build:lib && npm run build:cli && npm run build:react && npm run build:library && npm run build:types",
+    "build": "npm run clean && npm run build:lib && npm run build:cli && npm run build:react && npm run build:library && npm run build:download && npm run build:types",
     "build:types": "tsc --emitDeclarationOnly --declaration --declarationMap",
     "build:lib": "vite build",
     "build:cli": "BUILD_CLI=true vite build",
     "build:react": "BUILD_REACT=true vite build",
     "build:library": "BUILD_LIBRARY=true vite build",
-    "build:bundle": "npm run build:lib && npm run build:cli && npm run build:react && npm run build:library",
+    "build:download": "BUILD_DOWNLOAD=true vite build",
+    "build:bundle": "npm run build:lib && npm run build:cli && npm run build:react && npm run build:library && npm run build:download",
     "build:legacy": "tsc",
     "ship": "npm run build && npx standard-version --release-as patch; npm publish",
     "test": "jest",
@@ -77,6 +83,9 @@
     "video-grid",
     "admin",
     "cloudflare-d1",
+    "youtube-downloader",
+    "mp3",
+    "audio-extraction",
     "storybook"
   ],
   "author": "",
@@ -93,12 +102,17 @@
     "grab-url": "^1.6.22",
     "youtube-transcript-api": "^3.0.6"
   },
+  "//peerDependencies": "cloud-ytdl backs only the Node-only extract-youtube/download entry (audio/video download, MP3 via ffmpeg); optional so a transcript-only install stays dependency-light and Worker-safe.",
   "peerDependencies": {
+    "cloud-ytdl": ">=1.0.5-next",
     "react": ">=18",
     "react-dom": ">=18",
     "lucide-react": "^0.300.0 || ^1.0.0"
   },
   "peerDependenciesMeta": {
+    "cloud-ytdl": {
+      "optional": true
+    },
     "react": {
       "optional": true
     },
@@ -114,6 +128,7 @@
     "@types/node": "^26.5.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
+    "cloud-ytdl": "^1.0.5-next",
     "jest": "^30.5.1",
     "lucide-react": "^1.43.0",
     "react": "^19.2.8",

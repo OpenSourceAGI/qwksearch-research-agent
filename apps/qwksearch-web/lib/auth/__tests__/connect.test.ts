@@ -23,6 +23,7 @@ describe('resolveConnectClient', () => {
   it('accepts debate-ai.com and its subdomains, named "Debate AI"', () => {
     expect(resolveConnectClient(REDIRECT)).toEqual({ origin: 'https://debate-ai.com', name: 'Debate AI' })
     expect(resolveConnectClient('https://beta.debate-ai.com/cb')?.name).toBe('Debate AI')
+    expect(resolveConnectClient('https://ebate.app/api/qwksearch/callback')?.name).toBe('Debate AI')
   })
 
   it('accepts localhost on any port over http', () => {
