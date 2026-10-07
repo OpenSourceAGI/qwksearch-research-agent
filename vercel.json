@@ -1,0 +1,3 @@
+{
+  "buildCommand": "cd packages/extract-pdf/site && ./deploy-vercel.sh"
+}
