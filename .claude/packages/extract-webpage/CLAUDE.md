@@ -24,6 +24,8 @@ The entire job is parsing pages written by someone else:
 
 ## Rules
 
+- Citation extraction lives in `extract-cite` (`packages/extract-cite`); this package imports
+  it and re-exports `extractCite`. Fix citation bugs there.
 - Fan out to the specialized extractors rather than reimplementing them:
   `extract-pdf` for PDFs, `extract-youtube` for video, `domain-rank` for the
   source label and favicon, `render-url-to-html` / `html-renderer-api` for

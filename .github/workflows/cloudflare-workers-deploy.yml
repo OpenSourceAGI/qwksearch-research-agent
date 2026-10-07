@@ -12,6 +12,7 @@ on:
       - 'packages/extract-youtube/src/**'
       - 'packages/extract-pdf/src/**'
       - 'packages/extract-webpage/src/**'
+      - 'packages/extract-cite/src/**'
       - '.github/workflows/cloudflare-workers-deploy.yml'
 
   # Allows a manual deployment of one selected app.

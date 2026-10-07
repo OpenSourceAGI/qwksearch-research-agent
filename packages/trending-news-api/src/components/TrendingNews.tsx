@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTrendingNews } from '../hooks/useTrendingNews';
 import type { TrendingNewsOptions, TrendingTopic } from '../types';
 
@@ -141,10 +141,46 @@ const styles = {
   error: { color: '#dc2626', fontSize: 13, fontFamily: 'ui-monospace, monospace' } as React.CSSProperties,
 };
 
+/** The most recent thumbnail that actually loaded, shared by every card. */
+let lastGoodImage: string | undefined;
+
+/**
+ * A thumbnail that survives a broken image. Tries each candidate URL in turn;
+ * when they have all failed it goes back to the last image that loaded, and
+ * renders nothing if there has been none.
+ */
+function Thumb({ sources, style }: { sources: Array<string | undefined>; style: React.CSSProperties }) {
+  const key = sources.join('\u0000');
+  const [failed, setFailed] = useState(0);
+  useEffect(() => setFailed(0), [key]);
+
+  const candidates = sources.filter((s): s is string => Boolean(s));
+  const src =
+    failed < candidates.length ? candidates[failed] : failed === candidates.length ? lastGoodImage : undefined;
+  if (!src) return null;
+
+  return (
+    <img
+      src={src}
+      alt=""
+      style={style}
+      onLoad={() => {
+        lastGoodImage = src;
+      }}
+      onError={() => {
+        // Past the candidates the fallback is `lastGoodImage`; if that fails
+        // too, forget it and show nothing.
+        if (src === lastGoodImage) lastGoodImage = undefined;
+        setFailed(failed + 1);
+      }}
+    />
+  );
+}
+
 function ArticleLine({ article, showImage }: { article: TrendingTopic['articles'][number]; showImage?: boolean }) {
   return (
     <div style={{ ...styles.article, ...(showImage && article.imageUrl ? styles.fullTopicWithThumb : {}) }}>
-      {showImage && article.imageUrl && <img src={article.imageUrl} alt="" style={styles.articleThumb} />}
+      {showImage && article.imageUrl && <Thumb sources={[article.imageUrl]} style={styles.articleThumb} />}
       <div>
         {article.url ? (
           <a href={article.url} target="_blank" rel="noreferrer" style={styles.articleLink}>
@@ -253,7 +289,9 @@ export function TrendingNews(props: Props) {
           <div style={styles.topicRow}>
             {topics.map((topic) => {
               const lead = topic.articles[0];
-              const thumb = showImages ? lead?.imageUrl : undefined;
+              // Every headline's image, lead first: if the lead's fails the card
+              // moves on to the next, then to the last one that loaded.
+              const thumbs = showImages ? topic.articles.map((a) => a.imageUrl) : [];
               // A custom topic can come back with nothing — render it as a
               // plain card rather than an anchor with no href.
               const Card = lead?.url ? 'a' : 'div';
@@ -262,7 +300,7 @@ export function TrendingNews(props: Props) {
                 : {};
               return (
                 <Card key={topic.topic} {...linkProps} style={styles.topicCard}>
-                  {thumb && <img src={thumb} alt="" style={styles.topicThumb} />}
+                  {thumbs.length > 0 && <Thumb sources={thumbs} style={styles.topicThumb} />}
                   <div style={styles.topicCardBody}>
                     <div style={styles.topicName}>{topic.topic}</div>
                     {lead ? (

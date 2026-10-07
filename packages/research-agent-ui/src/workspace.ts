@@ -15,7 +15,10 @@ export {
   QwkSearchWorkspaceApp,
   type QwkSearchWorkspaceAppProps,
 } from './workspace/QwkSearchWorkspaceApp';
-export { ResearchWorkspaceView } from './workspace/ResearchWorkspaceView';
+export {
+  ResearchWorkspaceView,
+  type ResearchWorkspaceViewProps,
+} from './workspace/ResearchWorkspaceView';
 export { getPageTips, htmlToPlainText } from './workspace/page-tips';
 export { getTopicSearches } from './workspace/topic-searches';
 

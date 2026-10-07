@@ -67,6 +67,11 @@ the sources and the ranking be tested without mounting the app.
   editor stylesheets or KaTeX from `src/workspace/`; the editor brings its own.
   Panels, dialogs and heavy widgets that start closed should be `lazy()` and
   mounted the first time they open.
+- **The homepage background is cache-first.** `ChatHomepage` shows a piece out
+  of Cache Storage on mount and only downloads artwork after `load` + idle,
+  growing the cache one piece per rotation up to `MAX_CACHED_BACKGROUNDS`.
+  The `backgroundArtCache` localStorage key lists what is cached; both live in
+  `background-cache.ts`. Don't reintroduce a random network fetch on mount.
 - **`tsconfig.build.json` clears `paths` on purpose.** The dev config points
   `chat-agent-toolkit`, `search-web-api` and `extract-webpage` at their
   `src/*.ts`. Declaration emit runs with `rootDir: ./src`, so those sibling

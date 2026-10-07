@@ -132,6 +132,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tldts": "^7.4.12",
     "trending-news-api": "workspace:*",
+    "education-playlists": "workspace:*",
     "use-sync-external-store": "^1.6.0",
     "use-weather-forecast": "workspace:*",
     "user-help-docs": "workspace:*",

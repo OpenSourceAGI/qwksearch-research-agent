@@ -1,10 +1,11 @@
 /**
  * Module aliases for the site, shared by the Worker build and `vinext dev`.
  *
- * - `extract-pdf`, `extract-webpage` and `extract-youtube` (which
- *   extract-webpage uses for YouTube URLs) resolve to the packages' own
- *   TypeScript source, so the demo always runs the code in this repo with no
- *   package build first.
+ * - `extract-pdf`, `extract-webpage` and `extract-cite` (which extract-webpage
+ *   uses for citations) resolve to the packages' own TypeScript source, so the
+ *   demo always runs the code in this repo with no package build first.
+ * - `extract-youtube` is not part of this site: it resolves to
+ *   `worker/no-youtube.ts`, so YouTube URLs return an error.
  * - extract-pdf's optional engines that cannot run on Workers (LiteParse's
  *   native addon, Granite Docling through transformers.js, @napi-rs/canvas)
  *   resolve to `worker/unsupported.ts`, which throws when imported. Every one
@@ -19,9 +20,11 @@ const unsupported = here('./worker/unsupported.ts');
 
 export const aliases: Alias[] = [
   { find: /^extract-pdf$/, replacement: here('../src/pdf-to-html.ts') },
+  { find: /^extract-cite\/(.*)$/, replacement: `${here('../../extract-cite/src')}/$1` },
+  { find: /^extract-cite$/, replacement: here('../../extract-cite/src/index.ts') },
   { find: /^extract-webpage\/(.*)$/, replacement: `${here('../../extract-webpage/src')}/$1` },
   { find: /^extract-webpage$/, replacement: here('../../extract-webpage/src/index.ts') },
-  { find: /^extract-youtube$/, replacement: here('../../extract-youtube/src/index.ts') },
+  { find: /^extract-youtube$/, replacement: here('./worker/no-youtube.ts') },
   { find: /^@llamaindex\/liteparse(-wasm)?$/, replacement: unsupported },
   { find: /^@huggingface\/transformers$/, replacement: unsupported },
   { find: /^@napi-rs\/canvas$/, replacement: unsupported },

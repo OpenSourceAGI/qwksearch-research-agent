@@ -50,6 +50,12 @@
       "search-web-api/*": [
         "../../packages/search-web-api/src/*"
       ],
+      "education-playlists": [
+        "../../packages/education-playlists/src/index.ts"
+      ],
+      "education-playlists/*": [
+        "../../packages/education-playlists/src/*"
+      ],
       "trending-news-api": [
         "../../packages/trending-news-api/src/index.ts"
       ],

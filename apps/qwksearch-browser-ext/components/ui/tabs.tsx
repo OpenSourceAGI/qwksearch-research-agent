@@ -51,10 +51,12 @@ export function TabsList({ className, children }: { className?: string; children
 export function TabsTrigger({
   value,
   className,
+  title,
   children
 }: {
   value: string
   className?: string
+  title?: string
   children: React.ReactNode
 }) {
   const ctx = useContext(TabsContext)
@@ -62,6 +64,9 @@ export function TabsTrigger({
 
   return (
     <button
+      type="button"
+      title={title}
+      aria-pressed={isActive}
       className={cn(
         "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         isActive && "bg-background text-foreground shadow-sm",

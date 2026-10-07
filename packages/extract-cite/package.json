@@ -1,0 +1,61 @@
+{
+  "name": "extract-cite",
+  "version": "1.0.0",
+  "module": "./dist/extract-cite.es.js",
+  "description": "Cite any webpage: regex/metadata extraction of author, date, title and source, plus an optional LLM pass (OpenRouter by default) that completes the APA parts, scores confidence per field, flags fields for review, extracts author qualifications, and formats APA, MLA, Chicago, Harvard, IEEE and BibTeX.",
+  "author": "vtempest <grokthiscontact@gmail.com>",
+  "license": "rights.institute/PROSPER",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/extract-cite"
+  },
+  "main": "./dist/extract-cite.cjs.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/extract-cite.es.js",
+      "require": "./dist/extract-cite.cjs.js"
+    },
+    "./*": {
+      "types": "./src/*.ts",
+      "import": "./src/*",
+      "require": "./src/*"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.0",
+    "@vitest/coverage-v8": "^5.0.0",
+    "terser": "^5.51.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vite-plugin-dts": "^5.1.0",
+    "vitest": "^5.0.0"
+  },
+  "dependencies": {
+    "chrono-node": "^2.10.1",
+    "linkedom": "^0.18.13"
+  },
+  "keywords": [
+    "citation",
+    "apa",
+    "mla",
+    "chicago",
+    "bibliography",
+    "openrouter",
+    "llm",
+    "metadata",
+    "author",
+    "scraping"
+  ]
+}

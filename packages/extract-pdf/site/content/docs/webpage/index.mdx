@@ -16,7 +16,6 @@ const article = await extractContent('https://en.wikipedia.org/wiki/Web_scraping
 | --- | --- |
 | A URL to a page | Fetched with [`scrapeURL`](/docs/webpage/scrape), then the main content and citation are extracted. |
 | A URL to a PDF | Converted by [`extract-pdf`](/docs/pdf). A URL is treated as a PDF when it ends in `.pdf` or its first bytes are `%PDF-`. |
-| A YouTube URL | The transcript, through `extract-youtube`. |
 | A Google Docs or Drive link | Rewritten to its HTML export or file download first. |
 | An HTML or Markdown string | Extracted directly; nothing is fetched. Pass `url` to make links absolute. |
 | A DOM `document` | Extracted directly, for browser extensions and in-page use. |
@@ -35,7 +34,6 @@ const article = await extractContent('https://en.wikipedia.org/wiki/Web_scraping
 | `url` | | The page's URL, when you pass HTML instead of a URL. |
 | `citeFormatMonthFull` | `false` | Spell out the month in `cite`. |
 | `citeFormatAuthorFull` | `true` | Use the author's full name in `cite`. |
-| `languages` | | Preferred transcript languages for YouTube URLs. |
 
 ## Return value
 

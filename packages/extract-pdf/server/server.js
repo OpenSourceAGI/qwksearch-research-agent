@@ -68,7 +68,10 @@ app.openapi(convertImageBase64Route, async (c) => {
 
         let image;
         try {
-            image = await load_image(`data:${mimeType};base64,${imageBase64}`);
+            // A Blob, not a data: URL: in Node, transformers.js reads any
+            // string that is not http(s) or blob: as a file path.
+            const base64 = imageBase64.replace(/^data:[^;,]+;base64,/, "");
+            image = await load_image(new Blob([Buffer.from(base64, "base64")], { type: mimeType }));
         } catch {
             return c.json({ success: false, error: "Failed to decode base64 image", code: "IMAGE_DECODE_ERROR" }, 400);
         }

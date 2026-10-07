@@ -118,3 +118,26 @@ export function getSettingsSchema(): {
     fieldsBySection: settingsFieldsBySection,
   };
 }
+
+/**
+ * One settings section as a standalone page a host can mount in its own
+ * settings area — the "external page" form of {@link SettingsSectionSchema}.
+ */
+export interface SettingsPageSchema extends SettingsSectionSchema {
+  /** Route the host serves this section at, e.g. `/settings/research/models`. */
+  href: string;
+}
+
+/**
+ * The settings sections as pages under `basePath`, in menu order. A host that
+ * embeds the research agent registers these alongside its own settings pages
+ * (`basePath` is where it mounts the research settings), so every section the
+ * agent exposes is reachable from the host's global settings.
+ */
+export function getSettingsPages(basePath = "/settings"): SettingsPageSchema[] {
+  const base = basePath.replace(/\/+$/, "");
+  return settingsSections.map((section) => ({
+    ...section,
+    href: `${base}/${section.key}`,
+  }));
+}

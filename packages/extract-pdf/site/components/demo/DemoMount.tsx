@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * The live demo: two tabs, **PDF** (extract-pdf) and **Webpage**
- * (extract-webpage), both talking to this site's Worker at `/api/*`
+ * The live demo: three tabs, **PDF** (extract-pdf), **Webpage**
+ * (extract-webpage) and **Citation** (extract-cite), all talking to this site's Worker at `/api/*`
  * (`worker/api.ts`). The tab follows the URL hash (`/demo#webpage`), so a
  * link can open either one.
  *
@@ -12,12 +12,14 @@
 import { useEffect, useState } from 'react';
 
 import type { HealthResponse } from '../../worker/api';
+import { CiteDemo } from './CiteDemo';
 import { PdfDemo } from './PdfDemo';
 import { WebpageDemo } from './WebpageDemo';
 
-type Tab = 'pdf' | 'webpage';
+type Tab = 'pdf' | 'webpage' | 'cite';
 
 function tabFromHash(): Tab {
+  if (window.location.hash === '#cite') return 'cite';
   return window.location.hash === '#webpage' ? 'webpage' : 'pdf';
 }
 
@@ -38,7 +40,7 @@ export function DemoMount() {
 
   const select = (next: Tab) => {
     setTab(next);
-    window.history.replaceState(null, '', next === 'webpage' ? '#webpage' : window.location.pathname);
+    window.history.replaceState(null, '', next === 'pdf' ? window.location.pathname : `#${next}`);
   };
 
   return (
@@ -49,7 +51,7 @@ export function DemoMount() {
           <p>
             PDFs and webpages to clean, structured HTML, on the Cloudflare Worker that serves these docs. A PDF's text
             layer comes back at once; pages that look scanned or hold tables and figures can then be enhanced with
-            Granite Docling OCR. A webpage comes back as its main content with the citation fields found on the page.
+            Granite Docling OCR. A webpage comes back as its main content with the citation fields found on the page. The Citation tab goes further: an LLM completes the full APA citation, scores each part, flags what needs review, and reads the author’s qualifications.
           </p>
         </header>
 
@@ -60,14 +62,19 @@ export function DemoMount() {
           <button type="button" role="tab" aria-selected={tab === 'webpage'} onClick={() => select('webpage')}>
             Webpage · extract-webpage
           </button>
+          <button type="button" role="tab" aria-selected={tab === 'cite'} onClick={() => select('cite')}>
+            Citation · extract-cite
+          </button>
         </div>
 
         {tab === null ? (
           <p className="status">Loading the live demo…</p>
         ) : tab === 'pdf' ? (
-          <PdfDemo maxMb={health?.maxPdfMb ?? null} />
-        ) : (
+          <PdfDemo maxMb={health?.maxPdfMb ?? null} ocr={health?.ocr ?? false} />
+        ) : tab === 'webpage' ? (
           <WebpageDemo />
+        ) : (
+          <CiteDemo serverKey={health?.cite ?? false} />
         )}
       </main>
     </div>

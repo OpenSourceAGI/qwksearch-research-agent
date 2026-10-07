@@ -1,5 +1,5 @@
 /**
- * @fileoverview Full-screen homepage with a randomised AI-themed background artwork (image or video), the QuantumWaveOrbital animation, recent history chips, the main chat input box, and an app footer.
+ * @fileoverview Full-screen homepage with a rotating AI-themed background artwork (image or video, served from a local cache), the QuantumWaveOrbital animation, recent history chips, the main chat input box, and an app footer.
  */
 'use client';
 import { lazy, Suspense, useEffect, useState } from 'react';
@@ -9,7 +9,14 @@ import RecentHistoryChips from './RecentHistoryChips';
 import Footer from '../Footer';
 import type { WeatherLocationInput } from 'use-weather-forecast';
 import { useChat } from '../../hooks/useChat';
-import { getBackgroundArtwork } from './background-art';
+import {
+  MAX_CACHED_BACKGROUNDS,
+  cacheBackground,
+  loadCachedBackground,
+  pickCachedBackground,
+  pickUncachedBackground,
+  readCachedBackgroundList,
+} from './background-cache';
 import { researchAgentUIConfig } from '../../config';
 import QuantumWaveOrbital from 'quantum-sphere-loading-icon/react';
 // Stylesheet is imported by the host app (globals.css) inside a named cascade
@@ -25,6 +32,9 @@ const WeatherForecast = lazy(() =>
 );
 const TrendingNews = lazy(() =>
   import('trending-news-api').then((mod) => ({ default: mod.TrendingNews })),
+);
+const EducationPlaylists = lazy(() =>
+  import('education-playlists').then((mod) => ({ default: mod.EducationPlaylists })),
 );
 const DownloadsDialog = lazy(() => import('./DownloadsDialog'));
 
@@ -97,19 +107,28 @@ function parseWeatherLocations(raw: string | null): WeatherLocationInput[] {
 const isVideo = (url: string) => url.endsWith('.webm') || url.endsWith('.mp4');
 
 /**
- * Resolves once a background is ready to show, so a crossfade never reveals a
- * half-loaded image. Images are fetched and decoded off-screen; videos stream
- * on their own once mounted, so they resolve straight away rather than being
- * downloaded twice. Resolves `false` for an image that failed to load.
+ * A background on screen: `url` is the artwork's own address (what the cache
+ * is keyed by, and what says whether it is a video); `src` is what the element
+ * loads, usually an object URL of the cached copy.
  */
-function preloadBackground(url: string): Promise<boolean> {
+type Background = { url: string; src: string };
+
+const isObjectUrl = (src: string) => src.startsWith('blob:');
+
+/**
+ * Resolves once a background is ready to show, so a crossfade never reveals a
+ * half-loaded image. Images are decoded off-screen; videos resolve straight
+ * away and stream (or play from their blob) once mounted. Resolves `false` for
+ * an image that failed to load.
+ */
+function preloadBackground({ url, src }: Background): Promise<boolean> {
   if (isVideo(url)) return Promise.resolve(true);
   return new Promise((resolve) => {
     const img = new Image();
     img.decoding = 'async';
     img.onload = () => resolve(true);
     img.onerror = () => resolve(false);
-    img.src = url;
+    img.src = src;
   });
 }
 
@@ -120,8 +139,8 @@ function preloadBackground(url: string): Promise<boolean> {
  */
 export default function ChatHomepage() {
   const { sendMessage } = useChat();
-  const [backgroundUrl, setBackgroundUrl] = useState<string | null>(null);
-  const [nextBackgroundUrl, setNextBackgroundUrl] = useState<string | null>(null);
+  const [background, setBackground] = useState<Background | null>(null);
+  const [nextBackground, setNextBackground] = useState<Background | null>(null);
   const [fading, setFading] = useState(false);
   const [downloadsOpen, setDownloadsOpen] = useState(false);
   // The dialog's chunk is only fetched on first open, and it then stays
@@ -140,6 +159,11 @@ export default function ChatHomepage() {
   const [trendingNewsShowImages, setTrendingNewsShowImages] = useState<boolean | null>(null);
   const [trendingNewsCustomTopics, setTrendingNewsCustomTopics] = useState<string[]>([]);
   const [newsSiteSettings, setNewsSiteSettings] = useState<NewsSiteSettings | null>(null);
+  const [showEducationWidget, setShowEducationWidget] = useState(true);
+  // The weather and news widgets (their chunks and their API calls) wait until
+  // the page has loaded and the browser is idle, so they never compete with the
+  // orb, the input and the background for first paint.
+  const [widgetsReady, setWidgetsReady] = useState(false);
   const [orbHoverGlow, setOrbHoverGlow] = useState(false);
   // Off by default; enabled via the "Cursor Glow Trail" setting.
   const [cursorGlowTrail, setCursorGlowTrail] = useState(false);
@@ -203,6 +227,7 @@ export default function ChatHomepage() {
       const showImages = localStorage.getItem('trendingNewsShowImages');
       setTrendingNewsShowImages(showImages === null ? null : showImages !== 'false');
       setTrendingNewsCustomTopics(parseCustomTopics(localStorage.getItem('trendingNewsCustomTopics')));
+      setShowEducationWidget(localStorage.getItem('showEducationPlaylistsWidget') !== 'false');
       setOrbHoverGlow(localStorage.getItem('orbHoverGlow') === 'true');
       setCursorGlowTrail(localStorage.getItem('cursorGlowTrail') === 'true');
     };
@@ -216,40 +241,133 @@ export default function ChatHomepage() {
   }, []);
 
   useEffect(() => {
+    let cancel: (() => void) | undefined;
+    const ready = () => {
+      if (typeof window.requestIdleCallback === 'function') {
+        const handle = window.requestIdleCallback(() => setWidgetsReady(true), { timeout: 2500 });
+        cancel = () => window.cancelIdleCallback(handle);
+      } else {
+        const handle = window.setTimeout(() => setWidgetsReady(true), 800);
+        cancel = () => window.clearTimeout(handle);
+      }
+    };
+    if (document.readyState === 'complete') ready();
+    else window.addEventListener('load', ready, { once: true });
+    return () => {
+      window.removeEventListener('load', ready);
+      cancel?.();
+    };
+  }, []);
+
+  useEffect(() => {
     const showBg = localStorage.getItem('showBackgroundArt');
     if (showBg === 'false') return;
 
-    // The artwork is decoration, and some of it is multi-megabyte video: fetch
-    // none of it until the page itself has loaded and the browser is idle, so
-    // it never competes with the app's own scripts for the first-load
-    // bandwidth. The next piece is only faded in once it has downloaded, and
-    // the rotation pauses while the tab is hidden.
+    // First paint never waits on Imgur: a returning visitor gets a piece read
+    // straight out of Cache Storage (see `background-cache.ts`), and a first
+    // visit starts on the plain page. Downloading — some of the artwork is
+    // multi-megabyte video — waits until the page has loaded and the browser
+    // is idle, so it never competes with the app's own scripts. From then on
+    // the next piece is always prepared one rotation ahead, the cache grows by
+    // one piece per rotation until it is full, and the rotation pauses while
+    // the tab is hidden.
     let cancelled = false;
     let interval: ReturnType<typeof setInterval> | undefined;
     let fadeTimer: ReturnType<typeof setTimeout> | undefined;
     let cancelStart: (() => void) | undefined;
+    let current: Background | null = null;
+    let upcoming: Promise<Background | null> | null = null;
+    // Every object URL handed out, so none outlives the page.
+    const objectUrls = new Set<string>();
 
-    const rotate = () => {
-      if (document.hidden) return;
-      const next = getBackgroundArtwork();
-      preloadBackground(next).then((ok) => {
-        if (cancelled || !ok) return;
-        setNextBackgroundUrl(next);
-        setFading(true);
-        fadeTimer = setTimeout(() => {
-          setBackgroundUrl(next);
-          setFading(false);
-          setNextBackgroundUrl(null);
-        }, 1000);
-      });
+    const track = (bg: Background | null) => {
+      if (bg && isObjectUrl(bg.src)) objectUrls.add(bg.src);
+      return bg;
+    };
+    const release = (bg: Background | null) => {
+      if (bg && isObjectUrl(bg.src)) {
+        URL.revokeObjectURL(bg.src);
+        objectUrls.delete(bg.src);
+      }
     };
 
-    const start = () => {
+    /** Loads a piece and waits until it can be shown without a half-drawn frame. */
+    const ready = async (bg: Background | null) => {
+      if (!bg) return null;
+      if (cancelled || !(await preloadBackground(bg))) {
+        release(bg);
+        return null;
+      }
+      return bg;
+    };
+
+    const fromCache = async (url: string | null) => {
+      if (!url) return null;
+      const src = await loadCachedBackground(url);
+      return ready(track(src ? { url, src } : null));
+    };
+
+    /**
+     * The piece after `after`: a new one, downloaded into the cache, while the
+     * cache has room; otherwise one already cached. Either way it falls back to
+     * the other, so a failed download still rotates.
+     */
+    const prepareNext = async (after: Background | null) => {
+      const fresh =
+        readCachedBackgroundList().length < MAX_CACHED_BACKGROUNDS
+          ? pickUncachedBackground()
+          : null;
+      if (fresh) {
+        const src = await cacheBackground(fresh);
+        const bg = await ready(track(src ? { url: fresh, src } : null));
+        if (bg) return bg;
+      }
+      return fromCache(pickCachedBackground(after?.url));
+    };
+
+    const show = (bg: Background) => {
+      const previous = current;
+      current = bg;
+      if (!previous) {
+        setBackground(bg);
+        return;
+      }
+      setNextBackground(bg);
+      setFading(true);
+      fadeTimer = setTimeout(() => {
+        setBackground(bg);
+        setFading(false);
+        setNextBackground(null);
+        release(previous);
+      }, 1000);
+    };
+
+    // A download slower than the interval must not let two rotations show the
+    // same prepared piece.
+    let rotating = false;
+    const rotate = async () => {
+      if (document.hidden || rotating) return;
+      rotating = true;
+      const bg = await (upcoming ?? prepareNext(current));
+      upcoming = null;
+      rotating = false;
       if (cancelled) return;
-      const first = getBackgroundArtwork();
-      preloadBackground(first).then((ok) => {
+      if (bg) show(bg);
+      upcoming = prepareNext(current);
+    };
+
+    // A returning visitor's first piece comes out of the cache, not the network.
+    const initial = fromCache(pickCachedBackground()).then((bg) => {
+      if (bg && !cancelled) show(bg);
+    });
+
+    const start = () => {
+      initial.then(() => {
         if (cancelled) return;
-        if (ok) setBackgroundUrl(first);
+        // A first visit has nothing on screen yet: fetch one now instead of
+        // leaving the page bare for a whole rotation.
+        if (!current) rotate();
+        else upcoming = prepareNext(current);
         interval = setInterval(rotate, 20000);
       });
     };
@@ -273,14 +391,15 @@ export default function ChatHomepage() {
       cancelStart?.();
       clearInterval(interval);
       clearTimeout(fadeTimer);
+      for (const src of objectUrls) URL.revokeObjectURL(src);
     };
   }, []);
 
-  const renderBackground = (url: string, opacity: string) =>
+  const renderBackground = ({ url, src }: Background, opacity: string) =>
     isVideo(url) ? (
       <video
-        key={url}
-        src={url}
+        key={src}
+        src={src}
         autoPlay
         loop
         muted
@@ -289,8 +408,8 @@ export default function ChatHomepage() {
       />
     ) : (
       <img
-        key={url}
-        src={url}
+        key={src}
+        src={src}
         alt=""
         decoding="async"
         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${opacity}`}
@@ -300,8 +419,8 @@ export default function ChatHomepage() {
   return (
     <div className="relative min-h-screen w-full">
       <div className="absolute inset-0 z-0">
-        {backgroundUrl && renderBackground(backgroundUrl, fading ? 'opacity-0' : 'opacity-30')}
-        {nextBackgroundUrl && renderBackground(nextBackgroundUrl, fading ? 'opacity-30' : 'opacity-0')}
+        {background && renderBackground(background, fading ? 'opacity-0' : 'opacity-30')}
+        {nextBackground && renderBackground(nextBackground, fading ? 'opacity-30' : 'opacity-0')}
         {cursorGlowTrail && <GradientBlur />}
       </div>
 
@@ -322,15 +441,31 @@ export default function ChatHomepage() {
 
           <div className="w-full max-w-2xl mt-8 space-y-2">
             <RecentHistoryChips />
-            {/* The input leads the column; the news and weather widgets sit below it. */}
+            {/* The input leads the column; the Learn, news and weather widgets sit below it. */}
             <ChatInputBox />
-            {(showWeatherWidget || showNewsWidget) && (
+            {widgetsReady && (showEducationWidget || showWeatherWidget || showNewsWidget) && (
               <Suspense fallback={null}>
                 <div className="flex flex-col gap-2 w-full">
-                  {/* News sits on top, with the compact weather widget below it.
-                      The weather widget is fluid, so it spans the full column
-                      width on its own row (current conditions on the left, the
-                      next days on the right). */}
+                  {/* Learn (education playlists) sits on top, then news, with
+                      the compact weather widget below them. The weather widget
+                      is fluid, so it spans the full column width on its own
+                      row (current conditions on the left, the next days on the
+                      right). */}
+                  {showEducationWidget && (
+                    <EducationPlaylists
+                      compact
+                      planEndpoint={researchAgentUIConfig.educationPlaylistsApiUrl || undefined}
+                      openHref={researchAgentUIConfig.educationPlaylistsPageUrl || undefined}
+                      className="rounded-2xl w-full"
+                      style={{
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        color: 'inherit',
+                        backdropFilter: 'blur(8px)',
+                        maxWidth: '100%',
+                      }}
+                    />
+                  )}
                   {showNewsWidget && (
                     <TrendingNews
                       compact

@@ -151,3 +151,31 @@
   padding: 1px 5px;
   border-radius: 4px;
 }
+
+/* Citation tab */
+.epd-demo .examples { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.epd-demo .examples-label { font-size: 12px; color: var(--muted); min-width: 130px; }
+.epd-demo .hint { margin: 0; font-size: 12px; color: var(--muted); }
+.epd-demo .citation {
+  margin: 0;
+  padding: 16px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  padding-left: 2.5em;
+  text-indent: -1.5em;
+}
+.epd-demo .cite-parts { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+.epd-demo .cite-parts th,
+.epd-demo .cite-parts td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.epd-demo .cite-parts th { color: var(--muted); font-weight: 500; }
+.epd-demo .cite-parts tr.review td:first-child { border-left: 3px solid var(--err); }
+.epd-demo .cite-parts .flag { color: var(--err); font-size: 12px; margin-top: 2px; }
+.epd-demo .content-check { margin: 16px 0; padding: 12px 16px; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--panel); }
+.epd-demo .content-check.bad { border-left-color: var(--err); }
+.epd-demo .content-check h3 { margin: 0 0 6px; font-size: 15px; }
+.epd-demo .content-check.bad .verdict { color: var(--err); }
+.epd-demo .content-check p { margin: 6px 0; line-height: 1.5; }
+.epd-demo .content-check .signals { margin: 6px 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
+.epd-demo .cite blockquote { margin: 4px 0 0; padding-left: 10px; border-left: 3px solid var(--line); color: var(--muted); }
+.epd-demo details { margin-top: 12px; font-size: 13px; }
+.epd-demo details pre { overflow: auto; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }

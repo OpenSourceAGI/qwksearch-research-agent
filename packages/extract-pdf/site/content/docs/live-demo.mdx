@@ -7,6 +7,7 @@ icon: MonitorPlay
 <Cards>
   <Card title="PDF to HTML" href="/demo" description="Upload a PDF or paste a URL. Flagged pages can be enhanced with OCR." />
   <Card title="Webpage to article" href="/demo#webpage" description="Paste a URL or some HTML. Get the main content and its citation." />
+  <Card title="Full citation with an LLM" href="/demo#cite" description="Pick a news, journal or reference page. Get APA, MLA, Chicago and more, with confidence per part and author qualifications." />
 </Cards>
 
 The site lives in the monorepo at `packages/extract-pdf/site`. It is one Cloudflare Worker that serves:
@@ -17,9 +18,11 @@ The site lives in the monorepo at `packages/extract-pdf/site`. It is one Cloudfl
 | `/demo` | The demo page. The **PDF** tab calls `/api/convert`; the **Webpage** tab (`/demo#webpage`) calls `/api/extract`. |
 | `/api/convert` | `convertPDFToHTML` from `extract-pdf`, text layer only. |
 | `/api/enhance` | Forwards one rendered page image to a Granite Docling processor. |
+| `/api/warmup` | Wakes the Docling processor and starts its model loading. The demo calls it when it opens. |
 | `/api/source?url=` | The PDF at `url`, so the browser can render flagged pages. |
 | `/api/extract` | `extractContent` from `extract-webpage`. |
-| `/api/health` | `{ status, maxPdfMb, ocr }`. |
+| `/api/cite` | `extractCiteLLM` from `extract-cite`: a full citation from an LLM. POST only. |
+| `/api/health` | `{ status, maxPdfMb, ocr, cite }`. |
 
 `worker/index.ts` is the Worker's entry: it answers `/api/*` from `worker/api.ts` and hands every other request to the docs.
 
@@ -71,6 +74,10 @@ Workers have no canvas, so they cannot rasterize pages, and a vision model is fa
 3. It sends each image to `POST /api/enhance` as `{ "page": 3, "imageBase64": "…" }`. The Worker forwards it to the Docling processor with its secrets and returns `{ page, html, ms }`.
 4. The page swaps each OCR'd page into the result as `<section class="ocr-page" id="page-N">`, one at a time. A page whose OCR fails keeps its text-layer version.
 
+Page images pass through the Worker and the Space in memory only: neither stores them, and every API response is `Cache-Control: no-store`.
+
+When OCR is configured, the PDF tab calls `POST /api/warmup` as soon as it opens. The Worker asks the Space to start loading its model and answers within a few seconds with `{ ocr, modelLoaded, loading }`, so a Space that was asleep is booting while the visitor picks a file.
+
 To turn it on, deploy the [Docling Space](/docs/pdf/ocr#hosting-the-processor) and give the Worker its URL and token:
 
 ```bash
@@ -93,6 +100,16 @@ curl -X POST -H 'Content-Type: application/json' \
 
 The response is `extractContent`'s article plus where it came from: `{ input, ms, title, author, author_cite, date, source, cite, url, word_count, html }`. Flags `images`, `links` and `formatting` default to true. Pasted HTML is capped by `MAX_HTML_MB` (2).
 
+## The citation API
+
+```bash
+curl -X POST -H 'Content-Type: application/json' \
+  -d '{"url": "https://arxiv.org/abs/1706.03762", "apiKey": "sk-or-…", "model": "anthropic/claude-haiku-4.5"}' \
+  https://YOUR-SITE/api/cite
+```
+
+`apiKey` is an [OpenRouter](https://openrouter.ai) key, used for that one request and never stored. Leave it out when the Worker has its own (`bunx wrangler secret put OPENROUTER_API_KEY`; `CITE_MODEL` sets the default model). `html` can replace `url` for pages that block server fetches, and `styles` narrows the output. The Worker first runs extract-webpage on the page and passes the article as `content`, so `contentCheck` says whether that extraction is the full article or a paywall stub, and which blocks to cut. The response is [`extractCiteLLM`'s result](/docs/cite) plus `input`. Errors are `{ "error": "…" }` with 401 (no key, or the provider rejected it), 429 (the provider's rate limit), 400, 413 or 502.
+
 ## Run it locally
 
 ```bash
@@ -101,7 +118,7 @@ cd packages/extract-pdf/site
 bun run dev                      # the docs, /demo and its /api/*, on one port
 ```
 
-The site imports `extract-pdf`, `extract-webpage` and `extract-youtube` from their source through Vite aliases, so there is no package build first. Under `bun run dev` the API runs in Node, and its variables come from the shell, for example `DOCLING_PROCESSOR_URL=http://127.0.0.1:7860 DOCLING_API_TOKEN=local-test-token bun run dev`. `bun run preview` runs the built Worker in workerd.
+The site imports `extract-pdf`, `extract-webpage` and `extract-cite` from their source through Vite aliases, so there is no package build first. Under `bun run dev` the API runs in Node, and its variables come from the shell, for example `DOCLING_PROCESSOR_URL=http://127.0.0.1:7860 DOCLING_API_TOKEN=local-test-token bun run dev`. `bun run preview` runs the built Worker in workerd.
 
 ## Deploy your own
 
@@ -112,3 +129,13 @@ bunx wrangler deploy
 ```
 
 PDF parsing is CPU-bound. On the Workers Free plan (10 ms of CPU per request) most real PDFs fail with error 1102; on the Paid plan uncomment `"limits": { "cpu_ms": 30000 }` in `wrangler.jsonc`. See [Running on Workers](/docs/pdf/workers).
+
+## Admin panel
+
+`/admin` signs in with a password and sets the site's global keys (the OpenRouter key and default model for the Citation tab, and the Docling OCR URL and tokens) without a redeploy. A value saved there wins over the same name in the Worker's dashboard; clearing it falls back to the dashboard value.
+
+```bash
+bunx wrangler secret put ADMIN_PASSWORD   # until set, /admin is disabled
+```
+
+Keys are stored in the `SETTINGS` KV namespace (created on first deploy) and are shown masked, never sent back to the browser. Sessions last 8 hours in an HttpOnly, SameSite=Strict cookie signed with the password, so changing the password signs everyone out. Eight failed logins from one IP lock it out for 15 minutes. Use a long random password.

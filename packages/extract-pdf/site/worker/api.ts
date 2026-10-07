@@ -13,10 +13,17 @@
  *                                   JSON `{ url }`, or a raw application/pdf body
  *   POST /api/enhance               OCR one page image with the remote Docling
  *                                   processor (JSON `{ page, imageBase64 }`)
+ *   GET|POST /api/warmup            wake the Docling processor and start its
+ *                                   model loading; answers within a few seconds
  *   GET  /api/source?url=...        the PDF at `url`, for the page to rasterize
  *   GET  /api/extract?url=...       a webpage → article HTML + citation
  *                                   (extract-webpage's `extractContent`)
  *   POST /api/extract               JSON `{ url }` or `{ html, url? }`
+ *   /api/admin/*                    the admin panel's login and global keys (worker/admin.ts)
+ *   POST /api/cite                  JSON `{ url, apiKey?, model?, styles?, html? }` →
+ *                                   a full citation from an LLM (extract-cite),
+ *                                   plus a check that extract-webpage's article
+ *                                   is the full text and not a paywall stub
  *
  * /api/convert flags: `addPageNumbers`, `addCitation` (query, JSON or form).
  * /api/extract flags: `images`, `links`, `formatting`.
@@ -26,11 +33,23 @@
  * processor is configured (DOCLING_PROCESSOR_URL, see ../docling-space) the
  * demo page renders those pages in the browser and sends each image to
  * /api/enhance, which forwards it with the secrets the browser never sees.
+ * The demo page calls /api/warmup when it opens, so a sleeping Space is
+ * booting while the visitor picks a file. Page images pass through in memory
+ * and are never stored.
  */
+import { handleAdmin, withStoredSettings, type AdminEnv } from './admin';
 import { convertPDFToHTML } from 'extract-pdf';
 import { extractContent } from 'extract-webpage/url-to-content/url-to-content';
+import {
+  CITATION_STYLES,
+  CiteLLMError,
+  extractCiteLLM,
+  fetchPageHTML,
+  type CitationStyle,
+  type ExtractCiteLLMResult,
+} from 'extract-cite';
 
-export interface Env {
+export interface Env extends AdminEnv {
   /** Largest PDF (in MB) accepted, by upload or by URL. Default 15. */
   MAX_PDF_MB?: string;
   /** Largest pasted HTML (in MB) /api/extract accepts. Default 2. */
@@ -44,6 +63,10 @@ export interface Env {
   DOCLING_MAX_PAGES?: string;
   DOCLING_MAX_TOKENS?: string;
   DOCLING_MAX_IMAGE_MB?: string;
+  /** OpenRouter key /api/cite uses when the request brings none. Unset: visitors must bring their own. */
+  OPENROUTER_API_KEY?: string;
+  /** Default model for /api/cite. Default: extract-cite's own. */
+  CITE_MODEL?: string;
 }
 
 /** A /api/health response. */
@@ -53,6 +76,17 @@ export interface HealthResponse {
   maxPdfMb: number;
   /** Whether /api/enhance has a Docling processor to call. */
   ocr: boolean;
+  /** Whether /api/cite has a server-side key, so the demo can leave the key field optional. */
+  cite: boolean;
+}
+
+/** A /api/warmup response. */
+export interface WarmupResponse {
+  /** Whether a Docling processor is configured at all. */
+  ocr: boolean;
+  modelLoaded: boolean;
+  /** The model is loading, or the Space is still waking up. */
+  loading: boolean;
 }
 
 /** The OCR part of a /api/convert response. */
@@ -103,11 +137,16 @@ type Fields = Record<string, unknown>;
  * Answers the demo's `/api/*` routes, or returns `null` for any other path so
  * the caller can hand the request to the docs.
  */
-export async function handleApi(request: Request, env: Env): Promise<Response | null> {
+export async function handleApi(request: Request, workerEnv: Env): Promise<Response | null> {
   const url = new URL(request.url);
   if (!url.pathname.startsWith('/api/')) return null;
 
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
+  // The admin panel's own routes: same-origin only, no CORS.
+  if (url.pathname.startsWith('/api/admin/')) return handleAdmin(request, url, workerEnv);
+
+  // Global keys saved in the admin panel sit over the Worker's own vars.
+  const env = await withStoredSettings(workerEnv);
 
   const maxBytes = Number(env.MAX_PDF_MB || 15) * 1024 * 1024;
 
@@ -118,6 +157,7 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
           status: 'ok',
           maxPdfMb: maxBytes / 1024 / 1024,
           ocr: Boolean(env.DOCLING_PROCESSOR_URL),
+          cite: Boolean(env.OPENROUTER_API_KEY),
         };
         return json(body);
       }
@@ -147,6 +187,10 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
         if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
         return json(await enhancePage(request, env));
 
+      case '/api/warmup':
+        if (request.method !== 'GET' && request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+        return json(await warmProcessor(env));
+
       case '/api/source': {
         if (request.method !== 'GET') return json({ error: 'Method not allowed' }, 405);
         const target = url.searchParams.get('url');
@@ -158,6 +202,11 @@ export async function handleApi(request: Request, env: Env): Promise<Response | 
       case '/api/extract':
         if (request.method !== 'GET' && request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
         return json(await extractWebpage(request, url, env));
+
+      case '/api/cite':
+        // POST only: the visitor's API key travels in the body, never the URL.
+        if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+        return json(await citePage(request, env));
 
       default:
         return json({ error: 'Not found' }, 404);
@@ -254,12 +303,11 @@ async function enhancePage(request: Request, env: Env): Promise<{ page: number; 
   if (typeof imageBase64 !== 'string' || !imageBase64) throw httpError(400, 'Provide `imageBase64`.');
   if ((imageBase64.length * 3) / 4 > maxImageBytes) throw httpError(413, 'Page image is too large.');
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (env.DOCLING_API_TOKEN) headers['X-Docling-Token'] = env.DOCLING_API_TOKEN;
-  if (env.HF_SPACE_TOKEN) headers.Authorization = `Bearer ${env.HF_SPACE_TOKEN}`;
+  const headers = processorHeaders(env);
+  headers['Content-Type'] = 'application/json';
 
   const started = Date.now();
-  const res = await fetch(`${env.DOCLING_PROCESSOR_URL.replace(/\/+$/, '')}/api/v1/convert-base64`, {
+  const res = await fetch(`${processorBase(env)}/api/v1/convert`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -278,9 +326,44 @@ async function enhancePage(request: Request, env: Env): Promise<{ page: number; 
 }
 
 /**
+ * Wakes the Docling processor and asks it to start loading the model. The
+ * Space answers at once (202 while loading); a sleeping Hugging Face Space
+ * takes longer to answer at all, so after a few seconds this reports it as
+ * still loading instead of holding the page's request open.
+ */
+async function warmProcessor(env: Env): Promise<WarmupResponse> {
+  if (!env.DOCLING_PROCESSOR_URL) return { ocr: false, modelLoaded: false, loading: false };
+  try {
+    const res = await fetch(`${processorBase(env)}/api/v1/warmup`, {
+      method: 'POST',
+      headers: processorHeaders(env),
+      signal: AbortSignal.timeout(8000),
+    });
+    const out = (await res.json().catch(() => null)) as { modelLoaded?: boolean } | null;
+    const modelLoaded = res.ok && out?.modelLoaded === true;
+    return { ocr: true, modelLoaded, loading: !modelLoaded };
+  } catch {
+    // Timed out or unreachable: the request itself is what wakes the Space.
+    return { ocr: true, modelLoaded: false, loading: true };
+  }
+}
+
+function processorBase(env: Env): string {
+  return (env.DOCLING_PROCESSOR_URL ?? '').replace(/\/+$/, '');
+}
+
+/** The service token, and for a private Space a Hugging Face read token. */
+function processorHeaders(env: Env): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (env.DOCLING_API_TOKEN) headers['X-Docling-Token'] = env.DOCLING_API_TOKEN;
+  if (env.HF_SPACE_TOKEN) headers.Authorization = `Bearer ${env.HF_SPACE_TOKEN}`;
+  return headers;
+}
+
+/**
  * A webpage (by URL, or pasted HTML) → its main content as basic HTML, plus
  * citation fields. A URL that turns out to be a PDF goes through extract-pdf,
- * and a YouTube URL through extract-youtube, inside `extractContent`.
+ * inside `extractContent`.
  */
 async function extractWebpage(request: Request, url: URL, env: Env): Promise<ExtractResponse> {
   let fields: Fields = Object.fromEntries(url.searchParams);
@@ -338,6 +421,71 @@ async function extractWebpage(request: Request, url: URL, env: Env): Promise<Ext
     word_count: article.word_count,
     html: article.html,
   };
+}
+
+/** A /api/cite response: extract-cite's result, plus where it came from. */
+export type CiteResponse = ExtractCiteLLMResult & { input: string };
+
+/**
+ * A webpage (URL, or pasted HTML) → a full citation: the regex pass, then one
+ * model call that completes the APA parts, scores them and reads the author
+ * bios. The same call checks the article extract-webpage pulls out of the page:
+ * is it the full text or a paywall stub, and which header, nav, sidebar and
+ * footer blocks it still holds. The key comes from the request or the Worker's
+ * OPENROUTER_API_KEY; it is passed to the provider and never stored or echoed.
+ */
+async function citePage(request: Request, env: Env): Promise<CiteResponse> {
+  const maxHtmlBytes = Number(env.MAX_HTML_MB || 2) * 1024 * 1024;
+  const text = await request.text();
+  if (text.length > maxHtmlBytes) throw httpError(413, `Body is larger than ${maxHtmlBytes / 1024 / 1024} MB`);
+  let fields: Fields;
+  try {
+    fields = JSON.parse(text) as Fields;
+  } catch {
+    throw httpError(400, 'Send JSON: `{ "url": "…", "apiKey": "…", "model": "…" }`.');
+  }
+
+  const str = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+  const pageUrl = str(fields.url);
+  const html = typeof fields.html === 'string' ? fields.html : '';
+  if (pageUrl) checkHttpUrl(pageUrl);
+  if (!pageUrl && !html.trim()) throw httpError(400, 'Provide a `url`, or `html` to cite.');
+
+  const apiKey = str(fields.apiKey) || env.OPENROUTER_API_KEY;
+  if (!apiKey) throw httpError(401, 'Paste an OpenRouter API key: this demo has no server-side key.');
+  const styles = Array.isArray(fields.styles)
+    ? (fields.styles.filter((style): style is CitationStyle => CITATION_STYLES.includes(style as CitationStyle)))
+    : undefined;
+
+  try {
+    const pageHtml = html.trim() ? html : await fetchPageHTML(pageUrl);
+    const result = await extractCiteLLM({
+      url: pageUrl || undefined,
+      html: pageHtml,
+      content: await extractedArticle(pageHtml, pageUrl),
+      apiKey,
+      model: str(fields.model) || env.CITE_MODEL || undefined,
+      styles: styles?.length ? styles : undefined,
+    });
+    return { input: pageUrl || 'pasted HTML', ...result };
+  } catch (err) {
+    if (err instanceof CiteLLMError) throw httpError(err.status === 401 || err.status === 402 || err.status === 429 ? err.status : 502, err.message);
+    throw httpError(502, (err as Error).message);
+  }
+}
+
+/**
+ * The article extract-webpage pulls out of a page, for the content check.
+ * Undefined when extraction fails: the check then reads the page's own text.
+ */
+async function extractedArticle(html: string, pageUrl: string): Promise<string | undefined> {
+  try {
+    // extractContent reads a string as a URL only when it starts with "http".
+    const article = await extractContent(html.trimStart(), { url: pageUrl, images: false, links: false, timeout: 10 });
+    return article && !article.error && article.html ? article.html : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function checkHttpUrl(value: string): URL {
@@ -403,6 +551,7 @@ function httpError(status: number, message: string): Error & { status: number } 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS },
+    // no-store: responses carry content derived from visitors' documents.
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...CORS_HEADERS },
   });
 }

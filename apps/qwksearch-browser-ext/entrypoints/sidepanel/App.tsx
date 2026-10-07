@@ -1,13 +1,21 @@
 import { useState, useCallback } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Layers, BrainCircuit, Download, History, Star } from "lucide-react"
+import { FolderKanban, Layers, Download, History, Star } from "lucide-react"
+import AppHeader from "@/components/AppHeader"
+import OrganizerFrame from "@/components/OrganizerFrame"
+import ExtensionSettings from "@/components/ExtensionSettings"
 import TabSearch from "@/components/TabSearch"
 import TabList from "@/components/TabList"
 import ResearchTab from "@/components/ResearchTab"
 import DownloadsList from "@/components/DownloadsList"
 import HistoryList from "@/components/HistoryList"
 import BookmarksList from "@/components/BookmarksList"
+import { cn } from "@/lib/utils"
+import { isFullPage, openFullPage } from "@/lib/extension-settings"
 import { searchEngines } from "../../content/shortcut-search-web";
+
+/** Views reached from the header buttons rather than the tab row. */
+type HeaderView = "ai" | "settings"
 
 interface TabResult {
   id: number
@@ -44,33 +52,61 @@ export default function SidePanel() {
     })
   }, [])
 
+  const fullPage = isFullPage()
+  const [view, setView] = useState("organize")
+  const toggle = (headerView: HeaderView) =>
+    setView((current) => (current === headerView ? "organize" : headerView))
+
+  const popOut = async () => {
+    const current = await chrome.windows.getCurrent()
+    await openFullPage(chrome, current.id)
+    window.close()
+  }
+
   return (
-    <div className="bg-[#f7f7f7] container mx-auto p-2 max-w-sm h-screen">
-      <Tabs defaultValue="tabs" className="w-full">
-        <TabsList>
-          <TabsTrigger value="tabs" className="flex items-center gap-2">
+    <div
+      className={cn(
+        "bg-[#f7f7f7] container mx-auto p-2 h-screen flex flex-col",
+        fullPage ? "max-w-5xl" : "max-w-sm"
+      )}
+    >
+      <AppHeader
+        aiActive={view === "ai"}
+        settingsActive={view === "settings"}
+        fullPage={fullPage}
+        onAskAI={() => toggle("ai")}
+        onSettings={() => toggle("settings")}
+        onPopOut={popOut}
+      />
+      <Tabs value={view} onValueChange={setView} className="flex min-h-0 flex-1 flex-col">
+        <TabsList className="w-full justify-between">
+          <TabsTrigger value="organize" className="flex items-center gap-1 px-2">
+            <FolderKanban size={16} />
+            <span>Organize</span>
+          </TabsTrigger>
+          <TabsTrigger value="tabs" className="flex items-center gap-1 px-2" title="Tabs">
             <Layers size={16} />
-            <span>Tabs</span>
+            <span className={cn(!fullPage && "sr-only")}>Tabs</span>
           </TabsTrigger>
-          <TabsTrigger value="research" className="flex items-center gap-2">
-            <BrainCircuit size={16} />
-            <span>Research</span>
-          </TabsTrigger>
-          <TabsTrigger value="downloads" className="flex items-center gap-2">
-            <Download size={16} />
-            <span>Downloads</span>
-          </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
+          <TabsTrigger value="history" className="flex items-center gap-1 px-2" title="History">
             <History size={16} />
-            <span>History</span>
+            <span className={cn(!fullPage && "sr-only")}>History</span>
           </TabsTrigger>
-          <TabsTrigger value="favorites" className="flex items-center gap-2">
+          <TabsTrigger value="favorites" className="flex items-center gap-1 px-2" title="Favorites">
             <Star size={16} />
-            <span>Favorites</span>
+            <span className={cn(!fullPage && "sr-only")}>Favorites</span>
+          </TabsTrigger>
+          <TabsTrigger value="downloads" className="flex items-center gap-1 px-2" title="Downloads">
+            <Download size={16} />
+            <span className={cn(!fullPage && "sr-only")}>Downloads</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="tabs">
+        <TabsContent value="organize" className="min-h-0 flex-1">
+          <OrganizerFrame />
+        </TabsContent>
+
+        <TabsContent value="tabs" className="min-h-0 flex-1 overflow-auto">
           <TabSearch
             results={results}
             setResults={setResults}
@@ -84,19 +120,26 @@ export default function SidePanel() {
           />
         </TabsContent>
 
-        <TabsContent value="research">
+        {/* translateZ(0) makes this the containing block for the chat UI's
+            position:fixed pieces (its mobile footer menu), so they stay inside
+            the chat area instead of covering the header. */}
+        <TabsContent value="ai" className="min-h-0 flex-1 [transform:translateZ(0)]">
           <ResearchTab />
         </TabsContent>
 
-        <TabsContent value="downloads">
+        <TabsContent value="settings" className="min-h-0 flex-1 overflow-auto rounded-md bg-white">
+          <ExtensionSettings />
+        </TabsContent>
+
+        <TabsContent value="downloads" className="min-h-0 flex-1 overflow-auto">
           <DownloadsList />
         </TabsContent>
 
-        <TabsContent value="history">
+        <TabsContent value="history" className="min-h-0 flex-1 overflow-auto">
           <HistoryList />
         </TabsContent>
 
-        <TabsContent value="favorites">
+        <TabsContent value="favorites" className="min-h-0 flex-1 overflow-auto">
           <BookmarksList />
         </TabsContent>
       </Tabs>

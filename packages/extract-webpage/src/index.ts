@@ -13,7 +13,9 @@ export * from "./tokenize/text-to-sentences";
 export * from "./tokenize/text-to-chunks";
 export * from "./url-to-content/url-to-content";
 export * from "./url-to-content/url-to-html";
-export * from "./html-to-cite/url-to-domain";
+// Citation extraction moved to the extract-cite package; re-exported so
+// existing `import { extractCite } from "extract-webpage"` callers keep working.
+export { convertURLToDomain, isURLValid } from "extract-cite";
 export * from "./url-to-content/youtube-helpers";
 // PDF export removed from main index to prevent pdfjs-serverless from being evaluated at build time
 // Import directly from "./pdf-to-html/pdfToHtml" when needed
@@ -22,5 +24,6 @@ export * from "./html-to-content/html-to-content";
 export * from "./html-to-content/extract-content/extract-content-readability";
 export * from "./html-to-content/extract-content/extract-content-mercury";
 export * from "./html-to-content/html-to-basic-html";
-export * from "./html-to-cite/extract-cite";
+export { extractCite } from "extract-cite";
+export type { ExtractCiteResult, ExtractCiteOptions } from "extract-cite";
 export * from "./html-to-content/html-utils";

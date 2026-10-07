@@ -2,7 +2,7 @@
  * @file vite.config.ts
  * @description Build for the extract-pdf + extract-webpage site: the docs
  * (Next.js App Router source, compiled by vinext) and the live demo, as one
- * Cloudflare Worker. Same layout as packages/extract-youtube/site.
+ * Cloudflare Worker.
  *
  * Why each plugin is here:
  *
@@ -78,6 +78,9 @@ function demoApiInDev(): Plugin {
     'DOCLING_MAX_PAGES',
     'DOCLING_MAX_TOKENS',
     'DOCLING_MAX_IMAGE_MB',
+    'OPENROUTER_API_KEY',
+    'CITE_MODEL',
+    'ADMIN_PASSWORD',
   ];
   const env = Object.fromEntries(names.map((name) => [name, process.env[name] || undefined]));
   return {

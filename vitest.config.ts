@@ -35,9 +35,11 @@ export default defineConfig({
     projects: [
       'apps/qwk-vscode-ext',
       'apps/qwksearch-desktop',
-      'apps/qwksearch-ext',
+      'apps/qwksearch-browser-ext',
       'apps/qwksearch-web',
       'packages/chat-agent-toolkit',
+      'packages/education-playlists',
+      'packages/extract-cite',
       'packages/extract-webpage',
       'packages/html-renderer-api',
       'packages/legal-terms-privacy-policy',
