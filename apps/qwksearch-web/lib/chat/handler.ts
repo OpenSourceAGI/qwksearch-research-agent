@@ -17,7 +17,7 @@ const searchHandlers = createSearchHandlers({
   isTavilyConfigured,
 });
 import ModelRegistry from "chat-agent-toolkit/models/registry";
-import { getUserId } from "@/lib/auth/session";
+import { getUserId } from "@/lib/auth/agent-session";
 import { checkGuestRateLimit } from "@/lib/rate-limit/guestRateLimiter";
 import { safeValidateBody, resolveMessageContent } from "./schemas";
 import type { Body } from "./schemas";

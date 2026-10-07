@@ -1,7 +1,8 @@
 import { createChatTitleHandler } from "research-agent-ui/api";
 import { getDB } from "@/lib/database";
 import { chats, messages } from "@/lib/database/schema";
-import { getUserId, requireUserId } from "@/lib/auth/session";
+import { getUserId, requireUserId } from "@/lib/auth/agent-session";
+import { withCors, corsPreflight } from "@/lib/cors";
 
 const handler = createChatTitleHandler({
   getDB,
@@ -10,4 +11,7 @@ const handler = createChatTitleHandler({
   schema: { chats, messages },
 });
 
-export const { POST } = handler;
+// Cross-origin embeds (debate-ai.com) reach these with the user's API key;
+// see lib/auth/agent-session.ts.
+export const POST = withCors(handler.POST);
+export const OPTIONS = corsPreflight;
