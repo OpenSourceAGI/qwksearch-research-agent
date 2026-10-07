@@ -1,12 +1,66 @@
 {
-  "name": "qwksearch-deploy",
+  "name": "qwksearch",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.2.0",
   "packageManager": "bun@1.4.0",
+  "//workspaces": "apps/ is listed app by app, not globbed: apps/qwk-in-lobe is a separate pnpm workspace (see .github/workflows/lobehub-engine.yml) and a root bun install must not walk into it.",
+  "workspaces": [
+    "packages/*",
+    "packages/render-url-to-html/*",
+    "apps/qwk-vscode-ext",
+    "apps/qwksearch-desktop",
+    "apps/qwksearch-browser-ext",
+    "apps/qwksearch-web",
+    "packages/extract-youtube/site",
+    "packages/extract-pdf/site"
+  ],
   "scripts": {
-    "build": "cd packages/extract-pdf/site && ./deploy-vercel.sh"
+    "dev": "turbo dev --filter=qwksearch-web",
+    "build": "turbo build",
+    "build:web": "turbo build --filter=qwksearch-web",
+    "dev:editor": "turbo dev --filter=react-reason-editor",
+    "build:editor": "turbo build --filter=react-reason-editor",
+    "test": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:report": "VITEST_HTML_REPORT_DIR=coverage/html vitest run",
+    "test:report:coverage": "VITEST_HTML_REPORT_DIR=coverage/html vitest run --coverage"
   },
   "devDependencies": {
-    "next": "^16.3.8"
+    "@typescript/typescript6": "^6.0.2",
+    "@vitest/coverage-v8": "^5.0.0",
+    "@vitest/ui": "^5.0.0",
+    "turbo": "^2.10.12",
+    "vitest": "^5.0.0"
+  },
+  "dependencies": {
+    "@moonshine-ai/moonshine-js": "^0.1.29",
+    "is-vpn": "^1.0.2",
+    "mammoth": "^1.12.2"
+  },
+  "overrides": {
+    "@ricky0123/vad-web": "^0.0.30",
+    "prosemirror-model": "^1.25.11",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-transform": "^1.12.0",
+    "prosemirror-view": "^1.42.3",
+    "@tiptap/core": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
+    "@tiptap/suggestion": "^3.31.3",
+    "@tiptap/extension-character-count": "^3.31.3",
+    "@tiptap/extension-code-block": "^3.31.3",
+    "@tiptap/extension-code-block-lowlight": "^3.31.3",
+    "@tiptap/extension-color": "^3.31.3",
+    "@tiptap/extension-highlight": "^3.31.3",
+    "@tiptap/extension-horizontal-rule": "^3.31.3",
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/extension-link": "^3.31.3",
+    "@tiptap/extension-placeholder": "^3.31.3",
+    "@tiptap/extension-task-item": "^3.31.3",
+    "@tiptap/extension-task-list": "^3.31.3",
+    "@tiptap/extension-text-style": "^3.31.3",
+    "@tiptap/extension-underline": "^3.31.3",
+    "@tiptap/extension-youtube": "^3.31.3"
   }
 }
