@@ -55,7 +55,7 @@ function copyStyles(pipWindow: Window): void {
  * page's (HTML's "document open steps"), which restores the referrer. It runs
  * before anything is added to the window, since it clears the document.
  */
-function adoptOpenerUrl(pipWindow: Window): void {
+export function adoptOpenerUrl(pipWindow: Window): void {
   try {
     const doc = pipWindow.document;
     doc.open();
