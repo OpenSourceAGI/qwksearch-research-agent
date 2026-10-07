@@ -1,0 +1,144 @@
+/*
+ * ads-in-chat-answers — default styles.
+ *
+ * Every rule is scoped under `.qads-root` and every colour is a custom
+ * property, so a host app restyles the ads by overriding the `--qads-*`
+ * tokens rather than fighting specificity. Dark is the default (chat UIs
+ * mostly are); light applies under `prefers-color-scheme: light` or an
+ * explicit `[data-theme="light"]` / `.light` ancestor.
+ */
+.qads-root {
+  --qads-bg: #0d0d0d;
+  --qads-surface: #1f1f1f;
+  --qads-surface-2: #2a2a2a;
+  --qads-border: #333;
+  --qads-text: #ececec;
+  --qads-muted: #9b9b9b;
+  --qads-accent: #3b82f6;
+  --qads-accent-text: #fff;
+  --qads-danger: #f87171;
+  --qads-success: #4ade80;
+  --qads-radius: 16px;
+  --qads-shadow: 0 12px 32px rgb(0 0 0 / 0.45);
+  color: var(--qads-text);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.qads-root *, .qads-root *::before, .qads-root *::after { box-sizing: inherit; }
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]):not(.dark) .qads-root {
+    --qads-bg: #fff; --qads-surface: #f4f4f5; --qads-surface-2: #e7e7ea; --qads-border: #dcdce0;
+    --qads-text: #18181b; --qads-muted: #6b6b73; --qads-shadow: 0 12px 32px rgb(0 0 0 / 0.14);
+  }
+}
+[data-theme="light"] .qads-root, .light .qads-root {
+  --qads-bg: #fff; --qads-surface: #f4f4f5; --qads-surface-2: #e7e7ea; --qads-border: #dcdce0;
+  --qads-text: #18181b; --qads-muted: #6b6b73; --qads-shadow: 0 12px 32px rgb(0 0 0 / 0.14);
+}
+
+/* ---------- Answer carousel ---------- */
+.qads-answer-ad { border-top: 1px solid var(--qads-border); padding-top: 14px; margin-top: 12px; position: relative; }
+.qads-ad-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.qads-ad-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.qads-ad-name { font-weight: 500; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qads-brand-mark { border-radius: 50%; object-fit: cover; flex: none; background: #fff; }
+.qads-brand-mark--initial { display: inline-grid; place-items: center; color: #fff; font-weight: 700; }
+.qads-ad-actions { display: flex; align-items: center; gap: 8px; position: relative; }
+.qads-ad-badge { background: var(--qads-surface-2); color: var(--qads-muted); font-size: 12px; padding: 3px 10px; border-radius: 999px; }
+.qads-icon-button { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; border: 0; background: transparent; color: var(--qads-text); cursor: pointer; font-size: 18px; }
+.qads-icon-button:hover, .qads-icon-button[aria-expanded="true"] { background: var(--qads-surface-2); }
+.qads-icon-button:focus-visible, .qads-root button:focus-visible, .qads-product:focus-visible { outline: 2px solid var(--qads-accent); outline-offset: 2px; }
+
+.qads-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 210px; padding: 6px; background: var(--qads-surface-2); border: 1px solid var(--qads-border); border-radius: 18px; box-shadow: var(--qads-shadow); }
+.qads-menu button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: 12px; background: transparent; color: var(--qads-text); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.qads-menu button:hover { background: color-mix(in srgb, var(--qads-text) 8%, transparent); }
+
+.qads-about { background: var(--qads-surface); border: 1px solid var(--qads-border); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; font-size: 13px; line-height: 1.5; }
+.qads-about p { margin: 0 0 6px; }
+.qads-about-numbers { color: var(--qads-muted); font-variant-numeric: tabular-nums; }
+.qads-hidden-note { color: var(--qads-muted); font-size: 13px; padding: 10px 0; border-top: 1px solid var(--qads-border); margin-top: 12px; }
+
+.qads-carousel { position: relative; }
+.qads-track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 200px); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 2px; }
+.qads-track::-webkit-scrollbar { display: none; }
+.qads-product { scroll-snap-align: start; display: flex; flex-direction: column; background: var(--qads-surface); border: 1px solid var(--qads-border); border-radius: var(--qads-radius); overflow: hidden; color: inherit; text-decoration: none; transition: border-color .15s, transform .15s; }
+.qads-product:hover { border-color: color-mix(in srgb, var(--qads-text) 30%, transparent); transform: translateY(-1px); }
+.qads-product-image { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; background: var(--qads-surface-2); }
+.qads-product-cover { display: grid; place-items: center; padding: 10% 14%; }
+.qads-cover-page { width: 100%; height: 100%; background: #fafafa; border-top: 6px solid; border-radius: 2px; padding: 12% 10%; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 6px 14px rgb(0 0 0 / .35); }
+.qads-cover-dot { width: 14px; height: 14px; border-radius: 50%; }
+.qads-cover-title { color: #111; font-weight: 800; font-size: clamp(11px, 1.1vw + 6px, 15px); overflow-wrap: anywhere; hyphens: auto; line-height: 1.05; text-transform: uppercase; letter-spacing: -0.02em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; }
+.qads-product-body { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px 12px; }
+.qads-product-title { font-size: 14px; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 2.7em; }
+.qads-product-price { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.qads-scroll { position: absolute; top: 38%; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--qads-border); background: var(--qads-surface-2); color: var(--qads-text); font-size: 20px; line-height: 1; cursor: pointer; box-shadow: var(--qads-shadow); }
+.qads-scroll--prev { left: -12px; }
+.qads-scroll--next { right: -12px; }
+@media (max-width: 520px) { .qads-scroll { display: none; } .qads-track { grid-auto-columns: 42%; } }
+
+/* ---------- Follow-ups ---------- */
+.qads-followups { margin-top: 18px; }
+.qads-followups-title { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+.qads-followups ul { list-style: none; margin: 0; padding: 0; }
+.qads-followups li + li { border-top: 1px solid var(--qads-border); }
+.qads-followup { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 4px; border: 0; background: transparent; color: var(--qads-text); font: inherit; font-size: 14.5px; text-align: left; cursor: pointer; flex-wrap: wrap; }
+.qads-followup:hover .qads-followup-text { color: var(--qads-accent); }
+.qads-followup-arrow { color: var(--qads-muted); }
+.qads-followup-text { flex: 1 1 auto; min-width: 0; }
+.qads-followup-tag { font-size: 11.5px; color: var(--qads-muted); border: 1px solid var(--qads-border); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.qads-followup-plus { color: var(--qads-muted); font-size: 18px; }
+
+/* ---------- Advertiser panel ---------- */
+.qads-panel { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .qads-panel { grid-template-columns: 1fr; } }
+.qads-panel h2 { font-size: 18px; margin: 0 0 12px; }
+.qads-panel-form, .qads-campaigns { background: var(--qads-surface); border: 1px solid var(--qads-border); border-radius: var(--qads-radius); padding: 18px; }
+.qads-panel fieldset { border: 0; border-top: 1px solid var(--qads-border); margin: 0; padding: 14px 0; display: grid; gap: 10px; min-width: 0; }
+.qads-panel legend { font-weight: 600; font-size: 14px; padding: 0 0 4px; }
+.qads-panel label { display: grid; gap: 6px; font-size: 13px; color: var(--qads-muted); }
+.qads-panel input:not([type="checkbox"]), .qads-panel textarea { width: 100%; font: inherit; font-size: 14px; color: var(--qads-text); background: var(--qads-bg); border: 1px solid var(--qads-border); border-radius: 10px; padding: 9px 11px; }
+.qads-panel input:focus, .qads-panel textarea:focus { outline: 2px solid var(--qads-accent); outline-offset: -1px; }
+.qads-panel textarea { resize: vertical; }
+.qads-optional { font-size: 11.5px; opacity: .75; }
+.qads-sublabel { font-size: 13px; color: var(--qads-muted); }
+.qads-muted { color: var(--qads-muted); font-size: 13px; margin: 0; }
+.qads-check { display: flex !important; align-items: center; gap: 8px; color: var(--qads-text) !important; font-size: 14px !important; }
+.qads-button { font: inherit; font-size: 14px; padding: 9px 14px; border-radius: 10px; border: 1px solid var(--qads-border); background: var(--qads-surface-2); color: var(--qads-text); cursor: pointer; }
+.qads-button:disabled { opacity: .6; cursor: progress; }
+.qads-button--primary { background: var(--qads-text); color: var(--qads-bg); border-color: transparent; font-weight: 600; }
+.qads-button--accent { background: var(--qads-accent); color: var(--qads-accent-text); border-color: transparent; }
+.qads-link-button { border: 0; background: none; padding: 0; color: var(--qads-accent); font: inherit; font-size: 13px; cursor: pointer; text-align: left; }
+.qads-danger { color: var(--qads-danger); }
+.qads-generate-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.qads-suggestions { background: var(--qads-bg); border: 1px dashed var(--qads-border); border-radius: 12px; padding: 10px; display: grid; gap: 8px; }
+.qads-suggestions-head { display: flex; justify-content: space-between; font-size: 13px; color: var(--qads-muted); }
+.qads-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.qads-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--qads-accent) 18%, transparent); color: var(--qads-text); border: 1px solid color-mix(in srgb, var(--qads-accent) 40%, transparent); }
+.qads-chip button { border: 0; background: none; color: inherit; cursor: pointer; padding: 0; font-size: 14px; line-height: 1; }
+.qads-chip--suggestion { cursor: pointer; background: transparent; font: inherit; font-size: 13px; }
+.qads-chip--suggestion:hover { background: color-mix(in srgb, var(--qads-accent) 18%, transparent); }
+.qads-chip--negative { background: color-mix(in srgb, var(--qads-danger) 15%, transparent); border-color: color-mix(in srgb, var(--qads-danger) 40%, transparent); }
+.qads-chip-input { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--qads-bg); border: 1px solid var(--qads-border); border-radius: 10px; padding: 6px; }
+.qads-chip-input input { flex: 1 1 140px; border: 0 !important; padding: 4px !important; background: transparent !important; }
+.qads-products, .qads-followup-fields { display: grid; gap: 8px; }
+.qads-product-row { display: grid; grid-template-columns: minmax(0, 2fr) 80px minmax(0, 2fr) 32px; gap: 6px; align-items: center; }
+@media (max-width: 520px) { .qads-product-row { grid-template-columns: 1fr 80px 32px; } .qads-product-row input:nth-child(3) { grid-column: 1 / 3; } }
+.qads-followup-preview { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--qads-text); flex-wrap: wrap; }
+.qads-followup-preview input { flex: 1 1 180px; width: auto !important; }
+.qads-money-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.qads-test-result { font-size: 13px; display: grid; gap: 4px; background: var(--qads-bg); border-radius: 10px; padding: 10px; }
+.qads-win { color: var(--qads-success); }
+.qads-error { color: var(--qads-danger); font-size: 13.5px; margin: 0 0 8px; }
+.qads-form-actions { display: flex; gap: 8px; padding-top: 8px; }
+.qads-campaigns ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.qads-campaign { background: var(--qads-bg); border: 1px solid var(--qads-border); border-radius: 12px; padding: 12px; display: grid; gap: 8px; }
+.qads-campaign--paused { opacity: .6; }
+.qads-campaign-head { display: flex; align-items: center; gap: 8px; }
+.qads-campaign-head .qads-muted { margin-left: auto; }
+.qads-campaign-keywords { font-size: 12.5px; color: var(--qads-muted); }
+.qads-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin: 0; }
+.qads-stats div { min-width: 0; }
+.qads-stats dt { font-size: 11px; color: var(--qads-muted); }
+.qads-stats dd { margin: 0; font-size: 13.5px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qads-campaign-actions { display: flex; gap: 14px; }

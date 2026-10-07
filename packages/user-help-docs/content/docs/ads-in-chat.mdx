@@ -1,0 +1,44 @@
+---
+title: Ads in Chat Answers
+description: How sponsored products and sponsored follow-up questions are chosen and labelled, and how advertisers buy keywords.
+icon: Megaphone
+---
+
+QwkSearch can show two kinds of sponsored placement in a chat, both from the
+`ads-in-chat-answers` package. Neither changes what the assistant says: the
+answer is written first, without any knowledge of advertisers, and ads are
+chosen afterwards.
+
+## What you see
+
+- **A product carousel under an answer.** It has the advertiser's name, an
+  **Ad** label and a ⋯ menu where you can hide the ad, see why it was shown,
+  ask about it, or report it.
+- **One sponsored follow-up question.** In the *Related* list, a row reading
+  "Learn more about …" marked **Sponsored** with the advertiser's name. It is
+  never the first suggestion.
+
+An ad appears only when your question matches keywords an advertiser chose.
+A question that matches nothing shows no ad, however much anyone bids.
+
+## How an ad is chosen
+
+1. Every active campaign is scored against your question (and, at half
+   weight, the answer). A negative keyword rules a campaign out.
+2. Campaigns under 30% relevance are dropped.
+3. The rest are ranked by relevance × the advertiser's maximum cost per
+   click; the winner pays just enough to beat the next ad.
+4. One advertiser can't fill both the carousel and the follow-up on the same
+   answer, and a campaign that has spent its daily budget is skipped.
+
+## For advertisers
+
+The advertiser panel takes a short description of your business and has a
+language model propose the keywords people actually ask about, along with
+negative keywords and a follow-up topic. You choose placements and products,
+set a bid and a daily budget, and can test any question against the live
+auction before launching.
+
+A live demo of both placements, the auction inspector and the panel deploys
+to Vercel from `packages/ads-in-chat-answers/demo` — see the package README
+for setup.

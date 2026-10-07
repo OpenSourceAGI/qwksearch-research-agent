@@ -121,6 +121,7 @@ bun i qwksearch-api-client
 
 ## 📦 Packages
 
+- <a href="https://www.npmjs.com/package/ads-in-chat-answers"><img src="https://img.shields.io/npm/dm/ads-in-chat-answers.svg" alt="Monthly Downloads"></a> **ads-in-chat-answers** — Sponsored placements for AI chat answers: a labelled product-carousel ad under an answer and one sponsored "Learn more about …" follow-up question, chosen by a relevance-gated, second-price keyword auction that runs after the answer is written. Ships the React components, a self-serve advertiser panel where an LLM proposes the keywords to buy, a Worker-safe handler, and a Vercel demo of how the placements work.
 - <a href="https://www.npmjs.com/package/chat-agent-toolkit"><img src="https://img.shields.io/npm/dm/chat-agent-toolkit.svg" alt="Monthly Downloads"></a> **chat-agent-toolkit** — A multi-provider AI agent toolkit that generates language responses, searches the web, extracts content, and manages memory across 10+ LLM providers. It integrates the Vercel AI SDK, Mastra framework, and MCP protocol to orchestrate research agent workflows.
 
 - <a href="https://www.npmjs.com/package/domain-rank"><img src="https://img.shields.io/npm/dm/domain-rank.svg" alt="Monthly Downloads"></a> **domain-rank** — Looks up top-ranked domains from the Tranco List and CommonCrawl backlink data to retrieve their human-readable source label, influence rank, and favicon. Useful for search/URL autocomplete, bookmark launchers, and domain reputation scoring.

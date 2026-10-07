@@ -44,6 +44,7 @@ things look similar:
 | NotebookLM automation in a sleeping container | `notebooklm-api-client` | ask-notebooklm-client |
 | Speech-to-text, text-to-speech, read-aloud CLI | `use-voice-control` | ask-use-voice-control |
 | The dock, the settings form, weather, trending news | `shadcn-app-dock`, `shadcn-settings`, `react-weather-forecast`, `trending-news-api` | ask-shadcn-app-dock, ask-shadcn-settings, ask-weather-forecast, ask-trending-news |
+| Sponsored ads in chat answers and follow-ups, advertiser keyword panel | `ads-in-chat-answers` | ask-ads-in-chat-answers |
 | The `/docs` help site | `user-help-docs` | ask-user-help-docs |
 | Training a GPT from scratch on Wikipedia (Python) | `language-model-training` | ask-language-model-training |
 | Stocks, brokerage, trading agents, prediction markets, arbitrage | `investing` (incl. `investing/predictos`) | ask-investing |

@@ -77,6 +77,7 @@ npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent 
 
 | Skill | Package | Covers |
 | --- | --- | --- |
+| [ask-ads-in-chat-answers](./ask-ads-in-chat-answers/SKILL.md) | `ads-in-chat-answers` | Sponsored answer carousels and follow-ups, the keyword auction, the advertiser panel, the Vercel demo |
 | [ask-research-agent-ui](./ask-research-agent-ui/SKILL.md) | `research-agent-ui` | The chat/search UI, the two entry points, providers, API handler factories |
 | [ask-reason-editor](./ask-reason-editor/SKILL.md) | `react-reason-editor` | The document editor: Plate vs Tiptap, `ReasonDocs`, 59 extensions, locales |
 | [ask-reason-editor-sidebar](./ask-reason-editor-sidebar/SKILL.md) | `react-reason-editor-sidebar` | File tree, open tabs, outline, split view, file-source backends |
