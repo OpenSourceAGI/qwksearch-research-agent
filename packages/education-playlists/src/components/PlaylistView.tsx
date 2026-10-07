@@ -8,6 +8,7 @@ import type { Playlist, PlaylistItem, PlaylistItemKind } from '../types';
 import { formatMinutes, playlistTime, weeksToFinish } from '../lib/time';
 import { encodeShareFragment, invite, removeMember } from '../lib/sharing';
 import { removeItem } from '../lib/playlists';
+import { inviteLink } from '../api/playlists';
 import type { Quiz, QuizGenerator } from '../quiz';
 import { s } from './styles';
 
@@ -52,6 +53,10 @@ export interface PlaylistViewProps {
   minutesPerWeek?: number;
   /** Page a share link opens, e.g. `https://example.com/learn`. */
   shareBaseHref?: string;
+  /** Whether to show visibility and invite controls (the owner's alone). Defaults to `true`. */
+  canShare?: boolean;
+  /** Saved to a server-side account, so invites reach the people invited. */
+  inAccount?: boolean;
   quizGenerator?: QuizGenerator;
 }
 
@@ -138,20 +143,20 @@ function ItemRow({
   );
 }
 
-function SharingControls({ playlist, onChange, shareBaseHref }: { playlist: Playlist; onChange: (p: Playlist) => void; shareBaseHref?: string }) {
+function SharingControls({ playlist, onChange, shareBaseHref, inAccount }: { playlist: Playlist; onChange: (p: Playlist) => void; shareBaseHref?: string; inAccount?: boolean }) {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState<string | null>(null);
+  const base = shareBaseHref ?? (typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '');
 
-  const copyShareLink = async () => {
-    const base = shareBaseHref ?? (typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '');
-    const link = `${base}#${encodeShareFragment(playlist)}`;
+  const copy = async (link: string, done: string) => {
     try {
       await navigator.clipboard.writeText(link);
-      setMessage('Share link copied.');
+      setMessage(done);
     } catch {
       setMessage(link);
     }
   };
+  const copyShareLink = () => copy(`${base}#${encodeShareFragment(playlist)}`, 'Share link copied.');
 
   const addInvite = () => {
     try {
@@ -198,10 +203,16 @@ function SharingControls({ playlist, onChange, shareBaseHref }: { playlist: Play
               Invite
             </button>
           </form>
+          {!inAccount && <div style={s.muted}>Invites are kept on this device until you sign in; nobody is notified yet.</div>}
           {(playlist.members ?? []).map((member) => (
             <div key={member.email ?? member.userId} style={{ ...s.row, ...s.muted }}>
               <span>{member.email}</span>
               <span style={s.badge}>{member.status === 'invited' ? 'invite pending' : member.role}</span>
+              {inAccount && member.status === 'invited' && member.inviteToken && (
+                <button type="button" style={{ ...s.chip, padding: '0 8px' }} onClick={() => copy(inviteLink(base, member.inviteToken!), `Invite link for ${member.email} copied.`)}>
+                  Copy invite link
+                </button>
+              )}
               {member.email && (
                 <button type="button" style={{ ...s.chip, padding: '0 8px' }} onClick={() => onChange(removeMember(playlist, member.email!))}>
                   Remove
@@ -216,7 +227,7 @@ function SharingControls({ playlist, onChange, shareBaseHref }: { playlist: Play
   );
 }
 
-export function PlaylistView({ playlist, done, onToggle, onChange, onSaveCopy, minutesPerWeek, shareBaseHref, quizGenerator }: PlaylistViewProps) {
+export function PlaylistView({ playlist, done, onToggle, onChange, onSaveCopy, minutesPerWeek, shareBaseHref, canShare = true, inAccount = false, quizGenerator }: PlaylistViewProps) {
   const time = playlistTime(playlist, done);
   const weeks = weeksToFinish(time.remainingMinutes, minutesPerWeek);
 
@@ -259,7 +270,7 @@ export function PlaylistView({ playlist, done, onToggle, onChange, onSaveCopy, m
           </button>
         )}
       </div>
-      {onChange && <SharingControls playlist={playlist} onChange={onChange} shareBaseHref={shareBaseHref} />}
+      {onChange && canShare && <SharingControls playlist={playlist} onChange={onChange} shareBaseHref={shareBaseHref} inAccount={inAccount} />}
     </div>
   );
 }

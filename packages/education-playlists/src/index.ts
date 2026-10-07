@@ -9,6 +9,7 @@ export * from './lib/search';
 export * from './planner';
 export * from './quiz';
 export * from './api/client';
+export * from './api/playlists';
 export * from './components/EducationPlaylists';
 export * from './components/PlaylistView';
 export * from './components/PlaylistPlanner';

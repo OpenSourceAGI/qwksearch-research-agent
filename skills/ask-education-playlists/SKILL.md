@@ -1,6 +1,6 @@
 ---
 name: ask-education-playlists
-description: Guide to education-playlists (packages/education-playlists), the self-paced study playlists package and the homepage Learn widget — the college-catalog taxonomy (category, major, program), the MIT OpenCourseWare seed catalog and its provenance, progress checkmarks and time estimates, private/public playlists with invites and share links, the LLM planner that asks follow-up questions and builds a custom playlist, the NotebookLM quiz hook, and qwksearch-web's /api/learn route and /learn page. Use when adding courses or data sources, changing the widget, wiring a model or search into the planner, or adding server-side playlist storage.
+description: Guide to education-playlists (packages/education-playlists), the self-paced study playlists package and the homepage Learn widget — the college-catalog taxonomy (category, major, program), the MIT OpenCourseWare seed catalog and its provenance, progress checkmarks and time estimates, private/public playlists with invites and share links, the LLM planner that asks follow-up questions and builds a custom playlist, the NotebookLM quiz hook, and qwksearch-web's /api/learn route and /learn page. Use when adding courses or data sources, changing the widget, wiring a model or search into the planner, or changing server-side playlist storage (/api/learn/playlists, invites).
 ---
 
 # Working With education-playlists
@@ -54,8 +54,17 @@ questions, catalog keyword search. The response says which (`mode`).
 - `encodeShareFragment` / `decodeShareFragment` — a public playlist rides in the
   URL fragment (`/learn#playlist=…`); `<EducationPlaylists importFromHash />`
   opens it. Members are stripped; private playlists are refused.
-- `invite` / `acceptInvite` / `canView` / `canEdit` — the access rules. Today
-  invites are stored locally only; a server store must enforce these itself.
+- `invite` / `acceptInvite` / `canView` / `canEdit` — the access rules, pure
+  functions shared by the widget and the server.
+- `handlePlaylistStoreRequest` (`education-playlists/server`) — server-side
+  storage over a `PlaylistRepository` the host supplies, with `getUser` and an
+  optional `notifyInvite`. Routes: `GET <base>/playlists` (`{ playlists,
+  invites }`), `GET|PUT|DELETE <base>/playlists/:id`, `POST
+  <base>/playlists/accept-invite`. Invites are accepted only by the verified
+  address they were sent to; only the owner sees tokens and changes members.
+- `createRemotePlaylistStore` (browser) — what the widget uses when given
+  `playlistsEndpoint` + `userId`; `#invite=<token>` links are accepted on
+  arrival with `importFromHash`.
 
 ## Quiz hook
 
@@ -72,7 +81,11 @@ questions, catalog keyword search. The response says which (`mode`).
 - `/api/learn` and `/api/learn/questions` → `lib/learn/planner.ts`, which passes
   the default chat model and a Searxng video search, metered by the guest rate
   limiter (offline past the limit).
-- `/learn` — the full-page widget, and where share links land.
+- `/learn` — the full-page widget, and where share and invite links land. It
+  passes the signed-in (non-anonymous) user and `/api/learn/playlists`.
+- `/api/learn/playlists[/:id]` → `lib/learn/playlists.ts`: the D1 repository
+  (`learn_playlists`, `learn_playlist_members`, migration `0012`) and the
+  better-auth user. No `notifyInvite` yet — the app has no mail sender.
 
 ```bash
 cd packages/education-playlists && bun run test

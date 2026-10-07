@@ -6,6 +6,9 @@
  * - `POST <base>` `{ goal, answers }` → `{ playlist, searches, mode, minutesPerWeek? }`
  * - `GET  <base>/catalog` → the bundled catalog
  *
+ * Playlist storage (`<base>/playlists…`) is a separate handler,
+ * `handlePlaylistStoreRequest`, in `./playlists`.
+ *
  * Plain `Request`/`Response`, no DOM and no React, so it runs on Workers,
  * Node 18+, Bun and Deno. Bodies are capped and re-validated here; the
  * widget's own limits are a courtesy, not a check.
@@ -57,3 +60,13 @@ export async function handleEducationPlaylistsRequest(request: Request, deps: Pl
   if (path.endsWith('/questions')) return json(await suggestFollowUps(planRequest.goal, deps));
   return json(await planPlaylist(planRequest, deps));
 }
+
+export {
+  handlePlaylistStoreRequest,
+  createMemoryPlaylistRepository,
+  playlistForViewer,
+  MAX_PLAYLIST_BODY_BYTES,
+  MAX_PLAYLIST_MEMBERS,
+  MAX_OWNED_PLAYLISTS,
+} from './playlists';
+export type { PlaylistRepository, PlaylistStoreDeps, PlaylistUser, PendingInvite, InviteNotice } from './playlists';

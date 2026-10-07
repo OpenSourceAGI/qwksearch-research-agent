@@ -5,6 +5,7 @@ import {
   sqliteTable,
   index,
   unique,
+  primaryKey,
 } from "drizzle-orm/sqlite-core";
 
 export const messages = sqliteTable("messages", {
@@ -511,3 +512,63 @@ export const newsWidgetSettings = sqliteTable("news_widget_settings", {
 });
 
 export type NewsWidgetSettingsRow = typeof newsWidgetSettings.$inferSelect;
+
+/**
+ * Education playlists saved to an account (`/learn`, `/api/learn/playlists`),
+ * so a private playlist follows its owner across devices and an invite
+ * reaches the person invited. Access rules live in `education-playlists`
+ * (`handlePlaylistStoreRequest`); `lib/learn/playlists.ts` is the repository.
+ *
+ * `data` is the whole playlist as JSON, minus its members: the items are
+ * always read and written together, never queried. `title` and `visibility`
+ * are copied out of it for the admin view and future listing.
+ */
+export const learnPlaylists = sqliteTable(
+  "learn_playlists",
+  {
+    id: text("id").primaryKey(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    /** `private` or `public`. */
+    visibility: text("visibility").notNull().default("private"),
+    data: text("data").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => ({
+    ownerIdx: index("idx_learn_playlists_owner").on(table.ownerId),
+  }),
+);
+
+/**
+ * Who a playlist is shared with. A row starts as an invite to an address
+ * (`status = 'invited'`, `invite_token` set) and becomes a membership when
+ * that address's user accepts (`user_id` set, token cleared). `user_id` has
+ * no foreign key because an invite may name someone with no account yet.
+ */
+export const learnPlaylistMembers = sqliteTable(
+  "learn_playlist_members",
+  {
+    playlistId: text("playlist_id")
+      .notNull()
+      .references(() => learnPlaylists.id, { onDelete: "cascade" }),
+    email: text("email").notNull(),
+    userId: text("user_id"),
+    /** `editor` or `viewer`. */
+    role: text("role").notNull(),
+    /** `invited` or `active`. */
+    status: text("status").notNull(),
+    inviteToken: text("invite_token").unique(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.playlistId, table.email] }),
+    userIdx: index("idx_learn_playlist_members_user").on(table.userId),
+    emailIdx: index("idx_learn_playlist_members_email").on(table.email),
+  }),
+);

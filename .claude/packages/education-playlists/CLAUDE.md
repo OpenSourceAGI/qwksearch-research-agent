@@ -27,10 +27,16 @@ program), the homepage **Learn** widget, and an LLM planner. Not yet published.
 - **The server handler caps input** (`MAX_PLAN_BODY_BYTES`, goal/answer
   lengths, answer count). Rate limiting is the host's job; qwksearch-web meters
   `/api/learn` with the guest limiter and plans offline past the limit.
-- **Sharing is not persisted server-side yet.** Public playlists share by URL
-  fragment (no storage needed); private playlists and invites live in
-  `localStorage` only. `canView`/`canEdit` are the rules a server store must
-  enforce when one is added — the widget's checks are display only.
+- **The server store is where access is enforced.** `handlePlaylistStoreRequest`
+  (`src/server/playlists.ts`) runs `canView`/`canEdit`; the widget's checks are
+  display only. Only the owner changes visibility and members, members are
+  reconciled server-side (never trust a client's status, user id or token), an
+  invite is accepted only by the verified address it was sent to, and invite
+  tokens are shown to the owner alone. Storage is behind `PlaylistRepository`;
+  qwksearch-web's D1 one is `apps/qwksearch-web/lib/learn/playlists.ts`.
+- Signed out (or with no `playlistsEndpoint`), playlists live in `localStorage`
+  and invites go nowhere. On sign-in the widget uploads them once and drops
+  the local copies. Public playlists still share by URL fragment.
 - Time estimates on seed items are `rough` and say how they were derived
   (`estimateBasis`). Progress is measured by time, not item count.
 

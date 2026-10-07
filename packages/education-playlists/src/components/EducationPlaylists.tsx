@@ -12,7 +12,8 @@ import type { EducationCatalog, Playlist } from '../types';
 import { filterPlaylists, getDefaultCatalog } from '../catalog';
 import { createProgressStore, toggleDone } from '../lib/progress';
 import { createLocalPlaylistStore, createPlaylist } from '../lib/playlists';
-import { decodeShareFragment } from '../lib/sharing';
+import { canEdit, decodeShareFragment } from '../lib/sharing';
+import { createRemotePlaylistStore, readInviteFragment, type PlaylistInvite } from '../api/playlists';
 import { formatMinutes, playlistTime } from '../lib/time';
 import type { PlanResult } from '../planner';
 import type { QuizGenerator } from '../quiz';
@@ -40,6 +41,14 @@ export interface EducationPlaylistsProps {
   importFromHash?: boolean;
   /** Signed-in user, recorded as the owner of playlists they create. */
   userId?: string;
+  /**
+   * The host's playlist store (see `handlePlaylistStoreRequest`), e.g.
+   * `/api/learn/playlists`. With it and a `userId`, "My playlists" live in the
+   * account: they follow the user across devices, invites reach invitees, and
+   * playlists made on this device while signed out move into the account.
+   * Without it, playlists stay in this browser.
+   */
+  playlistsEndpoint?: string;
   /** Turns on "Quiz me" for each item (NotebookLM or another quiz source). */
   quizGenerator?: QuizGenerator;
 }
@@ -90,11 +99,13 @@ export function EducationPlaylists({
   shareBaseHref,
   importFromHash = false,
   userId,
+  playlistsEndpoint,
   quizGenerator,
 }: EducationPlaylistsProps) {
   const catalog = useMemo(() => catalogProp ?? getDefaultCatalog(), [catalogProp]);
   const progressStore = useMemo(() => createProgressStore(), []);
   const playlistStore = useMemo(() => createLocalPlaylistStore(), []);
+  const remote = useMemo(() => (playlistsEndpoint && userId ? createRemotePlaylistStore(playlistsEndpoint) : null), [playlistsEndpoint, userId]);
 
   const [expanded, setExpanded] = useState(!compact);
   const [tab, setTab] = useState<Tab>('browse');
@@ -104,6 +115,8 @@ export function EducationPlaylists({
   const [majorId, setMajorId] = useState<string | undefined>();
   const [programId, setProgramId] = useState<string | undefined>();
   const [open, setOpen] = useState<OpenPlaylist | null>(null);
+  const [invites, setInvites] = useState<PlaylistInvite[]>([]);
+  const [notice, setNotice] = useState<string | null>(null);
 
   // Storage is read after mount so the server render and the first client
   // render agree; progress then fills in.
@@ -112,6 +125,29 @@ export function EducationPlaylists({
     setMine(playlistStore.list());
   }, [progressStore, playlistStore]);
 
+  // Signed in with a store: the account is the source of truth. Playlists
+  // this device kept while signed out are uploaded once, then dropped locally.
+  useEffect(() => {
+    if (!remote) return;
+    const controller = new AbortController();
+    (async () => {
+      for (const playlist of playlistStore.list().filter((p) => !p.ownerId || p.ownerId === userId)) {
+        try {
+          await remote.save({ ...playlist, ownerId: userId });
+          playlistStore.remove(playlist.id);
+        } catch {
+          // Stays on this device; the next visit tries again.
+        }
+      }
+      const result = await remote.list(controller.signal);
+      setMine(result.playlists);
+      setInvites(result.invites);
+    })().catch((error: Error) => {
+      if (error.name !== 'AbortError') setNotice(`Couldn't load your saved playlists: ${error.message}`);
+    });
+    return () => controller.abort();
+  }, [remote, playlistStore, userId]);
+
   useEffect(() => {
     if (!importFromHash || typeof window === 'undefined') return;
     const shared = decodeShareFragment(window.location.hash);
@@ -119,7 +155,25 @@ export function EducationPlaylists({
       setExpanded(true);
       setOpen({ playlist: shared, source: 'shared' });
     }
-  }, [importFromHash]);
+    const token = readInviteFragment(window.location.hash);
+    if (!token) return;
+    setExpanded(true);
+    if (!remote) {
+      // The hash stays put, so the invite is accepted once sign-in completes.
+      setNotice(playlistsEndpoint ? 'Sign in with the invited email address to open this playlist.' : 'Invites need an account to open.');
+      return;
+    }
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    remote
+      .acceptInvite(token)
+      .then((playlist) => {
+        setMine((prev) => [playlist, ...prev.filter((p) => p.id !== playlist.id)]);
+        setInvites((prev) => prev.filter((i) => i.token !== token));
+        setOpen({ playlist, source: 'mine' });
+        setNotice(null);
+      })
+      .catch((error: Error) => setNotice(error.message));
+  }, [importFromHash, remote, playlistsEndpoint]);
 
   const category = catalog.categories.find((c) => c.id === categoryId);
   const major = category?.majors.find((m) => m.id === majorId);
@@ -133,9 +187,27 @@ export function EducationPlaylists({
     });
   };
 
-  const saveMine = (playlist: Playlist) => {
-    setMine(playlistStore.save({ ...playlist, updatedAt: new Date().toISOString() }));
+  const showSaved = (playlist: Playlist) => {
+    setMine((prev) => [playlist, ...prev.filter((p) => p.id !== playlist.id)]);
     setOpen((current) => (current?.playlist.id === playlist.id ? { ...current, playlist } : current));
+  };
+
+  const saveMine = (playlist: Playlist) => {
+    if (!remote) {
+      setMine(playlistStore.save({ ...playlist, updatedAt: new Date().toISOString() }));
+      setOpen((current) => (current?.playlist.id === playlist.id ? { ...current, playlist } : current));
+      return;
+    }
+    // Shown at once, then replaced by the server's copy (which carries the
+    // invite tokens new members were given).
+    showSaved(playlist);
+    remote
+      .save(playlist)
+      .then((saved) => {
+        showSaved(saved);
+        setNotice(null);
+      })
+      .catch((error: Error) => setNotice(`Couldn't save to your account: ${error.message}`));
   };
 
   const saveCopy = (playlist: Playlist) => {
@@ -146,14 +218,30 @@ export function EducationPlaylists({
       ownerId: userId,
       plannedFrom: playlist.plannedFrom,
     });
-    setMine(playlistStore.save(copy));
     setOpen({ playlist: copy, source: 'mine' });
     setTab('mine');
+    saveMine(copy);
   };
 
   const deleteMine = (id: string) => {
-    setMine(playlistStore.remove(id));
     setOpen(null);
+    if (!remote) {
+      setMine(playlistStore.remove(id));
+      return;
+    }
+    setMine((prev) => prev.filter((p) => p.id !== id));
+    remote.remove(id).catch((error: Error) => setNotice(`Couldn't delete it from your account: ${error.message}`));
+  };
+
+  const acceptInvite = (pending: PlaylistInvite) => {
+    remote
+      ?.acceptInvite(pending.token)
+      .then((playlist) => {
+        setInvites((prev) => prev.filter((i) => i.token !== pending.token));
+        showSaved(playlist);
+        openPlaylist(playlist, 'mine');
+      })
+      .catch((error: Error) => setNotice(error.message));
   };
 
   const openPlaylist = (playlist: Playlist, source: Source) => {
@@ -214,13 +302,16 @@ export function EducationPlaylists({
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'browse', label: 'Browse' },
-    { id: 'mine', label: `My playlists${mine.length ? ` (${mine.length})` : ''}` },
+    { id: 'mine', label: `My playlists${mine.length ? ` (${mine.length})` : ''}${invites.length ? ` · ${invites.length} invite${invites.length === 1 ? '' : 's'}` : ''}` },
     { id: 'plan', label: 'Plan with AI' },
   ];
 
   let body: React.ReactNode;
   if (open) {
-    const editable = open.source === 'mine';
+    // Signed in, a playlist in "mine" may be one shared with the user; the
+    // server enforces these too, this only decides what to offer.
+    const owned = !remote || open.playlist.ownerId === userId;
+    const editable = open.source === 'mine' && (owned || canEdit(open.playlist, userId));
     body = (
       <div style={s.section}>
         <div style={s.row}>
@@ -233,7 +324,7 @@ export function EducationPlaylists({
               {open.plan.mode === 'llm' ? 'Planned by AI' : 'Planned from the catalog (AI not connected)'} from: {open.plan.searches.join(' · ')}
             </span>
           )}
-          {editable && (
+          {editable && owned && (
             <button type="button" style={s.button} onClick={() => deleteMine(open.playlist.id)}>
               Delete
             </button>
@@ -244,7 +335,9 @@ export function EducationPlaylists({
           done={done}
           onToggle={toggle}
           onChange={editable ? saveMine : undefined}
-          onSaveCopy={editable ? undefined : saveCopy}
+          onSaveCopy={open.source === 'mine' ? undefined : saveCopy}
+          canShare={owned}
+          inAccount={Boolean(remote)}
           minutesPerWeek={open.plan?.minutesPerWeek}
           shareBaseHref={shareBase}
           quizGenerator={quizGenerator}
@@ -292,14 +385,28 @@ export function EducationPlaylists({
       </div>
     );
   } else if (tab === 'mine') {
-    body = mine.length ? (
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 6 }}>
-        {mine.map((playlist) => (
-          <PlaylistCard key={playlist.id} playlist={playlist} done={done} onOpen={() => openPlaylist(playlist, 'mine')} />
+    body = (
+      <div style={s.section}>
+        {invites.map((pending) => (
+          <div key={pending.token} style={s.row}>
+            <span style={s.muted}>
+              You're invited to <strong>{pending.title}</strong> as {pending.role === 'editor' ? 'an editor' : 'a viewer'}.
+            </span>
+            <button type="button" style={s.primary} onClick={() => acceptInvite(pending)}>
+              Accept
+            </button>
+          </div>
         ))}
+        {mine.length ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 6 }}>
+            {mine.map((playlist) => (
+              <PlaylistCard key={playlist.id} playlist={playlist} done={done} onOpen={() => openPlaylist(playlist, 'mine')} />
+            ))}
+          </div>
+        ) : (
+          <div style={s.muted}>Nothing saved yet. Save a preset playlist, or plan your own with AI.</div>
+        )}
       </div>
-    ) : (
-      <div style={s.muted}>Nothing saved yet. Save a preset playlist, or plan your own with AI.</div>
     );
   } else {
     body = <PlaylistPlanner planEndpoint={planEndpoint} onPlanned={(result) => setOpen({ playlist: result.playlist, source: 'planned', plan: result })} />;
@@ -315,6 +422,11 @@ export function EducationPlaylists({
               {t.label}
             </button>
           ))}
+        </div>
+      )}
+      {notice && (
+        <div role="status" style={s.muted}>
+          {notice}
         </div>
       )}
       {body}

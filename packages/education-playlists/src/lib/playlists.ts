@@ -2,10 +2,10 @@
  * @fileoverview A learner's own playlists: creating and editing them, and
  * keeping them in the browser.
  *
- * Browser storage is this sketch's only backend. It is enough for private
- * playlists and progress on one device; sharing a private playlist with an
- * invitee needs the host app to store playlists server-side (see the
- * package README), which the `PlaylistStore` interface is shaped for.
+ * This is the signed-out store: enough for private playlists on one device.
+ * Signed in, the widget keeps playlists server-side instead
+ * (`createRemotePlaylistStore` over `handlePlaylistStoreRequest`), which is
+ * what lets an invite reach the person invited.
  */
 import type { Playlist, PlaylistItem, PlaylistVisibility } from '../types';
 import { sanitizePlaylist } from './sanitize';
