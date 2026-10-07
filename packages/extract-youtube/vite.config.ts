@@ -10,6 +10,7 @@ const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
 const buildCli = process.env.BUILD_CLI === 'true';
 const buildReact = process.env.BUILD_REACT === 'true';
 const buildLibrary = process.env.BUILD_LIBRARY === 'true';
+const buildDownload = process.env.BUILD_DOWNLOAD === 'true';
 
 const libEntry = buildCli
   ? {
@@ -33,6 +34,14 @@ const libEntry = buildCli
           formats: ['es', 'cjs'] as const,
           fileName: (format: string) => `library/index.${format === 'es' ? 'mjs' : 'cjs'}`,
         }
+      : buildDownload
+        ? {
+            // Node-only: cloud-ytdl (optional peer, imported lazily) and ffmpeg.
+            entry: resolve(__dirname, 'src/download/index.ts'),
+            name: 'ExtractYoutubeDownload',
+            formats: ['es', 'cjs'] as const,
+            fileName: (format: string) => `download/index.${format === 'es' ? 'mjs' : 'cjs'}`,
+          }
       : {
         entry: resolve(__dirname, 'src/index.ts'),
         name: 'YouTubeTranscriptApi',
@@ -57,6 +66,8 @@ export default defineConfig({
         ? ['react', 'react-dom', 'react/jsx-runtime', 'lucide-react']
         : buildLibrary
           ? []
+          : buildDownload
+            ? ['cloud-ytdl', 'node:stream', 'node:stream/web', 'node:http', 'node:child_process']
           : [
             ...Object.keys(pkg.dependencies || {}).filter((d) => d !== 'grab-url'),
             'node:http',
@@ -65,6 +76,10 @@ export default defineConfig({
             'node:stream',
             'node:buffer',
             'node:util',
+            'node:fs',
+            'node:child_process',
+            'node:stream/promises',
+            'node:stream/web',
           ],
       output: {
         // Preserve module structure for better tree-shaking

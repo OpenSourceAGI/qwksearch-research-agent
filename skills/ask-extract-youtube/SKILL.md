@@ -1,6 +1,6 @@
 ---
 name: ask-extract-youtube
-description: Guide to extract-youtube (packages/extract-youtube), the browserless YouTube transcript extractor — the YouTubeTranscriptApi class, language selection and translation, the typed error hierarchy (RequestBlocked, IpBlocked, TranscriptsDisabled, AgeRestricted, PoTokenRequired…), Webshare and generic proxy configs, the JSON/text/SRT/WebVTT/article formatters, the reading-speed encoder, the CLI, the video library admin API (extract-youtube/library: memory or D1 store, createVideoLibraryHandler, client, stacks, custom fields, resync, auto-fill) and the React UI (floating player, transcript modal, VideoGrid/VideoList/VideoCard, VideoLibraryAdmin). Use when a transcript fetch fails or returns the wrong language, when YouTube blocks a datacenter IP, when picking an output format, when building or serving a video library with the grid or admin screens, or when the multi-target build (lib/cli/react/library) misbehaves.
+description: Guide to extract-youtube (packages/extract-youtube), the browserless YouTube transcript extractor — the YouTubeTranscriptApi class, language selection and translation, the typed error hierarchy (RequestBlocked, IpBlocked, TranscriptsDisabled, AgeRestricted, PoTokenRequired…), Webshare and generic proxy configs, the JSON/text/SRT/WebVTT/article formatters, the reading-speed encoder, the CLI, the video library admin API (extract-youtube/library: memory or D1 store, createVideoLibraryHandler, client, stacks, custom fields, resync, auto-fill) and the React UI (floating player, transcript modal, VideoGrid/VideoList/VideoCard, VideoLibraryAdmin). Use when a transcript fetch fails or returns the wrong language, when a video has no captions and its audio must be downloaded (MP3) for speech-to-text, when YouTube blocks a datacenter IP, when picking an output format, when building or serving a video library with the grid or admin screens, or when the multi-target build (lib/cli/react/library) misbehaves.
 ---
 
 # Working With extract-youtube
@@ -24,7 +24,9 @@ instance holds an HTTP client, so it is not thread-safe; create one per worker.
 Subpaths: the root entry is the Node/edge transcript library,
 `extract-youtube/library` is the video library and its admin API (no React, no Node
 built-ins), `extract-youtube/react` is the UI (player, transcript modal, grid, list,
-admin screens), and the `extract-youtube` binary is the CLI.
+admin screens), `extract-youtube/download` is the Node-only media downloader (audio as
+MP3/M4A/WebM, video, subtitles, playlists, posts) over the optional `cloud-ytdl` peer, with
+an HTTP API to run it as a cloud service, and the `extract-youtube` binary is the CLI.
 
 ## Picking the right call
 
