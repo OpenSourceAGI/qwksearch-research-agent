@@ -17,6 +17,7 @@ import { Providers } from '@/components/layout/Providers';
 import '@/lib/debug/marks/layout-providers-end';
 import { logSsrError, traceSsr } from '@/lib/debug/ssr-trace';
 import { googleFontsLoaderScript } from '@/lib/fonts/google-fonts';
+import { Amplitude } from '@/components/layout/Amplitude';
 
 export const metadata: Metadata = {
   title: config.appName + ' - Reimagine the Web as a Self-Organizing Mind Map',
@@ -74,6 +75,7 @@ export default async function RootLayout({
         }} />
       </head>
       <body className={cn('h-full', 'font-sans')}>
+        <Amplitude />
         <Providers>
           {children}
         </Providers>

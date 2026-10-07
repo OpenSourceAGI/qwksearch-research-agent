@@ -37,6 +37,7 @@
     "@ai-sdk/groq": "^4.0.38",
     "@ai-sdk/openai": "^4.0.62",
     "@ai-sdk/xai": "^4.0.55",
+    "@amplitude/unified": "^1.1.38",
     "@better-auth/stripe": "~1.7.3",
     "@floating-ui/react": "^0.27.20",
     "@fumadocs/mdx-remote": "^1.5.1",

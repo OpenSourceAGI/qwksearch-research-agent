@@ -6,7 +6,5 @@
   "scripts": {
     "build": "cd packages/extract-pdf/site && ./deploy-vercel.sh"
   },
-  "devDependencies": {
-    "next": "^16.3.8"
-  }
+  "devDependencies": {}
 }

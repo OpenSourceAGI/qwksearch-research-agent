@@ -1,0 +1,61 @@
+# Vercel ignore file
+# Exclude Cloudflare-specific files
+wrangler.jsonc
+worker/
+.cloudflare/
+.wrangler/
+
+# Exclude development files
+node_modules/
+.bun/
+dist/
+build/
+*.log
+.env
+.env.local
+.env.*.local
+
+# Exclude test files
+*.test.ts
+*.spec.ts
+test/
+tests/
+coverage/
+
+# Exclude IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
+
+# Exclude git
+.git/
+.gitignore
+
+# Exclude documentation not needed for deployment
+README.md
+CHANGELOG.md
+
+# Exclude package files not needed for runtime
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Exclude TypeScript source (compiled output will be used)
+*.ts
+!*.d.ts
+tsconfig.json
+
+# Exclude Vite config (not needed for Vercel)
+vite.config.ts
+
+# Exclude Cloudflare Vite plugin config
+@cloudflare/
+
+# Exclude extract-pdf source (use built package)
+../src/
+../dist/

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -14,14 +18,40 @@
     "isolatedModules": true,
     "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "paths": {
-      "@/*": ["./*"],
-      "fumadocs-mdx:collections/*": ["./.source/*"],
-      "extract-pdf": ["./types/extract-pdf.d.ts"],
-      "extract-webpage/url-to-content/url-to-content": ["./types/extract-webpage-url-to-content.d.ts"]
-    }
+      "@/*": [
+        "./*"
+      ],
+      "fumadocs-mdx:collections/*": [
+        "./.source/*"
+      ],
+      "extract-pdf": [
+        "./types/extract-pdf.d.ts"
+      ],
+      "extract-webpage/url-to-content/url-to-content": [
+        "./types/extract-webpage-url-to-content.d.ts"
+      ]
+    },
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "dist", ".wrangler"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".wrangler"
+  ]
 }
