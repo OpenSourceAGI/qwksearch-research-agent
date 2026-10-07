@@ -16,6 +16,10 @@ export default defineConfig({
     // in a suite they are just noise between the assertions. The tracer's own
     // tests stub this back on.
     env: { QS_SSR_TRACE: 'off' },
+    // fumadocs-core 16.15.17+ imports `next/navigation` without the `.js`
+    // suffix. Next has no `exports` map, so Node's ESM loader cannot resolve
+    // that when the package is externalized; inlining it lets Vite resolve it.
+    server: { deps: { inline: [/fumadocs-/] } },
     restoreMocks: true,
     unstubEnvs: true,
     unstubGlobals: true,
