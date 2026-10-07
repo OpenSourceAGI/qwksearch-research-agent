@@ -8,7 +8,7 @@ codecov:
   require_ci_to_pass: false
 
 coverage:
-  precision: 2
+  precision: 0
   round: down
   range: "50...90"
 

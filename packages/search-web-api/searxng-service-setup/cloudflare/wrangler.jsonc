@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "searxng-search",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "containers": [
+    {
+      "class_name": "SearxngContainer",
+      "image": "./Dockerfile",
+      "image_build_context": "..",
+      // smallest/cheapest instance; bump to "basic" if SearXNG OOMs
+      "instance_type": "lite",
+      "max_instances": 2
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "class_name": "SearxngContainer", "name": "SEARXNG" }]
+  },
+  "migrations": [{ "new_sqlite_classes": ["SearxngContainer"], "tag": "v1" }],
+  "observability": { "enabled": true }
+}

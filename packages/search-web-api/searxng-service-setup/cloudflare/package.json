@@ -1,0 +1,16 @@
+{
+  "name": "searxng-search-cloudflare",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.0.30"
+  },
+  "devDependencies": {
+    "wrangler": "^4.30.0",
+    "typescript": "^5.6.0"
+  }
+}
