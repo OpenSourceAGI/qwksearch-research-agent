@@ -1,5 +1,5 @@
 import { createProvidersHandler } from "research-agent-ui/api";
-import { getSession } from "@/lib/auth/session";
+import { getSession } from "@/lib/auth/agent-session";
 import { withCors, corsPreflight } from "@/lib/cors";
 
 const handler = createProvidersHandler({ getSession });

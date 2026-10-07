@@ -296,6 +296,43 @@ export const dynamic = "force-dynamic";
 export const POST = handleChatRequest;
 ```
 
+## Embedding on another site: "Sign in with QwkSearch"
+
+A site that embeds the research agent has no QwkSearch session cookie, so by
+default the embed runs as a guest. `createQwkSearchConnectAuthClient` makes the
+login button go through QwkSearch's OAuth-style consent screen
+(`https://qwksearch.com/connect`, authorization code + PKCE) instead. Your
+server finishes the exchange at `POST https://qwksearch.com/api/connect/token`,
+stores the returned API key against your own user, and hands it back to the
+embed; every request the embed then makes to `qwksearch.com/api/` carries it as
+`X-API-Key`, so chats, history and the user's QwkSearch plan work in the embed.
+
+```tsx
+import { SessionProvider, createQwkSearchConnectAuthClient } from 'research-agent-ui';
+
+const authClient = createQwkSearchConnectAuthClient({
+  sessionUrl: '/api/qwksearch/session',      // GET  -> { connected, user, apiKey, plan, upgradeUrl }
+  connectUrl: '/api/qwksearch/connect',      // GET  -> PKCE + redirect to qwksearch.com/connect
+  disconnectUrl: '/api/qwksearch/disconnect' // POST -> forget the stored key
+});
+
+<SessionProvider authClient={authClient} enableGoogleOneTap={false}>…</SessionProvider>
+```
+
+The flow, from your server's side:
+
+1. Make a PKCE verifier, keep it (an httpOnly cookie), and redirect to
+   `https://qwksearch.com/connect?redirect_uri=<your callback>&state=<random>&code_challenge=<S256>&code_challenge_method=S256`.
+2. QwkSearch signs the user in if needed and asks them to allow the link, then
+   redirects to `redirect_uri?code=…&state=…` (or `?error=access_denied`).
+3. `POST /api/connect/token` with `{ code, redirect_uri, code_verifier }` →
+   `{ api_key, user, plan, upgrade_url }`.
+4. `GET /api/connect/me` with the key as `X-API-Key` refreshes the profile and
+   plan later — e.g. after the user follows `upgrade_url` to upgrade.
+
+`redirect_uri` must be on QwkSearch's allowlist (debate-ai.com and localhost
+by default; more via the `QWKSEARCH_CONNECT_ORIGINS` env var on qwksearch-web).
+
 ## Configuration
 
 `configureResearchAgentUI` overrides app-specific values (branding strings,

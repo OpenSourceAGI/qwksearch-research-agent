@@ -1,5 +1,5 @@
 import { createVoiceHandler } from "research-agent-ui/api";
-import { getUserId } from "@/lib/auth/session";
+import { getUserId } from "@/lib/auth/agent-session";
 import { checkTTSRateLimit } from "@/lib/rate-limit/guestRateLimiter";
 import { generateSpeech } from "../../../../../../packages/use-voice-control/speech";
 

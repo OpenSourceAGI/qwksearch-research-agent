@@ -78,6 +78,19 @@ export type { ChatContextValue } from './hooks/useChat';
 
 // ============ Session / Auth ============
 export { SessionProvider, useSession } from './hooks/useSession';
+export {
+  createQwkSearchConnectAuthClient,
+  setQwkSearchApiKey,
+  getQwkSearchApiKey,
+  buildConnectStartUrl,
+  isQwkSearchApiRequest,
+  QWKSEARCH_DEFAULT_ORIGIN,
+} from './lib/qwksearch-connect';
+export type {
+  QwkSearchConnectSession,
+  QwkSearchConnectOptions,
+  QwkSearchConnectAuthClient,
+} from './lib/qwksearch-connect';
 
 // ============ Article Reader ============
 export {

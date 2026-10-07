@@ -42,8 +42,29 @@ function describeAuthError(
     return error?.message || error?.statusText || `${label} sign-in failed. Please try again.`
 }
 
+/**
+ * Where to land after signing in: the `callbackURL` query parameter when it is
+ * a same-origin path (so `/connect?...` can send a signed-out visitor through
+ * here and back to its consent screen), otherwise the homepage. Anything that
+ * could leave the site — an absolute URL, a protocol-relative `//host` — is
+ * ignored, so the parameter can't be used as an open redirect.
+ */
+export function safeCallbackURL(raw: string | null | undefined): string {
+    if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("/\\")) return "/"
+    return raw
+}
+
+function useCallbackURL(): string {
+    const [callbackURL, setCallbackURL] = useState("/")
+    useEffect(() => {
+        setCallbackURL(safeCallbackURL(new URLSearchParams(window.location.search).get("callbackURL")))
+    }, [])
+    return callbackURL
+}
+
 // Google Sign In Button
 function GoogleSignIn() {
+    const callbackURL = useCallbackURL()
     const [isLoading, setIsLoading] = useState(false)
 
     const handleSignIn = async () => {
@@ -55,7 +76,7 @@ function GoogleSignIn() {
             // button doing nothing at all.
             const { error } = await authClient.signIn.social({
                 provider: "google",
-                callbackURL: "/",
+                callbackURL,
             })
             if (error) {
                 console.error("Google sign-in error:", error)
@@ -88,6 +109,7 @@ interface OAuthSignInProps {
 }
 
 function OAuthSignIn({ provider }: OAuthSignInProps) {
+    const callbackURL = useCallbackURL()
     const [isLoading, setIsLoading] = useState(false)
 
     const providerName = provider.charAt(0).toUpperCase() + provider.slice(1)
@@ -97,7 +119,7 @@ function OAuthSignIn({ provider }: OAuthSignInProps) {
         try {
             const { error } = await authClient.signIn.social({
                 provider,
-                callbackURL: "/",
+                callbackURL,
             })
             if (error) {
                 console.error(`${provider} sign-in error:`, error)
@@ -136,6 +158,7 @@ function OAuthSignIn({ provider }: OAuthSignInProps) {
 
 // Magic Link Sign In Form
 function MagicLinkSignIn() {
+    const callbackURL = useCallbackURL()
     const [email, setEmail] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [emailSent, setEmailSent] = useState(false)
@@ -149,7 +172,7 @@ function MagicLinkSignIn() {
             // this check a rejected request still showed "Magic link sent!".
             const { error } = await authClient.signIn.magicLink({
                 email,
-                callbackURL: "/",
+                callbackURL,
             })
             if (error) {
                 console.error("Magic link error:", error)
