@@ -3,7 +3,8 @@
  *
  * Same engine, same plugins, same collaboration room as `./editor.tsx` — a
  * Slate document written from one is a Slate document read by the other — but
- * the chrome is the playground's: a fixed toolbar carrying every button the
+ * the chrome is the playground's: a Google Docs-style menu bar
+ * (`./ui/menu-bar.tsx`) over a fixed toolbar carrying every button the
  * registered plugin set supports (`./ui/fixed-toolbar-buttons.tsx`) and a
  * selection toolbar under the caret (`./ui/floating-toolbar-buttons.tsx`).
  *
@@ -28,6 +29,7 @@ import { FixedToolbar } from './ui/fixed-toolbar';
 import { FixedToolbarButtons } from './ui/fixed-toolbar-buttons';
 import { FloatingToolbar } from './ui/floating-toolbar';
 import { FloatingToolbarButtons } from './ui/floating-toolbar-buttons';
+import { MenuBar } from './ui/menu-bar';
 import { REASON_TOOLBAR_SKIN } from './ui/reason-toolbar-skin';
 
 export type ReasonPlaygroundEditorProps = Omit<
@@ -45,9 +47,12 @@ export function ReasonPlaygroundEditor(props: ReasonPlaygroundEditorProps) {
         </FloatingToolbar>
       }
       renderToolbar={() => (
-        <FixedToolbar className={REASON_TOOLBAR_SKIN}>
-          <FixedToolbarButtons />
-        </FixedToolbar>
+        <>
+          <MenuBar />
+          <FixedToolbar className={REASON_TOOLBAR_SKIN}>
+            <FixedToolbarButtons />
+          </FixedToolbar>
+        </>
       )}
     />
   );

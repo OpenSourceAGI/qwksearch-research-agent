@@ -15,6 +15,7 @@
  *   5. images/media
  *   6. slash menu, autoformat, emoji/mentions, floating controls
  *   7. dictation and the AI writing assistant
+ *   8. Harper spelling and grammar checking (Tools menu)
  */
 
 import { CaptionPlugin } from '@platejs/caption/react';
@@ -40,6 +41,7 @@ import { ColumnKit } from './kits/column-kit';
 import { EmojiKit } from './kits/emoji-kit';
 import { ExitBreakKit } from './kits/exit-break-kit';
 import { FontKit } from './kits/font-kit';
+import { HarperKit } from './kits/harper-kit';
 import { IndentKit } from './kits/indent-kit';
 import { LineHeightKit } from './kits/line-height-kit';
 import { LinkKit } from './kits/link-kit';
@@ -137,6 +139,9 @@ export const platePlugins: PlatePluginList = [
 
   // 9. The writing assistant behind the bubble menu's "Ask AI" button.
   ...AiKit,
+
+  // 10. Harper spelling and grammar — idle until the menu bar starts it.
+  ...HarperKit,
 ];
 
 /** A single empty paragraph — what a brand-new document starts from. */

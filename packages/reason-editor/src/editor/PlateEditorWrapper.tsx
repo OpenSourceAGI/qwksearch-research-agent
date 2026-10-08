@@ -21,6 +21,9 @@
  * uses: a save marks the next incoming `content` as our own echo, and a
  * document switch is detected by `contentKey` rather than by content identity.
  *
+ * Above the toolbar sits a Google Docs-style menu bar (`MenuBar`), whose
+ * Tools → Spelling and grammar entries drive Harper through `HarperPlugin`.
+ *
  * Not yet ported from `./TiptapEditorWrapper.tsx`: inline comments. The comment
  * mark, its threads store and `CommentsSidebar` are built on Tiptap marks
  * (`@/comments/commentMarks`), and Plate's comment plugin is not among this
@@ -29,18 +32,21 @@
  */
 
 import {
+  type ComponentProps,
   forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 
 import { KEYS, NodeApi, type Value } from 'platejs';
-import { Plate, usePlateEditor } from 'platejs/react';
+import { Plate, usePlateEditor, usePluginOption } from 'platejs/react';
 
 import { htmlToPlateValue } from '@/docs-agent/plate/html-to-plate';
+import { HarperPlugin } from '@/docs-agent/plate/kits/harper-kit';
 import { plateValueToHtml } from '@/docs-agent/plate/plate-to-html';
 import { platePlugins } from '@/docs-agent/plate/plate-editor-config';
 import { Editor, EditorContainer } from '@/docs-agent/plate/ui/editor';
@@ -48,6 +54,7 @@ import { FixedToolbar } from '@/docs-agent/plate/ui/fixed-toolbar';
 import { FixedToolbarButtons } from '@/docs-agent/plate/ui/fixed-toolbar-buttons';
 import { FloatingToolbar } from '@/docs-agent/plate/ui/floating-toolbar';
 import { FloatingToolbarButtons } from '@/docs-agent/plate/ui/floating-toolbar-buttons';
+import { MenuBar } from '@/docs-agent/plate/ui/menu-bar';
 import { REASON_TOOLBAR_SKIN } from '@/docs-agent/plate/ui/reason-toolbar-skin';
 
 import 'react-reason-editor/style.css';
@@ -81,6 +88,15 @@ const HEADING_LEVELS: Record<string, number> = {
 };
 
 export type PlateEditorHandle = ReasonEditorHandle;
+
+/**
+ * The editable surface, with the browser's own spell checker switched off
+ * while Harper is proofreading so the two sets of underlines never stack.
+ */
+function ProofedEditor(props: ComponentProps<typeof Editor>) {
+  const harperEnabled = usePluginOption(HarperPlugin, 'enabled');
+  return <Editor {...props} spellCheck={!harperEnabled} />;
+}
 
 /**
  * Extracts heading entries from a Plate value as TocEntry tuples, in the key
@@ -118,7 +134,8 @@ export function extractTocHeadings(value: Value | undefined | null): TocEntry[] 
  * ```
  */
 export const PlateEditorWrapper = forwardRef<PlateEditorHandle, ReasonEditorProps>(
-  ({ content, contentKey, onChange, onHeadingsChange, readOnly }, ref) => {
+  ({ content, contentKey, onChange, onHeadingsChange, readOnly, title }, ref) => {
+    const [showToolbar, setShowToolbar] = useState(true);
     const syncStore = useSyncStore();
     const stableKey = contentKey ?? content.slice(0, 40);
 
@@ -245,13 +262,20 @@ export const PlateEditorWrapper = forwardRef<PlateEditorHandle, ReasonEditorProp
         <Plate editor={editor} onValueChange={handleValueChange} readOnly={readOnly}>
           <div className="flex flex-1 flex-col overflow-hidden">
             {!readOnly && (
+              <MenuBar
+                documentTitle={title}
+                onShowToolbarChange={setShowToolbar}
+                showToolbar={showToolbar}
+              />
+            )}
+            {!readOnly && showToolbar && (
               <FixedToolbar className={REASON_TOOLBAR_SKIN}>
                 <FixedToolbarButtons />
               </FixedToolbar>
             )}
             {/* Positioned so the floating toolbar can anchor to the editable. */}
             <EditorContainer className="relative min-h-0 flex-1">
-              <Editor placeholder="Start writing…" ref={surfaceRef} variant="default" />
+              <ProofedEditor placeholder="Start writing…" ref={surfaceRef} variant="default" />
               {!readOnly && (
                 <FloatingToolbar>
                   <FloatingToolbarButtons />
