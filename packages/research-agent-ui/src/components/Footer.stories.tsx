@@ -7,8 +7,8 @@ import Footer from './Footer';
 
 /**
  * `Footer` renders a compact bar of links (with optional Lucide icons) pinned
- * to the bottom of the screen. On small screens it collapses into an info icon
- * that reveals the links in a popover. `icon` values are Lucide icon names.
+ * to the bottom of the screen on a single line at every width; below `sm` the
+ * icons are hidden so the labels still fit. `icon` values are Lucide icon names.
  */
 const meta: Meta<typeof Footer> = {
   title: 'Misc/Footer',
@@ -17,10 +17,12 @@ const meta: Meta<typeof Footer> = {
   args: {
     optionShowIcons: true,
     listFooterLinks: [
-      { url: 'https://github.com', text: 'GitHub', icon: 'Github' },
+      { url: '/docs', text: 'Docs', icon: 'BookOpen' },
       { url: 'https://example.com/blog', text: 'Blog', icon: 'Newspaper' },
-      { url: 'https://example.com/docs', text: 'Docs', icon: 'BookOpen' },
-      { url: 'mailto:hi@example.com', text: 'Contact', icon: 'Mail' },
+      { url: 'https://example.com/support', text: 'Support', icon: 'MessageCircle' },
+      { url: '/#downloads', text: 'Downloads', icon: 'Download' },
+      { url: '/legal/privacy', text: 'Privacy', icon: 'Lock' },
+      { url: 'https://example.com/ethics', text: 'Ethics', icon: 'Bot' },
     ],
   },
 };

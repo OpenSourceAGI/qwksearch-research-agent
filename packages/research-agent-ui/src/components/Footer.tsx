@@ -1,8 +1,8 @@
 /**
- * @fileoverview Footer component that renders a bar of links (with optional Lucide icons) pinned to the bottom of the screen, collapsing into an info-icon popover on mobile.
+ * @fileoverview Footer component that renders a single compact line of links (with optional Lucide icons) pinned to the bottom of the screen on desktop and mobile alike.
  */
 "use client";
-import { useEffect, useRef, useState, type ComponentType } from "react";
+import type { ComponentType } from "react";
 import Link from "next/link";
 import {
     Bot,
@@ -62,12 +62,24 @@ interface FooterProps {
 }
 
 /**
+ * Hover motion shared by every link: the link lifts and grows slightly, the
+ * text glows, the icon tilts, and an underline sweeps out from the center.
+ */
+const LINK_CLASS =
+    "relative group inline-flex items-center gap-1 px-[3px] sm:px-1.5 py-0.5 rounded-md whitespace-nowrap " +
+    "transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] " +
+    "hover:text-white hover:bg-white/10 hover:-translate-y-0.5 hover:scale-110 " +
+    "hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] active:scale-95 " +
+    "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/60";
+
+/**
  * Footer component that displays a list of links with optional icons.
  *
- * On desktop the links render as a bar pinned to the bottom-center of the screen.
- * On mobile the bar is collapsed into a small info icon in the bottom corner that,
- * when tapped, reveals the same links in a popover — keeping the chat input clear
- * of the footer and the OS app dock.
+ * The links render as a single compact line at every width: pinned to the
+ * bottom-center of the screen on desktop, and in normal flow on mobile so the
+ * parent can place it above the app dock. Below the `sm` breakpoint the icons
+ * are dropped and the labels shrink so all of the links fit on one line on a
+ * phone.
  *
  * @param listFooterLinks - Array of footer links with their properties
  * @param optionShowIcons - Whether to show icons next to links (default: true)
@@ -78,20 +90,7 @@ export default function Footer({
     optionShowIcons = true,
     optionBackgroundColor = "bg-black/40",
 }: FooterProps) {
-    const [open, setOpen] = useState(false);
-    const mobileRef = useRef<HTMLDivElement>(null);
-
-    // Close the mobile popover when tapping/clicking outside of it.
-    useEffect(() => {
-        if (!open) return;
-        const handleClickOutside = (event: MouseEvent) => {
-            if (mobileRef.current && !mobileRef.current.contains(event.target as Node)) {
-                setOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [open]);
+    if (listFooterLinks.length === 0) return null;
 
     const renderLinks = () =>
         listFooterLinks.map(({ url, text, icon, onClick }) => {
@@ -102,83 +101,46 @@ export default function Footer({
 
             const content = (
                 <>
-                    {optionShowIcons && icon && <FooterIcon name={icon} />}
+                    {optionShowIcons && icon && (
+                        <span className="hidden sm:inline-flex transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-125">
+                            <FooterIcon name={icon} />
+                        </span>
+                    )}
                     <span
-                        className="font-semibold tracking-wide text-md"
+                        className="font-semibold tracking-wide text-[11px] sm:text-xs"
                         style={{ fontVariant: "small-caps" }}
                     >
                         {text}
                     </span>
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-current transition-all duration-300 group-hover:w-full group-hover:shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
+                    <span className="absolute bottom-0 left-1/2 w-0 h-px -translate-x-1/2 bg-current transition-all duration-300 group-hover:w-3/4 group-hover:shadow-[0_0_8px_rgba(255,255,255,0.6)]" />
                 </>
             );
 
             if (onClick) {
                 return (
-                    <button
-                        key={url}
-                        type="button"
-                        onClick={onClick}
-                        className="relative group inline-flex items-center gap-1 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-all duration-300 whitespace-nowrap"
-                    >
+                    <button key={url} type="button" onClick={onClick} className={LINK_CLASS}>
                         {content}
                     </button>
                 );
             }
 
             return isExternal ? (
-                <a
-                    key={url}
-                    href={url}
-                    {...linkProps}
-                    className="relative group inline-flex items-center gap-1 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-all duration-300 whitespace-nowrap"
-                >
+                <a key={url} href={url} {...linkProps} className={LINK_CLASS}>
                     {content}
                 </a>
             ) : (
-                <Link
-                    key={url}
-                    href={url}
-                    className="relative group inline-flex items-center gap-1 hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-all duration-300 whitespace-nowrap"
-                >
+                <Link key={url} href={url} className={LINK_CLASS}>
                     {content}
                 </Link>
             );
         });
 
     return (
-        <>
-            {/* Desktop: full footer bar pinned bottom-center */}
-            <div
-                className={`hidden md:flex absolute bottom-2 left-1/2 -translate-x-1/2 text-slate-200 text-xs z-20 ${optionBackgroundColor} rounded-lg px-2 py-1 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex-wrap items-center justify-center gap-x-6 max-w-[90vw]`}
-            >
-                <div className="max-w-4xl mx-auto grid grid-cols-4 gap-2">
-                    {renderLinks()}
-                </div>
-            </div>
-
-            {/* Mobile: collapsed to an info icon in the top corner that reveals the links */}
-            <div
-                ref={mobileRef}
-                className="md:hidden fixed top-[calc(8px+env(safe-area-inset-top,0px))] right-2 z-30"
-            >
-                {open && (
-                    <div
-                        className={`absolute top-full right-0 mt-2 text-slate-200 text-xs ${optionBackgroundColor} rounded-lg px-3 py-2 shadow-lg flex flex-col items-start gap-2 backdrop-blur-sm`}
-                    >
-                        {renderLinks()}
-                    </div>
-                )}
-                <button
-                    type="button"
-                    onClick={() => setOpen((prev) => !prev)}
-                    aria-label={open ? "Hide links" : "Show links"}
-                    aria-expanded={open}
-                    className={`flex items-center justify-center h-8 w-8 rounded-full text-slate-200 ${optionBackgroundColor} shadow-lg backdrop-blur-sm hover:text-white transition-all duration-300`}
-                >
-                    <Info size={16} />
-                </button>
-            </div>
-        </>
+        <nav
+            aria-label="Footer"
+            className={`relative mt-2 md:mt-0 md:absolute md:bottom-1 md:left-1/2 md:-translate-x-1/2 z-20 flex flex-nowrap items-center justify-center gap-0 sm:gap-1 max-w-full md:w-max md:max-w-[90vw] text-slate-200 ${optionBackgroundColor} backdrop-blur-sm rounded-full px-1 sm:px-1.5 py-0.5 shadow-lg hover:shadow-xl transition-shadow duration-300`}
+        >
+            {renderLinks()}
+        </nav>
     );
 }

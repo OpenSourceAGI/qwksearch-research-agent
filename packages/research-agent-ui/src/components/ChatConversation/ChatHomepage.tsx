@@ -506,10 +506,12 @@ export default function ChatHomepage() {
               </Suspense>
             )}
           </div>
+          {/* In the column's flow on mobile, so it sits between the input and
+              the app dock; pinned to the bottom of the screen on desktop. */}
+          <Footer listFooterLinks={footerLinks} />
         </div>
       </div>
 
-      <Footer listFooterLinks={footerLinks} />
       {downloadsRequested && (
         <Suspense fallback={null}>
           <DownloadsDialog open={downloadsOpen} onOpenChange={setDownloadsOpen} />
