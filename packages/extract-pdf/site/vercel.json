@@ -1,7 +1,7 @@
 {
-  "buildCommand": "./deploy-vercel-site.sh",
+  "buildCommand": "./build-vercel.sh",
   "devCommand": "bun run dev",
-  "installCommand": "npm install",
+  "installCommand": "./install-vercel-deps.sh",
   "framework": "nextjs",
   "regions": ["iad1"],
   "functions": {

@@ -44,18 +44,3 @@ CHANGELOG.md
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
-
-# Exclude TypeScript source (compiled output will be used)
-*.ts
-!*.d.ts
-tsconfig.json
-
-# Exclude Vite config (not needed for Vercel)
-vite.config.ts
-
-# Exclude Cloudflare Vite plugin config
-@cloudflare/
-
-# Exclude extract-pdf source (use built package)
-../src/
-../dist/

@@ -34,7 +34,7 @@ fi
 
 # Run Next.js build
 echo "Running Next.js build..."
-bunx next build
+npx next build
 
 # Restore docs directories
 if [ -d "$APP_DOCS_BACKUP" ]; then
