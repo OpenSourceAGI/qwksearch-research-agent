@@ -8,25 +8,8 @@
  * the server config is injected into `window.__SERVER_CONFIG__` exactly as the
  * Next route does, so the client bootstrap is unchanged.
  */
-import { APPLE_APP_STORE_ID, BRANDING_NAME, ORG_NAME } from '@lobechat/business-const';
-import { OG_URL } from '@lobechat/const';
 import type { Context } from 'hono';
 import { Hono } from 'hono';
-
-import { buildSeoMeta as buildAuthSeoMeta } from '@/app/spa-auth/[locale]/[[...path]]/seoMeta';
-import { auth } from '@/auth';
-import { getServerFeatureFlagsValue } from '@/config/featureFlags';
-import { OFFICIAL_URL } from '@/const/url';
-import { isCustomORG } from '@/const/version';
-import { appEnv } from '@/envs/app';
-import { authEnv } from '@/envs/auth';
-import { fileEnv } from '@/envs/file';
-import { pythonEnv } from '@/envs/python';
-import { translation } from '@/libs/i18n/serverTranslation';
-import { buildAnalyticsConfig, renderSpaHtml } from '@/libs/spaHtml';
-import { getServerGlobalConfig } from '@/server/globalConfig';
-import { getServerAuthConfig } from '@/server/globalConfig/getServerAuthConfig';
-import { type AuthSPAServerConfig, type SPAServerConfig } from '@/types/spaServerConfig';
 
 import { getCfEnv } from '../cf/env';
 import {
@@ -69,14 +52,25 @@ export const loadTemplate = async (
   return html;
 };
 
-const buildClientEnv = () => ({
-  marketBaseUrl: appEnv.MARKET_BASE_URL,
-  pyodideIndexUrl: pythonEnv.NEXT_PUBLIC_PYODIDE_INDEX_URL,
-  pyodidePipIndexUrl: pythonEnv.NEXT_PUBLIC_PYODIDE_PIP_INDEX_URL,
-  s3FilePath: fileEnv.NEXT_PUBLIC_S3_FILE_PATH,
-});
+const buildClientEnv = async () => {
+  const { appEnv } = await import('@/envs/app');
+  const { pythonEnv } = await import('@/envs/python');
+  const { fileEnv } = await import('@/envs/file');
+  return {
+    marketBaseUrl: appEnv.MARKET_BASE_URL,
+    pyodideIndexUrl: pythonEnv.NEXT_PUBLIC_PYODIDE_INDEX_URL,
+    pyodidePipIndexUrl: pythonEnv.NEXT_PUBLIC_PYODIDE_PIP_INDEX_URL,
+    s3FilePath: fileEnv.NEXT_PUBLIC_S3_FILE_PATH,
+  };
+};
 
 const buildMainSeoMeta = async (locale: string, isMobile: boolean): Promise<string> => {
+  const { translation } = await import('@/libs/i18n/serverTranslation');
+  const { APPLE_APP_STORE_ID, BRANDING_NAME, ORG_NAME } = await import('@lobechat/business-const');
+  const { OG_URL } = await import('@lobechat/const');
+  const { OFFICIAL_URL } = await import('@/const/url');
+  const { isCustomORG } = await import('@/const/version');
+
   const { t } = await translation('metadata', locale);
   const title = t('chat.title', { appName: BRANDING_NAME });
   const description = t('chat.description', { appName: BRANDING_NAME });
@@ -116,6 +110,14 @@ const withLocaleCookie = (response: Response, c: Context, locale?: string) => {
 };
 
 const renderAuthSpa = async (c: Context) => {
+  const { buildSeoMeta: buildAuthSeoMeta } = await import('@/app/spa-auth/[locale]/[[...path]]/seoMeta');
+  const { auth } = await import('@/auth');
+  const { getServerFeatureFlagsValue } = await import('@/config/featureFlags');
+  const { getServerAuthConfig } = await import('@/server/globalConfig/getServerAuthConfig');
+  const { buildAnalyticsConfig, renderSpaHtml } = await import('@/libs/spaHtml');
+  const { authEnv } = await import('@/envs/auth');
+  const { appEnv } = await import('@/envs/app');
+
   const { locale, explicitLocale } = resolveSpaVariant(c.req.raw);
   const template = await loadTemplate('auth', c.req.url);
   if (!template) return c.text('Auth SPA bundle is missing (build:spa:auth)', 503);
@@ -134,6 +136,10 @@ const renderAuthSpa = async (c: Context) => {
 };
 
 const renderMainSpa = async (c: Context) => {
+  const { getServerGlobalConfig } = await import('@/server/globalConfig');
+  const { getServerFeatureFlagsValue } = await import('@/config/featureFlags');
+  const { buildAnalyticsConfig, renderSpaHtml } = await import('@/libs/spaHtml');
+
   const { locale, isMobile, explicitLocale } = resolveSpaVariant(c.req.raw);
 
   const template =
@@ -143,7 +149,7 @@ const renderMainSpa = async (c: Context) => {
 
   const spaConfig: SPAServerConfig = {
     analyticsConfig: buildAnalyticsConfig({ desktop: true }),
-    clientEnv: buildClientEnv(),
+    clientEnv: await buildClientEnv(),
     config: await getServerGlobalConfig(),
     featureFlags: getServerFeatureFlagsValue(),
     isMobile,
@@ -160,6 +166,9 @@ const renderMainSpa = async (c: Context) => {
  * `/signin` with a callback URL.
  */
 const requireSessionForProtectedPage = async (c: Context): Promise<Response | undefined> => {
+  const { auth } = await import('@/auth');
+  const { appEnv } = await import('@/envs/app');
+
   const { pathname } = new URL(c.req.url);
   if (isPublicSpaRoute(pathname) || isAuthSpaRoute(pathname)) return undefined;
 
@@ -172,6 +181,22 @@ const requireSessionForProtectedPage = async (c: Context): Promise<Response | un
 
   return c.redirect(buildSignInRedirect(c.req.raw, appEnv.APP_URL), 302);
 };
+
+interface AuthSPAServerConfig {
+  analyticsConfig: ReturnType<typeof import('@/libs/spaHtml').buildAnalyticsConfig>;
+  config: Awaited<ReturnType<typeof import('@/server/globalConfig/getServerAuthConfig').getServerAuthConfig>>;
+  enableOIDC: boolean;
+  featureFlags: Awaited<ReturnType<typeof import('@/config/featureFlags').getServerFeatureFlagsValue>>;
+  globalCDN: boolean;
+}
+
+interface SPAServerConfig {
+  analyticsConfig: ReturnType<typeof import('@/libs/spaHtml').buildAnalyticsConfig>;
+  clientEnv: Awaited<ReturnType<typeof buildClientEnv>>;
+  config: Awaited<ReturnType<typeof import('@/server/globalConfig').getServerGlobalConfig>>;
+  featureFlags: Awaited<ReturnType<typeof import('@/config/featureFlags').getServerFeatureFlagsValue>>;
+  isMobile: boolean;
+}
 
 export const spaApp = new Hono();
 

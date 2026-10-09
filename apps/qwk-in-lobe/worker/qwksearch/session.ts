@@ -5,10 +5,19 @@
  * LobeHub Better Auth session is the single source of truth, so favorites and
  * documents are keyed by the LobeHub user id.
  */
-import { auth } from '@/auth';
+
+let authPromise: Promise<typeof import('@/auth').auth> | undefined;
+
+const getAuth = () => {
+  if (!authPromise) {
+    authPromise = import('@/auth').then((m) => m.auth);
+  }
+  return authPromise;
+};
 
 export const getUserId = async (headers: Headers): Promise<string | null> => {
   try {
+    const auth = await getAuth();
     const session = await auth.api.getSession({ headers });
     return session?.user?.id ?? null;
   } catch (error) {

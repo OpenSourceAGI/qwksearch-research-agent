@@ -194,8 +194,8 @@ const longBody = Array.from(
 ).join(' ');
 
 describe('articleFromHtmlViaCrawler', () => {
-  it('extracts readable content with the LobeHub crawler utilities', () => {
-    const article = articleFromHtmlViaCrawler(
+  it('extracts readable content with the LobeHub crawler utilities', async () => {
+    const article = await articleFromHtmlViaCrawler(
       articleHtml(longBody),
       'https://news.example.com/post',
       'scraper',
@@ -209,16 +209,15 @@ describe('articleFromHtmlViaCrawler', () => {
     expect(article.word_count).toBeGreaterThan(100);
   });
 
-  it('reports an error for empty pages', () => {
-    expect(
-      articleFromHtmlViaCrawler('<html><body></body></html>', 'https://x.com', 'scraper').error,
-    ).toBeDefined();
+  it('reports an error for empty pages', async () => {
+    const article = await articleFromHtmlViaCrawler('<html><body></body></html>', 'https://x.com', 'scraper');
+    expect(article.error).toBeDefined();
   });
 });
 
 describe('contentFromExtractedHtml', () => {
-  it('converts extracted html to markdown without re-running readability', () => {
-    const content = contentFromExtractedHtml(
+  it('converts extracted html to markdown without re-running readability', async () => {
+    const content = await contentFromExtractedHtml(
       '<h1>Title</h1><p>Short body.</p>',
       'https://example.com/a',
     );

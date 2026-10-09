@@ -14,7 +14,13 @@
  * Every tier returns `{ error }` instead of throwing so the caller can decide
  * whether to advance to the next one.
  */
-import { htmlToMarkdown } from '@lobechat/web-crawler/src/utils/htmlToMarkdown';
+import {
+  type CitationStyle,
+  DEFAULT_TIER_ORDER,
+  type ExtractionSettings,
+  resolveExtractionSettings,
+  type TierId,
+} from './extractSettings';
 
 import {
   type ExtractWebpageLoader,
@@ -23,13 +29,6 @@ import {
   runQwkSearchExtractor,
   runQwkSearchHtmlExtractor,
 } from './extractQwkSearch';
-import {
-  type CitationStyle,
-  DEFAULT_TIER_ORDER,
-  type ExtractionSettings,
-  resolveExtractionSettings,
-  type TierId,
-} from './extractSettings';
 
 export interface ExtractedArticle {
   author?: string;
@@ -252,12 +251,13 @@ export const markdownToSimpleHtml = (raw: string): string =>
  * Readability + markdown conversion over rendered HTML using LobeHub's crawler
  * utilities. The fallback when QwkSearch's extractor finds nothing.
  */
-export const articleFromHtmlViaCrawler = (
+export const articleFromHtmlViaCrawler = async (
   html: string,
   url: string,
   via: ExtractedArticle['via'],
   citationStyle: CitationStyle = 'apa',
-): ExtractedArticle => {
+): Promise<ExtractedArticle> => {
+  const { htmlToMarkdown } = await import('@lobechat/web-crawler/src/utils/htmlToMarkdown');
   const parsed = htmlToMarkdown(html, { filterOptions: { enableReadability: true }, url });
   if (!parsed.content || parsed.content.trim().length < MIN_CONTENT_CHARS) {
     return { error: 'Extraction produced no content' };
@@ -284,8 +284,9 @@ export const articleFromHtmlViaCrawler = (
  * Readability is off — running it a second time over extracted content drops
  * headings and lead paragraphs it no longer recognises as part of a page.
  */
-export const contentFromExtractedHtml = (html: string, url: string): string | undefined => {
+export const contentFromExtractedHtml = async (html: string, url: string): Promise<string | undefined> => {
   try {
+    const { htmlToMarkdown } = await import('@lobechat/web-crawler/src/utils/htmlToMarkdown');
     const { content } = htmlToMarkdown(html, { filterOptions: { enableReadability: false }, url });
     return content?.trim() || undefined;
   } catch {
@@ -296,13 +297,13 @@ export const contentFromExtractedHtml = (html: string, url: string): string | un
 };
 
 /** Fill in whatever the QwkSearch extractor did not resolve itself. */
-const completeQwkArticle = (
+const completeQwkArticle = async (
   article: ExtractedArticle,
   url: string,
   html: string,
   citationStyle: CitationStyle = 'apa',
-): ExtractedArticle => {
-  article.content = contentFromExtractedHtml(html, article.url || url);
+): Promise<ExtractedArticle> => {
+  article.content = await contentFromExtractedHtml(html, article.url || url);
   article.source ||= hostnameOf(article.url || url);
   article.word_count ||= countWords(article.content || html);
   // The extractor builds its own citation, and it is APA — so it is kept as-is
@@ -342,7 +343,7 @@ export const extractViaQwkSearch = async (
   if (looksLikeChallenge(article.html)) {
     return { error: 'QwkSearch extractor returned a challenge page' };
   }
-  return completeQwkArticle(article, url, article.html, options.citationStyle);
+  return await completeQwkArticle(article, url, article.html, options.citationStyle);
 };
 
 /**
@@ -364,12 +365,12 @@ export const articleFromRenderedHtml = async (
     const raw = await runQwkSearchHtmlExtractor(html, url, { loader });
     const article = fromQwkArticle(raw, url, 'qwksearch-html') as ExtractedArticle;
     if (!article.error && article.html) {
-      return completeQwkArticle(article, url, article.html, citationStyle);
+      return await completeQwkArticle(article, url, article.html, citationStyle);
     }
   } catch {
     // Fall through to LobeHub readability below.
   }
-  return articleFromHtmlViaCrawler(html, url, fallbackVia, citationStyle);
+  return await articleFromHtmlViaCrawler(html, url, fallbackVia, citationStyle);
 };
 
 export interface ScraperConfig {

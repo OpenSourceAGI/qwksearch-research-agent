@@ -9,11 +9,33 @@
  */
 import { Hono } from 'hono';
 
-import { POST as checkUser } from '@/app/(backend)/api/auth/check-user/route';
-import { POST as resolveUsername } from '@/app/(backend)/api/auth/resolve-username/route';
-import { auth } from '@/auth';
-
 import { NextRequest } from '../shims/next-server';
+
+let authHandler: ReturnType<typeof import('@/auth').auth.handler> | undefined;
+let checkUser: typeof import('@/app/(backend)/api/auth/check-user/route').POST | undefined;
+let resolveUsername: typeof import('@/app/(backend)/api/auth/resolve-username/route').POST | undefined;
+
+const getAuthHandler = async () => {
+  if (!authHandler) {
+    const { auth } = await import('@/auth');
+    authHandler = auth.handler;
+  }
+  return authHandler;
+};
+
+const getCheckUser = async () => {
+  if (!checkUser) {
+    checkUser = (await import('@/app/(backend)/api/auth/check-user/route')).POST;
+  }
+  return checkUser;
+};
+
+const getResolveUsername = async () => {
+  if (!resolveUsername) {
+    resolveUsername = (await import('@/app/(backend)/api/auth/resolve-username/route')).POST;
+  }
+  return resolveUsername;
+};
 
 const jsonContentTypeRegex = /^application\/(?:[a-z0-9.+-]*\+)?json/i;
 
@@ -40,9 +62,9 @@ const validateJsonBody = async (request: Request): Promise<Response | undefined>
 
 export const authApp = new Hono();
 
-authApp.post('/api/auth/check-user', (c) => checkUser(NextRequest.adapt(c.req.raw)));
-authApp.post('/api/auth/resolve-username', (c) =>
-  resolveUsername(NextRequest.adapt(c.req.raw)),
+authApp.post('/api/auth/check-user', async (c) => (await getCheckUser())(NextRequest.adapt(c.req.raw)));
+authApp.post('/api/auth/resolve-username', async (c) =>
+  (await getResolveUsername())(NextRequest.adapt(c.req.raw)),
 );
 
 authApp.on(['GET', 'POST'], '/api/auth/*', async (c) => {
@@ -51,5 +73,5 @@ authApp.on(['GET', 'POST'], '/api/auth/*', async (c) => {
     if (invalid) return invalid;
   }
 
-  return auth.handler(c.req.raw);
+  return (await getAuthHandler())(c.req.raw);
 });

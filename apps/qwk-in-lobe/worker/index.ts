@@ -6,14 +6,22 @@
  */
 import './cf/globals';
 
-import { createApp } from './app';
 import { runWithRequestContext } from './cf/requestContext';
 
-const app = createApp();
+let appPromise: Promise<ReturnType<typeof import('./app').createApp>> | undefined;
+
+const getApp = () => {
+  if (!appPromise) {
+    appPromise = import('./app').then((m) => m.createApp());
+  }
+  return appPromise;
+};
 
 export default {
-  fetch: (request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> =>
-    runWithRequestContext({ executionContext: ctx, request }, () =>
-      Promise.resolve(app.fetch(request)),
-    ),
+  async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
+    const appInstance = await getApp();
+    return runWithRequestContext({ executionContext: ctx, request }, () =>
+      Promise.resolve(appInstance.fetch(request)),
+    );
+  },
 };

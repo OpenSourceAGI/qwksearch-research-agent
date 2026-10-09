@@ -401,12 +401,19 @@ export function defineConfig(customOptions: CustomBetterAuthOptions) {
     ],
   } satisfies BetterAuthOptions;
 
-  const instance = betterAuth(options);
-  if (!cookieDomain) return instance;
+  let instance: ReturnType<typeof betterAuth> | undefined;
 
-  const handleRequest = instance.handler;
-  instance.handler = async (request) =>
-    expireLegacyHostOnlyCookies(request, await handleRequest(request), cookieDomain);
+  const getInstance = () => {
+    if (!instance) {
+      instance = betterAuth(options);
+      if (cookieDomain) {
+        const handleRequest = instance.handler;
+        instance.handler = async (request) =>
+          expireLegacyHostOnlyCookies(request, await handleRequest(request), cookieDomain);
+      }
+    }
+    return instance;
+  };
 
-  return instance;
+  return getInstance;
 }
