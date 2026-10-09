@@ -7,6 +7,7 @@ import { toolsEnv } from '@/envs/tools';
 
 import { type SearchImplOptions, type SearchImplType, type SearchServiceImpl } from './impls';
 import { createSearchServiceImpl } from './impls';
+import { getServerFeatureFlagsValue } from '@/config/featureFlags';
 
 const DEFAULT_CRAWL_CONCURRENCY = 3;
 const DEFAULT_CRAWLER_RETRY = 1;
@@ -162,7 +163,12 @@ export class SearchService {
   }
 
   private get searchImpls() {
-    return parseImplEnv(toolsEnv.SEARCH_PROVIDERS) as SearchImplType[];
+    const featureFlags = getServerFeatureFlagsValue();
+    const impls = parseImplEnv(toolsEnv.SEARCH_PROVIDERS) as SearchImplType[];
+    if (!featureFlags.qwksearch) {
+      return impls.filter((impl) => impl !== 'qwksearch');
+    }
+    return impls;
   }
 
   /**

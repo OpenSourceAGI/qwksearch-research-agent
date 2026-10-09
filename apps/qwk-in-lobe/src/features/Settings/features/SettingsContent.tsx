@@ -10,6 +10,7 @@ import { useSettingsAnchorScroll } from '@/features/SettingsSearch/anchor';
 import { useWorkspaceAwareNavigate } from '@/features/Workspace/useWorkspaceAwareNavigate';
 import { SettingsTabs } from '@/store/global/initialState';
 import { serverConfigSelectors, useServerConfigStore } from '@/store/serverConfig';
+import { featureFlagsSelectors } from '@/store/serverConfig/selectors';
 
 import { ManageMemoryButton } from '../memory/features/ManageMemoryButton';
 import { componentMap } from './componentMap';
@@ -54,6 +55,7 @@ const SettingsContent = ({ mobile, activeTab }: SettingsContentProps) => {
   const { t } = useTranslation(['auth', 'labs', 'setting', 'subscription']);
   const { t: tQwkSearch } = useTranslation('qwksearch');
   const enableBusinessFeatures = useServerConfigStore(serverConfigSelectors.enableBusinessFeatures);
+  const enableQwkSearch = useServerConfigStore(featureFlagsSelectors.enableQwkSearch);
   const navigate = useWorkspaceAwareNavigate();
 
   const compactHeaderTitles: Partial<Record<SettingsTabs, string>> = {
@@ -82,6 +84,10 @@ const SettingsContent = ({ mobile, activeTab }: SettingsContentProps) => {
     [SettingsTabs.Storage]: t('setting:tab.storage'),
   };
 
+  const qwkSearchTabs = [SettingsTabs.Extraction, SettingsTabs.Search];
+  const isQwkSearchTab = (tab: string) => qwkSearchTabs.includes(tab as SettingsTabs);
+  const shouldShowTab = (tab: string) => !isQwkSearchTab(tab) || enableQwkSearch;
+
   useSettingsAnchorScroll();
 
   useEffect(() => {
@@ -94,6 +100,7 @@ const SettingsContent = ({ mobile, activeTab }: SettingsContentProps) => {
   }, [activeTab, navigate]);
 
   const renderComponent = (tab: string) => {
+    if (!shouldShowTab(tab)) return null;
     const Component = componentMap[tab as keyof typeof componentMap] || componentMap.appearance;
     if (!Component) return null;
 
@@ -130,33 +137,35 @@ const SettingsContent = ({ mobile, activeTab }: SettingsContentProps) => {
 
   return (
     <>
-      {Object.keys(componentMap).map((tabKey) => {
-        const isFullWidth =
-          tabKey === SettingsTabs.Provider ||
-          tabKey === SettingsTabs.Skill ||
-          tabKey === SettingsTabs.Connector ||
-          tabKey === SettingsTabs.Creds ||
-          tabKey === SettingsTabs.Usage;
-        if (activeTab !== tabKey) return null;
-        const content = renderComponent(tabKey);
-        if (isFullWidth) return <Fragment key={tabKey}>{content}</Fragment>;
-        const compactHeaderTitle = compactHeaderTitles[tabKey as SettingsTabs];
-        const compactHeaderExtra =
-          tabKey === SettingsTabs.Memory ? <ManageMemoryButton /> : undefined;
-        return (
-          <Fragment key={tabKey}>
-            <NavHeader
-              right={compactHeaderExtra}
-              styles={compactHeaderTitle ? { center: { alignItems: 'center' } } : undefined}
-            >
-              {compactHeaderTitle && <Text weight={500}>{compactHeaderTitle}</Text>}
-            </NavHeader>
-            <SettingContainer maxWidth={1024} paddingBlock={'24px 128px'} paddingInline={24}>
-              {content}
-            </SettingContainer>
-          </Fragment>
-        );
-      })}
+      {Object.keys(componentMap)
+        .filter((tabKey) => shouldShowTab(tabKey))
+        .map((tabKey) => {
+          const isFullWidth =
+            tabKey === SettingsTabs.Provider ||
+            tabKey === SettingsTabs.Skill ||
+            tabKey === SettingsTabs.Connector ||
+            tabKey === SettingsTabs.Creds ||
+            tabKey === SettingsTabs.Usage;
+          if (activeTab !== tabKey) return null;
+          const content = renderComponent(tabKey);
+          if (isFullWidth) return <Fragment key={tabKey}>{content}</Fragment>;
+          const compactHeaderTitle = compactHeaderTitles[tabKey as SettingsTabs];
+          const compactHeaderExtra =
+            tabKey === SettingsTabs.Memory ? <ManageMemoryButton /> : undefined;
+          return (
+            <Fragment key={tabKey}>
+              <NavHeader
+                right={compactHeaderExtra}
+                styles={compactHeaderTitle ? { center: { alignItems: 'center' } } : undefined}
+              >
+                {compactHeaderTitle && <Text weight={500}>{compactHeaderTitle}</Text>}
+              </NavHeader>
+              <SettingContainer maxWidth={1024} paddingBlock={'24px 128px'} paddingInline={24}>
+                {content}
+              </SettingContainer>
+            </Fragment>
+          );
+        })}
     </>
   );
 };

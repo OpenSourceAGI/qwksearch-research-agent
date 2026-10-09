@@ -39,7 +39,6 @@ import { goalDetailRouteMeta, goalsRouteMeta } from '@/features/AgentGoals/route
 import { taskRouteMeta, tasksRouteMeta } from '@/features/AgentTasks/routeMeta';
 import { agentsRouteMeta } from '@/features/AgentViewAll/routeMeta';
 import { pageRouteMeta } from '@/features/Pages/routeMeta';
-import { qwkDocsRouteMeta } from '@/features/QwkSearch/Docs/routeMeta';
 import { projectsRouteMeta } from '@/features/Projects/routeMeta';
 import { settingsRouteMeta } from '@/features/Settings/features/routeMeta';
 import { workspaceHomeRouteMeta } from '@/features/Workspace/routeMeta';
@@ -53,6 +52,7 @@ import {
   agentStatisticsRouteMeta,
   topicsRouteMeta,
 } from '@/routes/(main)/agent/features/routeMeta';
+import { qwkDocsRouteMeta } from '@/routes/(main)/docs/routeMeta';
 import {
   groupPermissionRouteMeta,
   groupProfileRouteMeta,
@@ -112,7 +112,10 @@ const deferPlatformElement = (factory?: () => ReactElement) =>
  * correctly under both `/` (→ `/`) and `/:workspaceSlug` (→ `/:workspaceSlug`).
  */
 export const sharedMainAreaChildren: RouteObject[] = [
-  // QwkSearch Docs: Markdown research documents stored in D1 (see features/QwkSearch/Docs).
+  // QwkSearch Docs: Markdown research documents stored in D1. Route
+  // metadata lives at the route layer (`@/routes/(main)/docs/routeMeta`)
+  // so the shell never statically imports the QwkSearch feature; the
+  // feature's pages load through the lazy boundaries below.
   {
     children: [
       {

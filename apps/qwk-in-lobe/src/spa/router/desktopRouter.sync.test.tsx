@@ -248,6 +248,17 @@ describe('desktop router shared definition', () => {
     expect(lazyRouteImports.length).toBeGreaterThan(100);
   });
 
+  it('loads the shell without the QwkSearch feature', async () => {
+    const sources = await readRouterSources();
+    const combinedSource = sources.join('\n');
+
+    // The LobeHub shell must not require QwkSearch: no router source
+    // may reach into the feature, statically or lazily. Route metadata
+    // for QwkSearch-owned routes lives at the route layer, and every
+    // feature page module stays behind a `@/routes/` lazy boundary.
+    expect(combinedSource).not.toMatch(/@\/features\/QwkSearch\//);
+  });
+
   it('owns prioritized preload registration only in the shared route definition', async () => {
     const [sharedSource, webSource, electronSource] = await readRouterSources();
 
