@@ -67,6 +67,15 @@ const unsupportedModules: Record<string, string> = {
   // Optional native addons probed by discord.js / ws / canvas consumers.
   'bufferutil': shim('empty'),
   'canvas': shim('empty'),
+  // `pdfjs-dist/legacy/build/pdf.mjs` (the entry the Worker uses) unconditionally
+  // `require()`s `@napi-rs/canvas` at module scope — a 25 MB Skia binary whose
+  // canvas surface the text extractor never touches. It is a *require*, not an
+  // import, so the `canvas` alias above does not cover it; without this the
+  // bundler loads `js-binding.js`, which probes for `skia.linux-x64-musl.node`
+  // and `skia.linux-x64-gnu.node` and fails with "stream did not contain valid
+  // UTF-8". Native addons are not loadable on Workers regardless of how the
+  // bundler handles them, so the package is stubbed outright.
+  '@napi-rs/canvas': shim('empty'),
   'erlpack': shim('empty'),
   'fsevents': shim('empty'),
   'utf-8-validate': shim('empty'),
@@ -225,17 +234,59 @@ const workerRequireShimPlugin: Plugin = {
  * into a namespace without `default` — breaking packages that do
  * `import tslib from 'tslib'`. The ES build has both named and default exports,
  * so every consumer (ESM or converted CJS) is pointed at it.
+ *
+ * The target is discovered, never hardcoded: this tree installs with Bun (which
+ * hoists under `node_modules/.bun/`), while the previous literal pointed at a
+ * `node_modules/.pnpm/tslib@2.8.1/...` path that does not exist here. `createRequire`
+ * is tried first (it is correct for pnpm/npm hoisting), then the known Bun and
+ * pnpm hoist layouts are scanned, so the build works under either package
+ * manager. The `try` keeps the build loud if `tslib` is genuinely absent instead
+ * of silently aliasing to a nonexistent path.
  */
-const tslibEsm = path.resolve(
-  root,
-  'node_modules/.pnpm/tslib@2.8.1/node_modules/tslib/tslib.es6.mjs',
-);
+const requireForConfig = createRequire(path.resolve(root, 'package.json'));
+const findTslibEsm = (): string | null => {
+  const fs = require('fs');
+  const candidates: string[] = [];
+
+  // 1. Whatever the configured package manager's resolver sees.
+  try {
+    candidates.push(requireForConfig.resolve('tslib/tslib.es6.mjs'));
+  } catch {
+    /* try the next strategy */
+  }
+
+  // 2. Known hoist layouts, newest version first.
+  const hoistRoots = [
+    path.resolve(root, 'node_modules/.bun'),
+    path.resolve(root, 'node_modules/.pnpm'),
+  ];
+  for (const hoistRoot of hoistRoots) {
+    if (!fs.existsSync(hoistRoot)) continue;
+    for (const entry of fs.readdirSync(hoistRoot)) {
+      if (!entry.startsWith('tslib@')) continue;
+      const candidate = path.join(hoistRoot, entry, 'node_modules', 'tslib', 'tslib.es6.mjs');
+      if (fs.existsSync(candidate)) candidates.push(candidate);
+    }
+  }
+
+  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null;
+};
+
+const tslibEsm = findTslibEsm();
 
 const unsupportedModulePlugin: Plugin = {
   enforce: 'pre',
   name: 'lobe-worker-unsupported-modules',
   resolveId(source) {
-    if (source === 'tslib') return tslibEsm;
+    if (source === 'tslib') {
+      if (!tslibEsm) {
+        throw new Error(
+          'Could not resolve `tslib/tslib.es6.mjs`. Reinstall dependencies with the package ' +
+            'manager this tree uses (see README → Cloudflare Workers Builds) and retry.',
+        );
+      }
+      return tslibEsm;
+    }
     // OpenTelemetry Node SDK bootstrap (auto-instrumentations, OTLP exporters)
     // cannot run on workerd; keep the `@opentelemetry/api` surface, drop the SDK.
     if (source === '@lobechat/observability-otel/node') return shim('observability-otel-node');
