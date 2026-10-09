@@ -1,0 +1,62 @@
+{
+  "name": "extract-human-name",
+  "version": "1.0.0",
+  "module": "./dist/extract-human-name.es.js",
+  "description": "Extracts, characterizes, and structures human author names from arbitrary text: tells a person (\"Dr. John Doe\") from an organization (\"The New York Times\"), parses name parts (title, first, middle, last, honorific), splits multi-author bylines, and formats APA-style citations. Ships a compact built-in name list by default; the 92k-entry names database (~1.1 MB) loads lazily from a CDN or via the /full entry.",
+  "author": "vtempest <grokthiscontact@gmail.com>",
+  "license": "rights.institute/PROSPER",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/extract-human-name"
+  },
+  "main": "./dist/extract-human-name.cjs.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/extract-human-name.es.js",
+      "require": "./dist/extract-human-name.cjs.js"
+    },
+    "./full": {
+      "types": "./dist/full.d.ts",
+      "import": "./dist/extract-human-name-full.es.js",
+      "require": "./dist/extract-human-name-full.cjs.js"
+    },
+    "./*": {
+      "types": "./*.ts",
+      "import": "./*",
+      "require": "./*"
+    }
+  },
+  "files": [
+    "dist",
+    "types",
+    "*.ts",
+    "human-names-92k.json"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.0",
+    "@vitest/coverage-v8": "^5.0.0",
+    "terser": "^5.51.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vite-plugin-dts": "^5.1.0",
+    "vitest": "^5.0.0"
+  },
+  "keywords": [
+    "human-name",
+    "author",
+    "citation",
+    "apa",
+    "name-parsing",
+    "organization-detection",
+    "byline",
+    "metadata"
+  ]
+}

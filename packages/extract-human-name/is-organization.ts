@@ -1,11 +1,17 @@
 import { TERMS_ORG, TERMS_QUALIFICATIONS, ORG_PATTERNS } from "./constants";
 import { COMMON_HUMAN_NAMES } from "./common-names";
+import { getHumanNamesDB } from "./human-names-db";
 
 /**
- * Whether a single lower-cased word is a common given name or surname. The
- * list is keyed in lower case, so callers must pass a lower-cased word.
+ * Whether a single lower-cased word is a common given name or surname.
+ *
+ * Uses the 92k-entry database when one is loaded (see human-names-db.ts),
+ * and the compact built-in list otherwise. The sources are keyed in
+ * lower case, so callers must pass a lower-cased word.
  */
 function isKnownHumanNameWord(word: string): boolean {
+  const db = getHumanNamesDB();
+  if (db) return db[word] === 1 || db[word] === 2;
   return COMMON_HUMAN_NAMES.has(word);
 }
 

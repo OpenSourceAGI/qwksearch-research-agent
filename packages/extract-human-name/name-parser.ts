@@ -31,12 +31,24 @@ export function cleanProfessionalQualifications(authorName: string): string {
     cleaned = cleaned.replace(pattern, " ");
   }
 
-  // Eliminate redundant spaces and leading/trailing punctuation
-  return cleaned
+  // Eliminate redundant spaces and leading punctuation
+  cleaned = cleaned
     .replace(/\s+/g, " ")
     .replace(/^[,;.\s]+/, "")
-    .replace(/[,;.\s]+$/, "")
     .trim();
+
+  // Strip trailing punctuation, but keep the period of a trailing
+  // generational suffix or degree ("Jr.", "Sr.", "Esq.") — the
+  // strip would otherwise eat it.
+  const lastWord = cleaned.split(/\s+/).pop() ?? "";
+  const endsInHonorific = PARSE_LISTS.honorific.has(
+    lastWord.toLowerCase().replace(/\.$/, ""),
+  );
+  if (!endsInHonorific) {
+    cleaned = cleaned.replace(/[,;.\s]+$/, "").trim();
+  }
+
+  return cleaned;
 }
 
 /**

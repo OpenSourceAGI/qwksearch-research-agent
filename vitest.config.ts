@@ -41,6 +41,7 @@ export default defineConfig({
       'packages/chat-agent-toolkit',
       'packages/education-playlists',
       'packages/extract-cite',
+      'packages/extract-human-name',
       'packages/extract-webpage',
       'packages/html-renderer-api',
       'packages/legal-terms-privacy-policy',

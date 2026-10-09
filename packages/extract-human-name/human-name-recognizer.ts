@@ -2,7 +2,11 @@
  * @fileoverview Resolves strings containing humans and organizations into citation objects.
  */
 
-import type { HumanNameOptions, HumanNameResult } from "../types/types";
+import type {
+  AuthorType,
+  HumanNameOptions,
+  HumanNameResult,
+} from "./types/types";
 import { splitMultipleAuthors } from "./author-splitter";
 import {
   cleanProfessionalQualifications,
@@ -10,7 +14,7 @@ import {
 } from "./name-parser";
 import { isOrganization } from "./is-organization";
 
-export * from "../types/types";
+export * from "./types/types";
 export * from "./constants";
 export * from "./name-parser";
 export * from "./author-splitter";
@@ -63,7 +67,7 @@ export function extractHumanName(
   });
 
   // Calculate cardinality-based author classification schema parameter
-  let authorType = 0;
+  let authorType: AuthorType = 0;
   if (processedAuthors.length === 1) {
     authorType = processedAuthors[0].isOrg ? 4 : 1;
   } else if (processedAuthors.length === 2) {
