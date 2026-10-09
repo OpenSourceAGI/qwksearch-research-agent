@@ -34,7 +34,7 @@ export function DemoMount() {
         {health === null ? (
           <p className="status">Loading the live demo…</p>
         ) : (
-          <PdfDemo maxMb={health?.maxPdfMb ?? null} />
+          <PdfDemo maxMb={health?.maxPdfMb ?? null} ocr={health?.ocr ?? false} />
         )}
       </main>
     </div>
