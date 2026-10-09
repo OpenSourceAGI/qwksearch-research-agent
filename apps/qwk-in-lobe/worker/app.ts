@@ -1,20 +1,13 @@
 /**
- * The QwkSearch × LobeHub Worker application.
+ * The LobeHub Worker application.
  *
- * Mount order matters: the QwkSearch feature routes (`/api/doc/*`,
- * `/api/agent/article-*`) are registered before LobeHub's `/api/agent` Hono app
- * so their more specific paths win, and the SPA catch-all comes last.
+ * Mount order matters: the backend routes are registered before the SPA
+ * catch-all, which comes last.
  */
 import { Hono } from 'hono';
 
 import { apiApp } from './routes/api';
 import { authApp } from './routes/auth';
-import { articleApp } from './routes/qwksearch/article';
-import { articleAiApp } from './routes/qwksearch/articleAi';
-import { documentsApp } from './routes/qwksearch/documents';
-import { extractionSettingsApp } from './routes/qwksearch/extractionSettings';
-import { favoritesApp } from './routes/qwksearch/favorites';
-import { searchSettingsApp } from './routes/qwksearch/searchSettings';
 import { spaApp } from './routes/spa';
 import { trpcApp } from './routes/trpc';
 import { webapiApp } from './routes/webapi';
@@ -29,14 +22,6 @@ export const createApp = () => {
 
   // Better Auth first: /api/auth/* must never be shadowed by the generic /api handlers.
   app.route('/', authApp);
-
-  // QwkSearch features on D1 (article extracts, favorites, REASON documents).
-  app.route('/', articleApp);
-  app.route('/', favoritesApp);
-  app.route('/', documentsApp);
-  app.route('/', articleAiApp);
-  app.route('/', extractionSettingsApp);
-  app.route('/', searchSettingsApp);
 
   // LobeHub backend.
   app.route('/', trpcApp);

@@ -32,12 +32,7 @@
     "DATABASE_DRIVER": "neon",
     "DISABLE_REDIS": "1",
     "EMAIL_SERVICE_PROVIDER": "cloudflare",
-    "SMTP_FROM": "noreply@qwksearch.com",
-    "SCRAPER_URL": "https://proxy.qwksearch.com",
-    // Web-browsing tool searches through QwkSearch's own engine fan-out
-    // (apps/qwksearch-web `/api/agent/search`, backed by `search-web-api`).
-    "SEARCH_PROVIDERS": "qwksearch",
-    "QWKSEARCH_SEARCH_URL": "https://qwksearch.com/api/agent/search"
+    "SMTP_FROM": "noreply@qwksearch.com"
   },
   // Same infrastructure as the qwksearch Worker: KV, D1 (`qwksearch-new`), R2, Email.
   "kv_namespaces": [
@@ -80,10 +75,7 @@
         "DATABASE_DRIVER": "neon",
         "DISABLE_REDIS": "1",
         "EMAIL_SERVICE_PROVIDER": "cloudflare",
-        "SMTP_FROM": "noreply@qwksearch.com",
-        "SCRAPER_URL": "https://proxy.qwksearch.com",
-        "SEARCH_PROVIDERS": "qwksearch",
-        "QWKSEARCH_SEARCH_URL": "https://qwksearch.com/api/agent/search"
+        "SMTP_FROM": "noreply@qwksearch.com"
       },
       "kv_namespaces": [
         { "binding": "KV", "id": "371c242bebfc4de78ed9841ce72c77b3" }
