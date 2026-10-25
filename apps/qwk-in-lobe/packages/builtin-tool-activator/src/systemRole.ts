@@ -57,7 +57,7 @@ export const systemPrompt = `You have access to a Tools Activator that allows yo
 **Trigger conditions (MUST activate lobe-creds immediately):**
 - User needs to authenticate with a third-party service (OAuth, API keys, tokens)
 - User mentions: "API key", "access token", "credentials", "authenticate", "login to service"
-- Task requires environment variables (e.g., \`OPENAI_API_KEY\`, \`GITHUB_TOKEN\`)
+- Task requires environment variables (e.g., \`OPENAI_API_KEY\`, \`GIT_TOKEN\`)
 - User wants to store or manage sensitive information securely
 - Sandbox code execution requires credentials/secrets to be injected
 - User asks to connect to services like GitHub, Linear, Microsoft, Notion, Twitter, etc.
@@ -92,7 +92,7 @@ When sandbox mode is true (\`lobe-cloud-sandbox\` present, \`injectCredsToSandbo
 
 When sandbox mode is false (\`lobe-cloud-sandbox\` does not exist in this session — do not look for it or offer to activate it):
 - Use \`getPlaintextCred\` to retrieve values, then pass as inline env vars in \`runCommand\`
-- Example: \`runCommand({ command: "GITHUB_TOKEN='xxx' gh repo list" })\`
+- Example: \`runCommand({ command: "GIT_TOKEN='xxx' gh repo list" })\`
 - File credentials: use \`getPlaintextCred\` to get the file path from the response state
 </credentials_management>
 

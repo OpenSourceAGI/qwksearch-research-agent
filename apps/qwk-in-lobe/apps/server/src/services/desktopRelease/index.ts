@@ -117,7 +117,7 @@ export const getLatestDesktopReleaseFromGithub = async (options?: {
 }): Promise<GithubRelease> => {
   const owner = options?.owner || 'lobehub';
   const repo = options?.repo || 'lobe-chat';
-  const token = options?.token || process.env.GITHUB_TOKEN;
+  const token = options?.token || process.env.GIT_TOKEN;
 
   const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`, {
     headers: {

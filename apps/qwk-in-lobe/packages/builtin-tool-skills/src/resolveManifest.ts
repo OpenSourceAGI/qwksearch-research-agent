@@ -51,7 +51,7 @@ const EXEC_ENV_PREAMBLES: Partial<
   Record<NonNullable<BuiltinToolResolveContext['executionEnv']>, string>
 > = {
   'device':
-    "Execution environment: the user's selected device, not a cloud sandbox. The skill archive is auto-extracted on the device and the command runs in the skill directory. LobeHub-managed credentials (e.g. `GITHUB_TOKEN`) are NOT injected.",
+    "Execution environment: the user's selected device, not a cloud sandbox. The skill archive is auto-extracted on the device and the command runs in the skill directory. LobeHub-managed credentials (e.g. `GIT_TOKEN`) are NOT injected.",
   'device-unrouted':
     'Fallback execution environment: an isolated cloud sandbox. The user chose local-device execution but no device is routed this run — say so before running commands that assume their machine.',
   'sandbox': "Execution environment: an isolated cloud sandbox, not the user's machine.",

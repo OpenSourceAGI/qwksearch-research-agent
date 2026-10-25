@@ -85,7 +85,7 @@ function buildCredsSetupScript(githubToken?: string): string | null {
     // Write GITHUB_ACCESS_TOKEN matching the injectCredsToSandbox oauth naming scheme
     `printf 'GITHUB_ACCESS_TOKEN=%s\\n' ${tokenArg} > ~/.creds/env`,
     // Pre-authenticate gh CLI so CC can use it immediately (gh also picks up
-    // GITHUB_TOKEN from env, but explicit login ensures ~/.config/gh/hosts.yml
+    // GIT_TOKEN from env, but explicit login ensures ~/.config/gh/hosts.yml
     // is populated for cases where env is reset in a sub-shell)
     `echo ${tokenArg} | gh auth login --hostname github.com --with-token 2>/dev/null || true`,
   ].join(' && \\\n');
@@ -204,7 +204,7 @@ export async function spawnHeteroSandbox(params: SandboxRunParams): Promise<void
     ...(workspaceId ? [`LOBEHUB_WORKSPACE_ID=${shellQuote(workspaceId)}`] : []),
     // Inject GitHub token so CC can authenticate git operations and GitHub API
     // calls inside the sandbox (e.g. gh CLI, git push, API requests).
-    ...(githubToken ? [`GITHUB_TOKEN=${shellQuote(githubToken)}`] : []),
+    ...(githubToken ? [`GIT_TOKEN=${shellQuote(githubToken)}`] : []),
   ].join(' ');
   const shellArgs = args.map(shellQuote).join(' ');
   const mainCommand = `echo ${shellQuote(base64Payload)} | base64 -d | ${envVars} ${shellArgs}`;

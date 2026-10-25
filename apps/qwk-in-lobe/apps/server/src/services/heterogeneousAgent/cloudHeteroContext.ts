@@ -27,7 +27,7 @@ export function buildCloudHeteroContext(params: {
    * what happened in prior turns even without a native session file.
    */
   conversationHistory?: ConversationHistoryEntry[];
-  /** GitHub OAuth token injected as GITHUB_TOKEN env var in the sandbox. */
+  /** GitHub OAuth token injected as GIT_TOKEN env var in the sandbox. */
   githubToken?: string;
 }): string {
   const { repos, agentSystemContext, conversationHistory, githubToken } = params;
@@ -95,7 +95,7 @@ export function buildCloudHeteroContext(params: {
       '## GitHub Authentication',
       'GitHub credentials are pre-injected into this sandbox:',
       '',
-      '- `GITHUB_TOKEN` env var is set — git and `gh` CLI pick it up automatically',
+      '- `GIT_TOKEN` env var is set — git and `gh` CLI pick it up automatically',
       '- `gh` CLI is pre-authenticated — all `gh` commands work out of the box',
       '- `~/.creds/env` contains `GITHUB_ACCESS_TOKEN` (same format as `injectCredsToSandbox`)',
       '  — source it in sub-shells or scripts that need an explicit token:',
@@ -109,7 +109,7 @@ export function buildCloudHeteroContext(params: {
       '',
       'If `git push` fails with an authentication error, recover with one of these approaches (in order of preference):',
       '1. `gh auth setup-git` — reconfigures git to use gh as credential helper, then retry `git push`',
-      '2. `git push https://oauth2:$GITHUB_TOKEN@github.com/<owner>/<repo>.git <branch>` — inline token fallback',
+      '2. `git push https://oauth2:$GIT_TOKEN@github.com/<owner>/<repo>.git <branch>` — inline token fallback',
       '',
       'Use `gh pr view` or `gh pr list` to confirm that a PR was successfully created after pushing.',
     );
@@ -128,7 +128,7 @@ export function buildCloudHeteroContext(params: {
       '',
       'You can start working in any of these directories immediately.',
       githubToken
-        ? 'If a directory is missing (clone may have failed), you can recover it yourself using the available GITHUB_TOKEN.'
+        ? 'If a directory is missing (clone may have failed), you can recover it yourself using the available GIT_TOKEN.'
         : 'If a directory is missing (clone may have failed), you can run `git clone <url> /workspace/<dir>` yourself to recover it.',
     );
   } else {
@@ -136,7 +136,7 @@ export function buildCloudHeteroContext(params: {
       '',
       'No GitHub repositories have been pre-cloned for this conversation.',
       githubToken
-        ? 'If you need a repository, you can clone it yourself using the available GITHUB_TOKEN.'
+        ? 'If you need a repository, you can clone it yourself using the available GIT_TOKEN.'
         : 'If you need a repository, ask the user to add it in the repo selector, or clone it yourself with `git clone <url> /workspace/<dir>`.',
     );
   }
