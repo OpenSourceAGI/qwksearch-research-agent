@@ -94,7 +94,7 @@ jobs:
       - name: Create or update dependency-update pull request
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GIT_TOKEN }}
           commit-message: "chore(deps): update pnpm dependencies"
           branch: "automation/pnpm-dependency-updates"
           delete-branch: true

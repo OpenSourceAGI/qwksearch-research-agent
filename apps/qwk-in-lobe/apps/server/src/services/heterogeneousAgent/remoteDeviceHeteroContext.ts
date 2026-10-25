@@ -7,7 +7,7 @@ import type { ConversationHistoryEntry } from './cloudHeteroContext';
  *
  * Unlike {@link buildCloudHeteroContext}, this deliberately strips all the
  * cloud-sandbox boilerplate (ephemeral `/workspace`, pre-cloned repo list,
- * "commit-or-lose-your-work" warnings, injected GITHUB_TOKEN). None of that
+ * "commit-or-lose-your-work" warnings, injected GIT_TOKEN). None of that
  * applies to a device run, so injecting it would actively mislead the agent.
  *
  * What remains is only what's genuinely useful on a device:

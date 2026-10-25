@@ -14,7 +14,7 @@ import type {
 
 const log = debug('lobe-server:sandbox:market');
 const REDACTED_SANDBOX_PARAM = '[redacted]';
-const SANDBOX_AUTH_ENV_PATTERN = /\b(LOBEHUB_JWT|GITHUB_TOKEN)=("[^"]*"|'[^']*'|\S+)/g;
+const SANDBOX_AUTH_ENV_PATTERN = /\b(LOBEHUB_JWT|GIT_TOKEN)=("[^"]*"|'[^']*'|\S+)/g;
 
 export class MarketSandboxProvider implements SandboxProvider {
   readonly capabilities = {

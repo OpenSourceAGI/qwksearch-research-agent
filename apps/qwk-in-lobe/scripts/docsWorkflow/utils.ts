@@ -84,7 +84,7 @@ const getExtension = (type: string) => mimeToExtensions?.[type] || '.png';
 export const fetchImageAsFile = async (url: string, width: number) => {
   try {
     // Step 1: Fetch the image
-    const githubToken = process.env.GITHUB_TOKEN;
+    const githubToken = process.env.GIT_TOKEN;
     const headers =
       githubToken && url.startsWith('https://github.com/')
         ? {

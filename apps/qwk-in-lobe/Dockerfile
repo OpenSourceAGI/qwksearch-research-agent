@@ -253,7 +253,7 @@ ENV \
     # Gitee AI
     GITEE_AI_API_KEY="" GITEE_AI_MODEL_LIST="" \
     # GitHub
-    GITHUB_TOKEN="" GITHUB_MODEL_LIST="" \
+    GIT_TOKEN="" GITHUB_MODEL_LIST="" \
     # Google
     GOOGLE_API_KEY="" GOOGLE_MODEL_LIST="" GOOGLE_PROXY_URL="" \
     # Vertex AI

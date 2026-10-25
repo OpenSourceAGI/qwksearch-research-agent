@@ -356,9 +356,9 @@ const getParamsFromPayload = (provider: string, payload: ClientSecretPayload) =>
     }
 
     case ModelProvider.Github: {
-      const { GITHUB_TOKEN } = llmConfig;
+      const { GIT_TOKEN } = llmConfig;
 
-      const apiKey = apiKeyManager.pick(payload?.apiKey || GITHUB_TOKEN);
+      const apiKey = apiKeyManager.pick(payload?.apiKey || GIT_TOKEN);
 
       return { apiKey };
     }
