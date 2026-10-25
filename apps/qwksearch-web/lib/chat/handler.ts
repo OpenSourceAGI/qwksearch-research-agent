@@ -4,18 +4,35 @@
  */
 
 import crypto from "crypto";
-import type { ChatTurnMessage } from "chat-agent-toolkit";
+import type { ChatTurnMessage, MetaSearchAgentType } from "chat-agent-toolkit";
 import { createSearchHandlers } from "chat-agent-toolkit";
 import { describeError } from "research-agent-ui/api";
 import { getDB } from "@/lib/database";
 import { searchSearxng } from "search-web-api/search/public-searxng";
 import { searchTavily, isTavilyConfigured } from "search-web-api/search/tavily";
 
-const searchHandlers = createSearchHandlers({
-  searchSearxng,
-  searchTavily,
-  isTavilyConfigured,
-});
+import { createLobeSearchHandlers } from "@/lib/lobe-engine/handlers";
+
+/**
+ * The LobeChat chat engine (agent loop + web-browsing tools over the
+ * search-sources API) is the default. `QWKSEARCH_CHAT_ENGINE=meta-search`
+ * switches back to chat-agent-toolkit's single-pass MetaSearchAgent.
+ */
+const useLegacyEngine = () => process.env.QWKSEARCH_CHAT_ENGINE === "meta-search";
+
+let lobeSearchHandlers: ReturnType<typeof createLobeSearchHandlers> | undefined;
+let legacySearchHandlers: ReturnType<typeof createSearchHandlers> | undefined;
+
+const getSearchHandlers = (): Record<string, MetaSearchAgentType> => {
+  if (useLegacyEngine()) {
+    return (legacySearchHandlers ??= createSearchHandlers({
+      searchSearxng,
+      searchTavily,
+      isTavilyConfigured,
+    }));
+  }
+  return (lobeSearchHandlers ??= createLobeSearchHandlers());
+};
 import ModelRegistry from "chat-agent-toolkit/models/registry";
 import { getUserId } from "@/lib/auth/agent-session";
 import { checkGuestRateLimit } from "@/lib/rate-limit/guestRateLimiter";
@@ -86,8 +103,9 @@ const getClientIP = (req: Request): string => {
  * 4. **Model loading** — Instantiates the requested LLM via {@link ModelRegistry}.
  * 5. **History persistence** — Saves the chat session and human message to the DB
  *    (authenticated users only).
- * 6. **Search & answer** — Delegates to the appropriate {@link searchHandlers}
- *    focus mode handler, which performs web search, reranking, and LLM streaming.
+ * 6. **Search & answer** — Delegates to the focus mode's handler: by default
+ *    the LobeChat chat engine, whose agent searches the search-sources API,
+ *    reads pages, and streams a cited answer.
  * 7. **Streaming response** — Returns a newline-delimited JSON (NDJSON) stream
  *    with `"message"`, `"sources"`, `"messageEnd"`, and `"error"` frames.
  *
@@ -250,6 +268,7 @@ export const handleChatRequest = async (req: Request): Promise<Response> => {
     const history = buildChatHistory(body.history);
 
     // --- Look up the focus mode search handler ---
+    const searchHandlers = getSearchHandlers();
     const handler = searchHandlers[body.focusMode];
 
     if (!handler) {
