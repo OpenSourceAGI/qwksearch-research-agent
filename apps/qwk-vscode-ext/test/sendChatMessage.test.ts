@@ -91,8 +91,10 @@ describe('sendChatMessage', () => {
     const id = lastRequestId();
 
     stream(id, JSON.stringify({ type: 'searching', messageId: 'm1', data: { query: 'docling', status: 'running' } }) + '\n');
+    stream(id, JSON.stringify({ type: 'searching', messageId: 'm1', data: { query: 'Docs · lookup', category: 'tool', status: 'done' } }) + '\n');
 
-    expect(cb.onSearching).toHaveBeenCalledWith('m1', 'docling', 'running');
+    expect(cb.onSearching).toHaveBeenCalledWith('m1', 'docling', 'running', undefined);
+    expect(cb.onSearching).toHaveBeenCalledWith('m1', 'Docs · lookup', 'done', 'tool');
   });
 
   it('reports sources, defaulting to an empty list', () => {

@@ -29,6 +29,12 @@
       "@/*": [
         "./*"
       ],
+      "qwk-in-lobe/*": [
+        "../qwk-in-lobe/*"
+      ],
+      "@lobechat/prompts": [
+        "../qwk-in-lobe/packages/prompts/src/prompts/search/index.ts"
+      ],
       "chat-agent-toolkit": [
         "../../packages/chat-agent-toolkit/src/index.ts"
       ],

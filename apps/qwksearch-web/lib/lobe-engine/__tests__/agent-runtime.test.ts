@@ -16,7 +16,7 @@ function scripted(steps: LlmStreamEvent[][]) {
   return { callLlm, calls };
 }
 
-const passthrough = async (messages: ModelMessage[]) => messages;
+const passthrough = async (messages: ModelMessage[], _state?: unknown) => messages;
 
 describe('runAgent', () => {
   it('finishes after one step when the model answers directly', async () => {

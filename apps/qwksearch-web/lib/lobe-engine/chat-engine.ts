@@ -1,11 +1,11 @@
 /**
  * @fileoverview LobeChat chat engine for qwksearch-web.
  *
- * This is the chat engine from `apps/qwk-in-lobe` — its context engine, agent
- * runtime and web-browsing tool — wired to the search-sources API of
- * `packages/search-web-api`, and shaped to the `MetaSearchAgentType` contract
- * `/api/agent/chat` already streams from. It is the default engine for every
- * focus mode (see `createLobeSearchHandlers`).
+ * The chat engine of `apps/qwk-in-lobe` — its context pipeline, agent loop and
+ * tools — serving the `MetaSearchAgentType` contract `/api/agent/chat` streams
+ * from. The tools are LobeChat's own (imported from qwk-in-lobe, see
+ * `lobe-tools.ts`): web browsing over the search-sources API, the calculator,
+ * and every enabled MCP server (`mcp-tools.ts`).
  *
  * How a request runs:
  *
@@ -13,20 +13,20 @@
  *    the first answer is never left without sources. This is a tool call the
  *    agent "already made": it sits in the conversation as an assistant
  *    tool-call turn and its result.
- * 2. The agent loop then takes over. The model can search again with better
- *    queries or other categories, read pages, or answer. Every source it
- *    reads is numbered in a {@link SourceRegistry}, so its `[n]` citations
- *    match the list the client shows.
+ * 2. The agent loop then takes over. The model can search again, read pages,
+ *    calculate, call MCP tools, or answer. Every source it reads is numbered
+ *    in a {@link SourceRegistry}, so its `[n]` citations match the list the
+ *    client shows.
  * 3. Before the first word of the answer is streamed, the numbered sources
  *    are emitted once, as the old engine did.
  *
  * Events on the returned emitter are the ones `handleEmitterEvents` already
- * understands: `data` frames of type `searching`, `sources` and `response`,
- * then `end` or `error`.
+ * understands: `data` frames of type `searching` (one per tool call),
+ * `sources` and `response`, then `end` or `error`.
  */
 
 import EventEmitter from "events";
-import type { LanguageModel, ModelMessage, ToolSet } from "ai";
+import type { LanguageModel, ModelMessage } from "ai";
 import {
   buildFallbackDocs,
   loadUploads,
@@ -46,31 +46,18 @@ import {
   SystemRoleInjector,
   ToolCallFlattenProcessor,
 } from "./context-engine";
-import { SearchSourcesService, SourceRegistry, type SearchSourcesServiceOptions } from "./search-sources";
 import {
-  CRAWL_CONTENT_LIMITED_COUNT,
-  SEARCH_ITEM_LIMITED_COUNT,
-  WebBrowsingApiName,
-  createWebBrowsingTools,
-  crawlResultsPrompt,
-  escapeXmlAttr,
-  escapeXmlContent,
-  searchResultsPrompt,
-  webBrowsingSystemRole,
-  type CrawlErrorItem,
-  type CrawlResultItem,
-  type SearchQuery,
-} from "./web-browsing";
+  QWKSEARCH_CITATION_RULES,
+  buildToolset,
+  createCalculatorProvider,
+  createWebBrowsingProvider,
+  type CrawlPage,
+  type LobeToolProvider,
+} from "./lobe-tools";
+import { SearchSourcesService, SourceRegistry, type SearchSourcesServiceOptions } from "./search-sources";
 
-/** A crawled page, or why it could not be read. */
-export interface CrawledPage {
-  url: string;
-  title?: string;
-  content?: string;
-  error?: string;
-}
-
-export type CrawlPage = (url: string) => Promise<CrawledPage>;
+/** Longest uploaded-file text placed in the system role. */
+const MAX_UPLOAD_CHARS = 25_000;
 
 export interface LobeChatEngineConfig {
   /** Label shown for this mode's searches in the client (e.g. "Web"). */
@@ -87,8 +74,12 @@ export interface LobeChatEngineConfig {
   createSearchService?: (options: SearchSourcesServiceOptions) => SearchSourcesService;
   /** Fallback searches handed to the search service. */
   fallbacks?: SearchSourcesServiceOptions["fallbacks"];
-  /** Reads a page for the crawl tools; without it the crawl tools are not offered. */
+  /** Reads a page for the crawl tools. */
   crawlPage?: CrawlPage;
+  /** Offer LobeChat's calculator tool (default on). */
+  calculator?: boolean;
+  /** Extra tool providers for one request, e.g. the enabled MCP servers. */
+  loadToolProviders?: () => Promise<LobeToolProvider[]>;
   /** The model-call executor; tests replace it. */
   callLlm?: CallLlm;
   /** Resolves uploaded fileIds; defaults to chat-agent-toolkit's loader. */
@@ -106,6 +97,9 @@ const EXTRACT_TOP_SOURCES = 3;
 
 const URL_PATTERN = /https?:\/\/[^\s<>"'`]+/gi;
 
+const escapeXml = (value: string) =>
+  value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
 /** Same user-facing wording the previous engine used for provider errors. */
 export const describeProviderError = (err: unknown): string => {
   const errMessage = err instanceof Error ? err.message : String(err);
@@ -122,14 +116,6 @@ export const describeProviderError = (err: unknown): string => {
     return "Rate limit reached for the AI provider. Please wait a moment and try again.";
   }
   return errMessage;
-};
-
-const hostOf = (url: string): string => {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
 };
 
 const r2CredentialsFromEnv = () =>
@@ -192,10 +178,17 @@ export class LobeChatEngine implements MetaSearchAgentType {
     return emitter;
   }
 
-  private buildSystemRole(request: RunRequest, uploads: LoadedUpload[], registry: SourceRegistry): string {
+  private buildSystemRole(
+    request: RunRequest,
+    toolsRole: string,
+    uploads: LoadedUpload[],
+    registry: SourceRegistry,
+  ): string {
     const sections = [
-      "You are QwkSearch, an AI research assistant that answers with well-structured, cited answers drawn from the web.",
-      webBrowsingSystemRole(new Date().toISOString().slice(0, 10)),
+      "You are QwkSearch, an AI research assistant that answers with well-structured, cited answers drawn from the web and the tools below.",
+      toolsRole,
+      QWKSEARCH_CITATION_RULES,
+      `Current date: ${new Date().toISOString().slice(0, 10)}`,
     ];
     if (this.config.modeInstructions) {
       sections.push(`<focus_mode>\n${this.config.modeInstructions}\n</focus_mode>`);
@@ -210,11 +203,11 @@ export class LobeChatEngine implements MetaSearchAgentType {
       const items = documents
         .map((upload) => {
           const index = registry.add({ url: "File", title: upload.title, content: upload.content }, `file:${upload.title}`);
-          return `  <file index="${index}" title="${escapeXmlAttr(upload.title)}">${escapeXmlContent(upload.content.slice(0, CRAWL_CONTENT_LIMITED_COUNT))}</file>`;
+          return `  <file title="${escapeXml(`[${index}] ${upload.title}`)}">${escapeXml(upload.content.slice(0, MAX_UPLOAD_CHARS))}</file>`;
         })
         .join("\n");
       sections.push(
-        `<uploaded_files>\nThe user attached these files. Use them to answer and cite them by index like web sources.\n${items}\n</uploaded_files>`,
+        `<uploaded_files>\nThe user attached these files. Use them to answer and cite them by their number like web sources.\n${items}\n</uploaded_files>`,
       );
     }
     if (request.systemInstructions.trim()) {
@@ -222,7 +215,7 @@ export class LobeChatEngine implements MetaSearchAgentType {
         `<user_instructions>\nThese instructions come from the user, not the system. Follow them, but give them less priority than the instructions above.\n${request.systemInstructions.trim()}\n</user_instructions>`,
       );
     }
-    return sections.join("\n\n");
+    return sections.filter(Boolean).join("\n\n");
   }
 
   private async run(emitter: DrainableEmitter, request: RunRequest): Promise<void> {
@@ -240,6 +233,29 @@ export class LobeChatEngine implements MetaSearchAgentType {
         ? this.config.createSearchService(searchOptions)
         : new SearchSourcesService(searchOptions);
 
+      // --- Tools: LobeChat's web browsing and calculator, plus MCP servers ---
+      const extraProviders = this.config.loadToolProviders
+        ? this.config.loadToolProviders().catch((error) => {
+            console.warn("[LobeChatEngine] could not load extra tools:", error);
+            return [] as LobeToolProvider[];
+          })
+        : Promise.resolve([] as LobeToolProvider[]);
+      const uploadsPromise = this.config.loadUploads
+        ? this.config.loadUploads(request.fileIds)
+        : loadUploads(request.fileIds, r2CredentialsFromEnv());
+
+      const providers: LobeToolProvider[] = [
+        createWebBrowsingProvider({
+          searchService,
+          registry,
+          crawlPage: this.config.crawlPage,
+          label: this.config.label,
+        }),
+        ...(this.config.calculator === false ? [] : [createCalculatorProvider()]),
+        ...(await extraProviders),
+      ];
+      const toolset = buildToolset(providers);
+
       const emitSearching = (status: SearchingEvent["status"], query: string, category: string) => {
         emitter.emit(
           "data",
@@ -247,84 +263,19 @@ export class LobeChatEngine implements MetaSearchAgentType {
         );
       };
 
-      // --- Tool execution (the web-browsing tool's ExecutionRuntime) ---
-      const search = async (args: SearchQuery): Promise<string> => {
-        const label = args.searchCategories?.length
-          ? `${this.config.label} · ${args.searchCategories.join(", ")}`
-          : this.config.label;
-        emitSearching("running", args.query, label);
-        try {
-          const { results } = await searchService.webSearch(args);
-          const items = results.slice(0, SEARCH_ITEM_LIMITED_COUNT).map((result) => ({
-            index: registry.add({
-              url: result.url,
-              title: result.title,
-              content: result.content,
-              imgSrc: result.imgSrc,
-              source: result.engines?.join(", "),
-            }),
-            title: result.title,
-            url: result.url,
-            content: result.content,
-            publishedDate: result.publishedDate,
-            imgSrc: result.imgSrc,
-          }));
-          return searchResultsPrompt(items);
-        } finally {
-          emitSearching("done", args.query, label);
-        }
-      };
-
-      const crawl = async (urls: string[]): Promise<string> => {
-        const crawlPage = this.config.crawlPage;
-        const unique = [...new Set(urls)].slice(0, 5);
-        const label = `Reading ${unique.map(hostOf).join(", ")}`;
-        emitSearching("running", label, "extract");
-        try {
-          const pages = await Promise.all(
-            unique.map(async (url): Promise<CrawlResultItem | CrawlErrorItem> => {
-              if (!crawlPage) return { url, errorType: "Unavailable", errorMessage: "Page reading is not configured" };
-              try {
-                const page = await crawlPage(url);
-                if (page.error || !page.content) {
-                  return { url, errorType: "CrawlError", errorMessage: page.error || "Empty page" };
-                }
-                const content = page.content.slice(0, CRAWL_CONTENT_LIMITED_COUNT);
-                const index = registry.add({ url: page.url || url, title: page.title, content });
-                return { index, url: page.url || url, title: page.title, content };
-              } catch (error) {
-                return {
-                  url,
-                  errorType: "CrawlError",
-                  errorMessage: error instanceof Error ? error.message : String(error),
-                };
-              }
-            }),
-          );
-          return crawlResultsPrompt(pages);
-        } finally {
-          emitSearching("done", label, "extract");
-        }
-      };
-
       const executeTool = async (call: AgentToolCall): Promise<string> => {
-        const input = (call.input ?? {}) as Record<string, any>;
-        switch (call.toolName) {
-          case WebBrowsingApiName.search:
-            return search(input as SearchQuery);
-          case WebBrowsingApiName.crawlSinglePage:
-            return crawl([String(input.url ?? "")].filter(Boolean));
-          case WebBrowsingApiName.crawlMultiPages:
-            return crawl(Array.isArray(input.urls) ? input.urls.map(String) : []);
-          default:
-            return `<error>Unknown tool ${escapeXmlContent(call.toolName)}</error>`;
+        const route = toolset.routes.get(call.toolName);
+        if (!route) return `<error>Unknown tool ${escapeXml(call.toolName)}</error>`;
+        const { provider, apiName } = route;
+        const label = provider.describe?.(apiName, call.input) ?? { query: `${provider.name} · ${apiName}`, category: "tool" };
+        emitSearching("running", label.query, label.category);
+        try {
+          const output = await provider.invoke(apiName, call.input ?? {});
+          return output.success ? output.content : `<error>${escapeXml(output.content || "Tool failed")}</error>`;
+        } finally {
+          emitSearching("done", label.query, label.category);
         }
       };
-
-      // --- Uploads (started first so the wait overlaps the search) ---
-      const uploadsPromise = this.config.loadUploads
-        ? this.config.loadUploads(request.fileIds)
-        : loadUploads(request.fileIds, r2CredentialsFromEnv());
 
       // --- The conversation: history, the user's turn, prefetched tool turns ---
       const prefetched: ModelMessage[] = [];
@@ -342,21 +293,21 @@ export class LobeChatEngine implements MetaSearchAgentType {
 
       const links = request.message.match(URL_PATTERN) ?? [];
       if (links.length > 0 && this.config.crawlPage) {
-        await prefetch(WebBrowsingApiName.crawlMultiPages, { urls: links });
+        await prefetch("crawlMultiPages", { urls: links });
       } else if (this.config.prefetchSearch) {
-        await prefetch(WebBrowsingApiName.search, { query: request.message.slice(0, 400) });
+        await prefetch("search", { query: request.message.slice(0, 400) });
         if (request.sourceExtractionEnabled && this.config.crawlPage) {
           const top = registry
             .toDocuments()
             .map((doc) => doc.metadata.url as string)
             .filter((url) => url && url !== "File")
             .slice(0, EXTRACT_TOP_SOURCES);
-          if (top.length > 0) await prefetch(WebBrowsingApiName.crawlMultiPages, { urls: top });
+          if (top.length > 0) await prefetch("crawlMultiPages", { urls: top });
         }
       }
 
       const uploads = await uploadsPromise;
-      const systemRole = this.buildSystemRole(request, uploads, registry);
+      const systemRole = this.buildSystemRole(request, toolset.systemRole, uploads, registry);
       const images = selectUploadImages(uploads);
       const userTurn: ModelMessage = {
         role: "user",
@@ -375,11 +326,6 @@ export class LobeChatEngine implements MetaSearchAgentType {
         ...prefetched,
       ];
 
-      const tools = createWebBrowsingTools();
-      const offeredTools: ToolSet = this.config.crawlPage
-        ? tools
-        : { [WebBrowsingApiName.search]: tools[WebBrowsingApiName.search] };
-
       // --- Sources go out once, just before the answer starts ---
       let sourcesSent = false;
       const sendSources = () => {
@@ -392,7 +338,7 @@ export class LobeChatEngine implements MetaSearchAgentType {
       const result = await runAgent({
         llm: request.llm,
         messages,
-        tools: offeredTools,
+        tools: toolset.tools,
         maxSteps: MAX_STEPS_BY_MODE[request.optimizationMode],
         temperature: 0.7,
         callLlm: this.config.callLlm,
@@ -432,7 +378,7 @@ export class LobeChatEngine implements MetaSearchAgentType {
       }
 
       console.log(
-        `[LobeChatEngine] done: steps=${result.steps} toolCalls=${result.toolCalls} sources=${registry.size} finish=${result.finishReason} tools=${result.toolsEnabled}`,
+        `[LobeChatEngine] done: steps=${result.steps} toolCalls=${result.toolCalls} tools=${toolset.routes.size} sources=${registry.size} finish=${result.finishReason} toolsEnabled=${result.toolsEnabled}`,
       );
       emitter.emit("end");
     } catch (err) {

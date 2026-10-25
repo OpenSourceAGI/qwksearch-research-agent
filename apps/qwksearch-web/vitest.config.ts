@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config'
 import { helpDocsMdxPlugin } from 'user-help-docs/vite'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { lobeAliases, lobeDedupe } from './lib/lobe-engine/lobe/aliases'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
@@ -52,6 +53,8 @@ export default defineConfig({
       'education-playlists/server': resolve(__dirname, '../../packages/education-playlists/src/server/index.ts'),
       'write-language': resolve(__dirname, '../../packages/write-language/src'),
       'chat-agent-toolkit/models/registry': resolve(__dirname, '../../packages/chat-agent-toolkit/src/models/registry.ts'),
+      ...lobeAliases,
     },
+    dedupe: lobeDedupe,
   },
 })

@@ -25,11 +25,12 @@ describe('getMCPServerByKey', () => {
 describe('getMCPServersUIConfigSection', () => {
   it('maps each server to its metadata and fields', () => {
     const sections = getMCPServersUIConfigSection()
-    expect(sections).toHaveLength(1)
+    expect(sections.map((s) => s.key)).toEqual(['open-connector', 'lobe-mcp', 'lobe-mcp-stdio'])
     const [section] = sections
     expect(section.name).toBe('OpenConnector')
-    expect(section.key).toBe('open-connector')
     expect(section.fields.some((f) => f.key === 'adminToken')).toBe(true)
+    expect(sections[1].fields.find((f) => f.key === 'url')?.required).toBe(true)
+    expect(sections[2].fields.find((f) => f.key === 'command')?.required).toBe(true)
   })
 })
 
