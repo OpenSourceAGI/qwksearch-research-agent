@@ -18,6 +18,18 @@ function ExternalLink({ href, children, ...rest }: React.AnchorHTMLAttributes<HT
   );
 }
 
+/**
+ * Marks what kind of agent step a progress pill is. The chat engine reports
+ * page reads as "extract", calculator calls as "Calculator", MCP and other
+ * tool calls as "tool"; anything else is a search.
+ */
+function stepIcon(category?: string): string {
+  if (category === "extract") return "📄 ";
+  if (category === "Calculator") return "🧮 ";
+  if (category === "tool") return "🧩 ";
+  return "";
+}
+
 export default function MessageList({ messages }: { messages: ChatMessage[] }) {
   if (messages.length === 0) {
     return (
@@ -56,20 +68,25 @@ function MessageItem({ message }: { message: ChatMessage }) {
       return (
         <div className="searching">
           {message.queries.map((q, i) => (
-            <span key={i} className={`pill${q.status === "done" ? " done" : ""}`}>
-              {q.status === "done" ? "✓" : "…"} {q.query}
+            <span key={i} className={`pill${q.status === "done" ? " done" : ""}`} title={q.category}>
+              {q.status === "done" ? "✓" : "…"} {stepIcon(q.category)}
+              {q.query}
             </span>
           ))}
         </div>
       );
     case "source": {
-      const withUrl = message.sources.filter((s) => s.metadata?.url && s.metadata.url !== "File");
+      // Numbered by position in the full list, uploads included, so the
+      // numbers match the answer's [n] citations.
+      const withUrl = message.sources
+        .map((s, i) => ({ s, n: i + 1 }))
+        .filter(({ s }) => s.metadata?.url && s.metadata.url !== "File");
       if (withUrl.length === 0) return null;
       return (
         <div className="sources">
-          {withUrl.map((s, i) => (
-            <ExternalLink key={i} href={s.metadata!.url} title={s.metadata?.title}>
-              {i + 1}. {s.metadata?.title || s.metadata!.url}
+          {withUrl.map(({ s, n }) => (
+            <ExternalLink key={n} href={s.metadata!.url} title={s.metadata?.title}>
+              {n}. {s.metadata?.title || s.metadata!.url}
             </ExternalLink>
           ))}
         </div>

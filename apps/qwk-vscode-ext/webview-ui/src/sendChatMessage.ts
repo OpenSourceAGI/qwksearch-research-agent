@@ -11,7 +11,8 @@ export interface SendChatMessageParams {
 }
 
 export interface SendChatMessageCallbacks {
-  onSearching: (messageId: string, query: string, status: "running" | "done") => void;
+  /** One agent step: a search, a page read, or a tool call (calculator, MCP). */
+  onSearching: (messageId: string, query: string, status: "running" | "done", category?: string) => void;
   onSources: (messageId: string, sources: SourceItem[]) => void;
   onAssistantChunk: (messageId: string, delta: string, isFirst: boolean) => void;
   onDone: () => void;
@@ -40,7 +41,7 @@ export function sendChatMessage(
       return;
     }
     if (data.type === "searching") {
-      callbacks.onSearching(data.messageId, data.data?.query, data.data?.status);
+      callbacks.onSearching(data.messageId, data.data?.query, data.data?.status, data.data?.category);
       return;
     }
     if (data.type === "sources") {

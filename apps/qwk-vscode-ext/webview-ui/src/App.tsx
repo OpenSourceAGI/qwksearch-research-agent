@@ -67,18 +67,18 @@ export default function App() {
         chatModel,
       },
       {
-        onSearching: (messageId, query, status) => {
+        onSearching: (messageId, query, status, category) => {
           setMessages((prev) => {
             const idx = prev.findIndex((m) => m.role === "searching" && m.messageId === messageId);
             if (idx === -1) {
-              return [...prev, { role: "searching", messageId, queries: [{ query, status }] }];
+              return [...prev, { role: "searching", messageId, queries: [{ query, status, category }] }];
             }
             return prev.map((m, i) => {
               if (i !== idx || m.role !== "searching") return m;
               const qIdx = m.queries.findIndex((q) => q.query === query);
               const queries =
                 qIdx === -1
-                  ? [...m.queries, { query, status }]
+                  ? [...m.queries, { query, status, category }]
                   : m.queries.map((q, qi) => (qi === qIdx ? { ...q, status } : q));
               return { ...m, queries };
             });

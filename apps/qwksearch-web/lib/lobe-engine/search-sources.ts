@@ -23,7 +23,12 @@ import {
   type ContextProcessor,
   type PipelineContext,
 } from "./context-engine";
-import type { SearchCategory, SearchQuery } from "./web-browsing";
+/** The `search` call arguments of LobeChat's web-browsing tool. */
+export interface SearchQuery {
+  query: string;
+  searchCategories?: string[];
+  searchTimeRange?: string;
+}
 
 /** One result as the agent and the client see it. */
 export interface SearchSourceResult {
@@ -80,7 +85,7 @@ const CATEGORY_ALIASES: Record<string, string> = {
   files: "specialized",
 };
 
-export const normalizeCategory = (category: SearchCategory | string): string =>
+export const normalizeCategory = (category: string): string =>
   CATEGORY_ALIASES[category] ?? category;
 
 /** Maps search-web-api categories back to the SearXNG names fallbacks take. */

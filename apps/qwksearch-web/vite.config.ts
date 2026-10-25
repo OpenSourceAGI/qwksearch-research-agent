@@ -6,6 +6,7 @@ import { helpDocsMdxPlugin } from "user-help-docs/vite";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { stripGoogleFontsImports } from "./lib/fonts/google-fonts";
+import { lobeAliases, lobeDedupe } from "./lib/lobe-engine/lobe/aliases";
 
 const logger = createLogger();
 const _warn = logger.warn.bind(logger);
@@ -34,7 +35,12 @@ export default defineConfig(({ command }) => ({
       "qwksearch-api-client": resolve(__dirname, "../../packages/qwksearch-api-client/src"),
       "write-language": resolve(__dirname, "../../packages/write-language/src"),
       "search-web-api": resolve(__dirname, "../../packages/search-web-api/src"),
+      ...lobeAliases,
     },
+    // Source files imported from apps/qwk-in-lobe have no node_modules of
+    // their own here (that app is a separate pnpm workspace), so their bare
+    // imports must resolve from this app's dependencies.
+    dedupe: lobeDedupe,
   },
   build: {
 

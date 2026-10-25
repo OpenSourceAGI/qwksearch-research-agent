@@ -1,6 +1,7 @@
 /**
  * @fileoverview The focus modes of `/api/agent/chat`, each served by the
- * LobeChat chat engine with the search-sources API as its search source.
+ * LobeChat chat engine with the search-sources API as its search source and
+ * the enabled MCP servers as extra tools.
  *
  * The keys match the focus modes the client sends (and the old
  * `createSearchHandlers` from chat-agent-toolkit), so this is a drop-in
@@ -12,7 +13,10 @@ import { Search } from "search-web-api/search/search-query-executor.js";
 import { searchSearxng } from "search-web-api/search/public-searxng";
 import { searchTavily, isTavilyConfigured } from "search-web-api/search/tavily";
 import { extractArticleViaScraper, extractViaTavily } from "@/lib/scraper/scrape-url";
-import { LobeChatEngine, type CrawlPage, type LobeChatEngineConfig } from "./chat-engine";
+import { getEnabledMCPServers } from "@/lib/config/serverRegistry";
+import { LobeChatEngine, type LobeChatEngineConfig } from "./chat-engine";
+import type { CrawlPage } from "./lobe-tools";
+import { loadMCPProviders, type ConfiguredMCPServer } from "./mcp-tools";
 import { SearchSourcesService, type SearchSourcesServiceOptions } from "./search-sources";
 
 /** Longest page text kept from a crawl, before the tool's own limit. */
@@ -66,8 +70,15 @@ let sharedSearch: Search | undefined;
 const getSharedSearch = (): Search => (sharedSearch ??= new Search());
 
 export type LobeSearchHandlerOverrides = Partial<
-  Pick<LobeChatEngineConfig, "callLlm" | "crawlPage" | "createSearchService" | "fallbacks" | "loadUploads">
+  Pick<
+    LobeChatEngineConfig,
+    "callLlm" | "crawlPage" | "createSearchService" | "fallbacks" | "loadUploads" | "loadToolProviders"
+  >
 >;
+
+/** The enabled MCP servers from Settings → MCP Servers, as chat tools. */
+export const loadConfiguredMCPProviders = () =>
+  loadMCPProviders({ servers: getEnabledMCPServers() as ConfiguredMCPServer[] });
 
 /**
  * Builds the focus-mode handlers. `overrides` replace the network-facing
@@ -80,6 +91,7 @@ export const createLobeSearchHandlers = (
     crawlPage: defaultCrawlPage,
     fallbacks: defaultFallbacks,
     createSearchService: (options) => new SearchSourcesService({ backend: getSharedSearch(), ...options }),
+    loadToolProviders: loadConfiguredMCPProviders,
     ...overrides,
   };
 

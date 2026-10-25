@@ -1,9 +1,12 @@
 import { MCPServerUISection } from '../config/types';
 import OpenConnectorMCPServer from './open-connector';
+import { LobeHttpMCPServer, LobeStdioMCPServer } from './lobe-mcp';
 import BaseMCPServer, { MCPServerConstructor } from './baseMCPServer';
 
 const mcpServers: Record<string, MCPServerConstructor<any>> = {
   'open-connector': OpenConnectorMCPServer,
+  'lobe-mcp': LobeHttpMCPServer,
+  'lobe-mcp-stdio': LobeStdioMCPServer,
 };
 
 export const getMCPServersUIConfigSection = (): MCPServerUISection[] => {
@@ -23,5 +26,5 @@ export const getMCPServerByKey = (
   return mcpServers[key];
 };
 
-export { mcpServers, BaseMCPServer, OpenConnectorMCPServer };
+export { mcpServers, BaseMCPServer, OpenConnectorMCPServer, LobeHttpMCPServer, LobeStdioMCPServer };
 export default mcpServers;

@@ -26,6 +26,6 @@ export type ChatMessage =
   | {
       role: "searching";
       messageId: string;
-      queries: { query: string; status: "running" | "done" }[];
+      queries: { query: string; status: "running" | "done"; category?: string }[];
     }
   | { role: "error"; messageId: string; content: string };

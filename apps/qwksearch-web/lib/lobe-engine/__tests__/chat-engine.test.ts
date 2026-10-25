@@ -25,7 +25,7 @@ function scripted(steps: LlmStreamEvent[][]) {
 function backend(resultsByQuery: Record<string, Array<{ title: string; url: string; content?: string }>>) {
   return {
     search: vi.fn(async (query: string) =>
-      (resultsByQuery[query] ?? []).map((r) => ({ ...r, engines: ['google'], positions: [1], score: 1, priority: 'normal' })),
+      (resultsByQuery[query] ?? []).map((r) => ({ ...r, engines: ['google'], positions: [1], score: 1, priority: 'normal' as const })),
     ),
   };
 }
@@ -63,7 +63,7 @@ function makeEngine(config: Partial<LobeChatEngineConfig> & { search: ReturnType
     label: 'Web',
     prefetchSearch: true,
     loadUploads: async () => [],
-    createSearchService: (options) => new SearchSourcesService({ ...options, backend: search }),
+    createSearchService: (options) => new SearchSourcesService({ ...options, backend: search as any }),
     ...rest,
   });
 }
@@ -91,7 +91,10 @@ describe('LobeChatEngine', () => {
     expect(sent[0].role).toBe('system');
     expect(String(sent[0].content)).toContain('Be brief.');
     const toolTurn = sent.find((m) => m.role === 'tool') as any;
-    expect(toolTurn.content[0].output.value).toContain('index="1" title="Rust"');
+    expect(toolTurn.content[0].output.value).toContain('title="[1] Rust"');
+    // LobeChat's own tool prompt lists the tools with their instructions.
+    expect(String(sent[0].content)).toContain('<tools description="The tools you can use below">');
+    expect(String(sent[0].content)).toContain('<qwksearch_citations>');
     expect(search.search).toHaveBeenCalledWith('what is rust', 1, undefined, ['general']);
   });
 
@@ -113,7 +116,7 @@ describe('LobeChatEngine', () => {
     expect(sources.map((s: any) => s.metadata.url)).toEqual(['https://a.example', 'https://b.example']);
     expect(search.search).toHaveBeenLastCalledWith('better query', 1, undefined, ['academic']);
     const lastTool = calls[1].messages.filter((m) => m.role === 'tool').at(-1) as any;
-    expect(lastTool.content[0].output.value).toContain('index="2" title="B"');
+    expect(lastTool.content[0].output.value).toContain('title="[2] B"');
   });
 
   it('reads URLs in the message instead of searching', async () => {
@@ -140,10 +143,52 @@ describe('LobeChatEngine', () => {
     expect(events.find((e) => e.type === 'sources').data[0].pageContent).toBe('full page text that is longer');
   });
 
-  it('offers only the search tool when no page reader is configured', async () => {
+  it("offers LobeChat's web-browsing and calculator tools plus extra providers", async () => {
     const { callLlm, calls } = scripted([[{ type: 'text', text: 'ok' }]]);
-    await collect(makeEngine({ search: backend({}), callLlm }), 'q');
-    expect(Object.keys(calls[0].tools ?? {})).toEqual(['search']);
+    const extra = {
+      identifier: 'mcp-x',
+      name: 'X',
+      namePrefix: 'mcp_x_',
+      apis: [{ name: 'ping', description: 'Ping', parameters: { type: 'object', properties: {} } }],
+      invoke: vi.fn(),
+    };
+    await collect(makeEngine({ search: backend({}), callLlm, loadToolProviders: async () => [extra] }), 'q');
+    const names = Object.keys(calls[0].tools ?? {});
+    expect(names).toEqual(expect.arrayContaining(['search', 'crawlSinglePage', 'crawlMultiPages', 'calculate', 'solve', 'mcp_x_ping']));
+  });
+
+  it('runs a calculator call through LobeChat\'s calculator runtime', async () => {
+    const { callLlm, calls } = scripted([
+      [{ type: 'tool-call', toolCallId: 'c1', toolName: 'calculate', input: { expression: '2 + 3 * 4' } }],
+      [{ type: 'text', text: '14' }],
+    ]);
+    const events = await collect(makeEngine({ search: backend({}), callLlm, prefetchSearch: false }), 'what is 2+3*4');
+    const tool = calls[1].messages.filter((m) => m.role === 'tool').at(-1) as any;
+    expect(tool.content[0].output.value).toContain('14');
+    expect(events.filter((e) => e.type === 'searching').map((e) => e.data.category)).toEqual(['Calculator', 'Calculator']);
+  });
+
+  it('runs an MCP tool call and reports it as a tool step', async () => {
+    const invoke = vi.fn().mockResolvedValue({ content: 'pong', success: true });
+    const extra = {
+      identifier: 'mcp-x',
+      name: 'X',
+      namePrefix: 'mcp_x_',
+      apis: [{ name: 'ping', description: 'Ping', parameters: { type: 'object', properties: {} } }],
+      invoke,
+      describe: () => ({ query: 'X · ping', category: 'tool' }),
+    };
+    const { callLlm, calls } = scripted([
+      [{ type: 'tool-call', toolCallId: 'c1', toolName: 'mcp_x_ping', input: {} }],
+      [{ type: 'text', text: 'done' }],
+    ]);
+    const events = await collect(
+      makeEngine({ search: backend({}), callLlm, prefetchSearch: false, loadToolProviders: async () => [extra] }),
+      'ping it',
+    );
+    expect(invoke).toHaveBeenCalledWith('ping', {});
+    expect((calls[1].messages.at(-1) as any).content[0].output.value).toBe('pong');
+    expect(events.find((e) => e.type === 'searching').data).toEqual({ query: 'X · ping', category: 'tool', status: 'running' });
   });
 
   it('falls back to a placeholder source and a link list when nothing comes back', async () => {
@@ -168,7 +213,7 @@ describe('LobeChatEngine', () => {
 
     const events = await collect(engine, 'summarize my file', { fileIds: ['f1'] });
 
-    expect(String(calls[0].messages[0].content)).toContain('<file index="1" title="notes.pdf">Quarterly numbers</file>');
+    expect(String(calls[0].messages[0].content)).toContain('<file title="[1] notes.pdf">Quarterly numbers</file>');
     expect(events.find((e) => e.type === 'sources').data[0].metadata).toMatchObject({ url: 'File', title: 'notes.pdf' });
   });
 
