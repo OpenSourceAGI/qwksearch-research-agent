@@ -1,29 +1,25 @@
 name: Build and deploy web and .com apps to Cloudflare Workers
 
 on:
-  # Deploy automatically for every push/commit to any branch.
   push:
+    # `master` is this repository's default branch, and every other workflow
+    # already keys off it. This one listened on `main`, a branch that does not
+    # exist here, so no push ever deployed — production only moved when someone
+    # ran the workflow by hand.
+    branches:
+      - master
     paths:
       - 'apps/**'
-      # A package's own site (docs + live demo as one Worker), e.g.
-      # packages/extract-youtube/site. It bundles the package from source, so
-      # a change to the package itself redeploys the site too.
-      - 'packages/*/site/**'
-      - 'packages/extract-youtube/src/**'
-      - 'packages/extract-pdf/src/**'
-      - 'packages/extract-webpage/src/**'
-      - 'packages/extract-cite/src/**'
+      # The app bundles every workspace package, so a package-only change
+      # (Debate Editor, a debate-* library) is a deploy too. Without
+      # this, merging one never reached production.
+      - 'packages/**'
       - '.github/workflows/cloudflare-workers-deploy.yml'
 
-  # Allows a manual deployment of one selected app.
   workflow_dispatch:
     inputs:
       app:
-        description: 'Optional app to deploy: a directory name under apps/, or a path such as packages/extract-pdf/site. Leave empty to deploy every app that has a Wrangler config.'
-        required: false
-        type: string
-      environment:
-        description: 'Wrangler environment (production, staging, or leave blank for default).'
+        description: 'Optional directory name under apps/. Leave empty to deploy every app that has a Wrangler config.'
         required: false
         type: string
 
@@ -31,15 +27,13 @@ permissions:
   contents: read
 
 concurrency:
-  # Avoid two deployments from the same branch running at once.
   group: cloudflare-workers-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   discover:
-    name: Discover deployable apps
+    name: Discover apps
     runs-on: ubuntu-latest
-
     outputs:
       apps: ${{ steps.select.outputs.apps }}
 
@@ -62,12 +56,8 @@ jobs:
           # extension with no Worker, so `wrangler deploy` failed on it, while
           # `qwk-in-lobe` carries a wrangler.jsonc and was never deployed at
           # all.
-          #
-          # Candidates are apps/* and packages/*/site (a package's docs and
-          # live demo served as one Worker). Each is named by its path from
-          # the repository root.
           has_wrangler() {
-            local dir="$1"
+            local dir="apps/$1"
             [[ -f "${dir}/wrangler.jsonc" || -f "${dir}/wrangler.json" || -f "${dir}/wrangler.toml" ]]
           }
 
@@ -83,7 +73,7 @@ jobs:
           # documents as "the one job in this repository that installs
           # apps/qwk-in-lobe".
           owns_its_workspace() {
-            [[ -f "$1/pnpm-workspace.yaml" ]]
+            [[ -f "apps/$1/pnpm-workspace.yaml" ]]
           }
 
           deployable() {
@@ -91,31 +81,27 @@ jobs:
           }
 
           if [[ -n "${REQUESTED_APP}" ]]; then
-            # A bare name means a directory under apps/, as before.
-            requested="${REQUESTED_APP%/}"
-            [[ "${requested}" == */* ]] || requested="apps/${requested}"
-
-            if [[ ! -d "${requested}" ]]; then
-              echo "::error::Directory ${requested} does not exist."
+            if [[ ! -d "apps/${REQUESTED_APP}" ]]; then
+              echo "::error::Directory apps/${REQUESTED_APP} does not exist."
               exit 1
             fi
 
-            if ! has_wrangler "${requested}"; then
-              echo "::error::${requested} has no wrangler.jsonc/.json/.toml, so it is not a Workers app."
+            if ! has_wrangler "${REQUESTED_APP}"; then
+              echo "::error::apps/${REQUESTED_APP} has no wrangler.jsonc/.json/.toml, so it is not a Workers app."
               exit 1
             fi
 
-            if owns_its_workspace "${requested}"; then
-              echo "::error::${requested} declares its own pnpm-workspace.yaml and is built by its own workflow, not this one."
+            if owns_its_workspace "${REQUESTED_APP}"; then
+              echo "::error::apps/${REQUESTED_APP} declares its own pnpm-workspace.yaml and is built by its own workflow, not this one."
               exit 1
             fi
 
-            apps=$(jq -cn --arg app "${requested}" '[ $app ]')
+            apps=$(jq -cn --arg app "${REQUESTED_APP}" '[ $app ]')
           else
             apps=$(
-              for dir in apps/*/ packages/*/site/; do
+              for dir in apps/*/; do
                 [[ -d "${dir}" ]] || continue
-                app="${dir%/}"
+                app=$(basename "${dir}")
                 if deployable "${app}"; then echo "${app}"; fi
               done | jq -Rsc 'split("\n") | map(select(length > 0))'
             )
@@ -126,8 +112,8 @@ jobs:
           # made it permanently red for a repository with nothing to deploy.
           # The deploy job is skipped instead.
           if [[ "${apps}" == "[]" ]]; then
-            echo "No directory under apps/ or packages/*/site is a Worker this job can build — nothing to deploy."
-            find apps -mindepth 1 -maxdepth 1 -type d -printf ' - %p\n' 2>/dev/null || true
+            echo "No directory under apps/ is a Worker this job can build — nothing to deploy."
+            find apps -mindepth 1 -maxdepth 1 -type d -printf ' - %f\n' 2>/dev/null || true
             echo "apps=[]" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
@@ -151,71 +137,59 @@ jobs:
 
     defaults:
       run:
-        working-directory: ${{ matrix.app }}
+        working-directory: apps/${{ matrix.app }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
-      # bun, not npm: this repository is a bun workspace (`packageManager:
-      # bun@1.4.0`, one `bun.lock` at the root) and `apps/qwksearch-web`
-      # declares fifteen `workspace:*` dependencies. npm cannot parse that
-      # protocol at all — the install died on
-      # `EUNSUPPORTEDPROTOCOL: Unsupported URL Type "workspace:"` — so this job
-      # has never deployed that app either, whatever the discovery step
-      # selected.
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: 1.4.0
+          bun-version: 1.4.2
 
-      - name: Show app files
-        run: |
-          echo "Deploying app: ${{ matrix.app }}"
-          echo "Current directory: $(pwd)"
-          ls -la
-
-      # Run from the app directory, not the repository root, because the two
-      # deployable apps sit on opposite sides of the workspace boundary and
-      # this one command covers both: `qwksearch-web` is in the root
-      # `workspaces` globs, so bun walks up and installs the whole workspace
-      # from `bun.lock`; `qwk-in-lobe` is not, so bun installs that package
-      # alone. Verified both resolve (`bun install --dry-run`, exit 0) where
-      # npm failed.
-      #
-      # No `--frozen-lockfile`: `qwk-in-lobe` has no entry in the root
-      # `bun.lock` and no lockfile of its own, so a frozen install cannot
-      # succeed there.
+      # Workspace deps hoist to the repo root, so the install has to run
+      # there rather than in apps/<app>. No lockfile is committed; deps
+      # resolve fresh from package.json. The npm registry sometimes answers
+      # 502 mid-install, which failed the #1322 deploy, so retry a few times
+      # before giving up.
       - name: Install dependencies
-        id: install
-        run: bun install
+        working-directory: .
+        run: |
+          for attempt in 1 2 3; do
+            bun install && exit 0
+            echo "::warning::bun install failed (attempt $attempt), retrying"
+            sleep $((attempt * 15))
+          done
+          bun install
 
       # `--if-present` has to precede the script name: after it, bun stops
-      # parsing flags and forwards the rest to the script.
+      # parsing flags and forwards the rest to the script, so the app's build
+      # chain ended up running `cp ... --if-present` and failing.
       - name: Build app
-        if: steps.install.outcome == 'success'
         run: bun run --if-present build
 
-      - name: Deploy Worker with Wrangler
-        if: steps.install.outcome == 'success'
+      # Migrations run first, and on their own step, so a schema change that
+      # fails to apply stops the deploy rather than shipping code whose columns
+      # are not there yet. `.github/scripts/migrate-d1.ts` records what it has already
+      # applied, so a steady-state deploy is a single read. Leaving this out is
+      # how production drifts: the runner has existed since the last drift, but
+      # only `bun run deploy` called it — this workflow went straight to
+      # `wrangler deploy`, so every migration merged since then never landed.
+      - name: Apply D1 migrations
         env:
           CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
           CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          DEPLOY_ENV: ${{ inputs.environment }}
-        run: |
-          # Secrets pasted into the GitHub UI often carry a trailing newline
-          # or spaces, and wrangler rejects an account ID containing them.
-          CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "${CLOUDFLARE_ACCOUNT_ID}" | tr -d '[:space:]')"
-          CLOUDFLARE_API_KEY="$(printf '%s' "${CLOUDFLARE_API_KEY}" | tr -d '[:space:]')"
-          CLOUDFLARE_EMAIL="$(printf '%s' "${CLOUDFLARE_EMAIL}" | tr -d '[:space:]')"
-          export CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_API_KEY CLOUDFLARE_EMAIL
-          if [[ -z "${CLOUDFLARE_ACCOUNT_ID}" ]]; then
-            echo "::error::CLOUDFLARE_ACCOUNT_ID secret is empty."
-            exit 1
-          fi
-          if [[ -n "${DEPLOY_ENV}" ]]; then
-            bunx wrangler deploy --env "${DEPLOY_ENV}"
-          else
-            bunx wrangler deploy
-          fi
+        # `--if-present` has to precede the script name (see the build step
+        # above); an app without a `db:migrate:d1` script has nothing to do.
+        run: bun run --if-present db:migrate:d1
+
+      - name: Deploy Worker with Wrangler
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_API_KEY }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bunx wrangler deploy
