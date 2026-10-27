@@ -71,10 +71,8 @@ Please provide a helpful answer based on the article content above.`;
 
       const { text: fullResponse } = await generateText({
         model: llm,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        instructions: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
       });
 
       return Response.json({ content: fullResponse, success: true });

@@ -38,11 +38,33 @@ export interface CallLlmParams {
 /** One model call, as a stream of text deltas and finished tool calls. */
 export type CallLlm = (params: CallLlmParams) => AsyncIterable<LlmStreamEvent>;
 
+/**
+ * Splits the context engine's system messages off the conversation. The AI SDK
+ * rejects system-role entries in `messages` ("Use the instructions option
+ * instead"), so they travel as `instructions`, joined in order.
+ */
+export const splitInstructions = (
+  messages: ModelMessage[],
+): { instructions?: string; messages: ModelMessage[] } => {
+  const system: string[] = [];
+  const rest: ModelMessage[] = [];
+  for (const message of messages) {
+    if (message.role === "system") {
+      if (message.content.trim()) system.push(message.content);
+    } else {
+      rest.push(message);
+    }
+  }
+  return { instructions: system.length > 0 ? system.join("\n\n") : undefined, messages: rest };
+};
+
 /** The default `call_llm` executor: one AI SDK `streamText` step. */
 export const streamTextCallLlm: CallLlm = async function* (params) {
+  const { instructions, messages } = splitInstructions(params.messages);
   const result = streamText({
     model: params.model,
-    messages: params.messages,
+    ...(instructions && { instructions }),
+    messages,
     temperature: params.temperature,
     ...(params.tools && { tools: params.tools, toolChoice: params.toolChoice ?? "auto" }),
   });

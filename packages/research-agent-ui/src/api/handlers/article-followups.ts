@@ -65,10 +65,8 @@ Generate ${maxQuestions} follow-up questions that would help readers dive deeper
 
       const { text: fullResponse } = await generateText({
         model: llm,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        instructions: systemPrompt,
+        messages: [{ role: "user", content: userPrompt }],
       });
 
       const questions = fullResponse

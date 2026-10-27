@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { ModelMessage } from 'ai';
-import { runAgent, isToolsUnsupportedError, type CallLlm, type LlmStreamEvent } from '../agent-runtime';
+import { runAgent, isToolsUnsupportedError, splitInstructions, streamTextCallLlm, type CallLlm, type LlmStreamEvent } from '../agent-runtime';
 
 const llm = {} as any;
 const tools = { search: {} } as any;
@@ -188,5 +188,56 @@ describe('isToolsUnsupportedError', () => {
     expect(isToolsUnsupportedError(new Error('This model does not support tools'))).toBe(true);
     expect(isToolsUnsupportedError(new Error('function calling is not supported'))).toBe(true);
     expect(isToolsUnsupportedError(new Error('429 rate limit'))).toBe(false);
+  });
+});
+
+describe('splitInstructions', () => {
+  it('moves system messages out of the conversation into instructions', () => {
+    const { instructions, messages } = splitInstructions([
+      { role: 'system', content: 'Role' },
+      { role: 'user', content: 'q' },
+      { role: 'system', content: 'More' },
+      { role: 'assistant', content: 'a' },
+    ]);
+    expect(instructions).toBe('Role\n\nMore');
+    expect(messages.map((m) => m.role)).toEqual(['user', 'assistant']);
+  });
+
+  it('leaves instructions unset when there are none', () => {
+    expect(splitInstructions([{ role: 'user', content: 'q' }]).instructions).toBeUndefined();
+  });
+});
+
+describe('streamTextCallLlm', () => {
+  it('sends the system prompt as instructions, which the AI SDK accepts', async () => {
+    const { MockLanguageModelV3, simulateReadableStream } = await import('ai/test');
+    const model = new MockLanguageModelV3({
+      doStream: async () => ({
+        stream: simulateReadableStream({
+          chunks: [
+            { type: 'text-start', id: '1' },
+            { type: 'text-delta', id: '1', delta: 'hi' },
+            { type: 'text-end', id: '1' },
+            { type: 'finish', finishReason: { unified: 'stop', raw: 'stop' }, usage: { inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 1, text: 1, reasoning: 0 } } },
+          ] as any,
+        }),
+      }),
+    });
+
+    const events: LlmStreamEvent[] = [];
+    for await (const event of streamTextCallLlm({
+      model,
+      messages: [
+        { role: 'system', content: 'You are QwkSearch.' },
+        { role: 'user', content: 'hello' },
+      ],
+    })) {
+      events.push(event);
+    }
+
+    expect(events).toEqual([{ type: 'text', text: 'hi' }]);
+    const prompt = model.doStreamCalls[0].prompt;
+    expect(prompt[0]).toMatchObject({ role: 'system', content: 'You are QwkSearch.' });
+    expect(prompt.filter((m: any) => m.role === 'system')).toHaveLength(1);
   });
 });
