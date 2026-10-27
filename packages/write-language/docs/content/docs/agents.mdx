@@ -1,0 +1,102 @@
+---
+title: Agent prompts
+description: The pre-tuned prompt templates in AGENT_PROMPTS and the variables each one reads.
+icon: Bot
+---
+
+An agent is a prompt template with optional hooks. Pick one with the `agent` option of
+`writeLanguageResponse`. The default is `question`.
+
+```ts
+const { content, extract } = await writeLanguageResponse({
+  provider: 'groq',
+  apiKey: process.env.GROQ_API_KEY,
+  agent: 'summarize-bullets',
+  article: longText,
+});
+```
+
+## Built-in agents
+
+| Agent | Reads | Returns in `extract` | Use it to |
+| --- | --- | --- | --- |
+| `question` | `article`, `chat_history`, `query` | — | Answer a question, optionally grounded in a document. Adds a short self-introduction and today's date. |
+| `answer-cite-sources` | `context`, `chat_history`, `query` | — | Answer from search results and cite them. Adds today's date. |
+| `summarize` | `article` | — | Write a detailed, well-structured summary. |
+| `summarize-bullets` | `article` | — | Three bolded key-takeaway bullets. |
+| `summary-longtext` | `sections` | — | Merge section summaries of a long document into one. |
+| `suggest-followups` | `query`, `article` | `string[]` of follow-up questions | Suggest 4 follow-up questions. Set `MAX_FOLLOWUP_QUESTIONS` to change the count. |
+| `query-resolution` | `chat_history`, `query` | `string[]` of search queries | Rewrite a follow-up into standalone search queries. |
+| `remember-user` | `chat_history`, `query` | — | Pull facts worth remembering about the user. |
+| `results-relevance-filter` | `user_query`, `results` | — | Pick the 3–5 most relevant search results. |
+| `question-research-engine` | — | — | A long-form research-answer system prompt. |
+| `query-resolution-search` | — | — | Classify whether a query needs a web search, as JSON. |
+| `knowledge-graph-nodes` | — | — | Extract a temporal knowledge graph. |
+
+The last three templates have no placeholders, so `writeLanguageResponse` sends them without
+your input. Use them as system prompts instead (see below).
+
+## Template variables
+
+Templates use `{name}` placeholders. Every option you pass is available, so you can add your
+own variables. Two rules apply:
+
+- A placeholder with no matching option becomes `[not provided]`.
+- Objects and arrays are pretty-printed as plain `key: value` lines without braces or quotes.
+
+`{input}` is also always available, set to your `query` followed by your `article`.
+
+## Use a template as a system prompt
+
+`AGENT_PROMPTS` is a plain array, so you can read any template and use it with the AI SDK:
+
+```ts
+import { generateText } from 'ai';
+import { AGENT_PROMPTS, createLLMProvider } from 'write-language';
+
+const researchPrompt = AGENT_PROMPTS.find((a) => a.name === 'question-research-engine')!.template;
+
+const { text } = await generateText({
+  model: createLLMProvider('openai', process.env.OPENAI_API_KEY!, 'gpt-4o', 1)!,
+  system: researchPrompt,
+  prompt: `Query: latest developments in fusion energy\n\nSearch results:\n${results}`,
+});
+```
+
+## Parse tagged replies
+
+Agents that ask for XML-style tags, such as `<question>` or `<suggestions>`, are parsed with
+`extractJSONFromLanguageReply`. You can call it on any reply:
+
+```ts
+import { extractJSONFromLanguageReply } from 'write-language';
+
+extractJSONFromLanguageReply('<question>Capital of France</question>', 'question');
+// ['Capital of France']
+
+// With no key, returns every numbered or bulleted line
+extractJSONFromLanguageReply('1. First\n2. Second');
+// ['First', 'Second']
+```
+
+## Agent shape
+
+```ts
+interface AgentPrompt {
+  name: string;
+  /** Template with {variable} placeholders */
+  template?: string;
+  /** Runs before placeholders are filled */
+  before?: (prompt: string | undefined, options: GenerateLanguageOptions) => string;
+  /** Runs on the raw reply; its return value becomes `extract` */
+  after?: (reply: string, options: GenerateLanguageOptions) => unknown;
+  /** Names of registered tools to attach */
+  tools?: string[];
+}
+```
+
+<Callout>
+  The tool registry behind `tools` is empty in the current release, so agents run without
+  function calling. To give a model tools today, call the AI SDK directly with a model from
+  `createLLMProvider`.
+</Callout>

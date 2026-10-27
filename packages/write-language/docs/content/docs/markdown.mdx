@@ -1,0 +1,54 @@
+---
+title: Markdown to HTML
+description: Render model replies as HTML with Prism.js syntax highlighting.
+icon: Code
+---
+
+`writeLanguageResponse` converts replies to HTML by default. The same converter is exported for
+your own Markdown.
+
+```ts
+import { convertMarkdownToHTMLEscaped } from 'write-language';
+// also exported as `markdownToHTML`
+
+const html = await convertMarkdownToHTMLEscaped('# Hello\n\n```js\nconsole.log("world");\n```');
+```
+
+<Callout type="warn">It is `async` and returns a `Promise<string>`.</Callout>
+
+## What it does
+
+- Decodes HTML entities such as `&amp;` and `&lt;` in the input first, since some models
+  escape their Markdown.
+- Parses GitHub-flavored Markdown with line breaks preserved, using
+  [marked](https://marked.js.org).
+- Highlights fenced code blocks with Prism.js. Unknown languages are HTML-escaped as plain
+  text.
+- Wraps each code block in a `figure.code-block` with a **Copy** button that works even inside
+  `dangerouslySetInnerHTML`.
+
+The output looks like this:
+
+```html
+<figure class="code-block">
+  <button class="code-copy-btn" type="button" onclick="...">Copy</button>
+  <pre><code class="language-js">...</code></pre>
+</figure>
+```
+
+Prism emits `token` spans but no colors, so include a Prism theme stylesheet and style
+`.code-copy-btn` to taste.
+
+<Callout type="warn">
+  The output is not sanitized. Run it through a sanitizer such as DOMPurify before rendering
+  replies from untrusted input.
+</Callout>
+
+## Highlight code directly
+
+```ts
+import { highlightCode, Prism } from 'write-language';
+
+highlightCode('const x = 1;', 'javascript'); // HTML string, or null if the language is unknown
+Prism.languages; // the shared Prism instance and its loaded grammars
+```

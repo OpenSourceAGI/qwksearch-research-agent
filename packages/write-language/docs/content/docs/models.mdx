@@ -1,0 +1,78 @@
+---
+title: Model registry
+description: The built-in catalog of models, context lengths and capabilities, and the helpers that query it.
+icon: Database
+---
+
+`write-language` keeps a catalog of <ModelCount /> models across its providers. It is used to
+pick each provider's default model and to trim prompts to a model's context length, and you can
+query it to build model pickers.
+
+## Query the registry
+
+```ts
+import {
+  LANGUAGE_MODELS,
+  LANGUAGE_PROVIDERS,
+  getAllModels,
+  getModelsByProvider,
+  getModelsByCapability,
+  getTextOnlyModels,
+  getMultimodalModels,
+} from 'write-language';
+
+LANGUAGE_PROVIDERS;
+// ['nvidia', 'cloudflare', 'perplexity', 'groq', 'openai', ...]
+
+getModelsByProvider('groq');
+// [{ name, id, contextLength, provider: 'Groq', capabilities: ['text', ...] }, ...]
+
+getModelsByCapability('vision');          // across all providers
+getModelsByCapability('reasoning', 'openai'); // one provider
+getTextOnlyModels('groq');
+getMultimodalModels();
+```
+
+Each helper returns `ModelInfo` objects:
+
+```ts
+interface ModelInfo {
+  name: string;
+  id: string;
+  contextLength: number;
+  provider: string;
+  capabilities?: ('text' | 'vision' | 'audio' | 'code' | 'reasoning')[];
+}
+```
+
+### How capabilities are inferred
+
+Capabilities are not stored in the registry. They are guessed from each model's name and ID:
+
+| Capability | Added when the name or ID contains |
+| --- | --- |
+| `text` | always |
+| `vision` | `vision`, `-vl`, `gpt-4o`, `gemini`, or `claude` with a `3` |
+| `audio` | `whisper`, `audio` |
+| `code` | `code`, `codex`, `codestral`, `deepseek-coder` |
+| `reasoning` | `reasoning`, `o1`, `o3`, `thinking` |
+
+Treat them as hints for filtering, not guarantees.
+
+## `LANGUAGE_MODELS` shape
+
+`LANGUAGE_MODELS` is an array with one entry per provider:
+
+```ts
+{
+  provider: 'OpenAI',
+  docs: 'https://platform.openai.com/docs/overview',
+  api_key: 'https://platform.openai.com/api-keys',
+  default: 'gpt-4o',
+  models: [{ name: 'GPT-4o', id: 'gpt-4o', contextLength: 128000 }, ...],
+}
+```
+
+## All models
+
+<AllModelTables />

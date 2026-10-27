@@ -1,0 +1,83 @@
+---
+title: Introduction
+description: Multi-provider language generation for TypeScript, built on the Vercel AI SDK.
+icon: BookOpen
+---
+
+`write-language` is a small toolkit for asking a language model a question and getting back
+clean, ready-to-render HTML. One function call picks the provider, fills in a pre-tuned prompt,
+trims it to the model's context window, calls the model through the
+[Vercel AI SDK](https://ai-sdk.dev), and converts the Markdown reply to syntax-highlighted HTML.
+
+```ts
+import { writeLanguageResponse } from 'write-language';
+
+const { content, error } = await writeLanguageResponse({
+  provider: 'groq',
+  apiKey: process.env.GROQ_API_KEY,
+  query: 'Explain quantum computing in simple terms',
+});
+```
+
+## What's inside
+
+<Cards>
+  <Card title="10 providers" href="/docs/providers">
+    OpenAI, Anthropic, Google, xAI, Groq, Amazon Bedrock, Cloudflare Workers AI, NVIDIA,
+    Perplexity and Together AI, plus OpenRouter, Vertex and AnyAPI through the provider factory.
+  </Card>
+  <Card title="Model registry" href="/docs/models">
+    A catalog of <ModelCount /> models with context lengths, defaults and inferred
+    capabilities, plus helpers to filter it.
+  </Card>
+  <Card title="Agent prompts" href="/docs/agents">
+    Pre-tuned templates for answering, summarizing, citing sources, resolving search
+    queries, suggesting follow-ups and extracting knowledge graphs.
+  </Card>
+  <Card title="Markdown to HTML" href="/docs/markdown">
+    GitHub-flavored Markdown rendering with Prism.js highlighting and copy buttons on
+    every code block.
+  </Card>
+</Cards>
+
+## How a call works
+
+<Steps>
+<Step>
+
+**Resolve the provider and model.** The `provider` name is lowercased and checked against the
+registry. If you don't pass `model`, the provider's registered default is used.
+
+</Step>
+<Step>
+
+**Build the prompt.** The `agent` template (default `question`) is loaded from
+[`AGENT_PROMPTS`](/docs/agents), its `before` hook runs, and every `{placeholder}` is filled
+from your options.
+
+</Step>
+<Step>
+
+**Fit the context window.** The prompt is cut to the model's `contextLength` unless you set
+`applyContextLimit: false`.
+
+</Step>
+<Step>
+
+**Call the model.** `generateText` from the AI SDK runs with your `temperature`. Attachments
+turn the call into a multimodal message.
+
+</Step>
+<Step>
+
+**Format the reply.** The Markdown answer becomes HTML (or stays Markdown with `html: false`),
+and the agent's `after` hook can pull structured data into `extract`.
+
+</Step>
+</Steps>
+
+## Links
+
+- [npm package](https://www.npmjs.com/package/write-language)
+- [Source on GitHub](https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/write-language)
+- [Changelog](https://github.com/OpenSourceAGI/qwksearch-research-agent/blob/master/packages/write-language/CHANGELOG.md)

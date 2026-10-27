@@ -1,0 +1,151 @@
+---
+title: Quick start
+description: Generate your first response, pick a model, and handle errors.
+icon: Rocket
+---
+
+## Ask a question
+
+```ts
+import { writeLanguageResponse } from 'write-language';
+
+const result = await writeLanguageResponse({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  query: 'Explain quantum computing in simple terms',
+});
+
+if (result.error) throw new Error(result.error);
+console.log(result.content); // HTML
+```
+
+`writeLanguageResponse` never throws for provider errors. It resolves to an object with either
+`content` (the reply) or `error` (a readable message), so always check `error` first.
+
+## Choose a model
+
+Pass `model` to override the provider's default. Any ID the provider accepts works, not just
+the ones in the [registry](/docs/models).
+
+```ts
+const result = await writeLanguageResponse({
+  provider: 'anthropic',
+  model: 'claude-sonnet-4-5',
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  query: 'Write a short story about AI',
+  temperature: 0.7,
+});
+```
+
+When `model` is set to an ID the registry knows, the prompt is trimmed to that model's
+context length. Unknown IDs are sent as-is with no trimming.
+
+## Get Markdown instead of HTML
+
+```ts
+const { content } = await writeLanguageResponse({
+  provider: 'groq',
+  apiKey: process.env.GROQ_API_KEY,
+  query: 'List three uses for graph databases',
+  html: false,
+});
+```
+
+## Give it a document
+
+The default `question` agent fills `{article}`, `{chat_history}` and `{query}` from your
+options, so you can ground the answer in your own text:
+
+```ts
+const { content } = await writeLanguageResponse({
+  provider: 'google',
+  model: 'gemini-2.5-flash',
+  apiKey: process.env.GOOGLE_API_KEY,
+  article: pageText,
+  chat_history: 'User asked about pricing earlier.',
+  query: 'What does this page say about refunds?',
+});
+```
+
+## Use an agent template
+
+Switch the prompt with `agent`. Agents with an `after` hook also return structured data in
+`extract`:
+
+```ts
+const { content, extract } = await writeLanguageResponse({
+  provider: 'openai',
+  apiKey: process.env.OPENAI_API_KEY,
+  agent: 'suggest-followups',
+  query: 'How do solar panels work?',
+  article: answerText,
+});
+
+console.log(extract);
+// ['What is the efficiency of modern solar panels?', ...]
+```
+
+See [Agent prompts](/docs/agents) for every template and the variables it reads.
+
+## Attach images and files
+
+`attachments` turns the call into a multimodal message. Images become image parts and
+everything else becomes a file part with its `mediaType`.
+
+```ts
+import { readFile } from 'node:fs/promises';
+
+const { content } = await writeLanguageResponse({
+  provider: 'openai',
+  model: 'gpt-4o',
+  apiKey: process.env.OPENAI_API_KEY,
+  query: 'Summarize this invoice',
+  attachments: [
+    { mediaType: 'application/pdf', data: await readFile('invoice.pdf'), filename: 'invoice.pdf' },
+    { mediaType: 'image/png', data: 'https://example.com/chart.png' },
+  ],
+});
+```
+
+`data` can be a base64 string, a `data:` or `http(s)` URL, a `URL`, a `Uint8Array` or an
+`ArrayBuffer`. Use `kind: 'image'` or `kind: 'file'` to override the detection.
+
+## Use it in a Next.js route
+
+```ts title="app/api/ask/route.ts"
+import { writeLanguageResponse } from 'write-language';
+
+export async function POST(req: Request) {
+  const { query } = await req.json();
+  const result = await writeLanguageResponse({
+    provider: 'groq',
+    apiKey: process.env.GROQ_API_KEY,
+    query,
+  });
+  return Response.json(result, { status: result.error ? 502 : 200 });
+}
+```
+
+## Streaming and conversations
+
+`writeLanguageResponse` returns the finished reply in one piece. For token streaming or a
+multi-turn `messages` array, build the model with
+[`createLLMProvider`](/docs/api-reference#createllmprovider) and call the AI SDK's
+`streamText` yourself:
+
+```ts
+import { streamText } from 'ai';
+import { createLLMProvider } from 'write-language';
+
+const model = createLLMProvider('anthropic', process.env.ANTHROPIC_API_KEY!, 'claude-sonnet-4-5', 1);
+
+const result = streamText({
+  model: model!,
+  messages: [{ role: 'user', content: 'Write a haiku about compilers' }],
+});
+
+for await (const chunk of result.textStream) process.stdout.write(chunk);
+```
+
+`ai` is already a dependency of `write-language`, but add it to your own `package.json` if
+you import it directly.

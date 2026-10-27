@@ -1,0 +1,74 @@
+---
+title: Providers
+description: Every supported LLM provider, its default model, and how to format its API key.
+icon: Plug
+---
+
+## Supported providers
+
+These are the values `writeLanguageResponse` accepts for `provider`. The table is generated
+from the package's `LANGUAGE_MODELS` registry, so it always matches the published code.
+
+<ProviderTable />
+
+Provider names are case-insensitive: `'OpenAI'` and `'openai'` both work.
+
+## API key formats
+
+Most providers take a single key. A few pack more than one value into `apiKey`,
+separated by colons:
+
+| Provider | `apiKey` format | Example |
+| --- | --- | --- |
+| `cloudflare` | `apiToken:accountId` | `cf-token:0123abcd` |
+| `amazon` / `bedrock` | `region:accessKeyId:secretAccessKey` | `us-east-1:AKIA...:wJal...` |
+| `vertex` | `projectId[:location]` (uses Google application default credentials) | `my-project:us-central1` |
+| everything else | the provider's API key | `sk-...` |
+
+## How each provider is reached
+
+`createLLMProvider` maps each name to a Vercel AI SDK provider. OpenAI-compatible APIs reuse
+`@ai-sdk/openai` with a custom base URL.
+
+| `provider` | SDK | Endpoint |
+| --- | --- | --- |
+| `openai` | `@ai-sdk/openai` | OpenAI |
+| `anthropic` | `@ai-sdk/anthropic` | Anthropic |
+| `google` | `@ai-sdk/google` | Gemini API |
+| `vertex` | `@ai-sdk/google-vertex` | Vertex AI |
+| `xai` | `@ai-sdk/xai` | xAI |
+| `groq` | `@ai-sdk/groq` | Groq |
+| `amazon`, `bedrock` | `@ai-sdk/amazon-bedrock` | AWS Bedrock |
+| `openrouter` | `@openrouter/ai-sdk-provider` | OpenRouter (chat models) |
+| `togetherai` | `@ai-sdk/openai` | `https://api.together.xyz/v1` |
+| `cloudflare` | `@ai-sdk/openai` | `https://api.cloudflare.com/client/v4/accounts/{accountId}/ai/v1` |
+| `nvidia` | `@ai-sdk/openai` | `https://integrate.api.nvidia.com/v1` |
+| `perplexity` | `@ai-sdk/openai` | `https://api.perplexity.ai` |
+| `anyapi` | `@ai-sdk/openai` | `https://api.anyapi.ai/v1` |
+
+<Callout title="Factory-only providers">
+  `openrouter`, `vertex`, `anyapi` and the `bedrock` alias have no entry in the model registry,
+  so `writeLanguageResponse` rejects them. Use them through
+  [`createLLMProvider`](/docs/api-reference#createllmprovider) with the AI SDK directly:
+
+```ts
+import { generateText } from 'ai';
+import { createLLMProvider } from 'write-language';
+
+const model = createLLMProvider('openrouter', process.env.OPENROUTER_API_KEY!, 'openrouter/auto', 1);
+const { text } = await generateText({ model: model!, prompt: 'Hello!' });
+```
+</Callout>
+
+## Ollama and other local servers
+
+Any server with an OpenAI-compatible API works through the AI SDK's OpenAI provider. Ollama,
+for example, serves one at `http://localhost:11434/v1`:
+
+```ts
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateText } from 'ai';
+
+const ollama = createOpenAI({ baseURL: 'http://localhost:11434/v1', apiKey: 'ollama' });
+const { text } = await generateText({ model: ollama('llama3.2'), prompt: 'Hello!' });
+```
