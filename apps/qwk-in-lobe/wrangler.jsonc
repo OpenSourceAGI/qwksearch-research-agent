@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "qwksearch-lobehub",
+  "name": "lobe",
   "main": "./dist/worker/index.js",
   // Every deploy checks that the Worker bundle and the asset directory are
   // actually there, and builds them if they are not. Workers Builds defaults
@@ -62,7 +62,7 @@
     "head_sampling_rate": 1,
     "logs": { "enabled": true, "invocation_logs": true, "persist": true }
   },
-  // A named environment deploys a *separate* Worker — `qwksearch-lobehub-production`,
+  // A named environment deploys a *separate* Worker — `lobe-production`,
   // bound to the `production-qwksearch-sessions` KV namespace — not a variant of
   // the one above. Defining it also makes a bare `wrangler deploy` warn that no
   // target environment was specified before falling back to the top-level one, so
