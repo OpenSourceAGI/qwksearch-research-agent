@@ -14,7 +14,7 @@
  * qwksearch-web chat request, so the loop here is the part that does.
  */
 
-import { streamText, type LanguageModel, type ModelMessage, type ToolSet } from "ai";
+import { streamText, type LanguageModel, type ModelMessage, type SystemModelMessage, type ToolSet } from "ai";
 
 export interface AgentToolCall {
   toolCallId: string;
@@ -39,31 +39,23 @@ export interface CallLlmParams {
 export type CallLlm = (params: CallLlmParams) => AsyncIterable<LlmStreamEvent>;
 
 /**
- * Splits the context engine's system messages off the conversation. The AI SDK
- * rejects system-role entries in `messages` ("Use the instructions option
- * instead"), so they travel as `instructions`, joined in order.
+ * Splits the context engine's system messages out of the conversation. AI SDK
+ * 7 rejects `role: "system"` inside `messages` ("Use the instructions option
+ * instead"), so they travel as `instructions` and only the turns stay behind.
  */
 export const splitInstructions = (
   messages: ModelMessage[],
-): { instructions?: string; messages: ModelMessage[] } => {
-  const system: string[] = [];
-  const rest: ModelMessage[] = [];
-  for (const message of messages) {
-    if (message.role === "system") {
-      if (message.content.trim()) system.push(message.content);
-    } else {
-      rest.push(message);
-    }
-  }
-  return { instructions: system.length > 0 ? system.join("\n\n") : undefined, messages: rest };
-};
+): { instructions: SystemModelMessage[]; messages: ModelMessage[] } => ({
+  instructions: messages.filter((message): message is SystemModelMessage => message.role === "system"),
+  messages: messages.filter((message) => message.role !== "system"),
+});
 
 /** The default `call_llm` executor: one AI SDK `streamText` step. */
 export const streamTextCallLlm: CallLlm = async function* (params) {
   const { instructions, messages } = splitInstructions(params.messages);
   const result = streamText({
     model: params.model,
-    ...(instructions && { instructions }),
+    ...(instructions.length > 0 && { instructions }),
     messages,
     temperature: params.temperature,
     ...(params.tools && { tools: params.tools, toolChoice: params.toolChoice ?? "auto" }),

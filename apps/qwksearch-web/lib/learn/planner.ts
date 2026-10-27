@@ -28,7 +28,7 @@ async function generate({ system, prompt }: { system: string; prompt: string }):
   const { text } = await generateText({
     model,
     instructions: system,
-    messages: [{ role: "user", content: prompt }],
+    prompt: prompt,
   });
   return text;
 }
