@@ -58,10 +58,8 @@ Generate ${maxTopics} short related search queries for this page.`;
 
       const { text: fullResponse } = await generateText({
         model: llm,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        instructions: systemPrompt,
+        prompt: userPrompt,
       });
 
       const topics = fullResponse
