@@ -27,10 +27,8 @@ async function generate({ system, prompt }: { system: string; prompt: string }):
   const model = await new ModelRegistry().loadChatModel();
   const { text } = await generateText({
     model,
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: prompt },
-    ],
+    instructions: system,
+    prompt,
   });
   return text;
 }

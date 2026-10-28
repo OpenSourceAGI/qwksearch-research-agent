@@ -40,9 +40,13 @@ export type CallLlm = (params: CallLlmParams) => AsyncIterable<LlmStreamEvent>;
 
 /** The default `call_llm` executor: one AI SDK `streamText` step. */
 export const streamTextCallLlm: CallLlm = async function* (params) {
+  // AI SDK 7 rejects system messages inside `messages`; they go in `instructions`.
+  const instructions = params.messages.flatMap((m) => (m.role === "system" ? [m] : []));
+  const messages = params.messages.filter((m) => m.role !== "system");
   const result = streamText({
     model: params.model,
-    messages: params.messages,
+    ...(instructions.length > 0 && { instructions }),
+    messages,
     temperature: params.temperature,
     ...(params.tools && { tools: params.tools, toolChoice: params.toolChoice ?? "auto" }),
   });
