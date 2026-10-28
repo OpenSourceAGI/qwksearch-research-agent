@@ -80,10 +80,9 @@ describe('createPageTipsHandler POST', () => {
 
     await handler(postRequest({ ...baseBody, content: longContent }))
 
-    const [{ messages }] = mockGenerateText.mock.calls[0]
-    const userMessage = messages.find((m: any) => m.role === 'user')
-    expect(userMessage.content).toContain('x'.repeat(15000))
-    expect(userMessage.content).not.toContain('x'.repeat(15001))
+    const [{ prompt }] = mockGenerateText.mock.calls[0]
+    expect(prompt).toContain('x'.repeat(15000))
+    expect(prompt).not.toContain('x'.repeat(15001))
   })
 
   it('slices the parsed tips down to maxTips', async () => {

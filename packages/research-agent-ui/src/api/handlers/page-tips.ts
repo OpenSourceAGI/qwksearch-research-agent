@@ -57,10 +57,8 @@ Generate ${maxTips} short tips about this page.`;
 
       const { text: fullResponse } = await generateText({
         model: llm,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        instructions: systemPrompt,
+        prompt: userPrompt,
       });
 
       const tips = fullResponse

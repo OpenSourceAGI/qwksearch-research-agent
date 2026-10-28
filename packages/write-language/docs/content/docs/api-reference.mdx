@@ -1,0 +1,165 @@
+---
+title: API reference
+description: Every export of the write-language entry point.
+icon: FileCode
+---
+
+```ts
+import {
+  writeLanguageResponse,
+  createLLMProvider,
+  AGENT_PROMPTS,
+  extractJSONFromLanguageReply,
+  LANGUAGE_MODELS,
+  LANGUAGE_PROVIDERS,
+  getModelsByProvider,
+  getAllModels,
+  getModelsByCapability,
+  getTextOnlyModels,
+  getMultimodalModels,
+  convertMarkdownToHTMLEscaped,
+  markdownToHTML,
+  highlightCode,
+  Prism,
+} from 'write-language';
+```
+
+## writeLanguageResponse
+
+```ts
+function writeLanguageResponse(options: GenerateLanguageOptions): Promise<GenerateLanguageResult>;
+```
+
+Fills an agent template, calls the model with the AI SDK's `generateText`, and formats the
+reply. It resolves with `error` instead of throwing.
+
+### Options
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `provider` | `LLMProviderName` | required | One of [`LANGUAGE_PROVIDERS`](/docs/providers). Case-insensitive. |
+| `apiKey` | `string` | required | Provider key. See [key formats](/docs/providers#api-key-formats). |
+| `model` | `string` | provider default | Model ID. |
+| `agent` | `string` | `'question'` | Name of an [agent template](/docs/agents). |
+| `query` | `string` | — | The user's question. |
+| `article` | `string` | — | Document text to ground the answer in. |
+| `chat_history` | `string` | — | Earlier conversation, as text. |
+| `attachments` | `LanguageAttachment[]` | — | Images or files; makes the call multimodal. |
+| `temperature` | `number` | `1` | Sampling temperature, 0 to 2. |
+| `html` | `boolean` | `true` | Return HTML (`true`) or raw Markdown (`false`). |
+| `applyContextLimit` | `boolean` | `true` | Cut the prompt to the model's context length. |
+| any other key | `unknown` | — | Available to templates as `{key}`. |
+
+### Result
+
+```ts
+interface GenerateLanguageResult {
+  /** The reply, as HTML or Markdown */
+  content?: string;
+  /** Whatever the agent's `after` hook returned */
+  extract?: unknown;
+  /** Set when the call failed */
+  error?: string;
+}
+```
+
+Possible `error` values include a missing key or unknown provider (with the list of valid
+providers), `Agent "<name>" not found`, `Rate limit exceeded. Please wait before trying again.`
+for HTTP 429, or the provider's own error message.
+
+### LanguageAttachment
+
+```ts
+interface LanguageAttachment {
+  mediaType: string;            // e.g. 'image/png', 'application/pdf'
+  data: string | Uint8Array | ArrayBuffer | URL; // base64, data:/http(s) URL, or bytes
+  filename?: string;
+  kind?: 'image' | 'file';      // overrides detection from mediaType
+}
+```
+
+## createLLMProvider
+
+```ts
+function createLLMProvider(
+  provider: string,
+  apiKey: string,
+  model: string,
+  temperature: number, // unused, kept for compatibility
+): LanguageModel | null;
+```
+
+Returns an AI SDK `LanguageModel` ready for `generateText`, `streamText`, `generateObject`
+and the rest, or `null` for an unknown provider. `provider` must already be lowercase. It
+accepts every name in the [provider table](/docs/providers#how-each-provider-is-reached),
+including `openrouter`, `vertex`, `anyapi` and `bedrock`.
+
+```ts
+import { generateText } from 'ai';
+import { createLLMProvider } from 'write-language';
+
+const model = createLLMProvider('groq', process.env.GROQ_API_KEY!, 'llama-3.3-70b-versatile', 1);
+if (!model) throw new Error('Unknown provider');
+const { text } = await generateText({ model, prompt: 'Hello!' });
+```
+
+## AGENT_PROMPTS
+
+```ts
+const AGENT_PROMPTS: AgentPrompt[];
+```
+
+The built-in agent templates. See [Agent prompts](/docs/agents).
+
+## extractJSONFromLanguageReply
+
+```ts
+function extractJSONFromLanguageReply(text: string, key?: string | null): string[] | '';
+```
+
+With `key`, returns the trimmed lines found between every `<key>` and `</key>` pair, with list
+markers removed. Without `key`, returns every numbered or bulleted line. Returns `''` for empty
+or non-string input.
+
+## Model registry
+
+| Export | Signature | Returns |
+| --- | --- | --- |
+| `LANGUAGE_MODELS` | constant | One entry per provider: `provider`, `docs`, `api_key`, `default`, `models`. |
+| `LANGUAGE_PROVIDERS` | `string[]` | Lowercase provider names accepted by `writeLanguageResponse`. |
+| `getModelsByProvider` | `(provider: string) => ModelInfo[]` | Models of one provider (case-insensitive), or `[]`. |
+| `getAllModels` | `() => ModelInfo[]` | Every model. |
+| `getModelsByCapability` | `(capability: ModelCapability, provider?: string) => ModelInfo[]` | Models with that capability. |
+| `getTextOnlyModels` | `(provider?: string) => ModelInfo[]` | Models without `vision` or `audio`. |
+| `getMultimodalModels` | `(provider?: string) => ModelInfo[]` | Models with `vision` or `audio`. |
+
+See [Model registry](/docs/models) for the full catalog.
+
+## Markdown and highlighting
+
+| Export | Signature |
+| --- | --- |
+| `convertMarkdownToHTMLEscaped` | `(markdown: string) => Promise<string>` |
+| `markdownToHTML` | alias of `convertMarkdownToHTMLEscaped` |
+| `highlightCode` | `(code: string, lang: string) => string \| null` |
+| `Prism` | the shared Prism.js instance |
+
+See [Markdown to HTML](/docs/markdown).
+
+## Types
+
+```ts
+import type {
+  LLMProviderName,
+  GenerateLanguageOptions,
+  GenerateLanguageResult,
+  LanguageAttachment,
+  AgentPrompt,
+  AgentTool,
+  ModelCapability,
+  ModelInfo,
+} from 'write-language';
+```
+
+`LLMProviderName` is a union of the known provider names that still accepts any string, so
+editors autocomplete without blocking custom values.

@@ -1,0 +1,16 @@
+{
+  "title": "write-language",
+  "pages": [
+    "---Getting started---",
+    "index",
+    "installation",
+    "quick-start",
+    "---Guides---",
+    "providers",
+    "models",
+    "agents",
+    "markdown",
+    "---Reference---",
+    "api-reference"
+  ]
+}

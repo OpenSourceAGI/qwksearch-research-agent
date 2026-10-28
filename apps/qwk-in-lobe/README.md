@@ -187,8 +187,8 @@ bun run cf:d1:migrate              # remote
 bun run cf:d1:migrate:dev          # local wrangler dev
 
 # 4. Deploy
-bun run cf:deploy                  # top-level env -> Worker `qwksearch-lobehub`
-bun run cf:deploy:production       # `production` env -> Worker `qwksearch-lobehub-production`
+bun run cf:deploy                  # top-level env -> Worker `lobe` (lobe.vtempest.workers.dev)
+bun run cf:deploy:production       # `production` env -> Worker `lobe-production`
 ```
 
 Both pass `--env` explicitly. `wrangler.jsonc` defines a named `production`
@@ -197,8 +197,8 @@ at all warns — *"Multiple environments are defined in the Wrangler configurati
 file, but no target environment was specified"* — and then falls back to the
 top-level environment. That fallback is what this tree wants, but the two
 environments are not interchangeable: the top-level one deploys the Worker
-`qwksearch-lobehub` bound to the `qwksearch-sessions` KV namespace, and
-`--env production` deploys a *separate* Worker, `qwksearch-lobehub-production`,
+`lobe` bound to the `qwksearch-sessions` KV namespace, and
+`--env production` deploys a *separate* Worker, `lobe-production`,
 bound to `production-qwksearch-sessions`. Passing `--env=""` for the top-level
 environment says so out loud and silences the warning.
 
@@ -276,6 +276,22 @@ wrangler hyperdrive create qwksearch-lobehub-pg --connection-string="postgres://
 ```
 
 Secrets (`wrangler secret put …`):
+
+Setting up Postgres on the live Worker (`lobe`), from `apps/qwk-in-lobe`:
+
+```bash
+# 1. Get a Neon connection string: Neon console (or Vercel → Storage → the Neon
+#    store) → Connect → pooled URL, `postgresql://…-pooler…/neondb?sslmode=require`
+# 2. Store it and the other required secrets on the Worker
+npx wrangler secret put DATABASE_URL --env=""       # paste the Neon URL
+npx wrangler secret put KEY_VAULTS_SECRET --env=""  # paste `openssl rand -base64 32`
+npx wrangler secret put OPENROUTER_API_KEY --env=""
+# 3. Create the LobeHub tables (same values as the secrets above)
+DATABASE_URL='postgresql://…' KEY_VAULTS_SECRET='…' DATABASE_DRIVER=neon bun run db:migrate
+```
+
+Secrets take effect immediately; no redeploy is needed.
+
 
 | Secret | Purpose |
 | --- | --- |

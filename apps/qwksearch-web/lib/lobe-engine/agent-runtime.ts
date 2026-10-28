@@ -14,7 +14,7 @@
  * qwksearch-web chat request, so the loop here is the part that does.
  */
 
-import { streamText, type LanguageModel, type ModelMessage, type ToolSet } from "ai";
+import { streamText, type LanguageModel, type ModelMessage, type SystemModelMessage, type ToolSet } from "ai";
 
 export interface AgentToolCall {
   toolCallId: string;
@@ -38,11 +38,27 @@ export interface CallLlmParams {
 /** One model call, as a stream of text deltas and finished tool calls. */
 export type CallLlm = (params: CallLlmParams) => AsyncIterable<LlmStreamEvent>;
 
+/**
+ * Splits the context engine's system messages out of the conversation. AI SDK
+ * 7 rejects `role: "system"` inside `messages` ("Use the instructions option
+ * instead"), so they travel as `instructions` and only the turns stay behind.
+ */
+export const splitInstructions = (
+  messages: ModelMessage[],
+): { instructions: SystemModelMessage[]; messages: ModelMessage[] } => ({
+  instructions: messages.filter((message): message is SystemModelMessage => message.role === "system"),
+  messages: messages.filter((message) => message.role !== "system"),
+});
+
 /** The default `call_llm` executor: one AI SDK `streamText` step. */
 export const streamTextCallLlm: CallLlm = async function* (params) {
+<<<<<<< HEAD
   // AI SDK 7 rejects system messages inside `messages`; they go in `instructions`.
   const instructions = params.messages.flatMap((m) => (m.role === "system" ? [m] : []));
   const messages = params.messages.filter((m) => m.role !== "system");
+=======
+  const { instructions, messages } = splitInstructions(params.messages);
+>>>>>>> a5017081bc51f6feaa4c02192c66c311238f6f3d
   const result = streamText({
     model: params.model,
     ...(instructions.length > 0 && { instructions }),

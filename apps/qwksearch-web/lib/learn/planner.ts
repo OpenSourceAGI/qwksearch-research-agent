@@ -28,7 +28,11 @@ async function generate({ system, prompt }: { system: string; prompt: string }):
   const { text } = await generateText({
     model,
     instructions: system,
+<<<<<<< HEAD
     prompt,
+=======
+    prompt: prompt,
+>>>>>>> a5017081bc51f6feaa4c02192c66c311238f6f3d
   });
   return text;
 }

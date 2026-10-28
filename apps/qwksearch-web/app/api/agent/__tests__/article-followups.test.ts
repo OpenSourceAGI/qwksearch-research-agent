@@ -70,10 +70,9 @@ describe('createArticleFollowupsHandler POST', () => {
       }),
     )
 
-    const [{ messages }] = mockGenerateText.mock.calls[0]
-    const userMessage = messages.find((m: any) => m.role === 'user')
-    expect(userMessage.content).toContain('Who founded SpaceX?')
-    expect(userMessage.content).not.toContain('Elon Musk founded SpaceX.')
+    const [{ prompt }] = mockGenerateText.mock.calls[0]
+    expect(prompt).toContain('Who founded SpaceX?')
+    expect(prompt).not.toContain('Elon Musk founded SpaceX.')
   })
 
   it('parses newline-delimited questions, stripping numbering/bullets and short lines', async () => {
@@ -98,10 +97,9 @@ describe('createArticleFollowupsHandler POST', () => {
 
     await handler(postRequest({ ...baseBody, article: longArticle }))
 
-    const [{ messages }] = mockGenerateText.mock.calls[0]
-    const userMessage = messages.find((m: any) => m.role === 'user')
-    expect(userMessage.content).toContain('x'.repeat(15000))
-    expect(userMessage.content).not.toContain('x'.repeat(15001))
+    const [{ prompt }] = mockGenerateText.mock.calls[0]
+    expect(prompt).toContain('x'.repeat(15000))
+    expect(prompt).not.toContain('x'.repeat(15001))
   })
 
   it('slices the parsed questions down to maxQuestions', async () => {

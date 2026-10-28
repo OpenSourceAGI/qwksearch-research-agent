@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { ModelMessage } from 'ai';
-import { runAgent, isToolsUnsupportedError, type CallLlm, type LlmStreamEvent } from '../agent-runtime';
+import { runAgent, isToolsUnsupportedError, splitInstructions, type CallLlm, type LlmStreamEvent } from '../agent-runtime';
 
 const llm = {} as any;
 const tools = { search: {} } as any;
@@ -188,5 +188,21 @@ describe('isToolsUnsupportedError', () => {
     expect(isToolsUnsupportedError(new Error('This model does not support tools'))).toBe(true);
     expect(isToolsUnsupportedError(new Error('function calling is not supported'))).toBe(true);
     expect(isToolsUnsupportedError(new Error('429 rate limit'))).toBe(false);
+  });
+});
+
+describe('splitInstructions', () => {
+  it('moves system messages to instructions, since AI SDK 7 rejects them in messages', () => {
+    const { instructions, messages } = splitInstructions([
+      { role: 'system', content: 'Be brief.' },
+      { role: 'user', content: 'hi' },
+      { role: 'assistant', content: 'hello' },
+    ]);
+
+    expect(instructions).toEqual([{ role: 'system', content: 'Be brief.' }]);
+    expect(messages).toEqual([
+      { role: 'user', content: 'hi' },
+      { role: 'assistant', content: 'hello' },
+    ]);
   });
 });

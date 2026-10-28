@@ -1,0 +1,59 @@
+---
+title: Installation
+description: Add write-language to a Node.js, Bun, or Next.js project.
+icon: Download
+---
+
+<Tabs items={['npm', 'pnpm', 'bun', 'yarn']}>
+  <Tab value="npm">
+    ```bash
+    npm install write-language
+    ```
+  </Tab>
+  <Tab value="pnpm">
+    ```bash
+    pnpm add write-language
+    ```
+  </Tab>
+  <Tab value="bun">
+    ```bash
+    bun add write-language
+    ```
+  </Tab>
+  <Tab value="yarn">
+    ```bash
+    yarn add write-language
+    ```
+  </Tab>
+</Tabs>
+
+The package ships ES module and CommonJS builds with TypeScript types. It bundles the
+Vercel AI SDK (`ai`) and the provider packages it needs (`@ai-sdk/openai`,
+`@ai-sdk/anthropic`, `@ai-sdk/google`, `@ai-sdk/google-vertex`, `@ai-sdk/groq`, `@ai-sdk/xai`,
+`@ai-sdk/amazon-bedrock`, `@openrouter/ai-sdk-provider`), so there is nothing else to install.
+
+## Requirements
+
+- A current Node.js LTS, Bun, or an edge runtime such as Vercel Functions or Cloudflare
+  Workers.
+- An API key for at least one [provider](/docs/providers).
+- `next` is an optional peer dependency. You only need it if you use the package inside a
+  Next.js app, where the `react-server` export condition is picked up automatically.
+
+## API keys
+
+Keep keys on the server. A common pattern is one environment variable per provider:
+
+```bash title=".env.local"
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+GROQ_API_KEY=gsk_...
+# Cloudflare and Bedrock pack several values into one key, see Providers
+CLOUDFLARE_AI_KEY=<api-token>:<account-id>
+```
+
+<Callout type="warn">
+  Never call `writeLanguageResponse` from browser code with a real key. Wrap it in an API
+  route or server action instead.
+</Callout>
+
