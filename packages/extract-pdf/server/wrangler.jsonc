@@ -4,6 +4,12 @@
   // Wrangler deletes plaintext Variables set in the Cloudflare dashboard on every
   // deploy unless keep_vars is set. Secrets are never deleted either way.
   "keep_vars": true,
+  // Workers Logs: console output and invocation logs in the dashboard.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": { "enabled": true, "invocation_logs": true, "persist": true }
+  },
   "main": "server.js",
   "compatibility_date": "2025-05-01",
   // Required for Node.js built-ins (crypto, stream, path, etc.) used by
