@@ -8,13 +8,17 @@ import { useActiveWorkspaceSlug } from '@/business/client/hooks/useActiveWorkspa
 import { buildTaskHandoffPath } from '@/features/AgentTaskManager/taskHandoff';
 import type { SendButtonHandler } from '@/features/ChatInput/store/initialState';
 import { buildMessageContextSelections } from '@/features/ChatInput/utils/contextSelections';
+import { OPENROUTER_PROVIDER_ID } from '@/features/GuestOpenRouter/accountSync';
+import { ensureGuestKey, ensureOpenRouterKey } from '@/features/GuestOpenRouter/chatKey';
+import { GUEST_DEMO_PATH } from '@/features/GuestOpenRouter/GuestKeyBanner';
+import { useGuestOpenRouterStore } from '@/features/GuestOpenRouter/store';
 import { useResourceAccess } from '@/features/ResourcePermission/useResourceAccess';
 import { useHomeDailyBrief } from '@/hooks/useHomeDailyBrief';
 import { usePermission } from '@/hooks/usePermission';
 import { useQueryRoute } from '@/hooks/useQueryRoute';
 import { agentService } from '@/services/agent';
 import { useAgentStore } from '@/store/agent';
-import { builtinAgentSelectors } from '@/store/agent/selectors';
+import { agentByIdSelectors, builtinAgentSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
 import { fileChatSelectors, useFileStore } from '@/store/file';
 import { useGlobalStore } from '@/store/global';
@@ -45,6 +49,23 @@ const ensureAgentConfigLoaded = async (agentId: string): Promise<void> => {
   if (agentState.agentMap[agentId]) return;
   const config = await agentService.getAgentConfigById(agentId);
   if (config) agentState.internal_dispatchAgentMap(agentId, config);
+};
+
+/**
+ * Whether the agent's config could be loaded. The main chat cannot run without
+ * it — no agent resolved yet, or the server failing to answer — and the home
+ * input then hands the message to the browser-side OpenRouter guest chat
+ * rather than doing nothing.
+ */
+const loadAgentConfig = async (agentId: string | undefined): Promise<boolean> => {
+  if (!agentId) return false;
+  try {
+    await ensureAgentConfigLoaded(agentId);
+  } catch (error) {
+    console.error('[home:send] Could not load the agent config:', error);
+    return false;
+  }
+  return !!useAgentStore.getState().agentMap[agentId];
 };
 
 interface PendingTaskRun {
@@ -227,9 +248,21 @@ export const useSend = (mode: HomeMode = 'chat') => {
           }
 
           default: {
-            if (!selectedAgentId) return;
+            if (!(await loadAgentConfig(selectedAgentId)) || !selectedAgentId) {
+              if (!message || !(await ensureGuestKey())) return;
 
-            await ensureAgentConfigLoaded(selectedAgentId);
+              void useGuestOpenRouterStore.getState().send(message);
+              submitted = true;
+              router.push(GUEST_DEMO_PATH);
+              break;
+            }
+
+            // An OpenRouter chat with no key anywhere fails on its first
+            // message; ask for the key now and keep the draft if it is declined.
+            const provider = agentByIdSelectors.getAgentModelProviderById(selectedAgentId)(
+              useAgentStore.getState(),
+            );
+            if (provider === OPENROUTER_PROVIDER_ID && !(await ensureOpenRouterKey())) return;
 
             sendMessage({
               context: {

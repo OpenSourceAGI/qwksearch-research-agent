@@ -231,4 +231,17 @@ describe('getServerGlobalConfig', () => {
       });
     }
   });
+
+  // Without a deployment key the client asks the visitor for one before an
+  // OpenRouter chat, so the flag has to follow the env var exactly.
+  it('should tell the client whether the deployment has its own OpenRouter key', async () => {
+    vi.stubEnv('OPENROUTER_API_KEY', 'sk-or-v1-server');
+    await expect(loadServerConfig(false)).resolves.toMatchObject({ hasServerOpenRouterKey: true });
+
+    vi.stubEnv('OPENROUTER_API_KEY', '');
+    await expect(loadServerConfig(false)).resolves.toMatchObject({ hasServerOpenRouterKey: false });
+
+    vi.unstubAllEnvs();
+  });
 });
+
