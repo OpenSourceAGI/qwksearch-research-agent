@@ -429,17 +429,7 @@ function Comparison() {
         <Reveal>
           <div className="qs-border-beam relative isolate overflow-hidden rounded-3xl p-px">
             <div className="bg-card/80 relative z-10 overflow-hidden rounded-[calc(1.5rem-1px)] border backdrop-blur-sm">
-              {/* Title sits outside the scroll container so it stays put
-                  while the wide table is panned or scrolled; the <table>
-                  carries the same text as its accessible name. */}
-              <div className="border-b px-4 py-4 sm:px-6">
-                <h3 className="text-base font-semibold tracking-tight">
-                  {config.appName} vs. other research tools
-                </h3>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Feature by feature, as each product ships it today.
-                </p>
-              </div>
+            
 
               {/* Both axes scroll inside a fixed-height viewport so the
                   header row and feature column can stay pinned in view. */}
