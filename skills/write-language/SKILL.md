@@ -1,5 +1,5 @@
 ---
-name: ask-write-language
+name: write-language
 description: Guide to write-language (packages/write-language), the one-call multi-provider text generation toolkit built on the Vercel AI SDK — writeLanguageResponse(), the AGENT_PROMPTS template registry, the LANGUAGE_MODELS registry, createLLMProvider() and the packed apiKey formats for Cloudflare/Bedrock/Vertex, tool calling, attachments, and HTML vs Markdown output. Use when adding or debugging an LLM provider or model, when a call returns `{ error }` instead of content, when a prompt template needs a new variable or a structured `after` extractor, or when generation works for one provider but not another.
 ---
 

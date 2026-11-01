@@ -1,6 +1,6 @@
 # CLAUDE.md — `shadcn-app-dock`
 
-**Read [`skills/ask-shadcn-app-dock`](../../../skills/ask-shadcn-app-dock/SKILL.md)
+**Read [`skills/shadcn-app-dock`](../../../skills/shadcn-app-dock/SKILL.md)
 first.**
 
 A prop-driven, macOS-style category dock with magnification. Published.

@@ -20,6 +20,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill write-language` ([what it covers](../../skills/write-language/SKILL.md))
+<!-- skills:install:end -->
+
 # write-language
 
 

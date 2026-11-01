@@ -20,6 +20,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill notebooklm-client` ([what it covers](../../skills/notebooklm-client/SKILL.md))
+<!-- skills:install:end -->
+
 # notebooklm-api
 
 NotebookLM API powered by Cloudflare Containers. The Python sandbox runs on demand and sleeps after 5 minutes of inactivity to conserve costs.

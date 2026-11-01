@@ -1,5 +1,5 @@
 ---
-name: ask-qwksearch-monorepo
+name: qwksearch-monorepo
 description: Map of the QwkSearch research-agent monorepo (OpenSourceAGI/qwksearch-research-agent) — which of the packages and 5 apps owns a given behaviour, the bun/turbo build and test commands, the workspace build-order trap, and the deploy targets. Also covers the four product shells (Next.js web app, Tauri desktop app, WXT browser extension, VS Code extension) and the Hocuspocus collaboration server that ships inside the web app, which have no package skill of their own. Use when you don't yet know which layer to edit, when a change to a package doesn't show up in the app that imports it, when a root `bun run test` behaves differently from a package's own test script, or when adding a new workspace package.
 ---
 
@@ -19,35 +19,35 @@ things look similar:
 - **`apps/qwksearch-web`** is the deployed product — routes, API, auth, D1. It mostly
   *wires together* packages; the component or business logic is rarely here.
 - **`packages/research-agent-ui`** is the actual chat/search UI. "Change how search
-  results look", "add a button to the chat toolbar" belongs here → **ask-research-agent-ui**.
-- **`packages/reason-editor`** is the separate Tiptap writing editor → **ask-reason-editor**.
+  results look", "add a button to the chat toolbar" belongs here → **research-agent-ui**.
+- **`packages/reason-editor`** is the separate Tiptap writing editor → **reason-editor**.
 
 | Behaviour | Package | Skill |
 |---|---|---|
-| Chat window, article reader, search config, uploads, app shell | `research-agent-ui` | ask-research-agent-ui |
-| The document editor (toolbar, 59 extensions, locales) | `reason-editor` | ask-reason-editor |
-| The editor's file tree / open-tabs / split-view sidebar | `reason-editor-sidebar` | ask-reason-editor-sidebar |
-| Agent orchestration, Mastra, MCP, memory, model registry | `chat-agent-toolkit` | ask-chat-agent-toolkit |
-| One text generation call across 10+ LLM providers | `write-language` | ask-write-language |
-| Query 75 search engines, dedupe and rank | `search-web-api` | ask-search-web-api |
-| Search box autocomplete, fastest suggest engine, site suggestions | `search-autocomplete` | ask-search-autocomplete |
-| Self-hosted SearXNG meta-search backend | `searxng-search-cloudflare` | ask-searxng-search |
-| URL → article + APA citation, keyphrases, tokenizing | `extract-webpage` | ask-extract-webpage |
-| Full citation (APA/MLA/Chicago) with an LLM, confidence, author bios | `extract-cite` | ask-extract-cite |
-| PDF → structured HTML, optional Docling OCR | `extract-pdf` | ask-extract-pdf |
-| YouTube transcripts without a browser | `extract-youtube` | ask-extract-youtube |
-| Domain rank, source label, favicon | `domain-rank` | ask-domain-rank |
-| JS-rendered page → HTML (self-hosted Puppeteer/JSDOM) | `render-url-to-html` | ask-render-url-to-html |
-| JS-rendered page → HTML (Cloudflare Worker + sessions) | `html-renderer-api` | ask-html-renderer-api |
-| Typed client for the QwkSearch backend | `qwksearch-api-client` | ask-qwksearch-api-client |
-| Exposing search/extract/render as MCP tools | `qwksearch-mcp-server` | ask-qwksearch-mcp-server |
-| NotebookLM automation in a sleeping container | `notebooklm-api-client` | ask-notebooklm-client |
-| Speech-to-text, text-to-speech, read-aloud CLI | `use-voice-control` | ask-use-voice-control |
-| The dock, the settings form, weather, trending news | `shadcn-app-dock`, `shadcn-settings`, `react-weather-forecast`, `trending-news-api` | ask-shadcn-app-dock, ask-shadcn-settings, ask-weather-forecast, ask-trending-news |
-| Sponsored ads in chat answers and follow-ups, advertiser keyword panel | `ads-in-chat-answers` | ask-ads-in-chat-answers |
-| The `/docs` help site | `user-help-docs` | ask-user-help-docs |
-| Training a GPT from scratch on Wikipedia (Python) | `language-model-training` | ask-language-model-training |
-| Stocks, brokerage, trading agents, prediction markets, arbitrage | `investing` (incl. `investing/predictos`) | ask-investing |
+| Chat window, article reader, search config, uploads, app shell | `research-agent-ui` | research-agent-ui |
+| The document editor (toolbar, 59 extensions, locales) | `reason-editor` | reason-editor |
+| The editor's file tree / open-tabs / split-view sidebar | `reason-editor-sidebar` | reason-editor-sidebar |
+| Agent orchestration, Mastra, MCP, memory, model registry | `chat-agent-toolkit` | chat-agent-toolkit |
+| One text generation call across 10+ LLM providers | `write-language` | write-language |
+| Query 75 search engines, dedupe and rank | `search-web-api` | search-web-api |
+| Search box autocomplete, fastest suggest engine, site suggestions | `search-autocomplete` | search-autocomplete |
+| Self-hosted SearXNG meta-search backend | `searxng-search-cloudflare` | searxng-search |
+| URL → article + APA citation, keyphrases, tokenizing | `extract-webpage` | extract-webpage |
+| Full citation (APA/MLA/Chicago) with an LLM, confidence, author bios | `extract-cite` | extract-cite |
+| PDF → structured HTML, optional Docling OCR | `extract-pdf` | extract-pdf |
+| YouTube transcripts without a browser | `extract-youtube` | extract-youtube |
+| Domain rank, source label, favicon | `domain-rank` | domain-rank |
+| JS-rendered page → HTML (self-hosted Puppeteer/JSDOM) | `render-url-to-html` | render-url-to-html |
+| JS-rendered page → HTML (Cloudflare Worker + sessions) | `html-renderer-api` | html-renderer-api |
+| Typed client for the QwkSearch backend | `qwksearch-api-client` | qwksearch-api-client |
+| Exposing search/extract/render as MCP tools | `qwksearch-mcp-server` | qwksearch-mcp-server |
+| NotebookLM automation in a sleeping container | `notebooklm-api-client` | notebooklm-client |
+| Speech-to-text, text-to-speech, read-aloud CLI | `use-voice-control` | use-voice-control |
+| The dock, the settings form, weather, trending news | `shadcn-app-dock`, `shadcn-settings`, `react-weather-forecast`, `trending-news-api` | shadcn-app-dock, shadcn-settings, weather-forecast, trending-news |
+| Sponsored ads in chat answers and follow-ups, advertiser keyword panel | `ads-in-chat-answers` | ads-in-chat-answers |
+| The `/docs` help site | `user-help-docs` | user-help-docs |
+| Training a GPT from scratch on Wikipedia (Python) | `language-model-training` | language-model-training |
+| Stocks, brokerage, trading agents, prediction markets, arbitrage | `investing` (incl. `investing/predictos`) | investing |
 
 ## The apps (no package skill of their own)
 
@@ -88,7 +88,7 @@ to rebuild all of them in topological order.
 
 **Adding a new package.** Create `packages/<name>/package.json`, add its
 `vitest.config.ts` to the `projects` array in the root `vitest.config.ts`, and give it
-a skill under `skills/ask-<name>/`. Turbo picks it up from the workspace glob.
+a skill under `skills/<name>/`. Turbo picks it up from the workspace glob.
 
 **Adding an in-app "skill".** This product has its own unrelated Skills & Memory
 feature (a per-user toggle panel in Settings). "Add a skill" from a user usually means

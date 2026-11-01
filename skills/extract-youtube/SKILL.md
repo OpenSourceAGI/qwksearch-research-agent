@@ -1,5 +1,5 @@
 ---
-name: ask-extract-youtube
+name: extract-youtube
 description: Guide to extract-youtube (packages/extract-youtube), the browserless YouTube transcript extractor — the YouTubeTranscriptApi class, language selection and translation, the typed error hierarchy (RequestBlocked, IpBlocked, TranscriptsDisabled, AgeRestricted, PoTokenRequired…), Webshare and generic proxy configs, the JSON/text/SRT/WebVTT/article formatters, the reading-speed encoder, the CLI, the video library admin API (extract-youtube/library: memory or D1 store, createVideoLibraryHandler, client, stacks, custom fields, resync, auto-fill) and the React UI (floating player, transcript modal, VideoGrid/VideoList/VideoCard, VideoLibraryAdmin). Use when a transcript fetch fails or returns the wrong language, when a video has no captions and its audio must be downloaded (MP3) for speech-to-text, when YouTube blocks a datacenter IP, when picking an output format, when building or serving a video library with the grid or admin screens, or when the multi-target build (lib/cli/react/library) misbehaves.
 ---
 

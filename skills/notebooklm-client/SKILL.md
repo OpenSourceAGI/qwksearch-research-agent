@@ -1,5 +1,5 @@
 ---
-name: ask-notebooklm-client
+name: notebooklm-client
 description: Guide to notebooklm-api-client (packages/notebooklm-api-client), the Cloudflare Worker + Container bridge to Google NotebookLM — the single POST endpoint and its `action` verbs (login, list, create, ask, summarize, delete), the Puppeteer-driven Google sign-in that captures cookies and localStorage, the NotebookRunner container that sleeps after 5 minutes, and the API_TOKEN / GOOGLE_EMAIL / GOOGLE_PASSWORD bindings. Use when wiring NotebookLM into the app, when a notebook action 401s or times out, when the stored auth expires, or when deploying the container.
 ---
 

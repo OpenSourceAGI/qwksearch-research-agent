@@ -4,7 +4,7 @@
 Worker** (`extract-youtube-docs`, domain youtube.js.org). Fumadocs on vinext,
 started from `template-fumadocs` in dev-tools-starter-agent. It replaced the
 separate `apps/extract-youtube-docs` and `apps/extract-youtube-demo`. Read
-[`skills/ask-extract-youtube`](../../../../skills/ask-extract-youtube/SKILL.md)
+[`skills/extract-youtube`](../../../../skills/extract-youtube/SKILL.md)
 for the package itself.
 
 | Path | Served by |

@@ -24,6 +24,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill extract-youtube` ([what it covers](../../skills/extract-youtube/SKILL.md))
+<!-- skills:install:end -->
+
 # Extract YouTube Transcript 
 .
 

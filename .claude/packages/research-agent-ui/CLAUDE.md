@@ -1,6 +1,6 @@
 # CLAUDE.md — `research-agent-ui`
 
-**Read [`skills/ask-research-agent-ui`](../../../skills/ask-research-agent-ui/SKILL.md)
+**Read [`skills/research-agent-ui`](../../../skills/research-agent-ui/SKILL.md)
 and its `API.md` first.**
 
 The QwkSearch app UI: the conversation window, search results, the article

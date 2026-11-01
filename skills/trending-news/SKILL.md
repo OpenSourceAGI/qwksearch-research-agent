@@ -1,5 +1,5 @@
 ---
-name: ask-trending-news
+name: trending-news
 description: Guide to trending-news-api (packages/trending-news-api), the React trending-news widget and its backend — getTrendingNews / getTrendingNewsForTopic, the useTrendingNews hook, the TrendingNews component with compact and expandable modes, custom topic lists (the `topics` option and `?topics=`), the 10-minute localStorage cache, the trending-news-api/server handler, and the worker that joins Wikipedia daily pageviews to The News API. Also covers qwksearch-web's side of it: the D1 article archive, the admin News Widget page and the per-user "My News Topics" setting. Use when embedding or restyling the trending widget, when the homepage widget renders empty, when it throws about a missing apiEndpoint, when topics look like navigation pages, when a user's or the site's custom topics are not taking effect, or when deploying and configuring the worker or the app's own /api/news/trending route.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: ask-searxng-search
+name: searxng-search
 description: Guide to searxng-search-cloudflare (packages/searxng-search-cloudflare), the deployment config for a private SearXNG metasearch instance — the two Dockerfiles, searxng-settings.yml (JSON output format, limiter, secret key, Redis/valkey), the per-engine shortcut list in searxng-engines.yml, and how chat-agent-toolkit's searchSearxng consumes it. Use when standing up or tuning a private SearXNG backend, when SearXNG returns 403 or HTML instead of JSON, when enabling or disabling an engine, or when agent search is configured to a SearXNG URL.
 ---
 

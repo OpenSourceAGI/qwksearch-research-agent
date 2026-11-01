@@ -1,5 +1,5 @@
 ---
-name: ask-research-agent-ui
+name: research-agent-ui
 description: Guide to research-agent-ui (packages/research-agent-ui), the QwkSearch chat/search UI as a drop-in package — the two entry points (chat-only root vs `/workspace` with the REASON editor), QwkSearchApp and the QwkSearchProviders stack, configureResearchAgentUI, the ChatProvider / SessionProvider / ExtractPanelProvider contexts, the article reader, voice and TTS hooks, the Ctrl-Space spotlight palette, and the `/api` dependency-injected route-handler factories. Use when changing anything in the chat window, message composer, search config, article reader, file upload, chat history or the spotlight palette, when wiring the package into a host app's auth and API routes, or when the editor's dependency tree leaks into a chat-only bundle.
 ---
 

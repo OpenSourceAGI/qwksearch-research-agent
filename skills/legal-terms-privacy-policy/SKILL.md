@@ -1,5 +1,5 @@
 ---
-name: ask-legal-terms-privacy-policy
+name: legal-terms-privacy-policy
 description: Guide to legal-terms-privacy-policy (packages/legal-terms-privacy-policy), the shared Terms of Service and Privacy Policy rendered by QwkSearch, Debate AI, AI Broker, Grab URL and Rights Institute — the LegalTermsPrivacyPolicy page and its full/summary switch, the React-free root entry, the inlined stylesheet, and the raw-TypeScript exports that need transpiling. Use when editing a clause, adding the page to another site, restyling it, or when importing the package fails with a syntax error or an unresolved module.
 ---
 

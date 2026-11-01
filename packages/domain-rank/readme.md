@@ -24,6 +24,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill domain-rank` ([what it covers](../../skills/domain-rank/SKILL.md))
+<!-- skills:install:end -->
+
 # domain-rank 
 
 Look up top-ranked domains to get their name, human-readable source label, influence rank, and favicon.

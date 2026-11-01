@@ -1,6 +1,6 @@
 # CLAUDE.md — `search-web-api`
 
-**Read [`skills/ask-search-web-api`](../../../skills/ask-search-web-api/SKILL.md)
+**Read [`skills/search-web-api`](../../../skills/search-web-api/SKILL.md)
 and its `API.md` first.**
 
 70+ search engines across 10 categories, plus dedupe and ranking. Published.

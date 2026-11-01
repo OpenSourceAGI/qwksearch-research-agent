@@ -1,5 +1,5 @@
 ---
-name: ask-render-url-to-html
+name: render-url-to-html
 description: Guide to render-url-to-html (packages/render-url-to-html), the two self-hosted page-rendering services — scraper-puppeteer, a Dockerised Koa proxy running puppeteer-extra with the stealth plugin to get past Cloudflare bot checks, and scraper-jsdom, a JSDOM-based scraper with scripted automation steps and a Next.js demo. Use when extract-webpage's plain fetch gets a bot-check interstitial, when a JS-rendered page comes back empty, when choosing between the JSDOM, Puppeteer and Cloudflare rendering paths, or when running either service in Docker.
 ---
 
@@ -15,7 +15,7 @@ published to npm; both are services you run.
 | `scraper-jsdom/` | `jsdom-scraper` | A `JSDomScraper` class plus a Next.js demo UI |
 
 For the **Cloudflare Worker** rendering path (Durable Objects, sessions, cookie
-persistence, an OpenAPI surface) see **ask-html-renderer-api** instead — that is the
+persistence, an OpenAPI surface) see **html-renderer-api** instead — that is the
 one the MCP server's `render_page_with_javascript` tool calls.
 
 ## Choosing a renderer

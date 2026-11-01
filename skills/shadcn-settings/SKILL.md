@@ -1,5 +1,5 @@
 ---
-name: ask-shadcn-settings
+name: shadcn-settings
 description: Guide to shadcn-settings (packages/shadcn-settings), the schema-driven settings form renderer for shadcn/ui — the SettingsList component, the plain-data SettingsFieldSchema, the built-in string/password/textarea/select/switch renderers, custom field types via the renderers map, the card/inline/ghost layout variants, getValue/onCommit/onChange, and the useCommit spinner hook. Use when adding a settings field or a custom control, when a value doesn't persist or the spinner never clears, or when matching the form to a host app's design.
 ---
 

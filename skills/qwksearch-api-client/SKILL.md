@@ -1,5 +1,5 @@
 ---
-name: ask-qwksearch-api-client
+name: qwksearch-api-client
 description: Guide to qwksearch-api-client (packages/qwksearch-api-client), the hey-api generated TypeScript client for the QwkSearch backend — the 85 typed SDK functions, the shared `client` singleton and per-call `client` override, the api2client/grab transport and its cache/retry/rateLimit/mock options, the baseUrl resolution that differs between browser and server, `throwOnError`, and the two-step regeneration workflow from qwksearch-openapi.json. Use when calling the QwkSearch API from any app or package, when requests hit the wrong origin or 401, when a response carries no status or an unparsed error body, when a new endpoint is missing from the client, or when regenerating after an OpenAPI change.
 ---
 

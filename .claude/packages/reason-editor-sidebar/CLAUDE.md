@@ -1,7 +1,7 @@
 # CLAUDE.md — `react-reason-editor-sidebar` (`packages/reason-editor-sidebar`)
 
 **npm name:** `react-reason-editor-sidebar`. **Read
-[`skills/ask-reason-editor-sidebar`](../../../skills/ask-reason-editor-sidebar/SKILL.md)
+[`skills/reason-editor-sidebar`](../../../skills/reason-editor-sidebar/SKILL.md)
 first.**
 
 The REASON editor's file/folder sidebar, open-tabs pane and document tree.

@@ -6,7 +6,7 @@ agent-facing package reference. Neither of them is a root `docs/` folder.
 | Kind of writing | Home |
 | --- | --- |
 | Anything a user or an operator reads | `packages/user-help-docs/content/docs/**` |
-| Package reference written for coding agents | `skills/ask-<name>/SKILL.md` (+ `API.md`) |
+| Package reference written for coding agents | `skills/<name>/SKILL.md` (+ `API.md`) |
 | How to work in this repo, for Claude | `CLAUDE.md` and `.claude/architecture/**` |
 | A package's own public API | that package's `readme.md` |
 
@@ -85,7 +85,7 @@ per package, each written from the package's **source** rather than its README.
 They are the most detailed documentation in the repo; read the relevant one before
 working in a package.
 
-Start at [`ask-qwksearch-monorepo`](../../skills/ask-qwksearch-monorepo/SKILL.md)
+Start at [`qwksearch-monorepo`](../../skills/qwksearch-monorepo/SKILL.md)
 when you do not yet know which layer owns a behaviour.
 
 Shape of a skill: YAML frontmatter with `name` matching the directory and a
@@ -96,11 +96,11 @@ for → recipes → a symptom/cause/fix table. Exhaustive option, export and pro
 tables go in a sibling `API.md`.
 
 Adding a package means adding its skill, plus rows in `skills/README.md` and in
-`ask-qwksearch-monorepo`'s map.
+`qwksearch-monorepo`'s map.
 
 ## Keeping documentation honest
 
 When you change behaviour, update in the same PR: the package `readme.md`, its
-`skills/ask-<name>/SKILL.md`, and any affected `user-help-docs` page. A stale skill
+`skills/<name>/SKILL.md`, and any affected `user-help-docs` page. A stale skill
 is worse than a missing one — agents trust it. `packages/readme.md`, for instance,
 still calls the editor Lexical when it is Tiptap; the source is authoritative.

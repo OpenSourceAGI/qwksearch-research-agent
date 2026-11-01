@@ -1,5 +1,5 @@
 ---
-name: ask-investing
+name: investing
 description: Guide to investing (packages/investing), the financial-data, trading-agent and prediction-market package — the Alpaca client, Yahoo/Finnhub/SEC stock data and the unified quote service, the Polymarket sync/analysis layer under investing/prediction, the LangGraph debate agents under investing/trading-agents, the XGBoost correlate models, the D1/drizzle schemas, and the merged PredictOS core on investing/predictos (runEventAnalysisAgent, runBookmakerAgent, runMapperAgent, findArbitrage, getEvents, the Kalshi/DFlow and Polymarket/Dome data clients, and the OpenAI/Grok/BlockRun AI clients). Use when importing from investing or any of its subpaths, when you are looking for the old standalone `predictos` package, when a subpath import resolves to nothing after an edit, when an agent throws about a missing model/markets/url parameter, when D1 says no connection is available, or when a prediction-market call 401s on DOME_API_KEY / DFLOW_API_KEY.
 ---
 

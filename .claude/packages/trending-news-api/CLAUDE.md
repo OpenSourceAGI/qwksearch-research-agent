@@ -1,6 +1,6 @@
 # CLAUDE.md — `trending-news-api`
 
-**Read [`skills/ask-trending-news`](../../../skills/ask-trending-news/SKILL.md)
+**Read [`skills/trending-news`](../../../skills/trending-news/SKILL.md)
 first.**
 
 A React trending-news widget backed by **Wikipedia pageview** data. Published.

@@ -1,5 +1,9 @@
 # jsdom-scraper
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill render-url-to-html` ([what it covers](../../../skills/render-url-to-html/SKILL.md))
+<!-- skills:install:end -->
+
 A lightweight, pure JavaScript DOM scraper for Node.js using JSDOM. Execute custom scripts in a DOM context, run automation steps, and extract page data without a headless browser.
 
 ## Features

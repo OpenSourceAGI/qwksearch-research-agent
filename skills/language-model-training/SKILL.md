@@ -1,5 +1,5 @@
 ---
-name: ask-language-model-training
+name: language-model-training
 description: Guide to language-model-training (packages/language-model-training), the from-scratch GPT-on-Tinygrad training package — the three run modes (local demo, full Wikipedia pipeline via aria2c + dumpster-dive + MongoDB, FastAPI control API), the `wikipedia` package's core/ingestion/data/architecture/runtime/inference/analysis/orchestration modules, the Vast.ai GPU rental backend and its env vars, the Next.js dashboard, and the Cloudflare Containers capacity limits. Use when running or debugging training, when a job dies on memory or a missing tool, when wiring the dashboard to the control API, or when the README's paths don't match the tree.
 ---
 

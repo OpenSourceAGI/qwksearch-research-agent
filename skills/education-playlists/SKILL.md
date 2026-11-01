@@ -1,5 +1,5 @@
 ---
-name: ask-education-playlists
+name: education-playlists
 description: Guide to education-playlists (packages/education-playlists), the self-paced study playlists package and the homepage Learn widget — the college-catalog taxonomy (category, major, program), the MIT OpenCourseWare seed catalog and its provenance, progress checkmarks and time estimates, private/public playlists with invites and share links, the LLM planner that asks follow-up questions and builds a custom playlist, the NotebookLM quiz hook, and qwksearch-web's /api/learn route and /learn page. Use when adding courses or data sources, changing the widget, wiring a model or search into the planner, or changing server-side playlist storage (/api/learn/playlists, invites).
 ---
 

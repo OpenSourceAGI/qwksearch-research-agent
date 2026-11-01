@@ -20,6 +20,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill shadcn-app-dock` ([what it covers](../../skills/shadcn-app-dock/SKILL.md))
+<!-- skills:install:end -->
+
 # shadcn-app-dock
 
 

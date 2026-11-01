@@ -1,5 +1,5 @@
 ---
-name: ask-html-renderer-api
+name: html-renderer-api
 description: Guide to html-renderer-api (packages/html-renderer-api), the Cloudflare Worker page-rendering service — the /api/render, /api/login and /api/fetch routes, Bearer/query/body authentication against SCRAPER_API_KEY, the BrowserDurableObject browser pool with per-sessionId cookie persistence, Cloudflare-challenge bypass and 2captcha, resource blocking, and the Swagger/OpenAPI surface. Use when a JS-heavy or bot-protected page must be rendered, when the MCP render tool or research-agent-ui's scraper returns 401/404, when scraping content behind a login, or when deploying or configuring the worker.
 ---
 
@@ -11,7 +11,7 @@ cookie jar. This is the service behind `render_page_with_javascript` in the MCP 
 and behind `SCRAPER_URL` in the app (default deployment
 `https://scraper.qwksearch.workers.dev`).
 
-For self-hosted Puppeteer/JSDOM instead, see **ask-render-url-to-html**.
+For self-hosted Puppeteer/JSDOM instead, see **render-url-to-html**.
 
 ## Routes
 

@@ -1,6 +1,6 @@
 # CLAUDE.md — `extract-youtube`
 
-**Read [`skills/ask-extract-youtube`](../../../skills/ask-extract-youtube/SKILL.md)
+**Read [`skills/extract-youtube`](../../../skills/extract-youtube/SKILL.md)
 and its `API.md` first.**
 
 YouTube transcripts, fast and **with no browser** — serverless-optimized so it

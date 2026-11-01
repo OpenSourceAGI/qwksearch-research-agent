@@ -1,5 +1,5 @@
 ---
-name: ask-weather-forecast
+name: weather-forecast
 description: Guide to react-weather-forecast (packages/react-weather-forecast, published as use-weather-forecast), the Open-Meteo weather widget — getWeatherForecast and its location resolution (explicit coordinates, a geo Worker, or ipwho.is), getClientLocation, the useWeatherForecast hook, the WeatherForecast component and its compact mode, the WMO-code-to-icon mapping, the 12-hour location cache and 30-minute forecast cache in localStorage, and the bundled Cloudflare geo Worker. Use when embedding or restyling the weather widget, when it resolves the wrong location or rate-limits (429), when adding a weather condition or icon, or when deploying the geo Worker.
 ---
 

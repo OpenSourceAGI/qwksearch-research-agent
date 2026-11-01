@@ -1,6 +1,6 @@
 # CLAUDE.md — `render-url-to-html`
 
-**Read [`skills/ask-render-url-to-html`](../../../skills/ask-render-url-to-html/SKILL.md)
+**Read [`skills/render-url-to-html`](../../../skills/render-url-to-html/SKILL.md)
 first.**
 
 **Not one package — two self-hosted renderers**, each its own workspace:

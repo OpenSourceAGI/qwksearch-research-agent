@@ -1,6 +1,6 @@
 # CLAUDE.md — `html-renderer-api`
 
-**Read [`skills/ask-html-renderer-api`](../../../skills/ask-html-renderer-api/SKILL.md)
+**Read [`skills/html-renderer-api`](../../../skills/html-renderer-api/SKILL.md)
 first.**
 
 A Cloudflare **Worker + Durable Object** that keeps a browser warm and renders

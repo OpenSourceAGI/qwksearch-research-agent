@@ -1,5 +1,5 @@
 ---
-name: ask-shadcn-app-dock
+name: shadcn-app-dock
 description: Guide to shadcn-app-dock (packages/shadcn-app-dock), the prop-driven macOS-style dock — CategoryDock and DockNavItem, inline dropdown items via the renderContent render prop, the bundled ThemeMenu shadcn theme switcher over next-themes, the desktop/mobile fixed placements and mobileAlign, Alt+N shortcuts, and the CategoryDockProvider visibility/category context. Use when adding or reordering dock items, composing a dock dropdown, changing dock placement or mobile layout, wiring the theme switcher, or when dock icons fail to render in a Next.js app.
 ---
 

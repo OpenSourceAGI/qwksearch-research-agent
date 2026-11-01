@@ -20,6 +20,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill html-renderer-api` ([what it covers](../../skills/html-renderer-api/SKILL.md))
+<!-- skills:install:end -->
+
 # Advanced Puppeteer API with Authentication & Cookie Management
 
 [![Coverage](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg?component=package-html-renderer-api)](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent)

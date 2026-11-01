@@ -1,5 +1,5 @@
 ---
-name: ask-search-autocomplete
+name: search-autocomplete
 description: Guide to search-autocomplete (packages/search-autocomplete), the QwkSearch search box and its query autocomplete — single-engine completion with DEFAULT_ENGINE chosen by the bundled latency benchmark, the word-dropping fallback, Fuse.js site suggestions over domain-rank, createAutocompleteHandler for /api/agent/autocomplete, and the React SearchBox, AutocompleteDropdown and useAutocomplete hook. Use when autocomplete is slow or empty, when changing or benchmarking the suggest engine, when adding an engine adapter, or when putting the search box or its dropdown into another input.
 ---
 

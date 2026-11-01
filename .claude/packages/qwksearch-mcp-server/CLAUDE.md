@@ -1,6 +1,6 @@
 # CLAUDE.md — `qwksearch-mcp-server`
 
-**Read [`skills/ask-qwksearch-mcp-server`](../../../skills/ask-qwksearch-mcp-server/SKILL.md)
+**Read [`skills/qwksearch-mcp-server`](../../../skills/qwksearch-mcp-server/SKILL.md)
 first.**
 
 An MCP server exposing web search and content extraction as tools, over

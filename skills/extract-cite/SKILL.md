@@ -1,5 +1,5 @@
 ---
-name: ask-extract-cite
+name: extract-cite
 description: Guide to extract-cite (packages/extract-cite) — regex/metadata citation extraction (extractCite) plus extractCiteLLM, an OpenRouter-by-default LLM pass that completes the full APA citation, scores confidence per part, flags parts for review, extracts author qualifications and formats APA/MLA/Chicago/Harvard/IEEE/BibTeX. Use when a citation is wrong or incomplete, when adding a citation style, or when changing the prompt or the checks on the model's reply.
 ---
 

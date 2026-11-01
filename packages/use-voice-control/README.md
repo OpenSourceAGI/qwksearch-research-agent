@@ -24,6 +24,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill use-voice-control` ([what it covers](../../skills/use-voice-control/SKILL.md))
+<!-- skills:install:end -->
+
 <p align="center">
     <a href="https://www.npmjs.com/package/use-voice-control">NPM</a> •
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/use-voice-control">GitHub</a> •

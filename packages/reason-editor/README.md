@@ -22,6 +22,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill reason-editor` ([what it covers](../../skills/reason-editor/SKILL.md))
+<!-- skills:install:end -->
+
 ## ✨ REASON Editor - Features
 
 - **Text Formatting:** Bold, italic, underline, strikethrough, text/highlight colors, font family & size, line height, subscript/superscript, inline code

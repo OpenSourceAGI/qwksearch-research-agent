@@ -20,6 +20,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill extract-pdf` ([what it covers](../../skills/extract-pdf/SKILL.md))
+<!-- skills:install:end -->
+
 # extract-pdf
 
 

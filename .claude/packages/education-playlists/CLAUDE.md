@@ -1,6 +1,6 @@
 # CLAUDE.md — `education-playlists`
 
-**Read [`skills/ask-education-playlists`](../../../skills/ask-education-playlists/SKILL.md)
+**Read [`skills/education-playlists`](../../../skills/education-playlists/SKILL.md)
 first.**
 
 Self-paced study playlists in a college-catalog shape (category → major →

@@ -89,15 +89,15 @@ from their own `test` script:
 **When you add a package**, add its `vitest.config.ts` path to the `projects`
 array in the root config, add a matrix row to
 `.github/workflows/test-coverage.yml`, and give it a skill under
-`skills/ask-<name>/`. Turbo picks it up from the workspace glob on its own.
+`skills/<name>/`. Turbo picks it up from the workspace glob on its own.
 
 ## Adding a package — checklist
 
 1. `packages/<name>/package.json` (match a sibling's field order and license).
 2. Its own `vitest.config.ts`, registered in the root `vitest.config.ts`.
 3. A matrix row in `.github/workflows/test-coverage.yml`.
-4. `skills/ask-<name>/SKILL.md`, plus rows in `skills/README.md` and in
-   `skills/ask-qwksearch-monorepo/SKILL.md`.
+4. `skills/<name>/SKILL.md`, plus rows in `skills/README.md` and in
+   `skills/qwksearch-monorepo/SKILL.md`.
 5. A bullet in the root `README.md` package list.
 6. Run `bun install` and commit the `bun.lock` diff.
 

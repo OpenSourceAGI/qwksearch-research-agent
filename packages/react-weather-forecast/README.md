@@ -21,6 +21,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill weather-forecast` ([what it covers](../../skills/weather-forecast/SKILL.md))
+<!-- skills:install:end -->
+
 # use-weather-forecast
 
 React weather forecast component using Open-Meteo for current, hourly, and daily forecasts and Cloudflare/ipwho.is for IP geolocation, with a fallback chain behind both.

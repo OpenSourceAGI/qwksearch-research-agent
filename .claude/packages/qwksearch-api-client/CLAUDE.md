@@ -1,6 +1,6 @@
 # CLAUDE.md — `qwksearch-api-client`
 
-**Read [`skills/ask-qwksearch-api-client`](../../../skills/ask-qwksearch-api-client/SKILL.md)
+**Read [`skills/qwksearch-api-client`](../../../skills/qwksearch-api-client/SKILL.md)
 first.**
 
 The typed API client, **generated from `openapi-docs.yml`**. Published.

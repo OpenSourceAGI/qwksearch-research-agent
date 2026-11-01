@@ -80,7 +80,7 @@ the bump is a deliberate choice rather than a patch.
 
 ## Agent-specific rules
 
-- Read `skills/ask-<name>/SKILL.md` before working in a package. It is written
+- Read `skills/<name>/SKILL.md` before working in a package. It is written
   from source and covers the real gotchas.
 - Do not create a root `docs/` folder — see [documentation.md](documentation.md).
 - Do not run `npm`/`yarn`/`pnpm` at the repo root. `apps/qwk-in-lobe/` and

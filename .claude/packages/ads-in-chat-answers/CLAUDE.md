@@ -1,6 +1,6 @@
 # CLAUDE.md — `ads-in-chat-answers`
 
-**Read [`skills/ask-ads-in-chat-answers`](../../../skills/ask-ads-in-chat-answers/SKILL.md)
+**Read [`skills/ads-in-chat-answers`](../../../skills/ads-in-chat-answers/SKILL.md)
 first.**
 
 Sponsored placements for chat answers: a product carousel under the answer, a

@@ -1,5 +1,5 @@
 ---
-name: ask-reason-editor
+name: reason-editor
 description: Guide to react-reason-editor (packages/reason-editor), the REASON document editor — the two engines (Plate by default, Tiptap for the features not yet ported), the ReasonDocs app shell and its injected sidebar, NovelEditor / RichTextProvider / editor-kit for hosts that own their own document lifecycle, buildExtensions and the 59-extension registry with its per-extension subpath exports, the shortcut registry, 21 locales, the CDN-vs-bundled external-libs switch, and Yjs collaboration. Use when adding or configuring an editor extension, embedding the editor in another host, changing the toolbar or bubble menus, debugging a schema remount, or wiring collaborative editing.
 ---
 
@@ -7,7 +7,7 @@ description: Guide to react-reason-editor (packages/reason-editor), the REASON d
 
 `packages/reason-editor`, published as **react-reason-editor**. The writing side of the
 product — not to be confused with `research-agent-ui`, which is the chat side. Its file
-sidebar lives in a separate package (**ask-reason-editor-sidebar**) so the dependency
+sidebar lives in a separate package (**reason-editor-sidebar**) so the dependency
 stays one-way: `reason-editor` depends on the sidebar, never the reverse.
 
 Note two naming traps: the directory is `reason-editor` but the package is

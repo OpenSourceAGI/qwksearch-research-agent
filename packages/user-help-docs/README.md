@@ -15,6 +15,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill user-help-docs` ([what it covers](../../skills/user-help-docs/SKILL.md))
+<!-- skills:install:end -->
+
 # user-help-docs
 
 The QwkSearch help site — content **and** the Fumadocs UI layer that renders

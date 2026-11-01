@@ -1,5 +1,5 @@
 ---
-name: ask-use-voice-control
+name: use-voice-control
 description: Guide to use-voice-control (packages/use-voice-control), the speech-I/O toolkit — the five subpath entries (root TTS, /client engines, /react hooks, /node document rendering, /markdown), generateSpeech with the Kokoro and Deepgram providers, ReadAloudController and LiveTranscriber, useReadAloud / useLiveTranscription / SpokenPhraseOverlay, the markdown-to-speech converter, the 28 Kokoro voices, and the read-aloud CLI. Use when adding text-to-speech or dictation to a UI, when audio fails to generate or the Cloudflare AI binding is missing, when Markdown is read out with its syntax, or when the CLI reports the package is not built.
 ---
 

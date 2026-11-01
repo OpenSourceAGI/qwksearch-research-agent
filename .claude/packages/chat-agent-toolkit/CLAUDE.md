@@ -1,6 +1,6 @@
 # CLAUDE.md — `chat-agent-toolkit`
 
-**Read [`skills/ask-chat-agent-toolkit`](../../../skills/ask-chat-agent-toolkit/SKILL.md)
+**Read [`skills/chat-agent-toolkit`](../../../skills/chat-agent-toolkit/SKILL.md)
 and its `API.md` first** — they are written from this source and go deeper than
 anything here.
 

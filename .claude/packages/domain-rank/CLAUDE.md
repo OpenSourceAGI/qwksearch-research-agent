@@ -1,6 +1,6 @@
 # CLAUDE.md — `domain-rank`
 
-**Read [`skills/ask-domain-rank`](../../../skills/ask-domain-rank/SKILL.md) first.**
+**Read [`skills/domain-rank`](../../../skills/domain-rank/SKILL.md) first.**
 
 Top-million domain ranks, source names, duplicate detection and favicons — what
 turns a bare URL into a labelled, ranked source in search results. Published.

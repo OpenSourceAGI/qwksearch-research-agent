@@ -1,6 +1,6 @@
 # CLAUDE.md — `user-help-docs`
 
-**Read [`skills/ask-user-help-docs`](../../../skills/ask-user-help-docs/SKILL.md)
+**Read [`skills/user-help-docs`](../../../skills/user-help-docs/SKILL.md)
 and [`.claude/architecture/documentation.md`](../../architecture/documentation.md)
 first.**
 
@@ -11,7 +11,7 @@ qwksearch.com. Content lives in `content/docs`.
 
 **There is deliberately no root `docs/` folder in this repo — do not recreate
 one.** User-facing documentation belongs here; package documentation belongs in
-each package's `readme.md` and its `skills/ask-<name>/SKILL.md`; agent
+each package's `readme.md` and its `skills/<name>/SKILL.md`; agent
 orientation belongs in `CLAUDE.md` files.
 
 ## Rules

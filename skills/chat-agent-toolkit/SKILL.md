@@ -1,5 +1,5 @@
 ---
-name: ask-chat-agent-toolkit
+name: chat-agent-toolkit
 description: Guide to chat-agent-toolkit (packages/chat-agent-toolkit), the agent orchestration layer over write-language — MetaSearchAgent search handlers (webSearch / academicSearch / writingAssistant / youtubeSearch and friends), Mastra agents, workflows, RAG and evals, MCP tool sessions, OpenConnector OAuth sessions, the long-term memory manager with in-memory / Drizzle / D1 / KV storage, and the model + config registries. Use when wiring an agent, adding a tool or MCP server, changing search-and-answer behaviour, debugging memory persistence, or when a re-exported symbol resolves to the wrong package's version.
 ---
 

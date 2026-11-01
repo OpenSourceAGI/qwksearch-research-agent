@@ -1,5 +1,5 @@
 ---
-name: ask-extract-webpage
+name: extract-webpage
 description: Guide to extract-webpage (packages/extract-webpage), the URL-to-cited-article pipeline — extractContent() for web pages, PDFs, YouTube and DOCX buffers, scrapeURL() fetching with bot detection and proxy fallback, Readability/Mercury content extraction, APA citation and author-name detection, the SEEKTOPIC keyphrase and summary-sentence extractor, and the tokenizer helpers. Use when extraction returns an empty or wrong article, when citation metadata (author, date, source) is missing or misformatted, when adding a site adapter, or when a build pulls pdfjs in unexpectedly.
 ---
 
@@ -77,5 +77,5 @@ optionSkipRanking: false, limitTopSentences: 5 })`.
 | Date is missing on a page that clearly shows one | `extract-date` reads meta tags and common class patterns; `extract-date-quick` is the fast path. Add the site's pattern to `date-extractors.ts`. |
 | Relative image/link URLs in the output | `absoluteURLs` defaults to `true` — if you set it `false`, resolve them yourself. |
 | SEEKTOPIC returns weak keyphrases | Without `phrasesModel` the fallback path has no phrase statistics; and the LLM path only runs on the first 5000 words. |
-| YouTube URL returns no transcript | Handled by `extract-youtube`; pass `languages: ["en", …]` and see **ask-extract-youtube**. |
+| YouTube URL returns no transcript | Handled by `extract-youtube`; pass `languages: ["en", …]` and see **extract-youtube**. |
 | Build OOMs | Use the package's `bun run make` (raised `--max-old-space-size`) rather than plain `vite build`. |

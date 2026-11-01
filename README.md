@@ -178,7 +178,7 @@ Every package has a matching [Agent Skill](skills/) — setup, the calls worth k
 
 ```bash
 npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent
-npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill ask-search-web-api
+npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill search-web-api
 ```
 
 See [skills/README.md](skills/README.md) for the full index.

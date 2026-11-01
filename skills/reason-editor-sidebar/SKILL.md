@@ -1,5 +1,5 @@
 ---
-name: ask-reason-editor-sidebar
+name: reason-editor-sidebar
 description: Guide to react-reason-editor-sidebar (packages/reason-editor-sidebar), the REASON editor's sidebar as a standalone package — the Sidebar / SidebarContent / SidebarToolbar / SidebarFooter / SidebarViewMenu components injected into ReasonDocs, the five stackable panels (Open Tabs, Files, Outline, Related, AI) and the inferred split view, the headless-tree file tree, the related-documents and outline views, the AI rewrite modes, and the localStorage-backed file-source CRUD for local / SSH / S3 / R2 / B2 / Google Docs / Turso. Use when changing the file tree, tabs panel, outline, split-view menu, or the storage-backend picker, or when wiring the sidebar into a host that mounts ReasonDocs.
 ---
 

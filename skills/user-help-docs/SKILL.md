@@ -1,5 +1,5 @@
 ---
-name: ask-user-help-docs
+name: user-help-docs
 description: Guide to user-help-docs (packages/user-help-docs), the Fumadocs help site mounted at /docs in qwksearch-web — the content/docs MDX tree and meta.json ordering, the import.meta.glob source that replaces fumadocs-mdx codegen so it runs on Cloudflare Workers, the helpDocsMdxPlugin build-time MDX compile the host has to register, the search index, the llms.mdx / llms-full.txt plain-text views, the Tailwind sources the host must scan for the Fumadocs layout to be styled at all, and docsConfig branding. Use when adding or reordering a help page, when /docs 500s after a content change, when /docs renders unstyled with no sidebar or navigation, when docs search returns nothing, or when wiring the docs routes into a host app.
 ---
 

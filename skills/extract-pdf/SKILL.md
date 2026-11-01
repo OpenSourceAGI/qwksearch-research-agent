@@ -1,5 +1,5 @@
 ---
-name: ask-extract-pdf
+name: extract-pdf
 description: Guide to extract-pdf (packages/extract-pdf), the PDF-to-structured-HTML converter — convertPDFToHTML() and its two independent switches, `method` (ts-block-algorithm / liteparse / liteparse-wasm) and `processor` (frontend / hybrid / docling / a processor URL), the Granite Docling OCR path and its optional dependencies, the page-scan heuristics, and the bundled Hono OCR server. Use when a PDF converts to empty or mangled HTML, when headings/lists/code blocks come out wrong, when scanned or table-heavy pages need OCR, or when the package fails to load in Cloudflare Workers or the browser.
 ---
 

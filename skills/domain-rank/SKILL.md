@@ -1,5 +1,5 @@
 ---
-name: ask-domain-rank
+name: domain-rank
 description: Guide to domain-rank (packages/domain-rank), the offline top-domain dataset and lookup API — lookupDomain / getTopDomains / searchDomains over a bundled merged Tranco + CommonCrawl JSON, the domain-to-source-title formatter, favicon lookup, URL-to-root-domain parsing, and the regeneration scripts. Use when adding a source label to search results or autocomplete, when a lookup returns null for a domain that should exist, when favicon lookup throws about a missing file, or when refreshing the bundled datasets.
 ---
 

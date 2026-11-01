@@ -1,5 +1,5 @@
 ---
-name: ask-qwksearch-mcp-server
+name: qwksearch-mcp-server
 description: Guide to qwksearch-mcp-server (packages/qwksearch-mcp-server), the stdio MCP server exposing QwkSearch to any MCP client — the web_search, extract_page and render_page_with_javascript tools, their zod input schemas and text output shape, the lazily created shared Search instance, the SCRAPER_URL / SCRAPER_API_KEY environment, and how to register it with Claude Desktop or Claude Code. Use when adding or changing an MCP tool, when a tool returns isError, when render_page_with_javascript reports it is unavailable, or when wiring this server into an MCP client.
 ---
 
@@ -40,7 +40,7 @@ TypeScript-capable runtime (bun), not plain `node`.
 | --- | --- | --- |
 | `web_search` | `search-web-api`'s `Search` (in-process, no network service) | `query`; `category` (`general` default, plus `news` `videos` `images` `science` `files` `it` `academic` `torrents` `social` `maps` `shopping`); `page` (1) |
 | `extract_page` | `extract-webpage`'s `extractContent` — pages, PDFs and YouTube | `url`; `images` (true); `links` (true); `formatting` (true); `timeout` (10 s) |
-| `render_page_with_javascript` | An HTTP POST to `{SCRAPER_URL}/api/render` (see **ask-html-renderer-api**) | `url`; `wait` (0 ms); `timeout` (30000 ms); `waitUntil` (`networkidle2`) |
+| `render_page_with_javascript` | An HTTP POST to `{SCRAPER_URL}/api/render` (see **html-renderer-api**) | `url`; `wait` (0 ms); `timeout` (30000 ms); `waitUntil` (`networkidle2`) |
 
 All three return a single `{ type: "text" }` block of pre-formatted plain text — a
 numbered result list, the article with its citation header, or the rendered HTML. None

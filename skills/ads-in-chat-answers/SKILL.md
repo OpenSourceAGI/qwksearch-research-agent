@@ -1,5 +1,5 @@
 ---
-name: ask-ads-in-chat-answers
+name: ads-in-chat-answers
 description: Guide to ads-in-chat-answers (packages/ads-in-chat-answers) — sponsored placements for AI chat answers. Covers the ChatAnswerAd product carousel (Ad badge, hide/about/ask/report menu), SponsoredFollowUps ("Learn more about …" row), the keyword auction (scoreCampaign, runAuction, selectChatAds — relevance gate, relevance × bid ranking, second-price CPC, one advertiser per answer), the AdvertiserPanel with LLM keyword generation (generateKeywordPlan, parseKeywordPlan, heuristicKeywordPlan), the ads-in-chat-answers/server handler and OpenAI-compatible model adapter, and the Vercel demo in demo/. Use when adding ads to a chat UI, when an ad shows on an unrelated question or never shows, when keyword generation returns heuristic results, when the demo's /api routes 404 or fail on Vercel, or when restyling the ads.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: ask-search-web-api
+name: search-web-api
 description: Guide to search-web-api (packages/search-web-api), the 71-adapter meta-search engine — the Search class, engine and category selection, the ResultContainer dedupe/scoring model, per-engine health tracking, the autocomplete backends, the Tavily and public-SearXNG fallbacks, and the Hono demo server with Scalar docs. Use when adding a search engine adapter, when an engine silently returns nothing or gets skipped, when result ordering or dedupe looks wrong, or when wiring search into an agent, a Worker, or the MCP server.
 ---
 

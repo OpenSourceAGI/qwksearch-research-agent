@@ -1,5 +1,9 @@
 # search-autocomplete
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill search-autocomplete` ([what it covers](../../skills/search-autocomplete/SKILL.md))
+<!-- skills:install:end -->
+
 The QwkSearch search box and its autocomplete. Query completions come from **one**
 search-engine suggest API — the fastest one the bundled benchmark measured — instead
 of waiting on several; site suggestions come from a ranked domain list.
