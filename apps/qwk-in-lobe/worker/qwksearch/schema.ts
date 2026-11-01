@@ -178,3 +178,34 @@ export const shareTokens = sqliteTable(
   },
   (table) => [index('idx_share_tokens_documentId').on(table.documentId)],
 );
+
+/**
+ * Lobe's users. There is no sign-in form: every browser that reaches the
+ * Worker is a guest user, identified by its `lobe_uid` cookie (`worker/users`).
+ * The same id is the LobeHub user id in Postgres, where that user's chats,
+ * agents and provider keys live; D1 is the record of who the users are.
+ *
+ * `kind` leaves room for accounts that sign in later (`'account'`), which would
+ * fill `email`/`name` and keep the guest's id, so nothing has to be re-keyed.
+ */
+export const lobeUsers = sqliteTable(
+  'lobe_users',
+  {
+    createdAt: integer('createdAt', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    email: text('email'),
+    id: text('id').primaryKey(),
+    kind: text('kind', { enum: ['guest', 'account'] })
+      .notNull()
+      .default('guest'),
+    lastSeenAt: integer('lastSeenAt', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    name: text('name'),
+  },
+  (table) => [
+    index('idx_lobe_users_lastSeenAt').on(table.lastSeenAt),
+    unique('uq_lobe_users_email').on(table.email),
+  ],
+);

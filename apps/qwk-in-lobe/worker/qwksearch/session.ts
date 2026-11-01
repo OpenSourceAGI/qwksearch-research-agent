@@ -1,8 +1,9 @@
 /**
  * Session helpers for the QwkSearch feature routes.
  *
- * There is no sign-in: favorites and documents belong to the local user
- * (`@/server/modules/LocalUser`), the same user every LobeHub request runs as.
+ * There is no sign-in form: favorites and documents belong to the request's
+ * user (`@/server/modules/LocalUser`), the browser's guest user on the Worker
+ * (`worker/users`), the same user its LobeHub requests run as.
  */
 
 export const getUserId = async (_headers: Headers): Promise<string | null> => {

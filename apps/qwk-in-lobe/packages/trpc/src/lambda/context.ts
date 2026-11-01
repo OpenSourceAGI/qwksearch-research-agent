@@ -139,6 +139,26 @@ export const createContextInner = async (params?: {
 
 export type LambdaContext = Awaited<ReturnType<typeof createContextInner>>;
 
+let reportedUserLookupFailure = false;
+
+/**
+ * Every protected procedure answers UNAUTHORIZED when the user row can't be
+ * made, which hides the real cause (usually DATABASE_URL / KEY_VAULTS_SECRET
+ * unset, or migrations not applied). Say why once per isolate.
+ */
+const reportUserLookupFailure = (error: unknown) => {
+  if (reportedUserLookupFailure) return;
+  reportedUserLookupFailure = true;
+
+  // Drizzle wraps the driver error as `cause` behind a "Failed query: …" message.
+  const cause = error instanceof Error ? (error.cause as Error | undefined) : undefined;
+  const message = error instanceof Error ? error.message.trim() : String(error);
+  const reason = cause?.message ? `${cause.message.trim()} (${message.slice(0, 120)}…)` : message;
+  console.error(
+    `[lambda-context] could not load the request's user, so protected procedures answer UNAUTHORIZED: ${reason}`,
+  );
+};
+
 /**
  * Creates context for an incoming request
  * @link https://trpc.io/docs/v11/context
@@ -287,13 +307,15 @@ export const createLambdaContext = async (request: NextRequest): Promise<LambdaC
     });
   }
 
-  // There is no sign-in: every other request runs as the local user. A failed
-  // lookup leaves it unauthenticated so public procedures still answer.
+  // There is no sign-in form: every other request runs as the browser's guest
+  // user on the Worker, the shared local user elsewhere. A failed lookup leaves
+  // it unauthenticated so public procedures still answer.
   let userId: string | null = null;
   try {
     userId = await getLocalUserId();
   } catch (error) {
     log('Local user lookup failed: %O', error);
+    reportUserLookupFailure(error);
   }
 
   return createContextInner({ ...commonContext, traceContext, userId });

@@ -10,8 +10,11 @@ import { apiApp } from './routes/api';
 import { spaApp } from './routes/spa';
 import { trpcApp } from './routes/trpc';
 import { webapiApp } from './routes/webapi';
+import { installVisitorUsers } from './users';
 
 export const createApp = () => {
+  installVisitorUsers();
+
   const app = new Hono();
 
   app.onError((error, c) => {
