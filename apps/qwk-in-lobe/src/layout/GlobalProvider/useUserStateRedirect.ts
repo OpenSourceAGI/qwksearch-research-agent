@@ -46,6 +46,11 @@ const parseFirstSegment = (pathname: string): string | null => {
 };
 
 /**
+ * Never redirect the homepage: there is no sign-in here, so the home chat is
+ * the first thing every visitor sees and has to take a message right away. A
+ * fresh database (every user unonboarded) would otherwise bounce `/` to
+ * `/onboarding` before the visitor can type anything.
+ *
  * Defer the onboarding redirect when the path is a workspace-scoped route
  * (first segment is a workspace slug, i.e. not one of the reserved app
  * segments) or an explicitly deferred prefix like `/invite`. Reserved
@@ -53,6 +58,7 @@ const parseFirstSegment = (pathname: string): string | null => {
  * onboarding check.
  */
 export const shouldDeferOnboardingRedirect = (pathname: string): boolean => {
+  if (pathname === '/') return true;
   if (DEFER_REDIRECT_PREFIXES.some((prefix) => isPathUnder(pathname, prefix))) return true;
 
   const first = parseFirstSegment(pathname);

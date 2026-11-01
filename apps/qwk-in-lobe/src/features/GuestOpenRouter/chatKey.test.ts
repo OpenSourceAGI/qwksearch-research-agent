@@ -18,13 +18,15 @@ vi.mock('@/store/aiInfra/selectors', () => ({
     providerKeyVaults: () => () => (state.accountKey ? { apiKey: state.accountKey } : undefined),
   },
 }));
-vi.mock('./accountSync', () => ({ OPENROUTER_PROVIDER_ID: 'openrouter' }));
+const applyGuestKeyToAccount = vi.hoisted(() => vi.fn());
+vi.mock('./accountSync', () => ({ applyGuestKeyToAccount, OPENROUTER_PROVIDER_ID: 'openrouter' }));
 vi.mock('./createGuestKeyModal', () => ({ createGuestKeyModal }));
 vi.mock('./store', () => ({
   useGuestOpenRouterStore: { getState: () => ({ apiKey: state.guestKey }) },
 }));
 
-const { ensureGuestKey, ensureOpenRouterKey, hasOpenRouterKey } = await import('./chatKey');
+const { ensureGuestKey, ensureOpenRouterKey, hasOpenRouterKey, resolveOpenRouterChatRoute } =
+  await import('./chatKey');
 
 describe('OpenRouter chat key', () => {
   beforeEach(() => {
@@ -32,6 +34,9 @@ describe('OpenRouter chat key', () => {
     state.guestKey = '';
     state.serverKey = false;
     createGuestKeyModal.mockReset();
+    applyGuestKeyToAccount.mockReset().mockImplementation(async (key: string) => {
+      state.accountKey = key;
+    });
   });
 
   it.each([
@@ -78,5 +83,55 @@ describe('OpenRouter chat key', () => {
     createGuestKeyModal.mockReset();
     await expect(ensureGuestKey()).resolves.toBe(true);
     expect(createGuestKeyModal).not.toHaveBeenCalled();
+  });
+
+  describe('resolveOpenRouterChatRoute', () => {
+    it('uses the server chat when the deployment or account has a key', async () => {
+      state.serverKey = true;
+      await expect(resolveOpenRouterChatRoute()).resolves.toBe('server');
+
+      state.serverKey = false;
+      state.accountKey = 'sk-or-v1-account';
+      await expect(resolveOpenRouterChatRoute()).resolves.toBe('server');
+
+      expect(createGuestKeyModal).not.toHaveBeenCalled();
+      expect(applyGuestKeyToAccount).not.toHaveBeenCalled();
+    });
+
+    // The server chat can't read a key that lives only in this browser.
+    it('copies a browser-only key to the account before a server chat', async () => {
+      state.guestKey = 'sk-or-v1-guest';
+
+      await expect(resolveOpenRouterChatRoute()).resolves.toBe('server');
+      expect(applyGuestKeyToAccount).toHaveBeenCalledWith('sk-or-v1-guest');
+      expect(createGuestKeyModal).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the browser chat when the key cannot be copied', async () => {
+      state.guestKey = 'sk-or-v1-guest';
+      applyGuestKeyToAccount.mockRejectedValue(new Error('server down'));
+
+      await expect(resolveOpenRouterChatRoute()).resolves.toBe('browser');
+    });
+
+    it('prompts when no key exists anywhere, then uses the server chat', async () => {
+      createGuestKeyModal.mockImplementation((onSaved: () => void) => {
+        // The form saves to the browser and copies to the account.
+        state.guestKey = 'sk-or-v1-new';
+        state.accountKey = 'sk-or-v1-new';
+        onSaved();
+      });
+
+      await expect(resolveOpenRouterChatRoute()).resolves.toBe('server');
+      expect(createGuestKeyModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('is cancelled when the prompt closes without a key', async () => {
+      createGuestKeyModal.mockImplementation((_onSaved: () => void, onDismiss: () => void) =>
+        onDismiss(),
+      );
+
+      await expect(resolveOpenRouterChatRoute()).resolves.toBe('cancelled');
+    });
   });
 });

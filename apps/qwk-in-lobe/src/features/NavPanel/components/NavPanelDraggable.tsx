@@ -3,7 +3,7 @@
 import { DraggablePanel } from '@lobehub/ui';
 import { createStaticStyles, cssVar } from 'antd-style';
 import { type ReactNode } from 'react';
-import { memo, Suspense, useMemo, useRef } from 'react';
+import { memo, Suspense, useEffect, useMemo, useRef } from 'react';
 
 import NavPanelUpgradeEntry from '@/business/client/features/NavPanelUpgradeEntry';
 import { isDesktop } from '@/const/version';
@@ -106,6 +106,9 @@ interface NavPanelDraggableProps {
   };
 }
 
+/** Below this width an open nav panel crowds the page off-screen. */
+export const NARROW_SCREEN_QUERY = '(max-width: 767px)';
+
 const classNames = {
   content: draggableStyles.content,
 };
@@ -117,6 +120,16 @@ export const NavPanelDraggable = memo<NavPanelDraggableProps>(({ activeContent }
     systemStatusSelectors.isStatusInit(s),
   ]);
   const handleSizeChange = useNavPanelSizeChangeHandler();
+
+  // Phones get this desktop layout too (the Worker ships no mobile SPA), and an
+  // open 240px+ panel leaves too little room for the page: the home chat's send
+  // button ends up off-screen. Start collapsed on a narrow screen; the toggle
+  // still opens it.
+  useEffect(() => {
+    if (!isStatusInit || typeof window === 'undefined' || !window.matchMedia) return;
+    if (!window.matchMedia(NARROW_SCREEN_QUERY).matches) return;
+    if (systemStatusSelectors.showLeftPanel(useGlobalStore.getState())) togglePanel(false);
+  }, [isStatusInit, togglePanel]);
 
   // Defer DraggablePanel mount until system status hydrates; otherwise defaultSize
   // captures the pre-hydration default and the DOM drifts off NavigationBar's live width.

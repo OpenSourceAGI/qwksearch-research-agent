@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { SendButtonHandler } from '@/features/ChatInput/store/initialState';
 
-import { useSend } from './useSend';
+import { AGENT_CONFIG_TIMEOUT_MS, useSend } from './useSend';
 
 const routerMock = vi.hoisted(() => ({
   push: vi.fn(),
@@ -23,7 +23,7 @@ const runTaskMock = vi.hoisted(() => vi.fn());
 const toggleTaskAgentPanelMock = vi.hoisted(() => vi.fn());
 const messageErrorMock = vi.hoisted(() => vi.fn());
 const ensureGuestKeyMock = vi.hoisted(() => vi.fn());
-const ensureOpenRouterKeyMock = vi.hoisted(() => vi.fn());
+const resolveOpenRouterChatRouteMock = vi.hoisted(() => vi.fn());
 const guestSendMock = vi.hoisted(() => vi.fn());
 const getAgentConfigByIdMock = vi.hoisted(() => vi.fn());
 
@@ -132,7 +132,7 @@ vi.mock('@/store/agent', () => ({
 
 vi.mock('@/features/GuestOpenRouter/chatKey', () => ({
   ensureGuestKey: ensureGuestKeyMock,
-  ensureOpenRouterKey: ensureOpenRouterKeyMock,
+  resolveOpenRouterChatRoute: resolveOpenRouterChatRouteMock,
 }));
 
 vi.mock('@/features/GuestOpenRouter/store', () => ({
@@ -208,7 +208,7 @@ describe('Home InputArea useSend', () => {
     toggleTaskAgentPanelMock.mockReset();
     messageErrorMock.mockReset();
     ensureGuestKeyMock.mockReset().mockResolvedValue(true);
-    ensureOpenRouterKeyMock.mockReset().mockResolvedValue(true);
+    resolveOpenRouterChatRouteMock.mockReset().mockResolvedValue('server');
     guestSendMock.mockReset();
     getAgentConfigByIdMock.mockReset().mockResolvedValue(undefined);
     agentState.provider = 'openai';
@@ -541,13 +541,13 @@ describe('Home InputArea useSend', () => {
         await result.current.send(chatParams('hello'));
       });
 
-      expect(ensureOpenRouterKeyMock).toHaveBeenCalledTimes(1);
+      expect(resolveOpenRouterChatRouteMock).toHaveBeenCalledTimes(1);
       expect(sendMessageMock).toHaveBeenCalledWith(expect.objectContaining({ message: 'hello' }));
     });
 
     it('keeps the draft when the key prompt is closed without a key', async () => {
       agentState.provider = 'openrouter';
-      ensureOpenRouterKeyMock.mockResolvedValue(false);
+      resolveOpenRouterChatRouteMock.mockResolvedValue('cancelled');
       const { result } = renderHook(() => useSend());
 
       await act(async () => {
@@ -566,7 +566,7 @@ describe('Home InputArea useSend', () => {
         await result.current.send(chatParams('hello'));
       });
 
-      expect(ensureOpenRouterKeyMock).not.toHaveBeenCalled();
+      expect(resolveOpenRouterChatRouteMock).not.toHaveBeenCalled();
       expect(sendMessageMock).toHaveBeenCalledTimes(1);
     });
 
@@ -600,6 +600,44 @@ describe('Home InputArea useSend', () => {
       expect(guestSendMock).not.toHaveBeenCalled();
       expect(routerMock.push).not.toHaveBeenCalled();
       expect(clearContentMock).not.toHaveBeenCalled();
+    });
+
+    // A key held only by this browser that can't be copied to the account is
+    // useless to the server chat; the guest chat uses it from the page instead.
+    it('sends through the guest chat when only the browser holds a usable key', async () => {
+      agentState.provider = 'openrouter';
+      resolveOpenRouterChatRouteMock.mockResolvedValue('browser');
+      const { result } = renderHook(() => useSend());
+
+      await act(async () => {
+        await result.current.send(chatParams('hello from the browser key'));
+      });
+
+      expect(sendMessageMock).not.toHaveBeenCalled();
+      expect(guestSendMock).toHaveBeenCalledWith('hello from the browser key');
+      expect(routerMock.push).toHaveBeenCalledWith('/demo');
+    });
+
+    it('falls back to the guest chat when the agent config request hangs', async () => {
+      vi.useFakeTimers();
+      try {
+        globalState.systemStatus.homeSelectedAgentId = 'agt_custom';
+        homeState.ungroupedAgents = [{ id: 'agt_custom', type: 'agent' }];
+        getAgentConfigByIdMock.mockReturnValue(new Promise(() => {}));
+        const { result } = renderHook(() => useSend());
+
+        await act(async () => {
+          const sending = result.current.send(chatParams('typed while the server hangs'));
+          await vi.advanceTimersByTimeAsync(AGENT_CONFIG_TIMEOUT_MS);
+          await sending;
+        });
+
+        expect(sendMessageMock).not.toHaveBeenCalled();
+        expect(guestSendMock).toHaveBeenCalledWith('typed while the server hangs');
+        expect(routerMock.push).toHaveBeenCalledWith('/demo');
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 });
