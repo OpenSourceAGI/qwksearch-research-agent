@@ -20,6 +20,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill research-agent-ui` ([what it covers](../../skills/research-agent-ui/SKILL.md))
+<!-- skills:install:end -->
+
 # research-agent-ui
 
 

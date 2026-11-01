@@ -26,6 +26,7 @@
     "src/routes/demo/**/*",
     // The single local user every request runs as (there is no sign-in).
     "apps/server/src/modules/LocalUser/**/*",
+    "src/layout/AuthProvider/LocalUser/**/*",
     "src/features/Settings/extraction/**/*",
     "src/features/Settings/search/**/*",
     "src/features/Settings/qwksearch/**/*"

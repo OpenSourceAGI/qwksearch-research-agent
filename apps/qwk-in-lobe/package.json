@@ -130,7 +130,7 @@
     "tunnel:ngrok": "ngrok http http://localhost:3010",
     "type-check": "tsgo --noEmit",
     "type-check:tsc": "tsc --noEmit",
-    "type-check:qwksearch": "tsx scripts/typeCheckScoped.mts tsconfig.qwksearch.json worker/ src/features/QwkSearch/ src/features/GuestOpenRouter/ src/routes/demo/ apps/server/src/modules/LocalUser/ src/features/Settings/extraction/ src/features/Settings/search/ src/features/Settings/qwksearch/",
+    "type-check:qwksearch": "tsx scripts/typeCheckScoped.mts tsconfig.qwksearch.json worker/ src/features/QwkSearch/ src/features/GuestOpenRouter/ src/routes/demo/ apps/server/src/modules/LocalUser/ src/layout/AuthProvider/LocalUser/ src/features/Settings/extraction/ src/features/Settings/search/ src/features/Settings/qwksearch/",
     "type-check:worker": "tsx scripts/typeCheckScoped.mts tsconfig.worker.json worker/",
     "workflow:cdn": "tsx ./scripts/cdnWorkflow/index.ts",
     "workflow:changelog": "tsx ./scripts/changelogWorkflow/index.ts",

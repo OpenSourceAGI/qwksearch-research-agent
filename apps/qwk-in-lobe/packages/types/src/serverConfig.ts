@@ -109,6 +109,12 @@ export interface GlobalServerConfig {
   enableMarketTrustedClient?: boolean;
   enableMultimodalUnderstanding?: boolean;
   enableUploadFileToServer?: boolean;
+  /**
+   * Whether the deployment has its own `OPENROUTER_API_KEY`. Without one, a
+   * chat routed to OpenRouter needs the visitor's key, so the client asks for
+   * it before sending instead of failing on the first message.
+   */
+  hasServerOpenRouterKey?: boolean;
   image?: PartialDeep<UserImageConfig>;
   memory?: GlobalMemoryConfig;
   multimodalUnderstanding?: MultimodalUnderstandingConfig;

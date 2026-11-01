@@ -1,6 +1,6 @@
 # CLAUDE.md — `write-language`
 
-**Read [`skills/ask-write-language`](../../../skills/ask-write-language/SKILL.md)
+**Read [`skills/write-language`](../../../skills/write-language/SKILL.md)
 and its `API.md` first.**
 
 One LLM call across 10+ providers, on the Vercel AI SDK. Published; built —

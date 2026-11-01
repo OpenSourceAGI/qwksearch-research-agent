@@ -1,5 +1,9 @@
 # education-playlists
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill education-playlists` ([what it covers](../../skills/education-playlists/SKILL.md))
+<!-- skills:install:end -->
+
 Self-paced study playlists organized like a college catalog: pick a
 **category**, a **major** and a **program**, then work through an ordered list
 of lecture videos and courseware links, checking items off as you go. Every

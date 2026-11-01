@@ -2,8 +2,15 @@ import { Flexbox } from '@lobehub/ui';
 import { ActionIcon } from '@lobehub/ui/base-ui';
 import { createStaticStyles } from 'antd-style';
 import { ArrowUpIcon, PlusIcon } from 'lucide-react';
-import { type ChangeEventHandler, type CompositionEventHandler, memo } from 'react';
+import {
+  type ChangeEventHandler,
+  type CompositionEventHandler,
+  type KeyboardEventHandler,
+  memo,
+} from 'react';
 import { useTranslation } from 'react-i18next';
+
+import type { SendButtonHandler } from '@/features/ChatInput/store/initialState';
 
 import type { HomeMode } from '../types';
 import {
@@ -71,7 +78,6 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
 }));
 
 interface InputFallbackProps {
-  isAgentConfigLoading: boolean;
   loading: boolean;
   mode: HomeMode;
   onCompositionEnd: CompositionEventHandler<HTMLTextAreaElement>;
@@ -79,12 +85,12 @@ interface InputFallbackProps {
   onModeChange: (mode: HomeMode) => void;
   onValueChange: (value: string) => void;
   placeholder?: string;
+  send: SendButtonHandler;
   value: string;
 }
 
 const InputFallback = memo<InputFallbackProps>(
   ({
-    isAgentConfigLoading,
     loading,
     mode,
     onCompositionEnd,
@@ -92,11 +98,26 @@ const InputFallback = memo<InputFallbackProps>(
     onModeChange,
     onValueChange,
     placeholder,
+    send,
     value,
   }) => {
     const { t } = useTranslation('common');
     const handleChange: ChangeEventHandler<HTMLTextAreaElement> = (event) => {
       onValueChange(event.currentTarget.value);
+    };
+
+    // The rich editor loads after first paint (and may fail to load at all),
+    // so this textarea has to send on its own: Enter submits the typed text,
+    // Shift+Enter keeps a newline, and the send button works the same way.
+    const submit = () => {
+      if (loading) return;
+      void send({ getMarkdownContent: () => value } as Parameters<SendButtonHandler>[0]);
+    };
+
+    const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = (event) => {
+      if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
+      event.preventDefault();
+      submit();
     };
 
     return (
@@ -111,9 +132,9 @@ const InputFallback = memo<InputFallbackProps>(
             onChange={handleChange}
             onCompositionEnd={onCompositionEnd}
             onCompositionStart={onCompositionStart}
+            onKeyDown={handleKeyDown}
           />
           <Flexbox
-            aria-hidden
             horizontal
             align="center"
             className={styles.actionBar}
@@ -124,11 +145,14 @@ const InputFallback = memo<InputFallbackProps>(
               <ActionIcon disabled icon={PlusIcon} size={'small'} title={t('loading')} />
             </Flexbox>
             <ActionIcon
-              disabled
+              data-testid="home-input-fallback-send"
+              disabled={loading}
               icon={ArrowUpIcon}
-              loading={loading || isAgentConfigLoading}
+              loading={loading}
               size={'small'}
               title={t('send')}
+              variant={'filled'}
+              onClick={submit}
             />
           </Flexbox>
         </div>

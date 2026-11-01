@@ -1,5 +1,9 @@
 # extract-cite
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill extract-cite` ([what it covers](../../skills/extract-cite/SKILL.md))
+<!-- skills:install:end -->
+
 Cite any webpage. Two passes:
 
 1. **`extractCite`**: reads author, date, title and source straight off the HTML (meta tags, bylines, JSON-LD, URL patterns, and optionally a 92k-name database that tells people from organizations). Instant, offline, partial.

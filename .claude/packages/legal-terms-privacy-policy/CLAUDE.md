@@ -1,6 +1,6 @@
 # CLAUDE.md — `legal-terms-privacy-policy`
 
-**Read [`skills/ask-legal-terms-privacy-policy`](../../../skills/ask-legal-terms-privacy-policy/SKILL.md)
+**Read [`skills/legal-terms-privacy-policy`](../../../skills/legal-terms-privacy-policy/SKILL.md)
 first.**
 
 The shared Terms of Service and Privacy Policy page, as a React component with a

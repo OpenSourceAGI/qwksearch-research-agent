@@ -1,6 +1,6 @@
 # CLAUDE.md — `language-model-training`
 
-**Read [`skills/ask-language-model-training`](../../../skills/ask-language-model-training/SKILL.md)
+**Read [`skills/language-model-training`](../../../skills/language-model-training/SKILL.md)
 first.**
 
 **The only Python in this repo** — a GPT trained on Tinygrad, with its own

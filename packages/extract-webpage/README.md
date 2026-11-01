@@ -24,6 +24,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill extract-webpage` ([what it covers](../../skills/extract-webpage/SKILL.md))
+<!-- skills:install:end -->
+
 ## extract-webpage
 
 Search, extract, cite, and outline the web for a topic with AI Research Agent. This package provides the core pipeline for turning URLs into structured content: fetching pages, extracting readable text, identifying citations, summarizing keyphrases, and tokenizing for search.

@@ -8,13 +8,17 @@ import { useActiveWorkspaceSlug } from '@/business/client/hooks/useActiveWorkspa
 import { buildTaskHandoffPath } from '@/features/AgentTaskManager/taskHandoff';
 import type { SendButtonHandler } from '@/features/ChatInput/store/initialState';
 import { buildMessageContextSelections } from '@/features/ChatInput/utils/contextSelections';
+import { OPENROUTER_PROVIDER_ID } from '@/features/GuestOpenRouter/accountSync';
+import { ensureGuestKey, resolveOpenRouterChatRoute } from '@/features/GuestOpenRouter/chatKey';
+import { GUEST_DEMO_PATH } from '@/features/GuestOpenRouter/GuestKeyBanner';
+import { useGuestOpenRouterStore } from '@/features/GuestOpenRouter/store';
 import { useResourceAccess } from '@/features/ResourcePermission/useResourceAccess';
 import { useHomeDailyBrief } from '@/hooks/useHomeDailyBrief';
 import { usePermission } from '@/hooks/usePermission';
 import { useQueryRoute } from '@/hooks/useQueryRoute';
 import { agentService } from '@/services/agent';
 import { useAgentStore } from '@/store/agent';
-import { builtinAgentSelectors } from '@/store/agent/selectors';
+import { agentByIdSelectors, builtinAgentSelectors } from '@/store/agent/selectors';
 import { useChatStore } from '@/store/chat';
 import { fileChatSelectors, useFileStore } from '@/store/file';
 import { useGlobalStore } from '@/store/global';
@@ -45,6 +49,41 @@ const ensureAgentConfigLoaded = async (agentId: string): Promise<void> => {
   if (agentState.agentMap[agentId]) return;
   const config = await agentService.getAgentConfigById(agentId);
   if (config) agentState.internal_dispatchAgentMap(agentId, config);
+};
+
+/**
+ * How long a send waits for the agent config before giving up on the main
+ * chat. A server that hangs instead of failing would otherwise leave the send
+ * button spinning with nothing sent.
+ */
+export const AGENT_CONFIG_TIMEOUT_MS = 8000;
+
+/**
+ * Whether the agent's config could be loaded. The main chat cannot run without
+ * it — no agent resolved yet, or the server failing (or taking too long) to
+ * answer — and the home input then hands the message to the browser-side
+ * OpenRouter guest chat rather than doing nothing.
+ */
+const loadAgentConfig = async (agentId: string | undefined): Promise<boolean> => {
+  if (!agentId) return false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      ensureAgentConfigLoaded(agentId),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`timed out after ${AGENT_CONFIG_TIMEOUT_MS}ms`)),
+          AGENT_CONFIG_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } catch (error) {
+    console.error('[home:send] Could not load the agent config:', error);
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+  return !!useAgentStore.getState().agentMap[agentId];
 };
 
 interface PendingTaskRun {
@@ -227,9 +266,34 @@ export const useSend = (mode: HomeMode = 'chat') => {
           }
 
           default: {
-            if (!selectedAgentId) return;
+            const sendToGuestChat = () => {
+              void useGuestOpenRouterStore.getState().send(message);
+              submitted = true;
+              router.push(GUEST_DEMO_PATH);
+            };
 
-            await ensureAgentConfigLoaded(selectedAgentId);
+            if (!(await loadAgentConfig(selectedAgentId)) || !selectedAgentId) {
+              if (!message || !(await ensureGuestKey())) return;
+              sendToGuestChat();
+              break;
+            }
+
+            // An OpenRouter chat with no key the server can read fails on its
+            // first message. Copy the browser's key to the account, or ask for
+            // one (keeping the draft if that is declined); if the server still
+            // can't be given a key, the browser-side guest chat sends it.
+            const provider = agentByIdSelectors.getAgentModelProviderById(selectedAgentId)(
+              useAgentStore.getState(),
+            );
+            if (provider === OPENROUTER_PROVIDER_ID) {
+              const route = await resolveOpenRouterChatRoute();
+              if (route === 'cancelled') return;
+              if (route === 'browser') {
+                if (!message) return;
+                sendToGuestChat();
+                break;
+              }
+            }
 
             sendMessage({
               context: {

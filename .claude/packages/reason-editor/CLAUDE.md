@@ -1,7 +1,7 @@
 # CLAUDE.md — `react-reason-editor` (`packages/reason-editor`)
 
 **npm name:** `react-reason-editor`. **Read
-[`skills/ask-reason-editor`](../../../skills/ask-reason-editor/SKILL.md) and its
+[`skills/reason-editor`](../../../skills/reason-editor/SKILL.md) and its
 `API.md` first.**
 
 REASON: the WYSIWYG document editor, on Tiptap. Nested document tree, AI

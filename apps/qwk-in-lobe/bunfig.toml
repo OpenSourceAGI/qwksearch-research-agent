@@ -1,0 +1,4 @@
+[install.cache]
+# Workers Builds restores a dependency cache that can come back partial
+# (three-stdlib missing files broke the SPA build). Always fetch fresh tarballs.
+disable = true

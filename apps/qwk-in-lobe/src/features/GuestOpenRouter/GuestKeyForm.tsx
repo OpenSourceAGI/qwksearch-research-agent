@@ -1,7 +1,7 @@
 'use client';
 
 import { Flexbox } from '@lobehub/ui';
-import { Alert, Button, InputPassword, Text } from '@lobehub/ui/base-ui';
+import { Alert, Button, InputPassword, Text, toast } from '@lobehub/ui/base-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -58,13 +58,15 @@ const GuestKeyForm = ({ onSaved }: GuestKeyFormProps) => {
     setValue('');
     try {
       if (isGuestSession) await applyGuestKeyToAccount(key);
-      onSaved?.();
     } catch (e) {
-      // The key still works on /demo; only the main chat missed it.
-      setError(t('guestKey.error.account', { message: (e as Error).message }));
+      // The key is saved in this browser and the guest chat can use it; only
+      // the main chat missed it (usually because the server is unreachable),
+      // so say so without holding up whatever was waiting on the key.
+      toast.error(t('guestKey.error.account', { message: (e as Error).message }));
     } finally {
       setVerifying(false);
     }
+    onSaved?.();
   };
 
   return (

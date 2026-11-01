@@ -20,6 +20,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill shadcn-settings` ([what it covers](../../skills/shadcn-settings/SKILL.md))
+<!-- skills:install:end -->
+
 # shadcn-settings
 
 [![Coverage](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg?component=package-shadcn-settings)](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent)

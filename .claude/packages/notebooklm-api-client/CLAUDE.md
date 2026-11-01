@@ -1,6 +1,6 @@
 # CLAUDE.md — `notebooklm-api-client`
 
-**Read [`skills/ask-notebooklm-client`](../../../skills/ask-notebooklm-client/SKILL.md)
+**Read [`skills/notebooklm-client`](../../../skills/notebooklm-client/SKILL.md)
 first.**
 
 A NotebookLM API client: a Cloudflare **Worker** in front of an **on-demand

@@ -57,10 +57,13 @@
   // optional at runtime: `packages/database/src/core/web-server.ts` falls back
   // to DATABASE_URL when the binding is absent.
   "limits": { "cpu_ms": 300000 },
+  // Workers Logs and traces for every request, so a failing render or tRPC call
+  // shows up in the dashboard with its message instead of a bare 500.
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,
-    "logs": { "enabled": true, "invocation_logs": true, "persist": true }
+    "logs": { "enabled": true, "invocation_logs": true, "persist": true },
+    "traces": { "enabled": true, "head_sampling_rate": 1, "persist": true }
   },
   // A named environment deploys a *separate* Worker — `lobe-production`,
   // bound to the `production-qwksearch-sessions` KV namespace — not a variant of

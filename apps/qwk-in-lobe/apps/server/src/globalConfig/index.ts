@@ -114,6 +114,8 @@ export const getServerGlobalConfig = async () => {
         }
       : undefined),
 
+    hasServerOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
+
     // Expose Agent Gateway URL to client (used by hetero agents; also required for queue mode)
     ...(appEnv.AGENT_GATEWAY_URL ? { agentGatewayUrl: appEnv.AGENT_GATEWAY_URL } : undefined),
 

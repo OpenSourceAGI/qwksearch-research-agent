@@ -24,6 +24,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill chat-agent-toolkit` ([what it covers](../../skills/chat-agent-toolkit/SKILL.md))
+<!-- skills:install:end -->
+
 Multi-provider AI agent toolkit for generating language responses, searching the web, extracting page content, and managing long-term memory across 10+ LLM providers.
 
 Built on top of the [Vercel AI SDK](https://sdk.vercel.ai) and [Mastra](https://mastra.ai) framework, with a small registry of pre-tuned agent prompts (research, summarization, citation answering, query resolution, knowledge-graph extraction, etc.) and tool wrappers around the [QwkSearch](https://qwksearch.com) API.

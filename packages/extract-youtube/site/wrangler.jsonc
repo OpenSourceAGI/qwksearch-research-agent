@@ -15,6 +15,12 @@
   // every deploy unless keep_vars is set (this config declares no `vars`).
   // Secrets are never deleted either way. Top-level only.
   "keep_vars": true,
+  // Workers Logs: console output and invocation logs in the dashboard.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "logs": { "enabled": true, "invocation_logs": true, "persist": true }
+  },
   "assets": {
     // Static files (the docs' bundles, the Storybook at /storybook/) are
     // served before the Worker runs; everything else reaches worker/index.ts.

@@ -82,7 +82,10 @@ const HomeEditorInput = memo<HomeEditorInputProps>(
           useChatStore.setState({ mainInputEditor: instance });
         }}
         sendButtonProps={{
-          disabled: loading || isAgentConfigLoading,
+          // Never wait on the agent config here: `useSend` loads it itself and
+          // falls back to the guest chat when it can't, so the button works
+          // even while (or if) the config request is still pending.
+          disabled: loading,
           generating: loading,
           onStop: () => {},
           shape: 'round',

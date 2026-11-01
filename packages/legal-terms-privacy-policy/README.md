@@ -20,6 +20,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill legal-terms-privacy-policy` ([what it covers](../../skills/legal-terms-privacy-policy/SKILL.md))
+<!-- skills:install:end -->
+
 # legal-terms-privacy-policy
 
 The Terms of Service and Privacy Policy page that QwkSearch, Debate AI, AI Broker,

@@ -1,5 +1,9 @@
 # Tardigrade Web Scraper
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill render-url-to-html` ([what it covers](../../../skills/render-url-to-html/SKILL.md))
+<!-- skills:install:end -->
+
 A Dockerized HTTP proxy that renders pages through headless Chromium (Puppeteer) to bypass Cloudflare and other bot-detection systems. Acts as a drop-in replacement for `curl` or `fetch` — any request you send to it gets forwarded through a real browser and the rendered HTML is returned.
 
 ## Architecture

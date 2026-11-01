@@ -1,6 +1,6 @@
 # CLAUDE.md — `searxng-search-cloudflare`
 
-**Read [`skills/ask-searxng-search`](../../../skills/ask-searxng-search/SKILL.md)
+**Read [`skills/searxng-search`](../../../skills/searxng-search/SKILL.md)
 first.**
 
 **Not a Node package** — there is no `package.json`. This is a container

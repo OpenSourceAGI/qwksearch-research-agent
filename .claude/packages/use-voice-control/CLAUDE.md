@@ -1,6 +1,6 @@
 # CLAUDE.md — `use-voice-control`
 
-**Read [`skills/ask-use-voice-control`](../../../skills/ask-use-voice-control/SKILL.md)
+**Read [`skills/use-voice-control`](../../../skills/use-voice-control/SKILL.md)
 first.**
 
 React voice control: speech transcription, vocalization, and voice commands.

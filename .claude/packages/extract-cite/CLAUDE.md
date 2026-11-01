@@ -1,6 +1,6 @@
 # CLAUDE.md — `extract-cite`
 
-**Read [`skills/ask-extract-cite`](../../../skills/ask-extract-cite/SKILL.md) first.**
+**Read [`skills/extract-cite`](../../../skills/extract-cite/SKILL.md) first.**
 
 Citation extraction, split out of `extract-webpage`: the regex/metadata pass
 (`src/html-to-cite`, moved unchanged) and the LLM pass (`src/llm`). Published;

@@ -25,6 +25,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill qwksearch-api-client` ([what it covers](../../skills/qwksearch-api-client/SKILL.md))
+<!-- skills:install:end -->
+
 <p align="center">
   <a href="https://qwksearch.com">Demo</a> •
   <a href="https://airesearch.js.org">Documentation</a> •

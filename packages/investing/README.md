@@ -24,6 +24,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill investing` ([what it covers](../../skills/investing/SKILL.md))
+<!-- skills:install:end -->
+
 # Investing Library
 
 A comprehensive TypeScript/JavaScript library for investment analysis, trading automation, and financial data processing. This package provides reusable utilities for building investment applications, trading bots, and financial analysis tools.
@@ -529,7 +533,7 @@ See the `/examples` directory for complete working examples:
 
 - [GitHub Repository](https://github.com/vtempest/ai-broker-investment-agent)
 - [Documentation](https://invest.vtempest.com/docs)
-- [Agent skill](../../skills/ask-investing/SKILL.md)
+- [Agent skill](../../skills/investing/SKILL.md)
 - [Examples](./examples)
 
 ## Credits

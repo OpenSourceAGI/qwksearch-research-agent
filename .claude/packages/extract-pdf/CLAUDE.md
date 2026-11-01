@@ -1,6 +1,6 @@
 # CLAUDE.md — `extract-pdf`
 
-**Read [`skills/ask-extract-pdf`](../../../skills/ask-extract-pdf/SKILL.md) and its
+**Read [`skills/extract-pdf`](../../../skills/extract-pdf/SKILL.md) and its
 `API.md` first.**
 
 PDF (URL or ArrayBuffer) → clean, structured HTML, with Docling OCR for scanned

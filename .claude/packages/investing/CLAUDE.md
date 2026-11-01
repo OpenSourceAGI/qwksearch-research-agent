@@ -1,6 +1,6 @@
 # CLAUDE.md — `investing`
 
-**Read [`skills/ask-investing`](../../../skills/ask-investing/SKILL.md) first.**
+**Read [`skills/investing`](../../../skills/investing/SKILL.md) first.**
 
 **Vendored from the sibling repo `ai-broker-investing-agent`.** Alpaca, stock
 data, Polymarket sync over D1, LangGraph debate agents, and the PredictOS

@@ -20,6 +20,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill trending-news` ([what it covers](../../skills/trending-news/SKILL.md))
+<!-- skills:install:end -->
+
 # trending-news-api
 
 [![Coverage](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent/graph/badge.svg?component=package-trending-news-api)](https://codecov.io/gh/OpenSourceAGI/qwksearch-research-agent)

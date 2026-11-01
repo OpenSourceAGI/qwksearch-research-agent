@@ -1,6 +1,6 @@
 # CLAUDE.md — `search-autocomplete`
 
-**Read [`skills/ask-search-autocomplete`](../../../skills/ask-search-autocomplete/SKILL.md)
+**Read [`skills/search-autocomplete`](../../../skills/search-autocomplete/SKILL.md)
 first.**
 
 The search box and its query autocomplete. Published.

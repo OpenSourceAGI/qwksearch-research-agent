@@ -1,6 +1,6 @@
 # CLAUDE.md — `extract-webpage`
 
-**Read [`skills/ask-extract-webpage`](../../../skills/ask-extract-webpage/SKILL.md)
+**Read [`skills/extract-webpage`](../../../skills/extract-webpage/SKILL.md)
 and its `API.md` first.**
 
 URL → cited article. Main-content detection (Readability + Mercury + ~100 site

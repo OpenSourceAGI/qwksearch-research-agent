@@ -24,6 +24,10 @@
 </p>
 <!-- template-git-repo:badges:end -->
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill search-web-api` ([what it covers](../../skills/search-web-api/SKILL.md))
+<!-- skills:install:end -->
+
 # Meta-Search Web Sources API
 
 - **Multi-engine aggregation**: 70+ major sites search sources across 10 categories

@@ -18,11 +18,28 @@ const GuestKeyModalContent = ({ onSaved }: { onSaved?: () => void }) => {
   );
 };
 
-export const createGuestKeyModal = (onSaved?: () => void) =>
-  createModal({
-    content: <GuestKeyModalContent onSaved={onSaved} />,
+/**
+ * Opens the key form in a modal. `onSaved` runs once a key is verified and
+ * saved; `onDismiss` runs when the modal closes without one.
+ */
+export const createGuestKeyModal = (onSaved?: () => void, onDismiss?: () => void) => {
+  let saved = false;
+
+  return createModal({
+    content: (
+      <GuestKeyModalContent
+        onSaved={() => {
+          saved = true;
+          onSaved?.();
+        }}
+      />
+    ),
     footer: null,
     maskClosable: true,
     title: t('guestKey.title', { ns: 'qwksearch' }),
     width: 'min(92vw, 480px)',
+    onOpenChange: (open) => {
+      if (!open && !saved) onDismiss?.();
+    },
   });
+};

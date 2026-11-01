@@ -1,5 +1,9 @@
 # ads-in-chat-answers
 
+<!-- skills:install:start -->
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill ads-in-chat-answers` ([what it covers](../../skills/ads-in-chat-answers/SKILL.md))
+<!-- skills:install:end -->
+
 Sponsored placements for AI chat answers, in the style of the product ads
 that appear under an assistant's reply:
 

@@ -1,6 +1,6 @@
 # CLAUDE.md — `shadcn-settings`
 
-**Read [`skills/ask-shadcn-settings`](../../../skills/ask-shadcn-settings/SKILL.md)
+**Read [`skills/shadcn-settings`](../../../skills/shadcn-settings/SKILL.md)
 first.**
 
 A prop-driven, **schema-based settings form renderer** on shadcn. Published.

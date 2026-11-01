@@ -1,7 +1,7 @@
 # CLAUDE.md — `use-weather-forecast` (`packages/react-weather-forecast`)
 
 **npm name:** `use-weather-forecast`. **Read
-[`skills/ask-weather-forecast`](../../../skills/ask-weather-forecast/SKILL.md)
+[`skills/weather-forecast`](../../../skills/weather-forecast/SKILL.md)
 first.**
 
 A React weather forecast component backed by **Open-Meteo** and IP geolocation.
