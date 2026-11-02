@@ -81,6 +81,27 @@ keeps local dev, previews and CI unchallenged. `TURNSTILE_ENABLED=false` turns
 it off with the keys still in place. Full write-up:
 [user-help-docs → Architecture → Turnstile first-load gate](../../packages/user-help-docs/content/docs/architecture/turnstile-bot-gate.mdx).
 
+## `/api` rate limiter
+
+Right after the Turnstile gate, `worker/index.ts` calls `enforceApiRateLimit`
+(`apps/qwksearch-web/lib/rate-limit/api-limiter.ts`) for every request under
+`/api`, so new routes are covered without opting in. It counts per client IP
+(`cf-connecting-ip`) in fixed windows, in the D1 table `api_rate_limit_counters`
+— one atomic upsert-and-return per request, so every isolate shares the count.
+KV was ruled out (one write/sec/key, eventually consistent) and so was the
+Workers rate-limit binding (its numbers are fixed in `wrangler.jsonc`).
+
+Limits are set at `/admin/rate-limit` and stored in D1 (`api_rate_limit_settings`,
+one row): an on/off switch, a default limit and window, ordered per-route
+overrides (each counted in its own bucket, first match wins), and exempt
+patterns. `/api/auth/*`, `/api/admin/*` and `/api/collaboration/*` are exempt by
+default. Each isolate caches the settings for 15 s. Over the limit is a JSON
+`429` with `Retry-After`; allowed responses carry `RateLimit-*` headers. It
+**fails open**: no `DB` binding, a missing table or a D1 error lets the request
+through and logs. Route-level quotas (`lib/rate-limit/guestRateLimiter.ts`)
+still apply on top. `next dev` does not go through the Worker entry, so the
+limiter only runs under Workers (`dev:cf`, deploys).
+
 ## Auth
 
 **Better Auth** over the Drizzle/D1 adapter, with the `oneTap`, `openAPI`,
