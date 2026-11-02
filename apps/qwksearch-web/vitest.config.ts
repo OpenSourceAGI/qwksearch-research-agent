@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config'
-import { helpDocsMdxPlugin } from 'user-help-docs/vite'
+import { helpDocsMdxPlugin } from 'qwksearch-help-docs/vite'
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { lobeAliases, lobeDedupe } from './lib/lobe-engine/lobe/aliases'

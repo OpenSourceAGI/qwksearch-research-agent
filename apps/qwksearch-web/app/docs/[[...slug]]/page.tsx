@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/page';
-import { source } from 'user-help-docs';
-import { docsConfig } from 'user-help-docs/config';
-import { getGithubUrl, getMarkdownUrl } from 'user-help-docs/llms';
-import { getMDXComponents } from 'user-help-docs/mdx-components';
-import { Breadcrumb } from 'user-help-docs/components/breadcrumb';
-import { DocsActions } from 'user-help-docs/components/docs-actions';
+import { source } from 'qwksearch-help-docs';
+import { docsConfig } from 'qwksearch-help-docs/config';
+import { getGithubUrl, getMarkdownUrl } from 'qwksearch-help-docs/llms';
+import { getMDXComponents } from 'qwksearch-help-docs/mdx-components';
+import { Breadcrumb } from 'qwksearch-help-docs/components/breadcrumb';
+import { DocsActions } from 'qwksearch-help-docs/components/docs-actions';
 
 export default async function Page(props: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await props.params;

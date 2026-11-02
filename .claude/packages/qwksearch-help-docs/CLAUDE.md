@@ -1,6 +1,6 @@
-# CLAUDE.md — `user-help-docs`
+# CLAUDE.md — `qwksearch-help-docs`
 
-**Read [`skills/user-help-docs`](../../../skills/user-help-docs/SKILL.md)
+**Read [`skills/qwksearch-help-docs`](../../../skills/qwksearch-help-docs/SKILL.md)
 and [`.claude/architecture/documentation.md`](../../architecture/documentation.md)
 first.**
 

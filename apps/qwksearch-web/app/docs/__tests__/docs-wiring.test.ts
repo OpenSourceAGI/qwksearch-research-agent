@@ -1,7 +1,7 @@
 /**
  * The /docs help site is assembled from two halves that nothing else checks
  * against each other: the content and the Fumadocs UI live in
- * `packages/user-help-docs`, while the routes that mount them live here.
+ * `packages/qwksearch-help-docs`, while the routes that mount them live here.
  * That package has its own suite for the content itself; this one covers
  * the seam, which fails silently rather than at build time — a moved route
  * file, a `docsConfig` value the routes no longer match, a dropped
@@ -17,8 +17,8 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { build } from 'vite';
 
-import { source } from 'user-help-docs';
-import { docsConfig } from 'user-help-docs/config';
+import { source } from 'qwksearch-help-docs';
+import { docsConfig } from 'qwksearch-help-docs/config';
 
 /** `apps/qwksearch-web`, resolved from this file. */
 const appDir = fileURLToPath(new URL('../../..', import.meta.url));
@@ -34,7 +34,7 @@ function routeDir(route: string): string {
 
 describe('the docs package loads', () => {
   it('inlines every content page into the bundle', () => {
-    // `user-help-docs` builds its page tree with `import.meta.glob`, which
+    // `qwksearch-help-docs` builds its page tree with `import.meta.glob`, which
     // only exists under a Vite-based bundler. If this app ever compiles it
     // with something else, an empty page list is where that shows up.
     expect(source.getPages().length).toBeGreaterThan(0);
@@ -108,9 +108,9 @@ describe('the route modules serve the docs', () => {
 });
 
 describe('the app is configured to render the docs', () => {
-  it('transpiles user-help-docs, which ships TypeScript sources', () => {
+  it('transpiles qwksearch-help-docs, which ships TypeScript sources', () => {
     // The package has no build step — its `exports` point straight at `src`.
-    expect(readAppFile('next.config.mjs')).toMatch(/transpilePackages:[^\]]*["']user-help-docs["']/);
+    expect(readAppFile('next.config.mjs')).toMatch(/transpilePackages:[^\]]*["']qwksearch-help-docs["']/);
   });
 
   it('imports the fumadocs CSS preset', () => {

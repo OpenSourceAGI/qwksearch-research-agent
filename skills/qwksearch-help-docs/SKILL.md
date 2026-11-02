@@ -1,11 +1,11 @@
 ---
-name: user-help-docs
-description: Guide to user-help-docs (packages/user-help-docs), the Fumadocs help site mounted at /docs in qwksearch-web — the content/docs MDX tree and meta.json ordering, the import.meta.glob source that replaces fumadocs-mdx codegen so it runs on Cloudflare Workers, the helpDocsMdxPlugin build-time MDX compile the host has to register, the search index, the llms.mdx / llms-full.txt plain-text views, the Tailwind sources the host must scan for the Fumadocs layout to be styled at all, and docsConfig branding. Use when adding or reordering a help page, when /docs 500s after a content change, when /docs renders unstyled with no sidebar or navigation, when docs search returns nothing, or when wiring the docs routes into a host app.
+name: qwksearch-help-docs
+description: Guide to qwksearch-help-docs (packages/qwksearch-help-docs), the Fumadocs help site mounted at /docs in qwksearch-web — the content/docs MDX tree and meta.json ordering, the import.meta.glob source that replaces fumadocs-mdx codegen so it runs on Cloudflare Workers, the helpDocsMdxPlugin build-time MDX compile the host has to register, the search index, the llms.mdx / llms-full.txt plain-text views, the Tailwind sources the host must scan for the Fumadocs layout to be styled at all, and docsConfig branding. Use when adding or reordering a help page, when /docs 500s after a content change, when /docs renders unstyled with no sidebar or navigation, when docs search returns nothing, or when wiring the docs routes into a host app.
 ---
 
-# Working With user-help-docs
+# Working With qwksearch-help-docs
 
-`packages/user-help-docs` (private, not published). The user-facing help site rendered
+`packages/qwksearch-help-docs` (private, not published). The user-facing help site rendered
 at `/docs` by `apps/qwksearch-web`, built on [Fumadocs](https://fumadocs.dev).
 
 ## The one architectural decision to know
@@ -30,7 +30,7 @@ Each file is globbed **twice**, in the two shapes the site needs:
 | `'../content/docs/**/*.{md,mdx}'` with `{ eager: true }` | a compiled module — `default` is the body component, `toc` its outline | `app/docs/[[...slug]]/page.tsx` |
 
 The compile behind the second glob is done by the bundler, via `helpDocsMdxPlugin()` from
-`user-help-docs/vite`. **A host app has to register that plugin in its Vite config and in
+`qwksearch-help-docs/vite`. **A host app has to register that plugin in its Vite config and in
 its Vitest config**, or `source.ts` throws at module scope with a message saying so.
 
 Compiling per request instead — which is what this package used to do, through
@@ -86,7 +86,7 @@ Two `@import`s and two `@source`s, all four load-bearing, in the host's Tailwind
 @import "fumadocs-ui/css/neutral.css";   /* --color-fd-* tokens */
 @import "fumadocs-ui/css/preset.css";    /* base rules, variants, @source lists */
 @source "../node_modules/fumadocs-ui/dist";       /* see below */
-@source "../../../packages/user-help-docs/src";   /* this package's own components */
+@source "../../../packages/qwksearch-help-docs/src";   /* this package's own components */
 ```
 
 The preset's own utility lists **do not survive a Vite build**. Fumadocs declares them as
@@ -126,7 +126,7 @@ client-side search UI points there.
 | `/docs` 500s only once deployed, with `EvalError: Code generation from strings disallowed for this context` | Something compiles MDX at request time again. Workers forbid `new Function`; compile in the bundler instead. |
 | `No compiled module for "<file>"` at startup | The host's Vite or Vitest config is missing `helpDocsMdxPlugin()`. |
 | Every page loads but there is no sidebar, no navigation and no Fumadocs styling — one bare column of text | The host's Tailwind entry is not scanning `fumadocs-ui/dist`. Importing `preset.css` is not enough: its `@source inline(…)` lists are lost to Vite's CSS import handling. See *Styling the host has to wire up*. |
-| The breadcrumb, the per-page actions or the theme dropdown are unstyled while the rest of the docs look right | The host is missing `@source ".../packages/user-help-docs/src"` — those components are workspace source, outside Tailwind's automatic detection. |
+| The breadcrumb, the per-page actions or the theme dropdown are unstyled while the rest of the docs look right | The host is missing `@source ".../packages/qwksearch-help-docs/src"` — those components are workspace source, outside Tailwind's automatic detection. |
 | The app build fails with `Unexpected \`FunctionDeclaration\` in code: only import/exports are supported`, once per page | Two MDX plugins in the chain. vinext auto-injects its own unless it sees a plugin named `@mdx-js/rollup` (or `mdx`), so `helpDocsMdxPlugin()` must keep that name. |
 | A page renders its own frontmatter as body text | `remarkFrontmatter` fell out of `helpDocsMdxPlugin`. |
 | `import.meta.glob is not a function` | The host's bundler does not support it. This package assumes Vite/vinext. |

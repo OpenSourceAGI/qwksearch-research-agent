@@ -10,16 +10,16 @@
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/discussions"><img src="https://img.shields.io/github/discussions/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Discussions" /></a>
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/OpenSourceAGI/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
     <br />
-    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/user-help-docs"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
+    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/qwksearch-help-docs"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
     <img src="https://img.shields.io/badge/Bun-14151A?logo=bun&logoColor=white" alt="Bun" /> <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript" /> <img src="https://img.shields.io/badge/Next.js-black?logo=nextdotjs&logoColor=white" alt="Next.js" /> <img src="https://img.shields.io/badge/React-20232A?logo=react&logoColor=white" alt="React" /> <img src="https://img.shields.io/badge/Fumadocs-000000" alt="Fumadocs" /> <img src="https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white" alt="Vite" /> <img src="https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white" alt="Vitest" />
 </p>
 <!-- template-git-repo:badges:end -->
 
 <!-- skills:install:start -->
-**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill user-help-docs` ([what it covers](../../skills/user-help-docs/SKILL.md))
+**🤖 Agent skill** — `npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent --skill qwksearch-help-docs` ([what it covers](../../skills/qwksearch-help-docs/SKILL.md))
 <!-- skills:install:end -->
 
-# user-help-docs
+# qwksearch-help-docs
 
 The QwkSearch help site — content **and** the Fumadocs UI layer that renders
 it. `apps/qwksearch-web` mounts it at [`/docs`](https://qwksearch.com/docs) with
@@ -40,7 +40,7 @@ src/components/**      Client components (breadcrumb, copy-for-LLM, Ask AI)
 ```
 
 Content is inlined by `import.meta.glob` and compiled **by the host's bundler**,
-through `helpDocsMdxPlugin()` from `user-help-docs/vite`, rather than through
+through `helpDocsMdxPlugin()` from `qwksearch-help-docs/vite`, rather than through
 `fumadocs-mdx`'s build-time collections. That's deliberate: the content lives in
 its own workspace package, so this way the consuming app needs no codegen step —
 just the one plugin, in its Vite config *and* its Vitest config.
@@ -79,31 +79,31 @@ Available components (no import needed): `Callout`, `Card`/`Cards`,
 
 ```tsx
 // app/docs/layout.tsx
-import { source } from 'user-help-docs';
-import { docsConfig } from 'user-help-docs/config';
-import { docsLayoutOptions } from 'user-help-docs/layout.config';
+import { source } from 'qwksearch-help-docs';
+import { docsConfig } from 'qwksearch-help-docs/config';
+import { docsLayoutOptions } from 'qwksearch-help-docs/layout.config';
 
 // app/docs/[[...slug]]/page.tsx — page.data.body is the compiled component
-import { getMDXComponents } from 'user-help-docs/mdx-components';
-import { getGithubUrl, getMarkdownUrl } from 'user-help-docs/llms';
-import { Breadcrumb } from 'user-help-docs/components/breadcrumb';
-import { DocsActions } from 'user-help-docs/components/docs-actions';
+import { getMDXComponents } from 'qwksearch-help-docs/mdx-components';
+import { getGithubUrl, getMarkdownUrl } from 'qwksearch-help-docs/llms';
+import { Breadcrumb } from 'qwksearch-help-docs/components/breadcrumb';
+import { DocsActions } from 'qwksearch-help-docs/components/docs-actions';
 
 // app/docs/api/docs-search/route.ts
-import { searchServer } from 'user-help-docs/search';
+import { searchServer } from 'qwksearch-help-docs/search';
 
 // vite.config.ts and vitest.config.ts — both, or source.ts throws at startup
-import { helpDocsMdxPlugin } from 'user-help-docs/vite';
+import { helpDocsMdxPlugin } from 'qwksearch-help-docs/vite';
 ```
 
-The app must list `user-help-docs` in `next.config`'s `transpilePackages` (it
+The app must list `qwksearch-help-docs` in `next.config`'s `transpilePackages` (it
 ships TypeScript sources, not a build), and wire up four CSS lines:
 
 ```css
 @import "fumadocs-ui/css/neutral.css";   /* --color-fd-* tokens */
 @import "fumadocs-ui/css/preset.css";    /* base rules, variants, @source lists */
 @source "../node_modules/fumadocs-ui/dist";       /* the layout classes */
-@source "../../../packages/user-help-docs/src";   /* this package's components */
+@source "../../../packages/qwksearch-help-docs/src";   /* this package's components */
 ```
 
 Both `@source` lines are load-bearing. Fumadocs declares its utility lists as

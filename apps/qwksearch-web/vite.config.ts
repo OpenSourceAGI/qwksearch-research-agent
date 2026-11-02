@@ -2,7 +2,7 @@ import vinext from "vinext";
 import { createLogger, defineConfig } from "vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import rsc from "@vitejs/plugin-rsc";
-import { helpDocsMdxPlugin } from "user-help-docs/vite";
+import { helpDocsMdxPlugin } from "qwksearch-help-docs/vite";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { stripGoogleFontsImports } from "./lib/fonts/google-fonts";
@@ -136,7 +136,7 @@ export default defineConfig(({ command }) => ({
         return stripped === code ? null : { code: stripped, map: null };
       },
     },
-    // Compiles the `/docs` help content (packages/user-help-docs) to modules at
+    // Compiles the `/docs` help content (packages/qwksearch-help-docs) to modules at
     // build time. Without it the docs would have to compile MDX per request,
     // which needs `new Function` — workerd refuses, 500ing every docs page.
     helpDocsMdxPlugin(),

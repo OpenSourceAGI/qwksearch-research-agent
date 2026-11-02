@@ -1,7 +1,7 @@
 /**
  * @fileoverview Every help doc as one plain-text file, for LLM consumers.
  */
-import { getLLMFullText } from 'user-help-docs/llms';
+import { getLLMFullText } from 'qwksearch-help-docs/llms';
 
 export const revalidate = false;
 

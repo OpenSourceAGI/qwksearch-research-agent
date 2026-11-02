@@ -141,7 +141,7 @@
     "trending-news-api": "workspace:*",
     "use-sync-external-store": "^1.6.0",
     "use-weather-forecast": "workspace:*",
-    "user-help-docs": "workspace:*",
+    "qwksearch-help-docs": "workspace:*",
     "write-language": "workspace:*",
     "zod": "^4.5.4"
   },

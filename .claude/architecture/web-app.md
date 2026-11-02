@@ -58,7 +58,7 @@ pass-through. Auth paths opt out of replica reads entirely
 (`PRIMARY_ONLY_PATH_PREFIXES` in `lib/database/d1-session.ts`). Tunable at runtime
 with the `D1_SESSION_MODE` variable (`auto` | `primary` | `unconstrained` | `off`)
 and `D1_SESSION_DEBUG`. Background:
-[user-help-docs → Architecture → D1 Read Replication](../../packages/user-help-docs/content/docs/architecture/d1-read-replication.mdx).
+[devdocs → D1 Read Replication](../../devdocs/d1-read-replication.mdx).
 
 ## Turnstile first-load gate
 
@@ -79,7 +79,7 @@ The gate is **off until configured and fails open**: with `TURNSTILE_SITE_KEY` /
 `TURNSTILE_SECRET_KEY` unset it returns `null` for every request, which is what
 keeps local dev, previews and CI unchallenged. `TURNSTILE_ENABLED=false` turns
 it off with the keys still in place. Full write-up:
-[user-help-docs → Architecture → Turnstile first-load gate](../../packages/user-help-docs/content/docs/architecture/turnstile-bot-gate.mdx).
+[devdocs → Turnstile first-load gate](../../devdocs/turnstile-bot-gate.mdx).
 
 ## Auth
 
@@ -121,7 +121,7 @@ These are not style preferences; each one has already broken production here.
   without it every `wrangler deploy` would delete the plaintext Variables set in
   the dashboard. It is a top-level-only key — Wrangler ignores it inside a named
   env. See
-  [user-help-docs → Architecture → Cloudflare Worker Variables](../../packages/user-help-docs/content/docs/architecture/cloudflare-env-vars.mdx).
+  [devdocs → Cloudflare Worker Variables](../../devdocs/cloudflare-env-vars.mdx).
 - **Source maps stay off** (`upload_source_maps: false`). The unminified rsc/ssr
   bundles produced ~15.4MB of maps against a 15MB cap and the deploy was rejected
   with API error 10021.
