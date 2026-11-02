@@ -18,5 +18,6 @@ export * from "./handlers/agents";
 export * from "./handlers/rewrite";
 export * from "./handlers/voice";
 export * from "./handlers/transcript";
+export * from "./handlers/openai-transcription";
 export * from "./handlers/test-models";
 export * from "./handlers/validate-openrouter";
