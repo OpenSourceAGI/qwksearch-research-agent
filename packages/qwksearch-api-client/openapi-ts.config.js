@@ -23,7 +23,7 @@ export const config = {
   plugins: [
     {
       name: '@hey-api/client-fetch',
-      runtimeConfigPath: '../baseurl.ts',
+      runtimeConfigPath: './baseurl.ts',
     },
   ],
 };

@@ -51,6 +51,15 @@ describe('generated SDK surface', () => {
     }
   });
 
+  it('covers the speech, news, learn, memory and sign-in endpoints', () => {
+    for (const name of [
+      'createTranscription', 'listTranscriptionModels', 'synthesizeSpeech',
+      'getTrendingNews', 'planPlaylist', 'listMemories', 'exchangeConnectCode',
+    ]) {
+      expect(QwkSearch, name).toHaveProperty(name);
+    }
+  });
+
   it('covers the provider and config endpoints', () => {
     for (const name of ['listProviders', 'addProvider', 'getConfig', 'saveConfig']) {
       expect(QwkSearch, name).toHaveProperty(name);

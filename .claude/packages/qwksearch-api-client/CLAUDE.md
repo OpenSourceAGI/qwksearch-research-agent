@@ -3,7 +3,7 @@
 **Read [`skills/qwksearch-api-client`](../../../skills/qwksearch-api-client/SKILL.md)
 first.**
 
-The typed API client, **generated from `openapi-docs.yml`**. Published.
+The typed API client, **generated from `qwksearch-openapi.json`**. Published.
 
 ## Do not hand-edit generated files
 
@@ -33,6 +33,22 @@ re-export of [api2client](https://github.com/OpenSourceAGI/GRAB-URL/tree/master/
 client, so every operation sends through [`grab`](https://grab.js.org) and
 inherits its caching, retries, rate limiting, dedupe and `grab.mock`. Run
 `openapi-ts` alone and you silently ship the fetch client again.
+
+Two things that break regeneration before it starts:
+
+- **`openapi-ts` crashes with `Cannot read properties of undefined (reading
+  'AnyKeyword')`** when bun links `@hey-api/openapi-ts` to `typescript@7` (the
+  native compiler has no JS API). It needs TypeScript 6. Locally, point
+  `node_modules/.bun/@hey-api+openapi-ts@*/node_modules/typescript` at the
+  `typescript@6.0.3` store entry, regenerate, and leave the lockfile alone.
+- **`runtimeConfigPath` is resolved from the package root** in
+  `@hey-api/openapi-ts` 0.99 (it is `./baseurl.ts`). Written relative to `src/`
+  (`../baseurl.ts`), the generated `client.gen.ts` imports
+  `../../baseurl.ts` and nothing resolves.
+
+`apps/qwksearch-web/app/api/__tests__/openapi-coverage.test.ts` fails when a
+route method under `app/api` is missing from the spec, or the spec lists one no
+route serves — so a new route and its spec entry land together.
 
 Nothing else about the Hey API contract changes — same functions, same
 `{ data, error, request, response }`. Two things do:
