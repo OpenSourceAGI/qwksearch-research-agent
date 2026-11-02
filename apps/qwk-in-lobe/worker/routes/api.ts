@@ -18,6 +18,17 @@ export const apiApp = new Hono();
 
 apiApp.get('/api/version', (c) => c.json({ version: pkg.version }));
 
+// The SPA links `/manifest.webmanifest`. Next serves it from `src/app/manifest.ts`;
+// the Worker has no Next routes, so without this the SPA shell (HTML) answered and
+// browsers logged "Manifest: Line: 1, column: 1, Syntax error".
+apiApp.get('/manifest.webmanifest', async (c) => {
+  const { default: manifest } = await import('@/app/manifest');
+  return c.body(JSON.stringify(await manifest()), 200, {
+    'cache-control': 'public, max-age=3600',
+    'content-type': 'application/manifest+json; charset=utf-8',
+  });
+});
+
 apiApp.get('/api/health', (c) => c.json({ ok: true, service: 'qwksearch-lobehub-worker' }));
 
 apiApp.all('/api/v1/*', (c) => delegate(c, () => import('@lobechat/openapi')));

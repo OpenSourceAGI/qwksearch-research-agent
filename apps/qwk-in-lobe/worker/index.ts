@@ -7,6 +7,8 @@
 import './cf/globals';
 
 import { runWithRequestContext } from './cf/requestContext';
+import { isSharedUserMode } from './users/mode';
+import { resolveVisitor, withVisitorCookie } from './users/visitor';
 
 let appPromise: Promise<ReturnType<typeof import('./app').createApp>> | undefined;
 
@@ -20,8 +22,14 @@ const getApp = () => {
 export default {
   async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
     const appInstance = await getApp();
-    return runWithRequestContext({ executionContext: ctx, request }, () =>
-      Promise.resolve(appInstance.fetch(request)),
+    // Every browser is its own guest user (`worker/users`), unless the
+    // deployment opted back into one shared user.
+    const visitor = isSharedUserMode() ? undefined : resolveVisitor(request);
+
+    const response = await runWithRequestContext(
+      { executionContext: ctx, request, visitorId: visitor?.visitorId },
+      () => Promise.resolve(appInstance.fetch(request)),
     );
+    return withVisitorCookie(response, visitor?.setCookie);
   },
 };

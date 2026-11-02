@@ -23,12 +23,14 @@ export interface LobeWorkerEnv {
   [key: string]: unknown;
   /** Static assets (built SPA + public/) */
   ASSETS?: Fetcher;
-  /** QwkSearch D1 database: article cache, favorites, documents, quotes. */
+  /** QwkSearch D1 database: Lobe's users, article cache, favorites, documents, quotes. */
   DB?: D1Database;
   /** Cloudflare Email Routing sender used for auth emails. */
   EMAIL?: CloudflareEmailSender;
   /** Postgres connection pool for the LobeHub database. */
   HYPERDRIVE?: Hyperdrive;
+  /** `'1'` runs every request as the one shared local user instead of per-visitor guests. */
+  LOBE_SHARED_USER?: string;
   /** Better Auth secondary storage + small caches. */
   KV?: KVNamespace;
   /** Uploads bucket (S3-compatible access is configured via the S3_* env vars). */

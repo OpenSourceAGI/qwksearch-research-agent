@@ -36,4 +36,46 @@ describe('LocalUser', () => {
     await expect(getLocalUserId()).resolves.toBe('qwk-local-user');
     expect(mocks.makeSureUserExist).toHaveBeenCalledTimes(2);
   });
+
+  describe('with a request-user resolver (the Worker)', () => {
+    it("runs as the resolver's user and makes that user's row once", async () => {
+      const { getLocalUserId, setRequestUserResolver } = await import('./index');
+      setRequestUserResolver(async () => 'guest_a');
+
+      try {
+        expect(await getLocalUserId()).toBe('guest_a');
+        expect(await getLocalUserId()).toBe('guest_a');
+        expect(mocks.makeSureUserExist).toHaveBeenCalledOnce();
+        expect(mocks.makeSureUserExist).toHaveBeenCalledWith({ db: true }, 'guest_a');
+      } finally {
+        setRequestUserResolver(undefined);
+      }
+    });
+
+    it('keeps users apart', async () => {
+      const { getLocalUserId, setRequestUserResolver } = await import('./index');
+      let current = 'guest_a';
+      setRequestUserResolver(() => current);
+
+      try {
+        expect(await getLocalUserId()).toBe('guest_a');
+        current = 'guest_b';
+        expect(await getLocalUserId()).toBe('guest_b');
+        expect(mocks.makeSureUserExist).toHaveBeenCalledTimes(2);
+      } finally {
+        setRequestUserResolver(undefined);
+      }
+    });
+
+    it('falls back to the local user when the resolver has no visitor', async () => {
+      const { getLocalUserId, LOCAL_USER_ID, setRequestUserResolver } = await import('./index');
+      setRequestUserResolver(() => undefined);
+
+      try {
+        expect(await getLocalUserId()).toBe(LOCAL_USER_ID);
+      } finally {
+        setRequestUserResolver(undefined);
+      }
+    });
+  });
 });

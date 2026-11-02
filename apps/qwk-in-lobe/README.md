@@ -55,7 +55,7 @@ upstream LobeHub. Users can still add their own keys under Settings → Provider
 | --- | --- | --- |
 | HTTP shell | Next.js route handlers + middleware | One Hono app (`worker/app.ts`) mounting the same handlers: tRPC (lambda/tools/mobile/async), `/webapi/*`, `/api/v1` OpenAPI, agent/workflow/webhook Hono apps, `/f/:id`, SPA shells |
 | Database | Postgres via Neon serverless or `pg` | Same Postgres schema. `DATABASE_URL` by default (Neon serverless driver works natively on Workers); add a `HYPERDRIVE` binding to pool through Hyperdrive with `pg` instead |
-| Auth | Better Auth (Drizzle adapter) | Removed. There is no sign-in: every request runs as one local user (see below) |
+| Auth | Better Auth (Drizzle adapter) | Removed. No sign-in form: every browser is its own guest user, recorded in D1 (see below) |
 | Email | nodemailer / Resend | New `cloudflare` provider on the `EMAIL` (Email Routing) binding; Resend still works |
 | Redis | ioredis | Not reachable from Workers → `DISABLE_REDIS=1`, in-memory fallbacks |
 | OIDC provider (CLI/desktop sign-in) | `oidc-provider` (Koa) | Removed with sign-in; `/oidc/*` answers 501 |
@@ -69,7 +69,7 @@ LobeHub's schema is 169 Postgres tables with 211 `jsonb` columns, 11 `pgvector` 
 rewrite of the data layer, not a runtime port. This tree therefore keeps LobeHub on Postgres (through
 Hyperdrive or Neon, both first-class on Workers) and uses **D1 for the QwkSearch-specific tables**
 (`articleCache`, `articleQA`, `favorites`, `documents`, `research_quotes`, `share_tokens`,
-`google_docs_sync`) — the same `qwksearch-new` database the QwkSearch Worker already uses, so existing
+`google_docs_sync`) and for **Lobe's users** (`lobe_users`, see below) — the same `qwksearch-new` database the QwkSearch Worker already uses, so existing
 data is reused as-is.
 
 ## QwkSearch features added to LobeHub
@@ -181,8 +181,8 @@ bun run build:worker
 #     over the limit. `WORKER_BUDGET_MB` / `WORKER_BUDGET_WARN_MB` override.
 bun run cf:budget
 
-# 3. D1 tables (both migration files, idempotent; safe on the existing
-#    qwksearch-new database)
+# 3. D1 tables (every migrations/d1 file, idempotent; safe on the existing
+#    qwksearch-new database). 0004 adds `lobe_users`.
 bun run cf:d1:migrate              # remote
 bun run cf:d1:migrate:dev          # local wrangler dev
 
@@ -393,11 +393,20 @@ writes nothing — are checked without spending a Worker build.
   connection pool. It resolves on first property access, to the one instance `getServerDB()`
   caches. Upstream's eager export fails any `next build` that runs without `KEY_VAULTS_SECRET`,
   while it is merely collecting a route's page data.
-- No sign-in at all: Better Auth, the OIDC provider, the auth SPA and every sign-in / sign-up page
-  are removed. Every request runs as one local user, `qwk-local-user`, created on first use
-  (`apps/server/src/modules/LocalUser`). tRPC, `/webapi/*`, `/api/v1` and the Worker's QwkSearch
-  routes all resolve to that user, so everyone who can reach the deployment shares one workspace.
-  API keys still authenticate as their owner, and an invalid API key or bearer token is still
+- No sign-in form: Better Auth, the OIDC provider, the auth SPA and every sign-in / sign-up page
+  are removed. On the Worker every browser is its own **guest user** (`worker/users`): the first
+  request without a `lobe_uid` cookie (normally the page view) mints a random
+  `guest_<32 hex>` id into an HttpOnly cookie, the user is recorded in the D1 `lobe_users` table
+  (migration `0004`) and mirrored into the Postgres `users` table on first backend use. tRPC,
+  `/webapi/*`, `/api/v1` and the Worker's QwkSearch routes all go through
+  `getLocalUserId()` (`apps/server/src/modules/LocalUser`), which asks the Worker's request-user
+  resolver for that id, so chats, agents and provider keys (including a guest's OpenRouter key)
+  belong to that browser alone. Off the Worker (Node dev, desktop, tests), or with the Worker
+  variable `LOBE_SHARED_USER=1`, every request runs as the one shared local user
+  `qwk-local-user` instead; data written before per-visitor users existed belongs to that user.
+  A user whose Postgres row can't be made (`DATABASE_URL` / `KEY_VAULTS_SECRET` unset, migrations
+  not applied) gets UNAUTHORIZED from every protected tRPC procedure; the Worker logs the reason
+  once per isolate as `[lambda-context] could not load the request's user`. API keys still authenticate as their owner, and an invalid API key or bearer token is still
   rejected. The old auth URLs (`/signin`, `/signup`, `/oauth/*`, …) redirect to their same-origin
   `callbackUrl`, else `/`. The Better Auth tables stay in the database schema so no migration is
   needed.

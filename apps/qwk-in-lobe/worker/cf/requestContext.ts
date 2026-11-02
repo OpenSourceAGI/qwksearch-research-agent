@@ -12,6 +12,8 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 export interface WorkerRequestContext {
   executionContext?: ExecutionContext;
   request: Request;
+  /** The browser's guest user id (`lobe_uid` cookie); unset in shared-user mode. */
+  visitorId?: string;
 }
 
 const storage = new AsyncLocalStorage<WorkerRequestContext>();
