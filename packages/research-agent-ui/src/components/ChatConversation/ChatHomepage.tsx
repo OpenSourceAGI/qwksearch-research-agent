@@ -461,7 +461,6 @@ export default function ChatHomepage() {
                       right). */}
                   {showEducationWidget && (
                     <EducationPlaylists
-                      compact
                       planEndpoint={researchAgentUIConfig.educationPlaylistsApiUrl || undefined}
                       openHref={researchAgentUIConfig.educationPlaylistsPageUrl || undefined}
                       onOpenItem={openPlaylistItem}
@@ -477,7 +476,6 @@ export default function ChatHomepage() {
                   )}
                   {showNewsWidget && (
                     <TrendingNews
-                      compact
                       expandable
                       maxTopics={newsMaxTopics}
                       expandedMaxTopics={TRENDING_NEWS_EXPANDED_TOPICS}
@@ -497,7 +495,6 @@ export default function ChatHomepage() {
                   )}
                   {showWeatherWidget && (
                     <WeatherForecast
-                      compact
                       forecastDays={weatherForecastDays}
                       forecastHours={weatherForecastHours}
                       temperatureUnit={weatherTemperatureUnit}
