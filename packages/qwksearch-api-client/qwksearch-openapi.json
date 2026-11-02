@@ -3,7 +3,7 @@
   "info": {
     "title": "QwkSearch Research Agent API",
     "version": "1.1.0",
-    "description": "API for QwkSearch — AI-powered research with search, extraction, chat, document management, and multi-provider LLM support.\n\n## Authentication\n\n- **Public endpoints** work without credentials. When a deployment sets `REQUIRE_API_KEY`, they need an API key, sent as `Authorization: Bearer <key>` or `X-API-Key: <key>`.\n- **Research-agent endpoints** (`/agent/*` chats, messages, history) accept either a signed-in session or the user's API key, so embedding sites can act for a linked user.\n- **Account endpoints** (`/user/*`, `/notebooklm/*`, `/admin/*`) need a signed-in session cookie.\n\nSign-in itself is served by Better Auth under `/auth/*`; partner sites link an account with the \"Sign in with QwkSearch\" flow under `/connect/*`."
+    "description": "API for QwkSearch — AI-powered research with search, extraction, chat, document management, and multi-provider LLM support.\n\n## Authentication\n\n- **Public endpoints** work without credentials. When a deployment sets `REQUIRE_API_KEY`, they need an API key, sent as `Authorization: Bearer <key>` or `X-API-Key: <key>`.\n- **Research-agent endpoints** (`/agent/*` chats, messages, history) accept either a signed-in session or the user's API key, so embedding sites can act for a linked user.\n- **Account endpoints** (`/user/*`, `/notebooklm/*`, `/admin/*`) need a signed-in session cookie.\n\nSign-in itself is served by Better Auth under `/auth/*`; partner sites link an account with the \"Sign in with QwkSearch\" flow under `/connect/*`.\n\n## Rate limits\n\nEvery `/api` route is rate-limited per client IP (by default 300 requests a minute, with tighter limits on chat, speech and the scraper; admins change them at `/admin/rate-limit`). Responses carry `RateLimit-Limit`, `RateLimit-Remaining` and `RateLimit-Reset`; over the limit is a `429` with `Retry-After`."
   },
   "servers": [
     {
@@ -7418,6 +7418,122 @@
         }
       }
     },
+    "/admin/rate-limit": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get API rate-limit settings and current activity",
+        "operationId": "getAdminRateLimit",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Settings, the busiest open client windows, and how long servers cache the settings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "settings": {
+                      "$ref": "#/components/schemas/ApiRateLimitSettings"
+                    },
+                    "activity": {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    "settingsCacheSeconds": {
+                      "type": "integer"
+                    },
+                    "now": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Save API rate-limit settings, or reset counters",
+        "description": "`{ action: \"reset\" }` clears every counter; add `bucket` to clear one client's. Otherwise the named settings fields are saved (partial update) to D1 and reach every server within `settingsCacheSeconds`.",
+        "operationId": "updateAdminRateLimit",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "reset"
+                        ]
+                      },
+                      "bucket": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "action"
+                    ]
+                  },
+                  {
+                    "$ref": "#/components/schemas/ApiRateLimitSettings"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved settings, or the reset count and fresh activity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
     "/admin/overview": {
       "get": {
         "tags": [
@@ -7824,6 +7940,58 @@
           "application/json": {
             "schema": {
               "$ref": "#/components/schemas/MessageResponse"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Rate limited. Every `/api` route is limited per client IP; wait `Retry-After` seconds.",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Limit": {
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Remaining": {
+            "schema": {
+              "type": "integer"
+            }
+          },
+          "RateLimit-Reset": {
+            "schema": {
+              "type": "integer"
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string",
+                  "enum": [
+                    "rate_limited"
+                  ]
+                },
+                "message": {
+                  "type": "string"
+                },
+                "retryAfter": {
+                  "type": "integer"
+                },
+                "limit": {
+                  "type": "integer"
+                },
+                "windowSeconds": {
+                  "type": "integer"
+                }
+              }
             }
           }
         }
@@ -8817,6 +8985,57 @@
           "error"
         ],
         "description": "OpenAI-shaped error body, used by the `/v1/*` routes."
+      },
+      "ApiRateLimitOverride": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Path pattern. `*` matches anything; a trailing `/*` also matches the bare path."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "windowSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 86400
+          }
+        },
+        "required": [
+          "pattern",
+          "limit",
+          "windowSeconds"
+        ]
+      },
+      "ApiRateLimitSettings": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "requestsPerWindow": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "windowSeconds": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 86400
+          },
+          "overrides": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApiRateLimitOverride"
+            },
+            "description": "First match wins; each override counts in its own bucket."
+          },
+          "exemptPaths": {
+            "type": "string",
+            "description": "One path pattern per line; matching requests are never counted."
+          }
+        }
       }
     }
   }
