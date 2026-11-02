@@ -127,7 +127,7 @@ function collectFiles(): HelpDocFile[] {
     if (!compiled) {
       throw new Error(
         `No compiled module for "${relativePath}". The host app must register ` +
-          `helpDocsMdxPlugin() from "user-help-docs/vite" in its Vite and Vitest configs.`,
+          `helpDocsMdxPlugin() from "qwksearch-help-docs/vite" in its Vite and Vitest configs.`,
       );
     }
 

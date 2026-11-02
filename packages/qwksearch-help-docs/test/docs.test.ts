@@ -295,7 +295,7 @@ describe('landing page', () => {
 
     expect(markup).toContain('<h1');
     expect(markup).toContain('Open-source research agent');
-    expect(markup).toContain('Search 100+ sites');
+    expect(markup).toContain('Search 100+ search engines');
   });
 
   it('links its calls to action somewhere real', () => {

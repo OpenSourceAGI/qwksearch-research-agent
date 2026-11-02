@@ -168,7 +168,7 @@ bun i qwksearch-api-client
 
 - <a href="https://www.npmjs.com/package/use-voice-control"><img src="https://img.shields.io/npm/dm/use-voice-control.svg" alt="Monthly Downloads"></a> **use-voice-control** — React voice control with speech transcription, vocalization and interruption (STT/TTS/VAD), plus a CLI that reads Markdown and text files aloud to audio files.
 
-- **user-help-docs** — The user-facing help documentation served at `/docs` in the web app via Fumadocs. Content is inlined at build time so the docs run on Cloudflare Workers, where there is no filesystem to scan.
+- **qwksearch-help-docs** — The user-facing help documentation served at `/docs` in the web app via Fumadocs. Content is inlined at build time so the docs run on Cloudflare Workers, where there is no filesystem to scan.
 
 - <a href="https://www.npmjs.com/package/write-language"><img src="https://img.shields.io/npm/dm/write-language.svg" alt="Monthly Downloads"></a> **write-language** — A multi-provider language generation toolkit using the Vercel AI SDK that generates text responses via 10+ LLM providers including OpenAI, Anthropic, Google, Groq, and more. Provides a unified interface for streaming and non-streaming text generation.
 
