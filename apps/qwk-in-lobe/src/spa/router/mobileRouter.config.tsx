@@ -608,13 +608,6 @@ export const mobileRoutes: RouteObject[] = [
 
   // `/share/*` is served by the standalone Share app (apps/share), not this router.
 
-  // Guest demo chat: runs on the visitor's own OpenRouter key, no account needed.
-  {
-    element: dynamicElement(() => import('@/routes/demo'), 'Mobile > Guest Demo'),
-    errorElement: <ErrorBoundary />,
-    path: '/demo',
-  },
-
   // Messenger verify route (outside main layout)
   {
     element: dynamicElement(() => import('@/routes/verify-im'), 'Mobile > VerifyIm'),

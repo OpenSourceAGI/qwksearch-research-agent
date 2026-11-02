@@ -1,7 +1,7 @@
 /**
- * Lets a guest's OpenRouter key drive the full LobeHub chat, not just `/demo`.
+ * Lets a guest's OpenRouter key drive the LobeHub chat.
  *
- * There is no sign-in: everyone runs as the one local user, so the key is
+ * There is no sign-in: each visitor runs as their own guest user, so the key is
  * written to that user's OpenRouter provider config — the same place
  * Settings → Providers saves it, encrypted with the key-vault secret. The main
  * chat reads keys from there (`initModelRuntimeFromDB`).

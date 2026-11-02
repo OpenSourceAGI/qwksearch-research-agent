@@ -3,6 +3,13 @@ import type { AIChatModelCard } from '../types/aiModel';
 // https://openrouter.ai/docs/api-reference/list-available-models
 const openrouterChatModels: AIChatModelCard[] = [
   {
+    // The default model for every agent. OpenRouter's auto router only routes a
+    // request that carries tools to a model that supports them, so it must say
+    // it can call functions: without this the chat drops to "chat mode" once the
+    // model list loads and an agent gets four tools instead of its full set.
+    abilities: {
+      functionCall: true,
+    },
     contextWindowTokens: 2_000_000,
     description:
       'Based on context length, topic, and complexity, your request is routed to Llama 3 70B Instruct, Claude 3.5 Sonnet (self-moderated), or GPT-4o.',

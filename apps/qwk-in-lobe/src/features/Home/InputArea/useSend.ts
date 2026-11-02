@@ -9,9 +9,7 @@ import { buildTaskHandoffPath } from '@/features/AgentTaskManager/taskHandoff';
 import type { SendButtonHandler } from '@/features/ChatInput/store/initialState';
 import { buildMessageContextSelections } from '@/features/ChatInput/utils/contextSelections';
 import { OPENROUTER_PROVIDER_ID } from '@/features/GuestOpenRouter/accountSync';
-import { ensureGuestKey, resolveOpenRouterChatRoute } from '@/features/GuestOpenRouter/chatKey';
-import { GUEST_DEMO_PATH } from '@/features/GuestOpenRouter/GuestKeyBanner';
-import { useGuestOpenRouterStore } from '@/features/GuestOpenRouter/store';
+import { resolveOpenRouterChatRoute } from '@/features/GuestOpenRouter/chatKey';
 import { useResourceAccess } from '@/features/ResourcePermission/useResourceAccess';
 import { useHomeDailyBrief } from '@/hooks/useHomeDailyBrief';
 import { usePermission } from '@/hooks/usePermission';
@@ -59,10 +57,10 @@ const ensureAgentConfigLoaded = async (agentId: string): Promise<void> => {
 export const AGENT_CONFIG_TIMEOUT_MS = 8000;
 
 /**
- * Whether the agent's config could be loaded. The main chat cannot run without
- * it — no agent resolved yet, or the server failing (or taking too long) to
- * answer — and the home input then hands the message to the browser-side
- * OpenRouter guest chat rather than doing nothing.
+ * Whether the agent's config could be loaded. The chat cannot run without it —
+ * no agent resolved yet, or the server failing (or taking too long) to answer —
+ * and the home input then says so and keeps the draft rather than doing
+ * nothing.
  */
 const loadAgentConfig = async (agentId: string | undefined): Promise<boolean> => {
   if (!agentId) return false;
@@ -266,32 +264,27 @@ export const useSend = (mode: HomeMode = 'chat') => {
           }
 
           default: {
-            const sendToGuestChat = () => {
-              void useGuestOpenRouterStore.getState().send(message);
-              submitted = true;
-              router.push(GUEST_DEMO_PATH);
-            };
-
+            // The home input hands every chat to LobeHub's own chat runtime —
+            // the agent's full tool set, its topics and history — never to a
+            // stripped-down fallback. When that chat can't start, the draft is
+            // kept and the visitor is told, so pressing send is never inert.
             if (!(await loadAgentConfig(selectedAgentId)) || !selectedAgentId) {
-              if (!message || !(await ensureGuestKey())) return;
-              sendToGuestChat();
-              break;
+              toast.error(t('dashboard.submitFailed'));
+              return;
             }
 
             // An OpenRouter chat with no key the server can read fails on its
             // first message. Copy the browser's key to the account, or ask for
-            // one (keeping the draft if that is declined); if the server still
-            // can't be given a key, the browser-side guest chat sends it.
+            // one (keeping the draft if that is declined).
             const provider = agentByIdSelectors.getAgentModelProviderById(selectedAgentId)(
               useAgentStore.getState(),
             );
             if (provider === OPENROUTER_PROVIDER_ID) {
               const route = await resolveOpenRouterChatRoute();
               if (route === 'cancelled') return;
-              if (route === 'browser') {
-                if (!message) return;
-                sendToGuestChat();
-                break;
+              if (route === 'failed') {
+                toast.error(t('dashboard.submitFailed'));
+                return;
               }
             }
 

@@ -22,9 +22,7 @@ const createTaskMock = vi.hoisted(() => vi.fn());
 const runTaskMock = vi.hoisted(() => vi.fn());
 const toggleTaskAgentPanelMock = vi.hoisted(() => vi.fn());
 const messageErrorMock = vi.hoisted(() => vi.fn());
-const ensureGuestKeyMock = vi.hoisted(() => vi.fn());
 const resolveOpenRouterChatRouteMock = vi.hoisted(() => vi.fn());
-const guestSendMock = vi.hoisted(() => vi.fn());
 const getAgentConfigByIdMock = vi.hoisted(() => vi.fn());
 
 const chatState = vi.hoisted(() => ({
@@ -131,12 +129,7 @@ vi.mock('@/store/agent', () => ({
 }));
 
 vi.mock('@/features/GuestOpenRouter/chatKey', () => ({
-  ensureGuestKey: ensureGuestKeyMock,
   resolveOpenRouterChatRoute: resolveOpenRouterChatRouteMock,
-}));
-
-vi.mock('@/features/GuestOpenRouter/store', () => ({
-  useGuestOpenRouterStore: { getState: () => ({ send: guestSendMock }) },
 }));
 
 vi.mock('@/services/agent', () => ({
@@ -207,9 +200,7 @@ describe('Home InputArea useSend', () => {
     runTaskMock.mockReset();
     toggleTaskAgentPanelMock.mockReset();
     messageErrorMock.mockReset();
-    ensureGuestKeyMock.mockReset().mockResolvedValue(true);
     resolveOpenRouterChatRouteMock.mockReset().mockResolvedValue('server');
-    guestSendMock.mockReset();
     getAgentConfigByIdMock.mockReset().mockResolvedValue(undefined);
     agentState.provider = 'openai';
     homeDailyBriefState.advance.mockReset();
@@ -570,7 +561,9 @@ describe('Home InputArea useSend', () => {
       expect(sendMessageMock).toHaveBeenCalledTimes(1);
     });
 
-    it('hands the typed text to the guest chat when the agent config cannot be loaded', async () => {
+    // There is no fallback chat: the home input only ever sends into LobeHub's
+    // own chat, so when that can't start the draft stays and the visitor is told.
+    it('keeps the draft and reports the failure when the agent config cannot be loaded', async () => {
       globalState.systemStatus.homeSelectedAgentId = 'agt_custom';
       homeState.ungroupedAgents = [{ id: 'agt_custom', type: 'agent' }];
       getAgentConfigByIdMock.mockRejectedValue(new Error('500'));
@@ -581,32 +574,38 @@ describe('Home InputArea useSend', () => {
       });
 
       expect(sendMessageMock).not.toHaveBeenCalled();
-      expect(ensureGuestKeyMock).toHaveBeenCalledTimes(1);
-      expect(guestSendMock).toHaveBeenCalledWith('typed while the server is down');
-      expect(routerMock.push).toHaveBeenCalledWith('/demo');
-      expect(messageErrorMock).not.toHaveBeenCalled();
+      expect(routerMock.push).not.toHaveBeenCalled();
+      expect(clearContentMock).not.toHaveBeenCalled();
+      expect(messageErrorMock).toHaveBeenCalledWith('dashboard.submitFailed');
     });
 
-    it('keeps the draft when the guest chat has no key and none is entered', async () => {
+    it('sends into the agent chat once a cold agent config loads', async () => {
       globalState.systemStatus.homeSelectedAgentId = 'agt_custom';
       homeState.ungroupedAgents = [{ id: 'agt_custom', type: 'agent' }];
-      ensureGuestKeyMock.mockResolvedValue(false);
+      getAgentConfigByIdMock.mockImplementation(async () => {
+        agentState.agentMap.agt_custom = { model: 'openrouter/auto', provider: 'openrouter' };
+        return agentState.agentMap.agt_custom;
+      });
       const { result } = renderHook(() => useSend());
 
       await act(async () => {
         await result.current.send(chatParams('hello'));
       });
 
-      expect(guestSendMock).not.toHaveBeenCalled();
-      expect(routerMock.push).not.toHaveBeenCalled();
-      expect(clearContentMock).not.toHaveBeenCalled();
+      expect(sendMessageMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          context: expect.objectContaining({ agentId: 'agt_custom' }),
+          message: 'hello',
+        }),
+      );
+      expect(routerMock.push).toHaveBeenCalledWith('/agent/agt_custom');
     });
 
     // A key held only by this browser that can't be copied to the account is
-    // useless to the server chat; the guest chat uses it from the page instead.
-    it('sends through the guest chat when only the browser holds a usable key', async () => {
+    // useless to the server chat, so the send stops with the draft kept.
+    it('keeps the draft when the browser key cannot be given to the server chat', async () => {
       agentState.provider = 'openrouter';
-      resolveOpenRouterChatRouteMock.mockResolvedValue('browser');
+      resolveOpenRouterChatRouteMock.mockResolvedValue('failed');
       const { result } = renderHook(() => useSend());
 
       await act(async () => {
@@ -614,11 +613,12 @@ describe('Home InputArea useSend', () => {
       });
 
       expect(sendMessageMock).not.toHaveBeenCalled();
-      expect(guestSendMock).toHaveBeenCalledWith('hello from the browser key');
-      expect(routerMock.push).toHaveBeenCalledWith('/demo');
+      expect(routerMock.push).not.toHaveBeenCalled();
+      expect(clearContentMock).not.toHaveBeenCalled();
+      expect(messageErrorMock).toHaveBeenCalledWith('dashboard.submitFailed');
     });
 
-    it('falls back to the guest chat when the agent config request hangs', async () => {
+    it('reports the failure instead of spinning when the agent config request hangs', async () => {
       vi.useFakeTimers();
       try {
         globalState.systemStatus.homeSelectedAgentId = 'agt_custom';
@@ -633,8 +633,9 @@ describe('Home InputArea useSend', () => {
         });
 
         expect(sendMessageMock).not.toHaveBeenCalled();
-        expect(guestSendMock).toHaveBeenCalledWith('typed while the server hangs');
-        expect(routerMock.push).toHaveBeenCalledWith('/demo');
+        expect(routerMock.push).not.toHaveBeenCalled();
+        expect(messageErrorMock).toHaveBeenCalledWith('dashboard.submitFailed');
+        expect(result.current.loading).toBe(false);
       } finally {
         vi.useRealTimers();
       }

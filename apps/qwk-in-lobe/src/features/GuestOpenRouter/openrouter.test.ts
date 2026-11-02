@@ -2,30 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   GUEST_FREE_MODEL,
-  GUEST_MODEL_SUGGESTIONS,
   looksLikeOpenRouterKey,
   normalizeOpenRouterKey,
   OpenRouterError,
-  parseStreamChunk,
-  streamOpenRouterChat,
   verifyOpenRouterKey,
 } from './openrouter';
 
 const KEY = 'sk-or-v1-0123456789abcdef';
-
-const sseResponse = (chunks: string[]) => {
-  const encoder = new TextEncoder();
-  const body = new ReadableStream<Uint8Array>({
-    start(controller) {
-      for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
-      controller.close();
-    },
-  });
-  return new Response(body, { headers: { 'Content-Type': 'text/event-stream' }, status: 200 });
-};
-
-const delta = (content: string) =>
-  `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\n`;
 
 describe('guest OpenRouter client', () => {
   const fetchMock = vi.fn();
@@ -77,75 +60,17 @@ describe('guest OpenRouter client', () => {
     expect(error.status).toBe(401);
   });
 
-  it('parses stream chunks, ignoring [DONE] and junk', () => {
-    expect(parseStreamChunk('[DONE]')).toBe('');
-    expect(parseStreamChunk('not json')).toBe('');
-    expect(parseStreamChunk(JSON.stringify({ choices: [{ delta: { content: 'hi' } }] }))).toBe(
-      'hi',
-    );
-    expect(() => parseStreamChunk(JSON.stringify({ error: { message: 'rate limited' } }))).toThrow(
-      'rate limited',
-    );
-  });
-
-  it('streams deltas split across network chunks', async () => {
-    const full =
-      delta('Hello') + ': OPENROUTER PROCESSING\n\n' + delta(', world') + 'data: [DONE]\n\n';
-    // Split mid-line to make sure partial lines are buffered.
-    fetchMock.mockResolvedValueOnce(
-      sseResponse([full.slice(0, 20), full.slice(20, 61), full.slice(61)]),
-    );
-
-    const onDelta = vi.fn();
-    const reply = await streamOpenRouterChat({
-      apiKey: KEY,
-      messages: [{ content: 'hi', role: 'user' }],
-      model: 'openrouter/auto',
-      onDelta,
-    });
-
-    expect(reply).toBe('Hello, world');
-    expect(onDelta.mock.calls.map(([d]) => d)).toEqual(['Hello', ', world']);
-
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
-    expect(JSON.parse(init.body)).toEqual({
-      messages: [{ content: 'hi', role: 'user' }],
-      model: 'openrouter/auto',
-      stream: true,
-    });
-  });
-
-  it('rejects with the error body when the request fails', async () => {
-    fetchMock.mockResolvedValueOnce(
-      Response.json({ error: { message: 'Insufficient credits' } }, { status: 402 }),
-    );
-
-    await expect(
-      streamOpenRouterChat({ apiKey: KEY, messages: [], model: 'x', onDelta: vi.fn() }),
-    ).rejects.toThrow('Insufficient credits');
-  });
-
   it('points a spent account at the credits page and the free model', async () => {
     fetchMock.mockResolvedValueOnce(
       Response.json({ error: { message: 'Insufficient credits' } }, { status: 402 }),
     );
 
-    const error = await streamOpenRouterChat({
-      apiKey: KEY,
-      messages: [],
-      model: 'x',
-      onDelta: vi.fn(),
-    }).catch((e) => e);
+    const error = await verifyOpenRouterKey(KEY).catch((e) => e);
 
     expect(error).toBeInstanceOf(OpenRouterError);
     expect(error.status).toBe(402);
     expect(error.message).toContain('Insufficient credits');
     expect(error.message).toContain('openrouter.ai/settings/credits');
     expect(error.message).toContain(GUEST_FREE_MODEL);
-  });
-
-  it('offers the free model in the suggestions, since it answers without credits', () => {
-    expect(GUEST_MODEL_SUGGESTIONS).toContain(GUEST_FREE_MODEL);
   });
 });

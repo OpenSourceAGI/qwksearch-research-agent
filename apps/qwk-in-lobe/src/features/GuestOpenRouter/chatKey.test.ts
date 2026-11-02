@@ -25,7 +25,7 @@ vi.mock('./store', () => ({
   useGuestOpenRouterStore: { getState: () => ({ apiKey: state.guestKey }) },
 }));
 
-const { ensureGuestKey, ensureOpenRouterKey, hasOpenRouterKey, resolveOpenRouterChatRoute } =
+const { ensureOpenRouterKey, hasOpenRouterKey, resolveOpenRouterChatRoute } =
   await import('./chatKey');
 
 describe('OpenRouter chat key', () => {
@@ -71,20 +71,6 @@ describe('OpenRouter chat key', () => {
     await expect(ensureOpenRouterKey()).resolves.toBe(false);
   });
 
-  // The guest chat calls OpenRouter from the page, so a server key is no use to it.
-  it('asks for a browser key for the guest chat even when the deployment has one', async () => {
-    state.serverKey = true;
-    createGuestKeyModal.mockImplementation((onSaved: () => void) => onSaved());
-
-    await expect(ensureGuestKey()).resolves.toBe(true);
-    expect(createGuestKeyModal).toHaveBeenCalledTimes(1);
-
-    state.guestKey = 'sk-or-v1-guest';
-    createGuestKeyModal.mockReset();
-    await expect(ensureGuestKey()).resolves.toBe(true);
-    expect(createGuestKeyModal).not.toHaveBeenCalled();
-  });
-
   describe('resolveOpenRouterChatRoute', () => {
     it('uses the server chat when the deployment or account has a key', async () => {
       state.serverKey = true;
@@ -107,11 +93,11 @@ describe('OpenRouter chat key', () => {
       expect(createGuestKeyModal).not.toHaveBeenCalled();
     });
 
-    it('falls back to the browser chat when the key cannot be copied', async () => {
+    it('fails when the browser key cannot be copied to the account', async () => {
       state.guestKey = 'sk-or-v1-guest';
       applyGuestKeyToAccount.mockRejectedValue(new Error('server down'));
 
-      await expect(resolveOpenRouterChatRoute()).resolves.toBe('browser');
+      await expect(resolveOpenRouterChatRoute()).resolves.toBe('failed');
     });
 
     it('prompts when no key exists anywhere, then uses the server chat', async () => {

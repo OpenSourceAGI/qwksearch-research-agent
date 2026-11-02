@@ -1,6 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { GUEST_DEFAULT_MODEL, GUEST_FREE_MODEL } from './openrouter';
 import {
   GUEST_OPENROUTER_STORAGE_KEY,
   guestOpenRouterSelectors,
@@ -15,45 +14,15 @@ const persisted = () =>
     state: Record<string, unknown>;
   } | null;
 
-const sseResponse = (text: string) =>
-  new Response(
-    new ReadableStream<Uint8Array>({
-      start(controller) {
-        controller.enqueue(
-          new TextEncoder().encode(
-            `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`,
-          ),
-        );
-        controller.close();
-      },
-    }),
-    { status: 200 },
-  );
-
 describe('guest OpenRouter store', () => {
-  const fetchMock = vi.fn();
-
   beforeEach(() => {
-    vi.stubGlobal('fetch', fetchMock);
-    useGuestOpenRouterStore.setState({
-      apiKey: '',
-      error: undefined,
-      messages: [],
-      model: GUEST_DEFAULT_MODEL,
-      sending: false,
-    });
+    useGuestOpenRouterStore.setState({ apiKey: '' });
   });
 
-  afterEach(() => {
-    fetchMock.mockReset();
-    vi.unstubAllGlobals();
-  });
+  it('persists only the normalized key to localStorage', () => {
+    useGuestOpenRouterStore.getState().setKey(`  Bearer ${KEY} `);
 
-  it('persists the key and model to localStorage, but not the conversation', () => {
-    useGuestOpenRouterStore.getState().setKey(`  ${KEY} `);
-    useGuestOpenRouterStore.setState({ messages: [{ content: 'secret chat', role: 'user' }] });
-
-    expect(persisted()?.state).toEqual({ apiKey: KEY, model: GUEST_DEFAULT_MODEL });
+    expect(persisted()?.state).toEqual({ apiKey: KEY });
   });
 
   it('masks the key for display', () => {
@@ -63,52 +32,6 @@ describe('guest OpenRouter store', () => {
     expect(guestOpenRouterSelectors.hasKey(state)).toBe(true);
     expect(guestOpenRouterSelectors.maskedKey(state)).toBe('sk-or-v1-…cdef');
     expect(guestOpenRouterSelectors.maskedKey(state)).not.toContain('0123456789');
-  });
-
-  it('does not send without a key', async () => {
-    await useGuestOpenRouterStore.getState().send('hello');
-
-    expect(fetchMock).not.toHaveBeenCalled();
-    expect(useGuestOpenRouterStore.getState().messages).toEqual([]);
-  });
-
-  it('sends the conversation and streams the reply in', async () => {
-    fetchMock.mockResolvedValueOnce(sseResponse('Hi there'));
-    const store = useGuestOpenRouterStore.getState();
-    store.setKey(KEY);
-    store.setModel('  ');
-
-    await useGuestOpenRouterStore.getState().send('hello');
-
-    const state = useGuestOpenRouterStore.getState();
-    expect(state.sending).toBe(false);
-    expect(state.error).toBeUndefined();
-    expect(state.messages).toEqual([
-      { content: 'hello', role: 'user' },
-      { content: 'Hi there', role: 'assistant' },
-    ]);
-
-    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
-    // A blank model field falls back to the default instead of sending ''.
-    expect(body.model).toBe(GUEST_DEFAULT_MODEL);
-    expect(body.messages).toEqual([{ content: 'hello', role: 'user' }]);
-  });
-
-  it('keeps the question and shows the error when OpenRouter refuses', async () => {
-    fetchMock.mockResolvedValueOnce(
-      Response.json({ error: { message: 'Insufficient credits' } }, { status: 402 }),
-    );
-    useGuestOpenRouterStore.getState().setKey(KEY);
-
-    await useGuestOpenRouterStore.getState().send('hello');
-
-    const state = useGuestOpenRouterStore.getState();
-    // The 402 message names the credits page and the free model, which answers
-    // without credits.
-    expect(state.error).toContain('Insufficient credits');
-    expect(state.error).toContain('openrouter.ai/settings/credits');
-    expect(state.error).toContain(GUEST_FREE_MODEL);
-    expect(state.messages).toEqual([{ content: 'hello', role: 'user' }]);
   });
 
   it('clearKey forgets the key', () => {

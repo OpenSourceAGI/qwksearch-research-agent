@@ -30,7 +30,7 @@ const GuestKeyForm = ({ onSaved }: GuestKeyFormProps) => {
     s.setKey,
     s.clearKey,
   ]);
-  // A guest session also hands the key to the main LobeHub chat.
+  // A loaded session hands the key to the LobeHub chat.
   const isGuestSession = useIsGuestSession();
 
   const [value, setValue] = useState('');
@@ -59,9 +59,9 @@ const GuestKeyForm = ({ onSaved }: GuestKeyFormProps) => {
     try {
       if (isGuestSession) await applyGuestKeyToAccount(key);
     } catch (e) {
-      // The key is saved in this browser and the guest chat can use it; only
-      // the main chat missed it (usually because the server is unreachable),
-      // so say so without holding up whatever was waiting on the key.
+      // The key is saved in this browser and is copied to the account again on
+      // the next send; the chat can't use it until then (usually the server is
+      // unreachable), so say so without holding up whatever was waiting on it.
       toast.error(t('guestKey.error.account', { message: (e as Error).message }));
     } finally {
       setVerifying(false);
