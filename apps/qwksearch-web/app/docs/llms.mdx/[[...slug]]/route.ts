@@ -3,8 +3,8 @@
  * "Ask AI" actions on each page.
  */
 import { notFound } from 'next/navigation';
-import { source } from 'user-help-docs';
-import { getLLMText, getMarkdownParams, parseMarkdownSlug } from 'user-help-docs/llms';
+import { source } from 'qwksearch-help-docs';
+import { getLLMText, getMarkdownParams, parseMarkdownSlug } from 'qwksearch-help-docs/llms';
 
 export const revalidate = false;
 

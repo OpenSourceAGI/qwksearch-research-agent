@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 
 import { DocsLayout } from 'fumadocs-ui/layouts/notebook';
 import { RootProvider } from 'fumadocs-ui/provider/next';
-import { source } from 'user-help-docs';
-import { docsConfig } from 'user-help-docs/config';
-import { docsLayoutOptions } from 'user-help-docs/layout.config';
+import { source } from 'qwksearch-help-docs';
+import { docsConfig } from 'qwksearch-help-docs/config';
+import { docsLayoutOptions } from 'qwksearch-help-docs/layout.config';
 
 export default function DocsRootLayout({ children }: { children: ReactNode }) {
   return (

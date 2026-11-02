@@ -19,7 +19,7 @@ in `app/`.
 | Extraction | `/api/doc`, `/api/scraper` | URL, PDF and YouTube extraction from `packages/extract-*`. |
 | Search API | `/api/search` | The dedupe-and-rank pipeline, described by `/api/openapi`. |
 | News | `/news` | The trending-news widget, served by `/api/news/trending` so keys stay server-side. |
-| Docs | `/docs` | Fumadocs over `packages/user-help-docs`. |
+| Docs | `/docs` | Fumadocs over `packages/qwksearch-help-docs`. |
 | Accounts | `/login`, `/settings` | better-auth — Google, Discord and LinkedIn OAuth, plus email via Resend. |
 | Admin | `/admin` | Gated on `ADMIN_EMAILS`; nobody is an admin when it is unset. |
 | Marketing | `/features`, `/enterprise`, `/legal` | Static pages. |

@@ -60,7 +60,7 @@
 /* The docs package's own components (breadcrumb, per-page actions, the theme
    dropdown) are workspace source, so they need the same explicit registration
    as the packages above. */
-@source "../../../packages/user-help-docs/src";
+@source "../../../packages/qwksearch-help-docs/src";
 
 @custom-variant dark (&:is(.dark *));
 /* @plugin "@tailwindcss/typography"; */

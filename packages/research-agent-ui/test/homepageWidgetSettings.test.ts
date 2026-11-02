@@ -12,10 +12,11 @@ import { resolve } from 'node:path';
 import { searchSettingsFields } from '../src/settings';
 import { researchAgentUIConfig } from '../src/config';
 
-// Vitest runs with the package root as cwd; the jsdom environment does not
-// give this file a `file:` URL to resolve against.
+// Resolve from this file rather than `process.cwd()`: the package's own
+// `vitest run` starts in the package root, but the root `bun run test` (what
+// CI runs) starts in the repo root.
 const homepageSource = readFileSync(
-  resolve(process.cwd(), 'src/components/ChatConversation/ChatHomepage.tsx'),
+  resolve(import.meta.dirname, '../src/components/ChatConversation/ChatHomepage.tsx'),
   'utf8',
 );
 

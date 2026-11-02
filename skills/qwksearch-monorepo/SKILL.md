@@ -45,7 +45,7 @@ things look similar:
 | Speech-to-text, text-to-speech, read-aloud CLI | `use-voice-control` | use-voice-control |
 | The dock, the settings form, weather, trending news | `shadcn-app-dock`, `shadcn-settings`, `react-weather-forecast`, `trending-news-api` | shadcn-app-dock, shadcn-settings, weather-forecast, trending-news |
 | Sponsored ads in chat answers and follow-ups, advertiser keyword panel | `ads-in-chat-answers` | ads-in-chat-answers |
-| The `/docs` help site | `user-help-docs` | user-help-docs |
+| The `/docs` help site | `qwksearch-help-docs` | qwksearch-help-docs |
 | Training a GPT from scratch on Wikipedia (Python) | `language-model-training` | language-model-training |
 | Stocks, brokerage, trading agents, prediction markets, arbitrage | `investing` (incl. `investing/predictos`) | investing |
 

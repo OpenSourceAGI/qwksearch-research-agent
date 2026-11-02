@@ -1,6 +1,6 @@
 ---
 name: qwksearch-api-client
-description: Guide to qwksearch-api-client (packages/qwksearch-api-client), the hey-api generated TypeScript client for the QwkSearch backend — the 85 typed SDK functions, the shared `client` singleton and per-call `client` override, the api2client/grab transport and its cache/retry/rateLimit/mock options, the baseUrl resolution that differs between browser and server, `throwOnError`, and the two-step regeneration workflow from qwksearch-openapi.json. Use when calling the QwkSearch API from any app or package, when requests hit the wrong origin or 401, when a response carries no status or an unparsed error body, when a new endpoint is missing from the client, or when regenerating after an OpenAPI change.
+description: Guide to qwksearch-api-client (packages/qwksearch-api-client), the hey-api generated TypeScript client for the QwkSearch backend — the 135 typed SDK functions, the shared `client` singleton and per-call `client` override, the api2client/grab transport and its cache/retry/rateLimit/mock options, the baseUrl resolution that differs between browser and server, `throwOnError`, and the two-step regeneration workflow from qwksearch-openapi.json. Use when calling the QwkSearch API from any app or package, when requests hit the wrong origin or 401, when a response carries no status or an unparsed error body, when a new endpoint is missing from the client, or when regenerating after an OpenAPI change.
 ---
 
 # Working With qwksearch-api-client
@@ -109,7 +109,12 @@ await listChats({ client });
 `client.setConfig({ headers: { Authorization: `Bearer ${key}` } })` sets auth for every
 call on that client — this is how the VS Code extension's API-key mode works.
 
-**Add an endpoint.** Update `qwksearch-openapi.json`, run `bun run build:api`
+**Add an endpoint.** Update `qwksearch-openapi.json` — give the operation one of the
+existing tags (they are grouped by `x-tagGroups` in the `/api` reference), a camelCase
+`operationId`, and a `security` requirement only when it differs from the global
+optional-API-key default. `apps/qwksearch-web/app/api/__tests__/openapi-coverage.test.ts`
+fails until every `app/api` route method is in the spec (or listed as deliberately
+undocumented). Then run `bun run build:api`
 (`openapi-ts && api2client --rewire-only ./src && vite build`), and commit both
 `src/*.gen.ts` and `dist/`. This package has **no `build` script**, so the workspace
 prebuild chain skips it and the committed `dist/` is what consumers get — forgetting to
