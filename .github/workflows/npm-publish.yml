@@ -210,18 +210,36 @@ jobs:
               continue
             fi
 
-            # A package whose local runtime dependency did not publish would go
-            # out pinned to a version that is not on npm, and every consumer's
-            # install of it would fail. Hold it back with that dependency.
+            # A local runtime dependency that did not publish in this run is
+            # pinned below to its local version. If npm does not have that
+            # version, every consumer's install of this package would fail, so
+            # hold it back too. (A dependency whose build failed but whose
+            # current version is already on npm is fine.)
             not_published=" $failed_packages $skipped_builds $unauthorized_packages "
-            blocked_by=$(node -e "
+            candidates=$(node -e "
+              const fs = require('fs');
               const p = require('./$pkg');
               const missing = ' ' + process.argv[1] + ' ';
+              const local = {};
+              for (const d of process.argv[2].split(/\s+/).filter(Boolean)) {
+                try {
+                  const sp = JSON.parse(fs.readFileSync(d + 'package.json', 'utf8'));
+                  if (sp.name) local[sp.name] = sp.version;
+                } catch {}
+              }
               const deps = { ...p.dependencies, ...p.peerDependencies };
-              console.log(Object.keys(deps).filter((d) => missing.includes(' ' + d + ' ')).join(' '));
-            " "$not_published")
+              for (const d of Object.keys(deps)) {
+                if (missing.includes(' ' + d + ' ')) console.log(d + '@' + (local[d] || 'latest'));
+              }
+            " "$not_published" "$build_order")
+            blocked_by=""
+            for spec in $candidates; do
+              if [ -z "$(npm view "$spec" version 2>/dev/null)" ]; then
+                blocked_by="$blocked_by $spec"
+              fi
+            done
             if [ -n "$blocked_by" ]; then
-              echo "⏭ Not publishing $name: its dependency $blocked_by did not publish in this run"
+              echo "⏭ Not publishing $name: npm does not have its dependency$blocked_by"
               failed_packages="$failed_packages $name"
               continue
             fi
