@@ -343,6 +343,13 @@ jobs:
                 if grep -qE "npm error code (E401|E404|ENEEDAUTH|EAUTHUNKNOWN|EOTP)" "$log"; then
                   exit 43
                 fi
+                # Some E403s refuse this one package, not the credential — npm
+                # rejecting a new name as too close to an existing one, or as
+                # spam. Fail just this package so the rest still publish.
+                if grep -qiE "too similar to existing package|spam detection|name .* is not allowed" "$log"; then
+                  echo "⚠ npm refused the package name $name — not a credential problem; continuing with the other packages"
+                  exit 1
+                fi
                 if grep -q "npm error code E403" "$log" && ! grep -qi "cannot publish over" "$log"; then
                   exit 43
                 fi
