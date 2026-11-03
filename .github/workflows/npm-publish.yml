@@ -210,6 +210,22 @@ jobs:
               continue
             fi
 
+            # A package whose local runtime dependency did not publish would go
+            # out pinned to a version that is not on npm, and every consumer's
+            # install of it would fail. Hold it back with that dependency.
+            not_published=" $failed_packages $skipped_builds $unauthorized_packages "
+            blocked_by=$(node -e "
+              const p = require('./$pkg');
+              const missing = ' ' + process.argv[1] + ' ';
+              const deps = { ...p.dependencies, ...p.peerDependencies };
+              console.log(Object.keys(deps).filter((d) => missing.includes(' ' + d + ' ')).join(' '));
+            " "$not_published")
+            if [ -n "$blocked_by" ]; then
+              echo "⏭ Not publishing $name: its dependency $blocked_by did not publish in this run"
+              failed_packages="$failed_packages $name"
+              continue
+            fi
+
             echo "📦 Evaluating $name from $dir"
 
             # Each package is handled in a subshell with its own `set -e` so a
