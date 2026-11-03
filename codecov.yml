@@ -170,10 +170,10 @@ component_management:
       name: "Package: use-voice-control"
       paths:
         - packages/use-voice-control/**
-    - component_id: package-user-help-docs
-      name: "Package: user-help-docs"
+    - component_id: package-qwksearch-help-docs
+      name: "Package: qwksearch-help-docs"
       paths:
-        - packages/user-help-docs/**
+        - packages/qwksearch-help-docs/**
     - component_id: package-write-language
       name: "Package: write-language"
       paths:

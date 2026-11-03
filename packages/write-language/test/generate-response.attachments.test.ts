@@ -20,7 +20,7 @@ vi.mock("../src/provider-factory", () => ({
   createLLMProvider: () => ({ id: "fake-model" }),
 }));
 
-// Avoid pulling the markdown/prism stack into the test.
+// Avoid pulling the markdown/highlighting stack into the test.
 vi.mock("../src/utils/markdown-to-html", () => ({
   convertMarkdownToHTMLEscaped: async (s: string) => s,
 }));

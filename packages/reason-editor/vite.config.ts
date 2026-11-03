@@ -521,6 +521,14 @@ export default defineConfig(async ({ mode }) => {
           // Pulls in swr, which shares the same use-sync-external-store CJS
           // shim problem as @tiptap/react above.
           'react-tweet',
+          // The Plate video node's player. Its DASH engine (react-player →
+          // dash-video-element → dashjs) ships a minified ESM build that
+          // already ends in `export { …, A as default }`; bundled in here,
+          // Rolldown wraps it and appends its own `__CJS__export_default__ as
+          // default`, so dist/ carries a chunk with two default exports and
+          // the host app's build fails with "Duplicated export 'default'".
+          // Left external, the host bundler resolves the real package once.
+          'react-player',
         ],
       },
     },

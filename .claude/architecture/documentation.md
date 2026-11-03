@@ -5,16 +5,16 @@ agent-facing package reference. Neither of them is a root `docs/` folder.
 
 | Kind of writing | Home |
 | --- | --- |
-| Anything a user or an operator reads | `packages/user-help-docs/content/docs/**` |
+| Anything a user or an operator reads | `packages/qwksearch-help-docs/content/docs/**` |
 | Package reference written for coding agents | `skills/<name>/SKILL.md` (+ `API.md`) |
 | How to work in this repo, for Claude | `CLAUDE.md` and `.claude/architecture/**` |
 | A package's own public API | that package's `readme.md` |
 
 **Do not create a root `docs/` directory.** One existed and its contents were
 moved into the user guide; a new one splits the documentation in two again and
-ships nothing, because only `user-help-docs` is actually served.
+ships nothing, because only `qwksearch-help-docs` is actually served.
 
-## The user guide (`packages/user-help-docs`)
+## The user guide (`packages/qwksearch-help-docs`)
 
 A **Fumadocs** site served at `/docs` in `apps/qwksearch-web`. Content is MDX under
 `content/docs/`, with an `architecture/` subsection for internal design notes,
@@ -28,7 +28,7 @@ To add a page:
 2. Add the slug to the `pages` array of the `meta.json` in that directory.
    `test/docs.test.ts` fails if a `meta.json` references a page that does not
    exist, or if a top-level page is missing from the root `meta.json`.
-3. `cd packages/user-help-docs && bun run test`.
+3. `cd packages/qwksearch-help-docs && bun run test`.
 
 ### Why the content pipeline looks unusual
 
@@ -43,7 +43,7 @@ Workers runtime:
 - The request-time MDX compiler runs its output through `new AsyncFunction(...)`,
   which Workers forbid (`EvalError: Code generation from strings disallowed`), so
   the compile happens in the bundler via `helpDocsMdxPlugin` from
-  `user-help-docs/vite`.
+  `qwksearch-help-docs/vite`.
 
 Consequences worth remembering: the host app **must** register
 `helpDocsMdxPlugin()` in both its Vite and its Vitest config, or every page throws
@@ -72,7 +72,7 @@ the same registration for the docs package's own components:
 
 ```css
 @source "../node_modules/fumadocs-ui/dist";
-@source "../../../packages/user-help-docs/src";
+@source "../../../packages/qwksearch-help-docs/src";
 ```
 
 `app/docs/__tests__/docs-wiring.test.ts` compiles those registrations through
@@ -101,6 +101,6 @@ Adding a package means adding its skill, plus rows in `skills/README.md` and in
 ## Keeping documentation honest
 
 When you change behaviour, update in the same PR: the package `readme.md`, its
-`skills/<name>/SKILL.md`, and any affected `user-help-docs` page. A stale skill
+`skills/<name>/SKILL.md`, and any affected `qwksearch-help-docs` page. A stale skill
 is worse than a missing one — agents trust it. `packages/readme.md`, for instance,
 still calls the editor Lexical when it is Tiptap; the source is authoritative.

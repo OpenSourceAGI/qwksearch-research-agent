@@ -64,6 +64,28 @@ client.setConfig({
 | `POST` | `/agent/transcript` | Transcribe audio (Whisper) |
 | `POST` | `/agent/voice` | Text to speech (Kokoro / Deepgram) |
 
+### OpenAI-compatible speech to text
+
+For tools that take an OpenAI-style "base URL + API key" for speech to text
+(Kilo, for one), use `https://qwksearch.com/api/v1` as the base URL and your
+QwkSearch API key as the key. Both routes **require** the key as
+`Authorization: Bearer <your-api-key>`; a browser session does not count.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/v1/models` | The transcription models: `small`, `fast`, `medium`, `turbo`, `large` |
+| `POST` | `/v1/audio/transcriptions` | Multipart `file` + optional `model` (default `turbo`) → `{ "text": "…" }` |
+
+`response_format` may be omitted or `json`; any other format, an unknown
+model, or a missing `file` is a `400`. Transcription is the same Whisper call
+as `/agent/transcript`.
+
+```bash
+curl https://qwksearch.com/api/v1/audio/transcriptions \
+  -H "Authorization: Bearer $QWKSEARCH_API_KEY" \
+  -F "file=@test.wav" -F "model=turbo"
+```
+
 ### Chats
 
 | Method | Path | Purpose |

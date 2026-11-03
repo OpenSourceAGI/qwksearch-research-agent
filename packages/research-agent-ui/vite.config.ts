@@ -33,10 +33,16 @@ export default defineConfig({
       // research agent UI depends on (radix, lucide-react, grab-url, etc.).
       // On Windows, rolldown may pass absolute paths (C:\...) for internal modules,
       // so we also check for drive-letter patterns to avoid externalising them.
+      //
+      // `search-autocomplete` is the exception: npm refuses that package name
+      // (too similar to `search_auto_complete`), so it is not on the registry
+      // and is bundled in here instead of being left for consumers to install.
       external: (id) =>
         !id.startsWith(".") &&
         !id.startsWith("/") &&
-        !/^[A-Za-z]:[/\\]/.test(id),
+        !/^[A-Za-z]:[/\\]/.test(id) &&
+        id !== "search-autocomplete" &&
+        !id.startsWith("search-autocomplete/"),
       output: {
         banner: (chunk) =>
           chunk.name === "index" || chunk.name === "workspace"

@@ -45,6 +45,11 @@ it belongs in a package.
   path that must answer machines — a webhook, a feed, a health check — outside
   `/api/*` means adding it to the exempt list in
   `lib/turnstile/request-filter.ts`.
+- **Every `/api/*` request is rate-limited in `worker/index.ts`**
+  (`lib/rate-limit/api-limiter.ts`, limits set at `/admin/rate-limit`). A route
+  that machines call from one IP — a webhook, a service-to-service endpoint —
+  needs an exempt pattern in the defaults in `lib/rate-limit/api-rules.ts`, or
+  the admin has to add one, or it will start answering `429`.
 - **Site settings an admin sets must go in D1, not `lib/config`.** The config
   manager keeps values in memory: a write there is lost with the isolate and was
   never seen by the other ones, so a toggle appears to work and then reverts.

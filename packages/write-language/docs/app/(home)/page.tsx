@@ -4,7 +4,7 @@ const features = [
   ['10+ providers', 'OpenAI, Anthropic, Google, xAI, Groq, Bedrock, Cloudflare, NVIDIA and more.'],
   ['Model registry', 'Context lengths, defaults and capabilities for every bundled model.'],
   ['Agent prompts', 'Ready-made templates for answers, summaries, citations and search.'],
-  ['HTML output', 'Markdown replies rendered with Prism.js syntax highlighting.'],
+  ['HTML output', 'Markdown replies rendered with highlight.js syntax highlighting.'],
 ];
 
 export default function HomePage() {

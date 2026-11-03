@@ -118,21 +118,20 @@ export default {
   'guestKey.actions.replace': 'Replace key',
   'guestKey.actions.save': 'Verify and save',
   'guestKey.banner.missing': "You're browsing as a guest. Add your own OpenRouter key to try chat.",
-  'guestKey.banner.open': 'Open demo chat',
   'guestKey.banner.ready':
-    'Your OpenRouter key is set. Chat anywhere in the app, or open the demo chat.',
+    'Your OpenRouter key is set. Type below to chat, with every tool available.',
   'guestKey.current': 'Saved key: {{key}}',
   'guestKey.description':
     "You don't have an account here, so chat runs on your own OpenRouter API key.",
   'guestKey.error.account':
-    "Saved for the demo chat, but it couldn't be applied to the main chat: {{message}}",
+    "Saved in this browser, but it couldn't be added to your account yet, so chat can't use it: {{message}}. It's tried again when you send.",
   'guestKey.error.format': "That doesn't look like an OpenRouter key. Keys start with sk-or-.",
   'guestKey.error.rejected': 'OpenRouter rejected this key: {{message}}',
   'guestKey.getKey': 'Get a key at openrouter.ai/keys',
   'guestKey.privacy':
     'Your key is stored only in this browser and is sent directly to OpenRouter, never to our servers.',
   'guestKey.privacyAccount':
-    'Your key is kept in this browser and saved encrypted with this guest account so the main chat can use it. Remove it here at any time.',
+    'Your key is kept in this browser and saved encrypted with this guest account so the chat can use it. Remove it here at any time.',
   'guestKey.title': 'Use your OpenRouter key',
   'search.actions.reset': 'Clear my overrides',
   'search.actions.revert': 'Discard changes',

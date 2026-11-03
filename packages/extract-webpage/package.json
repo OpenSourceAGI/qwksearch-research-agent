@@ -79,6 +79,7 @@
     "extract-cite": "workspace:*",
     "extract-pdf": "workspace:*",
     "extract-youtube": "workspace:*",
+    "highlight.js": "^11.12.0",
     "html-entities": "^2.6.0",
     "js-yaml": "^5.4.1",
     "jsdom": "^30.0.1",
@@ -87,7 +88,6 @@
     "marked": "^18.0.12",
     "marked-highlight": "^2.2.4",
     "node-fetch": "^3.3.2",
-    "prismjs": "^1.30.0",
     "qwksearch-api-client": "^0.9.225",
     "zod": "^4.5.4"
   },

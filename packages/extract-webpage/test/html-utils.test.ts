@@ -10,7 +10,6 @@ import {
   convertURLToAbsoluteURL,
   copyHTMLToClipboard,
 } from '../src/html-to-content/html-utils';
-import { loadPrismGrammars } from '../src/html-to-content/prism-global';
 
 describe('convertURLSafeHTMLToHTML', () => {
   it('decodes named entities', () => {
@@ -131,16 +130,24 @@ describe('convertMarkdownToHTML', () => {
     const html = convertMarkdownToHTML('```js\nconst a = 1;\n```') as string;
 
     expect(html).toContain('class="language-js"');
-    expect(html).toContain('token');
+    expect(html).toContain('<span class="hljs-keyword">const</span>');
   });
 
-  it('highlights a language that only arrives with the loaded grammars', async () => {
-    await loadPrismGrammars();
+  it('highlights every registered language and alias, not just the JavaScript family', () => {
+    const python = convertMarkdownToHTML('```python\ndef f():\n    return 1\n```') as string;
+    expect(python).toContain('class="language-python"');
+    expect(python).toContain('<span class="hljs-keyword">def</span>');
 
-    const html = convertMarkdownToHTML('```python\nx = 1\n```') as string;
+    const tsx = convertMarkdownToHTML('```tsx\nconst a: number = 1;\n```') as string;
+    expect(tsx).toContain('class="language-tsx"');
+    expect(tsx).toContain('hljs-');
+  });
 
-    expect(html).toContain('class="language-python"');
-    expect(html).toContain('token');
+  it('escapes HTML inside a highlighted block', () => {
+    const html = convertMarkdownToHTML('```js\nconst s = "<script>";\n```') as string;
+
+    expect(html).toContain('&lt;script&gt;');
+    expect(html).not.toContain('<script>');
   });
 
   it('escapes fenced code blocks with an unknown language', () => {

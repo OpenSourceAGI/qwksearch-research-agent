@@ -58,11 +58,11 @@ bun i qwksearch-api-client
 
 ## Overview
 
-The typed client for the QwkSearch API — 85 functions generated from
+The typed client for the QwkSearch API — 135 functions generated from
 [`qwksearch-openapi.json`](./qwksearch-openapi.json) with
 [Hey API](https://heyapi.dev), covering research chat and search, article Q&A,
 URL/PDF/YouTube scraping, the REASON document store, voice, provider and model
-config, MCP servers, NotebookLM and accounts.
+config, MCP servers, Google Drive, NotebookLM, news, learning playlists and accounts.
 
 
 
@@ -166,7 +166,7 @@ throw** by default — read `error`, or pass `throwOnError: true`.
 
 ## API Endpoints
 
-The full, current surface is the generated SDK itself — 85 typed functions, one
+The full, current surface is the generated SDK itself — 135 typed functions, one
 per operation in [`qwksearch-openapi.json`](./qwksearch-openapi.json), which
 this package also exports:
 
@@ -226,7 +226,7 @@ npm install qwksearch-api-client
 - **Documentation**: [airesearch.js.org](https://airesearch.js.org/)
 - **Demo**: [qwksearch.com](https://qwksearch.com/)
 - **GitHub**: [github.com/vtempest/ai-research-agent](https://github.com/vtempest/ai-research-agent)
-- **OpenAPI Spec**: [View Full Specification](./qwksearch-openapi.yml)
+- **OpenAPI Spec**: [View Full Specification](./qwksearch-openapi.json) · rendered at [qwksearch.com/api](https://qwksearch.com/api)
 
 - [LLM Training Example](https://github.com/vtempest/ai-research-agent/blob/master/packages/neural-net/src/train/predict-next-word.js)
 - [LangChain ReactAgent Tools](https://medium.com/@terrycho/how-langchain-agent-works-internally-trace-by-using-langsmith-df23766e7fb4)

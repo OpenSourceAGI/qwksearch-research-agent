@@ -58,7 +58,7 @@ pass-through. Auth paths opt out of replica reads entirely
 (`PRIMARY_ONLY_PATH_PREFIXES` in `lib/database/d1-session.ts`). Tunable at runtime
 with the `D1_SESSION_MODE` variable (`auto` | `primary` | `unconstrained` | `off`)
 and `D1_SESSION_DEBUG`. Background:
-[user-help-docs → Architecture → D1 Read Replication](../../packages/user-help-docs/content/docs/architecture/d1-read-replication.mdx).
+[devdocs → D1 Read Replication](../../devdocs/d1-read-replication.mdx).
 
 ## Turnstile first-load gate
 
@@ -79,7 +79,28 @@ The gate is **off until configured and fails open**: with `TURNSTILE_SITE_KEY` /
 `TURNSTILE_SECRET_KEY` unset it returns `null` for every request, which is what
 keeps local dev, previews and CI unchallenged. `TURNSTILE_ENABLED=false` turns
 it off with the keys still in place. Full write-up:
-[user-help-docs → Architecture → Turnstile first-load gate](../../packages/user-help-docs/content/docs/architecture/turnstile-bot-gate.mdx).
+[devdocs → Turnstile first-load gate](../../devdocs/turnstile-bot-gate.mdx).
+
+## `/api` rate limiter
+
+Right after the Turnstile gate, `worker/index.ts` calls `enforceApiRateLimit`
+(`apps/qwksearch-web/lib/rate-limit/api-limiter.ts`) for every request under
+`/api`, so new routes are covered without opting in. It counts per client IP
+(`cf-connecting-ip`) in fixed windows, in the D1 table `api_rate_limit_counters`
+— one atomic upsert-and-return per request, so every isolate shares the count.
+KV was ruled out (one write/sec/key, eventually consistent) and so was the
+Workers rate-limit binding (its numbers are fixed in `wrangler.jsonc`).
+
+Limits are set at `/admin/rate-limit` and stored in D1 (`api_rate_limit_settings`,
+one row): an on/off switch, a default limit and window, ordered per-route
+overrides (each counted in its own bucket, first match wins), and exempt
+patterns. `/api/auth/*`, `/api/admin/*` and `/api/collaboration/*` are exempt by
+default. Each isolate caches the settings for 15 s. Over the limit is a JSON
+`429` with `Retry-After`; allowed responses carry `RateLimit-*` headers. It
+**fails open**: no `DB` binding, a missing table or a D1 error lets the request
+through and logs. Route-level quotas (`lib/rate-limit/guestRateLimiter.ts`)
+still apply on top. `next dev` does not go through the Worker entry, so the
+limiter only runs under Workers (`dev:cf`, deploys).
 
 ## Auth
 
@@ -121,7 +142,7 @@ These are not style preferences; each one has already broken production here.
   without it every `wrangler deploy` would delete the plaintext Variables set in
   the dashboard. It is a top-level-only key — Wrangler ignores it inside a named
   env. See
-  [user-help-docs → Architecture → Cloudflare Worker Variables](../../packages/user-help-docs/content/docs/architecture/cloudflare-env-vars.mdx).
+  [devdocs → Cloudflare Worker Variables](../../devdocs/cloudflare-env-vars.mdx).
 - **Source maps stay off** (`upload_source_maps: false`). The unminified rsc/ssr
   bundles produced ~15.4MB of maps against a 15MB cap and the deploy was rejected
   with API error 10021.

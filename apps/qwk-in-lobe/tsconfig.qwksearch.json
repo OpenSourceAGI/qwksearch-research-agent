@@ -21,9 +21,8 @@
     // error inside them. `src/features/Settings/{extraction,search}` are the
     // two panes and `.../qwksearch` is the controls they share.
     "src/features/QwkSearch/**/*",
-    // The guest demo chat that runs on a visitor's own OpenRouter key.
+    // The OpenRouter key prompt and the key handoff to the LobeHub chat.
     "src/features/GuestOpenRouter/**/*",
-    "src/routes/demo/**/*",
     // The single local user every request runs as (there is no sign-in).
     "apps/server/src/modules/LocalUser/**/*",
     "src/layout/AuthProvider/LocalUser/**/*",

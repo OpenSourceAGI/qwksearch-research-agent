@@ -19,12 +19,6 @@ export const mainAreaMetaRoutes: RouteObject[] = [
 
 // `/share/*` is served by the standalone Share app (apps/share), not this router.
 const webOnlyRoutes: RouteObject[] = [
-  // Guest demo chat: runs on the visitor's own OpenRouter key, no account needed.
-  {
-    element: dynamicElement(() => import('@/routes/demo'), 'Desktop > Guest Demo'),
-    errorElement: <ErrorBoundary />,
-    path: '/demo',
-  },
   {
     element: dynamicElement(() => import('@/routes/verify-im'), 'Desktop > VerifyIm'),
     errorElement: <ErrorBoundary />,

@@ -1,5 +1,5 @@
 {
-  "name": "user-help-docs",
+  "name": "qwksearch-help-docs",
   "description": "User-facing help documentation, hosted at /docs in qwksearch-web via Fumadocs",
   "type": "module",
   "version": "0.2.0",
@@ -8,7 +8,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
-    "directory": "packages/user-help-docs"
+    "directory": "packages/qwksearch-help-docs"
   },
   "exports": {
     ".": "./src/source.ts",

@@ -139,32 +139,23 @@ export function convertURLToAbsoluteURL(base, relative) {
 }
 
 import { marked } from "marked";
-// `prism-global` owns both the Prism instance and the grammars beyond the ones
-// prismjs' entry point bundles; importing `prismjs/components/*` here directly
-// would reintroduce the load-order crash its docs describe.
-import Prism, { loadPrismGrammars } from "./prism-global";
+import { highlightCode } from "./highlight";
 
-// Start the grammars loading now, and again from the renderer below — the
-// second call is what guarantees they are requested at all, since a bundler is
-// free to drop this one as a side effect of a module it thinks is pure.
-void loadPrismGrammars();
-
-// Configure marked once at module load with Prism.js syntax highlighting.
+// Configure marked once at module load with highlight.js syntax highlighting.
 // marked v17 removed the `highlight` option from setOptions, so highlighting
 // is wired via a custom `code` renderer instead.
 marked.use({
   renderer: {
     code({ text, lang }) {
-      void loadPrismGrammars();
-      const language = lang && Prism.languages[lang] ? lang : null;
-      const highlighted = language
-        ? Prism.highlight(text, Prism.languages[language], language)
-        : text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-      const cls = language ? ` class="language-${language}"` : "";
-      return `<pre><code${cls}>${highlighted}</code></pre>\n`;
+      const highlighted = lang ? highlightCode(text, lang) : null;
+      const body =
+        highlighted ??
+        text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      const cls = highlighted !== null ? ` class="language-${lang}"` : "";
+      return `<pre><code${cls}>${body}</code></pre>\n`;
     },
   },
 });

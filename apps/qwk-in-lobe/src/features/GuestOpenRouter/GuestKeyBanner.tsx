@@ -5,15 +5,13 @@ import { Button, Text } from '@lobehub/ui/base-ui';
 import { createStaticStyles } from 'antd-style';
 import { KeyRoundIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
 
+import { useServerConfigStore } from '@/store/serverConfig';
 import { useUserStore } from '@/store/user';
 import { authSelectors } from '@/store/user/selectors';
 
 import { createGuestKeyModal } from './createGuestKeyModal';
 import { guestOpenRouterSelectors, useGuestOpenRouterStore } from './store';
-
-export const GUEST_DEMO_PATH = '/demo';
 
 const styles = createStaticStyles(({ css, cssVar }) => ({
   banner: css`
@@ -26,19 +24,19 @@ const styles = createStaticStyles(({ css, cssVar }) => ({
 }));
 
 /**
- * There are no accounts, so everyone uses the one local user. Chatting needs an
- * OpenRouter key; this banner asks for one and points at the guest chat once it
- * is set.
+ * There are no accounts: each visitor is a guest user. Chatting needs an
+ * OpenRouter key unless the deployment has one; this banner asks for one and
+ * lets the visitor manage it once it is set. The chat itself is the home input
+ * below it.
  */
 const GuestKeyBanner = () => {
   const { t } = useTranslation('qwksearch');
-  const navigate = useNavigate();
   const isLoaded = useUserStore(authSelectors.isLoaded);
   const hasKey = useGuestOpenRouterStore(guestOpenRouterSelectors.hasKey);
+  const deploymentHasKey = useServerConfigStore((s) => !!s.serverConfig.hasServerOpenRouterKey);
 
-  if (!isLoaded) return null;
-
-  const openDemo = () => navigate(GUEST_DEMO_PATH);
+  // Nothing to ask for when the deployment's own key already answers chats.
+  if (!isLoaded || (deploymentHasKey && !hasKey)) return null;
 
   return (
     <Flexbox
@@ -55,16 +53,11 @@ const GuestKeyBanner = () => {
       </Flexbox>
       <Flexbox horizontal gap={8}>
         {hasKey ? (
-          <>
-            <Button size={'small'} onClick={() => createGuestKeyModal()}>
-              {t('guestKey.actions.manage')}
-            </Button>
-            <Button size={'small'} type={'primary'} onClick={openDemo}>
-              {t('guestKey.banner.open')}
-            </Button>
-          </>
+          <Button size={'small'} onClick={() => createGuestKeyModal()}>
+            {t('guestKey.actions.manage')}
+          </Button>
         ) : (
-          <Button size={'small'} type={'primary'} onClick={() => createGuestKeyModal(openDemo)}>
+          <Button size={'small'} type={'primary'} onClick={() => createGuestKeyModal()}>
             {t('guestKey.actions.add')}
           </Button>
         )}

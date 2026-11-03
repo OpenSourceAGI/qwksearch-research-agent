@@ -596,3 +596,60 @@ export const enterpriseRequests = sqliteTable(
     createdAtIdx: index("idx_enterprise_requests_createdAt").on(table.createdAt),
   }),
 );
+
+/**
+ * Site-wide control of the `/api/*` rate limiter, set from `/admin/rate-limit`.
+ *
+ * One row, `id = 'global'`, for the same reason as `news_widget_settings`: the
+ * in-memory config manager loses a value with the isolate, and a limit an admin
+ * tightened must stay tightened on every isolate. Read by `worker/index.ts`
+ * through `lib/rate-limit/api-settings.ts`, which caches it per isolate for a
+ * few seconds so the hot path does not pay a D1 read per request.
+ */
+export const apiRateLimitSettings = sqliteTable("api_rate_limit_settings", {
+  id: text("id").primaryKey(),
+  /** Master switch: off lets every API request through uncounted. */
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  /** Requests one client may make per window to any route without an override. */
+  requestsPerWindow: integer("requests_per_window").notNull().default(300),
+  windowSeconds: integer("window_seconds").notNull().default(60),
+  /**
+   * JSON array of `{ pattern, limit, windowSeconds }`. The first pattern that
+   * matches a path wins, and each override counts in its own bucket.
+   */
+  overrides: text("overrides").notNull().default("[]"),
+  /** Newline-separated path patterns that are never counted. */
+  exemptPaths: text("exempt_paths").notNull().default(""),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedBy: text("updated_by"),
+});
+
+export type ApiRateLimitSettingsRow = typeof apiRateLimitSettings.$inferSelect;
+
+/**
+ * Fixed-window request counters for the `/api/*` rate limiter, shared by every
+ * Worker isolate. One row per (client + rule, window): the limiter increments
+ * it with a single upsert and reads the new count back in the same statement,
+ * so two isolates counting the same client cannot both see room that is not
+ * there. Rows past `expires_at` are swept in the background.
+ */
+export const apiRateLimitCounters = sqliteTable(
+  "api_rate_limit_counters",
+  {
+    /** `<client ip>|<rule>` — the rule is `default` or an override's pattern. */
+    bucket: text("bucket").notNull(),
+    /** Unix seconds at which this window opened. */
+    windowStart: integer("window_start").notNull(),
+    count: integer("count").notNull().default(0),
+    /** Unix seconds at which this window closes; the sweep deletes on it. */
+    expiresAt: integer("expires_at").notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.bucket, table.windowStart] }),
+    expiresAtIdx: index("idx_api_rate_limit_counters_expires_at").on(table.expiresAt),
+  }),
+);
+
+export type ApiRateLimitCounterRow = typeof apiRateLimitCounters.$inferSelect;

@@ -7,11 +7,11 @@
  * of them the first message would fail with an invalid-key error, so the send
  * path asks for one up front instead.
  *
- * The main chat runs on the server and only reads the first two: a key that
- * lives only in this browser (saved before the database was reset, or when
- * copying it to the account failed) is invisible to it. So before a server
- * chat, a browser-only key is copied to the account, and if that cannot be
- * done the message goes to the browser-side guest chat instead of failing.
+ * The LobeHub chat runs on the server and only reads the first two: a key that
+ * lives only in this browser (saved before the database was reset, or under an
+ * earlier guest cookie) is invisible to it. So before a chat, a browser-only
+ * key is copied to the account; if that cannot be done the send is stopped
+ * with the draft kept, rather than sent to fail with an invalid-key error.
  */
 import { useAiInfraStore } from '@/store/aiInfra';
 import { aiProviderSelectors } from '@/store/aiInfra/selectors';
@@ -48,13 +48,13 @@ export const ensureOpenRouterKey = (): Promise<boolean> => {
 };
 
 /**
- * Where an OpenRouter chat from the home input should run:
- * - `server`: the main chat, which has a key it can read;
- * - `browser`: the guest chat, which calls OpenRouter from this page with the
- *   browser's key, because the server could not be given one;
+ * Whether an OpenRouter chat from the home input can go to the LobeHub chat:
+ * - `server`: it has a key it can read;
+ * - `failed`: a key exists only in this browser and copying it to the account
+ *   failed (usually the server is unreachable);
  * - `cancelled`: no key anywhere and the visitor closed the prompt.
  */
-export type OpenRouterChatRoute = 'browser' | 'cancelled' | 'server';
+export type OpenRouterChatRoute = 'cancelled' | 'failed' | 'server';
 
 const copyBrowserKeyToAccount = async (): Promise<OpenRouterChatRoute> => {
   const browserKey = useGuestOpenRouterStore.getState().apiKey;
@@ -65,7 +65,7 @@ const copyBrowserKeyToAccount = async (): Promise<OpenRouterChatRoute> => {
     await applyGuestKeyToAccount(browserKey);
   } catch (error) {
     console.error('[openrouter] Could not copy the browser key to the account:', error);
-    return 'browser';
+    return 'failed';
   }
   return 'server';
 };
@@ -78,14 +78,4 @@ export const resolveOpenRouterChatRoute = async (): Promise<OpenRouterChatRoute>
   // The form copies the key to the account itself; this only matters when that
   // copy failed and the key ended up in the browser alone.
   return copyBrowserKeyToAccount();
-};
-
-/**
- * Like `ensureOpenRouterKey`, but only a key held in this browser counts: the
- * guest chat calls OpenRouter straight from the page, so a server-side key is
- * no use to it.
- */
-export const ensureGuestKey = (): Promise<boolean> => {
-  if (useGuestOpenRouterStore.getState().apiKey) return Promise.resolve(true);
-  return promptForKey();
 };

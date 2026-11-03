@@ -79,5 +79,5 @@ the reply into `result.extract`.
 | --- | --- |
 | `extractJSONFromLanguageReply(reply)` | Pull a JSON object out of a fenced or prose-wrapped reply |
 | `convertMarkdownToHTMLEscaped(md)` / `markdownToHTML` | Markdown → escaped HTML (marked) |
-| `highlightCode`, `Prism` | Syntax highlighting used by the HTML output. Markup/CSS/C-like/JavaScript highlight immediately; the other grammars are registered asynchronously by `loadPrismGrammars()` (`src/utils/prism-global.ts`), so a block rendered in that first gap comes back unhighlighted rather than broken |
+| `highlightCode`, `hljs` | Syntax highlighting used by the HTML output, on highlight.js' core build (`src/utils/highlight.ts`). `highlightCode` returns `hljs-*` span HTML, or `null` for a language that is not registered; `hljs` is the shared instance, for registering more languages |
 | `getRewriteModes`, `saveRewriteModes`, `resetRewriteModes`, `DEFAULT_REWRITE_MODES` | The rewrite-mode presets (`src/rewrite-modes.ts`) |

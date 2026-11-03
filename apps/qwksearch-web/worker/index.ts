@@ -11,9 +11,15 @@ import handler from "vinext/server/app-router-entry";
 import { applyD1Bookmark, runWithD1Session } from "../lib/database/d1-session";
 import { handleTurnstileGate, type TurnstileEnv } from "../lib/turnstile";
 import { describeError, isSsrTraceEnabled, logSsrError, traceSsr } from "../lib/debug/ssr-trace";
+import { drizzle } from "drizzle-orm/d1";
+import type { QueryDB } from "../lib/database";
+import { enforceApiRateLimit } from "../lib/rate-limit/api-limiter";
 
 interface Env extends TurnstileEnv {
   ASSETS: Fetcher;
+  // D1 — here for the /api rate limiter, which runs before the framework and
+  // so cannot reach it through getDB(). See lib/rate-limit/api-limiter.ts.
+  DB?: D1Database;
   // See lib/database/d1-session.ts — "auto" (default), "primary",
   // "unconstrained" or "off". Settable as a plain Variable in the dashboard.
   D1_SESSION_MODE?: string;
@@ -80,6 +86,27 @@ export default {
         return gated;
       }
 
+      // The /api rate limiter: every route under /api is counted here, once,
+      // per client IP, against limits an admin sets at /admin/rate-limit
+      // (stored in D1, so every isolate enforces the same numbers). Exempt
+      // paths, the limiter's off switch and a missing DB binding all return
+      // null; so does any failure inside it — it fails open, never 500s.
+      // Runs after the Turnstile gate, which never touches /api anyway.
+      let decorateApiResponse: ((response: Response) => Response) | undefined;
+      if (env.DB && (url.pathname === "/api" || url.pathname.startsWith("/api/"))) {
+        const db = drizzle(env.DB as never) as unknown as QueryDB;
+        const limit = await enforceApiRateLimit(db, request, (p) => ctx.waitUntil(p));
+        if (limit?.limited) {
+          traceSsr("worker:rate-limited", {
+            path: url.pathname,
+            rule: limit.decision.rule.id,
+            limit: limit.decision.limit,
+          });
+          return limit.limited;
+        }
+        decorateApiResponse = limit?.decorate;
+      }
+
       // Image optimization via Cloudflare Images binding.
       // The parseImageParams validation inside handleImageOptimization
       // normalizes backslashes and validates the origin hasn't changed.
@@ -117,7 +144,10 @@ export default {
             contentType: response.headers.get("content-type") ?? undefined,
             ms: Date.now() - startedAt,
           });
-          const withBookmark = applyD1Bookmark(response, { debug: Boolean(env.D1_SESSION_DEBUG) });
+          const withBookmark = applyD1Bookmark(
+            decorateApiResponse ? decorateApiResponse(response) : response,
+            { debug: Boolean(env.D1_SESSION_DEBUG) },
+          );
           if (response.status >= 500) {
             reportServerError(request, url, response.status);
             return describeErrorResponseBody(withBookmark, url, ctx);
