@@ -1,5 +1,73 @@
 # MVP Phase (2026)
 
+## November 2026 — 25 commits so far
+
+- **API**
+  - Added OpenAI-compatible speech-to-text routes, `GET /api/v1/models` and `POST /api/v1/audio/transcriptions`, so Kilo (or any OpenAI-style client) can use `qwksearch.com/api/v1` as its transcription base URL. They take a QwkSearch API key as a Bearer token only, never a browser session, and log neither audio nor transcript. The transcription logic moved into a shared `transcribeAudio()` in `research-agent-ui`, so `/api/agent/transcript` keeps its contract.
+  - Rate-limited every `/api` route per client IP in `worker/index.ts`, so new routes are covered without opting in. Counters are fixed windows in D1 shared by every isolate; over the limit is a JSON 429 with `Retry-After`, and allowed responses carry `RateLimit-*` headers. It fails open on any D1 error.
+  - A new `/admin/rate-limit` page sets the on/off switch, default limit and window, per-route overrides and exempt paths (`/api/auth`, `/api/admin` and `/api/collaboration` by default), stored in D1 (migration 0014). It also lists the busiest clients and can reset counters.
+  - Updated and reorganized the OpenAPI spec in `qwksearch-api-client`: documented the 50 operations it was missing, regrouped 15 tags into 20 under six tag groups, and replaced the single "JWT" scheme with what the routes really check (API key, session cookie, Google Drive cookie). The regenerated client went from 85 to 135 functions with none removed, and a new drift test fails when a route and the spec disagree. The rate limit and its 429 are documented there too.
+- **Qwk in Lobe**
+  - The original LobeHub chat now runs from the QwkSearch homepage: a homepage send goes straight into LobeHub's own agent chat instead of the old `/demo` guest chat, which was removed. `openrouter/auto` is now marked as function-calling, so the first message carries every tool (web browsing, memory, skills, documents, plans, sub-agents) instead of zero.
+  - Every browser gets its own guest user through an HttpOnly `lobe_uid` cookie recorded in D1 (`lobe_users`, migration 0004), so chats, agents and provider keys no longer belong to one user shared by everyone.
+  - The homepage chat always shows the send button, and any typed text reaches OpenRouter.
+- **Renames**
+  - Renamed the `user-help-docs` package to `qwksearch-help-docs` everywhere it was still referenced: package name, workspace dependency, imports, tsconfig paths, Tailwind sources, vitest projects, coverage and codecov.
+  - Dropped the `ask-` prefix from all 30 agent skills and added a skill install line to every package README.
+- **Dependencies**
+  - Removed `prismjs` from every package. `extract-webpage` and `write-language` now highlight code with highlight.js core and an explicit list of 15 languages, so their built dists load in plain Node ESM. `write-language` exports `hljs` in place of `Prism`, and `highlightCode` keeps its signature.
+  - Kept `react-player` external in `reason-editor`, which fixed a "Duplicated export 'default'" failure in the web build.
+- **npm publishing**
+  - The publish workflow read every npm E403 as a broken credential and stopped, so nothing after `search-autocomplete` (whose name npm refuses) had published since. A name refusal now fails only that package.
+  - `research-agent-ui` now bundles `search-autocomplete` instead of depending on it, so a fresh install works.
+  - A package is held back only when npm lacks the exact version of a sibling it pins, not whenever a sibling failed to publish in the same run.
+- **Other**
+  - Removed leftover merge-conflict markers in the Learn planner and agent runtime.
+
+## October 2026 — 157 commits
+
+- **LobeChat engine in QwkSearch**
+  - Made the LobeChat chat engine the default for every `/api/agent/chat` focus mode, ported into `qwksearch-web` as `lib/lobe-engine` (context-engine pipeline and the agent runtime's call-model / run-tools loop).
+  - Chat now runs LobeChat's own web-browsing and calculator tools, prompts and MCP client, imported from the `qwk-in-lobe` source through aliases instead of copies.
+  - System prompts are sent as AI SDK 7 instructions.
+- **Qwk in Lobe**
+  - Runs as core LobeHub with OpenRouter as the default provider and the QwkSearch feature flag off by default.
+  - Removed sign-in and Better Auth entirely: every request runs as one local user, while API keys still authenticate as their owner. Along the way it gained guest sessions, a guest OpenRouter key entry that powers the main chat, and a demo account.
+  - Default models route through OpenRouter, with an end-to-end chat test through OpenRouter.
+  - Deploys to the live `lobe` Worker; Workers Builds no longer reuses a partial bun install cache, and `zod-openapi` was added so `next build` resolves.
+- **Sign in with QwkSearch**
+  - Sites that embed the research agent (debate-ai.com first) can sign users in through a small OAuth authorization-code + PKCE flow at `/connect`, instead of running only as a guest (#511, #516). AI Broker (autoinvestment.broker) joined the allowlist.
+- **Learn**
+  - New `education-playlists` package: self-paced study playlists seeded with 28 MIT OpenCourseWare courses in 11 preset playlists, with an AI planner that asks follow-up questions (#505).
+  - Playlists are stored server-side for signed-in users, with invites.
+  - Clicking a playlist item opens it in the article reader with suggested questions, and clicking a course opens a chat that extracts and summarizes it.
+- **Workspace & editor**
+  - Google Drive folders sync into the workspace file tree, with Google Docs in the editor and PDFs, Sheets and Slides in a PDF.js viewer.
+  - Added a Google Docs-style menu bar to the REASON editor with Harper spelling and grammar, and shadcn-style menubar dropdowns.
+  - A fresh Plate editor mounts per document, and the sidebar ships richer sample documents on first load.
+  - `research-agent-ui` exports a hostable workspace sidebar and its settings pages for embedders.
+- **New packages**
+  - `extract-cite`: citation extraction moved out of `extract-webpage`, plus `extractCiteLLM`, which completes missing APA fields with one LLM call. Its default entry dropped from ~900 kB to ~60 kB by loading the names database only on demand.
+  - `ads-in-chat-answers`: sponsored product carousels under answers, sponsored follow-ups, a relevance-first keyword auction and an advertiser panel.
+- **Extraction**
+  - `extract-youtube` gained a `download` entry over `cloud-ytdl` with MP3 audio and a hostable HTTP API (#515), and the pop-out player now sends a referrer so YouTube stops blocking it (#509).
+  - `extract-pdf` gained an admin panel with password login and global keys, a cancel button in the cite demo, and an instant warmup for the Docling Space.
+  - Each of `extract-youtube` and `extract-pdf` got its own docs and demo Worker, and the `extract-pdf` site ships on Vercel.
+  - Fixed TOC detection, timezone-stable dates and DOCX CSS, with new tests for date extraction, DOCX conversion and the main-content extractors.
+- **Apps**
+  - Merged the LeoTabs tab organizer into the QwkSearch browser extension.
+  - QwkSearch Desktop gained signed auto-updates with an "Update and restart" prompt.
+- **Homepage & performance**
+  - Lazy-loaded the chat thread and deferred the weather and news widgets until the browser is idle (#503); the Plate editor loads only when a document is opened, and homepage backgrounds come from a local cache.
+  - The enterprise request form is back on the homepage and now really submits, stored in a D1 table (migration 0013).
+  - Merged the product banner and demo video into one click-to-play player, and fit the footer links on one line.
+  - The page reloads once when a lazy workspace chunk 404s after a deploy.
+- **Reliability & ops**
+  - `/api/agent/voice` now uses Deepgram Aura through Workers AI on Cloudflare, where Kokoro could not load and every request returned 500.
+  - Trending news serves the archive before KV copies and recovers cleanly after failures.
+  - Turned on Workers observability (logs and traces) for every Worker.
+  - Restored the monorepo root `package.json` (#510, #513), dropped a root `.vercelignore` that stripped source from every Vercel build (#514), and regenerated `bun.lock` so frozen installs pass.
+
 ## September 2026 — 72 commits
 
 - **LobeHub core engine** — the biggest bet this cycle: a Cloudflare Workers port of the lobe-chat monorepo as the future core engine for chat and settings, with QwkSearch's homepage, article extraction, and REASON docs layered on top. It landed in stages:
