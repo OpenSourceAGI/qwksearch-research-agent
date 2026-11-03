@@ -16,7 +16,6 @@ const ArticleAIResponse: React.FC<ArticleAIResponseProps> = ({
 }) => {
   const highlightCodeSyntax = (element: HTMLDivElement | null) => {
     if (!element) return;
-    // This would integrate with prismjs if needed
   };
 
   return (

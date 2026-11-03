@@ -1,6 +1,6 @@
 ---
 title: Markdown to HTML
-description: Render model replies as HTML with Prism.js syntax highlighting.
+description: Render model replies as HTML with highlight.js syntax highlighting.
 icon: Code
 ---
 
@@ -22,8 +22,8 @@ const html = await convertMarkdownToHTMLEscaped('# Hello\n\n```js\nconsole.log("
   escape their Markdown.
 - Parses GitHub-flavored Markdown with line breaks preserved, using
   [marked](https://marked.js.org).
-- Highlights fenced code blocks with Prism.js. Unknown languages are HTML-escaped as plain
-  text.
+- Highlights fenced code blocks with [highlight.js](https://highlightjs.org). Unknown
+  languages are HTML-escaped as plain text.
 - Wraps each code block in a `figure.code-block` with a **Copy** button that works even inside
   `dangerouslySetInnerHTML`.
 
@@ -36,8 +36,8 @@ The output looks like this:
 </figure>
 ```
 
-Prism emits `token` spans but no colors, so include a Prism theme stylesheet and style
-`.code-copy-btn` to taste.
+highlight.js emits `hljs-*` spans but no colors, so include a highlight.js theme stylesheet
+(for example `highlight.js/styles/github-dark.css`) and style `.code-copy-btn` to taste.
 
 <Callout type="warn">
   The output is not sanitized. Run it through a sanitizer such as DOMPurify before rendering
@@ -47,8 +47,8 @@ Prism emits `token` spans but no colors, so include a Prism theme stylesheet and
 ## Highlight code directly
 
 ```ts
-import { highlightCode, Prism } from 'write-language';
+import { highlightCode, hljs } from 'write-language';
 
 highlightCode('const x = 1;', 'javascript'); // HTML string, or null if the language is unknown
-Prism.languages; // the shared Prism instance and its loaded grammars
+hljs.listLanguages(); // the shared highlight.js instance and its registered languages
 ```

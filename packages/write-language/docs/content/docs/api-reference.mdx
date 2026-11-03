@@ -20,7 +20,7 @@ import {
   convertMarkdownToHTMLEscaped,
   markdownToHTML,
   highlightCode,
-  Prism,
+  hljs,
 } from 'write-language';
 ```
 
@@ -142,7 +142,7 @@ See [Model registry](/docs/models) for the full catalog.
 | `convertMarkdownToHTMLEscaped` | `(markdown: string) => Promise<string>` |
 | `markdownToHTML` | alias of `convertMarkdownToHTMLEscaped` |
 | `highlightCode` | `(code: string, lang: string) => string \| null` |
-| `Prism` | the shared Prism.js instance |
+| `hljs` | the shared highlight.js core instance |
 
 See [Markdown to HTML](/docs/markdown).
 

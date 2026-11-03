@@ -39,4 +39,4 @@ export {
 export type { ModelCapability, ModelInfo } from "./language-model-registry";
 export { createLLMProvider } from "./provider-factory";
 export { convertMarkdownToHTMLEscaped as markdownToHTML } from "./utils/markdown-to-html";
-export { highlightCode, Prism } from "./utils/prism";
+export { highlightCode, hljs } from "./utils/highlight";

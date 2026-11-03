@@ -171,7 +171,6 @@
         "next-themes": "^0.4.6",
         "onnxruntime-web": "^1.29.0",
         "prettier": "^3.9.6",
-        "prismjs": "^1.30.0",
         "prosemirror-docx": "^0.6.1",
         "quantum-sphere-loading-icon": "^1.0.3",
         "qwksearch-api-client": "workspace:*",
@@ -280,7 +279,6 @@
         "html-entities": "^2.6.0",
         "manage-storage": "^0.0.47",
         "marked": "^18.0.12",
-        "prismjs": "^1.30.0",
         "qwksearch-api-client": "workspace:*",
         "write-language": "^0.1.153",
         "zod": "^4.5.4",
@@ -455,6 +453,7 @@
         "extract-cite": "workspace:*",
         "extract-pdf": "workspace:*",
         "extract-youtube": "workspace:*",
+        "highlight.js": "^11.12.0",
         "html-entities": "^2.6.0",
         "js-yaml": "^5.4.1",
         "jsdom": "^30.0.1",
@@ -463,7 +462,6 @@
         "marked": "^18.0.12",
         "marked-highlight": "^2.2.4",
         "node-fetch": "^3.3.2",
-        "prismjs": "^1.30.0",
         "qwksearch-api-client": "^0.9.225",
         "zod": "^4.5.4",
       },
@@ -1343,9 +1341,9 @@
         "@ai-sdk/xai": "^4.0.55",
         "@openrouter/ai-sdk-provider": "^3.0.0",
         "ai": "^7.0.94",
+        "highlight.js": "^11.12.0",
         "html-entities": "^2.6.0",
         "marked": "^18.0.12",
-        "prismjs": "^1.30.0",
         "qwksearch-api-client": "^0.9.225",
       },
       "devDependencies": {
@@ -6174,8 +6172,6 @@
     "pretty-format": ["pretty-format@30.5.1", "", { "dependencies": { "@jest/react-is-18": "npm:react-is@^18.3.1", "@jest/react-is-19": "npm:react-is@^19.2.5", "@jest/schemas": "30.5.0", "ansi-styles": "^5.2.0" } }, "sha512-byhRAPguVKMQIj4kjJwJ5lAskVhfuiSdiYl/aLTWpgkGEmic2jYhJh1yE9ih8Ox44Xg9ccCT11/S6QrzSJuNrg=="],
 
     "pretty-ms": ["pretty-ms@9.3.0", "", { "dependencies": { "parse-ms": "^4.0.0" } }, "sha512-gjVS5hOP+M3wMm5nmNOucbIrqudzs9v/57bWRHQWLYklXqoXKrVfYW2W9+glfGsqtPgpiz5WwyEEB+ksXIx3gQ=="],
-
-    "prismjs": ["prismjs@1.30.0", "", {}, "sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw=="],
 
     "probe-image-size": ["probe-image-size@7.3.0", "", { "dependencies": { "lodash.merge": "^4.6.2", "needle": "^2.5.2", "stream-parser": "~0.3.1" } }, "sha512-7CaDeBwiAbh6ohXsvLbAZhO7wzsZAmaevfxe39qvCwRh8LyaZfDlBGGLU1CCTgrTLtCOdwBBhjOrIHaIIimHfQ=="],
 

@@ -33,14 +33,13 @@ The entire job is parsing pages written by someone else:
 - It also ships as an optional peer of `grab-url` in the sibling GRAB-URL repo
   (behind `grab-url --page`) — it must stay importable without dragging the
   whole app in.
-- **Never `import "prismjs/components/…"`.** Those files read `Prism` off the
-  global object, and nothing in the module graph pins them after whoever
-  publishes it — a bundler that reorders or drops that publication turns the
-  whole chunk into `ReferenceError: Prism is not defined` at load, which is how
-  an embedding app's entire route dies over syntax highlighting. Grammars are
-  loaded through `loadPrismGrammars()` in
-  `src/html-to-content/prism-global.ts`; read the docs at the top of that file
-  before you change it.
+- **Code blocks are highlighted with highlight.js' core build**, in
+  `src/html-to-content/highlight.ts`. Register a new language there with an
+  explicit `highlight.js/lib/languages/*` import — never import the
+  `highlight.js` root, which bundles all ~190 grammars into every Worker that
+  pulls this package in. Do not bring back `prismjs`: its grammar files read
+  `Prism` off the global object, which is how an embedding app's whole route
+  once died with `ReferenceError: Prism is not defined`.
 
 ```bash
 cd packages/extract-webpage && bun run test

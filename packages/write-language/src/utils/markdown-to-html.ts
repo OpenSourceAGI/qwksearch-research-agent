@@ -1,9 +1,9 @@
 /**
  * @module research/agents/markdown-to-html
- * @description Converts Markdown to HTML with Prism.js syntax highlighting.
+ * @description Converts Markdown to HTML with highlight.js syntax highlighting.
  */
 import { marked } from "marked";
-import { highlightCode } from "./prism";
+import { highlightCode } from "./highlight";
 import { encode, decode } from "html-entities";
 
 // Inline onclick: self-contained per button, works in dangerouslySetInnerHTML contexts
@@ -40,7 +40,7 @@ marked.use({
 });
 
 /**
- * Convert markdown text to HTML with Prism.js syntax highlighting.
+ * Convert markdown text to HTML with highlight.js syntax highlighting.
  * Unescapes HTML entities like `&amp;` → `&`.
  */
 export async function convertMarkdownToHTMLEscaped(

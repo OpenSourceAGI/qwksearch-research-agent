@@ -498,7 +498,7 @@ writes nothing — are checked without spending a Worker build.
   workerd, and `extract-webpage` parses every page with it; LobeHub only reached it from the
   dev-server template rewriter, which is why it used to be stubbed. `worker/shims/linkedom.ts`
   is deleted. Cost: the Worker bundle goes from 7.39 MB to 7.93 MB gzipped against Cloudflare's
-  10 MB limit (linkedom, plus the Prism grammars `extract-webpage` uses to highlight code blocks).
+  10 MB limit (linkedom, plus the grammars `extract-webpage` uses to highlight code blocks, now highlight.js core instead of Prism).
 
 Everything under `worker/`, `src/features/QwkSearch/`, `src/features/Settings/extraction/` and
 `src/features/Settings/search/` is new.
