@@ -181,9 +181,10 @@ bun run build:worker
 #     over the limit. `WORKER_BUDGET_MB` / `WORKER_BUDGET_WARN_MB` override.
 bun run cf:budget
 
-# 3. D1 tables (every migrations/d1 file, idempotent; safe on the existing
-#    qwksearch-new database). 0004 adds `lobe_users`.
-bun run cf:d1:migrate              # remote
+# 3. D1 tables (every migrations/d1 file, idempotent, safe to re-run).
+#    0004 adds `lobe_users`. Each Worker has its own D1 database:
+bun run cf:d1:migrate              # remote `qwk-in-lobe-db` (Worker `lobe`)
+bun run cf:d1:migrate:production   # remote `qwksearch-new` (Worker `lobe-production`)
 bun run cf:d1:migrate:dev          # local wrangler dev
 
 # 4. Deploy
