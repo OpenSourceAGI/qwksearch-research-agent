@@ -247,4 +247,29 @@ describe('<TrendingNews />', () => {
     expect(root.className).toBe('my-widget');
     expect(root.style.background).toBe('red');
   });
+
+  it('labels a hckrnews list and shows points and comments', async () => {
+    vi.spyOn(trendingApi, 'getTrendingNews').mockResolvedValue({
+      date: '2026-11-04',
+      source: 'hckrnews',
+      topics: [
+        {
+          topic: 'github.com',
+          newsCount: 1,
+          articles: [{ title: 'Show HN: a thing', url: 'https://github.com/x', points: 120, comments: 1, imageUrl: 'https://github.com/og.png' }],
+        },
+        {
+          topic: 'github.com',
+          newsCount: 1,
+          articles: [{ title: 'Another repo', url: 'https://github.com/y', points: 1, comments: 0 }],
+        },
+      ],
+    });
+
+    render(<TrendingNews apiEndpoint={ENDPOINT} source="hckrnews" compact />);
+
+    expect(await screen.findByText('Hacker News')).toBeTruthy();
+    expect(screen.getByText('120 points · 1 comment')).toBeTruthy();
+    expect(screen.getByText('1 point · 0 comments')).toBeTruthy();
+  });
 });

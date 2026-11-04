@@ -166,6 +166,7 @@ export default function ChatHomepage() {
   const [trendingNewsMaxTopics, setTrendingNewsMaxTopics] = useState<number | null>(null);
   const [trendingNewsShowImages, setTrendingNewsShowImages] = useState<boolean | null>(null);
   const [trendingNewsCustomTopics, setTrendingNewsCustomTopics] = useState<string[]>([]);
+  const [trendingNewsSource, setTrendingNewsSource] = useState<'trending' | 'hckrnews'>('trending');
   const [newsSiteSettings, setNewsSiteSettings] = useState<NewsSiteSettings | null>(null);
   const [showEducationWidget, setShowEducationWidget] = useState(true);
   // The weather and news widgets (their chunks and their API calls) wait until
@@ -235,6 +236,7 @@ export default function ChatHomepage() {
       const showImages = localStorage.getItem('trendingNewsShowImages');
       setTrendingNewsShowImages(showImages === null ? null : showImages !== 'false');
       setTrendingNewsCustomTopics(parseCustomTopics(localStorage.getItem('trendingNewsCustomTopics')));
+      setTrendingNewsSource(localStorage.getItem('trendingNewsSource') === 'hckrnews' ? 'hckrnews' : 'trending');
       setShowEducationWidget(localStorage.getItem('showEducationPlaylistsWidget') !== 'false');
       setOrbHoverGlow(localStorage.getItem('orbHoverGlow') === 'true');
       setCursorGlowTrail(localStorage.getItem('cursorGlowTrail') === 'true');
@@ -482,6 +484,7 @@ export default function ChatHomepage() {
                       showImages={newsShowImages}
                       apiEndpoint={trendingNewsEndpoint}
                       topics={newsTopics}
+                      source={trendingNewsSource}
                       limit={TRENDING_NEWS_EXPANDED_TOPICS}
                       className="rounded-2xl w-full"
                       style={{

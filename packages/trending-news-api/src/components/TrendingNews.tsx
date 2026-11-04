@@ -177,6 +177,27 @@ function Thumb({ sources, style }: { sources: Array<string | undefined>; style: 
   );
 }
 
+/**
+ * The small grey line under a topic: Hacker News points and comments for a
+ * hckrnews story, otherwise how many articles matched the topic.
+ */
+function topicMeta(topic: TrendingTopic): string {
+  const lead = topic.articles[0];
+  if (lead && (lead.points !== undefined || lead.comments !== undefined)) {
+    const parts: string[] = [];
+    if (lead.points !== undefined) parts.push(`${lead.points} point${lead.points === 1 ? '' : 's'}`);
+    if (lead.comments !== undefined) parts.push(`${lead.comments} comment${lead.comments === 1 ? '' : 's'}`);
+    return parts.join(' · ');
+  }
+  return `${topic.newsCount} article${topic.newsCount === 1 ? '' : 's'}`;
+}
+
+function defaultHeading(source: string | undefined): string {
+  if (source === 'hckrnews') return 'Hacker News';
+  if (source === 'custom_topics') return 'Your Topics';
+  return 'Trending';
+}
+
 function ArticleLine({ article, showImage }: { article: TrendingTopic['articles'][number]; showImage?: boolean }) {
   return (
     <div style={{ ...styles.article, ...(showImage && article.imageUrl ? styles.fullTopicWithThumb : {}) }}>
@@ -190,6 +211,17 @@ function ArticleLine({ article, showImage }: { article: TrendingTopic['articles'
           article.title
         )}
         {article.source && <span style={{ opacity: 0.6 }}> &middot; {article.source}</span>}
+        {article.discussionUrl && (
+          <a
+            href={article.discussionUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={{ ...styles.articleLink, opacity: 0.6 }}
+          >
+            {' '}
+            &middot; {article.comments ?? 0} comment{article.comments === 1 ? '' : 's'}
+          </a>
+        )}
       </div>
     </div>
   );
@@ -200,9 +232,7 @@ function TopicArticleList({ topic, showImages }: { topic: TrendingTopic; showIma
     <div style={styles.fullTopic}>
       <div style={styles.fullTopicHeader}>
         <strong>{topic.topic}</strong>
-        <span style={styles.count}>
-          {topic.newsCount} article{topic.newsCount === 1 ? '' : 's'}
-        </span>
+        <span style={styles.count}>{topicMeta(topic)}</span>
       </div>
       {topic.articles.length === 0 ? (
         <div style={{ ...styles.article, opacity: 0.6 }}>No headlines right now.</div>
@@ -264,7 +294,7 @@ export function TrendingNews(props: Props) {
       <div className={className} style={{ ...styles.compactRoot, ...style }}>
         <div style={styles.compactHeaderRow}>
           <div style={styles.compactHeader}>
-            {heading ?? (data.source === 'custom_topics' ? 'Your Topics' : 'Trending')}
+            {heading ?? defaultHeading(data.source)}
           </div>
           {expandable && (
             <button
@@ -281,13 +311,13 @@ export function TrendingNews(props: Props) {
 
         {showExpanded ? (
           <div style={styles.expandedList}>
-            {expandedTopics.map((topic) => (
-              <TopicArticleList key={topic.topic} topic={topic} showImages={showImages} />
+            {expandedTopics.map((topic, i) => (
+              <TopicArticleList key={`${topic.topic}-${i}`} topic={topic} showImages={showImages} />
             ))}
           </div>
         ) : (
           <div style={styles.topicRow}>
-            {topics.map((topic) => {
+            {topics.map((topic, i) => {
               const lead = topic.articles[0];
               // Every headline's image, lead first: if the lead's fails the card
               // moves on to the next, then to the last one that loaded.
@@ -299,7 +329,7 @@ export function TrendingNews(props: Props) {
                 ? ({ href: lead.url, target: '_blank', rel: 'noreferrer' } as const)
                 : {};
               return (
-                <Card key={topic.topic} {...linkProps} style={styles.topicCard}>
+                <Card key={`${topic.topic}-${i}`} {...linkProps} style={styles.topicCard}>
                   {thumbs.length > 0 && <Thumb sources={thumbs} style={styles.topicThumb} />}
                   <div style={styles.topicCardBody}>
                     <div style={styles.topicName}>{topic.topic}</div>
@@ -308,9 +338,7 @@ export function TrendingNews(props: Props) {
                     ) : (
                       <div style={{ ...styles.headline, opacity: 0.5 }}>No headlines right now.</div>
                     )}
-                    <div style={styles.count}>
-                      {topic.newsCount} article{topic.newsCount === 1 ? '' : 's'}
-                    </div>
+                    <div style={styles.count}>{topicMeta(topic)}</div>
                   </div>
                 </Card>
               );
@@ -323,8 +351,8 @@ export function TrendingNews(props: Props) {
 
   return (
     <div className={className} style={{ ...styles.root, ...styles.list, ...style }}>
-      {topics.map((topic) => (
-        <TopicArticleList key={topic.topic} topic={topic} showImages={showImages} />
+      {topics.map((topic, i) => (
+        <TopicArticleList key={`${topic.topic}-${i}`} topic={topic} showImages={showImages} />
       ))}
     </div>
   );

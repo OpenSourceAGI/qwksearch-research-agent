@@ -11,6 +11,9 @@ type WorkerArticle = {
   source?: string;
   published_at?: string;
   image_url?: string;
+  points?: number;
+  comments?: number;
+  discussion_url?: string;
 };
 
 type WorkerTopic = {
@@ -42,6 +45,9 @@ function mapArticles(articles: WorkerArticle[] = []): NewsArticle[] {
     source: a.source,
     publishedAt: a.published_at,
     imageUrl: a.image_url,
+    points: a.points,
+    comments: a.comments,
+    discussionUrl: a.discussion_url,
   }));
 }
 
@@ -68,8 +74,18 @@ function cleanTopics(topics: string[] | undefined): string[] {
   return (topics ?? []).map((t) => t.trim()).filter(Boolean);
 }
 
+function isHckrNews(options: TrendingNewsOptions): boolean {
+  return options.source === 'hckrnews';
+}
+
 function buildUrl(apiEndpoint: string, options: TrendingNewsOptions) {
   const url = resolveEndpoint(apiEndpoint);
+  // hckrnews.com is its own list: no topics, just how many stories to keep.
+  if (isHckrNews(options)) {
+    url.searchParams.set('source', 'hckrnews');
+    if (options.limit) url.searchParams.set('limit', String(options.limit));
+    return url.toString();
+  }
   if (options.topic) url.searchParams.set('topic', options.topic);
 
   const topics = options.topic ? [] : cleanTopics(options.topics);
@@ -155,8 +171,11 @@ export async function getTrendingNews(options: TrendingNewsOptions): Promise<Tre
   // local copy would pin the first draw for a day and a page refresh would show
   // the same news. Skip the fresh read for it (the stale fallback below still
   // covers a failed request); a named topic list is stable and keeps its cache.
-  const randomised = !options.topic && cleanTopics(options.topics).length === 0;
-  const cached = randomised ? null : readCachedTrendingNews<WorkerTopicsResponse>(url);
+  // The Hacker News front page turns over within the hour, so a day-old local
+  // copy is not news either; it too only uses the cache as a fallback.
+  const skipFresh =
+    isHckrNews(options) || (!options.topic && cleanTopics(options.topics).length === 0);
+  const cached = skipFresh ? null : readCachedTrendingNews<WorkerTopicsResponse>(url);
   if (cached) return mapTopicsResponse(cached, options);
 
   const { data, stale } = await fetchJson(url, url);
@@ -181,7 +200,8 @@ function mapTopicsResponse(
 ): TrendingNewsData {
   // A custom topic list is exactly what the caller asked for, so it is never
   // truncated — only the daily ranking is.
-  const limit = cleanTopics(options.topics).length > 0 ? Infinity : (options.limit ?? 25);
+  const limit =
+    !isHckrNews(options) && cleanTopics(options.topics).length > 0 ? Infinity : (options.limit ?? 25);
   return {
     date: data.date,
     source: data.source,

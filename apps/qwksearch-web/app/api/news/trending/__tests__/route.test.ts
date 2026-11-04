@@ -617,3 +617,57 @@ describe('GET /api/news/trending — surviving an upstream 502', () => {
     expect(response.status).toBe(502)
   })
 })
+
+describe('GET /api/news/trending — source=hckrnews', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    siteSettings()
+  })
+
+  const hckr = {
+    source: 'hckrnews',
+    date: '2026-11-04',
+    topics: [
+      {
+        topic: 'github.com',
+        news_count: 1,
+        articles: [{ title: 'A', url: 'https://github.com/a', image_url: 'https://github.com/og.png', points: 5 }],
+      },
+    ],
+  }
+
+  it('serves hckrnews headlines without a News API key and caches them', async () => {
+    const kv = fakeKV()
+    stubEnv({ KV: kv })
+    upstream(hckr)
+
+    const first = await GET(request('?source=hckrnews&limit=10'))
+    expect(first.status).toBe(200)
+    expect((await first.json()).source).toBe('hckrnews')
+    const [req, opts] = mockHandle.mock.calls[0]
+    expect(new URL((req as Request).url).searchParams.get('source')).toBe('hckrnews')
+    expect((opts as { apiKey?: string }).apiKey).toBeUndefined()
+    // Not archived: the D1 table is keyed by topic.
+    expect(mockStore).not.toHaveBeenCalled()
+
+    const second = await GET(request('?source=hckrnews&limit=10'))
+    expect(second.headers.get('X-Trending-News-Cache')).toBe('HIT')
+    expect(mockHandle).toHaveBeenCalledTimes(1)
+  })
+
+  it('falls back to the last good copy when hckrnews.com fails', async () => {
+    const kv = fakeKV()
+    stubEnv({ KV: kv })
+    upstream(hckr)
+    await GET(request('?source=hckrnews'))
+    // Expire the primary entry, keep the last-good copy.
+    for (const key of [...kv.store.keys()]) if (!key.includes('last-good')) kv.store.delete(key)
+
+    upstream({ error: 'Failed to fetch hckrnews.com headlines' }, 502)
+    const res = await GET(request('?source=hckrnews'))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.stale).toBe(true)
+    expect(body.topics).toHaveLength(1)
+  })
+})
