@@ -83,6 +83,18 @@ message lists) is covered on D1 by `bun run test:d1`. The rest of the model suit
 (`TEST_DB_DRIVER=d1`); what fails there is Postgres-only: vector similarity (RAG, memory search),
 full-text search, `DISTINCT ON` / `LATERAL` queries and row-lock races. Those features error on D1.
 
+The whole homepage chat also runs end to end on a local D1 Worker (`wrangler dev --local`, migrations
+0001-0006, no Postgres): a guest types on `/`, the message goes to `/webapi/chat/openrouter` with every
+tool, the reply streams back, and the topic and both messages are in D1 after a reload.
+
+**`KEY_VAULTS_SECRET` on D1 is optional.** Without it LobeHub refuses to open its database and every
+tRPC call answers UNAUTHORIZED. When it is unset, the D1 Worker generates one 256-bit secret, keeps it
+in `lobe_instance_secrets` (migration 0006; the Worker also creates the table) and uses it for
+every isolate (`worker/cf/keyVaultsSecret.ts`). A `KEY_VAULTS_SECRET` Worker secret always wins;
+setting one later makes provider keys saved under the generated secret unreadable (visitors re-enter
+them). The generated secret sits next to the data it encrypts, so set the Worker secret if keys must
+be protected from someone who can read D1.
+
 D1 also holds the **QwkSearch-specific tables** (`articleCache`, `articleQA`, `favorites`,
 `documents`, `research_quotes`, `share_tokens`, `google_docs_sync`) and **Lobe's users**
 (`lobe_users`, see below). The `lobe-production` Worker still keeps LobeHub on Postgres.
@@ -282,8 +294,9 @@ workspace entry nor its scripts are kept.
 
 Bindings are declared in `wrangler.jsonc` (identical IDs to `apps/qwksearch-web/wrangler.jsonc` for
 KV and D1). The `lobe` Worker keeps LobeHub's data in D1 (`DATABASE_DRIVER=d1`) and needs no
-`DATABASE_URL`: run `bun run cf:d1:migrate`, set `KEY_VAULTS_SECRET` and `OPENROUTER_API_KEY`, and
-deploy. For `lobe-production`, Postgres comes from the `DATABASE_URL` secret, read by the Neon
+`DATABASE_URL`: run `bun run cf:d1:migrate`, set `OPENROUTER_API_KEY` (and optionally
+`KEY_VAULTS_SECRET`, see above), and deploy. Without `OPENROUTER_API_KEY` each visitor is asked for
+their own OpenRouter key before their first message. For `lobe-production`, Postgres comes from the `DATABASE_URL` secret, read by the Neon
 serverless driver (`DATABASE_DRIVER=neon`). To pool through Hyperdrive instead, create a config and add the binding
 with the id it prints — a placeholder id is not deployable, wrangler rejects the whole upload, so
 the binding is left out until there is a real config behind it:
@@ -315,7 +328,7 @@ Secrets take effect immediately; no redeploy is needed.
 
 | Secret | Purpose |
 | --- | --- |
-| `KEY_VAULTS_SECRET` | encrypts stored provider keys (`openssl rand -base64 32`) |
+| `KEY_VAULTS_SECRET` | encrypts stored provider keys (`openssl rand -base64 32`); on D1 a generated one is used when unset |
 | `DATABASE_URL` | the Postgres connection (e.g. Neon URL, `DATABASE_DRIVER=neon`); not used with `DATABASE_DRIVER=d1`, optional when a `HYPERDRIVE` binding is bound |
 | `S3_*` | uploads — point at the `qwksearch-uploads` R2 bucket via its S3 API |
 | `TAVILY_API_KEY`, `SCRAPER_API_KEY` | article extraction fallbacks |

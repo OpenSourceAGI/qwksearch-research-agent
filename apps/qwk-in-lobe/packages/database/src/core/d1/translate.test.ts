@@ -34,6 +34,32 @@ describe('translateSQL', () => {
     expect(out).not.toMatch(/for update/i);
   });
 
+  it('unwraps the parenthesized members of a compound select', () => {
+    expect(
+      translateSQL(
+        '((select "id" from "topics" where false) union all (select "id" from "documents" where "a" = $1)) union all (select "id" from "tasks") order by updated_at desc limit $2',
+      ),
+    ).toBe(
+      'select * from (select * from (select "id" from "topics" where false) union all select * from (select "id" from "lobe_documents" where "a" = ?1)) union all select * from (select "id" from "tasks") order by updated_at desc limit ?2',
+    );
+  });
+
+  it('turns select distinct on into a row_number() window keeping row 1', () => {
+    expect(
+      translateSQL(
+        'select distinct on ("messages"."topic_id") "topic_id", left("content", $1) from "messages" where "messages"."role" = $2 order by "messages"."topic_id", "messages"."created_at" desc limit $3',
+      ),
+    ).toBe(
+      'select * from (select "topic_id", substr("content", 1, ?1), row_number() over (partition by "messages"."topic_id" order by "messages"."topic_id", "messages"."created_at" desc) as "__d1_rn" from "messages" where "messages"."role" = ?2) as "__d1_distinct" where "__d1_rn" = 1 limit ?3',
+    );
+  });
+
+  it('leaves subqueries next to a compound operator alone', () => {
+    expect(
+      translateSQL('select 1 from "t" where "id" in (select "id" from "u") union select 2'),
+    ).toBe('select 1 from "t" where "id" in (select "id" from "u") union select 2');
+  });
+
   it('rewrites = any($n) into a json_each lookup', () => {
     expect(translateSQL('select 1 from "t" where "id" = any($1)')).toBe(
       'select 1 from "t" where "id" in (select value from json_each(?1))',

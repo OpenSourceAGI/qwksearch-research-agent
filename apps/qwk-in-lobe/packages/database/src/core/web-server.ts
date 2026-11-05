@@ -28,7 +28,9 @@ export const getDBInstance = (): LobeChatDatabase => {
   // In test environment, return a mock instance to avoid initialization errors
   if (process.env.NODE_ENV === 'test') return {} as LobeChatDatabase;
 
-  if (!serverDBEnv.KEY_VAULTS_SECRET) {
+  // `process.env` too: on the D1 Worker the secret can be published after this
+  // module captured its config (worker/cf/keyVaultsSecret.ts).
+  if (!serverDBEnv.KEY_VAULTS_SECRET && !process.env.KEY_VAULTS_SECRET) {
     throw new Error(
       ` \`KEY_VAULTS_SECRET\` is not set, please set it in your environment variables.
 

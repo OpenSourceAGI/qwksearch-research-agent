@@ -50,9 +50,13 @@ const HomeHeader = memo<HomeHeaderProps>(({ centered }) => {
   const isLogin = useUserStore(authSelectors.isLogin);
 
   const greetingKey = getGreetingKey(new Date().getHours());
-  const greeting = isLogin
-    ? t(`dashboard.greeting.${greetingKey}`, { name: displayName })
-    : t(`dashboard.greeting.${greetingKey}Guest`);
+  // Guests are signed in as far as the store is concerned but have no name, so
+  // the named form would read "Good evening, ." for them.
+  const name = displayName?.trim();
+  const greeting =
+    isLogin && name
+      ? t(`dashboard.greeting.${greetingKey}`, { name })
+      : t(`dashboard.greeting.${greetingKey}Guest`);
 
   return (
     // Minimal mode keeps the full layout's stacking order — the switcher names

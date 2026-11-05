@@ -12,6 +12,10 @@
  * - `left(s, n)` → `substr(s, 1, n)`, `to_jsonb(x)` → `json_quote(x)`,
  *   `jsonb_strip_nulls(x)` → `x`
  * - `jsonb_array_elements[_text](x) AS t[(col)]` → `json_each(x) AS t`
+ * - `(select …) union all (select …)` → `select * from (select …) union all select * from (select …)`:
+ *   drizzle parenthesizes every member of a compound select, which SQLite rejects
+ * - `select distinct on (k) … order by k, x desc` (drizzle's `selectDistinctOn`) → a
+ *   `row_number() over (partition by k order by k, x desc)` subquery keeping row 1
  */
 
 type TokenType =
@@ -426,8 +430,120 @@ const rewriteOperators = (tokens: Token[]): Token[] => {
   return tokens;
 };
 
-export const rewritePgExpressions = (src: string): string => {
+const COMPOUND_WORDS = new Set(['except', 'intersect', 'union']);
+
+const isWord = (t: Token | undefined, words: Set<string>) =>
+  t?.type === 'word' && words.has(t.text.toLowerCase());
+
+/** Whether the token at `i` ends a compound operator (`union`, `union all`, …). */
+const endsCompoundOperator = (tokens: Token[], i: number): boolean => {
+  if (isWord(tokens[i], COMPOUND_WORDS)) return true;
+  if (!isWord(tokens[i], new Set(['all', 'distinct']))) return false;
+  return isWord(tokens[prevIndex(tokens, i)], COMPOUND_WORDS);
+};
+
+/**
+ * Postgres accepts `(select …) union all (select …)`; SQLite allows no
+ * parentheses around a compound member. Each parenthesized member becomes
+ * `select * from (…)`, which SQLite does accept and which keeps a member's own
+ * ORDER BY / LIMIT (or a nested compound) inside its subquery. Only a group
+ * that stands where a member can stand is touched: at the start of the
+ * statement or of another group, or right after a compound operator — never a
+ * subquery operand like `x in (select …)`.
+ */
+const rewriteCompoundMembers = (tokens: Token[]): Token[] => {
+  const members: number[] = [];
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i].type !== 'lp') continue;
+
+    const first = tokens[nextIndex(tokens, i)];
+    if (!(first?.type === 'lp' || isWord(first, new Set(['select'])))) continue;
+
+    const prev = prevIndex(tokens, i);
+    const afterOperator = prev >= 0 && endsCompoundOperator(tokens, prev);
+    const atGroupStart = prev < 0 || tokens[prev].type === 'lp';
+    if (!afterOperator && !atGroupStart) continue;
+
+    const rp = matchForward(tokens, i);
+    if (rp < 0) continue;
+    const beforeOperator = isWord(tokens[nextIndex(tokens, rp)], COMPOUND_WORDS);
+    if (afterOperator || beforeOperator) members.push(i);
+  }
+
+  if (members.length === 0) return tokens;
+  const out = [...tokens];
+  for (const i of members.reverse()) out.splice(i, 0, { text: 'select * from ', type: 'raw' });
+  return out;
+};
+
+/** Index of the first depth-0 word in `words` at or after `from`, or -1. */
+const findTopLevelWord = (tokens: Token[], from: number, words: Set<string>): number => {
+  let depth = 0;
+  for (let j = from; j < tokens.length; j++) {
+    const t = tokens[j];
+    if (t.type === 'lp') depth++;
+    else if (t.type === 'rp') depth--;
+    else if (depth === 0 && isWord(t, words)) return j;
+  }
+  return -1;
+};
+
+/**
+ * `select distinct on (keys) cols from … [order by …] [limit …]`, as drizzle's
+ * `selectDistinctOn` writes it at the top of a statement, becomes
+ *
+ *   select * from (select cols, row_number() over (partition by keys order by …) as "__d1_rn"
+ *   from …) as "__d1_distinct" where "__d1_rn" = 1 [limit …]
+ *
+ * which keeps the first row of each group in the same order Postgres does. The
+ * extra `__d1_rn` column trails the selected ones; the D1 driver returns rows as
+ * arrays, so drizzle maps the columns it asked for and ignores it. The result is
+ * not re-sorted (Postgres returns it sorted by the keys first); the callers key
+ * the rows by group anyway.
+ */
+const rewriteDistinctOn = (tokens: Token[]): Token[] => {
+  const select = nextIndex(tokens, -1);
+  const distinct = nextIndex(tokens, select);
+  const on = nextIndex(tokens, distinct);
+  const lp = nextIndex(tokens, on);
   if (
+    !isWord(tokens[select], new Set(['select'])) ||
+    !isWord(tokens[distinct], new Set(['distinct'])) ||
+    !isWord(tokens[on], new Set(['on'])) ||
+    tokens[lp]?.type !== 'lp'
+  ) {
+    return tokens;
+  }
+  const rp = matchForward(tokens, lp);
+  const fromAt = rp < 0 ? -1 : findTopLevelWord(tokens, rp + 1, new Set(['from']));
+  if (fromAt < 0) return tokens;
+
+  const tailAt = findTopLevelWord(tokens, fromAt, new Set(['limit', 'offset']));
+  const orderAt = findTopLevelWord(tokens, fromAt, new Set(['order']));
+  const bodyEnd = orderAt >= 0 ? orderAt : tailAt >= 0 ? tailAt : tokens.length;
+  const orderBy =
+    orderAt >= 0 ? join(tokens.slice(orderAt, tailAt >= 0 ? tailAt : tokens.length)).trim() : '';
+
+  const keys = join(tokens.slice(lp + 1, rp));
+  const columns = join(tokens.slice(rp + 1, fromAt)).trim();
+  const body = join(tokens.slice(fromAt, bodyEnd)).trim();
+  const tail = tailAt >= 0 ? ` ${join(tokens.slice(tailAt)).trim()}` : '';
+  const window = `row_number() over (partition by ${keys}${orderBy ? ` ${orderBy}` : ''})`;
+
+  return [
+    {
+      text: `select * from (select ${columns}, ${window} as "__d1_rn" ${body}) as "__d1_distinct" where "__d1_rn" = 1${tail}`,
+      type: 'raw',
+    },
+  ];
+};
+
+export const rewritePgExpressions = (src: string): string => {
+  const compound = /\b(?:union|intersect|except)\b/i.test(src);
+  const distinctOn = /^\s*select\s+distinct\s+on\s*\(/i.test(src);
+  if (
+    !compound &&
+    !distinctOn &&
     !/\|\||\?|#>|jsonb_set|jsonb_exists|left\s*\(|to_jsonb?\s*\(|jsonb_strip_nulls|_array_elements/i.test(
       src,
     )
@@ -438,5 +554,7 @@ export const rewritePgExpressions = (src: string): string => {
   tokens = rewriteFunctions(tokens);
   tokens = rewriteJsonEachAliases(tokens);
   tokens = rewriteOperators(tokens);
+  if (compound) tokens = rewriteCompoundMembers(tokens);
+  if (distinctOn) tokens = rewriteDistinctOn(tokens);
   return join(tokens);
 };

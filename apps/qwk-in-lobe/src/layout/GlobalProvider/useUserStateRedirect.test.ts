@@ -17,8 +17,13 @@ describe('shouldDeferOnboardingRedirect', () => {
     expect(shouldDeferOnboardingRedirect('/acme/settings/members')).toBe(true);
   });
 
-  it('does not defer on personal app routes', () => {
-    expect(shouldDeferOnboardingRedirect('/agent')).toBe(false);
+  it('never sends an open chat to onboarding, so a reload shows the conversation', () => {
+    expect(shouldDeferOnboardingRedirect('/agent/agt_1/tpc_1')).toBe(true);
+    expect(shouldDeferOnboardingRedirect('/agent')).toBe(true);
+    expect(shouldDeferOnboardingRedirect('/group/grp_1')).toBe(true);
+  });
+
+  it('does not defer on other personal app routes', () => {
     expect(shouldDeferOnboardingRedirect('/projects')).toBe(false);
     expect(shouldDeferOnboardingRedirect('/settings/profile')).toBe(false);
   });

@@ -9,6 +9,13 @@ import { buildOnboardingRedirectUrl } from '@/utils/onboardingRedirect';
 
 const DEFER_REDIRECT_PREFIXES = ['/invite'];
 
+/**
+ * Chat pages a guest reaches from the home input. The home send opens
+ * `/agent/<id>/<topic>`, so reloading or bookmarking that conversation must
+ * show it, not bounce the visitor to onboarding they never asked for.
+ */
+const CHAT_FIRST_SEGMENTS = new Set(['agent', 'group']);
+
 const RESERVED_FIRST_SEGMENTS = new Set([
   'agent',
   'apps',
@@ -46,10 +53,11 @@ const parseFirstSegment = (pathname: string): string | null => {
 };
 
 /**
- * Never redirect the homepage: there is no sign-in here, so the home chat is
- * the first thing every visitor sees and has to take a message right away. A
- * fresh database (every user unonboarded) would otherwise bounce `/` to
- * `/onboarding` before the visitor can type anything.
+ * Never redirect the homepage or a chat: there is no sign-in here, so the home
+ * chat is the first thing every visitor sees and has to take a message right
+ * away, and the conversation it opens has to survive a reload. A fresh
+ * database (every user unonboarded) would otherwise bounce them to
+ * `/onboarding` first.
  *
  * Defer the onboarding redirect when the path is a workspace-scoped route
  * (first segment is a workspace slug, i.e. not one of the reserved app
@@ -62,6 +70,7 @@ export const shouldDeferOnboardingRedirect = (pathname: string): boolean => {
   if (DEFER_REDIRECT_PREFIXES.some((prefix) => isPathUnder(pathname, prefix))) return true;
 
   const first = parseFirstSegment(pathname);
+  if (first && CHAT_FIRST_SEGMENTS.has(first)) return true;
 
   return !!first && !RESERVED_FIRST_SEGMENTS.has(first);
 };
