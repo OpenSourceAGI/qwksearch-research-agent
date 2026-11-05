@@ -9,6 +9,7 @@ import { serverDBEnv } from '@/config/db';
 import * as schema from '../schemas';
 import type { LobeChatDatabase } from '../type';
 import { getCfEnv } from './cloudflare';
+import { createD1Database } from './d1';
 
 /**
  * Cloudflare Hyperdrive exposes a pooled Postgres endpoint to the Worker through
@@ -38,6 +39,18 @@ If you don't have it, please run \`openssl rand -base64 32\` to create one.
 
   const hyperdriveConnectionString = resolveHyperdriveConnectionString();
   const connectionString = hyperdriveConnectionString || serverDBEnv.DATABASE_URL;
+
+  // D1: chosen explicitly with DATABASE_DRIVER=d1, or used when the Worker has a
+  // `DB` binding and no Postgres is configured at all.
+  const d1 = getCfEnv()?.DB;
+  if (serverDBEnv.DATABASE_DRIVER === 'd1' || (!connectionString && d1)) {
+    if (!d1) {
+      throw new Error(
+        'DATABASE_DRIVER is "d1" but the Worker has no D1 binding named DB. Add it under d1_databases in wrangler.jsonc.',
+      );
+    }
+    return createD1Database(d1);
+  }
 
   if (!connectionString) {
     throw new Error(`You are try to use database, but "DATABASE_URL" is not set correctly`);

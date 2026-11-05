@@ -14,7 +14,8 @@ export const getServerDBConfig = () => {
       REMOVE_GLOBAL_FILE: process.env.DISABLE_REMOVE_GLOBAL_FILE !== '0',
     },
     server: {
-      DATABASE_DRIVER: z.enum(['neon', 'node']),
+      // `d1`: LobeHub's tables in the Worker's D1 `DB` binding (packages/database/src/core/d1).
+      DATABASE_DRIVER: z.enum(['neon', 'node', 'd1']),
       // Server-side timeout (in milliseconds) for a single SQL statement.
       // When set, Postgres aborts any statement running longer than this,
       // preventing a stuck query (e.g. lock contention) from blocking indefinitely.

@@ -96,6 +96,14 @@ describe('S3', () => {
       });
     });
 
+    it('should defer missing-settings errors until the client is used', async () => {
+      const s3 = new S3(undefined, undefined, undefined, { bucket: 'test-bucket' });
+
+      await expect(s3.deleteFile('test-key.txt')).rejects.toThrow(
+        'S3 environment variables are not set completely',
+      );
+    });
+
     it('should use default region when S3_REGION is not set', () => {
       const testEnvWithoutRegion = {
         S3_ACCESS_KEY_ID: 'test-access-key',
