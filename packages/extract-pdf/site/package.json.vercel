@@ -23,7 +23,7 @@
     "extract-cite": "^1.0.21",
     "extract-pdf": "^0.1.461",
     "extract-webpage": "^1.2.420",
-    "extract-youtube": "^1.0.538",
+    "extract-youtube": "^1.0.539",
     "fumadocs-core": "^16.15.17",
     "fumadocs-mdx": "^15.4.5",
     "fumadocs-ui": "^16.15.17",
