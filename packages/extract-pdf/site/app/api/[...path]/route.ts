@@ -23,4 +23,4 @@ async function handle(request: Request): Promise<Response> {
   return (await handleApi(request, env)) ?? Response.json({ error: 'Not found' }, { status: 404 });
 }
 
-export { handle as GET, handle as POST, handle as PUT, handle as DELETE, handle as OPTIONS };
+export { handle as GET, handle as POST, handle as PUT, handle as PATCH, handle as DELETE, handle as OPTIONS };

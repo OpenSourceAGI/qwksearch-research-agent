@@ -1,5 +1,5 @@
 {
-  "title": "extract-pdf + extract-webpage",
+  "title": "extract-pdf + extract-webpage + extract-youtube",
   "pages": [
     "---Getting started---",
     "index",
@@ -9,6 +9,8 @@
     "---extract-webpage---",
     "...webpage",
     "---extract-cite---",
-    "...cite"
+    "...cite",
+    "---extract-youtube---",
+    "...youtube"
   ]
 }

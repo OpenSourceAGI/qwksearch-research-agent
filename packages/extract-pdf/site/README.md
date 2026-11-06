@@ -1,20 +1,24 @@
-# extract-pdf + extract-webpage site: docs + live demo
+# extract-pdf + extract-webpage + extract-youtube site: docs + live demo
 
 The documentation site **and** the live demo for the [`extract-pdf`](..) and
-[`extract-webpage`](../../extract-webpage) npm packages, as one Cloudflare
+[`extract-webpage`](../../extract-webpage) npm packages, plus
+[`extract-cite`](../../extract-cite) and [`extract-youtube`](../../extract-youtube), as one Cloudflare
 Worker. [Fumadocs](https://fumadocs.dev) on Next.js App Router source, built by
 [vinext](https://vinext.dev) (Vite).
 
 | Path | What |
 | --- | --- |
-| `/`, `/docs/*` | The docs for both packages. |
-| `/demo` | The live demo. **PDF** tab: upload or URL → `/api/convert`, then the OCR follow-up. **Webpage** tab (`/demo#webpage`): URL or pasted HTML → `/api/extract`. |
+| `/`, `/docs/*` | The docs for every package (`/docs/youtube/*` for extract-youtube). |
+| `/demo` | The live demo. **PDF** tab: upload or URL → `/api/convert`, then the OCR follow-up. **Webpage** tab (`/demo#webpage`): URL or pasted HTML → `/api/extract`. **YouTube** tab (`/demo#youtube`, `/demo#youtube-admin`): extract-youtube's video library, floating player and admin screens. |
 | `/api/convert` | `convertPDFToHTML` (text layer only), with the pages the OCR scan flagged. |
 | `/api/enhance` | One rendered page image → the Granite Docling processor, with the Worker's secrets. Nothing is stored. |
 | `/api/warmup` | Wakes the Docling processor and starts its model loading; the PDF tab calls it on open. |
 | `/api/source?url=` | The PDF at `url`, for the browser to render flagged pages. |
 | `/api/extract` | `extractContent` from extract-webpage: main content + citation. |
 | `/api/health` | `{ status, maxPdfMb, ocr }`. |
+| `/api/youtube/transcript?videoId=` | extract-youtube's `YouTubeTranscriptApi`: `{ snippets }` for the player's captions. |
+| `/api/youtube/library/*` | extract-youtube's `createVideoLibraryHandler`: the library and admin API. |
+| `/api/youtube/demo` | Which mode the library runs in (sandbox, token, read-only). |
 
 This directory replaces the old `packages/extract-pdf/demo` Worker and keeps
 its behaviour, its Worker name (`extract-pdf-demo`) and its secret names. It is
@@ -50,12 +54,13 @@ bun run typecheck   # generate .source + route types, then tsc --noEmit
 
 | Path | What |
 | --- | --- |
-| `content/docs/**/*.mdx` | The pages: `pdf/` and `webpage/`, one folder per package. A new page goes in its folder's `meta.json`. |
+| `content/docs/**/*.mdx` | The pages: `pdf/`, `webpage/`, `cite/` and `youtube/`, one folder per package. `youtube/` is ported from `packages/extract-youtube/site`. A new page goes in its folder's `meta.json`. |
 | `lib/fumadocs/customize-docs.ts` | Site title, links, and `SITE_URL` (unset until a custom domain is attached). |
-| `app/(home)/demo` + `components/demo/` | The demo page. Client-only (`DemoMount`), styled by `demo.css`, which is scoped to `.epd-demo`. |
+| `app/(home)/demo` + `components/demo/` | The demo page. Client-only (`DemoMount`), styled by `demo.css`, which is scoped to `.epd-demo`. The YouTube tab is `components/demo/youtube/`, ported from extract-youtube's own demo and scoped to `.eyt-demo`. |
 | `worker/index.ts` | The Worker entry: `/api/*` from `worker/api.ts`, everything else to vinext. Hand-written; keep it. |
 | `worker/api.ts` | The demo's API. |
-| `aliases.ts` | Points `extract-pdf`, `extract-webpage` and `extract-cite` at their source, stubs `extract-youtube` with `worker/no-youtube.ts` (YouTube URLs are not supported), and stubs extract-pdf's Node-only engines with `worker/unsupported.ts`. |
+| `worker/youtube.ts` | The YouTube tab's routes under `/api/youtube/*`. |
+| `aliases.ts` | Points `extract-pdf`, `extract-webpage`, `extract-cite` and `extract-youtube` at their source, and stubs extract-pdf's Node-only engines with `worker/unsupported.ts`. |
 
 ## Variables and secrets
 
@@ -67,6 +72,9 @@ bun run typecheck   # generate .source + route types, then tsc --noEmit
 | `DOCLING_API_TOKEN` | secret | | Sent as `X-Docling-Token`; the Space's own secret. |
 | `HF_SPACE_TOKEN` | secret | | Private Space only: a Hugging Face read token. |
 | `DOCLING_MAX_PAGES` / `DOCLING_MAX_TOKENS` / `DOCLING_MAX_IMAGE_MB` | var | `10` / `1500` / `8` | OCR tuning. |
+| `YOUTUBE_ADMIN_TOKEN` | secret | | Locks the YouTube library's admin routes behind `Authorization: Bearer`. Unset (and no `YOUTUBE_DB`): a sandbox anyone can edit, kept in memory. |
+| `YOUTUBE_API_KEY` | secret | | YouTube Data API v3 key, for the library's resync and full auto-fill. |
+| `YOUTUBE_DB` | D1 binding | | Optional: keeps the YouTube library in D1 instead of memory. Read-only unless `YOUTUBE_ADMIN_TOKEN` is set. |
 
 Under `bun run dev` they come from the shell, e.g.
 `DOCLING_PROCESSOR_URL=http://127.0.0.1:7860 DOCLING_API_TOKEN=local-test-token bun run dev`.

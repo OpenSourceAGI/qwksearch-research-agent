@@ -20,6 +20,8 @@
  *                                   (extract-webpage's `extractContent`)
  *   POST /api/extract               JSON `{ url }` or `{ html, url? }`
  *   /api/admin/*                    the admin panel's login and global keys (worker/admin.ts)
+ *   /api/youtube/*                  the YouTube tab: transcripts and the video
+ *                                   library admin API (extract-youtube, worker/youtube.ts)
  *   POST /api/cite                  JSON `{ url, apiKey?, model?, styles?, html? }` →
  *                                   a full citation from an LLM (extract-cite),
  *                                   plus a check that extract-webpage's article
@@ -38,6 +40,7 @@
  * and are never stored.
  */
 import { handleAdmin, withStoredSettings, type AdminEnv } from './admin';
+import { handleYouTube, type YouTubeEnv } from './youtube';
 import { convertPDFToHTML } from 'extract-pdf';
 import { extractContent } from 'extract-webpage/url-to-content/url-to-content';
 import {
@@ -49,7 +52,7 @@ import {
   type ExtractCiteLLMResult,
 } from 'extract-cite';
 
-export interface Env extends AdminEnv {
+export interface Env extends AdminEnv, YouTubeEnv {
   /** Largest PDF (in MB) accepted, by upload or by URL. Default 15. */
   MAX_PDF_MB?: string;
   /** Largest pasted HTML (in MB) /api/extract accepts. Default 2. */
@@ -144,6 +147,9 @@ export async function handleApi(request: Request, workerEnv: Env): Promise<Respo
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS_HEADERS });
   // The admin panel's own routes: same-origin only, no CORS.
   if (url.pathname.startsWith('/api/admin/')) return handleAdmin(request, url, workerEnv);
+  // extract-youtube's transcript and library routes answer in their own shapes.
+  const youtube = await handleYouTube(request, url, workerEnv);
+  if (youtube) return youtube;
 
   // Global keys saved in the admin panel sit over the Worker's own vars.
   const env = await withStoredSettings(workerEnv);

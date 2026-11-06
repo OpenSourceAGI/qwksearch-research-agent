@@ -37,7 +37,7 @@ export function Footer() {
           </div>
 
           <div className="border-t border-border pt-8 text-sm text-muted-foreground">
-            extract-pdf and extract-webpage are part of the{' '}
+            extract-pdf, extract-webpage and extract-youtube are part of the{' '}
             <a className="underline hover:text-foreground" href={GITHUB_URL}>
               qwksearch-research-agent
             </a>{' '}

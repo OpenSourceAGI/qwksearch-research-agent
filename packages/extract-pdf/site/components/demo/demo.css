@@ -24,6 +24,8 @@
 .epd-demo a { color: var(--accent); }
 
 .epd-demo .page { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
+/* The YouTube tab's grid wants the width; its content follows in `.eyt-demo`. */
+.epd-demo .page.wide { max-width: 1260px; padding-bottom: 0; }
 .epd-demo .header h1 { font-size: 24px; font-weight: 700; margin: 0 0 6px; }
 .epd-demo .header p { color: var(--muted); margin: 0; line-height: 1.55; max-width: 75ch; }
 

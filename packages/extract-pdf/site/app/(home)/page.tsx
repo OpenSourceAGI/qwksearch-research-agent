@@ -1,6 +1,6 @@
 /**
  * @file page.tsx
- * @description Landing page for the extract-pdf + extract-webpage docs.
+ * @description Landing page for the extract-pdf, extract-webpage and extract-youtube docs.
  */
 import { CodeExample } from '@/components/DocsHomepage/code-example';
 import { FeaturesGrid } from '@/components/DocsHomepage/features-grid';

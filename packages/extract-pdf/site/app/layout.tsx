@@ -12,7 +12,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: `${docsConfig.title} — PDFs and webpages to clean HTML`,
+    default: `${docsConfig.title} — PDFs, webpages and YouTube to clean text`,
     template: `%s`,
   },
   description: docsConfig.description,
