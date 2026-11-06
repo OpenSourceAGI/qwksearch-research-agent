@@ -42,8 +42,7 @@ export function HeroSection() {
           <p className="mb-8 max-w-2xl text-lg text-pretty text-muted-foreground md:text-xl">
             <code>extract-pdf</code> turns a PDF into structured HTML with headings, lists, footnotes and code blocks in
             milliseconds, with Granite Docling OCR for the pages that need it. <code>extract-webpage</code> pulls the
-            main content and its citation out of any URL. <code>extract-youtube</code> fetches any video's transcript,
-            with a floating player, synced captions and a video library for React.
+            main content and its citation out of any URL.
           </p>
 
           <div className="mb-8 flex flex-wrap justify-center gap-2">
@@ -53,10 +52,22 @@ export function HeroSection() {
             <a href={NPM_WEBPAGE_URL} target="_blank" rel="noreferrer">
               <img alt="extract-webpage on npm" src="https://img.shields.io/npm/v/extract-webpage.svg?label=extract-webpage" />
             </a>
-            <a href={NPM_YOUTUBE_URL} target="_blank" rel="noreferrer">
-              <img alt="extract-youtube on npm" src="https://img.shields.io/npm/v/extract-youtube.svg?label=extract-youtube" />
-            </a>
           </div>
+
+          <p className="mb-8 text-sm text-muted-foreground">
+            Also here:{' '}
+            <a className="underline hover:text-foreground" href={NPM_YOUTUBE_URL} target="_blank" rel="noreferrer">
+              extract-youtube
+            </a>{' '}
+            for YouTube transcripts ·{' '}
+            <Link className="underline hover:text-foreground" href="/docs/youtube">
+              docs
+            </Link>{' '}
+            ·{' '}
+            <Link className="underline hover:text-foreground" href={`${DEMO_URL}#youtube`}>
+              demo
+            </Link>
+          </p>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row">
             <Link href="/docs" className={cn(buttonVariants({ size: 'lg' }))}>

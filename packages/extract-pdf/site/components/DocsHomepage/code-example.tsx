@@ -2,7 +2,7 @@
  * @file code-example.tsx
  * @description Tabbed code samples for the landing page. Plain (unhighlighted)
  * code blocks: highlighting here would mean running Shiki in the Worker at
- * request time, which is not worth it for five snippets.
+ * request time, which is not worth it for four snippets.
  */
 import { CodeBlock, Pre } from 'fumadocs-ui/components/codeblock';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
@@ -40,16 +40,6 @@ article.title;      // "Web scraping"
 article.cite;       // APA-style citation
 article.html;       // the main content as basic HTML
 article.word_count;`,
-  },
-  {
-    label: 'YouTube',
-    code: `import { YouTubeTranscriptApi } from 'extract-youtube';
-
-const transcript = await new YouTubeTranscriptApi().fetch('dQw4w9WgXcQ');
-
-for (const { text, start } of transcript) {
-  console.log(\`\${start}s: \${text}\`);
-}`,
   },
   {
     label: 'Worker',
