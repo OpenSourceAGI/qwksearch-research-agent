@@ -87,6 +87,13 @@ The whole homepage chat also runs end to end on a local D1 Worker (`wrangler dev
 0001-0006, no Postgres): a guest types on `/`, the message goes to `/webapi/chat/openrouter` with every
 tool, the reply streams back, and the topic and both messages are in D1 after a reload.
 
+**The D1 Worker creates its own tables.** Workers Builds deploys `lobe` on push without running
+`bun run cf:d1:migrate`, which left the live D1 empty (`no such table: users`, every tRPC call
+UNAUTHORIZED). Every file in `migrations/d1` is idempotent, so on the first request of each isolate
+the Worker applies the ones not yet recorded in `lobe_schema_migrations` (`worker/cf/d1Schema.ts`).
+A new migration file must also be added to `D1_MIGRATIONS` there (a test fails otherwise).
+`cf:d1:migrate` still works and is safe to run.
+
 **`KEY_VAULTS_SECRET` on D1 is optional.** Without it LobeHub refuses to open its database and every
 tRPC call answers UNAUTHORIZED. When it is unset, the D1 Worker generates one 256-bit secret, keeps it
 in `lobe_instance_secrets` (migration 0006; the Worker also creates the table) and uses it for
