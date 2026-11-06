@@ -119,3 +119,22 @@ describe('error messages name their cause', () => {
     expect(error.message).toContain('The video is unplayable for the following reason: Private video');
   });
 });
+
+describe('bot check from a cloud IP', () => {
+  it.each([
+    "Sign in to confirm you're not a bot",
+    "Sign in to confirm you're not a bot.",
+    'Sign in to confirm you’re not a bot.',
+  ])('reports %j as RequestBlocked', (reason) => {
+    const { validatePlayabilityStatus } = require('../src/fetchers/youtube-data-extractor');
+    const { RequestBlocked } = require('../src/errors');
+    let thrown: unknown;
+    try {
+      validatePlayabilityStatus({ status: 'LOGIN_REQUIRED', reason }, VIDEO_ID);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(RequestBlocked);
+    expect((thrown as Error).message).toContain('YouTube is blocking requests from your IP');
+  });
+});

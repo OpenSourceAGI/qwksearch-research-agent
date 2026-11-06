@@ -108,7 +108,7 @@ export function validatePlayabilityStatus(playabilityStatusData: any, videoId: s
 
   // Handle LOGIN_REQUIRED status
   if (playabilityStatus === PlayabilityStatus.LOGIN_REQUIRED) {
-    if (reason === PlayabilityFailedReason.BOT_DETECTED) {
+    if (isBotDetectedReason(reason)) {
       throw new RequestBlocked(videoId);
     }
     if (reason === PlayabilityFailedReason.AGE_RESTRICTED) {
@@ -129,6 +129,22 @@ export function validatePlayabilityStatus(playabilityStatusData: any, videoId: s
   const subReasons = extractPlayabilitySubreasons(playabilityStatusData);
 
   throw new VideoUnplayable(videoId, reason, subReasons);
+}
+
+/**
+ * Whether a LOGIN_REQUIRED reason is YouTube's bot check. YouTube has sent it
+ * as "Sign in to confirm you're not a bot", with a trailing period and with a
+ * typographic apostrophe, so match the normalized prefix rather than the exact
+ * string; an exact match let it fall through to `VideoUnplayable`, whose
+ * message does not say the server's IP is being blocked.
+ *
+ * @param {unknown} reason - The playability status `reason`
+ * @returns {boolean} True for the bot check
+ */
+export function isBotDetectedReason(reason: unknown): boolean {
+  if (typeof reason !== 'string') return false;
+  const normalized = reason.replace(/[\u2018\u2019]/g, "'").trim().toLowerCase();
+  return normalized.startsWith(PlayabilityFailedReason.BOT_DETECTED.toLowerCase());
 }
 
 /**
