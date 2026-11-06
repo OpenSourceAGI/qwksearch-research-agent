@@ -6,6 +6,7 @@
  */
 import './cf/globals';
 
+import { ensureD1Schema } from './cf/d1Schema';
 import { ensureKeyVaultsSecret } from './cf/keyVaultsSecret';
 import { runWithRequestContext } from './cf/requestContext';
 import { isSharedUserMode } from './users/mode';
@@ -22,6 +23,9 @@ const getApp = () => {
 
 export default {
   async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
+    // On D1, create any missing tables first: Workers Builds deploys without
+    // running `cf:d1:migrate`, and an empty D1 fails every request.
+    await ensureD1Schema();
     // Before the app's modules read their config: on D1 with no KEY_VAULTS_SECRET
     // Worker secret, use the one this deployment generated and keeps in D1.
     await ensureKeyVaultsSecret();
