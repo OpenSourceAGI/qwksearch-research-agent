@@ -105,8 +105,8 @@ export class YouTubeRequestFailed extends CouldNotRetrieveTranscript {
     super(videoId);
     this.httpErrorReason = httpError.message;
     this.name = 'YouTubeRequestFailed';
-    this.message = this.buildErrorMessage();
     Object.setPrototypeOf(this, YouTubeRequestFailed.prototype);
+    this.message = this.buildErrorMessage();
   }
 
   protected getCause(): string {
@@ -123,8 +123,8 @@ export class VideoUnplayable extends CouldNotRetrieveTranscript {
     this.unplayableReason = unplayableReason;
     this.additionalDetails = additionalDetails;
     this.name = 'VideoUnplayable';
-    this.message = this.buildErrorMessage();
     Object.setPrototypeOf(this, VideoUnplayable.prototype);
+    this.message = this.buildErrorMessage();
   }
 
   protected getCause(): string {
@@ -234,8 +234,8 @@ export class NoTranscriptFound extends CouldNotRetrieveTranscript {
     this.requestedLanguageCodes = requestedLanguageCodes;
     this.availableTranscriptData = availableTranscriptData;
     this.name = 'NoTranscriptFound';
-    this.message = this.buildErrorMessage();
     Object.setPrototypeOf(this, NoTranscriptFound.prototype);
+    this.message = this.buildErrorMessage();
   }
 
   protected getCause(): string {

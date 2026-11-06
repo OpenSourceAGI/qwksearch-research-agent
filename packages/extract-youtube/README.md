@@ -31,7 +31,7 @@
 # Extract YouTube Transcript 
 .
 
-**[Live demo at youtube.js.org](https://youtube.js.org)** · [Storybook](https://youtube.js.org/storybook/)
+**[▶ Live demo at extract.js.org](https://extract.js.org/demo#youtube)** · [Docs](https://extract.js.org/docs/youtube) · [Admin demo](https://extract.js.org/demo#youtube-admin)
 
 ⚡ **No API keys, no headless browsers, no dependencies. Only the fastest, most optimized YouTube transcript extractor.**
 
@@ -82,7 +82,7 @@ A production-ready TypeScript port of the popular Python [`extract-youtube`](htt
 
 - **Bundle optimized with Vite + Terser** - Aggressive minification and tree-shaking
 - **Dual ESM/CJS builds** - Works everywhere (Node.js, bundlers, edge runtimes)
-- **Zero external HTTP clients** - Uses native `grab-url` (polyfilled in browsers)
+- **Zero external HTTP clients** - Uses the platform `fetch` (Node 18+, Workers, Vercel, browsers)
 - **Efficient parsing** - Fast XML parsing with minimal memory footprint
 
 ## 🎯 Quick Facts
@@ -642,9 +642,11 @@ From the CLI: `extract-youtube audio <id> [--format mp3|m4a|webm] [--bitrate 64]
 
 ## Live Demo and Storybook
 
-**Docs: [youtube.js.org](https://youtube.js.org)** · Live demo: [youtube.js.org/demo](https://youtube.js.org/demo) · Storybook: [youtube.js.org/storybook](https://youtube.js.org/storybook/)
+**Live demo: [extract.js.org/demo#youtube](https://extract.js.org/demo#youtube)** · Docs: [extract.js.org/docs/youtube](https://extract.js.org/docs/youtube) · Admin: [extract.js.org/demo#youtube-admin](https://extract.js.org/demo#youtube-admin)
 
-[`site/`](./site) runs all of this on one Cloudflare Worker: the docs at
+The YouTube tab of the extract.js.org demo is this package used the way an app would use it: the library grid and list, the floating player, and captions synced from the site's `/api/youtube/transcript` route. Click any video to play it with its transcript.
+
+The package also keeps its own copy of the site in [`site/`](./site), on one Cloudflare Worker: the docs at
 `/docs`, the live demo at `/demo` (the library grid and list, the admin
 screens, the floating player with captions from `/api/transcript`), the
 library API at `/api/library`, and a Storybook with a story for every

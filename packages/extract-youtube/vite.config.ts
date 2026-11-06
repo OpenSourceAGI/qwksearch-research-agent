@@ -59,9 +59,6 @@ export default defineConfig({
     lib: libEntry,
     rollupOptions: {
       // Externalize dependencies to avoid bundling them.
-      // grab-url is deliberately bundled: its published CJS entry resolves
-      // its internal chunks relative to the consumer's cwd and fails to load
-      // under require(); bundling its ESM source avoids the broken entry.
       external: buildReact
         ? ['react', 'react-dom', 'react/jsx-runtime', 'lucide-react']
         : buildLibrary
@@ -69,7 +66,7 @@ export default defineConfig({
           : buildDownload
             ? ['cloud-ytdl', 'node:stream', 'node:stream/web', 'node:http', 'node:child_process']
           : [
-            ...Object.keys(pkg.dependencies || {}).filter((d) => d !== 'grab-url'),
+            ...Object.keys(pkg.dependencies || {}),
             'node:http',
             'node:https',
             'node:url',
@@ -89,7 +86,6 @@ export default defineConfig({
         globals: buildReact
           ? { react: 'React', 'react-dom': 'ReactDOM', 'lucide-react': 'LucideReact' }
           : {
-              'grab-url': 'grab',
               'fast-xml-parser': 'XMLParser',
               'html-entities': 'htmlEntities',
               'https-proxy-agent': 'HttpsProxyAgent',

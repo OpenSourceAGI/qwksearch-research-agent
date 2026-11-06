@@ -500,7 +500,6 @@
       },
       "dependencies": {
         "fast-xml-parser": "^5.11.1",
-        "grab-url": "^1.6.22",
         "html-entities": "^2.6.0",
         "https-proxy-agent": "^9.1.0",
         "youtube-transcript-api": "^3.0.6",

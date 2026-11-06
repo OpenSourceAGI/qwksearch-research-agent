@@ -101,22 +101,22 @@ describe('video errors', () => {
 });
 
 describe('YouTubeRequestFailed', () => {
-  it('records the video id and drops the HTTP cause from the message', () => {
-    // The base constructor resets the prototype to CouldNotRetrieveTranscript
-    // before this subclass rebuilds its message, so the overridden getCause()
-    // is not reached and only the generic line survives.
+  it('records the video id and puts the HTTP cause in the message', () => {
+    // The subclass restores its own prototype before rebuilding the message,
+    // so its getCause() override is the one that runs.
     const error = new YouTubeRequestFailed(VIDEO_ID, new Error('HTTP 500: Server Error'));
 
     expect(error.videoId).toBe(VIDEO_ID);
+    expect(error).toBeInstanceOf(YouTubeRequestFailed);
     expect(error.message).toContain(`https://www.youtube.com/watch?v=${VIDEO_ID}`);
-    expect(error.message).not.toContain('Request to YouTube failed');
+    expect(error.message).toContain('Request to YouTube failed: HTTP 500: Server Error');
   });
 });
 
 describe('VideoUnplayable', () => {
   it('constructs for a reason, with or without details', () => {
-    // Same prototype-reset ordering as YouTubeRequestFailed: the reason and
-    // details are stored but never make it into the rendered message.
+    // Same ordering as YouTubeRequestFailed: the reason and details reach
+    // the rendered message.
     for (const error of [
       new VideoUnplayable(VIDEO_ID, 'Private video', []),
       new VideoUnplayable(VIDEO_ID, null, []),
@@ -125,6 +125,7 @@ describe('VideoUnplayable', () => {
       expect(error).toBeInstanceOf(CouldNotRetrieveTranscript);
       expect(error.name).toBe('VideoUnplayable');
       expect(error.message).toContain(VIDEO_ID);
+      expect(error.message).toContain('The video is unplayable for the following reason');
     }
   });
 });
@@ -135,9 +136,10 @@ describe('NoTranscriptFound', () => {
 
     const error = new NoTranscriptFound(VIDEO_ID, ['de', 'fr'], available);
 
-    // As above, the overridden cause is lost to the prototype reset.
     expect(error.name).toBe('NoTranscriptFound');
     expect(error.message).toContain(VIDEO_ID);
+    expect(error.message).toContain('de, fr');
+    expect(error.message).toContain('AVAILABLE TRANSCRIPTS');
   });
 });
 

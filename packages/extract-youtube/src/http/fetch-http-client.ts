@@ -1,13 +1,19 @@
 /**
- * @fileoverview HTTP client implementation using grab-url
+ * @fileoverview HTTP client implementation on the platform `fetch`
+ *
+ * Every caller (`TranscriptListFetcher`, `Transcript.fetch`) reads the result
+ * as a WHATWG `Response`: `status`, `ok`, `text()`, `json()`. It has to be the
+ * real `fetch`, which exists on Node 18+, Workers, Vercel and browsers. A
+ * wrapper that returns a parsed body instead (grab-url did) leaves `status`
+ * undefined, so `handleHttpErrors` rejects every request and no transcript
+ * ever loads.
  */
 
-import grab from 'grab-url';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { HttpClient, RequestsProxyConfigDict } from '../types';
 
 /**
- * Simple HTTP client implementation using grab-url with proxy support.
+ * Simple HTTP client implementation using `fetch`, with proxy support.
  * This client handles HTTP/HTTPS requests with configurable headers and proxy settings.
  *
  * @internal
@@ -52,12 +58,13 @@ export class FetchHttpClient implements HttpClient {
    */
   async get(url: string, options?: RequestInit): Promise<Response> {
     const proxyAgent = this.getProxyAgentForUrl(url);
-    return grab(url, {
+    return fetch(url, {
       ...options,
       method: 'GET',
       headers: { ...this.requestHeaders, ...(options?.headers as Record<string, string>) },
+      // Read by node-fetch style polyfills; the platform fetch ignores it.
       agent: proxyAgent
-    } as any);
+    } as RequestInit);
   }
 
   /**
@@ -69,12 +76,13 @@ export class FetchHttpClient implements HttpClient {
    */
   async post(url: string, options?: RequestInit): Promise<Response> {
     const proxyAgent = this.getProxyAgentForUrl(url);
-    return grab(url, {
+    return fetch(url, {
       ...options,
       method: 'POST',
       headers: { ...this.requestHeaders, ...(options?.headers as Record<string, string>) },
+      // Read by node-fetch style polyfills; the platform fetch ignores it.
       agent: proxyAgent
-    } as any);
+    } as RequestInit);
   }
 
   /**
