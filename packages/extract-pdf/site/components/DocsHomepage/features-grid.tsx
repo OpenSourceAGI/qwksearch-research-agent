@@ -4,19 +4,15 @@
  */
 import {
   BookMarked,
-  Captions,
   Cloud,
   FileText,
   Gauge,
   Globe,
   Layers,
-  LayoutGrid,
   type LucideIcon,
-  PictureInPicture2,
   ScanText,
   Quote,
   Rows3,
-  SlidersHorizontal,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -95,42 +91,6 @@ const featureCategories: { category: string; tagline: string; features: Feature[
         title: 'Sentences, chunks and keyphrases',
         description: 'Sentence splitting that knows abbreviations, semantic chunks for LLMs, stemming, and SEEKTOPIC keyphrases.',
         href: '/docs/webpage/text-tools',
-      },
-    ],
-  },
-  {
-    category: 'extract-youtube',
-    tagline: 'Any YouTube video to its transcript, with no browser and no API key, plus React components to watch and curate videos.',
-    features: [
-      {
-        icon: Captions,
-        title: 'Transcripts',
-        description: 'Fetch captions in any language, list the tracks, translate, and get a typed error for every failure mode.',
-        href: '/docs/youtube/transcripts',
-      },
-      {
-        icon: FileText,
-        title: 'Formatters and CLI',
-        description: 'JSON, plain text, SRT, WebVTT and an article format, from code or `npx extract-youtube <id>`.',
-        href: '/docs/youtube/formatters',
-      },
-      {
-        icon: PictureInPicture2,
-        title: 'Floating player',
-        description: 'A picture-in-picture YouTube player with captions synced to playback, a queue and a transcript modal.',
-        href: '/docs/youtube/react/floating-player',
-      },
-      {
-        icon: LayoutGrid,
-        title: 'Video grid and list',
-        description: 'Cards, a grouped table and stacked playlists over a video library, with favorites and search.',
-        href: '/docs/youtube/react/video-grid',
-      },
-      {
-        icon: SlidersHorizontal,
-        title: 'Library admin API',
-        description: 'One HTTP handler over D1 or memory, custom fields, and admin screens to add, edit and check videos.',
-        href: '/docs/youtube/admin/library-api',
       },
     ],
   },
