@@ -39,7 +39,7 @@
   "scripts": {
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "build": "npm run clean && npm run build:lib && npm run build:cli && npm run build:react && npm run build:library && npm run build:download && npm run build:types",
-    "build:types": "tsc --emitDeclarationOnly --declaration --declarationMap",
+    "build:types": "tsc6 --emitDeclarationOnly --declaration --declarationMap",
     "build:lib": "vite build",
     "build:cli": "BUILD_CLI=true vite build",
     "build:react": "BUILD_REACT=true vite build",
