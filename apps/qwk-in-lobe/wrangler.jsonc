@@ -63,7 +63,8 @@
 			"binding": "DB",
 			"database_name": "qwk-in-lobe-db",
 			"database_id": "d0be334b-d835-43ce-bd96-5b94088f2f75",
-			"remote": true
+			"remote": true,
+        "migrations_dir": "./migrations/d1"
 		}
 	],
 	"r2_buckets": [
