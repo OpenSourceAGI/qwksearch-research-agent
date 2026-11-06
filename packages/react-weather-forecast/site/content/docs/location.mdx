@@ -1,0 +1,52 @@
+---
+title: Location and caching
+description: How the visitor is located, the optional Cloudflare geo worker, and the two caches.
+icon: MapPin
+---
+
+## IP geolocation
+
+With no coordinates, the widget asks where the visitor is from their IP:
+ipwho.is first (free, keyless, CORS-enabled), then ipapi.co, get.geojs.io and
+freeipapi.com. Each is tried twice before the chain moves on, except that a
+provider that answered with a rate limit is not retried while another is left.
+
+A browser call to a free lookup spends a quota of about 1,000 requests a day
+that is **shared by every visitor to your domain**. For production, deploy the
+bundled geo worker and pass its URL.
+
+## The geo worker
+
+`worker/geo-worker.ts` in the package reads Cloudflare's own geolocation for the
+visitor's IP: no third-party request, no shared quota, no CORS, nothing an ad
+blocker recognises as a tracker.
+
+```bash
+cd packages/react-weather-forecast
+npm run worker:deploy
+```
+
+```tsx
+<WeatherForecast geoEndpoint="https://weather-geo.example.workers.dev" />
+```
+
+## Caching
+
+Two things are kept in `localStorage`, on different clocks.
+
+- **The location, for 12 hours.** The place a visitor looks from does not change
+  through the day, and re-resolving it on every refresh is what turns into
+  `429 Too Many Requests`. `cacheLocation={false}` turns it off;
+  `locationCacheTtl` changes the window.
+- **The forecast, for 30 minutes**, keyed by place, units, range and timezone.
+  Past 30 minutes an entry is kept for a day as the last-resort fallback.
+
+Both caches are a no-op during SSR or when `localStorage` is unavailable.
+`clearWeatherForecastCache()` and `clearCachedLocations()` empty them.
+
+## Privacy
+
+Location is inferred, not asked for: the coordinates go to the forecast call
+and nowhere else. `browser` (the device's GPS) is left out of the default chain
+because asking for it raises a permission prompt; name it first in
+`geoProviders` where that is expected.

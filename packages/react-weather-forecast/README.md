@@ -29,6 +29,8 @@
 
 React weather forecast component using Open-Meteo for current, hourly, and daily forecasts and Cloudflare/ipwho.is for IP geolocation, with a fallback chain behind both.
 
+**Docs, live demo and Storybook:** [`site/`](./site) — a Fumadocs + Next.js app deployed to Vercel, with `/docs`, a props playground at `/demo` and every component variant at `/storybook/`.
+
 ## Features
 
 - Current weather.

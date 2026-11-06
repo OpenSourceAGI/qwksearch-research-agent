@@ -46,3 +46,19 @@ Published.
 ```bash
 cd packages/react-weather-forecast && bun run test
 ```
+
+## The site (`site/`)
+
+Docs (Fumadocs), the `/demo` playground and Storybook (`/storybook/`) as one
+plain Next.js app on **Vercel** (root directory `packages/react-weather-forecast/site`).
+Read [`site/README.md`](../../../packages/react-weather-forecast/site/README.md).
+
+- It installs `use-weather-forecast` **from npm**, and is not a Bun workspace;
+  install with `./install-vercel-deps.sh`. A package change shows up there only
+  after it is published and the range in `site/package.json` allows it.
+- Storybook and the docs previews answer from `site/lib/fixtures.ts` through a
+  custom `weatherProviders` entry. Give any new fixture its own coordinates: the
+  forecast cache is keyed by place, not by provider, so a shared place would
+  serve one scenario's forecast for another (or for live data).
+- `npm run build` = Storybook into `public/storybook`, then `next build`.
+

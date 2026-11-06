@@ -1,0 +1,11 @@
+node_modules
+.source
+.next
+next-env.d.ts
+*.tsbuildinfo
+*.log
+.vercel
+package-lock.json
+storybook-static
+# Built by `npm run build-storybook` before `next build`, served at /storybook/.
+public/storybook

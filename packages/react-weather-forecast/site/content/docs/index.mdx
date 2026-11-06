@@ -1,0 +1,56 @@
+---
+title: Getting started
+description: A React weather forecast widget backed by Open-Meteo and IP geolocation. No API key.
+icon: CloudSun
+---
+
+`use-weather-forecast` renders current conditions, the next hours and the next
+days for wherever your visitor is. The forecast comes from
+[Open-Meteo](https://open-meteo.com), with three more weather APIs behind it;
+the location comes from the visitor's IP, with four lookups behind that. None
+of them needs a key.
+
+<WeatherPreview compact />
+
+## Install
+
+```bash
+npm install use-weather-forecast
+```
+
+React 18 or 19 is a peer dependency. The only runtime dependency is
+[`grab-url`](https://www.npmjs.com/package/grab-url).
+
+## Use it
+
+```tsx
+import { WeatherForecast } from 'use-weather-forecast';
+
+export default function App() {
+  return <WeatherForecast forecastDays={5} forecastHours={12} temperatureUnit="fahrenheit" />;
+}
+```
+
+That is the whole setup. With no coordinates the widget finds the visitor by
+IP; pass `latitude` and `longitude` to show a fixed place instead, and no IP
+lookup is made.
+
+```tsx
+<WeatherForecast
+  latitude={51.5072}
+  longitude={-0.1276}
+  location={{ city: 'London', timezone: 'Europe/London' }}
+  temperatureUnit="celsius"
+  windSpeedUnit="kmh"
+/>
+```
+
+The widget is a client component. In a Next.js App Router page, render it from
+a file that starts with `'use client'`.
+
+## Next
+
+- [Variants](/docs/variants): every layout, with previews.
+- [Props](/docs/props): the full option list.
+- [Hooks and API](/docs/hooks): `useWeatherForecast`, `getWeatherForecast`, custom providers.
+- [Live demo](/demo) and [Storybook](/storybook/index.html).

@@ -1,0 +1,34 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+# use-weather-forecast
+
+A React weather widget and hook: current conditions, the next hours and the
+next days, from [Open-Meteo](https://open-meteo.com) with three fallback
+weather APIs behind it, located by IP with no API key.
+
+```bash
+npm install use-weather-forecast
+```
+
+```tsx
+import { WeatherForecast } from 'use-weather-forecast';
+
+<WeatherForecast forecastDays={5} forecastHours={12} temperatureUnit="fahrenheit" />;
+```
+
+## What is in here
+
+| Section | What |
+| --- | --- |
+| **WeatherForecast / Variants** | The full card and the `compact` card, every unit, several locations, a long range, a dark background and the error state. These answer from sample data through a custom `weatherProviders` entry, so they look the same on every load. |
+| **WeatherForecast / Live** | The same component against the real Open-Meteo API: a fixed city, and your own location found by IP. |
+| **WeatherIcon** | All twelve weather conditions, and the icon at any size. |
+| **useWeatherForecast** | The hook on its own, under a custom UI with a loading skeleton. |
+
+Each story has a **Docs** tab with its props, and **Controls** to change them live.
+
+- Docs: [/docs](/docs)
+- Live demo: [/demo](/demo)
+- npm: [use-weather-forecast](https://www.npmjs.com/package/use-weather-forecast)

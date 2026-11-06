@@ -1,0 +1,50 @@
+---
+title: Reliability
+description: Retries, fallback weather APIs, the stale cache and whole reloads.
+icon: ShieldCheck
+---
+
+Nothing here needs configuring. This is what the package does when an upstream
+misbehaves.
+
+## Validation first
+
+Everything that goes into a request is checked before it is sent, because the
+usual way to build a bad query is not a typo in your props but an IP lookup
+that answered `200` with no coordinates.
+
+| Input | What happens to it |
+| --- | --- |
+| `latitude` / `longitude` | Must be finite and on the globe; rounded to 4 decimals. A lookup without them counts as failed, so the next provider gets a turn. |
+| `location.timezone` | Canonicalized (`US/Pacific` becomes `America/Los_Angeles`); a zone the runtime cannot resolve is dropped. |
+| `forecastDays` / `forecastHours` | Clamped to 1-16 days and 1-384 hours. |
+| Variable list | A `400` is asked again in a smaller shape: only the variables every model supports, then without `forecast_hours`. Units are never dropped. |
+
+## Retries
+
+Each request is tried up to `retryAttempts` times (3 by default) with
+exponential backoff from `retryDelay` (400ms, then 800ms, …). A `429`, a `5xx`,
+a timeout or a dropped connection is repeated; a `400` or `404` is not, since
+replaying it only burns the upstream's rate limit.
+
+## Fallback APIs
+
+| Order | Weather | IP geolocation |
+| --- | --- | --- |
+| 1 | `open-meteo` — api.open-meteo.com/v1/forecast | `geoEndpoint`, when given |
+| 2 | `open-meteo-gfs` — the GFS model endpoint | `ipwho` — ipwho.is |
+| 3 | `met-no` — met.no, a different operator | `ipapi` — ipapi.co |
+| 4 | `wttr` — wttr.in | `geojs` — get.geojs.io |
+| 5 | | `freeipapi` — freeipapi.com |
+
+The fallbacks normalize their own condition codes, units and timestamps into
+Open-Meteo's shape, so a failover is invisible in the widget. If every provider
+fails, a cached forecast up to a day old is served instead.
+
+## Reloads
+
+If even that produces nothing, the component reloads the whole forecast
+`reloadAttempts` more times (2 by default), after 3s and then 6s. It stays in
+its loading state in between, so a failure that clears on its own never
+flashes an error. `reloadAttempts={0}` shows the error at once — see the
+[error variant](/docs/variants#when-everything-fails).

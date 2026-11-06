@@ -1,0 +1,84 @@
+---
+title: Variants
+description: The full card, the compact card, units, several locations, custom styles and the error state.
+icon: LayoutGrid
+---
+
+Every preview on this page answers from sample data, so it looks the same on
+every visit. The [live demo](/demo) runs the same component against Open-Meteo,
+and the [Storybook](/storybook/index.html) has each variant with controls.
+
+## Full card
+
+The default: the place and its local time, the current temperature with a
+°F/°C switch, the next hours (scrolling sideways) and one row per day.
+
+<WeatherPreview />
+
+```tsx
+<WeatherForecast forecastDays={5} forecastHours={12} />
+```
+
+## Compact card
+
+`compact` is a deliberately short card: current conditions, a ticking clock,
+today's high and low and the wind on the left, the next three days on the
+right. The two halves stack when the container is narrow. It takes its
+colours from the container, so it suits a coloured or dark background.
+
+<WeatherPreview compact scenario="stormy" />
+
+```tsx
+<WeatherForecast compact />
+```
+
+<WeatherPreview compact dark scenario="snowy" temperatureUnit="celsius" windSpeedUnit="ms" />
+
+## Units
+
+`temperatureUnit` is `'fahrenheit'` (the default) or `'celsius'`; the switch on
+the card toggles it after render. `windSpeedUnit` is `'mph'` (the default),
+`'kmh'`, `'ms'` or `'kn'`.
+
+<WeatherPreview scenario="rainy" temperatureUnit="celsius" windSpeedUnit="kmh" forecastDays={3} forecastHours={8} />
+
+```tsx
+<WeatherForecast temperatureUnit="celsius" windSpeedUnit="kmh" />
+```
+
+## Several locations
+
+`locations` renders one card per place, each with its own clock and timezone.
+
+<WeatherPreview multi compact />
+
+```tsx
+<WeatherForecast
+  compact
+  locations={[
+    { label: 'Phoenix', latitude: 33.4484, longitude: -112.074, timezone: 'America/Phoenix' },
+    { label: 'Seattle', latitude: 47.6062, longitude: -122.3321, timezone: 'America/Los_Angeles' },
+  ]}
+/>
+```
+
+## Custom style
+
+`className` and `style` go on the card's root, after its own styles, so they
+win.
+
+```tsx
+<WeatherForecast compact style={{ background: '#fef3c7', color: '#78350f' }} />
+```
+
+## When everything fails
+
+The widget renders nothing while it loads, and keeps the last forecast on
+screen if a refetch fails. Only when every provider failed, the cache is empty
+and the reloads are spent does it show an error naming what each upstream said.
+
+<WeatherPreview error />
+
+```tsx
+<WeatherForecast reloadAttempts={0} allowStaleCache={false} />
+```

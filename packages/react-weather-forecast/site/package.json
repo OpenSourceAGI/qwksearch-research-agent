@@ -1,0 +1,52 @@
+{
+  "name": "use-weather-forecast-site",
+  "description": "use-weather-forecast's docs, live demo and Storybook as one Next.js app for Vercel: Fumadocs at /docs, the playground at /demo, every component variant at /storybook/.",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/react-weather-forecast/site"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "npm run build-storybook && next build",
+    "build:site": "next build",
+    "start": "next start",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build --quiet -o public/storybook",
+    "typecheck": "fumadocs-mdx && tsc --noEmit"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "fumadocs-core": "^16.15.17",
+    "fumadocs-mdx": "^15.4.5",
+    "fumadocs-ui": "^16.15.17",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.43.0",
+    "next": "^16.3.8",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwind-merge": "^3.5.0",
+    "use-weather-forecast": "^0.1.394",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "^10.6.0",
+    "@storybook/react-vite": "^10.6.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.1.1",
+    "storybook": "^10.6.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "vite": "^8.2.2"
+  },
+  "//jszip": "grab-url (use-weather-forecast's HTTP client) imports jszip from a lazily loaded archive helper without declaring it; Vite and Turbopack still resolve the import, so the site has to provide it."
+}

@@ -1,0 +1,97 @@
+---
+title: Hooks and API
+description: useWeatherForecast for your own UI, getWeatherForecast for no UI, custom providers and the icon set.
+icon: Code
+---
+
+## `useWeatherForecast`
+
+The data behind the widget, for a UI of your own. It returns
+`{ data, error, loading }`, refetches when an option changes, keeps the last
+good forecast on screen while a refetch is in flight or after one fails, and
+reloads a failed first load on its own.
+
+```tsx
+'use client';
+import { useWeatherForecast, WeatherIcon } from 'use-weather-forecast';
+
+export function WeatherPill() {
+  const { data, error, loading } = useWeatherForecast({ forecastDays: 1, temperatureUnit: 'celsius' });
+
+  if (loading && !data) return <span>Loading…</span>;
+  if (error && !data) return <span>{error.message}</span>;
+  if (!data) return null;
+
+  return (
+    <span>
+      <WeatherIcon condition={data.current.icon} width={20} height={20} /> {data.current.temperature}° in{' '}
+      {data.location?.city}
+    </span>
+  );
+}
+```
+
+`data` is a `WeatherForecastData`:
+
+```ts
+type WeatherForecastData = {
+  location?: { city?; region?; country?; timezone?; latitude; longitude };
+  current: { time; temperature; weatherCode; icon; isDay?; rain?; showers?; snowfall?; windSpeed? };
+  hourly: { time; temperature; weatherCode; icon; precipitationProbability?; rain?; showers?; snowfall? }[];
+  daily: { date; min; max; weatherCode; icon; precipitationProbabilityMax?; precipitationSum?; windSpeedMax? }[];
+};
+```
+
+## `getWeatherForecast`
+
+The same without React: on a server, in a script, in a Worker.
+
+```ts
+import { getWeatherForecast } from 'use-weather-forecast';
+
+const data = await getWeatherForecast({
+  latitude: 37.3688,
+  longitude: -122.0363,
+  forecastDays: 5,
+  forecastHours: 12,
+  temperatureUnit: 'fahrenheit',
+});
+```
+
+`getClientLocation(geoEndpoint?, ip?, options?)` runs the location chain on its
+own, and `clearWeatherForecastCache()` / `clearCachedLocations()` empty the two
+caches.
+
+## Custom providers
+
+`weatherProviders` takes provider objects as well as ids. A provider is an id,
+a label and one function that returns the normalized shape above. This site's
+[Storybook](/storybook/index.html) and the sample previews in these docs are
+built that way: a provider that answers from memory.
+
+```ts
+import { type WeatherProvider, WeatherForecast } from 'use-weather-forecast';
+
+const myApi: WeatherProvider = {
+  id: 'my-api',
+  label: 'My weather API',
+  async fetchForecast(request) {
+    // request: { location, temperatureUnit, windSpeedUnit, forecastDays, forecastHours, timezone, transport }
+    const res = await fetch(`/api/weather?lat=${request.location.latitude}&lon=${request.location.longitude}`);
+    return res.json();
+  },
+};
+
+<WeatherForecast weatherProviders={[myApi, 'open-meteo']} />;
+```
+
+## Icons
+
+`WeatherIcon` draws one of twelve conditions; `getWeatherIcon(code, isDay)` maps
+a WMO weather code to one. Each icon is also exported on its own
+(`SunIcon`, `CloudSunIcon`, … `WindIcon`). They inherit `color` and take every
+SVG prop.
+
+```tsx
+<WeatherIcon condition="cloud-bolt" width={48} height={48} title="Thunderstorm" />
+```

@@ -1,0 +1,4 @@
+{
+  "title": "use-weather-forecast",
+  "pages": ["index", "variants", "props", "hooks", "reliability", "location", "storybook"]
+}

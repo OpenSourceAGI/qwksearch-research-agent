@@ -1,0 +1,51 @@
+---
+title: Props
+description: Every option of <WeatherForecast />, useWeatherForecast and getWeatherForecast.
+icon: SlidersHorizontal
+---
+
+The component, the hook and `getWeatherForecast` take the same options. The
+component adds `compact`, `className` and `style`.
+
+## Location
+
+| Prop | Type | Default | What |
+| --- | --- | --- | --- |
+| `latitude`, `longitude` | `number` | | A fixed place. Validated and rounded to 4 decimals; with both set no IP lookup is made. |
+| `location` | `{ city?, region?, country?, timezone?, latitude?, longitude? }` | | Labels for the card, and a timezone. Coordinates here count like top-level ones. |
+| `locations` | `{ label?, latitude?, longitude?, timezone? }[]` | | One card per entry. |
+| `geoEndpoint` | `string` | | Your deployed geo worker, tried before the public lookups. See [Location](/docs/location). |
+| `ip` | `string` | | Locate this address instead of the visitor's. |
+| `geoProviders` | `('ipwho' \| 'ipapi' \| 'geojs' \| 'freeipapi' \| 'browser' \| GeoProvider)[]` | `['ipwho', 'ipapi', 'geojs', 'freeipapi']` | IP lookups, in order. `browser` asks for the device's location and raises a permission prompt. |
+| `fallbackLocation` | `Partial<WeatherLocation>` | | Used when every lookup failed, instead of an error. |
+| `cacheLocation` | `boolean` | `true` | Reuse a location resolved in the last 12 hours. |
+| `locationCacheTtl` | `number` (ms) | `43200000` | How long a cached location stays usable. |
+
+## Forecast
+
+| Prop | Type | Default | What |
+| --- | --- | --- | --- |
+| `forecastDays` | `number` | `5` | Days, clamped to 1-16. |
+| `forecastHours` | `number` | `24` | Hours, clamped to 1-384. |
+| `temperatureUnit` | `'fahrenheit' \| 'celsius'` | `'fahrenheit'` | |
+| `windSpeedUnit` | `'mph' \| 'kmh' \| 'ms' \| 'kn'` | `'mph'` | |
+| `weatherProviders` | `('open-meteo' \| 'open-meteo-gfs' \| 'met-no' \| 'wttr' \| WeatherProvider)[]` | all four | Weather APIs, in order. A provider object of your own works too. |
+| `allowStaleCache` | `boolean` | `true` | Serve a cached forecast up to a day old when every provider failed. |
+
+## Reliability
+
+| Prop | Type | Default | What |
+| --- | --- | --- | --- |
+| `retryAttempts` | `number` | `3` | Tries per request. |
+| `retryDelay` | `number` (ms) | `400` | First backoff; each further wait doubles. |
+| `timeout` | `number` (s) | `15` | Per try. |
+| `reloadAttempts` | `number` | `2` | Whole reloads after a load that failed everywhere. `0` shows the error at once. |
+| `reloadDelay` | `number` (ms) | `3000` | First reload pause; doubles. |
+| `onProviderError` | `({ provider, error, stage }) => void` | | Called for each upstream that failed. |
+
+## Component only
+
+| Prop | Type | Default | What |
+| --- | --- | --- | --- |
+| `compact` | `boolean` | `false` | The short two-column card. |
+| `className`, `style` | | | On the card's root. |

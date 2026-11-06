@@ -1,0 +1,28 @@
+---
+title: Storybook
+description: Every component variant, with controls.
+icon: BookOpen
+---
+
+The [Storybook](/storybook/index.html) is built from
+`packages/react-weather-forecast/site/stories` with the package installed from
+npm, and is served from this site at `/storybook/`.
+
+| Section | Stories |
+| --- | --- |
+| **WeatherForecast / Variants** | Default, Compact, Metric, Snow, Storms, Multiple locations (compact and full), Long range, On a dark background, Custom style, Narrow, Providers down |
+| **WeatherForecast / Live** | Fixed city, Auto-detect by IP, World clock, met.no fallback |
+| **WeatherIcon** | Single, All conditions, Coloured |
+| **useWeatherForecast** | A custom UI on the hook, with a loading skeleton |
+
+The variants answer from sample data through a custom `weatherProviders`
+entry (`lib/fixtures.ts`), so they render the same on every load and spend no
+API quota. Only the **Live** stories call Open-Meteo.
+
+Run it locally:
+
+```bash
+cd packages/react-weather-forecast/site
+npm install
+npm run storybook      # http://localhost:6006
+```
