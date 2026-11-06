@@ -34,6 +34,7 @@ const WIDGET_KEYS = [
   'trendingNewsMaxTopics',
   'trendingNewsShowImages',
   'trendingNewsCustomTopics',
+  'trendingNewsSource',
   'showEducationPlaylistsWidget',
 ];
 

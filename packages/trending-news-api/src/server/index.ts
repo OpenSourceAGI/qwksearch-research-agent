@@ -13,6 +13,10 @@
  * API key stays on the server.
  */
 
+import { HCKRNEWS_SOURCE, getHckrNewsHeadlines, parseHckrNewsLimit } from './hckrnews';
+
+export * from './hckrnews';
+
 /** One headline, in the snake_case wire shape the client maps to camelCase. */
 export interface TrendingNewsWireArticle {
   title: string;
@@ -20,6 +24,12 @@ export interface TrendingNewsWireArticle {
   source?: string;
   published_at?: string;
   image_url?: string;
+  /** Hacker News score, for `source=hckrnews` headlines. */
+  points?: number;
+  /** Hacker News comment count, for `source=hckrnews` headlines. */
+  comments?: number;
+  /** The Hacker News discussion page, for `source=hckrnews` headlines. */
+  discussion_url?: string;
 }
 
 /** One trending topic with the headlines matched to it. */
@@ -574,12 +584,15 @@ export async function getTopicHeadlines(
 }
 
 /**
- * Serves the three routes the client speaks:
+ * Serves the routes the client speaks:
  *
  * - `GET /` — the daily trending list (`?limit=` topics, default 25).
  * - `GET /?topic=…` — headlines for one topic.
  * - `GET /?topics=a,b,c` — headlines for a caller-named topic list, in that
  *   order, instead of the Wikipedia ranking.
+ * - `GET /?source=hckrnews` — the Hacker News front page scraped from
+ *   hckrnews.com (`?limit=` stories, default 30), each with its article's
+ *   preview image prefetched. Needs no News API key.
  *
  * Always answers with JSON, including for failures, so a widget that only
  * reads `error` never has to parse an HTML error page.
@@ -598,11 +611,32 @@ export async function handleTrendingNewsRequest(
   }
 ): Promise<Response> {
   const { apiKey, fetchImpl, sample = true } = options;
+  const params = new URL(request.url).searchParams;
+
+  if (params.get('source') === HCKRNEWS_SOURCE) {
+    try {
+      return jsonResponse(
+        await getHckrNewsHeadlines({
+          limit: parseHckrNewsLimit(params.get('limit')),
+          images: params.get('images') !== '0',
+          fetchImpl,
+        })
+      );
+    } catch (e) {
+      return jsonResponse(
+        {
+          error: 'Failed to fetch hckrnews.com headlines',
+          details: e instanceof Error ? e.message : String(e),
+        },
+        502
+      );
+    }
+  }
+
   if (!apiKey) {
     return jsonResponse({ error: 'THE_NEWS_API_KEY is not configured' }, 500);
   }
 
-  const params = new URL(request.url).searchParams;
   const topic = params.get('topic');
   // `topics` is only honoured when it survives parsing — a list of nothing but
   // whitespace must fall through to the daily ranking rather than render an

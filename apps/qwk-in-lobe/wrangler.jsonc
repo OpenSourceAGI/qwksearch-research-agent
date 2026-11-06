@@ -46,7 +46,7 @@
 	},
 	"vars": {
 		"APP_URL": "https://qwksearch.com",
-		"DATABASE_DRIVER": "neon",
+		"DATABASE_DRIVER": "d1",
 		"DISABLE_REDIS": "1",
 		"EMAIL_SERVICE_PROVIDER": "cloudflare",
 		"SMTP_FROM": "noreply@qwksearch.com"
@@ -79,8 +79,11 @@
 			"destination_address": "noreply@qwksearch.com"
 		}
 	],
-	// Postgres for the LobeHub schema comes from the DATABASE_URL secret, read by
-	// the Neon serverless driver (DATABASE_DRIVER=neon above). To pool through
+	// LobeHub's own tables (users, agents, topics, messages, ...) live in the D1
+	// `DB` above too (DATABASE_DRIVER=d1, tables from migrations/d1/0005, applied
+	// by `bun run cf:d1:migrate`). The production env below still reads Postgres
+	// from the DATABASE_URL secret with the Neon serverless driver
+	// (DATABASE_DRIVER=neon). To pool Postgres through
 	// Hyperdrive instead, create a config and add the binding with its real id:
 	//   wrangler hyperdrive create qwksearch-lobehub-pg --connection-string="postgres://…"
 	//   "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "<the id it prints>" }]

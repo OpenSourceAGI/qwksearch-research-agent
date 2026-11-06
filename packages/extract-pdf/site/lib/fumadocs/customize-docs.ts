@@ -20,12 +20,14 @@ export const NPM_PDF_URL = 'https://www.npmjs.com/package/extract-pdf';
 
 export const NPM_WEBPAGE_URL = 'https://www.npmjs.com/package/extract-webpage';
 
+export const NPM_YOUTUBE_URL = 'https://www.npmjs.com/package/extract-youtube';
+
 export const GITHUB_URL = 'https://github.com/OpenSourceAGI/qwksearch-research-agent';
 
 export const docsConfig: DocsConfig = {
   title: 'extract-pdf + extract-webpage',
   description:
-    'Turn PDFs and webpages into clean, structured HTML with citations — in Node, the browser and Cloudflare Workers, with optional Granite Docling OCR for scanned pages, tables and figures.',
+    'Turn PDFs and webpages into clean, structured HTML with citations — in Node, the browser and Cloudflare Workers, with optional Granite Docling OCR for scanned pages, tables and figures, and YouTube transcripts with a React video player and library.',
   github: GITHUB_URL,
   githubPackages: `${GITHUB_URL}/tree/master/packages`,
   githubDocs: `${GITHUB_URL}/tree/master/packages/extract-pdf/site/content/docs`,
@@ -35,6 +37,7 @@ export const docsConfig: DocsConfig = {
     { text: 'Live demo', url: DEMO_URL },
     { text: 'extract-pdf', url: NPM_PDF_URL, external: true },
     { text: 'extract-webpage', url: NPM_WEBPAGE_URL, external: true },
+    { text: 'extract-youtube', url: NPM_YOUTUBE_URL, external: true },
     { text: 'GitHub', url: GITHUB_URL, external: true },
   ],
 };

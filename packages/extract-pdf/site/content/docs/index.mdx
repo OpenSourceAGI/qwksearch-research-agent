@@ -1,6 +1,6 @@
 ---
 title: Overview
-description: Two packages that turn PDFs and webpages into clean, structured HTML, in Node, the browser and Cloudflare Workers.
+description: Packages that turn PDFs, webpages and YouTube videos into clean, structured text, in Node, the browser and Cloudflare Workers.
 icon: BookOpen
 ---
 
@@ -8,23 +8,25 @@ icon: BookOpen
   <Card title="Try the live demo" href="/demo" description="Convert a PDF or extract a webpage on the Worker that serves these docs." />
   <Card title="extract-pdf" href="/docs/pdf" description="A PDF to structured HTML, with OCR only for the pages that need it." />
   <Card title="extract-webpage" href="/docs/webpage" description="Any URL to its main content and a citation." />
+  <Card title="extract-youtube" href="/docs/youtube" description="Any YouTube video to its transcript, with a floating player and video library for React." />
 </Cards>
 
-When people hand a research tool a document, they expect an answer at once, not after minutes of OCR. These two packages are built around that:
+When people hand a research tool a document, they expect an answer at once, not after minutes of OCR. These packages are built around that:
 
 | Package | Input | Output |
 | --- | --- | --- |
 | `extract-pdf` | A PDF URL or `ArrayBuffer` | Structured HTML (headings, lists, footnotes, code and quote blocks, Table of Contents links), the title and author, and a per-page scan of which pages would benefit from OCR. |
 | `extract-webpage` | A URL, an HTML string, a DOM `document`, or a DOCX buffer | The main content as basic HTML, plus title, author, date, publisher, an APA-style citation and a word count. |
+| `extract-youtube` | A YouTube video id or URL | The transcript as timed snippets, or as text, SRT, WebVTT or an article. Optional React components: a floating player with synced captions, a transcript modal, a video grid and list, and library admin screens. |
 
-`extract-webpage` uses `extract-pdf` itself: a URL that turns out to be a PDF is converted by it.
+`extract-webpage` uses `extract-pdf` itself: a URL that turns out to be a PDF is converted by it. A YouTube URL is handed to `extract-youtube`, so it comes back as its transcript.
 
 ## Install
 
 ```bash
-npm i extract-pdf extract-webpage
+npm i extract-pdf extract-webpage extract-youtube
 # or
-bun add extract-pdf extract-webpage
+bun add extract-pdf extract-webpage extract-youtube
 ```
 
 ## A first call
@@ -32,12 +34,15 @@ bun add extract-pdf extract-webpage
 ```ts
 import { convertPDFToHTML } from 'extract-pdf';
 import { extractContent } from 'extract-webpage';
+import { YouTubeTranscriptApi } from 'extract-youtube';
 
 const pdf = await convertPDFToHTML('https://arxiv.org/pdf/1706.03762');
 const page = await extractContent('https://en.wikipedia.org/wiki/Web_scraping');
+const transcript = await new YouTubeTranscriptApi().fetch('dQw4w9WgXcQ');
 
 console.log(pdf.title, pdf.ocrScan.pagesNeedingOcr);
 console.log(page.cite, page.word_count);
+console.log(transcript.toRawData().slice(0, 3)); // [{ text, start, duration }, …]
 ```
 
 ## Where to go next
@@ -45,3 +50,4 @@ console.log(page.cite, page.word_count);
 - **[Live demo](/docs/live-demo)**: what the demo runs, its API, and how to deploy your own.
 - **[extract-pdf](/docs/pdf)**: options, [parse methods](/docs/pdf/parse-methods), [OCR](/docs/pdf/ocr) and [running on Workers](/docs/pdf/workers).
 - **[extract-webpage](/docs/webpage)**: [citations](/docs/webpage/cite), [scraping](/docs/webpage/scrape) and [text tools](/docs/webpage/text-tools).
+- **[extract-youtube](/docs/youtube)**: [transcripts](/docs/youtube/transcripts), [formatters](/docs/youtube/formatters), the [floating player](/docs/youtube/react/floating-player), the [video grid](/docs/youtube/react/video-grid) and the [library admin API](/docs/youtube/admin/library-api). Try them on the [YouTube tab of the live demo](/demo#youtube).

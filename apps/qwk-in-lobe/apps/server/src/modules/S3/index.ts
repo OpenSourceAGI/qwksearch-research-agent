@@ -38,9 +38,16 @@ export interface PreSignedUpload {
 }
 
 export class S3 {
-  private readonly client: S3Client;
+  private clientInstance?: S3Client;
 
-  private readonly bucket: string;
+  private readonly config: {
+    accessKeyId: string | undefined;
+    bucket: string | undefined;
+    endpoint: string | undefined;
+    forcePathStyle?: boolean;
+    region?: string;
+    secretAccessKey: string | undefined;
+  };
 
   private readonly setAcl: boolean;
 
@@ -55,25 +62,49 @@ export class S3 {
       setAcl?: boolean;
     },
   ) {
-    if (!accessKeyId || !secretAccessKey || !endpoint)
-      throw new Error('S3 environment variables are not set completely, please check your env');
-    if (!options?.bucket) throw new Error('S3 bucket is not set, please check your env');
-
-    this.bucket = options?.bucket;
+    this.config = {
+      accessKeyId,
+      bucket: options?.bucket,
+      endpoint,
+      forcePathStyle: options?.forcePathStyle,
+      region: options?.region,
+      secretAccessKey,
+    };
     this.setAcl = options?.setAcl || false;
 
-    this.client = new S3Client({
+    // Missing settings are reported on first use, not here: services construct
+    // a FileS3 up front, and a deployment without uploads configured must still
+    // be able to chat (sending a message without files never touches S3).
+    if (accessKeyId && secretAccessKey && endpoint && options?.bucket) void this.client;
+  }
+
+  private get bucket(): string {
+    // Validates the whole configuration, credentials included.
+    void this.client;
+    return this.config.bucket!;
+  }
+
+  private get client(): S3Client {
+    if (this.clientInstance) return this.clientInstance;
+
+    const { accessKeyId, bucket, endpoint, forcePathStyle, region, secretAccessKey } = this.config;
+    if (!accessKeyId || !secretAccessKey || !endpoint)
+      throw new Error('S3 environment variables are not set completely, please check your env');
+    if (!bucket) throw new Error('S3 bucket is not set, please check your env');
+
+    this.clientInstance = new S3Client({
       credentials: {
         accessKeyId,
         secretAccessKey,
       },
       endpoint,
-      forcePathStyle: options?.forcePathStyle,
-      region: options?.region || DEFAULT_S3_REGION,
+      forcePathStyle,
+      region: region || DEFAULT_S3_REGION,
       // refs: https://github.com/lobehub/lobe-chat/pull/5479
       requestChecksumCalculation: 'WHEN_REQUIRED',
       responseChecksumValidation: 'WHEN_REQUIRED',
     });
+    return this.clientInstance;
   }
 
   public async deleteFile(key: string) {

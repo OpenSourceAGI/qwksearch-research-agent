@@ -258,6 +258,19 @@
     "default": ""
   },
   {
+    "name": "Trending News Source",
+    "key": "trendingNewsSource",
+    "type": "select",
+    "required": false,
+    "description": "Where the news widget's headlines come from: the daily trending topics, or the Hacker News front page (scraped from hckrnews.com, with a preview image for each story).",
+    "default": "trending",
+    "scope": "client",
+    "options": [
+      { "name": "Trending topics (default)", "value": "trending" },
+      { "name": "Hacker News (hckrnews.com)", "value": "hckrnews" }
+    ]
+  },
+  {
     "name": "Trending News Topics",
     "key": "trendingNewsMaxTopics",
     "type": "select",

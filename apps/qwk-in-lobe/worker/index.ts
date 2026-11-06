@@ -6,6 +6,7 @@
  */
 import './cf/globals';
 
+import { ensureKeyVaultsSecret } from './cf/keyVaultsSecret';
 import { runWithRequestContext } from './cf/requestContext';
 import { isSharedUserMode } from './users/mode';
 import { resolveVisitor, withVisitorCookie } from './users/visitor';
@@ -21,6 +22,9 @@ const getApp = () => {
 
 export default {
   async fetch(request: Request, _env: unknown, ctx: ExecutionContext): Promise<Response> {
+    // Before the app's modules read their config: on D1 with no KEY_VAULTS_SECRET
+    // Worker secret, use the one this deployment generated and keeps in D1.
+    await ensureKeyVaultsSecret();
     const appInstance = await getApp();
     // Every browser is its own guest user (`worker/users`), unless the
     // deployment opted back into one shared user.

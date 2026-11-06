@@ -54,7 +54,7 @@ upstream LobeHub. Users can still add their own keys under Settings → Provider
 | Concern | LobeHub default | On Cloudflare (this tree) |
 | --- | --- | --- |
 | HTTP shell | Next.js route handlers + middleware | One Hono app (`worker/app.ts`) mounting the same handlers: tRPC (lambda/tools/mobile/async), `/webapi/*`, `/api/v1` OpenAPI, agent/workflow/webhook Hono apps, `/f/:id`, SPA shells |
-| Database | Postgres via Neon serverless or `pg` | Same Postgres schema. `DATABASE_URL` by default (Neon serverless driver works natively on Workers); add a `HYPERDRIVE` binding to pool through Hyperdrive with `pg` instead |
+| Database | Postgres via Neon serverless or `pg` | Worker `lobe`: D1 (`DATABASE_DRIVER=d1`), through a Postgres-to-SQLite driver, see below. Worker `lobe-production`: Postgres from `DATABASE_URL` (Neon), or a `HYPERDRIVE` binding |
 | Auth | Better Auth (Drizzle adapter) | Removed. No sign-in form: every browser is its own guest user, recorded in D1 (see below) |
 | Email | nodemailer / Resend | New `cloudflare` provider on the `EMAIL` (Email Routing) binding; Resend still works |
 | Redis | ioredis | Not reachable from Workers → `DISABLE_REDIS=1`, in-memory fallbacks |
@@ -62,15 +62,42 @@ upstream LobeHub. Users can still add their own keys under Settings → Provider
 | Static SPA | Next.js serves `/_spa` | `ASSETS` binding; the Worker injects `window.__SERVER_CONFIG__` per request (`worker/routes/spa.ts`) |
 | Config | `process.env` | `nodejs_compat` mirrors vars/secrets to `process.env`; `worker/cf/globals.ts` does it eagerly for module-time reads |
 
-### Why Postgres and not D1 for LobeHub itself
+### LobeHub's data on D1
 
-LobeHub's schema is 169 Postgres tables with 211 `jsonb` columns, 11 `pgvector` columns, arrays and
-~380 raw SQL fragments across models/repositories, plus 157 migrations. Porting that to SQLite/D1 is a
-rewrite of the data layer, not a runtime port. This tree therefore keeps LobeHub on Postgres (through
-Hyperdrive or Neon, both first-class on Workers) and uses **D1 for the QwkSearch-specific tables**
-(`articleCache`, `articleQA`, `favorites`, `documents`, `research_quotes`, `share_tokens`,
-`google_docs_sync`) and for **Lobe's users** (`lobe_users`, see below) — the same `qwksearch-new` database the QwkSearch Worker already uses, so existing
-data is reused as-is.
+LobeHub's schema is 168 Postgres tables (211 `jsonb` columns, 11 `pgvector` columns, arrays) and its
+models build Postgres SQL with drizzle. Rather than rewrite the data layer, the `lobe` Worker keeps the
+models as they are and runs them on D1 with a driver in `packages/database/src/core/d1`:
+
+- `index.ts`: drizzle's `pg-proxy` driver, sending every statement to the D1 `DB` binding. D1 has
+  no interactive transactions, so `db.transaction()` runs its statements one by one with no rollback.
+- `translate.ts` / `expressions.ts`: rewrite each statement for SQLite on the way out (`$1` → `?1`,
+  casts, `now()`, `ilike`, jsonb `||` merges, `jsonb_set`, `#>>`, `?`, `= any(...)`, ...).
+- `columns.ts`: client-side column defaults (SQLite has no `DEFAULT` in a values list), booleans
+  back from 0/1, Postgres arrays stored as JSON.
+- `ddl.ts` + `scripts/generateD1LobeSchema.mts` (`bun run cf:d1:generate`): write
+  `migrations/d1/0005_lobehub_tables.sql` from the drizzle schema. Re-run it after a schema change.
+  LobeHub's `documents` table is `lobe_documents` on D1, because QwkSearch already has `documents`.
+
+The chat path (user state, inbox agent, sending a message, saving the reply and its usage, topic and
+message lists) is covered on D1 by `bun run test:d1`. The rest of the model suite also runs on D1
+(`TEST_DB_DRIVER=d1`); what fails there is Postgres-only: vector similarity (RAG, memory search),
+full-text search, `DISTINCT ON` / `LATERAL` queries and row-lock races. Those features error on D1.
+
+The whole homepage chat also runs end to end on a local D1 Worker (`wrangler dev --local`, migrations
+0001-0006, no Postgres): a guest types on `/`, the message goes to `/webapi/chat/openrouter` with every
+tool, the reply streams back, and the topic and both messages are in D1 after a reload.
+
+**`KEY_VAULTS_SECRET` on D1 is optional.** Without it LobeHub refuses to open its database and every
+tRPC call answers UNAUTHORIZED. When it is unset, the D1 Worker generates one 256-bit secret, keeps it
+in `lobe_instance_secrets` (migration 0006; the Worker also creates the table) and uses it for
+every isolate (`worker/cf/keyVaultsSecret.ts`). A `KEY_VAULTS_SECRET` Worker secret always wins;
+setting one later makes provider keys saved under the generated secret unreadable (visitors re-enter
+them). The generated secret sits next to the data it encrypts, so set the Worker secret if keys must
+be protected from someone who can read D1.
+
+D1 also holds the **QwkSearch-specific tables** (`articleCache`, `articleQA`, `favorites`,
+`documents`, `research_quotes`, `share_tokens`, `google_docs_sync`) and **Lobe's users**
+(`lobe_users`, see below). The `lobe-production` Worker still keeps LobeHub on Postgres.
 
 ## QwkSearch features added to LobeHub
 
@@ -181,9 +208,11 @@ bun run build:worker
 #     over the limit. `WORKER_BUDGET_MB` / `WORKER_BUDGET_WARN_MB` override.
 bun run cf:budget
 
-# 3. D1 tables (every migrations/d1 file, idempotent; safe on the existing
-#    qwksearch-new database). 0004 adds `lobe_users`.
-bun run cf:d1:migrate              # remote
+# 3. D1 tables (every migrations/d1 file, idempotent, safe to re-run).
+#    0004 adds `lobe_users`, 0005 LobeHub's own tables (Worker `lobe` only).
+#    Each Worker has its own D1 database:
+bun run cf:d1:migrate              # remote `qwk-in-lobe-db` (Worker `lobe`), 0001-0005
+bun run cf:d1:migrate:production   # remote `qwksearch-new` (Worker `lobe-production`)
 bun run cf:d1:migrate:dev          # local wrangler dev
 
 # 4. Deploy
@@ -264,8 +293,11 @@ workspace entry nor its scripts are kept.
 ### Required bindings / secrets
 
 Bindings are declared in `wrangler.jsonc` (identical IDs to `apps/qwksearch-web/wrangler.jsonc` for
-KV and D1). Postgres comes from the `DATABASE_URL` secret, read by the Neon serverless driver
-(`DATABASE_DRIVER=neon`). To pool through Hyperdrive instead, create a config and add the binding
+KV and D1). The `lobe` Worker keeps LobeHub's data in D1 (`DATABASE_DRIVER=d1`) and needs no
+`DATABASE_URL`: run `bun run cf:d1:migrate`, set `OPENROUTER_API_KEY` (and optionally
+`KEY_VAULTS_SECRET`, see above), and deploy. Without `OPENROUTER_API_KEY` each visitor is asked for
+their own OpenRouter key before their first message. For `lobe-production`, Postgres comes from the `DATABASE_URL` secret, read by the Neon
+serverless driver (`DATABASE_DRIVER=neon`). To pool through Hyperdrive instead, create a config and add the binding
 with the id it prints — a placeholder id is not deployable, wrangler rejects the whole upload, so
 the binding is left out until there is a real config behind it:
 
@@ -277,7 +309,8 @@ wrangler hyperdrive create qwksearch-lobehub-pg --connection-string="postgres://
 
 Secrets (`wrangler secret put …`):
 
-Setting up Postgres on the live Worker (`lobe`), from `apps/qwk-in-lobe`:
+Setting up Postgres for a Worker that uses it (`lobe-production`, or `lobe` switched back with
+`DATABASE_DRIVER=neon`), from `apps/qwk-in-lobe`:
 
 ```bash
 # 1. Get a Neon connection string: Neon console (or Vercel → Storage → the Neon
@@ -295,8 +328,8 @@ Secrets take effect immediately; no redeploy is needed.
 
 | Secret | Purpose |
 | --- | --- |
-| `KEY_VAULTS_SECRET` | encrypts stored provider keys (`openssl rand -base64 32`) |
-| `DATABASE_URL` | the Postgres connection (e.g. Neon URL, `DATABASE_DRIVER=neon`); optional only when a `HYPERDRIVE` binding is bound |
+| `KEY_VAULTS_SECRET` | encrypts stored provider keys (`openssl rand -base64 32`); on D1 a generated one is used when unset |
+| `DATABASE_URL` | the Postgres connection (e.g. Neon URL, `DATABASE_DRIVER=neon`); not used with `DATABASE_DRIVER=d1`, optional when a `HYPERDRIVE` binding is bound |
 | `S3_*` | uploads — point at the `qwksearch-uploads` R2 bucket via its S3 API |
 | `TAVILY_API_KEY`, `SCRAPER_API_KEY` | article extraction fallbacks |
 | provider keys (`OPENAI_API_KEY`, …) | server-side model providers, same as LobeHub |

@@ -25,6 +25,8 @@
  *    back to.
  */
 import {
+  HCKRNEWS_SOURCE,
+  parseHckrNewsLimit,
   fetchWikipediaTopPages,
   handleTrendingNewsRequest,
   parseTopicLimit,
@@ -212,8 +214,13 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
   }
 
   const cacheSeconds = settings.cacheMinutes * 60;
-  const apiKey = getNewsApiKey();
   const kv = getKV();
+
+  if (url.searchParams.get("source") === HCKRNEWS_SOURCE) {
+    return serveHckrNews(request, url, kv, cacheSeconds);
+  }
+
+  const apiKey = getNewsApiKey();
 
   // A single `?topic=` lookup is a different route (one topic's headlines) and
   // is not affected by the configured topic list.
@@ -342,6 +349,76 @@ export async function serveTrendingNews(request: Request): Promise<Response> {
   }
 
   return respond(body, status, kv ? "MISS" : "BYPASS", cacheSeconds);
+}
+
+/**
+ * The Hacker News front page has its own window: it turns over within the
+ * hour, so it is cached for at most this long however long the News API
+ * answers are kept.
+ */
+const HCKRNEWS_MAX_CACHE_SECONDS = 10 * 60;
+
+/**
+ * `?source=hckrnews`: headlines scraped from hckrnews.com, each with its
+ * article's preview image already looked up.
+ *
+ * It needs no News API key and is not written to the D1 archive (that table
+ * is keyed by topic, and a domain is not one). A cold answer costs one page
+ * plus one request per article for its image, so it is cached in KV like the
+ * rest, with a last-good copy to fall back on when hckrnews.com is down.
+ */
+async function serveHckrNews(
+  request: Request,
+  url: URL,
+  kv: any,
+  cacheSeconds: number,
+): Promise<Response> {
+  const limit = parseHckrNewsLimit(url.searchParams.get("limit"));
+  const images = url.searchParams.get("images") !== "0";
+  const key = `${CACHE_PREFIX}hckrnews:${limit}:${images ? "img" : "noimg"}`;
+  const seconds = Math.min(cacheSeconds, HCKRNEWS_MAX_CACHE_SECONDS);
+
+  if (kv) {
+    try {
+      const cached = await kv.get(key);
+      if (cached) return jsonResponse(cached, 200, "HIT", seconds);
+    } catch (error) {
+      console.error("hckrnews cache read failed:", error);
+    }
+  }
+
+  const { body, status } = await fetchOnce(key, async () => {
+    const upstream = new URL(request.url);
+    upstream.searchParams.set("limit", String(limit));
+    const response = await handleTrendingNewsRequest(new Request(upstream.toString()), {
+      apiKey: undefined,
+    });
+    return { body: await response.text(), status: response.status };
+  });
+
+  if (status === 200 && !isEmptyList(body)) {
+    if (kv) {
+      try {
+        await kv.put(key, body, { expirationTtl: Math.max(60, seconds) });
+        await kv.put(lastGoodKey(key), body, {
+          expirationTtl: FALLBACK_MAX_AGE_DAYS * 24 * 60 * 60,
+        });
+      } catch (error) {
+        console.error("hckrnews cache write failed:", error);
+      }
+    }
+    return jsonResponse(body, 200, kv ? "MISS" : "BYPASS", seconds);
+  }
+
+  if (kv) {
+    try {
+      const lastGood = await kv.get(lastGoodKey(key));
+      if (lastGood) return jsonResponse(markStale(lastGood), 200, "STORED", 0);
+    } catch (error) {
+      console.error("hckrnews stale cache read failed:", error);
+    }
+  }
+  return jsonResponse(body, status, kv ? "MISS" : "BYPASS", seconds);
 }
 
 /**

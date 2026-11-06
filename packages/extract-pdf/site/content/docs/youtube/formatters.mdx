@@ -1,0 +1,71 @@
+---
+title: Formatters
+description: Turn a fetched transcript into JSON, plain text, SRT, WebVTT, pretty-print or an article with a timestamp map.
+icon: FileText
+---
+
+Every formatter has the same two methods:
+
+- `formatTranscript(transcript, options?)` — one `FetchedTranscript` to a string.
+- `formatTranscripts(transcripts, options?)` — several, joined.
+
+```ts
+import { SRTFormatter, WebVTTFormatter, JSONFormatter, TextFormatter } from 'extract-youtube';
+
+const transcript = await api.fetchTranscript('jNQXAC9IVRw');
+
+const srt = new SRTFormatter().formatTranscript(transcript);
+const vtt = new WebVTTFormatter().formatTranscript(transcript);
+const json = new JSONFormatter().formatTranscript(transcript, { indent: 2 });
+const text = new TextFormatter().formatTranscript(transcript);
+```
+
+| Formatter | Output |
+| --- | --- |
+| `JSONFormatter` | The raw snippets as compact JSON. Accepts `{ indent }`. |
+| `TextFormatter` | Snippet text only, one snippet per line, no timestamps. |
+| `SRTFormatter` | SubRip subtitles (`00:00:01,000 --> 00:00:04,000`). |
+| `WebVTTFormatter` | WebVTT subtitles for a `<track>` element. |
+| `PrettyPrintFormatter` | The raw snippets as JSON indented by two spaces — readable in a terminal. |
+| `ArticleFormatter` | Full text plus a compressed character-to-timestamp map (below). |
+
+Subtitle formatters clip each cue's end time to the start of the next one, so overlapping auto-generated captions never show two lines at once.
+
+## Pick a formatter by name
+
+`FormatterLoader` maps a string to a formatter — handy for a `?format=` query parameter:
+
+```ts
+import { FormatterLoader } from 'extract-youtube';
+
+const formatter = new FormatterLoader().load('srt'); // json | text | article | srt | webvtt | pretty
+const body = formatter.formatTranscript(transcript);
+```
+
+An unknown name throws `UnknownFormatterType`. With no argument it returns the pretty-print formatter.
+
+## Article format and timestamp maps
+
+`ArticleFormatter` joins the transcript into one paragraph of text and records where in that text each moment of the video falls, so you can link from any character back to a timestamp:
+
+```ts
+import { ArticleFormatter } from 'extract-youtube';
+
+const article = JSON.parse(new ArticleFormatter().formatTranscript(transcript));
+// {
+//   "text": "Full transcript text...",
+//   "timestamps": "10,15,20  100,200,300",
+//   "wordCount": 1234,
+//   "charCount": 5678
+// }
+```
+
+For the same idea as a function, use the helpers in the main entry:
+
+| Function | Description |
+| --- | --- |
+| `encodeTranscriptSpeeds(transcript, addPlayer?)` | Returns `{ html, word_count, speeds }`: the joined text, a word count, and a run-length encoded speed string like `12x3,8x7`. With `addPlayer`, `html` starts with a YouTube embed carrying `data-timestamps`. |
+| `decompressTimestampsArray(speeds)` | Expands `12x3,8x7` back to `[12, 12, 12, 8, …]`. |
+| `getTimestampAtChar(transcript, charIndex)` | The video time, in seconds, at a character offset in the joined text. |
+
+The CLI exposes `encodeTranscriptSpeeds` as `-f speeds`.

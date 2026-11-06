@@ -8,11 +8,12 @@
 import type { Metadata } from 'next';
 import { DemoMount } from '@/components/demo/DemoMount';
 import '@/components/demo/demo.css';
+import '@/components/demo/youtube/demo.css';
 
 export const metadata: Metadata = {
-  title: 'Live demo — extract-pdf, extract-webpage + extract-cite',
+  title: 'Live demo — extract-pdf, extract-webpage, extract-cite + extract-youtube',
   description:
-    'Convert a PDF to structured HTML with an optional Granite Docling OCR follow-up, extract a webpage’s main content and citation, or build a full APA citation with an LLM, on Cloudflare Workers.',
+    'Convert a PDF to structured HTML with an optional Granite Docling OCR follow-up, extract a webpage’s main content and citation, build a full APA citation with an LLM, or browse a YouTube library with synced transcripts.',
 };
 
 export default function DemoPage() {

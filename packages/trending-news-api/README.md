@@ -134,6 +134,15 @@ npm run build
   - `GET /?topic=...` — headlines for a specific topic.
   - `GET /?topics=a,b,c` — headlines for a named list of topics, in that order, instead of
     the Wikipedia ranking (capped at 20; `?topic=` wins if both are given).
+  - `GET /?source=hckrnews` — the Hacker News front page, scraped from
+    [hckrnews.com](https://hckrnews.com/) (`?limit=` stories, default 30, capped at 60). Each
+    story comes back as its own topic (named after its domain) with title, link, points,
+    comments and the discussion link, plus `image_url`: the linked article's `og:image` /
+    `twitter:image`, looked up server-side so the widget has a thumbnail on first render.
+    `?images=0` skips the image lookups. Needs no News API key.
+
+On the client, pass `source="hckrnews"` to `<TrendingNews />` (or `getTrendingNews`) to use it;
+the widget also warms each lead image in the browser cache as soon as the list arrives.
 
 Topics with no matching headlines are dropped from the *daily* list, so it looks at up to twice
 as many Wikipedia entries as topics requested and stops once the quota is filled. A named topic

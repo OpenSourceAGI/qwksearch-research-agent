@@ -348,6 +348,11 @@ export const LEGACY_SEARCH_FIELDS: readonly LegacySearchField[] = [
   },
   {
     destination: 'QwkSearch homepage trending-news widget.',
+    key: 'trendingNewsSource',
+    kind: 'shell',
+  },
+  {
+    destination: 'QwkSearch homepage trending-news widget.',
     key: 'trendingNewsMaxTopics',
     kind: 'shell',
   },

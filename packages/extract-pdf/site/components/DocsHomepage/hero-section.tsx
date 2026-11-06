@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
-import { DEMO_URL, GITHUB_URL, NPM_PDF_URL, NPM_WEBPAGE_URL } from '@/lib/fumadocs/customize-docs';
+import { DEMO_URL, GITHUB_URL, NPM_PDF_URL, NPM_WEBPAGE_URL, NPM_YOUTUBE_URL } from '@/lib/fumadocs/customize-docs';
 import { cn } from '@/lib/utils';
 
 const INSTALL = 'npm i extract-pdf extract-webpage';
@@ -42,7 +42,8 @@ export function HeroSection() {
           <p className="mb-8 max-w-2xl text-lg text-pretty text-muted-foreground md:text-xl">
             <code>extract-pdf</code> turns a PDF into structured HTML with headings, lists, footnotes and code blocks in
             milliseconds, with Granite Docling OCR for the pages that need it. <code>extract-webpage</code> pulls the
-            main content and its citation out of any URL.
+            main content and its citation out of any URL. <code>extract-youtube</code> fetches any video's transcript,
+            with a floating player, synced captions and a video library for React.
           </p>
 
           <div className="mb-8 flex flex-wrap justify-center gap-2">
@@ -51,6 +52,9 @@ export function HeroSection() {
             </a>
             <a href={NPM_WEBPAGE_URL} target="_blank" rel="noreferrer">
               <img alt="extract-webpage on npm" src="https://img.shields.io/npm/v/extract-webpage.svg?label=extract-webpage" />
+            </a>
+            <a href={NPM_YOUTUBE_URL} target="_blank" rel="noreferrer">
+              <img alt="extract-youtube on npm" src="https://img.shields.io/npm/v/extract-youtube.svg?label=extract-youtube" />
             </a>
           </div>
 

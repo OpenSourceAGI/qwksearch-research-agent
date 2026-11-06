@@ -14,6 +14,7 @@ import type { PartialDeep } from 'type-fest';
 import { merge } from '@/utils/merge';
 import { today } from '@/utils/time';
 
+import { isD1Database } from '../core/d1/marker';
 import type { NewUser, UserItem, UserSettingsItem } from '../schemas';
 import { messages, nextauthAccounts, topics, users, userSettings } from '../schemas';
 import type { LobeChatDatabase } from '../type';
@@ -233,6 +234,25 @@ export class UserModel {
    * value back against `last_active_at` can miss the row.
    */
   advanceLastActiveAt = async (currentTime: Date): Promise<LastActiveAtTransition | undefined> => {
+    // D1 (SQLite) has no writable CTEs. Timestamps there are stored as the
+    // same ISO strings JS produces, so a compare-and-set on the read value works.
+    if (isD1Database(this.db)) {
+      const [previous] = await this.db
+        .select({ createdAt: users.createdAt, lastActiveAt: users.lastActiveAt })
+        .from(users)
+        .where(eq(users.id, this.userId));
+      if (!previous) return;
+
+      const updated = await this.db
+        .update(users)
+        .set({ lastActiveAt: currentTime, updatedAt: currentTime })
+        .where(and(eq(users.id, this.userId), eq(users.lastActiveAt, previous.lastActiveAt)))
+        .returning({ id: users.id });
+      if (updated.length === 0) return;
+
+      return { previousLastActiveAt: previous.lastActiveAt, userCreatedAt: previous.createdAt };
+    }
+
     const result = await this.db.execute(sql`
       WITH previous_user AS MATERIALIZED (
         SELECT id, created_at, last_active_at
@@ -294,6 +314,20 @@ export class UserModel {
   }) => {
     const appendAllowList = [...new Set(value.appendAllowList ?? [])];
 
+    // D1 (SQLite) cannot run the single-statement merge below (`WITH
+    // ORDINALITY`, jsonb `?`). Read, merge and write instead; D1 serializes
+    // writes, and the deployment is single-user.
+    if (isD1Database(this.db)) {
+      const tool = await this.getToolSetting();
+      const intervention = { ...(tool.humanIntervention as Record<string, unknown> | undefined) };
+      if (value.approvalMode) intervention.approvalMode = value.approvalMode;
+      if (appendAllowList.length > 0) {
+        const stored = (intervention.allowList as string[] | undefined) ?? [];
+        intervention.allowList = [...stored, ...appendAllowList.filter((v) => !stored.includes(v))];
+      }
+      return this.writeToolSetting({ ...tool, humanIntervention: intervention });
+    }
+
     const initialIntervention: Record<string, unknown> = {};
     if (value.approvalMode) initialIntervention.approvalMode = value.approvalMode;
     if (appendAllowList.length > 0) initialIntervention.allowList = appendAllowList;
@@ -346,6 +380,21 @@ export class UserModel {
   }) => {
     const list = JSON.stringify(value.uninstalledBuiltinTools);
 
+    if (isD1Database(this.db)) {
+      const tool = await this.getToolSetting();
+      return this.writeToolSetting(
+        value.workspaceId
+          ? {
+              ...tool,
+              uninstalledBuiltinToolsByWorkspace: {
+                ...(tool.uninstalledBuiltinToolsByWorkspace as Record<string, unknown> | undefined),
+                [value.workspaceId]: value.uninstalledBuiltinTools,
+              },
+            }
+          : { ...tool, uninstalledBuiltinTools: value.uninstalledBuiltinTools },
+      );
+    }
+
     const initialTool = value.workspaceId
       ? {
           uninstalledBuiltinToolsByWorkspace: {
@@ -372,6 +421,20 @@ export class UserModel {
         target: userSettings.id,
       });
   };
+
+  private getToolSetting = async (): Promise<Record<string, unknown>> => {
+    const [row] = await this.db
+      .select({ tool: userSettings.tool })
+      .from(userSettings)
+      .where(eq(userSettings.id, this.userId));
+    return (row?.tool as Record<string, unknown> | null) ?? {};
+  };
+
+  private writeToolSetting = (tool: Record<string, unknown>) =>
+    this.db
+      .insert(userSettings)
+      .values({ id: this.userId, tool })
+      .onConflictDoUpdate({ set: { tool }, target: userSettings.id });
 
   updatePreference = async (value: Partial<UserPreference>) => {
     const user = await this.db.query.users.findFirst({ where: eq(users.id, this.userId) });

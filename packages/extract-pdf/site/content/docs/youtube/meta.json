@@ -1,0 +1,15 @@
+{
+  "title": "extract-youtube",
+  "pages": [
+    "index",
+    "transcripts",
+    "formatters",
+    "cli",
+    "proxies",
+    "deploy-cloudflare",
+    "---extract-youtube/react---",
+    "...react",
+    "---extract-youtube/library---",
+    "...admin"
+  ]
+}

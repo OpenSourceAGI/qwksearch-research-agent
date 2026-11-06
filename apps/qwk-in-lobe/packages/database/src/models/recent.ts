@@ -46,6 +46,20 @@ const toPlainTextPreview = (markdown: string): string => {
   }
 };
 
+/**
+ * `metadata` is selected through raw SQL (the union arms need `NULL` for it),
+ * so drizzle does not decode it: Postgres hands back the jsonb object, D1 the
+ * JSON text.
+ */
+const parseMetadata = (value: unknown) => {
+  if (typeof value !== 'string') return value ?? undefined;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return undefined;
+  }
+};
+
 export class RecentModel {
   private userId: string;
   private workspaceId?: string;
@@ -185,7 +199,7 @@ export class RecentModel {
           preview && preview.length > LAST_MESSAGE_PREVIEW_LENGTH
             ? `${preview.slice(0, LAST_MESSAGE_PREVIEW_LENGTH)}…`
             : preview,
-        metadata: row.metadata ?? undefined,
+        metadata: parseMetadata(row.metadata),
         routeGroupId: row.routeGroupId,
         routeId: row.routeId,
         status: row.status,
