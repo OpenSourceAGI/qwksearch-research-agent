@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChat } from '../hooks/useChat';
 
 export interface ChatTab {
@@ -37,6 +37,11 @@ function readStoredTabs(): ChatTab[] {
 export function useChatTabs() {
   const { chatId, chatTurns, startNewChat, switchToChat } = useChat();
   const [chatTabs, setChatTabs] = useState<ChatTab[]>(readStoredTabs);
+  // After the last chat tab is closed, `ChatProvider` still needs *some*
+  // active chat, so a fresh one is started in the background. Its id lives
+  // here so the effect below doesn't immediately show it as a "New Chat" tab —
+  // it only becomes a tab once it gets a message.
+  const detachedChatIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(chatTabs));
@@ -50,6 +55,9 @@ export function useChatTabs() {
     const hasMessages = chatTurns.length > 0;
     setChatTabs((prev) => {
       const existing = prev.find((t) => t.id === chatId);
+      if (!existing && chatId === detachedChatIdRef.current && !hasMessages) {
+        return prev;
+      }
       if (!existing) {
         return [...prev, { id: chatId, title: liveTitle || 'New Chat', hasMessages }];
       }
@@ -104,7 +112,16 @@ export function useChatTabs() {
 
     const closedWasActive = chatId != null && closing.has(chatId);
     if (!closedWasActive) return { closedWasActive: false, nextActiveId: null };
-    if (remaining.length === 0) return { closedWasActive, nextActiveId: null };
+    if (remaining.length === 0) {
+      // Leaving the closed chat active would let its next turn (a reply still
+      // streaming in, or the next message typed into the docs view) re-add
+      // its tab. Swap in a fresh, tab-less chat instead; starting it also
+      // stops any stream the closed chat had running.
+      const freshId = crypto.randomUUID();
+      detachedChatIdRef.current = freshId;
+      startNewChat(freshId);
+      return { closedWasActive, nextActiveId: null };
+    }
 
     // Nearest survivor to the closed active tab: scan left, then right.
     const activeIndex = chatTabs.findIndex((t) => t.id === chatId);
@@ -119,7 +136,7 @@ export function useChatTabs() {
     const nextActiveId = (nextTab ?? remaining[0]).id;
     activateChat(nextActiveId, remaining);
     return { closedWasActive, nextActiveId };
-  }, [chatTabs, chatId, activateChat]);
+  }, [chatTabs, chatId, activateChat, startNewChat]);
 
   const closeChat = useCallback((id: string) => closeChats([id]), [closeChats]);
 
