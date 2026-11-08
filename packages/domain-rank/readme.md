@@ -151,6 +151,23 @@ const total = getTotalDomains();
 | 4 | youtube.com | YouTube |
 | 5 | linkedin.com | LinkedIn |
 
+## Top Apps Catalog
+
+`data/top-app-domains.json` is a curated catalog of popular web apps for launchers and app docks: 629 apps across 27 categories. `categories` is a list of names whose index is the category id, and each entry in `apps` is:
+
+```json
+["destination", "Name", "image", categoryId, "One-sentence description."]
+```
+
+- **destination**: hostname, or hostname plus path when a path picks out one product (`docs.google.com/document`, `google.com/travel/flights`). Link with `https://` + destination.
+- **image**: an Imgur id for curated logos (`https://i.imgur.com/<id>.png`), or a full image URL. Newer entries use a large favicon, `https://www.google.com/s2/favicons?domain=<host>&sz=256`.
+
+```js
+import topApps from 'domain-rank/data/top-app-domains.json' with { type: 'json' };
+```
+
+**Demo:** `pnpm run demo` opens `demo/index.html`, which shows every app by category with search, a category filter, and favorites saved to localStorage.
+
 ## Data Format
 
 ### Source Data

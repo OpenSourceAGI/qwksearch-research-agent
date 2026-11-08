@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Top Apps · domain-rank</title>
+<meta name="description" content="Every app in domain-rank's top-app-domains.json, grouped by category, with descriptions and favorites.">
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#1d2940;--muted:#65748b;--line:#dfe6ef;--accent:#375ed7;--accent-soft:#e7edff;--star:#f5a524;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1420;--card:#171e2d;--ink:#e6ebf4;--muted:#93a0b5;--line:#273246;--accent:#7d9bff;--accent-soft:#1f2a45;color-scheme:dark}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1440px;margin:auto;padding:32px 24px 48px}
+h1{font-size:32px;letter-spacing:-.5px;margin:0 0 6px}
+.intro{color:var(--muted);margin:0 0 20px}
+.intro code{background:var(--accent-soft);padding:1px 6px;border-radius:5px}
+.toolbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:12px;align-items:end;background:var(--card);padding:14px;border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 16px #0000000d}
+.field{display:grid;gap:6px;flex:1;min-width:200px}
+label{font-size:13px;font-weight:650}
+input,select,button{font:inherit;border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--card);color:var(--ink)}
+input:focus,select:focus,button:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button{cursor:pointer}
+button:hover{background:var(--accent-soft)}
+button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+#count{font-size:14px;color:var(--muted);margin:14px 0 18px}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:26px}
+summary{cursor:pointer;font-weight:650;font-size:14px}
+.category-index{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:6px 18px;margin-top:12px}
+.category-index a{text-decoration:none;color:var(--muted);font-size:13px;padding:3px}
+.category-index a:hover{color:var(--accent)}
+.category-index b{display:inline-block;min-width:26px;color:var(--accent)}
+section{margin:0 0 34px}
+h2{display:flex;align-items:center;gap:10px;font-size:19px;margin:0 0 14px}
+h2 .num{background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:4px 9px;font-size:14px}
+h2 .n{font-size:12px;color:var(--muted);font-weight:500;background:var(--accent-soft);padding:3px 8px;border-radius:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{position:relative;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:16px;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px #18223814}
+.card a.open{color:inherit;text-decoration:none;display:flex;flex-direction:column;align-items:center;flex:1}
+.logo{width:72px;height:72px;display:flex;align-items:center;justify-content:center;border-radius:16px;overflow:hidden;background:var(--accent-soft)}
+.logo img{width:100%;height:100%;object-fit:contain}
+.logo .letter{font-size:30px;font-weight:700;color:var(--accent)}
+h3{font-size:15px;margin:12px 0 2px;text-align:center;overflow-wrap:anywhere}
+.domain{font-size:12px;color:var(--muted);margin:0 0 8px;text-align:center;overflow-wrap:anywhere}
+.desc{margin:0;color:var(--muted);font-size:13px;line-height:1.5;text-align:center}
+.fav{position:absolute;top:8px;right:8px;border:0;background:transparent;padding:6px;border-radius:8px;font-size:20px;line-height:1;color:var(--muted)}
+.fav[aria-pressed=true]{color:var(--star);background:transparent}
+.fav:hover{background:var(--accent-soft)}
+#empty{text-align:center;padding:40px;color:var(--muted)}
+[hidden]{display:none!important}
+footer{font-size:12px;color:var(--muted)}
+footer a{color:var(--accent)}
+@media(max-width:540px){main{padding:20px 16px}h1{font-size:26px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{padding:12px}.logo{width:56px;height:56px}.desc{font-size:12px}}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Top Apps</h1>
+    <p class="intro">Every app in <code>domain-rank/data/top-app-domains.json</code>, grouped by category. Star an app to pin it to Favorites (saved in this browser).</p>
+  </header>
+  <div class="toolbar">
+    <div class="field"><label for="search">Search apps</label><input id="search" type="search" placeholder="Name, domain, or description…" autocomplete="off"></div>
+    <div class="field"><label for="filter">Category</label><select id="filter"><option value="all">All categories</option></select></div>
+    <button id="favOnly" type="button" aria-pressed="false">★ Favorites only</button>
+    <button id="reset" type="button">Reset</button>
+  </div>
+  <p id="count" role="status" aria-live="polite">Loading apps…</p>
+  <details><summary>Browse categories</summary><nav class="category-index" id="index" aria-label="Category index"></nav></details>
+  <div id="sections"></div>
+  <p id="empty" hidden>No apps match your filters.</p>
+  <footer>Data from the <a href="https://www.npmjs.com/package/domain-rank">domain-rank</a> package. Logos load from Imgur or Google's favicon service.</footer>
+</main>
+<script>
+const SOURCES = ['../data/top-app-domains.json', 'https://cdn.jsdelivr.net/npm/domain-rank/data/top-app-domains.json'];
+const FAV_KEY = 'domain-rank:top-apps:favorites';
+const $ = (id) => document.getElementById(id);
+let data, favorites = new Set();
+try { favorites = new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch {}
+const saveFavs = () => { try { localStorage.setItem(FAV_KEY, JSON.stringify([...favorites])); } catch {} };
+
+/** Third field is an Imgur id for curated logos, or a full image URL (large favicon). */
+const imageUrl = (img, domain) =>
+  !img ? `https://www.google.com/s2/favicons?domain=${domain.split('/')[0]}&sz=256`
+  : /^https?:\/\//.test(img) ? img : `https://i.imgur.com/${img}.png`;
+
+function card([domain, name, img, , desc]) {
+  const el = document.createElement('article');
+  el.className = 'card';
+  el.dataset.domain = domain;
+  el.dataset.search = `${name} ${domain} ${desc}`.toLowerCase();
+  const a = document.createElement('a');
+  a.className = 'open'; a.href = 'https://' + domain; a.target = '_blank'; a.rel = 'noopener noreferrer';
+  const logo = document.createElement('div'); logo.className = 'logo';
+  const im = new Image(); im.alt = ''; im.loading = 'lazy'; im.src = imageUrl(img, domain);
+  im.onerror = () => { im.replaceWith(Object.assign(document.createElement('span'), { className: 'letter', textContent: name[0] })); };
+  logo.append(im);
+  a.append(logo,
+    Object.assign(document.createElement('h3'), { textContent: name }),
+    Object.assign(document.createElement('p'), { className: 'domain', textContent: domain }),
+    Object.assign(document.createElement('p'), { className: 'desc', textContent: desc }));
+  const star = document.createElement('button');
+  star.className = 'fav'; star.type = 'button'; star.dataset.domain = domain;
+  el.append(a, star);
+  return el;
+}
+
+function section(id, title, num, apps) {
+  const s = document.createElement('section');
+  s.id = id;
+  const h = document.createElement('h2');
+  if (num != null) h.append(Object.assign(document.createElement('span'), { className: 'num', textContent: num }));
+  h.append(title, Object.assign(document.createElement('span'), { className: 'n', textContent: apps.length }));
+  const g = document.createElement('div'); g.className = 'grid';
+  apps.forEach((a) => g.append(card(a)));
+  s.append(h, g);
+  return s;
+}
+
+function render() {
+  const root = $('sections');
+  root.replaceChildren();
+  const favApps = data.apps.filter((a) => favorites.has(a[0]));
+  const favSection = section('favorites', '★ Favorites', null, favApps);
+  favSection.dataset.fav = '1';
+  root.append(favSection);
+  data.categories.forEach((title, i) => {
+    const apps = data.apps.filter((a) => a[3] === i);
+    if (!apps.length) return;
+    const s = section('category-' + i, title, i, apps);
+    s.dataset.category = i;
+    root.append(s);
+  });
+  syncStars();
+  update();
+}
+
+function syncStars() {
+  document.querySelectorAll('.fav').forEach((b) => {
+    const on = favorites.has(b.dataset.domain);
+    b.setAttribute('aria-pressed', on);
+    b.textContent = on ? '★' : '☆';
+    const name = b.parentElement.querySelector('h3').textContent;
+    b.setAttribute('aria-label', (on ? 'Remove ' : 'Add ') + name + (on ? ' from favorites' : ' to favorites'));
+  });
+}
+
+function update() {
+  const q = $('search').value.trim().toLowerCase();
+  const cat = $('filter').value;
+  const favOnly = $('favOnly').getAttribute('aria-pressed') === 'true';
+  let total = 0, cats = 0;
+  document.querySelectorAll('#sections section').forEach((s) => {
+    const isFav = s.dataset.fav === '1';
+    const allowed = isFav ? (favOnly || cat === 'all') : (!favOnly && (cat === 'all' || cat === s.dataset.category));
+    let n = 0;
+    s.querySelectorAll('.card').forEach((c) => {
+      const v = allowed && c.dataset.search.includes(q);
+      c.hidden = !v; if (v) n++;
+    });
+    s.hidden = n === 0;
+    s.querySelector('.n').textContent = n;
+    if (!isFav) { total += n; if (n) cats++; }
+    else if (favOnly) total = n;
+  });
+  const shown = favOnly ? `${total} favorite${total === 1 ? '' : 's'}` : `${total} of ${data.apps.length} apps · ${cats} ${cats === 1 ? 'category' : 'categories'}`;
+  $('count').textContent = shown + (favorites.size && !favOnly ? ` · ${favorites.size} favorited` : '');
+  $('empty').hidden = total > 0;
+  $('empty').textContent = favOnly && !favorites.size ? 'No favorites yet. Tap ☆ on any app to add it.' : 'No apps match your filters.';
+}
+
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('.fav');
+  if (!b) return;
+  const d = b.dataset.domain;
+  favorites.has(d) ? favorites.delete(d) : favorites.add(d);
+  saveFavs();
+  // Rebuild only the favorites grid so scroll position stays put.
+  const old = document.getElementById('favorites');
+  const fresh = section('favorites', '★ Favorites', null, data.apps.filter((a) => favorites.has(a[0])));
+  fresh.dataset.fav = '1';
+  old.replaceWith(fresh);
+  syncStars();
+  update();
+});
+$('search').addEventListener('input', update);
+$('filter').addEventListener('change', update);
+$('favOnly').addEventListener('click', (e) => {
+  const on = e.currentTarget.getAttribute('aria-pressed') !== 'true';
+  e.currentTarget.setAttribute('aria-pressed', on);
+  update();
+});
+$('reset').addEventListener('click', () => {
+  $('search').value = ''; $('filter').value = 'all'; $('favOnly').setAttribute('aria-pressed', 'false'); update();
+});
+
+(async () => {
+  for (const url of SOURCES) {
+    try { const r = await fetch(url); if (r.ok) { data = await r.json(); break; } } catch {}
+  }
+  if (!data) { $('count').textContent = 'Could not load top-app-domains.json.'; return; }
+  data.categories.forEach((title, i) => {
+    if (!data.apps.some((a) => a[3] === i)) return;
+    $('filter').append(new Option(`${i}. ${title}`, String(i)));
+    const a = document.createElement('a'); a.href = '#category-' + i;
+    a.append(Object.assign(document.createElement('b'), { textContent: i }), title);
+    a.addEventListener('click', () => { $('search').value = ''; $('filter').value = 'all'; $('favOnly').setAttribute('aria-pressed', 'false'); update(); });
+    $('index').append(a);
+  });
+  render();
+})();
+</script>
+</body>
+</html>

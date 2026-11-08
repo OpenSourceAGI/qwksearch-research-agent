@@ -28,6 +28,7 @@
     "info": "bun src/scripts/parse-domain-info.ts",
     "merge": "bun src/scripts/merge-domain-lists.ts",
     "favicons": "bun src/scripts/favicons.js",
+    "demo": "vite --open /demo/",
     "test": "bun test",
     "test:coverage": "bun test --coverage --coverage-reporter=lcov --coverage-reporter=text",
     "build": "vite build && tsc --project tsconfig.build.json",
