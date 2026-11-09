@@ -77,20 +77,23 @@ function parseCalendarDate(date: string): Date {
   return new Date(year, month - 1, day);
 }
 
-// The upcoming days sit in narrow columns in the card, so they are labelled
+// The upcoming days share the compact card's single row, so they are labelled
 // with the abbreviated weekday ("Fri") rather than a full name or "Tomorrow".
 function upcomingDayLabel(date: string): string {
   return parseCalendarDate(date).toLocaleDateString([], { weekday: 'short' });
 }
 
-// Daily totals that no longer have a column of their own in the card layout are
-// kept as hover text so the detail is still reachable.
+// Daily totals that have no room of their own in the one-row card are kept as
+// hover text so the detail is still reachable.
 function upcomingDayDetail(day: DailyWeather, windSpeedUnitLabel: string): string | undefined {
   const details: string[] = [];
   if (day.precipitationSum !== undefined) details.push(`${day.precipitationSum.toFixed(1)} mm`);
   if (day.windSpeedMax !== undefined) details.push(`${day.windSpeedMax.toFixed(1)} ${windSpeedUnitLabel} wind`);
   return details.length > 0 ? details.join(' · ') : undefined;
 }
+
+/** Height, in pixels, of the compact card's single row (and so of the whole card). */
+const COMPACT_ROW_HEIGHT = 36;
 
 const styles = {
   root: {
@@ -106,61 +109,73 @@ const styles = {
   hours: { display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 4 } as React.CSSProperties,
   hourCard: { minWidth: 72, textAlign: 'center' as const, padding: 8, borderRadius: 8, background: '#f9fafb' },
   dayRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '8px 0', borderBottom: '1px solid #f3f4f6' } as React.CSSProperties,
-  // Fluid: fills whatever container it is dropped into (e.g. the full
-  // sidebar/column width on desktop). Current conditions sit on the left and
-  // the upcoming days on the right; the two halves wrap into a stack when the
-  // container gets narrow.
+  // The compact card is a **single row**: every piece of it sits on one line
+  // of fixed height, so the card is never taller than `COMPACT_ROW_HEIGHT`.
+  // On the homepage it sits under the trending-news widget and above the chat
+  // input, and every pixel it takes is one the input box loses on a laptop
+  // screen — so it never grows a second line.
   //
-  // The card is deliberately **short**: on the homepage it sits under the
-  // trending-news widget and above the chat input, and every pixel it takes is
-  // one the input box loses on a laptop screen. Padding, the gap between its
-  // two rows and the two display sizes (temperature and clock) are what set
-  // its height — raising any of them pushes the input below the fold, so
-  // prefer trimming content over growing the card.
+  // It is fluid in width. The cells are laid out in priority order (place,
+  // temperature, today's range, wind, clock, the next three days, date) in a
+  // wrapping flex row whose height is one row and whose overflow is hidden: when the
+  // container is too narrow for everything, the trailing cells wrap onto a
+  // second line that is clipped away, so whole cells drop off the end instead
+  // of the card growing taller or a label being cut in half.
   compactRoot: {
     fontFamily: 'system-ui, sans-serif',
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 20,
-    padding: '12px 16px',
-    borderRadius: 16,
+    alignContent: 'flex-start',
+    columnGap: 9,
+    rowGap: 0,
+    height: COMPACT_ROW_HEIGHT,
+    overflow: 'hidden',
+    padding: '0 12px',
+    borderRadius: 12,
     width: '100%',
     boxSizing: 'border-box',
+    fontSize: 11,
+    lineHeight: 1.2,
   } as React.CSSProperties,
-  // Current conditions form two rows down the left side of the card (rather
-  // than five stacked lines), so the card stays short and each row uses the
-  // full available width.
-  compactBody: { display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 8, flex: '1.6 1 240px', minWidth: 0 } as React.CSSProperties,
-  compactRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px 16px' } as React.CSSProperties,
-  compactCity: { fontSize: 14, fontWeight: 700, lineHeight: 1.2 } as React.CSSProperties,
-  compactHeader: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10 } as React.CSSProperties,
-  compactTemp: { fontSize: 26, fontWeight: 600, lineHeight: 1 } as React.CSSProperties,
-  compactTime: { fontSize: 20, fontWeight: 600, lineHeight: 1.1 } as React.CSSProperties,
-  compactSeconds: { fontSize: 12, fontWeight: 500, opacity: 0.6, marginLeft: 2 } as React.CSSProperties,
-  compactDate: { fontSize: 11, opacity: 0.7, marginTop: 2 } as React.CSSProperties,
-  compactStats: { display: 'flex', flexWrap: 'wrap', gap: '4px 16px', fontSize: 12, opacity: 0.9 } as React.CSSProperties,
-  // Three equal columns on the right side of the card, each stacking
-  // weekday / icon / high-low, vertically centered against the current
-  // conditions and nudged over behind a divider so the two halves read as
-  // separate sections.
-  upcoming: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    alignContent: 'center',
-    gap: 10,
-    flex: '1 1 190px',
-    minWidth: 0,
-    paddingLeft: 18,
+  // Every top-level cell is exactly one row tall, which is what makes the
+  // first flex line fill the card and pushes any wrapped cell out of view.
+  compactCell: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+    height: COMPACT_ROW_HEIGHT,
+    whiteSpace: 'nowrap',
+    flex: 'none',
+  } as React.CSSProperties,
+  // A long place name is cut with an ellipsis rather than pushing the rest of
+  // the row off the card.
+  compactCity: {
+    fontSize: 12,
+    fontWeight: 700,
+    maxWidth: 150,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  } as React.CSSProperties,
+  compactTemp: { fontSize: 16, fontWeight: 600, lineHeight: 1 } as React.CSSProperties,
+  compactTime: { fontSize: 13, fontWeight: 600, lineHeight: 1 } as React.CSSProperties,
+  compactSeconds: { fontSize: 9, fontWeight: 500, opacity: 0.6, marginLeft: 1 } as React.CSSProperties,
+  compactZone: { fontSize: 10, opacity: 0.6, marginLeft: 4 } as React.CSSProperties,
+  // The date is the last cell and is pushed to the far right, so it is the
+  // first thing to drop when the row runs out of room (it is also on the
+  // clock's hover text).
+  compactDate: { fontSize: 10, opacity: 0.6, marginLeft: 'auto' } as React.CSSProperties,
+  // The first upcoming day carries the divider, so the divider drops away
+  // together with the days when there is no room for them.
+  upcomingFirst: {
+    paddingLeft: 10,
     borderLeft: '1px solid currentColor',
     borderLeftColor: 'rgba(128,128,128,0.25)',
-    fontSize: 11,
   } as React.CSSProperties,
-  upcomingDay: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, textAlign: 'center' } as React.CSSProperties,
-  upcomingDayName: { opacity: 0.7, whiteSpace: 'nowrap' } as React.CSSProperties,
+  upcomingDay: { display: 'flex', alignItems: 'center', gap: 3, height: 20, whiteSpace: 'nowrap' } as React.CSSProperties,
+  upcomingDayName: { opacity: 0.7 } as React.CSSProperties,
   upcomingTemps: { whiteSpace: 'nowrap' } as React.CSSProperties,
-  compactStat: { display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' } as React.CSSProperties,
   unitSwitch: { display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' } as React.CSSProperties,
   rain: { color: '#2563eb', whiteSpace: 'nowrap' } as React.CSSProperties,
   tz: { fontSize: 12, opacity: 0.7, marginTop: 2 } as React.CSSProperties,
@@ -172,7 +187,10 @@ const RAIN_RISK_THRESHOLD = 2;
 
 function RainBadge({ probability, compact }: { probability?: number; compact?: boolean }) {
   if (probability === undefined || probability === null || probability <= RAIN_RISK_THRESHOLD) return null;
-  return <span style={styles.rain}>{compact ? ` · ${probability}%` : ` · ${probability}% rain`}</span>;
+  // The compact card puts the badge in a flex cell, where a leading space
+  // would be trimmed, so it is spaced with a margin there instead.
+  if (compact) return <span style={{ ...styles.rain, marginLeft: 6 }}>{probability}%</span>;
+  return <span style={styles.rain}> · {probability}% rain</span>;
 }
 
 /**
@@ -235,78 +253,70 @@ function SingleWeatherForecast(props: Props) {
   const currentDate = formatInZone(now, timezone, { weekday: 'short', month: 'short', day: 'numeric' });
   const currentTime = formatInZone(now, timezone, { hour: 'numeric', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
   // The compact layout shows the clock at a larger size, so the zone label is
-  // split off onto the smaller date line to keep the time on one line.
+  // split off and shown beside it in a smaller size.
   const currentClock = clockParts(now, timezone);
   const currentZone = zoneLabel(now, timezone);
 
   if (props.compact) {
     const today = data.daily[0];
     const windSpeedUnitLabel = WIND_SPEED_UNIT_LABELS[props.windSpeedUnit ?? 'mph'];
-    // Today is already summarised in the card's own stats line, so the
-    // upcoming-days section starts at tomorrow and shows the next three days.
+    // Today is already summarised in its own cell, so the upcoming-days
+    // section starts at tomorrow and shows the next three days.
     const upcomingDays = data.daily.slice(1, 4);
+    const placeName = `${data.location?.city || 'Current location'}${data.location?.region ? `, ${data.location.region}` : ''}`;
 
     return (
       <div className={props.className} style={{ ...styles.compactRoot, ...props.style }}>
-        <div style={styles.compactBody}>
-          <div style={styles.compactRow}>
-            <div style={styles.compactCity}>
-              {data.location?.city || 'Current location'}
-              {data.location?.region ? `, ${data.location.region}` : ''}
-            </div>
-
-            <div style={styles.compactHeader}>
-              <WeatherIcon condition={data.current.icon} width={26} height={26} title="Current weather" />
-              <strong style={styles.compactTemp}>{data.current.temperature}</strong>
-              {renderUnitSwitch(12)}
-            </div>
-          </div>
-
-          <div style={styles.compactRow}>
-            <div>
-              <div style={styles.compactTime}>
-                {currentClock.main}
-                {currentClock.tail && <span style={styles.compactSeconds}>{currentClock.tail}</span>}
-              </div>
-              <div style={styles.compactDate}>
-                {currentDate}
-                {currentZone ? ` · ${currentZone}` : ''}
-              </div>
-            </div>
-
-            <div style={styles.compactStats}>
-              {today && (
-                <span style={styles.compactStat}>
-                  <WeatherIcon condition={today.icon} width={16} height={16} title="Today's high and low" />
-                  {today.max}&deg; / {today.min}&deg;
-                  <RainBadge probability={today.precipitationProbabilityMax} compact />
-                </span>
-              )}
-              <span style={styles.compactStat}>
-                <WindIcon width={16} height={16} title="Wind speed" />
-                {data.current.windSpeed !== undefined ? `${Math.round(data.current.windSpeed)} ${windSpeedUnitLabel}` : '—'}
-              </span>
-            </div>
-          </div>
+        <div style={{ ...styles.compactCell, ...styles.compactCity }} title={placeName}>
+          {placeName}
         </div>
 
-        {upcomingDays.length > 0 && (
-          <div style={styles.upcoming}>
-            {upcomingDays.map((day) => (
-              <div key={day.date} style={styles.upcomingDay} title={upcomingDayDetail(day, windSpeedUnitLabel)}>
-                <span style={styles.upcomingDayName}>{upcomingDayLabel(day.date)}</span>
-                <WeatherIcon condition={day.icon} width={14} height={14} />
-                <span style={styles.upcomingTemps}>
-                  <strong>{day.max}&deg;</strong>
-                  <span style={{ opacity: 0.6 }}> / {day.min}&deg;</span>
-                </span>
-                {day.precipitationProbabilityMax !== undefined && day.precipitationProbabilityMax > RAIN_RISK_THRESHOLD && (
-                  <span style={{ ...styles.rain, fontSize: 10 }}>{day.precipitationProbabilityMax}%</span>
-                )}
-              </div>
-            ))}
+        <div style={styles.compactCell}>
+          <WeatherIcon condition={data.current.icon} width={20} height={20} title="Current weather" />
+          <strong style={styles.compactTemp}>{data.current.temperature}</strong>
+          {renderUnitSwitch(11)}
+        </div>
+
+        {/* Today's range sits right after the current temperature, which
+            already carries the condition icon, so it needs no icon of its own. */}
+        {today && (
+          <div style={{ ...styles.compactCell, gap: 0 }} title="Today's high and low">
+            {today.max}&deg;<span style={{ opacity: 0.6 }}>&nbsp;/ {today.min}&deg;</span>
+            <RainBadge probability={today.precipitationProbabilityMax} compact />
           </div>
         )}
+
+        <div style={{ ...styles.compactCell, gap: 4 }}>
+          <WindIcon width={14} height={14} title="Wind speed" />
+          {data.current.windSpeed !== undefined ? `${Math.round(data.current.windSpeed)} ${windSpeedUnitLabel}` : '—'}
+        </div>
+
+        <div style={{ ...styles.compactCell, gap: 0 }} title={`${currentDate}${currentZone ? ` · ${currentZone}` : ''}`}>
+          <span style={styles.compactTime}>{currentClock.main}</span>
+          {currentClock.tail && <span style={styles.compactSeconds}>{currentClock.tail}</span>}
+          {currentZone && <span style={styles.compactZone}>{currentZone}</span>}
+        </div>
+
+        {upcomingDays.map((day, index) => (
+          <div key={day.date} style={{ ...styles.compactCell, gap: 0 }}>
+            <div
+              style={{ ...styles.upcomingDay, ...(index === 0 ? styles.upcomingFirst : null) }}
+              title={upcomingDayDetail(day, windSpeedUnitLabel)}
+            >
+              <span style={styles.upcomingDayName}>{upcomingDayLabel(day.date)}</span>
+              <WeatherIcon condition={day.icon} width={13} height={13} />
+              <span style={styles.upcomingTemps}>
+                <strong>{day.max}&deg;</strong>
+                <span style={{ opacity: 0.6 }}>/{day.min}&deg;</span>
+              </span>
+              {day.precipitationProbabilityMax !== undefined && day.precipitationProbabilityMax > RAIN_RISK_THRESHOLD && (
+                <span style={{ ...styles.rain, fontSize: 10 }}>{day.precipitationProbabilityMax}%</span>
+              )}
+            </div>
+          </div>
+        ))}
+
+        <div style={{ ...styles.compactCell, ...styles.compactDate }}>{currentDate}</div>
       </div>
     );
   }

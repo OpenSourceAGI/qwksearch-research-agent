@@ -70,12 +70,14 @@ default chain — requesting it raises the permission prompt. Put it first expli
 
 The component adds `className`, `style` and `compact`.
 
-`compact` is a short, fluid card: current conditions on the left, the next three days
-on the right, wrapping to a stack when the container narrows. It is kept deliberately
-short — on the qwksearch homepage it sits between the news widget and the chat input,
-so its height comes out of the input box's room on a laptop. The padding, the gap
-between its two rows and the two display sizes (temperature, clock) are what set that
-height; trim content before growing any of them.
+`compact` is a single fluid row, 36px tall (`COMPACT_ROW_HEIGHT`): place, current
+temperature and the °F / °C switch, today's range, wind, clock and zone, the next three
+days, then the date pushed to the right. The row is a wrapping flex container of fixed
+height with `overflow: hidden`, and every cell is one row tall, so when the container is
+too narrow the trailing cells wrap onto a clipped second line — whole items drop off the
+end (date first, then the later days) instead of the card growing. Order the cells by
+priority for that reason. On the qwksearch homepage it sits below the chat input and the
+other widgets, so never let it grow a second line; trim or reorder content instead.
 
 Data: `WeatherForecastData { location, current, hourly[], daily[] }` with
 `CurrentWeather { time, temperature, weatherCode, icon, isDay?, rain?, showers?,

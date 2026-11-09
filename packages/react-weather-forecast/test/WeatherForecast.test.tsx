@@ -140,16 +140,33 @@ describe('<WeatherForecast />', () => {
     expect(screen.queryByText('Next hours')).toBeNull();
   });
 
-  it('shows the next three days, by abbreviated weekday, along the bottom', async () => {
+  it('keeps the compact card to a single clipped row', async () => {
+    vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
+
+    const { container } = render(<WeatherForecast latitude={1} longitude={2} compact />);
+    await screen.findByText('Austin, Texas');
+
+    // One fixed-height row; anything that does not fit wraps out of view
+    // instead of making the card taller.
+    const card = container.firstElementChild as HTMLElement;
+    expect(card.style.height).toBe('36px');
+    expect(card.style.overflow).toBe('hidden');
+    expect(card.style.flexWrap).toBe('wrap');
+    for (const cell of Array.from(card.children) as HTMLElement[]) {
+      expect(cell.style.height).toBe('36px');
+    }
+  });
+
+  it('shows the next three days, by abbreviated weekday, at the end of the row', async () => {
     vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
 
     render(<WeatherForecast latitude={1} longitude={2} compact />);
 
-    // Today (Monday) is summarised above; the row starts at the day after.
+    // Today (Monday) is summarised in its own cell; the days start at the day after.
     expect(await screen.findByText('Tue')).toBeTruthy();
     expect(screen.getByText('Wed')).toBeTruthy();
     expect(screen.getByText('Thu')).toBeTruthy();
-    // Only three days fit the bottom row, so the fifth day is dropped.
+    // Only three upcoming days are shown, so the fifth day is dropped.
     expect(screen.queryByText('Fri')).toBeNull();
     expect(screen.queryByText('Mon')).toBeNull();
   });

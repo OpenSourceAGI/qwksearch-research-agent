@@ -21,10 +21,13 @@ The default: the place and its local time, the current temperature with a
 
 ## Compact card
 
-`compact` is a deliberately short card: current conditions, a ticking clock,
-today's high and low and the wind on the left, the next three days on the
-right. The two halves stack when the container is narrow. It takes its
-colours from the container, so it suits a coloured or dark background.
+`compact` is a single 36px row: the place, the current temperature with the
+°F / °C switch, today's high and low, the wind, a ticking clock with its zone,
+the next three days and the date, left to right. It never grows a second line.
+When the container is too narrow for all of it, whole items drop off the end of
+the row instead — the date first, then the later days — and each day keeps its
+rainfall and peak wind as hover text. It takes its colours from the container,
+so it suits a coloured or dark background.
 
 <WeatherPreview compact scenario="stormy" />
 

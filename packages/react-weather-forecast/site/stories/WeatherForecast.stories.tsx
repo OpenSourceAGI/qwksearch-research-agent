@@ -48,9 +48,9 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 /**
- * `compact`: the short two-column card the qwksearch homepage uses. Current
- * conditions on the left, the next three days on the right; the halves stack
- * when the container is narrow.
+ * `compact`: the one-row card the qwksearch homepage uses. Place, current
+ * temperature, today's range, wind, clock, the next three days and the date
+ * share a single 36px row; items that do not fit drop off the end.
  */
 export const Compact: Story = {
   args: { compact: true },
@@ -128,7 +128,7 @@ export const CustomStyle: Story = {
   },
 };
 
-/** A narrow container: the compact card's halves stack. */
+/** A narrow container: the compact card stays one row and drops what does not fit. */
 export const Narrow: Story = {
   args: { compact: true },
   decorators: [

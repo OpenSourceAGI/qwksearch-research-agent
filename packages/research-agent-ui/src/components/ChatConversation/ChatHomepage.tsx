@@ -458,9 +458,9 @@ export default function ChatHomepage() {
                 <div className="flex flex-col gap-2 w-full">
                   {/* Learn (education playlists) sits on top, then news, with
                       the compact weather widget below them. The weather widget
-                      is fluid, so it spans the full column width on its own
-                      row (current conditions on the left, the next days on the
-                      right). */}
+                      is a single fluid row spanning the full column width;
+                      whatever does not fit drops off its end rather than
+                      making it taller. */}
                   {showEducationWidget && (
                     <EducationPlaylists
                       planEndpoint={researchAgentUIConfig.educationPlaylistsApiUrl || undefined}
@@ -498,6 +498,7 @@ export default function ChatHomepage() {
                   )}
                   {showWeatherWidget && (
                     <WeatherForecast
+                      compact
                       forecastDays={weatherForecastDays}
                       forecastHours={weatherForecastHours}
                       temperatureUnit={weatherTemperatureUnit}

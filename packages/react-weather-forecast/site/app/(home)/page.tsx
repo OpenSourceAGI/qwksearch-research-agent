@@ -15,7 +15,7 @@ const FEATURES = [
   { icon: Globe, title: 'Four weather APIs', body: 'Open-Meteo, its GFS model, met.no and wttr.in, tried in order and normalized to one shape.' },
   { icon: Gauge, title: 'Cached, not polled', body: 'The forecast is cached for 30 minutes and the location for 12 hours, so a busy page stays under every quota.' },
   { icon: ShieldCheck, title: 'Fails soft', body: 'Validated requests, retries with backoff, a stale-cache fallback and whole reloads before an error is shown.' },
-  { icon: CloudSun, title: 'Two layouts', body: 'A full card with hours and days, or a short compact card that fits above a chat box.' },
+  { icon: CloudSun, title: 'Two layouts', body: 'A full card with hours and days, or a one-row compact card that fits above a chat box.' },
   { icon: LayoutGrid, title: 'Hook and icons', body: 'useWeatherForecast for your own UI, getWeatherForecast for no UI, and twelve SVG weather icons.' },
 ];
 
