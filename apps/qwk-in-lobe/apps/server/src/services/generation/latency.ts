@@ -4,7 +4,7 @@ import { and, eq, gte, isNotNull, sql } from 'drizzle-orm';
 import { asyncTasks, generationBatches, generations } from '@/database/schemas';
 import { getServerDB } from '@/database/server';
 import { getRedisConfig } from '@/envs/redis';
-import { initializeRedis, isRedisEnabled, type RedisClient } from '@/libs/redis';
+import { initializeRedis, isRedisStoreEnabled, type RedisClient } from '@/libs/redis';
 
 const CACHE_KEY_PREFIX = 'video:avg_latency';
 const CACHE_TTL_SECONDS = 300; // 5 minutes
@@ -14,7 +14,7 @@ const TRIM_RATIO = 0.1;
 
 async function getRedis(): Promise<RedisClient | null> {
   const config = getRedisConfig();
-  if (!isRedisEnabled(config)) return null;
+  if (!isRedisStoreEnabled(config)) return null;
 
   return initializeRedis(config);
 }

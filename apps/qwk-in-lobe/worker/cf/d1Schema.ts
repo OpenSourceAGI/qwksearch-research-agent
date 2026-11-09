@@ -19,6 +19,7 @@ import m0003 from '../../migrations/d1/0003_search_settings.sql?raw';
 import m0004 from '../../migrations/d1/0004_lobe_users.sql?raw';
 import m0005 from '../../migrations/d1/0005_lobehub_tables.sql?raw';
 import m0006 from '../../migrations/d1/0006_instance_secrets.sql?raw';
+import m0007 from '../../migrations/d1/0007_kv_store.sql?raw';
 import { getCfEnv } from './env';
 import { usesD1ForLobeData } from './keyVaultsSecret';
 
@@ -35,6 +36,7 @@ export const D1_MIGRATIONS: D1Migration[] = [
   { name: '0004_lobe_users', sql: m0004 },
   { name: '0005_lobehub_tables', sql: m0005 },
   { name: '0006_instance_secrets', sql: m0006 },
+  { name: '0007_kv_store', sql: m0007 },
 ];
 
 /** Statements per `db.batch()` call; 0005 has ~880. */

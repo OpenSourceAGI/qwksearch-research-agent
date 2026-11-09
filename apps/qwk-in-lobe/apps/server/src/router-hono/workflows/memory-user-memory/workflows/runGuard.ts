@@ -1,14 +1,14 @@
 import { type WorkflowContext } from '@upstash/workflow';
 
 import { getRedisConfig } from '@/envs/redis';
-import { initializeRedis, isRedisEnabled } from '@/libs/redis';
+import { initializeRedis, isRedisStoreEnabled } from '@/libs/redis';
 import { type BaseRedisProvider } from '@/libs/redis/types';
 import { assertWorkflowRunAllowed, WorkflowRunGuardError } from '@/server/workflows/runGuard';
 import { runStep } from '@/server/workflows/step';
 
 const getRedis = async (): Promise<BaseRedisProvider | null> => {
   const config = getRedisConfig();
-  if (!isRedisEnabled(config)) return null;
+  if (!isRedisStoreEnabled(config)) return null;
 
   return initializeRedis(config);
 };

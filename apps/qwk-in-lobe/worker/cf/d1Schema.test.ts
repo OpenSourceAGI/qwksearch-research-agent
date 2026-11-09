@@ -25,6 +25,9 @@ vi.mock('../../migrations/d1/0005_lobehub_tables.sql?raw', () => ({
 vi.mock('../../migrations/d1/0006_instance_secrets.sql?raw', () => ({
   default: readFileSync(path.join(MIGRATIONS_DIR, '0006_instance_secrets.sql'), 'utf8'),
 }));
+vi.mock('../../migrations/d1/0007_kv_store.sql?raw', () => ({
+  default: readFileSync(path.join(MIGRATIONS_DIR, '0007_kv_store.sql'), 'utf8'),
+}));
 
 const mocks = vi.hoisted(() => ({ env: undefined as Record<string, unknown> | undefined }));
 vi.mock('./env', () => ({ getCfEnv: () => mocks.env }));
@@ -123,9 +126,10 @@ describe('applyMigrations', () => {
   });
 
   it('skips the migrations already recorded', async () => {
-    const fake = createFakeD1(D1_MIGRATIONS.slice(0, 5).map((m) => m.name));
-    expect(await applyMigrations(fake.db)).toEqual(['0006_instance_secrets']);
-    expect(fake.executed).toHaveLength(1);
+    const fake = createFakeD1(D1_MIGRATIONS.slice(0, -1).map((m) => m.name));
+    const last = D1_MIGRATIONS.at(-1)!;
+    expect(await applyMigrations(fake.db)).toEqual([last.name]);
+    expect(fake.executed).toHaveLength(splitStatements(last.sql).length);
   });
 });
 

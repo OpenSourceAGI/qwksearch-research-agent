@@ -16,7 +16,7 @@ import { getRedisConfig } from '@/envs/redis';
 import {
   getJSONFromRedis,
   initializeRedisWithPrefix,
-  isRedisEnabled,
+  isRedisStoreEnabled,
   RedisKeyNamespace,
   RedisKeys,
 } from '@/libs/redis';
@@ -187,7 +187,7 @@ export class AgentService {
   private async getAgentWelcomeFromRedis(agentId: string): Promise<AgentWelcomeData | null> {
     try {
       const redisConfig = getRedisConfig();
-      if (!isRedisEnabled(redisConfig)) return null;
+      if (!isRedisStoreEnabled(redisConfig)) return null;
 
       const redis = await initializeRedisWithPrefix(redisConfig, RedisKeyNamespace.AI_GENERATION);
       return getJSONFromRedis<AgentWelcomeData>(

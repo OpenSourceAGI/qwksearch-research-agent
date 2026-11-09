@@ -9,14 +9,14 @@ vi.mock('@/envs/redis', () => ({
 }));
 
 vi.mock('@/libs/redis', () => ({
-  isRedisEnabled: vi.fn().mockReturnValue(false),
+  isRedisStoreEnabled: vi.fn().mockReturnValue(false),
   initializeRedis: vi.fn(),
 }));
 
 // Must import after vi.mock declarations
 const { getVideoAvgLatency } = await import('./latency');
 const { getServerDB } = await import('@/database/server');
-const { isRedisEnabled, initializeRedis } = await import('@/libs/redis');
+const { isRedisStoreEnabled, initializeRedis } = await import('@/libs/redis');
 
 function createMockDB(rows: { latency: number | null }[]) {
   const orderBy = vi.fn().mockResolvedValue(rows);
@@ -32,7 +32,7 @@ function createMockDB(rows: { latency: number | null }[]) {
 describe('getVideoAvgLatency', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(isRedisEnabled).mockReturnValue(false);
+    vi.mocked(isRedisStoreEnabled).mockReturnValue(false);
   });
 
   it('should return null when no samples exist', async () => {
@@ -107,7 +107,7 @@ describe('getVideoAvgLatency', () => {
   describe('Redis caching', () => {
     it('should return cached value from Redis', async () => {
       const mockRedis = { get: vi.fn().mockResolvedValue('120000'), set: vi.fn() };
-      vi.mocked(isRedisEnabled).mockReturnValue(true);
+      vi.mocked(isRedisStoreEnabled).mockReturnValue(true);
       vi.mocked(initializeRedis).mockResolvedValue(mockRedis as any);
 
       const result = await getVideoAvgLatency('test-model');
@@ -118,7 +118,7 @@ describe('getVideoAvgLatency', () => {
 
     it('should return null when cached value is "null"', async () => {
       const mockRedis = { get: vi.fn().mockResolvedValue('null'), set: vi.fn() };
-      vi.mocked(isRedisEnabled).mockReturnValue(true);
+      vi.mocked(isRedisStoreEnabled).mockReturnValue(true);
       vi.mocked(initializeRedis).mockResolvedValue(mockRedis as any);
 
       const result = await getVideoAvgLatency('test-model');
@@ -128,7 +128,7 @@ describe('getVideoAvgLatency', () => {
 
     it('should query DB and write cache on cache miss', async () => {
       const mockRedis = { get: vi.fn().mockResolvedValue(null), set: vi.fn() };
-      vi.mocked(isRedisEnabled).mockReturnValue(true);
+      vi.mocked(isRedisStoreEnabled).mockReturnValue(true);
       vi.mocked(initializeRedis).mockResolvedValue(mockRedis as any);
 
       const db = createMockDB([{ latency: 100_000 }, { latency: 200_000 }]);
@@ -144,7 +144,7 @@ describe('getVideoAvgLatency', () => {
 
     it('should cache null result when no DB data', async () => {
       const mockRedis = { get: vi.fn().mockResolvedValue(null), set: vi.fn() };
-      vi.mocked(isRedisEnabled).mockReturnValue(true);
+      vi.mocked(isRedisStoreEnabled).mockReturnValue(true);
       vi.mocked(initializeRedis).mockResolvedValue(mockRedis as any);
 
       const db = createMockDB([]);
@@ -159,7 +159,7 @@ describe('getVideoAvgLatency', () => {
     });
 
     it('should fall through to DB when Redis is unavailable', async () => {
-      vi.mocked(isRedisEnabled).mockReturnValue(true);
+      vi.mocked(isRedisStoreEnabled).mockReturnValue(true);
       vi.mocked(initializeRedis).mockRejectedValue(new Error('Connection refused'));
 
       const db = createMockDB([{ latency: 80_000 }]);
@@ -175,7 +175,7 @@ describe('getVideoAvgLatency', () => {
         get: vi.fn().mockRejectedValue(new Error('Redis error')),
         set: vi.fn(),
       };
-      vi.mocked(isRedisEnabled).mockReturnValue(true);
+      vi.mocked(isRedisStoreEnabled).mockReturnValue(true);
       vi.mocked(initializeRedis).mockResolvedValue(mockRedis as any);
 
       const db = createMockDB([{ latency: 90_000 }]);

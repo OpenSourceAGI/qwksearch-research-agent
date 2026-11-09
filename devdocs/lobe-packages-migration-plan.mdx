@@ -255,8 +255,8 @@ plain Markdown editor but shares the D1 `documents` table and API.
   on binary size and update-channel needs.
 - **5.3 Trim the prebuild chain** in `apps/qwksearch-web/package.json` to what
   the slimmed marketing/API worker still imports.
-- **5.4 Ops gaps to close** before calling it done: Upstash Redis provider in
-  `src/libs/redis` (multi-isolate agent streaming), mobile SPA build
+- **5.4 Ops gaps to close** before calling it done: multi-isolate agent
+  streaming (the `src/libs/redis` caches already run on D1, no Upstash), mobile SPA build
   (`build:spa:mobile`), and monitor the Worker bundle (~7.4 MB gzipped vs the
   10 MB limit) in CI.
 - ✅ Check: root `bun run build` + `bun run test` green with the trimmed graph;
@@ -286,4 +286,4 @@ Phase 5  decommission + satellites + ops gaps
 | Auth/history migration data loss | One-shot scripts with dry-runs on snapshots; D1 read-only retention window; `/c/:id` redirects |
 | Anonymous/guest chat regression | Decide in 1.4: engine anonymous sessions vs login-gating; don't discover it at cutover |
 | Fork drift vs upstream LobeHub | Keep QwkSearch changes additive (`worker/`, `src/features/QwkSearch/`, new settings tabs); the "What changed vs. upstream" list in `apps/qwk-in-lobe/README.md` is the merge contract |
-| Redis-less agent runtime on Workers | Upstash HTTP Redis provider (5.4) before heavy multi-tab agent use |
+| Redis-less agent runtime on Workers | Caches and guards run on D1 (`src/libs/redis/d1.ts`); stream fan-out needs a Durable Object or real Redis (5.4) before heavy multi-tab agent use |

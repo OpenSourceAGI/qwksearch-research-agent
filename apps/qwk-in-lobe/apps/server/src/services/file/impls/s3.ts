@@ -5,7 +5,7 @@ import urlJoin from 'url-join';
 import { FileModel } from '@/database/models/file';
 import { fileEnv } from '@/envs/file';
 import { getRedisConfig } from '@/envs/redis';
-import { initializeRedis, isRedisEnabled } from '@/libs/redis';
+import { initializeRedis, isRedisStoreEnabled } from '@/libs/redis';
 import { FileS3 } from '@/server/modules/S3';
 
 import type { FileServiceImpl, PreSignedUpload } from './type';
@@ -114,7 +114,7 @@ export class S3StaticFileImpl implements FileServiceImpl {
 
     try {
       const redisConfig = getRedisConfig();
-      const redis = isRedisEnabled(redisConfig) ? await initializeRedis(redisConfig) : null;
+      const redis = isRedisStoreEnabled(redisConfig) ? await initializeRedis(redisConfig) : null;
       const cachedUrl = await redis?.get(cacheKey);
 
       if (cachedUrl) {
@@ -141,7 +141,7 @@ export class S3StaticFileImpl implements FileServiceImpl {
 
       try {
         const redisConfig = getRedisConfig();
-        const redis = isRedisEnabled(redisConfig) ? await initializeRedis(redisConfig) : null;
+        const redis = isRedisStoreEnabled(redisConfig) ? await initializeRedis(redisConfig) : null;
         await redis?.set(cacheKey, url, { ex: ttlSeconds });
       } catch (error) {
         log('Failed to write presigned preview URL cache to Redis: %O', error);

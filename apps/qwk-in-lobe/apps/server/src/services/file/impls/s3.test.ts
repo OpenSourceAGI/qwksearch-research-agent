@@ -7,7 +7,7 @@ import { S3StaticFileImpl } from './s3';
 const redisMocks = vi.hoisted(() => ({
   getRedisConfig: vi.fn(() => ({ enabled: false, prefix: 'lobechat', tls: false, url: '' })),
   initializeRedis: vi.fn(),
-  isRedisEnabled: vi.fn(() => false),
+  isRedisStoreEnabled: vi.fn(() => false),
   redis: {
     get: vi.fn(),
     set: vi.fn(),
@@ -35,7 +35,7 @@ vi.mock('@/envs/redis', () => ({
 
 vi.mock('@/libs/redis', () => ({
   initializeRedis: redisMocks.initializeRedis,
-  isRedisEnabled: redisMocks.isRedisEnabled,
+  isRedisStoreEnabled: redisMocks.isRedisStoreEnabled,
 }));
 
 // 模拟 S3 类
@@ -79,7 +79,7 @@ describe('S3StaticFileImpl', () => {
       tls: false,
       url: '',
     });
-    redisMocks.isRedisEnabled.mockReturnValue(false);
+    redisMocks.isRedisStoreEnabled.mockReturnValue(false);
     redisMocks.initializeRedis.mockResolvedValue(redisMocks.redis as any);
     redisMocks.redis.get.mockResolvedValue(null);
     redisMocks.redis.set.mockResolvedValue('OK');
@@ -140,7 +140,7 @@ describe('S3StaticFileImpl', () => {
         tls: false,
         url: 'redis://localhost:6379',
       });
-      redisMocks.isRedisEnabled.mockReturnValue(true);
+      redisMocks.isRedisStoreEnabled.mockReturnValue(true);
       redisMocks.redis.get.mockResolvedValue('https://redis.example.com/cached.jpg');
 
       const result = await fileService.getFullFileUrl('path/to/redis-cached-file.jpg');
@@ -157,7 +157,7 @@ describe('S3StaticFileImpl', () => {
         tls: false,
         url: 'redis://localhost:6379',
       });
-      redisMocks.isRedisEnabled.mockReturnValue(true);
+      redisMocks.isRedisStoreEnabled.mockReturnValue(true);
       redisMocks.redis.get.mockResolvedValue(null);
 
       await expect(fileService.getFullFileUrl('path/to/redis-write-file.jpg')).resolves.toBe(
