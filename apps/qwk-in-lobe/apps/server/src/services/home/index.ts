@@ -4,7 +4,7 @@ import { getRedisConfig } from '@/envs/redis';
 import {
   getJSONFromRedis,
   initializeRedisWithPrefix,
-  isRedisEnabled,
+  isRedisStoreEnabled,
   RedisKeyNamespace,
   RedisKeys,
 } from '@/libs/redis';
@@ -47,7 +47,7 @@ export class HomeService {
   private async readDailyBriefFromRedis(): Promise<HomeBriefData | null> {
     try {
       const redisConfig = getRedisConfig();
-      if (!isRedisEnabled(redisConfig)) return null;
+      if (!isRedisStoreEnabled(redisConfig)) return null;
 
       const redis = await initializeRedisWithPrefix(redisConfig, RedisKeyNamespace.AI_GENERATION);
       const data = await getJSONFromRedis<HomeBriefData>(

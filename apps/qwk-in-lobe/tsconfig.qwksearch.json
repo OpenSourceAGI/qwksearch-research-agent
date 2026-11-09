@@ -28,6 +28,9 @@
     "src/layout/AuthProvider/LocalUser/**/*",
     "src/features/Settings/extraction/**/*",
     "src/features/Settings/search/**/*",
-    "src/features/Settings/qwksearch/**/*"
+    "src/features/Settings/qwksearch/**/*",
+    // The D1-backed Redis store the Worker uses instead of an Upstash Redis.
+    "src/libs/redis/d1.ts",
+    "src/libs/redis/d1.test.ts"
   ]
 }

@@ -699,8 +699,10 @@ Blocked on the LobeHub Community License answer, recorded in
   as a webview.
 - ⬜ **5.3 Trim the prebuild chain** in `apps/qwksearch-web/package.json`.
 - ⬜ **5.4 Ops gaps**, all from `apps/qwk-in-lobe/README.md` § Known gaps:
-  - ⬜ Upstash HTTP Redis provider in `src/libs/redis` — without it, agent stream
-    fan-out, edit locks and some rate limits run on per-isolate memory.
+  - ✅ Shared Redis store on Workers without Upstash: `src/libs/redis` runs on
+    D1 (`src/libs/redis/d1.ts`, `migrations/d1/0007_kv_store.sql`) for caches,
+    counters and run guards. Agent stream fan-out and edit locks need Redis
+    streams / Lua and still run on per-isolate memory.
   - ⬜ Mobile SPA build (`build:spa:mobile`); mobile currently gets the desktop bundle.
   - 🚧 Worker bundle size budget — now **~7.9 MB gzipped against a 10 MB limit**
     after 1.3 pulled in `linkedom` and Prism. `bun run cf:budget`

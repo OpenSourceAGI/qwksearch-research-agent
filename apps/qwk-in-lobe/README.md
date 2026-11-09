@@ -57,7 +57,7 @@ upstream LobeHub. Users can still add their own keys under Settings → Provider
 | Database | Postgres via Neon serverless or `pg` | Worker `lobe`: D1 (`DATABASE_DRIVER=d1`), through a Postgres-to-SQLite driver, see below. Worker `lobe-production`: Postgres from `DATABASE_URL` (Neon), or a `HYPERDRIVE` binding |
 | Auth | Better Auth (Drizzle adapter) | Removed. No sign-in form: every browser is its own guest user, recorded in D1 (see below) |
 | Email | nodemailer / Resend | New `cloudflare` provider on the `EMAIL` (Email Routing) binding; Resend still works |
-| Redis | ioredis | Not reachable from Workers → `DISABLE_REDIS=1`, in-memory fallbacks |
+| Redis | ioredis | Not reachable from Workers → `DISABLE_REDIS=1`; the `@/libs/redis` client runs on D1 instead (`src/libs/redis/d1.ts`), pub/sub and streams use in-memory fallbacks |
 | OIDC provider (CLI/desktop sign-in) | `oidc-provider` (Koa) | Removed with sign-in; `/oidc/*` answers 501 |
 | Static SPA | Next.js serves `/_spa` | `ASSETS` binding; the Worker injects `window.__SERVER_CONFIG__` per request (`worker/routes/spa.ts`) |
 | Config | `process.env` | `nodejs_compat` mirrors vars/secrets to `process.env`; `worker/cf/globals.ts` does it eagerly for module-time reads |
@@ -547,9 +547,14 @@ Everything under `worker/`, `src/features/QwkSearch/`, `src/features/Settings/ex
 
 - **No accounts**: there is one shared local user, so anyone who can reach the deployment sees the
   same workspace. Put the Worker behind Cloudflare Access if it must be private.
-- **Redis-backed features** (agent runtime stream fan-out across isolates, edit locks, some rate
-  limits) run on in-memory fallbacks; a single Worker isolate is not shared state. Add an
-  HTTP Redis provider (Upstash) to `src/libs/redis` to restore multi-isolate coordination.
+- **Redis on Workers is D1, not Upstash.** `ioredis` cannot open a TCP socket on a Worker, so
+  `src/libs/redis` falls back to a Redis-compatible store on the `DB` D1 binding
+  (`src/libs/redis/d1.ts`, tables from `migrations/d1/0007_kv_store.sql`). It backs everything
+  that goes through `initializeRedis` / `initializeRedisWithPrefix`: presigned-URL and AI
+  generation caches, generation latency stats, runtime config and workflow run guards, shared
+  across isolates. Set `DISABLE_D1_REDIS=1` to go back to in-memory fallbacks. Features that need
+  Redis pub/sub, streams or Lua (agent runtime stream fan-out, edit locks, the task result bridge,
+  onboarding progress) still need a real `REDIS_URL` and run on in-memory fallbacks on Workers.
 - **Mobile SPA**: `build:spa:mobile` output is served when present (`dist/client/_spa-mobile`);
   otherwise mobile visitors get the desktop bundle.
 - **SEO strings** in the HTML shell are English-only on Workers (`worker/shims/serverTranslation.ts`);

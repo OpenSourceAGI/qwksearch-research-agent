@@ -5,12 +5,12 @@ import { createStepRunner } from '@/server/workflows/testing/stepContext';
 const mocks = vi.hoisted(() => ({
   assertWorkflowRunAllowed: vi.fn(),
   initializeRedis: vi.fn(),
-  isRedisEnabled: vi.fn(),
+  isRedisStoreEnabled: vi.fn(),
 }));
 
 vi.mock('@/libs/redis', () => ({
   initializeRedis: mocks.initializeRedis,
-  isRedisEnabled: mocks.isRedisEnabled,
+  isRedisStoreEnabled: mocks.isRedisStoreEnabled,
 }));
 
 vi.mock('@/envs/redis', () => ({
@@ -38,8 +38,8 @@ describe('memory workflow run guard helper', () => {
   beforeEach(() => {
     mocks.assertWorkflowRunAllowed.mockReset();
     mocks.initializeRedis.mockReset();
-    mocks.isRedisEnabled.mockReset();
-    mocks.isRedisEnabled.mockReturnValue(true);
+    mocks.isRedisStoreEnabled.mockReset();
+    mocks.isRedisStoreEnabled.mockReturnValue(true);
     mocks.initializeRedis.mockResolvedValue({ get: vi.fn() });
     mocks.assertWorkflowRunAllowed.mockResolvedValue(undefined);
   });
@@ -115,7 +115,7 @@ describe('memory workflow run guard helper', () => {
   });
 
   it('passes null Redis when Redis is disabled', async () => {
-    mocks.isRedisEnabled.mockReturnValue(false);
+    mocks.isRedisStoreEnabled.mockReturnValue(false);
     const context = createContext({ userId: 'user-1' });
 
     await expect(

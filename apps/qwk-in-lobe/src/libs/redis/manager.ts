@@ -1,15 +1,33 @@
+import { D1RedisProvider, getD1RedisDatabase } from './d1';
 import { IoRedisRedisProvider } from './redis';
 import { type BaseRedisProvider, type RedisConfig } from './types';
 
 export const isRedisDisabledByEnv = () => !!process.env.DISABLE_REDIS;
 
+/**
+ * Whether a real Redis server (`REDIS_URL`, via ioredis) is configured. Code that needs Redis
+ * features beyond the `BaseRedisProvider` interface — pub/sub, streams, Lua — must check this.
+ */
 export const isRedisEnabled = (config: RedisConfig) => !isRedisDisabledByEnv() && config.enabled;
 
-const createProvider = (config: RedisConfig, prefix?: string): BaseRedisProvider | null => {
-  if (!isRedisEnabled(config)) return null;
+/**
+ * Whether `initializeRedis` / `initializeRedisWithPrefix` will return a client: a real Redis, or —
+ * on the Cloudflare Worker, where ioredis cannot connect — the D1-backed store (`./d1`).
+ */
+export const isRedisStoreEnabled = (config: RedisConfig) =>
+  isRedisEnabled(config) || !!getD1RedisDatabase();
 
+const createProvider = (config: RedisConfig, prefix?: string): BaseRedisProvider | null => {
   const actualPrefix = prefix ?? config.prefix;
-  return new IoRedisRedisProvider({ ...config, prefix: actualPrefix });
+
+  if (isRedisEnabled(config)) {
+    return new IoRedisRedisProvider({ ...config, prefix: actualPrefix });
+  }
+
+  const d1 = getD1RedisDatabase();
+  if (d1) return new D1RedisProvider(d1, { prefix: actualPrefix });
+
+  return null;
 };
 
 class RedisManager {
