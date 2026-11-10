@@ -3,7 +3,12 @@
 **Read [`skills/search-autocomplete`](../../../skills/search-autocomplete/SKILL.md)
 first.**
 
-The search box and its query autocomplete. Published.
+The search box and its query autocomplete. **Private, not published:** npm
+refuses the name (E403, too similar to `search_auto_complete`). The publish
+workflow still builds it, before its dependents, because `research-agent-ui`
+bundles it (see that package's `vite.config.ts`). Publishing it would mean
+renaming it to a scope such as `@vtempest/search-autocomplete`, which is the
+owner's call.
 
 ## Rules
 

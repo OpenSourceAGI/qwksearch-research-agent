@@ -8,8 +8,13 @@ The QwkSearch search box and its autocomplete. Query completions come from **one
 search-engine suggest API — the fastest one the bundled benchmark measured — instead
 of waiting on several; site suggestions come from a ranked domain list.
 
-```bash
-bun add search-autocomplete
+This package is **not on npm**. npm refuses the name `search-autocomplete` as too
+similar to `search_auto_complete`, so the package is `private` and
+`research-agent-ui` bundles it into its own build. Inside this monorepo, depend on
+it as a workspace package:
+
+```json
+"search-autocomplete": "workspace:*"
 ```
 
 ## Search box

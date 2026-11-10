@@ -150,7 +150,7 @@ bun i qwksearch-api-client
 
 - <a href="https://www.npmjs.com/package/research-agent-ui"><img src="https://img.shields.io/npm/dm/research-agent-ui.svg" alt="Monthly Downloads"></a> **research-agent-ui** — The chat research agent UI: conversation window, article reader, search config, file uploads, and chat history, along with the shadcn primitives and icons it depends on. Drops into a Next.js app behind a small config/injection surface for auth, branding, and media-search preferences.
 
-- <a href="https://www.npmjs.com/package/search-autocomplete"><img src="https://img.shields.io/npm/dm/search-autocomplete.svg" alt="Monthly Downloads"></a> **search-autocomplete** — The QwkSearch search box and its autocomplete: query completion from the single fastest search-engine suggest API (picked by a bundled latency benchmark), site suggestions from a ranked domain list, a React `SearchBox`, dropdown and `useAutocomplete` hook, and a Worker-safe HTTP handler.
+- **search-autocomplete** (workspace-only, not on npm: npm refuses the name, so `research-agent-ui` bundles it) — The QwkSearch search box and its autocomplete: query completion from the single fastest search-engine suggest API (picked by a bundled latency benchmark), site suggestions from a ranked domain list, a React `SearchBox`, dropdown and `useAutocomplete` hook, and a Worker-safe HTTP handler.
 
 - <a href="https://www.npmjs.com/package/search-web-api"><img src="https://img.shields.io/npm/dm/search-web-api.svg" alt="Monthly Downloads"></a> **search-web-api** — Provides access to 70+ search engines across 10 categories (web, academic, news, images, etc.) plus a scrape/extract API served via a Hono HTTP server. Includes Hugging Face Transformers integration for AI-powered processing.
 
