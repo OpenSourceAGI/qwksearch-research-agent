@@ -5,7 +5,7 @@ description: Guide to search-autocomplete (packages/search-autocomplete), the Qw
 
 # Working With search-autocomplete
 
-`packages/search-autocomplete`, published as **search-autocomplete**. Three entries:
+`packages/search-autocomplete`, a private workspace package named **search-autocomplete** (not on npm — npm refuses the name, so `research-agent-ui` bundles it). Three entries:
 
 | Entry | Holds | Safe in a browser |
 | --- | --- | --- |
