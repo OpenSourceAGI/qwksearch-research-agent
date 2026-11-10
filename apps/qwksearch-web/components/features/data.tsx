@@ -1,5 +1,4 @@
 import {
-  AtSign,
   BookOpen,
   Bot,
   Boxes,
@@ -7,14 +6,11 @@ import {
   Captions,
   Clock,
   Code,
-  Compass,
   Database,
   FileSearch,
   FileText,
   FolderTree,
   Globe,
-  GraduationCap,
-  Images,
   Keyboard,
   Layers,
   Lock,
@@ -23,12 +19,10 @@ import {
   Monitor,
   MousePointerClick,
   Network,
-  Newspaper,
   PenLine,
   Puzzle,
   Quote,
   Replace,
-  Repeat,
   Search,
   Server,
   ShieldCheck,
@@ -36,7 +30,6 @@ import {
   Terminal,
   Upload,
   Users,
-  Video,
   Zap,
 } from "lucide-react";
 
@@ -109,32 +102,6 @@ export const ENGINE_NAMES = [
   "IMDb",
   "Goodreads",
   "OpenStreetMap",
-];
-
-export const SEARCH_CATEGORIES: { label: string; icon: React.ElementType }[] = [
-  { label: "Web", icon: Globe },
-  { label: "Academic", icon: GraduationCap },
-  { label: "News", icon: Newspaper },
-  { label: "Videos", icon: Video },
-  { label: "Images", icon: Images },
-  { label: "Code & IT", icon: Code },
-  { label: "Social", icon: AtSign },
-  { label: "Files", icon: FileText },
-  { label: "Maps", icon: Compass },
-  { label: "Specialized", icon: Sparkles },
-];
-
-export const PROVIDERS = [
-  "OpenAI",
-  "Anthropic",
-  "Google Gemini",
-  "Vertex AI",
-  "xAI Grok",
-  "Groq",
-  "Amazon Bedrock",
-  "OpenRouter",
-  "Together AI",
-  "Ollama",
 ];
 
 /** The five stages a question passes through, end to end. */
@@ -396,18 +363,6 @@ export const FEATURE_TABS: FeatureTab[] = [
           "chat-agent-toolkit orchestrates providers, tools, and memory over the Vercel AI SDK, Mastra, and MCP.",
       },
     ],
-  },
-  {
-    // The whole loop, which used to be its own section above the tabs. Its
-    // cards are hand-laid-out rather than `features`, so the view renders
-    // them itself (see `ResearchLoopGrid`).
-    value: "loop",
-    label: "End to End",
-    icon: Repeat,
-    headline: "Ask, search, read, cite, write — without leaving the tab",
-    blurb:
-      "Most research tools stop at a list of links. This one carries a question all the way to a finished, sourced document.",
-    features: [],
   },
 ];
 
