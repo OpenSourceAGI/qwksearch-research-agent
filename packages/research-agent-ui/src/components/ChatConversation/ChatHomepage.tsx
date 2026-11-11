@@ -457,12 +457,14 @@ export default function ChatHomepage() {
               <Suspense fallback={null}>
                 <div className="flex flex-col gap-2 w-full">
                   {/* Learn (education playlists) sits on top, then news, with
+                      both starting collapsed (`compact`) behind a chevron, and
                       the compact weather widget below them. The weather widget
                       is a single fluid row spanning the full column width;
                       whatever does not fit drops off its end rather than
                       making it taller. */}
                   {showEducationWidget && (
                     <EducationPlaylists
+                      compact
                       planEndpoint={researchAgentUIConfig.educationPlaylistsApiUrl || undefined}
                       openHref={researchAgentUIConfig.educationPlaylistsPageUrl || undefined}
                       onOpenItem={openPlaylistItem}
@@ -478,6 +480,7 @@ export default function ChatHomepage() {
                   )}
                   {showNewsWidget && (
                     <TrendingNews
+                      compact
                       expandable
                       maxTopics={newsMaxTopics}
                       expandedMaxTopics={TRENDING_NEWS_EXPANDED_TOPICS}
