@@ -1,0 +1,64 @@
+{
+  "name": "@debate-ai/paper-to-web",
+  "version": "0.1.0",
+  "description": "Paper to Web AI: turn any PDF, research paper or archive link into Synergy Slayer-style MDX sections with reader mode, card underlining and voice read-aloud, and generate outlines in that format from anything",
+  "type": "module",
+  "author": "vtempest",
+  "license": "rights.institute/prosper",
+  "homepage": "https://github.com/debate/debate-ai.com/tree/master/packages/paper-to-web#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/debate/debate-ai.com.git",
+    "directory": "packages/paper-to-web"
+  },
+  "bugs": {
+    "url": "https://github.com/debate/debate-ai.com/issues"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./widget": "./src/widget/index.ts",
+    "./server": "./src/server.ts"
+  },
+  "bin": {
+    "paper-to-web": "./bin/paper-to-web.ts"
+  },
+  "files": [
+    "src",
+    "bin",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "cli": "bun ./bin/paper-to-web.ts",
+    "serve": "bun ./bin/paper-to-web.ts serve",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0",
+    "extract-pdf": "^0.1.555",
+    "extract-webpage": "^1.2.427",
+    "linkedom": "^0.18.13"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitest/coverage-v8": "^5.0.5",
+    "jsdom": "^30.1.3",
+    "remark-gfm": "^4.0.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}
