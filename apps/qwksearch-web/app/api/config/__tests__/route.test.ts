@@ -133,6 +133,25 @@ describe('GET /api/config', () => {
     expect(data.values.search.tavilyApiKey).toBe('user-own-key')
   })
 
+  it('never returns provider or MCP server credentials', async () => {
+    mockGetCurrentConfig.mockReturnValue({
+      ...baseConfig(),
+      modelProviders: [
+        { id: 'p1', name: 'OpenRouter', type: 'openrouter', isEnvBased: true, chatModels: [], config: { apiKey: 'sk-or-v1-live' } },
+      ],
+      mcpServers: [{ id: 'm1', name: 'Tools', apiKey: 'mcp-live', config: { token: 'tok-live', url: 'https://mcp.test' } }],
+    })
+    const res = await GET({} as any)
+    const text = await res.text()
+    expect(text).not.toContain('sk-or-v1-live')
+    expect(text).not.toContain('mcp-live')
+    expect(text).not.toContain('tok-live')
+    const data = JSON.parse(text)
+    expect(data.values.modelProviders[0].config.apiKey).toBe('')
+    expect(data.values.modelProviders[0].isEnvBased).toBe(true)
+    expect(data.values.mcpServers[0].config.url).toBe('https://mcp.test')
+  })
+
   it('returns 500 when config manager throws', async () => {
     mockGetCurrentConfig.mockImplementation(() => { throw new Error('db down') })
     const res = await GET(makeRequest())

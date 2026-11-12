@@ -23,6 +23,28 @@ const PROVIDER_KEY_TO_DB_NAME: Record<string, string> = {
   anyapi: "anyapi",
 };
 
+/** Config keys that hold a credential: `apiKey`, `clientSecret`, `accessToken`… */
+const SECRET_CONFIG_KEY = /(api[-_]?key|secret|token|password|passwd|credentials?|private[-_]?key|access[-_]?key)$/i;
+
+/**
+ * The provider config to store after an update: `next`, except that a blank
+ * credential keeps the stored one. Public config reads blank every credential
+ * (apps/qwksearch-web `lib/config/redact.ts`), so a settings form re-submitting
+ * what it was shown must not wipe the key it never saw.
+ */
+export function keepStoredSecrets(
+  previous: Record<string, any> | undefined,
+  next: Record<string, any>,
+): Record<string, any> {
+  if (!previous || !next || typeof next !== "object") return next;
+  const merged = { ...next };
+  for (const [key, value] of Object.entries(previous)) {
+    if (!SECRET_CONFIG_KEY.test(key) || typeof value !== "string" || !value) continue;
+    if (merged[key] === "" || merged[key] === undefined || merged[key] === null) merged[key] = value;
+  }
+  return merged;
+}
+
 /**
  * Returns the default chat models for a provider from the LANGUAGE_MODELS
  * database so that env-based providers expose a usable model list instead of
@@ -242,7 +264,7 @@ class ConfigManager {
     if (!provider) throw new Error("Provider not found");
 
     provider.name = name;
-    provider.config = config;
+    provider.config = keepStoredSecrets(provider.config, config);
     return provider;
   }
 
