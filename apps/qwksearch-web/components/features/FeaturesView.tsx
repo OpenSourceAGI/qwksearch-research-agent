@@ -4,21 +4,16 @@ import * as React from "react";
 import Link from "next/link";
 import {
   ArrowRight,
-  Bot,
   Building2,
   Check,
   CircleDollarSign,
   Globe,
-  Layers,
   Minus,
-  PenLine,
   Play,
-  Search,
   Sparkles,
   X,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import OrbitingCirclesGlobe from "@/components/ui/orbiting-circles-02";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,8 +36,6 @@ import {
   FEATURE_TABS,
   PIPELINE,
   PROJECT_BADGES,
-  PROVIDERS,
-  SEARCH_CATEGORIES,
   STATS,
   faviconUrl,
   type ComparisonStatus,
@@ -289,118 +282,6 @@ function EngineMarquee() {
   );
 }
 
-/**
- * The whole loop, ask → search → read → cite → write. Lives in the last tab of
- * `FeatureExplorer` rather than in a section of its own, so it renders the
- * grid alone: the tab supplies the headline and blurb around it.
- */
-function ResearchLoopGrid() {
-  return (
-    <div className="grid gap-4 md:grid-cols-3">
-      <Reveal className="md:col-span-2">
-        <SpotlightCard className="qs-tint h-full" style={cardTint(0)}>
-          <div className="flex h-full flex-col p-7">
-            <div className="qs-accent-soft mb-5 inline-flex size-11 w-fit items-center justify-center rounded-xl border">
-              <Search className="size-5" />
-            </div>
-            <h3 className="text-xl font-semibold">
-              Search 100+ sites in 13 categories
-            </h3>
-            <p className="text-muted-foreground mt-2 leading-relaxed">
-              General engines, academic databases, code registries, video
-              platforms, news wires, and archives — queried in parallel,
-              deduplicated, and ranked by domain authority.
-            </p>
-            <div className="mt-auto flex flex-wrap gap-2 pt-6">
-              {SEARCH_CATEGORIES.map((category) => (
-                <Badge
-                  key={category.label}
-                  variant="soft"
-                  className="qs-accent-soft gap-1.5 px-3 py-1"
-                >
-                  <category.icon />
-                  {category.label}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </SpotlightCard>
-      </Reveal>
-
-      <Reveal delay={80}>
-        <SpotlightCard className="qs-tint h-full" style={cardTint(1)}>
-          <div className="p-7">
-            <div className="qs-accent-soft mb-5 inline-flex size-11 items-center justify-center rounded-xl border">
-              <Bot className="size-5" />
-            </div>
-            <h3 className="text-xl font-semibold">Any model you trust</h3>
-            <p className="text-muted-foreground mt-2 leading-relaxed">
-              Swap providers per conversation, or bring your own key.
-            </p>
-            <ul className="mt-5 space-y-2">
-              {PROVIDERS.slice(0, 6).map((provider) => (
-                <li key={provider} className="flex items-center gap-2 text-sm">
-                  <Check className="qs-accent-text size-3.5 shrink-0" />
-                  {provider}
-                </li>
-              ))}
-              <li className="text-muted-foreground text-sm">
-                + {PROVIDERS.length - 6} more providers
-              </li>
-            </ul>
-          </div>
-        </SpotlightCard>
-      </Reveal>
-
-      <Reveal delay={40}>
-        <SpotlightCard className="qs-tint h-full" style={cardTint(2)}>
-          <div className="p-7">
-            <div className="qs-accent-soft mb-5 inline-flex size-11 items-center justify-center rounded-xl border">
-              <Layers className="size-5" />
-            </div>
-            <h3 className="text-xl font-semibold">Read before you click</h3>
-            <p className="text-muted-foreground mt-2 leading-relaxed">
-              Every result expands into cleaned article text with an APA
-              citation and a summary — including PDFs and YouTube transcripts.
-            </p>
-          </div>
-        </SpotlightCard>
-      </Reveal>
-
-      <Reveal delay={120} className="md:col-span-2">
-        <SpotlightCard className="qs-tint h-full" style={cardTint(3)}>
-          <div className="flex h-full flex-col p-7">
-            <div className="qs-accent-soft mb-5 inline-flex size-11 w-fit items-center justify-center rounded-xl border">
-              <PenLine className="size-5" />
-            </div>
-            <h3 className="text-xl font-semibold">
-              REASON: the writing half of research
-            </h3>
-            <p className="text-muted-foreground mt-2 max-w-xl leading-relaxed">
-              A Lexical-based editor with a nested document tree, AI rewriting,
-              collaborative editing, research quotes, and Word, PDF, and Google
-              Docs import and export.
-            </p>
-            <div className="mt-auto grid gap-2 pt-6 sm:grid-cols-2">
-              {[
-                "Nested document tree",
-                "Slash commands & Mermaid",
-                "Yjs collaboration",
-                "20+ interface languages",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-2 text-sm">
-                  <Check className="qs-accent-text size-3.5 shrink-0" />
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        </SpotlightCard>
-      </Reveal>
-    </div>
-  );
-}
-
 const COMPARISON_STATUS_META: Record<
   ComparisonStatus,
   { icon: React.ElementType; className: string; label: string }
@@ -600,7 +481,7 @@ function FeatureExplorer() {
         <SectionHeading
           id="every-feature"
           eyebrow="Every feature"
-          title="Five surfaces, one stack"
+          title="Four surfaces, one stack"
           blurb="Pick a surface to see everything it ships with today."
         />
 
@@ -631,11 +512,6 @@ function FeatureExplorer() {
                   </p>
                 </div>
 
-                {/* The loop tab carries a hand-laid-out grid, not a list of
-                    feature cards; everything else is driven by its data. */}
-                {tab.value === "loop" ? (
-                  <ResearchLoopGrid />
-                ) : (
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {tab.features.map((feature, index) => (
                       <SpotlightCard
@@ -655,7 +531,6 @@ function FeatureExplorer() {
                       </SpotlightCard>
                     ))}
                   </div>
-                )}
               </TabsContent>
             ))}
           </Tabs>

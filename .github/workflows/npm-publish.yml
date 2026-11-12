@@ -143,6 +143,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Publish non-private packages with new content
+        id: publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
@@ -195,7 +196,21 @@ jobs:
             name=$(node -e "const p=require('./$pkg'); console.log(p.name)")
 
             if [ "$is_private" = "true" ]; then
-              echo "⏭ Skipping $name (private)"
+              # A private package is never published, but a public one can
+              # still bundle it: research-agent-ui inlines search-autocomplete,
+              # whose name npm refuses. That bundling reads the private
+              # package's dist/, so build it here (in dependency order, before
+              # its consumers) and move on without publishing.
+              has_build=$(node -e "const p=require('./$pkg'); console.log(!!(p.scripts && p.scripts.build))")
+              if [ "$has_build" = "true" ]; then
+                echo "🔨 Building $name (private — built for its dependents, not published)"
+                if ! (cd "$dir" && npm run build); then
+                  echo "⚠ Build failed for private package $name — packages that bundle it will fail to build too"
+                  skipped_builds="$skipped_builds $name"
+                fi
+              else
+                echo "⏭ Skipping $name (private)"
+              fi
               continue
             fi
 
@@ -437,7 +452,13 @@ jobs:
           fi
 
       - name: Commit version bumps
-        if: success()
+        # Run after a partly failed publish too. The packages that did reach
+        # npm still need their bumps committed: when one package failing
+        # skipped this step, every later run started from versions npm had
+        # already moved past and had to re-sync and re-bump them all again.
+        # A bump left on a package whose publish failed is harmless — that
+        # version is not on npm, so the next run publishes it as is.
+        if: ${{ !cancelled() && (steps.publish.outcome == 'success' || steps.publish.outcome == 'failure') }}
         run: |
           # Version bumps made during publish (content changed while the version
           # was already taken) must land back in the repo so the next run sees

@@ -2,6 +2,7 @@
   "name": "search-autocomplete",
   "description": "Search box with query autocomplete from the single fastest search engine, site suggestions from a ranked domain list, and a benchmark that picks the engine",
   "version": "0.1.0",
+  "private": true,
   "author": "vtempest",
   "repository": {
     "type": "git",
