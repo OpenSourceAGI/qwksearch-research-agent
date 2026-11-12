@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ConfigModelProvider } from "@/lib/config/types";
 import { getEnv } from "@/lib/config/env";
 import { assertAdmin } from "@/lib/auth/admin";
+import { redactConnections } from "@/lib/config/redact";
 
 type SaveConfigBody = {
   key: string;
@@ -39,6 +40,11 @@ export const GET = async (req: NextRequest) => {
     if (values.search?.tavilyApiKey === envTavilyKey) {
       values.search = { ...values.search, tavilyApiKey: '' };
     }
+
+    // This route is public: never send a provider's or MCP server's stored
+    // credentials (the site's own env keys included) to the browser.
+    values.modelProviders = redactConnections(values.modelProviders);
+    values.mcpServers = redactConnections(values.mcpServers);
 
     return NextResponse.json({
       values,
