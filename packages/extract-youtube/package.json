@@ -1,6 +1,6 @@
 {
   "name": "extract-youtube",
-  "version": "1.0.553",
+  "version": "1.0.554",
   "description": "Fast, no-browser serverless-optimized YouTube transcript extractor, with optional cloud-ytdl audio/video download (MP3 via ffmpeg) and a media HTTP API, with a video library admin API (D1 or in-memory) and React UI: a floating YouTube player, a synced-transcript modal, video grid/list components and library admin screens",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
