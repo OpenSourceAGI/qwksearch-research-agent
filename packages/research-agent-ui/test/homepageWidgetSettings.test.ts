@@ -36,7 +36,6 @@ const WIDGET_KEYS = [
   'trendingNewsCustomTopics',
   'trendingNewsSource',
   'showEducationPlaylistsWidget',
-  'showMascotWidget',
 ];
 
 describe('homepage widget settings', () => {

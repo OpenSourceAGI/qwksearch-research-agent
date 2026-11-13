@@ -2,7 +2,11 @@ import { OPS_ASSETS_BASE_URL } from '@lobechat/const';
 
 export interface ChiefAgentArtwork {
   avatar: string;
-  hero: string;
+  /**
+   * Full-body artwork for the Home portrait. The default `lobe` character has
+   * none: its artwork was removed from the project.
+   */
+  hero?: string;
   id: string;
   tint: string;
 }
@@ -16,7 +20,6 @@ const asset = (hash: string) => `${OPS_ASSETS_BASE_URL}/${hash}.webp`;
 export const CHIEF_AGENT_ARTWORKS: ChiefAgentArtwork[] = [
   {
     avatar: asset('887f1fa54f3896e91d8a0f5633f241bdc1bbddfe0877b806fe332be6194beed9'),
-    hero: asset('aecf77a7df115e25f612dcdbfa250a87f1aaff4604c4cab932bcacd0aa04da2b'),
     id: 'lobe',
     tint: '#c98d81',
   },

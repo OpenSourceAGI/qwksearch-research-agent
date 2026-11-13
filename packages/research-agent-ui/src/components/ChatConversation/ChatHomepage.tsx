@@ -6,7 +6,6 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { GradientBlur } from '../../ui/gradient-blur';
 import ChatInputBox from '../MessageComposer/ChatInputBox';
 import RecentHistoryChips from './RecentHistoryChips';
-import MascotWidget from './MascotWidget';
 import Footer from '../Footer';
 import type { WeatherLocationInput } from 'use-weather-forecast';
 import { useChat } from '../../hooks/useChat';
@@ -170,11 +169,6 @@ export default function ChatHomepage() {
   const [trendingNewsSource, setTrendingNewsSource] = useState<'trending' | 'hckrnews'>('trending');
   const [newsSiteSettings, setNewsSiteSettings] = useState<NewsSiteSettings | null>(null);
   const [showEducationWidget, setShowEducationWidget] = useState(true);
-  const [showMascotWidget, setShowMascotWidget] = useState(true);
-  // Mirrors the "Background Art" switch, which also takes down the mascot
-  // figure drawn into the background.
-  const [showBackgroundArt, setShowBackgroundArt] = useState(true);
-  const mascotUrl = researchAgentUIConfig.homepageMascotUrl;
   // The weather and news widgets (their chunks and their API calls) wait until
   // the page has loaded and the browser is idle, so they never compete with the
   // orb, the input and the background for first paint.
@@ -244,8 +238,6 @@ export default function ChatHomepage() {
       setTrendingNewsCustomTopics(parseCustomTopics(localStorage.getItem('trendingNewsCustomTopics')));
       setTrendingNewsSource(localStorage.getItem('trendingNewsSource') === 'hckrnews' ? 'hckrnews' : 'trending');
       setShowEducationWidget(localStorage.getItem('showEducationPlaylistsWidget') !== 'false');
-      setShowMascotWidget(localStorage.getItem('showMascotWidget') !== 'false');
-      setShowBackgroundArt(localStorage.getItem('showBackgroundArt') !== 'false');
       setOrbHoverGlow(localStorage.getItem('orbHoverGlow') === 'true');
       setCursorGlowTrail(localStorage.getItem('cursorGlowTrail') === 'true');
     };
@@ -439,20 +431,6 @@ export default function ChatHomepage() {
       <div className="absolute inset-0 z-0">
         {background && renderBackground(background, fading ? 'opacity-0' : 'opacity-30')}
         {nextBackground && renderBackground(nextBackground, fading ? 'opacity-30' : 'opacity-0')}
-        {/* The mascot stands in the corner of the background, over the
-            rotating artwork. It waits for the same idle moment as the widgets,
-            so it never competes with the input for first paint, and it is
-            desktop-only: on a phone the column covers that corner. */}
-        {widgetsReady && showBackgroundArt && mascotUrl && (
-          <img
-            src={mascotUrl}
-            alt=""
-            aria-hidden
-            decoding="async"
-            data-testid="background-mascot"
-            className="pointer-events-none absolute right-4 bottom-0 hidden h-[60vh] max-h-[560px] w-auto object-contain object-bottom opacity-40 md:block"
-          />
-        )}
         {cursorGlowTrail && <GradientBlur />}
       </div>
 
@@ -475,28 +453,15 @@ export default function ChatHomepage() {
             <RecentHistoryChips />
             {/* The input leads the column; the Learn, news and weather widgets sit below it. */}
             <ChatInputBox />
-            {widgetsReady && ((showMascotWidget && mascotUrl) || showEducationWidget || showWeatherWidget || showNewsWidget) && (
+            {widgetsReady && (showEducationWidget || showWeatherWidget || showNewsWidget) && (
               <Suspense fallback={null}>
                 <div className="flex flex-col gap-2 w-full">
-                  {/* The mascot's greeting leads, then Learn (education playlists), then news, with
+                  {/* Learn (education playlists) sits on top, then news, with
                       both starting collapsed (`compact`) behind a chevron, and
                       the compact weather widget below them. The weather widget
                       is a single fluid row spanning the full column width;
                       whatever does not fit drops off its end rather than
                       making it taller. */}
-                  {showMascotWidget && mascotUrl && (
-                    <MascotWidget
-                      src={mascotUrl}
-                      onDismiss={() => setShowMascotWidget(false)}
-                      className="rounded-2xl w-full"
-                      style={{
-                        background: 'rgba(255,255,255,0.08)',
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        color: 'inherit',
-                        backdropFilter: 'blur(8px)',
-                      }}
-                    />
-                  )}
                   {showEducationWidget && (
                     <EducationPlaylists
                       compact

@@ -18,11 +18,10 @@ describe('resolveHomePortraitHero', () => {
 
   it('does not fall back to the default character for an avatar outside the catalog', () => {
     expect(resolveHomePortraitHero({ avatar: '🦊' })).toBeUndefined();
-    expect(
-      CHIEF_AGENT_ARTWORKS.map((item) => item.hero).includes(
-        resolveHomePortraitHero({ avatar: '🦊' }) as string,
-      ),
-    ).toBe(false);
+  });
+
+  it('carries no full-body artwork for the default character', () => {
+    expect(DEFAULT_CHIEF_AGENT_ARTWORK.hero).toBeUndefined();
   });
 
   it('still draws the other catalog characters', () => {

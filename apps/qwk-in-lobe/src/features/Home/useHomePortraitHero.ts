@@ -9,8 +9,8 @@ import { useResolvedHomeAgentId } from './AgentSelect/useResolvedHomeAgentId';
 /**
  * The full-body artwork Home shows for an agent, or `undefined` for none.
  *
- * The default "lobe" character is deliberately never shown on Home: it moved
- * to the QwkSearch homepage. So the catalog only answers for an avatar that is
+ * The default "lobe" character is deliberately never shown on Home (its
+ * full-body artwork was removed from the project). So the catalog only answers for an avatar that is
  * one of its *other* characters, and an agent with no artwork of its own (the
  * Inbox Agent on its default avatar, an emoji avatar, a custom upload) gets no
  * portrait at all rather than falling back to the default character.

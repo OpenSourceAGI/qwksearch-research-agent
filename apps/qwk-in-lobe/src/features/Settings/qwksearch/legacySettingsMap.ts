@@ -327,7 +327,6 @@ export const LEGACY_SEARCH_FIELDS: readonly LegacySearchField[] = [
     key: 'showEducationPlaylistsWidget',
     kind: 'shell',
   },
-  { destination: 'QwkSearch homepage mascot widget.', key: 'showMascotWidget', kind: 'shell' },
   { destination: 'QwkSearch homepage weather widget.', key: 'showWeatherWidget', kind: 'shell' },
   { destination: 'QwkSearch homepage weather widget.', key: 'weatherLocations', kind: 'shell' },
   { destination: 'QwkSearch homepage weather widget.', key: 'weatherForecastDays', kind: 'shell' },

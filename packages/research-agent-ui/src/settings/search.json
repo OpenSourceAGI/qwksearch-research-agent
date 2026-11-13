@@ -179,15 +179,6 @@
     "scope": "client"
   },
   {
-    "name": "Show Mascot Widget",
-    "key": "showMascotWidget",
-    "type": "switch",
-    "required": false,
-    "description": "Show the QwkSearch mascot's greeting card above the other widgets on the chat homepage.",
-    "default": true,
-    "scope": "client"
-  },
-  {
     "name": "Show Weather Widget",
     "key": "showWeatherWidget",
     "type": "switch",
