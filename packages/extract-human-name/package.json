@@ -1,6 +1,6 @@
 {
   "name": "extract-human-name",
-  "version": "1.0.46",
+  "version": "1.0.48",
   "module": "./dist/extract-human-name.es.js",
   "description": "Extracts, characterizes, and structures human author names from arbitrary text: tells a person (\"Dr. John Doe\") from an organization (\"The New York Times\"), parses name parts (title, first, middle, last, honorific), splits multi-author bylines, and formats APA-style citations. Ships a compact built-in name list by default; the 92k-entry names database (~1.1 MB) loads lazily from a CDN or via the /full entry.",
   "author": "vtempest <grokthiscontact@gmail.com>",

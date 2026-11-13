@@ -14,8 +14,6 @@ import {
   X,
 } from "lucide-react";
 
-import { researchAgentUIConfig } from "research-agent-ui/config";
-
 import { Button } from "@/components/ui/button";
 import OrbitingCirclesGlobe from "@/components/ui/orbiting-circles-02";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -123,36 +121,12 @@ function BadgeWall() {
   );
 }
 
-/**
- * The QwkSearch mascot standing over the hero's eyebrow pill — the same
- * artwork the homepage shows as a widget and in its background
- * (`researchAgentUIConfig.homepageMascotUrl`; empty hides it).
- */
-function HeroMascot() {
-  const src = researchAgentUIConfig.homepageMascotUrl;
-  if (!src) return null;
-
-  return (
-    <Reveal>
-      <img
-        src={src}
-        alt={`${config.appName} mascot`}
-        decoding="async"
-        loading="lazy"
-        className="mx-auto mb-4 h-36 w-auto object-contain drop-shadow-xl sm:h-44"
-      />
-    </Reveal>
-  );
-}
-
 function Hero() {
   return (
     <section className="relative overflow-hidden px-4 pt-24 pb-16 sm:px-6 lg:px-8">
       <AuroraBackdrop />
 
       <div className="mx-auto max-w-5xl text-center">
-        <HeroMascot />
-
         <Reveal>
           <Pill className="mb-6">
             <Sparkles className="size-3.5" />
