@@ -81,6 +81,12 @@ export interface ResearchAgentUIConfig {
   /** Full-page education playlists view the homepage card links to. Empty hides the link. */
   educationPlaylistsPageUrl: string;
   /**
+   * The QwkSearch mascot artwork: drawn as the homepage's mascot widget, as a
+   * figure in the homepage background, and on the features page. Empty hides
+   * all three. Defaults to `HOMEPAGE_MASCOT_URL`.
+   */
+  homepageMascotUrl: string;
+  /**
    * Requests that the settings UI be opened. Lets the consuming app render
    * settings in a modal (e.g. on large desktop screens) instead of navigating
    * to the `/settings` route. Return `true` when the request was handled — the
@@ -100,6 +106,15 @@ export interface ResearchAgentUIConfig {
   onOpenChat?: (chatId: string) => boolean;
 }
 
+/**
+ * The mascot character (moved here from the Lobe fork's homepage portrait).
+ * Still the original CDN copy: the cloud sessions that built this could not
+ * reach that host to vendor the file. Swap it for a local `/images/…` path
+ * once the file is committed under the host app's `public/`.
+ */
+export const HOMEPAGE_MASCOT_URL =
+  'https://chat-cloud.lobeobjects.space/dc/ops-assets/aecf77a7df115e25f612dcdbfa250a87f1aaff4604c4cab932bcacd0aa04da2b.webp';
+
 export const researchAgentUIConfig: ResearchAgentUIConfig = {
   appName: 'QwkSearch',
   defaultSummarizePrompt: 'Summarize in bullet points and bold topics',
@@ -116,6 +131,7 @@ export const researchAgentUIConfig: ResearchAgentUIConfig = {
   trendingNewsSettingsUrl: '/api/news/settings',
   educationPlaylistsApiUrl: '/api/learn',
   educationPlaylistsPageUrl: '/learn',
+  homepageMascotUrl: HOMEPAGE_MASCOT_URL,
 };
 
 /**

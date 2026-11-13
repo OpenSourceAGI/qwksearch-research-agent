@@ -50,7 +50,11 @@ class InstantImage {
 }
 
 const backgroundSrc = (container: HTMLElement) =>
-  container.querySelector<HTMLImageElement | HTMLVideoElement>('.z-0 img, .z-0 video')
+  // The mascot figure (`data-testid="background-mascot"`) shares the layer
+  // but is not part of the rotation.
+  container.querySelector<HTMLImageElement | HTMLVideoElement>(
+    '.z-0 img:not([data-testid]), .z-0 video',
+  )
     ?.getAttribute('src');
 
 let fetchMock: ReturnType<typeof vi.fn>;

@@ -25,6 +25,7 @@ import InputArea from './InputArea';
 import PortraitBubble from './PortraitBubble';
 import { RAIL_INBOX_PROPS, resolveRailVisibility } from './railVisibility';
 import type { HomeMode } from './types';
+import { useHomePortraitHero } from './useHomePortraitHero';
 
 export const DEFAULT_HOME_MODE: HomeMode = 'chat';
 export const ONBOARDING_HOME_MODE_PARAM = 'onboarding';
@@ -302,6 +303,11 @@ const Home = memo(() => {
   const hiddenWidgets = useGlobalStore(systemStatusSelectors.hiddenHomeWidgets);
   const promo = useHomePromoLine();
   const usageActive = useHomeUsageWidgetActive();
+  // No artwork means no portrait: the default character is no longer drawn on
+  // Home, so an agent without its own artwork leaves the slot (and its bubble)
+  // out instead of an empty frame. The layout still follows the preference, so
+  // the route (`useHomeMinimalLayout`) and Home agree on which one this is.
+  const portraitHero = useHomePortraitHero(Boolean(isLogin && showHomePortrait));
   const minimal = isHomeMinimalLayout(
     { hiddenWidgets, showPortrait: showHomePortrait },
     usageActive,
@@ -322,7 +328,7 @@ const Home = memo(() => {
   if (acceptancePortalOpen && !acceptanceDrawerMounted) setAcceptanceDrawerMounted(true);
   const railVisible = resolveRailVisibility({ hiddenWidgets, isLogin, showHomeRail, usageActive });
   const railCollapsed = !railVisible;
-  const portraitVisible = Boolean(isLogin && showHomePortrait);
+  const portraitVisible = Boolean(isLogin && showHomePortrait && portraitHero);
 
   useEffect(() => {
     clearOnboardingHomeModeParam();
@@ -372,9 +378,9 @@ const Home = memo(() => {
         )}
       </div>
 
-      {portraitVisible && (
+      {portraitVisible && portraitHero && (
         <div className={cx(styles.portrait, railCollapsed && styles.portraitCollapsed)}>
-          <HomePortrait />
+          <HomePortrait hero={portraitHero} />
         </div>
       )}
 

@@ -5,6 +5,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { PortalViewType } from '@/store/chat/slices/portal/initialState';
 
 interface RenderHomeOptions {
+  /** The artwork Home resolves for the addressed agent; `null` for none. */
+  hero?: string | null;
   hiddenWidgets?: string[];
   isLogin?: boolean;
   portalViewType?: PortalViewType;
@@ -40,6 +42,7 @@ function translate() {
 }
 
 const renderHome = async ({
+  hero = 'https://example.com/hero.webp',
   hiddenWidgets = [],
   isLogin = true,
   portalViewType,
@@ -54,6 +57,9 @@ const renderHome = async ({
   vi.doMock('../HomeHeader', () => homeHeaderStub);
   vi.doMock('../HomeModeContent', () => modeStub('home-mode-content'));
   vi.doMock('../HomePortrait', () => stub('home-portrait'));
+  vi.doMock('../useHomePortraitHero', () => ({
+    useHomePortraitHero: vi.fn(() => hero ?? undefined),
+  }));
   vi.doMock('../InputArea', () => inputAreaStub);
   vi.doMock('../PortraitBubble', () => portraitBubbleStub);
   vi.doMock('../AcceptancePortalDrawer', () => stub('acceptance-portal-drawer'));
@@ -93,6 +99,7 @@ afterEach(() => {
   vi.doUnmock('../HomeHeader');
   vi.doUnmock('../HomeModeContent');
   vi.doUnmock('../HomePortrait');
+  vi.doUnmock('../useHomePortraitHero');
   vi.doUnmock('../InputArea');
   vi.doUnmock('../PortraitBubble');
   vi.doUnmock('../AcceptancePortalDrawer');
@@ -110,6 +117,14 @@ describe('Home portrait visibility', () => {
 
     expect(screen.getByTestId('home-portrait')).toBeInTheDocument();
     expect(screen.getByTestId('portrait-bubble')).toBeInTheDocument();
+  }, 20000);
+
+  it('leaves the portrait and its bubble out when the agent has no artwork', async () => {
+    await renderHome({ hero: null, showHomePortrait: true });
+
+    expect(screen.queryByTestId('home-portrait')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('portrait-bubble')).not.toBeInTheDocument();
+    expect(screen.getByTestId('home-main')).toBeInTheDocument();
   }, 20000);
 
   it('keeps the portrait when the preference is explicitly on', async () => {
