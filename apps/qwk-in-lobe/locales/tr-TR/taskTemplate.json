@@ -5,7 +5,7 @@
   "action.connect.short": "Bağlan",
   "action.connecting": "Yetkilendirme bekleniyor…",
   "action.create.error": "Görev oluşturulamadı. Lütfen tekrar deneyin.",
-  "action.create.success": "Zamanlanmış görev eklendi. Lobe AI’de bulabilirsiniz.",
+  "action.create.success": "Zamanlanmış görev eklendi. Qwk AI’de bulabilirsiniz.",
   "action.createButton": "Görev ekle",
   "action.creating": "Oluşturuluyor...",
   "action.dismiss.error": "Kaldırılamadı. Lütfen tekrar deneyin.",

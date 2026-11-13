@@ -393,7 +393,7 @@ export class ConversationLifecycleActionImpl {
 
     // A single explicit @Agent is an execution route, not a supervisor turn.
     // Keep the current conversation as the owner, but resolve runtime/config
-    // from the mentioned agent so Lobe AI is never invoked for this message.
+    // from the mentioned agent so Qwk AI is never invoked for this message.
     const directMentionRoute = !context.groupId
       ? parseSingleAgentMentionDirectRoute(editorData)
       : undefined;

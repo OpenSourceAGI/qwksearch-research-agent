@@ -1094,7 +1094,7 @@
   "settingOpening.title": "Ustawienia powitania",
   "settingPlugin.title": "Lista umiejętności",
   "settingSelfIteration.enabled.desc": "Pozwól temu asystentowi na przeglądanie ostatnich sygnałów i doskonalenie własnych umiejętności podczas uruchamiania procesu samodoskonalenia.",
-  "settingSelfIteration.enabled.managedDesc": "Zawsze włączone dla Lobe AI, gdy samodoskonalenie jest dostępne.",
+  "settingSelfIteration.enabled.managedDesc": "Zawsze włączone dla Qwk AI, gdy samodoskonalenie jest dostępne.",
   "settingSelfIteration.enabled.title": "Włącz samodoskonalenie",
   "settingSelfIteration.title": "Samodoskonalenie",
   "settingSystem.oauth.info.desc": "Zalogowano",

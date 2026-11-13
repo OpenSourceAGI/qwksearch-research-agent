@@ -90,7 +90,7 @@ export const getResourceConfigAccess = async (
   );
   if (resourceType !== 'agent' || ownAccess === 'none') return ownAccess;
 
-  // Collaborative builtins (Lobe AI, the builders, the page agent) are workspace
+  // Collaborative builtins (Qwk AI, the builders, the page agent) are workspace
   // infrastructure that happens to be `virtual: true`, so linking one into a group
   // would otherwise cap its config access at that group's level — reinstating the
   // lockout this whole change removes. They are not group-owned

@@ -1094,7 +1094,7 @@
   "settingOpening.title": "Configuración de Apertura",
   "settingPlugin.title": "Lista de Habilidades",
   "settingSelfIteration.enabled.desc": "Permitir que este asistente revise señales recientes y mejore sus propias habilidades cuando se ejecute el flujo de trabajo de autoiteración.",
-  "settingSelfIteration.enabled.managedDesc": "Siempre activado para Lobe AI mientras la autoiteración esté disponible.",
+  "settingSelfIteration.enabled.managedDesc": "Siempre activado para Qwk AI mientras la autoiteración esté disponible.",
   "settingSelfIteration.enabled.title": "Habilitar Autoiteración",
   "settingSelfIteration.title": "Autoiteración",
   "settingSystem.oauth.info.desc": "Sesión iniciada",

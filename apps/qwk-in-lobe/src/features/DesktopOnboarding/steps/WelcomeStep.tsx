@@ -61,7 +61,7 @@ const WelcomeStep = memo<WelcomeStepProps>(({ onNext }) => {
             pauseDuration={16_000}
             typingSpeed={64}
             sentences={[
-              t('telemetry.title', { name: 'Lobe AI' }),
+              t('telemetry.title', { name: 'Qwk AI' }),
               t('telemetry.title2'),
               t('telemetry.title3'),
             ]}

@@ -1094,7 +1094,7 @@
   "settingOpening.title": "Cài Đặt Mở Đầu",
   "settingPlugin.title": "Danh Sách Kỹ Năng",
   "settingSelfIteration.enabled.desc": "Cho phép trợ lý này xem xét các tín hiệu gần đây và cải thiện kỹ năng của chính nó khi quy trình tự lặp lại được chạy.",
-  "settingSelfIteration.enabled.managedDesc": "Luôn bật cho Lobe AI khi Tự lặp lại khả dụng.",
+  "settingSelfIteration.enabled.managedDesc": "Luôn bật cho Qwk AI khi Tự lặp lại khả dụng.",
   "settingSelfIteration.enabled.title": "Bật Tự lặp lại",
   "settingSelfIteration.title": "Tự lặp lại",
   "settingSystem.oauth.info.desc": "Đã đăng nhập",

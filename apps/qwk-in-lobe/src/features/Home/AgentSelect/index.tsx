@@ -70,7 +70,7 @@ const AgentSelect = memo(() => {
   const displayMeta = showInboxFallback ? inboxMeta : (sidebarItem ?? agentMapMeta);
   const displayTitle = agentDisplayName(
     displayMeta,
-    showInboxFallback ? 'Lobe AI' : t('defaultSession', { ns: 'common' }),
+    showInboxFallback ? 'Qwk AI' : t('defaultSession', { ns: 'common' }),
   );
   const displayAvatar =
     (typeof displayMeta?.avatar === 'string' ? displayMeta.avatar : undefined) ||

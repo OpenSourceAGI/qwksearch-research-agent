@@ -155,7 +155,7 @@ const resolveAgentBuiltinMarkers = async (
  * `agents.user_id` records an accident of timing rather than authorship, and no
  * `resource_permissions` row is ever written for them (their effective General
  * access falls back to the resource default). Treating them as creator-owned locks
- * every other member out of the Agent Builder, of Lobe AI's config page, and of
+ * every other member out of the Agent Builder, of Qwk AI's config page, and of
  * the Page Copilot's own settings, so they are governed by workspace
  * capability instead: anyone holding `agent:update:{owner,all}` may
  * read/use/configure them, while destructive and ownership actions (delete /
@@ -166,7 +166,7 @@ const resolveAgentBuiltinMarkers = async (
  * reserved slug before `AgentModel.stripReservedSlug` existed would also match.
  * `agents_slug_workspace_id_unique` allows only one row per slug per workspace,
  * which means such a row is already what `getBuiltinAgent` resolves as that
- * workspace's Lobe AI / builder — every member is already chatting with it, so
+ * workspace's Qwk AI / builder — every member is already chatting with it, so
  * letting them configure it is not an escalation beyond what the row already is.
  * Distinguishing the two shapes for real needs a provisioning-only marker
  * (a column written solely by `getBuiltinAgent`) plus a backfill; that is a schema

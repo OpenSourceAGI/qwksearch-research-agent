@@ -1094,7 +1094,7 @@
   "settingOpening.title": "オープニング設定",
   "settingPlugin.title": "スキルリスト",
   "settingSelfIteration.enabled.desc": "このアシスタントが最近のシグナルをレビューし、自己反復ワークフローが実行される際に自身のスキルを向上させることを許可します。",
-  "settingSelfIteration.enabled.managedDesc": "自己反復が利用可能な場合、Lobe AIでは常に有効です。",
+  "settingSelfIteration.enabled.managedDesc": "自己反復が利用可能な場合、Qwk AIでは常に有効です。",
   "settingSelfIteration.enabled.title": "自己反復を有効にする",
   "settingSelfIteration.title": "自己反復",
   "settingSystem.oauth.info.desc": "ログイン済み",

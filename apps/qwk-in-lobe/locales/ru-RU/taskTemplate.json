@@ -5,7 +5,7 @@
   "action.connect.short": "Подключить",
   "action.connecting": "Ожидание авторизации…",
   "action.create.error": "Не удалось создать задачу. Пожалуйста, попробуйте снова.",
-  "action.create.success": "Запланированная задача добавлена. Найдите её в Lobe AI.",
+  "action.create.success": "Запланированная задача добавлена. Найдите её в Qwk AI.",
   "action.createButton": "Добавить задачу",
   "action.creating": "Создание...",
   "action.dismiss.error": "Не удалось отклонить. Пожалуйста, попробуйте снова.",

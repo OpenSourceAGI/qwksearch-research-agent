@@ -1094,7 +1094,7 @@
   "settingOpening.title": "Begrüßungseinstellungen",
   "settingPlugin.title": "Fähigkeitenliste",
   "settingSelfIteration.enabled.desc": "Erlauben Sie diesem Assistenten, kürzlich empfangene Signale zu überprüfen und seine eigenen Fähigkeiten zu verbessern, wenn der Selbstiterations-Workflow ausgeführt wird.",
-  "settingSelfIteration.enabled.managedDesc": "Immer aktiviert für Lobe AI, solange Selbstiteration verfügbar ist.",
+  "settingSelfIteration.enabled.managedDesc": "Immer aktiviert für Qwk AI, solange Selbstiteration verfügbar ist.",
   "settingSelfIteration.enabled.title": "Selbstiteration aktivieren",
   "settingSelfIteration.title": "Selbstiteration",
   "settingSystem.oauth.info.desc": "Angemeldet",

@@ -1094,7 +1094,7 @@
   "settingOpening.title": "Impostazioni di Apertura",
   "settingPlugin.title": "Elenco Competenze",
   "settingSelfIteration.enabled.desc": "Consenti a questo assistente di esaminare i segnali recenti e migliorare le proprie competenze quando viene eseguito il flusso di lavoro di auto-iterazione.",
-  "settingSelfIteration.enabled.managedDesc": "Sempre attivo per Lobe AI mentre l'auto-iterazione è disponibile.",
+  "settingSelfIteration.enabled.managedDesc": "Sempre attivo per Qwk AI mentre l'auto-iterazione è disponibile.",
   "settingSelfIteration.enabled.title": "Abilita Auto-Iterazione",
   "settingSelfIteration.title": "Auto-Iterazione",
   "settingSystem.oauth.info.desc": "Accesso effettuato",

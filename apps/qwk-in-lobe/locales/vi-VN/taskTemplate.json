@@ -5,7 +5,7 @@
   "action.connect.short": "Kết nối",
   "action.connecting": "Đang chờ xác thực…",
   "action.create.error": "Không thể tạo nhiệm vụ. Vui lòng thử lại.",
-  "action.create.success": "Đã thêm nhiệm vụ đã lên lịch. Tìm nó trong Lobe AI.",
+  "action.create.success": "Đã thêm nhiệm vụ đã lên lịch. Tìm nó trong Qwk AI.",
   "action.createButton": "Thêm nhiệm vụ",
   "action.creating": "Đang tạo...",
   "action.dismiss.error": "Không thể bỏ qua. Vui lòng thử lại.",

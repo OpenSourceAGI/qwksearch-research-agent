@@ -1094,7 +1094,7 @@
   "settingOpening.title": "Настройки за начало",
   "settingPlugin.title": "Списък с умения",
   "settingSelfIteration.enabled.desc": "Позволете на този асистент да преглежда последните сигнали и да подобрява собствените си умения, когато работният процес за само-итерация се изпълнява.",
-  "settingSelfIteration.enabled.managedDesc": "Винаги включено за Lobe AI, докато само-итерацията е налична.",
+  "settingSelfIteration.enabled.managedDesc": "Винаги включено за Qwk AI, докато само-итерацията е налична.",
   "settingSelfIteration.enabled.title": "Разрешаване на само-итерация",
   "settingSelfIteration.title": "Само-итерация",
   "settingSystem.oauth.info.desc": "Вход изпълнен",

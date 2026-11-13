@@ -5,7 +5,7 @@
   "action.connect.short": "연결",
   "action.connecting": "승인을 기다리는 중…",
   "action.create.error": "작업 생성에 실패했습니다. 다시 시도해 주세요.",
-  "action.create.success": "예약된 작업이 추가되었습니다. Lobe AI에서 확인하세요.",
+  "action.create.success": "예약된 작업이 추가되었습니다. Qwk AI에서 확인하세요.",
   "action.createButton": "작업 추가",
   "action.creating": "생성 중...",
   "action.dismiss.error": "해제에 실패했습니다. 다시 시도해 주세요.",

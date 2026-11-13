@@ -1094,7 +1094,7 @@
   "settingOpening.title": "Настройки приветствия",
   "settingPlugin.title": "Список навыков",
   "settingSelfIteration.enabled.desc": "Позволить этому ассистенту анализировать недавние сигналы и улучшать свои навыки при запуске процесса самоитерации.",
-  "settingSelfIteration.enabled.managedDesc": "Всегда включено для Lobe AI, пока доступна самоитерация.",
+  "settingSelfIteration.enabled.managedDesc": "Всегда включено для Qwk AI, пока доступна самоитерация.",
   "settingSelfIteration.enabled.title": "Включить самоитерацию",
   "settingSelfIteration.title": "Самоитерация",
   "settingSystem.oauth.info.desc": "Вы вошли в систему",

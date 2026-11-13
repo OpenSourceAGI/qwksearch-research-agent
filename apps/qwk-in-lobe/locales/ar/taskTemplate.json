@@ -5,7 +5,7 @@
   "action.connect.short": "اتصل",
   "action.connecting": "في انتظار التفويض...",
   "action.create.error": "فشل في إنشاء المهمة. يرجى المحاولة مرة أخرى.",
-  "action.create.success": "تمت إضافة المهمة المجدولة. يمكنك العثور عليها في Lobe AI.",
+  "action.create.success": "تمت إضافة المهمة المجدولة. يمكنك العثور عليها في Qwk AI.",
   "action.createButton": "إضافة مهمة",
   "action.creating": "جاري الإنشاء...",
   "action.dismiss.error": "فشل في الإلغاء. يرجى المحاولة مرة أخرى.",

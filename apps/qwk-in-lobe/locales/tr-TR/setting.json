@@ -1094,7 +1094,7 @@
   "settingOpening.title": "Açılış Ayarları",
   "settingPlugin.title": "Yetenek Listesi",
   "settingSelfIteration.enabled.desc": "Bu asistanın son sinyalleri gözden geçirmesine ve kendi becerilerini kendi yineleme iş akışı çalıştığında geliştirmesine izin verin.",
-  "settingSelfIteration.enabled.managedDesc": "Kendi Yineleme mevcutken Lobe AI için her zaman açık.",
+  "settingSelfIteration.enabled.managedDesc": "Kendi Yineleme mevcutken Qwk AI için her zaman açık.",
   "settingSelfIteration.enabled.title": "Kendi Yinelemeyi Etkinleştir",
   "settingSelfIteration.title": "Kendi Yineleme",
   "settingSystem.oauth.info.desc": "Giriş yapıldı",

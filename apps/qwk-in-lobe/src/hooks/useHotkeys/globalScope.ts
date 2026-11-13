@@ -22,7 +22,7 @@ export const isTaskPanelRoute = (pathname: string) =>
 export const isAgentProfilePanelRoute = (pathname: string) =>
   /^\/agent\/[^/]+\/profile\/?$/.test(pathname);
 
-// Switch to chat tab (and focus on Lobe AI)
+// Switch to chat tab (and focus on Qwk AI)
 export const useNavigateToChatHotkey = () => {
   const navigateToAgent = useNavigateToAgent();
   const [, { unpinAgent }] = usePinnedAgentState();

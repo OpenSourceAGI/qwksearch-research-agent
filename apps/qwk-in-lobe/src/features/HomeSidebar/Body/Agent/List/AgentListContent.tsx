@@ -60,7 +60,7 @@ const AgentListContent = memo<AgentListContentProps>(({ hideInbox, onMoreClick }
     );
 
   // Always render the default SessionList so the "+ Create Agent" entry is visible
-  // even when the user has only the built-in Lobe AI inbox.
+  // even when the user has only the built-in Qwk AI inbox.
   return (
     <>
       {!hideInbox && <InboxItem style={{ minHeight: 36 }} />}

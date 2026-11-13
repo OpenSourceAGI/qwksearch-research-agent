@@ -1656,7 +1656,7 @@
   "taskList.subtaskProgress.loadFailed": "Impossible de charger les sous-tâches. Cliquez sur l'indicateur de progression pour réessayer.",
   "taskList.title": "Tâches",
   "taskList.unassigned": "Non attribuée",
-  "taskList.unassignedAgentHint": "Lobe AI exécutera cette tâche lorsqu'aucun agent n'est sélectionné",
+  "taskList.unassignedAgentHint": "Qwk AI exécutera cette tâche lorsqu'aucun agent n'est sélectionné",
   "taskList.view.board": "Tableau",
   "taskList.view.list": "Liste",
   "taskList.viewAll": "Tout afficher",

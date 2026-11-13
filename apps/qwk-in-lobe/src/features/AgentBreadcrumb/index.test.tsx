@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => (key === 'inbox.title' ? 'Lobe AI' : key),
+    t: (key: string) => (key === 'inbox.title' ? 'Qwk AI' : key),
   }),
 }));
 

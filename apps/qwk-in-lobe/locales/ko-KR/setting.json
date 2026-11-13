@@ -1094,7 +1094,7 @@
   "settingOpening.title": "오프닝 설정",
   "settingPlugin.title": "기능 목록",
   "settingSelfIteration.enabled.desc": "이 어시스턴트가 최근 신호를 검토하고 자기 반복 워크플로우가 실행될 때 자신의 기술을 개선할 수 있도록 허용합니다.",
-  "settingSelfIteration.enabled.managedDesc": "자기 반복 기능이 활성화된 동안 Lobe AI에 대해 항상 활성화됩니다.",
+  "settingSelfIteration.enabled.managedDesc": "자기 반복 기능이 활성화된 동안 Qwk AI에 대해 항상 활성화됩니다.",
   "settingSelfIteration.enabled.title": "자기 반복 활성화",
   "settingSelfIteration.title": "자기 반복",
   "settingSystem.oauth.info.desc": "로그인됨",

@@ -1094,7 +1094,7 @@
   "settingOpening.title": "تنظیمات آغازین",
   "settingPlugin.title": "فهرست مهارت‌ها",
   "settingSelfIteration.enabled.desc": "اجازه دهید این دستیار سیگنال‌های اخیر را بررسی کرده و مهارت‌های خود را هنگام اجرای جریان کاری خود-تکرار بهبود دهد.",
-  "settingSelfIteration.enabled.managedDesc": "همیشه فعال برای Lobe AI در حالی که خود-تکرار در دسترس است.",
+  "settingSelfIteration.enabled.managedDesc": "همیشه فعال برای Qwk AI در حالی که خود-تکرار در دسترس است.",
   "settingSelfIteration.enabled.title": "فعال‌سازی خود-تکرار",
   "settingSelfIteration.title": "خود-تکرار",
   "settingSystem.oauth.info.desc": "وارد شده‌اید",

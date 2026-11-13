@@ -5,7 +5,7 @@
   "action.connect.short": "連接",
   "action.connecting": "等待授權中…",
   "action.create.error": "建立任務失敗。請再試一次。",
-  "action.create.success": "已新增排程任務，可在 Lobe AI 中查看。",
+  "action.create.success": "已新增排程任務，可在 Qwk AI 中查看。",
   "action.createButton": "新增任務",
   "action.creating": "正在建立...",
   "action.dismiss.error": "無法忽略。請再試一次。",

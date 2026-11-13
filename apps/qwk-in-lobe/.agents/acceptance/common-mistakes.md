@@ -279,7 +279,7 @@ create a synthetic target-user envelope, or resume the owner after the tool
 result even when the initial text response looked correct.
 
 The simple happy path passes while real coding Agents either
-lose their tool output, render it under the wrong Agent, or invoke Lobe AI for
+lose their tool output, render it under the wrong Agent, or invoke Qwk AI for
 the final answer.
 
 **Correct approach:** exercise a deterministic real tool call through the same

@@ -608,7 +608,7 @@ export default {
   'historySummary': 'Historical Message Summary',
   'inactive': 'Inactive',
   'inbox.desc': 'Collaborate in one Workspace and move ideas into outcomes.',
-  'inbox.title': 'Lobe AI',
+  'inbox.title': 'Qwk AI',
   'input.addAi': 'Add an AI message',
   'input.addAiPrefillUnsupported':
     'The current model doesn’t support ending the conversation with an assistant message. Follow it with a user message before sending.',
@@ -2002,7 +2002,7 @@ export default {
     "Couldn't load sub-tasks. Click the progress badge to retry.",
   'taskList.title': 'Tasks',
   'taskList.unassigned': 'Unassigned',
-  'taskList.unassignedAgentHint': 'Lobe AI will run this task when no agent is selected',
+  'taskList.unassignedAgentHint': 'Qwk AI will run this task when no agent is selected',
   'taskList.assignTo': 'Assign to',
   'taskList.assigneeSearch.agentEmpty': 'No matching agent',
   'taskList.assigneeSearch.agentPlaceholder': 'Search agent...',

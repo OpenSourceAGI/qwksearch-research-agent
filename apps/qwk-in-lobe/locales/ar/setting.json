@@ -1094,7 +1094,7 @@
   "settingOpening.title": "إعدادات البداية",
   "settingPlugin.title": "قائمة المهارات",
   "settingSelfIteration.enabled.desc": "السماح لهذا المساعد بمراجعة الإشارات الأخيرة وتحسين مهاراته الخاصة عند تشغيل سير عمل التكرار الذاتي.",
-  "settingSelfIteration.enabled.managedDesc": "مفعّل دائمًا لـ Lobe AI أثناء توفر التكرار الذاتي.",
+  "settingSelfIteration.enabled.managedDesc": "مفعّل دائمًا لـ Qwk AI أثناء توفر التكرار الذاتي.",
   "settingSelfIteration.enabled.title": "تفعيل التكرار الذاتي",
   "settingSelfIteration.title": "التكرار الذاتي",
   "settingSystem.oauth.info.desc": "تم تسجيل الدخول",
