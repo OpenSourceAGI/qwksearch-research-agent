@@ -239,7 +239,7 @@ Pickers must list every valid target. Watch for options dropped by backend list 
 (pagination, `virtual` flags, scope filters) and add them back. An empty picker must
 mean "genuinely none", never "we filtered out the only option".
 
-> ✅ The default "LobeAI" (inbox) agent is `virtual` and excluded from the sidebar list, so the move picker re-adds it.
+> ✅ The default "Qwk AI" (inbox) agent is `virtual` and excluded from the sidebar list, so the move picker re-adds it.
 
 **Checklist**
 

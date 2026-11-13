@@ -418,7 +418,7 @@ export const messengerRouter = router({
         }
 
         // A first scan should be immediately usable, so route it to the user's
-        // personal inbox (LobeAI). A rescan preserves an authorized Agent
+        // personal inbox (Qwk AI). A rescan preserves an authorized Agent
         // choice, but repairs stale/deauthorized links with the same fallback.
         const inboxAgentId =
           (await ctx.getAgentModel().getBuiltinAgent(INBOX_SESSION_ID))?.id ?? null;
@@ -748,13 +748,13 @@ export const messengerRouter = router({
    * Agent list for the verify-im UI's "pick an initial agent" dropdown.
    *
    * Excludes virtual agents (page-copilot, etc.) but explicitly keeps the
-   * inbox/LobeAI agent — historical inbox sessions get migrated with
-   * `virtual=true`, so a plain virtual filter would hide LobeAI even though
+   * inbox/Qwk AI agent — historical inbox sessions get migrated with
+   * `virtual=true`, so a plain virtual filter would hide Qwk AI even though
    * the home sidebar shows it (sidebar fetches it separately via
    * `agent.getBuiltinAgent`).
    *
    * Order matches the home sidebar (`updatedAt DESC`). Title fallback for the
-   * inbox agent resolves to `"LobeAI"` + default avatar; everything else falls
+   * inbox agent resolves to `"Qwk AI"` + default avatar; everything else falls
    * back on the client via `common.defaultSession`.
    */
   listAgentsForBinding: messengerProcedure

@@ -20,7 +20,7 @@ const AgentInfo = memo(() => {
   // Scope the welcome to the conversation's agent, not the global
   // `activeAgentId`. In the multi-tab desktop app `activeAgentId` is shared and
   // can momentarily point at another tab's agent (or the inbox), which used to
-  // flash this card back to the inbox "Lobe AI" identity.
+  // flash this card back to the inbox "Qwk AI" identity.
   const agentId = useConversationStore(contextSelectors.agentId) || '';
   const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
   const isInbox = !!inboxAgentId && agentId === inboxAgentId;
@@ -32,7 +32,7 @@ const AgentInfo = memo(() => {
   const fontSize = useUserStore(userGeneralSettingsSelectors.fontSize);
 
   const displayTitle = isInbox
-    ? agentDisplayName(meta, 'Lobe AI')
+    ? agentDisplayName(meta, 'Qwk AI')
     : agentDisplayName(meta, t('defaultSession', { ns: 'common' }));
 
   const message = useMemo(() => {

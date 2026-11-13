@@ -62,7 +62,7 @@ export const useAgentModelSelection = (agentId: string): UseAgentModelSelectionR
   const sharedProvider = useAgentStore(agentByIdSelectors.getAgentModelProviderById(agentId));
   const updateAgentConfigById = useAgentStore((s) => s.updateAgentConfigById);
   const { canManageAgent, isAccessLoading } = useAgentManagementAccess(agentId);
-  // Collaborative builtins (the builders, Lobe AI, the Page Copilot) are one
+  // Collaborative builtins (the builders, Qwk AI, the Page Copilot) are one
   // shared row per Workspace with no config page of their own, so managing the
   // row must not mean picking the model for everyone else — see
   // `AgentModelConfig.personalModelSelection`.

@@ -485,7 +485,7 @@ export class MessengerAccountLinkModel {
   /**
    * Static scope switch used by IM `/switch`. Moves the link to a new active
    * scope (personal → `null`, or a workspace id) and sets the active agent to
-   * `agentId` — callers pass the scope's default agent (inbox/LobeAI) so
+   * `agentId` — callers pass the scope's default agent (inbox/Qwk AI) so
    * switching never leaves the session agent-less; pass `null` only when the
    * target scope has no agents. Caller must authorize access to the target
    * scope first.

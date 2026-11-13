@@ -158,7 +158,7 @@ class AgentService {
   /**
    * Bidirectional visibility switch. The server only allows the
    * agent's creator or a workspace owner to pull a published agent back to
-   * private, and rejects builtin agents (LobeAI etc.) outright.
+   * private, and rejects builtin agents (Qwk AI etc.) outright.
    */
   setAgentVisibility = async (id: string, visibility: 'private' | 'public'): Promise<void> => {
     await lambdaClient.agent.setAgentVisibility.mutate({ id, visibility });

@@ -571,7 +571,7 @@ export class HeterogeneousPersistenceHandler {
       // A direct @Agent run keeps the topic under the conversation owner while
       // the seeded assistant belongs to the executing target Agent. Every
       // follow-up step and tool row must inherit the assistant author, not the
-      // topic owner, or the post-tool answer appears to switch back to Lobe AI.
+      // topic owner, or the post-tool answer appears to switch back to Qwk AI.
       // Legacy/finish-only callers may not have a readable assistant row; keep
       // the historical topic-owner fallback for those paths.
       agentId: baseAssistantMessage?.agentId ?? topic?.agentId ?? null,

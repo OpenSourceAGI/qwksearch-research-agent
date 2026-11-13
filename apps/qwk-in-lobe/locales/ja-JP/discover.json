@@ -588,7 +588,7 @@
   "skills.details.related.listTitle": "関連スキル",
   "skills.details.related.more": "もっと見る",
   "skills.details.sidebar.agent.title": "このプロンプトをエージェントに送信してスキルをインストール",
-  "skills.details.sidebar.agent.useOnLobeAI": "LobeAIで使用",
+  "skills.details.sidebar.agent.useOnLobeAI": "Qwk AIで使用",
   "skills.details.sidebar.directoryLayout": "ディレクトリレイアウト",
   "skills.details.sidebar.downloadSkill": "スキルをダウンロード",
   "skills.details.sidebar.installCommand": "インストールコマンド",

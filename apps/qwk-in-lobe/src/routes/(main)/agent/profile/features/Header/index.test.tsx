@@ -311,7 +311,7 @@ describe('Agent profile Header', () => {
     ).toBeInTheDocument();
   });
 
-  it('shows workspace resource permission controls for the LobeAI inbox agent', () => {
+  it('shows workspace resource permission controls for the Qwk AI inbox agent', () => {
     mocks.agentState.isInbox = true;
 
     render(<Header />);

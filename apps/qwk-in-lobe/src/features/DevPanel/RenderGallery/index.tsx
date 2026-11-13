@@ -59,7 +59,7 @@ const RenderGallery = () => {
       },
     });
 
-    // Seed the Aggregate-preview agent meta so its turns read as "Lobe AI"
+    // Seed the Aggregate-preview agent meta so its turns read as "Qwk AI"
     // (avatar + name) instead of the unresolved-agent fallback.
     const previousAgentMap = useAgentStore.getState().agentMap;
     useAgentStore.setState({

@@ -133,7 +133,7 @@ describe('useAgentIdentityForm', () => {
 
   describe('builtin agents', () => {
     beforeEach(() => {
-      mocks.agentMap = { 'agent-a': { slug: 'inbox', title: 'Lobe AI' } };
+      mocks.agentMap = { 'agent-a': { slug: 'inbox', title: 'Qwk AI' } };
     });
 
     it('locks the slug of a builtin agent', () => {
@@ -164,7 +164,7 @@ describe('useAgentIdentityForm', () => {
       expect(mocks.updateAgentSlug).not.toHaveBeenCalled();
       expect(mocks.updateAgentMetaById).toHaveBeenCalledExactlyOnceWith('agent-a', {
         name: '',
-        title: 'Lobe AI',
+        title: 'Qwk AI',
       });
       expect(onSaved).toHaveBeenCalled();
     });

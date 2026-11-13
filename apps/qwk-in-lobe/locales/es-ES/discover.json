@@ -588,7 +588,7 @@
   "skills.details.related.listTitle": "Habilidades Relacionadas",
   "skills.details.related.more": "Ver más",
   "skills.details.sidebar.agent.title": "Envía este prompt a tu Agente para instalar esta habilidad",
-  "skills.details.sidebar.agent.useOnLobeAI": "Usar en LobeAI",
+  "skills.details.sidebar.agent.useOnLobeAI": "Usar en Qwk AI",
   "skills.details.sidebar.directoryLayout": "Estructura del directorio",
   "skills.details.sidebar.downloadSkill": "Descargar habilidad",
   "skills.details.sidebar.installCommand": "Comando de instalación",

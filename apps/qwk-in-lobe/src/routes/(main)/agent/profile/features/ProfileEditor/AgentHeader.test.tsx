@@ -237,11 +237,11 @@ describe('AgentHeader', () => {
   // the role already has its own line right below.
   it('does not borrow the role for the headline', () => {
     mocks.permissionState.allowed = true;
-    mocks.agentStoreState.agentMap = { 'agent-a': { slug: 'inbox', title: 'Lobe AI' } };
+    mocks.agentStoreState.agentMap = { 'agent-a': { slug: 'inbox', title: 'Qwk AI' } };
     const view = render(<AgentHeader />);
 
     // Exactly once: on the role line, never as the headline.
-    expect(view.container.textContent?.match(/Lobe AI/g)).toHaveLength(1);
+    expect(view.container.textContent?.match(/Qwk AI/g)).toHaveLength(1);
   });
 
   it('shows an identical heterogeneous product name and role only once', () => {
@@ -321,7 +321,7 @@ describe('AgentHeader', () => {
   // that fixes it — not a placeholder dressed up as a name.
   it('gives the headline slot to the naming prompt while unnamed', () => {
     mocks.permissionState.allowed = true;
-    mocks.agentStoreState.agentMap = { 'agent-a': { slug: 'inbox', title: 'Lobe AI' } };
+    mocks.agentStoreState.agentMap = { 'agent-a': { slug: 'inbox', title: 'Qwk AI' } };
     const view = render(<AgentHeader />);
 
     expect(view.container.textContent).toContain('settingAgent.personalName.unnamed');
@@ -333,7 +333,7 @@ describe('AgentHeader', () => {
   // Read-only viewers get the plain label — an action they cannot take would be
   // worse than a stated absence.
   it('falls back to the unnamed label when edits are not allowed', () => {
-    mocks.agentStoreState.agentMap = { 'agent-a': { slug: 'inbox', title: 'Lobe AI' } };
+    mocks.agentStoreState.agentMap = { 'agent-a': { slug: 'inbox', title: 'Qwk AI' } };
     const view = render(<AgentHeader />);
 
     expect(view.container.textContent).toContain('settingAgent.identity.untitled');

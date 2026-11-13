@@ -61,7 +61,7 @@ on either the initial load or the page loads — gaps ①/④).
     closed loop. This is the confirm→in-progress(locked)→done/error shape the bulk bar (gap ⑤)
     lacks; it's the "don't regress" reference for every other mutating path on this surface.
 - **✅ 亮点 — Move picker re-adds the virtual inbox agent (already landed as ux Read §1.4 ✅).**
-  `targetAgents` prepends the inbox/default "LobeAI" agent that the sidebar list filters out
+  `targetAgents` prepends the inbox/default "Qwk AI" agent that the sidebar list filters out
   (`Content.tsx:80-98`), so topics can be moved to it — a picker that lists every valid
   target, not "every target the sidebar happened to keep".
 - **✅ 亮点 — Server-side BM25 search + infinite-scroll disabled in search mode.** Search

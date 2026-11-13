@@ -588,7 +588,7 @@
   "skills.details.related.listTitle": "相關技能",
   "skills.details.related.more": "查看更多",
   "skills.details.sidebar.agent.title": "將此提示發送給您的代理以安裝此技能",
-  "skills.details.sidebar.agent.useOnLobeAI": "在 LobeAI 上使用",
+  "skills.details.sidebar.agent.useOnLobeAI": "在 Qwk AI 上使用",
   "skills.details.sidebar.directoryLayout": "目錄結構",
   "skills.details.sidebar.downloadSkill": "下載技能",
   "skills.details.sidebar.installCommand": "安裝命令",

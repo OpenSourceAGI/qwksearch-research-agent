@@ -61,11 +61,11 @@ const InboxItem = memo<InboxItemProps>(({ className, style }) => {
     inboxAgentId ? operationSelectors.isAgentVisiblyRunning(inboxAgentId) : () => false,
   );
   const prefetchAgent = usePrefetchAgent();
-  const inboxAgentTitle = agentDisplayName(inboxMeta, 'Lobe AI');
+  const inboxAgentTitle = agentDisplayName(inboxMeta, 'Qwk AI');
   const inboxAgentAvatar = inboxMeta.avatar || DEFAULT_INBOX_AVATAR;
   const inboxUrl = usePreservedAgentUrl(inboxRouteAgentId);
 
-  // Prefetch agent layout chunk and data eagerly since Lobe AI is almost always clicked
+  // Prefetch agent layout chunk and data eagerly since Qwk AI is almost always clicked
   if (inboxAgentId) prefetchAgent(inboxAgentId);
 
   const avatarNode = (

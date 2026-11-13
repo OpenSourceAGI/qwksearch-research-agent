@@ -412,9 +412,9 @@ describe('messengerRouter.pollWechatQrSession', () => {
     mockConsumeWechatQrSession.mockResolvedValue(undefined);
   });
 
-  it('routes a first WeChat connection to the personal LobeAI agent', async () => {
+  it('routes a first WeChat connection to the personal Qwk AI agent', async () => {
     const selectBuilder = createSelectBuilder([
-      { id: 'agent-inbox', title: 'LobeAI', userId: 'user-1', workspaceId: null },
+      { id: 'agent-inbox', title: 'Qwk AI', userId: 'user-1', workspaceId: null },
     ]);
     const serverDB = {
       select: vi.fn(() => selectBuilder),
@@ -447,7 +447,7 @@ describe('messengerRouter.pollWechatQrSession', () => {
     );
   });
 
-  it('falls back to the personal LobeAI agent when a rescan preserves a stale agent', async () => {
+  it('falls back to the personal Qwk AI agent when a rescan preserves a stale agent', async () => {
     mockFindByPlatform.mockResolvedValueOnce({
       activeAgentId: 'agent-deleted',
       applicationId: 'wechat-bot-old',
@@ -467,7 +467,7 @@ describe('messengerRouter.pollWechatQrSession', () => {
     });
     const staleAgentBuilder = createSelectBuilder([]);
     const inboxAgentBuilder = createSelectBuilder([
-      { id: 'agent-inbox', title: 'LobeAI', userId: 'user-1', workspaceId: null },
+      { id: 'agent-inbox', title: 'Qwk AI', userId: 'user-1', workspaceId: null },
     ]);
     const serverDB = {
       select: vi.fn().mockReturnValueOnce(staleAgentBuilder).mockReturnValueOnce(inboxAgentBuilder),
@@ -494,7 +494,7 @@ describe('messengerRouter.pollWechatQrSession', () => {
 
   it('rolls back the persisted connection when the Message Gateway poller cannot start', async () => {
     const selectBuilder = createSelectBuilder([
-      { id: 'agent-inbox', title: 'LobeAI', userId: 'user-1', workspaceId: null },
+      { id: 'agent-inbox', title: 'Qwk AI', userId: 'user-1', workspaceId: null },
     ]);
     const serverDB = {
       select: vi.fn(() => selectBuilder),
@@ -540,7 +540,7 @@ describe('messengerRouter.pollWechatQrSession', () => {
       .mockResolvedValueOnce('restored-connection');
 
     const selectBuilder = createSelectBuilder([
-      { id: 'agent-inbox', title: 'LobeAI', userId: 'user-1', workspaceId: null },
+      { id: 'agent-inbox', title: 'Qwk AI', userId: 'user-1', workspaceId: null },
     ]);
     const serverDB = {
       select: vi.fn(() => selectBuilder),

@@ -78,7 +78,7 @@ describe('AgentModel.getAgentAvatarsByIds', () => {
     expect(result[0].id).toBe('agent-mine');
   });
 
-  it('should fallback to LobeAI defaults for inbox agent without avatar/title', async () => {
+  it('should fallback to Qwk AI defaults for inbox agent without avatar/title', async () => {
     await serverDB.insert(agents).values({
       avatar: null,
       backgroundColor: null,

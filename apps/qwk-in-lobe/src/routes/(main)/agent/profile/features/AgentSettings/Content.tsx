@@ -81,7 +81,7 @@ const Content = memo(() => {
     [availableTabs, t],
   );
 
-  const displayTitle = isInbox ? 'Lobe AI' : meta.title || t('defaultSession', { ns: 'common' });
+  const displayTitle = isInbox ? 'Qwk AI' : meta.title || t('defaultSession', { ns: 'common' });
 
   return (
     <SettingsModalLayout

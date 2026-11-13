@@ -64,7 +64,7 @@ const MoveTopicsContent = memo<MoveTopicsContentProps>(({ onMoved, sourceAgentId
   const agents = useHomeStore(homeAgentListSelectors.allAgents);
   const isAgentListInit = useHomeStore(homeAgentListSelectors.isAgentListInit);
 
-  // The inbox (default "LobeAI") agent is virtual, so it's filtered out of the
+  // The inbox (default "Qwk AI") agent is virtual, so it's filtered out of the
   // sidebar agent list — add it back so topics can be moved to it too.
   const inboxAgentId = useAgentStore(builtinAgentSelectors.inboxAgentId);
   const inboxMeta = useAgentStore((s) =>

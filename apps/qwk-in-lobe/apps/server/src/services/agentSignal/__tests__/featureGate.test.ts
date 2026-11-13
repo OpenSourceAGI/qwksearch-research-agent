@@ -36,7 +36,7 @@ describe('isAgentSignalEnabledForUser', () => {
 });
 
 describe('agentSignal feature gates', () => {
-  it('recognizes only the inbox builtin slug as Lobe AI', () => {
+  it('recognizes only the inbox builtin slug as Qwk AI', () => {
     expect(isLobeAiAgentSlug('inbox')).toBe(true);
     expect(isLobeAiAgentSlug('task-agent')).toBe(false);
     expect(isLobeAiAgentSlug('page-agent')).toBe(false);
@@ -55,7 +55,7 @@ describe('agentSignal feature gates', () => {
     ).toBe(false);
   });
 
-  it('enables Lobe AI self-iteration when the feature flag is enabled', () => {
+  it('enables Qwk AI self-iteration when the feature flag is enabled', () => {
     expect(
       resolveAgentSelfIterationCapability({
         isAgentSelfIterationFeatureEnabled: true,
@@ -64,7 +64,7 @@ describe('agentSignal feature gates', () => {
     ).toBe(true);
   });
 
-  it('keeps non-Lobe AI agents behind agentSelfIterationEnabled', () => {
+  it('keeps non-Qwk AI agents behind agentSelfIterationEnabled', () => {
     expect(
       resolveAgentSelfIterationCapability({
         agentSelfIterationEnabled: true,

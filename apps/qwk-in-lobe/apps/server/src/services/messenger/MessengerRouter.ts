@@ -1282,7 +1282,7 @@ export class MessengerRouter {
         entries: this.toPickerEntries(userAgents, link.activeAgentId, strings),
         // Channel invocation → render ephemeral so only the invoker sees
         // their personal agent list (otherwise `/agents` from a public
-        // channel would broadcast everyone's `LobeAI / Claude Code / …`
+        // channel would broadcast everyone's `Qwk AI / Claude Code / …`
         // grid). DMs stay non-ephemeral so the picker persists in history.
         ephemeralTo: ctx.isDM ? undefined : ctx.authorUserId,
         // Discord-only: forward the slash interaction so the binder can
@@ -1419,7 +1419,7 @@ export class MessengerRouter {
 
   /**
    * Persist a scope switch and land on the new scope's default agent
-   * (inbox/LobeAI is pinned first by `fetchUserAgents`) so switching never
+   * (inbox/Qwk AI is pinned first by `fetchUserAgents`) so switching never
    * leaves the session agent-less. Falls back to `null` only when the target
    * scope has no agents yet.
    */
@@ -1863,10 +1863,10 @@ export class MessengerRouter {
   /**
    * Fetch a user's agents for `/agents`. Mirrors the web
    * verify-im picker (and the home sidebar):
-   *  - excludes virtual agents but explicitly keeps the inbox/LobeAI agent
+   *  - excludes virtual agents but explicitly keeps the inbox/Qwk AI agent
    *  - orders by `updatedAt DESC`
-   *  - pins inbox/LobeAI to the top regardless of updatedAt
-   *  - applies the LobeAI title fallback (slug='inbox') and a generic
+   *  - pins inbox/Qwk AI to the top regardless of updatedAt
+   *  - applies the Qwk AI title fallback (slug='inbox') and a generic
    *    "Custom Agent" fallback for agents without a title
    */
   private async fetchUserAgents(

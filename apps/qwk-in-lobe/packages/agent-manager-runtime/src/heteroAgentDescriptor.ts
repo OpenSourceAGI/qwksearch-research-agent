@@ -1,7 +1,7 @@
 /**
  * Heterogeneous-agent descriptor.
  *
- * `getAgentDetail` is called by an orchestrator agent (e.g. LobeAI) to decide
+ * `getAgentDetail` is called by an orchestrator agent (e.g. Qwk AI) to decide
  * whether a target agent is fit for a job — typically "can this agent fix a bug
  * in a real codebase?". For a normal model-backed agent the answer lives in
  * `model` / `provider` / `plugins`. For a **heterogeneous** agent (an external

@@ -195,13 +195,13 @@ const Platform = memo<PlatformProps>(
     const handleUseOnLobeAI = useCallback(() => {
       if (!inboxAgentId) return;
 
-      // Send message to LobeAI
+      // Send message to Qwk AI
       sendMessage({
         context: { agentId: inboxAgentId },
         message: agentPrompt,
       });
 
-      // Navigate to LobeAI chat session; in the modal the host outlives the
+      // Navigate to Qwk AI chat session; in the modal the host outlives the
       // router, so dismiss the detail alongside the navigation
       navigate(AGENT_CHAT_URL(inboxAgentId, mobile));
       close?.();

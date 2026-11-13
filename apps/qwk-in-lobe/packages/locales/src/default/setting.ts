@@ -1267,7 +1267,7 @@ export default {
   'settingSelfIteration.enabled.desc':
     'Allow this assistant to review recent signals and improve its own skills when the self-iteration workflow runs.',
   'settingSelfIteration.enabled.managedDesc':
-    'Always on for Lobe AI while Self-Iteration is available.',
+    'Always on for Qwk AI while Self-Iteration is available.',
   'settingSelfIteration.enabled.title': 'Enable Self-Iteration',
   'settingSelfIteration.title': 'Self-Iteration',
   'settingsSearch.empty': 'No settings found for "{{keyword}}"',
@@ -1446,7 +1446,7 @@ When I am ___, I need ___
   'startConversation': 'Start Conversation',
   'storage.actions.transfer.button': 'Move to…',
   'storage.actions.transfer.desc':
-    'Move agents and their data to another Workspace or your personal account. The originals leave the current space. LobeAI cannot be moved; copy it instead.',
+    'Move agents and their data to another Workspace or your personal account. The originals leave the current space. Qwk AI cannot be moved; copy it instead.',
   'storage.actions.transfer.title': 'Move Agents',
   'storage.actions.transferAgentGroups.button': 'Move to…',
   'storage.actions.transferAgentGroups.desc':
@@ -2530,7 +2530,7 @@ When I am ___, I need ___
   'workspace.general.devReset.confirm.title': 'Rerun setup wizard?',
   'workspace.general.devReset.cta': 'Rerun setup',
   'workspace.general.devReset.description':
-    'Reopens the setup wizard so you can revise LobeAI, pick new scenarios, or invite more teammates. Your existing settings and data are kept.',
+    'Reopens the setup wizard so you can revise Qwk AI, pick new scenarios, or invite more teammates. Your existing settings and data are kept.',
   'workspace.general.devReset.failed': 'Could not reopen setup wizard',
   'workspace.general.devReset.hint': '',
   'workspace.general.devReset.success': 'Setup wizard reopened',
@@ -2643,7 +2643,7 @@ When I am ___, I need ___
   'workspace.general.copyLobeAI.modal.copyOptions.title': 'Copy options',
   'workspace.general.copyLobeAI.modal.copyOptions.unsupported': 'Unavailable',
   'workspace.general.copyLobeAI.modal.create': 'Copy {{count}} agent(s)',
-  'workspace.general.copyLobeAI.modal.defaultInboxTitle': 'LobeAI',
+  'workspace.general.copyLobeAI.modal.defaultInboxTitle': 'Qwk AI',
   'workspace.general.copyLobeAI.modal.done': 'Done',
   'workspace.general.copyLobeAI.modal.failed': 'Failed to copy agents',
   'workspace.general.copyLobeAI.modal.goToTarget': 'Go to {{target}}',
@@ -3162,22 +3162,22 @@ When I am ___, I need ___
   'workspace.onboarding.finish': 'Finish',
   'workspace.onboarding.skipConfirm.title': 'Skip workspace setup?',
   'workspace.onboarding.skipConfirm.description':
-    'You can always customize LobeAI and add agents later in Workspace settings.',
+    'You can always customize Qwk AI and add agents later in Workspace settings.',
   'workspace.onboarding.skipConfirm.ok': 'Skip',
   'workspace.onboarding.skipConfirm.cancel': 'Continue setup',
   'workspace.onboarding.toast.saved': 'Saved',
   'workspace.onboarding.toast.failed': 'Could not save. Please try again.',
   'workspace.onboarding.toast.installAgentsFailed':
     "Couldn't add the selected agents. You can install them later from the marketplace.",
-  'workspace.onboarding.step1.heading': 'Personalize LobeAI',
+  'workspace.onboarding.step1.heading': 'Personalize Qwk AI',
   'workspace.onboarding.step1.subtitle':
     'Give your workspace assistant an identity your team will recognize.',
   'workspace.onboarding.step1.avatarLabel': 'Avatar',
   'workspace.onboarding.step1.avatarHint': 'Pick an emoji or upload an image.',
   'workspace.onboarding.step1.avatarTooLarge': 'Avatar file must be smaller than 5MB.',
   'workspace.onboarding.step1.avatarUploadFailed': 'Failed to upload avatar',
-  'workspace.onboarding.step1.nameLabel': "LobeAI's name",
-  'workspace.onboarding.step1.namePlaceholder': 'e.g. LobeAI',
+  'workspace.onboarding.step1.nameLabel': "Qwk AI's name",
+  'workspace.onboarding.step1.namePlaceholder': 'e.g. Qwk AI',
   'workspace.onboarding.step1.suggestion.title': 'Need ideas? Pick one to start.',
   'workspace.onboarding.step1.suggestion.switch': 'Try another set',
   'workspace.onboarding.step1.guide.name.title': 'Give It a Name',
@@ -3190,7 +3190,7 @@ When I am ___, I need ___
   'workspace.onboarding.step1.guide.growTogether.desc':
     "Every conversation teaches me your team's vibe — the longer we work together, the better.",
   'workspace.onboarding.step1.footer':
-    "Set up your workspace's LobeAI assistant — it learns from every conversation and grows into your team's go-to teammate.",
+    "Set up your workspace's Qwk AI assistant — it learns from every conversation and grows into your team's go-to teammate.",
   'workspace.onboarding.step1.sentence.1': "Ready? Let me be your team's go-to teammate.",
   'workspace.onboarding.step1.sentence.2': 'What role do you want me to play in this workspace?',
   'workspace.onboarding.step1.sentence.3': 'First, give me a name your team will love :)',

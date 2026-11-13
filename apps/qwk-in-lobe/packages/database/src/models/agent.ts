@@ -623,7 +623,7 @@ export class AgentModel {
 
   /**
    * Get minimal agent info (avatar, title, backgroundColor) by IDs.
-   * For inbox agent (slug='inbox'), falls back to LobeAI defaults when avatar/title are missing.
+   * For inbox agent (slug='inbox'), falls back to Qwk AI defaults when avatar/title are missing.
    */
   getAgentAvatarsByIds = async (ids: string[]) => {
     if (ids.length === 0) return [];
@@ -651,7 +651,7 @@ export class AgentModel {
    * Returns `name` and `title` separately — resolving them into one label is the
    * caller's job (see `agentDisplayName`), since only the caller knows whether it
    * can render an i18n fallback. `title` is still normalized here for the inbox
-   * (LobeAI default) and falls back to `options.fallbackTitle` when blank
+   * (Qwk AI default) and falls back to `options.fallbackTitle` when blank
    * (default `null`, so a client caller can supply its own i18n default).
    */
   listMessengerBindableAgents = async (options?: {

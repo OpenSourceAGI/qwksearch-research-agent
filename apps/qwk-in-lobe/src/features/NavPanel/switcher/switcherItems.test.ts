@@ -41,7 +41,7 @@ describe('pickRecentItems', () => {
 });
 
 describe('filterSwitcherItems', () => {
-  const items = [item('1', 'Lobe AI'), item('2', 'Writing'), item('3', 'Research')];
+  const items = [item('1', 'Qwk AI'), item('2', 'Writing'), item('3', 'Research')];
 
   it('returns all items when the query is blank', () => {
     expect(filterSwitcherItems(items, '  ')).toEqual(items);

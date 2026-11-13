@@ -270,7 +270,7 @@ describe('canPerformResourceAction', () => {
     ]);
   });
 
-  // workspace-level builtin agents (Lobe AI inbox, the builders) are
+  // workspace-level builtin agents (Qwk AI inbox, the builders) are
   // created lazily by whoever opens the workspace first, so their `user_id` is an
   // accident of timing and they never get a `resource_permissions` row. Members
   // must still be able to configure them.

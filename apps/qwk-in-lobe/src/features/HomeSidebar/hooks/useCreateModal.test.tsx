@@ -132,12 +132,12 @@ vi.mock('react-i18next', () => ({
           'chat:createModal.skillSuggestion.actions.install': 'Add Skill',
           'chat:createModal.skillSuggestion.actions.installing': 'Adding…',
           'chat:createModal.skillSuggestion.actions.openSkills': 'View in Skills',
-          'chat:createModal.skillSuggestion.actions.tryInLobeAI': 'Use in LobeAI',
+          'chat:createModal.skillSuggestion.actions.tryInLobeAI': 'Use in Qwk AI',
           'chat:createModal.skillSuggestion.description':
             'This looks like a reusable workflow. Install the Skill once, then use it across Agents.',
           'chat:createModal.skillSuggestion.installed.description':
-            'You can use this Skill in LobeAI or add it to any Agent.',
-          'chat:createModal.skillSuggestion.installed.ready': 'Ready in LobeAI',
+            'You can use this Skill in Qwk AI or add it to any Agent.',
+          'chat:createModal.skillSuggestion.installed.ready': 'Ready in Qwk AI',
           'chat:createModal.skillSuggestion.installed.title': 'Skill added',
           'chat:createModal.skillSuggestion.installError':
             "Skill wasn't added. Retry, or create an Agent anyway.",
@@ -648,13 +648,13 @@ describe('CreateAgentModal analytics', () => {
     expect(onSubmit).not.toHaveBeenCalled();
     expect(await screen.findByText('Skill added')).toBeInTheDocument();
     expect(screen.getByText('Resume Reviewer')).toBeInTheDocument();
-    expect(screen.getByText('Ready in LobeAI')).toBeInTheDocument();
+    expect(screen.getByText('Ready in Qwk AI')).toBeInTheDocument();
     expect(screen.queryByText('resume-reviewer')).not.toBeInTheDocument();
     expect(update).toHaveBeenCalledWith({ width: 'min(90vw, 560px)' });
     expect(screen.queryByText('Skill not a fit?')).not.toBeInTheDocument();
     expect(screen.queryByText('Create Agent Anyway')).not.toBeInTheDocument();
 
-    const tryInLobeAIButton = screen.getByText('Use in LobeAI');
+    const tryInLobeAIButton = screen.getByText('Use in Qwk AI');
     expect(tryInLobeAIButton).toHaveAttribute('data-button-type', 'primary');
     const openSkillsButton = screen.getByText('View in Skills');
     expect(openSkillsButton).not.toHaveAttribute('data-button-type', 'primary');

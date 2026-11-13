@@ -255,7 +255,7 @@ export const agentRouter = router({
 
   /**
    * Bidirectional visibility switch. Rules:
-   * - builtin agents (LobeAI etc., identified by slug) can never change
+   * - builtin agents (Qwk AI etc., identified by slug) can never change
    *   visibility — the workspace copy must stay shared;
    * - only the agent's creator may pull a published agent back to private
    *: a workspace owner demoting another member's agent would

@@ -588,7 +588,7 @@
   "skills.details.related.listTitle": "관련 스킬",
   "skills.details.related.more": "더 보기",
   "skills.details.sidebar.agent.title": "이 프롬프트를 에이전트에 보내 이 스킬을 설치하세요",
-  "skills.details.sidebar.agent.useOnLobeAI": "LobeAI에서 사용",
+  "skills.details.sidebar.agent.useOnLobeAI": "Qwk AI에서 사용",
   "skills.details.sidebar.directoryLayout": "디렉토리 레이아웃",
   "skills.details.sidebar.downloadSkill": "스킬 다운로드",
   "skills.details.sidebar.installCommand": "설치 명령",

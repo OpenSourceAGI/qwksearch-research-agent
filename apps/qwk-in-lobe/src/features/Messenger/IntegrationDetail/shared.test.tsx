@@ -164,7 +164,7 @@ describe('Messenger UserAgentConnection', () => {
     expect(screen.getByTestId('scope-select')).toHaveAttribute('data-value-class', 'scopeValue');
   });
 
-  it('defaults an agent-less personal connection to LobeAI', () => {
+  it('defaults an agent-less personal connection to Qwk AI', () => {
     render(
       <UserAgentConnection
         link={{

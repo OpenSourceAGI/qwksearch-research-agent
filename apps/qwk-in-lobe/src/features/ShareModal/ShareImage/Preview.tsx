@@ -79,9 +79,7 @@ const Preview = memo<PreviewProps>(
     });
 
     const displayTitle =
-      (isHeaderInbox ?? isInbox)
-        ? 'Lobe AI'
-        : agentDisplayName(headerMeta) || title || currentTitle;
+      (isHeaderInbox ?? isInbox) ? 'Qwk AI' : agentDisplayName(headerMeta) || title || currentTitle;
     const displayAvatar = headerMeta?.avatar || currentAvatar;
     const displayBackgroundColor = headerMeta?.backgroundColor || currentBackgroundColor;
     const displayModel = headerModel || currentModel;

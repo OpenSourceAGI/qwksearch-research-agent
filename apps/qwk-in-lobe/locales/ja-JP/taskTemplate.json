@@ -5,7 +5,7 @@
   "action.connect.short": "接続",
   "action.connecting": "認証を待っています…",
   "action.create.error": "タスクの作成に失敗しました。もう一度お試しください。",
-  "action.create.success": "スケジュールされたタスクが追加されました。Lobe AIで確認してください。",
+  "action.create.success": "スケジュールされたタスクが追加されました。Qwk AIで確認してください。",
   "action.createButton": "タスクを追加",
   "action.creating": "作成中...",
   "action.dismiss.error": "却下に失敗しました。もう一度お試しください。",

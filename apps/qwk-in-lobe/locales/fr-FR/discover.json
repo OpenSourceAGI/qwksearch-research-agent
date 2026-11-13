@@ -588,7 +588,7 @@
   "skills.details.related.listTitle": "Compétences associées",
   "skills.details.related.more": "Voir plus",
   "skills.details.sidebar.agent.title": "Envoyez ce prompt à votre Agent pour installer cette compétence",
-  "skills.details.sidebar.agent.useOnLobeAI": "Utiliser sur LobeAI",
+  "skills.details.sidebar.agent.useOnLobeAI": "Utiliser sur Qwk AI",
   "skills.details.sidebar.directoryLayout": "Disposition du répertoire",
   "skills.details.sidebar.downloadSkill": "Télécharger la compétence",
   "skills.details.sidebar.installCommand": "Commande d'installation",
