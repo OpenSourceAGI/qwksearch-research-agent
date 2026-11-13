@@ -1,6 +1,6 @@
 {
   "name": "education-playlists",
-  "version": "0.1.138",
+  "version": "0.1.139",
   "description": "Self-paced education playlists organized like a college catalog (category, major, program), seeded from MIT OpenCourseWare, with progress checkmarks, time estimates, sharing, and an LLM planner that asks follow-up questions and builds a custom playlist",
   "keywords": ["react", "education", "playlists", "mit-ocw", "opencourseware", "self-paced", "learning-path", "component-library"],
   "repository": {
