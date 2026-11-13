@@ -1,5 +1,5 @@
 {
-  "name": "@debate-ai/paper-to-web",
+  "name": "paper-to-web",
   "version": "0.1.0",
   "description": "Paper to Web AI: turn any PDF, research paper or archive link into Synergy Slayer-style MDX sections with reader mode, card underlining and voice read-aloud, and generate outlines in that format from anything",
   "type": "module",

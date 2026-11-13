@@ -5,6 +5,7 @@ import rsc from "@vitejs/plugin-rsc";
 import { helpDocsMdxPlugin } from "qwksearch-help-docs/vite";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { readFileSync } from "node:fs";
 import { stripGoogleFontsImports } from "./lib/fonts/google-fonts";
 import { lobeAliases, lobeDedupe } from "./lib/lobe-engine/lobe/aliases";
 
@@ -21,6 +22,12 @@ logger.warn = (msg, opts) => {
 const cloudflareWorkersStub = fileURLToPath(
   new URL("./lib/cloudflare/workers-stub.ts", import.meta.url),
 );
+
+// What `research-agent-ui/workspace` resolves to in the ssr environment.
+const workspaceServerStub = fileURLToPath(
+  new URL("./lib/workspace/server-stub.ts", import.meta.url),
+);
+const workspaceEntrySource = resolve(__dirname, "../../packages/research-agent-ui/src/workspace.ts");
 
 export default defineConfig(({ command }) => ({
   customLogger: logger,
@@ -163,6 +170,24 @@ export default defineConfig(({ command }) => ({
           return { id, external: true };
         }
         return null;
+      },
+    },
+    {
+      // `research-agent-ui/workspace` is only ever imported in the browser (see
+      // components/layout/WorkspaceMount), but the SSR build can't tell, and
+      // bundled the entry's whole graph — the REASON editor and everything it
+      // pulls in — into the Worker, where its size alone pushed the isolate
+      // over 128 MB. Give the ssr environment a stub instead; see
+      // lib/workspace/server-stub.ts.
+      name: "client-only-workspace-on-server",
+      enforce: "pre",
+      // A `load` hook keyed on the resolved file, not `resolveId` on the bare
+      // specifier: tsconfig `paths` resolve `research-agent-ui/*` straight to
+      // the package's src before a resolveId hook here would see it.
+      load(id) {
+        if (this.environment?.name !== "ssr") return null;
+        if (id.split("?")[0] !== workspaceEntrySource) return null;
+        return readFileSync(workspaceServerStub, "utf8");
       },
     },
     {
