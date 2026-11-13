@@ -57,7 +57,7 @@ const AskAgentCommands = memo(() => {
   if (!isAtMention) return null;
 
   // Check if Qwk AI matches the query
-  const showLobeAI = !mentionQuery || 'qwk ai'.includes(mentionQuery);
+  const showLobeAI = !mentionQuery || 'lobe ai'.includes(mentionQuery);
 
   return (
     <Command.Group heading={t('cmdk.mentionAgent')}>

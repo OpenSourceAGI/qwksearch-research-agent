@@ -23,7 +23,9 @@ const Agent = memo<PropsWithChildren>(() => {
     agentSelectors.currentAgentBackgroundColor(s),
   ]);
 
-  const displayTitle = isInbox ? title || 'Qwk AI' : title || t('defaultSession', { ns: 'common' });
+  const displayTitle = isInbox
+    ? title || 'Qwk AI'
+    : title || t('defaultSession', { ns: 'common' });
 
   if (isLoading) return <SkeletonItem height={32} padding={0} />;
 
