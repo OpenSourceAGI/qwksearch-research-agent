@@ -16,7 +16,7 @@ import {
   type TreeState,
 } from "@headless-tree/core";
 import { AssistiveTreeDescription, useTree } from "@headless-tree/react";
-import { FolderIcon, FolderOpenIcon } from "lucide-react";
+import { FolderIcon, FolderOpenIcon, Star } from "lucide-react";
 import { FileTypeIcon } from "../app-ui/FileTypeIcon";
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 
@@ -81,6 +81,16 @@ interface FileTreeProps {
   onNewFile?: (parentId: string | null) => void;
   onNewFolder?: (parentId: string | null) => void;
   onManageTags?: (id: string) => void;
+  /**
+   * Whether a document is favorited. Favorited files show a gold star
+   * after their name.
+   */
+  isFavorite?: (id: string) => boolean;
+  /**
+   * Favorites or unfavorites a file. When set, the context menu of every
+   * file (not folder) offers "Favorite" / "Unfavorite".
+   */
+  onToggleFavorite?: (id: string) => void;
   /**
    * Reports the tree's live expansion depth so the toolbar's expand/collapse
    * toggle can label its next step. Fires on mount, whenever the expanded
@@ -171,7 +181,7 @@ function buildItems(documents: Document[]): Record<string, FileTreeItem> {
 }
 
 const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
-  ({ activeId, documents, onMove, onRename, onSelect, onDelete, onDuplicate, onAddChild, onAddChildFolder, onAddSibling, onAddSiblingFolder, onCopy, onPaste, onNewFile: _onNewFile, onNewFolder: _onNewFolder, onManageTags, onExpandStateChange, onExpandedFoldersChange }, ref) => {
+  ({ activeId, documents, onMove, onRename, onSelect, onDelete, onDuplicate, onAddChild, onAddChildFolder, onAddSibling, onAddSiblingFolder, onCopy, onPaste, onNewFile: _onNewFile, onNewFolder: _onNewFolder, onManageTags, isFavorite, onToggleFavorite, onExpandStateChange, onExpandedFoldersChange }, ref) => {
     const items = useMemo(() => {
       const built = buildItems(documents);
       return built;
@@ -383,6 +393,8 @@ const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
             {treeItems.map((item) => {
               const itemId = item.getId();
               if (itemId === ROOT_ID) return null;
+              const isFolderItem = item.isFolder();
+              const favorited = !isFolderItem && !!isFavorite?.(itemId);
 
               return (
                 <TreeItem item={item} key={itemId}>
@@ -408,6 +420,8 @@ const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
                     } : undefined}
                     onDelete={onDelete ? () => setDeleteConfirmId(itemId) : undefined}
                     onManageTags={onManageTags}
+                    isFavorite={favorited}
+                    onToggleFavorite={!isFolderItem ? onToggleFavorite : undefined}
                   >
                     {item.isRenaming() ? (
                       <TreeItemLabel
@@ -439,6 +453,13 @@ const FileTree = forwardRef<DocumentTreeHandle, FileTreeProps>(
                             <FileTypeIcon filename={item.getItemName()} extension={item.getItemData()?.extension} size={16} />
                           )}
                           <span className="flex-1 truncate">{item.getItemName()}</span>
+                          {favorited && (
+                            <Star
+                              aria-label="Favorite"
+                              data-testid="favorite-star"
+                              className="pointer-events-none size-3.5 shrink-0 fill-amber-400 text-amber-400"
+                            />
+                          )}
                         </span>
                       </TreeItemLabel>
                     )}

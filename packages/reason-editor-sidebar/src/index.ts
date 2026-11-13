@@ -73,6 +73,23 @@ export {
   getActiveFileSource,
 } from './app-utils/file-sources/sources';
 
+// Favorites: the file tree's gold star and the Files panel's bookmarks view,
+// persisted in localStorage beside the editor's other REASON-* keys.
+export {
+  getFavorites,
+  getLastUsed,
+  isFavorite,
+  setFavorite,
+  toggleFavorite,
+  recordDocumentUse,
+  getFavoriteDocuments,
+  FAVORITES_STORAGE_KEY,
+  LAST_USED_STORAGE_KEY,
+  FAVORITES_CHANGED_EVENT,
+} from './favorites/favorites';
+export { useFavorites } from './favorites/useFavorites';
+export type { UseFavoritesResult } from './favorites/useFavorites';
+
 // Small local utilities.
 export { cn } from './app-utils/utils';
 export { ssrSafeLocalStorage } from './utils/storage';

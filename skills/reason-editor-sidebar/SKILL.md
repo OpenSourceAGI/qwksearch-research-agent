@@ -50,6 +50,7 @@ rather than mutating the array at the call site.
 | Related-document suggestions | `findRelatedDocuments`, `splitTopSuggestion` |
 | The AI rewrite card | `AIRewriteSuggestion`, `getRewriteModes`, `saveRewriteModes`, `resetRewriteModes`, `DEFAULT_REWRITE_MODES` |
 | The file-manager modal | `FileManagerModal` |
+| Favorites (gold star, bookmarks view) | `useFavorites`, `getFavorites`, `getLastUsed`, `isFavorite`, `setFavorite`, `toggleFavorite`, `recordDocumentUse`, `getFavoriteDocuments`, `FAVORITES_CHANGED_EVENT` |
 | Storage backends | `getFileSources`, `saveFileSources`, `addFileSource`, `updateFileSource`, `deleteFileSource`, `getActiveFileSourceId`, `setActiveFileSourceId`, `getActiveFileSource` |
 | Types | `Document`, `TocEntry`, `SidebarPanelType`, `OpenTabKind`, `OpenTabItem`, `SidebarAiProps`, `SidebarTipsProps`, `SidebarTopicsProps`, `RelatedDocumentResult`, `RelatedDocumentsSplit`, `RewriteMode`, `FileSourceType`, `AnyFileSource` |
 | Utilities | `cn`, `ssrSafeLocalStorage`, `defaultDocuments`, `fileSourceUtils` |
@@ -84,6 +85,15 @@ dispatches `FILE_SOURCES_CHANGED_EVENT` on `window`, so the sidebar and `ReasonD
 pick up a source added in Settings without a reload. A `gdocs` source keeps its synced
 folders in `credentials.folders` (`{ id, name }[]`).
 
+**Favorites.** A file's context menu offers Favorite / Unfavorite (files only, not
+folders), and a favorited file shows a gold star in the tree. The star button in the
+Files panel header switches the panel to a flat bookmarks list of favorited files, most
+recently used first; that toggle is remembered per side (`REASON-favorites-only-<persistenceKey>`).
+Favorites (`REASON-favorites`) and last-used times (`REASON-last-used`, capped at 500)
+live in `localStorage` keyed by document ID, so they are per browser and need nothing
+from the host. `Sidebar` stamps last use whenever `activeId` changes; a host that opens
+documents without going through the sidebar can call `recordDocumentUse(id)` itself.
+
 **Open Tabs.** `OpenTabItem`/`OpenTabKind` cover both `"file"` and `"chat"` tabs, which
 is how a host merges its own non-document tabs (`extraTabs` on `ReasonDocs`) into the
 same panel.
@@ -100,5 +110,6 @@ same panel.
 | `localStorage is not defined` under SSR | Use `ssrSafeLocalStorage`; the file-source helpers already do. |
 | File-source credentials don't work on another device | They are in `localStorage`, per browser, by design. |
 | The settings button does nothing / 404s | It is a plain link to `settingsHref` (default `/settings`), not a callback — the host must serve that route or pass its own URL. |
+| Favorites list is empty after switching storage source | Favorites only list documents present in `documents`; they come back when the source that holds them is active again. |
 | The tree looks unstyled | Import `react-reason-editor-sidebar/style.css`. |
 | Peer errors on install | `react` and `react-dom` are peers; everything else (headless-tree, radix, svar filemanager, react-split-pane) is a real dependency. |

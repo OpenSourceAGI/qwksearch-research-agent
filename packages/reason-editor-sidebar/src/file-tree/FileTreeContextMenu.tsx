@@ -1,7 +1,7 @@
 /**
  * @module FileTreeContextMenu
  * @description Right-click context menu for tree nodes: new note, new
- * folder, rename, duplicate, and delete actions.
+ * folder, rename, duplicate, favorite, and delete actions.
  */
 import { useRef } from "react";
 import {
@@ -21,6 +21,7 @@ import {
   ClipboardPaste,
   FileText,
   Tag,
+  Star,
 } from "lucide-react";
 
 interface FileTreeContextMenuProps {
@@ -38,6 +39,10 @@ interface FileTreeContextMenuProps {
   onPaste?: (targetId: string | null) => void;
   onDelete?: (itemId: string) => void;
   onManageTags?: (itemId: string) => void;
+  /** Whether the item is currently favorited (labels the toggle). */
+  isFavorite?: boolean;
+  /** Favorites or unfavorites the item. Omitted for folders. */
+  onToggleFavorite?: (itemId: string) => void;
 }
 
 /**
@@ -62,6 +67,8 @@ export const FileTreeContextMenu = ({
   onPaste,
   onDelete,
   onManageTags,
+  isFavorite = false,
+  onToggleFavorite,
 }: FileTreeContextMenuProps) => {
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
@@ -187,6 +194,20 @@ export const FileTreeContextMenu = ({
           <Tag className="mr-2 h-4 w-4" />
           Manage Tags
         </ContextMenuItem>
+
+        {/* Favorite / Unfavorite — files only */}
+        {onToggleFavorite && (
+          <ContextMenuItem onClick={() => onToggleFavorite(itemId)}>
+            <Star
+              className={
+                isFavorite
+                  ? "mr-2 h-4 w-4 fill-amber-400 text-amber-400"
+                  : "mr-2 h-4 w-4"
+              }
+            />
+            {isFavorite ? "Unfavorite" : "Favorite"}
+          </ContextMenuItem>
+        )}
 
         <ContextMenuSeparator />
 
