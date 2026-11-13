@@ -6,7 +6,6 @@ import {
 import { getJinaSearchBaseUrl } from '@lobechat/utils';
 import { TRPCError } from '@trpc/server';
 import debug from 'debug';
-import urlJoin from 'url-join';
 
 import { type SearchServiceImpl } from '../type';
 import { type JinaResponse, type JinaSearchParameters } from './type';
@@ -28,7 +27,9 @@ export class JinaImpl implements SearchServiceImpl {
 
   async query(query: string, params: SearchParams = {}): Promise<UniformSearchResponse> {
     log('Starting Jina query with query: "%s", params: %o', query, params);
-    const endpoint = urlJoin(this.baseUrl, '/');
+    // Jina's search API lives at the root path. Built by hand because
+    // `url-join` drops the trailing slash in some versions.
+    const endpoint = `${this.baseUrl.replace(/\/+$/, '')}/`;
 
     const body: JinaSearchParameters = {
       q: query,
