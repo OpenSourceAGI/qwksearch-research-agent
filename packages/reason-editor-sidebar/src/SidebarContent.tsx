@@ -6,9 +6,11 @@
  * inferred whenever two or more panels are active, matching whatever
  * `panels` list the {@link SidebarViewMenu} has configured for that side.
  * The "Open Tabs" and "Files" panels each carry their own header strip of
- * quick actions (new file/chat, new folder, trash, file manager).
+ * quick actions (new file/chat, new folder, trash, file manager). The Files
+ * header's gold star swaps the tree for a flat bookmarks list of favorited
+ * files, most recently used first.
  */
-import { RefObject, useState, useCallback, useMemo, useRef } from 'react';
+import { RefObject, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import type { OutlineViewHandle } from './search/OutlineView';
 import type { RelatedDocumentResult } from './search/relatedDocuments';
 import type { SidebarPanelType, SidebarContentProps, OpenTabItem } from './layout/sidebar/types';
@@ -38,12 +40,26 @@ import {
 } from './app-ui/dropdown-menu';
 import { SplitPane, Pane } from 'react-split-pane';
 import { usePersistence } from 'react-split-pane/persistence';
-import { X, XCircle, ArrowDownFromLine, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, FolderPlus, Folders, Trash2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import { X, XCircle, ArrowDownFromLine, Edit2, RotateCcw, SplitSquareVertical, Loader2, Search, MessageSquare, FilePlus2, FolderPlus, Folders, Trash2, MessageSquarePlus, Link2, Tag, Sparkles, Lightbulb, ChevronsDownUp, ChevronsUpDown, Star, StarOff } from 'lucide-react';
 import './split-pane.css';
 import { StorageSourceMenu } from './StorageSourceMenu';
 
 import type { DocumentTreeHandle } from './file-tree/filetree';
 import { useExpandCycle } from './file-tree/useExpandCycle';
+import { useFavorites } from './favorites/useFavorites';
+import { formatLastUsed, getFavoriteDocuments } from './favorites/favorites';
+
+/** `localStorage` key prefix for each sidebar's "favorites only" toggle. */
+const FAVORITES_ONLY_STORAGE_PREFIX = 'REASON-favorites-only-';
+
+function readFavoritesOnly(key: string): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return window.localStorage.getItem(key) === 'true';
+  } catch {
+    return false;
+  }
+}
 
 /** Human-readable panel titles used in headers/empty states. */
 const PANEL_TITLES: Record<SidebarPanelType, string> = {
@@ -121,6 +137,24 @@ export const SidebarContent = ({
   // which the toolbar hides while the Files panel is showing them.
   const showHeaderExpandToggle = !treeRef && expandCycle.canCycle;
   const effectiveOutlineRef = outlineRef ?? internalOutlineRef;
+
+  // Favorites: the gold star on tree rows, and the header toggle that swaps
+  // the tree for a flat, most-recently-used-first bookmarks list. The toggle
+  // is remembered per sidebar side.
+  const { favorites, lastUsed, isFavorite, toggleFavorite } = useFavorites();
+  const favoritesOnlyKey = `${FAVORITES_ONLY_STORAGE_PREFIX}${persistenceKey ?? 'default'}`;
+  const [favoritesOnly, setFavoritesOnly] = useState(() => readFavoritesOnly(favoritesOnlyKey));
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(favoritesOnlyKey, String(favoritesOnly));
+    } catch {
+      // Storage blocked: the toggle still works for this session.
+    }
+  }, [favoritesOnly, favoritesOnlyKey]);
+  const favoriteDocuments = useMemo(
+    () => getFavoriteDocuments(activeDocuments, favorites, lastUsed),
+    [activeDocuments, favorites, lastUsed],
+  );
 
   const handleSelect = (id: string) => {
     onSelect(id);
@@ -351,6 +385,18 @@ export const SidebarContent = ({
       <div className="shrink-0 flex items-center justify-between px-3 py-1">
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Files</p>
         <div className="flex items-center gap-0.5">
+          <button
+            className={cn(
+              panelHeaderButtonClass,
+              favoritesOnly && 'text-amber-500 hover:text-amber-500',
+            )}
+            title={favoritesOnly ? 'Show all files' : 'Show favorites only'}
+            aria-label={favoritesOnly ? 'Show all files' : 'Show favorites only'}
+            aria-pressed={favoritesOnly}
+            onClick={() => setFavoritesOnly((on) => !on)}
+          >
+            <Star className={cn('h-3.5 w-3.5', favoritesOnly && 'fill-amber-400 text-amber-400')} />
+          </button>
           {onFileSourceChange && (
             <StorageSourceMenu
               sources={sources}
@@ -445,6 +491,7 @@ export const SidebarContent = ({
         </div>
       </div>
       <div className="flex-1 overflow-auto">
+        {favoritesOnly ? renderFavorites() : (
         <FileTree
           ref={effectiveTreeRef}
           documents={activeDocuments}
@@ -469,10 +516,84 @@ export const SidebarContent = ({
           onCopy={handleCopy}
           onPaste={handlePaste}
           onManageTags={handleManageTags}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
         />
+        )}
       </div>
     </div>
   );
+
+  /**
+   * The bookmarks view: favorited files only, flattened out of their
+   * folders, most recently used first.
+   */
+  const renderFavorites = () => {
+    if (favoriteDocuments.length === 0) {
+      return (
+        <div className="px-3 py-3 text-xs text-muted-foreground">
+          No favorites yet. Right-click a file and choose Favorite.
+        </div>
+      );
+    }
+    const now = Date.now();
+    return (
+      <ul className="px-1 py-1" aria-label="Favorites">
+        {favoriteDocuments.map((doc) => {
+          const used = formatLastUsed(lastUsed[doc.id], now);
+          return (
+            <li key={doc.id}>
+              <ContextMenu>
+                <ContextMenuTrigger asChild>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    data-testid="favorite-row"
+                    className={cn(
+                      'group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-sm transition-colors hover:bg-sidebar-accent',
+                      activeId === doc.id && 'bg-accent text-accent-foreground',
+                    )}
+                    onClick={() => handleSelect(doc.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSelect(doc.id);
+                      }
+                    }}
+                  >
+                    <FileTypeIcon filename={doc.title || 'Untitled'} extension={doc.external?.extension} size={16} />
+                    <span className="flex-1 truncate">{doc.title || 'Untitled'}</span>
+                    {used && (
+                      <span className="shrink-0 text-[10px] text-muted-foreground" title="Last opened">
+                        {used}
+                      </span>
+                    )}
+                    <button
+                      className="shrink-0 h-4 w-4 flex items-center justify-center rounded"
+                      title="Unfavorite"
+                      aria-label={`Unfavorite ${doc.title || 'Untitled'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(doc.id);
+                      }}
+                    >
+                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    </button>
+                  </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem onClick={() => toggleFavorite(doc.id)}>
+                    <StarOff className="mr-2 h-4 w-4" />
+                    Unfavorite
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  };
 
   const renderOutline = () => (
     <div className="h-full overflow-hidden flex flex-col">

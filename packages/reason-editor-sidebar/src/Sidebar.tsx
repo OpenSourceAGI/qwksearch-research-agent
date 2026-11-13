@@ -16,6 +16,7 @@ import { cn } from './app-utils/utils';
 import { SidebarToolbar } from './SidebarToolbar';
 import { SidebarContent } from './SidebarContent';
 import { SidebarFooter } from './SidebarFooter';
+import { recordDocumentUse } from './favorites/favorites';
 
 /** Translucent, blurred glass background — matches the app dock and weather widget. */
 const SIDEBAR_GLASS_CLASSES =
@@ -72,6 +73,14 @@ export const Sidebar = ({
   const deletedDocs = useMemo(() => documents.filter(doc => doc.isDeleted), [documents]);
 
   const activeDocuments = useMemo(() => documents.filter(doc => !doc.isDeleted), [documents]);
+
+  // Stamp each document as it becomes active, so the favorites view can
+  // list bookmarks most recently used first. This lives in the shell rather
+  // than the Files panel because the shell stays mounted even when the
+  // mobile drawer (and so the panel) is closed.
+  useEffect(() => {
+    if (activeId) recordDocumentUse(activeId);
+  }, [activeId]);
 
   // Track expand/collapse all state for outline
   const [outlineExpanded, setOutlineExpanded] = useState(true);
