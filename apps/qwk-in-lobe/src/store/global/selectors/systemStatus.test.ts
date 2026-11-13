@@ -218,6 +218,7 @@ describe('systemStatusSelectors', () => {
         'image',
         'community',
         'resource',
+        'docs',
         'memory',
       ];
       const s: GlobalState = merge(initialState, {
@@ -234,6 +235,7 @@ describe('systemStatusSelectors', () => {
         'image',
         'community',
         'resource',
+        'docs',
         'memory',
       ]);
     });
@@ -250,6 +252,7 @@ describe('systemStatusSelectors', () => {
         'tasks',
         'community',
         'resource',
+        'docs',
         'memory',
       ];
       const s: GlobalState = merge(initialState, {
@@ -271,6 +274,7 @@ describe('systemStatusSelectors', () => {
         'image',
         'community',
         'resource',
+        'docs',
         'memory',
       ];
       const s: GlobalState = merge(initialState, {
@@ -287,6 +291,7 @@ describe('systemStatusSelectors', () => {
         'image',
         'community',
         'resource',
+        'docs',
         'memory',
       ]);
     });
@@ -325,6 +330,7 @@ describe('systemStatusSelectors', () => {
       expect(items).toEqual([
         'tasks',
         'resource',
+        'docs',
         'private',
         'agent',
         'recents',
@@ -347,6 +353,7 @@ describe('systemStatusSelectors', () => {
       expect(items).toEqual([
         'tasks',
         'resource',
+        'docs',
         'private',
         'recents',
         'project',

@@ -1,0 +1,195 @@
+/*
+ * Styles for the REASON editor and its file sidebar (`react-reason-editor`,
+ * `react-reason-editor-sidebar`), the Docs workspace QwkSearch ships.
+ *
+ * Those packages are styled with shadcn-style Tailwind classes and expect the
+ * host to run Tailwind over them, which is what `apps/qwksearch-web` does in
+ * its `globals.css`. LobeHub is styled with antd-style instead, so this file
+ * is the whole Tailwind setup for the REASON tree and nothing else:
+ *
+ * - It is imported only by `ReasonDocsView`, which loads lazily on `/docs`,
+ *   so none of it reaches the app shell or the Worker.
+ * - `source(none)` stops Tailwind from scanning LobeHub's own sources; the
+ *   only candidates are the two packages' published `dist` files.
+ * - There is no preflight (it would restyle all of LobeHub). A small reset,
+ *   scoped to the REASON tree and its portalled popovers, stands in for it.
+ * - Everything sits in cascade layers, so LobeHub's unlayered styles always
+ *   win wherever the two could meet.
+ * - The shadcn color tokens live on `body.qwk-reason`, a class the view puts
+ *   on `<body>` only while it is mounted, so they also reach dialogs and menus
+ *   portalled outside the tree.
+ */
+@layer qwk-reason-vendor, theme, qwk-reason-base, qwk-reason-vendor-ui, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@import 'tw-animate-css';
+@import 'react-reason-editor/style.css' layer(qwk-reason-vendor);
+@import 'react-reason-editor-sidebar/style.css' layer(qwk-reason-vendor-ui);
+
+@source '../../../../node_modules/react-reason-editor/dist';
+@source '../../../../node_modules/react-reason-editor-sidebar/dist';
+
+@custom-variant dark (&:where(.qwk-reason-dark, .qwk-reason-dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-editor-bg: var(--editor-bg);
+  --color-light-50: var(--background);
+  --color-light-100: var(--secondary);
+  --color-light-200: var(--border);
+  --color-light-300: var(--input);
+  --color-light-primary: var(--background);
+  --color-light-secondary: var(--secondary);
+  --color-dark-50: var(--background);
+  --color-dark-100: var(--secondary);
+  --color-dark-200: var(--border);
+  --color-dark-300: var(--input);
+  --color-dark-primary: var(--background);
+  --color-dark-secondary: var(--secondary);
+}
+
+/* The same palette as qwksearch-web's `globals.css`. */
+body.qwk-reason {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.42 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --editor-bg: oklch(1 0 0);
+}
+
+body.qwk-reason.qwk-reason-dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  --editor-bg: oklch(0.17 0 0);
+}
+
+/*
+ * The parts of Tailwind's preflight the REASON components rely on, limited to
+ * the REASON tree and the popovers/dialogs it portals into <body>. `:where()`
+ * keeps the specificity at zero, so the components' own classes still win.
+ */
+@layer qwk-reason-base {
+  :where(
+      .qwk-reason-root,
+      body.qwk-reason [data-radix-popper-content-wrapper],
+      body.qwk-reason [data-slot]
+    ),
+  :where(
+      .qwk-reason-root,
+      body.qwk-reason [data-radix-popper-content-wrapper],
+      body.qwk-reason [data-slot]
+    )
+    :where(*, ::before, ::after) {
+    box-sizing: border-box;
+    border: 0 solid var(--border);
+  }
+
+  :where(.qwk-reason-root, body.qwk-reason [data-radix-popper-content-wrapper], body.qwk-reason [data-slot])
+    :where(button, input, select, textarea) {
+    margin: 0;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    background-color: transparent;
+    border-radius: 0;
+  }
+
+  :where(.qwk-reason-root, body.qwk-reason [data-radix-popper-content-wrapper], body.qwk-reason [data-slot])
+    :where(button, [role='button']) {
+    cursor: pointer;
+  }
+
+  :where(.qwk-reason-root, body.qwk-reason [data-radix-popper-content-wrapper], body.qwk-reason [data-slot])
+    :where(h1, h2, h3, h4, h5, h6, p, ul, ol, blockquote, figure, pre) {
+    margin: 0;
+  }
+
+  :where(.qwk-reason-root, body.qwk-reason [data-radix-popper-content-wrapper], body.qwk-reason [data-slot])
+    :where(img, svg, video, canvas) {
+    display: block;
+    vertical-align: middle;
+  }
+
+  .qwk-reason-root {
+    color: var(--foreground);
+    background: var(--background);
+  }
+}

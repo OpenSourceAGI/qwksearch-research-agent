@@ -21,10 +21,6 @@ export const resolveNavPanelKey = (
       return 'discover';
     }
 
-    case 'docs': {
-      return 'qwk-docs';
-    }
-
     case 'eval': {
       return childSegment === 'bench' ? 'evalBench' : 'eval';
     }
@@ -57,6 +53,8 @@ export const resolveNavPanelKey = (
       return 'video';
     }
 
+    // `/docs` (QwkSearch's REASON editor) lands here too: the editor draws its
+    // own files sidebar, so the app nav stays the home navigation.
     default: {
       return 'home';
     }

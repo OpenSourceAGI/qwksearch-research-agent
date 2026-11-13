@@ -112,7 +112,7 @@ const deferPlatformElement = (factory?: () => ReactElement) =>
  * correctly under both `/` (→ `/`) and `/:workspaceSlug` (→ `/:workspaceSlug`).
  */
 export const sharedMainAreaChildren: RouteObject[] = [
-  // QwkSearch Docs: Markdown research documents stored in D1. Route
+  // QwkSearch Docs: the REASON editor and its file sidebar. Route
   // metadata lives at the route layer (`@/routes/(main)/docs/routeMeta`)
   // so the shell never statically imports the QwkSearch feature; the
   // feature's pages load through the lazy boundaries below.

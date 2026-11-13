@@ -3,11 +3,11 @@ import type { Crawler, CrawlImplType, CrawlUniformResult } from '@lobechat/web-c
 import debug from 'debug';
 import pMap from 'p-map';
 
+import { getServerFeatureFlagsValue } from '@/config/featureFlags';
 import { toolsEnv } from '@/envs/tools';
 
-import { type SearchImplOptions, type SearchImplType, type SearchServiceImpl } from './impls';
+import { type SearchImplOptions, SearchImplType, type SearchServiceImpl } from './impls';
 import { createSearchServiceImpl } from './impls';
-import { getServerFeatureFlagsValue } from '@/config/featureFlags';
 
 const DEFAULT_CRAWL_CONCURRENCY = 3;
 const DEFAULT_CRAWLER_RETRY = 1;
@@ -168,6 +168,11 @@ export class SearchService {
     if (!featureFlags.qwksearch) {
       return impls.filter((impl) => impl !== 'qwksearch');
     }
+    // With no provider configured, LobeHub falls back to SearXNG, which needs a
+    // SEARXNG_URL this deployment does not have, so every web search failed.
+    // When the QwkSearch add-ons are on, search through QwkSearch's own
+    // fan-out instead (`/api/agent/search`, no key needed).
+    if (impls.length === 0) return [SearchImplType.QwkSearch];
     return impls;
   }
 

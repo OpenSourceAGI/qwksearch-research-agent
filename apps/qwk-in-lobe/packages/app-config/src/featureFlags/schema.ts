@@ -87,10 +87,12 @@ export const DEFAULT_FEATURE_FLAGS: IFeatureFlags = {
   token_counter: true,
 
   knowledge_base: true,
-  // QwkSearch add-ons (article panel, Docs, extraction/search settings, the
-  // qwksearch search provider) are off by default so the app runs as plain
-  // LobeHub. Turn them on with FEATURE_FLAGS=+qwksearch.
-  qwksearch: false,
+  // QwkSearch add-ons (the article reader panel, the REASON Docs editor and
+  // its file sidebar, extraction/search settings, the qwksearch search
+  // provider). On by default in Qwk in Lobe; FEATURE_FLAGS=-qwksearch turns
+  // them off so the app runs as plain LobeHub. None of them touch the chat
+  // engine: they sit beside it.
+  qwksearch: true,
   rag_eval: false,
 
   agent_self_iteration: isDev,

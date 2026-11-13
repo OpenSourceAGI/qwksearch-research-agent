@@ -64,6 +64,8 @@ export interface SidebarItemConfig {
 
 const ALL_SIDEBAR_ITEMS: SidebarItemConfig[] = [
   { id: 'tasks', labelKey: 'tab.tasks', routeId: 'tasks' },
+  // QwkSearch Docs (REASON editor); its nav entry hides itself when the add-ons are off.
+  { id: 'docs', labelKey: 'tab.qwkDocs' },
   { id: 'pages', labelKey: 'tab.pages', routeId: 'page' },
   { id: 'recents', labelKey: 'recents' },
   { id: 'project', labelKey: 'project:sidebar.title' },

@@ -8,6 +8,8 @@ describe('resolveNavPanelKey', () => {
     ['/lobe-team', 'lobe-team', 'home'],
     ['/tasks', null, 'home'],
     ['/lobe-team/task/task-1', 'lobe-team', 'home'],
+    ['/docs', null, 'home'],
+    ['/docs/doc-1', null, 'home'],
     ['/agent/agent-1', null, 'agent'],
     ['/lobe-team/agent/agent-1', 'lobe-team', 'agent'],
     ['/agent/agent-1/docs', null, 'agent-docs'],

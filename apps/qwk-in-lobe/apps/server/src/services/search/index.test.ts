@@ -18,6 +18,11 @@ vi.mock('@/envs/tools', () => ({
   },
 }));
 
+const featureFlags = vi.hoisted(() => ({ qwksearch: true }));
+vi.mock('@/config/featureFlags', () => ({
+  getServerFeatureFlagsValue: () => featureFlags,
+}));
+
 describe('SearchService', () => {
   let searchService: SearchService;
   let mockSearchImpl: ReturnType<typeof createMockSearchImpl>;
@@ -37,8 +42,33 @@ describe('SearchService', () => {
   });
 
   describe('constructor', () => {
-    it('should create instance with default search implementation when no providers configured', () => {
-      expect(createSearchServiceImpl).toHaveBeenCalledWith(undefined, {});
+    it('should search through QwkSearch when no providers are configured and the add-ons are on', () => {
+      expect(createSearchServiceImpl).toHaveBeenCalledWith(SearchImplType.QwkSearch, {});
+    });
+
+    it('should fall back to the default implementation when no providers are configured and QwkSearch is off', () => {
+      featureFlags.qwksearch = false;
+      try {
+        vi.mocked(createSearchServiceImpl).mockClear();
+        new SearchService();
+        expect(createSearchServiceImpl).toHaveBeenCalledWith(undefined, {});
+      } finally {
+        featureFlags.qwksearch = true;
+      }
+    });
+
+    it('should drop qwksearch from SEARCH_PROVIDERS when the add-ons are off', () => {
+      featureFlags.qwksearch = false;
+      vi.mocked(toolsEnv).SEARCH_PROVIDERS = 'qwksearch,brave';
+      try {
+        vi.mocked(createSearchServiceImpl).mockClear();
+        new SearchService();
+        expect(createSearchServiceImpl).toHaveBeenCalledTimes(1);
+        expect(createSearchServiceImpl).toHaveBeenCalledWith(SearchImplType.Brave, {});
+      } finally {
+        featureFlags.qwksearch = true;
+        vi.mocked(toolsEnv).SEARCH_PROVIDERS = '';
+      }
     });
 
     it('should create instances for all providers from SEARCH_PROVIDERS', () => {

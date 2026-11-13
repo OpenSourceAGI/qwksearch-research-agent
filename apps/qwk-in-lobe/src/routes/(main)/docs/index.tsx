@@ -1,3 +1,3 @@
 'use client';
 
-export { DocsWorkspace as default } from '@/features/QwkSearch/Docs';
+export { DocsPage as default } from '@/features/QwkSearch/Docs';

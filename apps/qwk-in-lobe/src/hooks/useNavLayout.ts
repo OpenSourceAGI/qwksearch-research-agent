@@ -1,4 +1,4 @@
-import { HomeIcon, SearchIcon } from 'lucide-react';
+import { FileTextIcon, HomeIcon, SearchIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -36,7 +36,7 @@ export interface NavLayout {
 export const useNavLayout = (): NavLayout => {
   const { t } = useTranslation('common');
   const toggleCommandMenu = useGlobalStore((s) => s.toggleCommandMenu);
-  const { showMarket, hideGitHub } = useServerConfigStore(featureFlagsSelectors);
+  const { enableQwkSearch, showMarket, hideGitHub } = useServerConfigStore(featureFlagsSelectors);
   const activeWorkspaceSlug = useActiveWorkspaceSlug();
 
   const topNavItems = useMemo(
@@ -66,8 +66,16 @@ export const useNavLayout = (): NavLayout => {
           title: t('tab.resource'),
           url: '/resource',
         },
+        {
+          // QwkSearch's REASON editor with its file sidebar (`/docs`).
+          hidden: !enableQwkSearch,
+          icon: FileTextIcon,
+          key: SidebarTabKey.Docs,
+          title: t('tab.qwkDocs'),
+          url: '/docs',
+        },
       ] as NavItem[],
-    [t, toggleCommandMenu],
+    [t, toggleCommandMenu, enableQwkSearch],
   );
 
   const bottomMenuItems = useMemo(

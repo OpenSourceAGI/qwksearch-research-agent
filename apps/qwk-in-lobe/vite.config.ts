@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import tailwindcss from '@tailwindcss/vite';
 import { DevTools } from '@vitejs/devtools';
 import type { PluginOption, ViteDevServer } from 'vite';
 import { defineConfig, loadEnv } from 'vite';
@@ -157,6 +158,10 @@ export default defineConfig({
         },
       }),
     ...sharedRendererPlugins({ platform }),
+    // Only for the QwkSearch Docs (REASON editor) stylesheet: it is the one CSS
+    // file that imports Tailwind, and it scans only the REASON packages
+    // (`source(none)`), so the rest of the SPA is untouched.
+    tailwindcss(),
 
     isDev && {
       name: 'lobe-dev-proxy-print',

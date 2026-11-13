@@ -18,7 +18,7 @@ apps/qwk-in-lobe/
 │   ├── routes/                # trpc, webapi, api, spa, qwksearch/*
 │   ├── qwksearch/             # D1 schema + article extraction chain
 │   └── shims/                 # next/*, Node-only packages, unsupported builtins
-├── src/features/QwkSearch/    # SPA features: ArticlePanel (extract side panel) and Docs
+├── src/features/QwkSearch/    # SPA features: ArticlePanel (extract side panel) and Docs (REASON editor)
 ├── migrations/d1/             # QwkSearch tables for D1
 ├── vite.worker.config.ts      # Worker bundle build
 ├── wrangler.jsonc             # bindings: DB (D1), KV, R2, EMAIL, ASSETS; custom build hook
@@ -26,13 +26,24 @@ apps/qwk-in-lobe/
 └── scripts/buildWorkerAssets.mts
 ```
 
-## Core mode (default) and OpenRouter
+## QwkSearch add-ons (default) and OpenRouter
 
-Out of the box this tree runs as **plain LobeHub**: every QwkSearch add-on below (article side
-panel and its chat-link interception, `/docs`, the Extraction and Search settings panes, the
-`qwksearch` search provider) sits behind the `qwksearch` feature flag, which defaults to off. The
-Worker does not mount the add-ons' `/api/doc/*` routes either. Turn the UI add-ons back on with
-`FEATURE_FLAGS=+qwksearch`.
+The QwkSearch add-ons sit beside LobeHub's chat engine, which they never replace, and are **on by
+default**:
+
+- **Article reader panel**: links clicked in a chat answer open beside the chat as a cleaned-up
+  article with its citation, Q&A and follow-up questions (`/api/doc/article`, `/api/agent/article-*`).
+- **Docs** (`/docs`, in the sidebar): QwkSearch's REASON editor with its files / favorites / recent
+  sidebar, from `react-reason-editor` and `react-reason-editor-sidebar`. It loads lazily and only
+  in the browser, styled by its own Tailwind sheet (`src/features/QwkSearch/Docs/reason-docs.css`).
+  Notes are local-first; the editor's database-sync setting syncs them to `/api/doc/documents` (D1).
+- **Web search**: with no `SEARCH_PROVIDERS` set, the web-browsing tool searches through
+  QwkSearch's fan-out (`https://qwksearch.com/api/agent/search`, override with
+  `QWKSEARCH_SEARCH_URL`). An explicit `SEARCH_PROVIDERS` still wins.
+- The Extraction and Search & Sources settings panes.
+
+The Worker mounts the add-ons' API (`worker/routes/qwksearch`) lazily, on first use.
+`FEATURE_FLAGS=-qwksearch` turns all of it off, and the app runs as plain LobeHub.
 
 Chat works with nothing but an OpenRouter key:
 
