@@ -18,13 +18,11 @@ import { logSsrError, traceSsr } from '@/lib/debug/ssr-trace';
  * dependency's *build*, not this repo's code: nothing in the app can promise it
  * will not happen again on the next dependency bump.
  *
- * So the import is lazy and lives inside a Suspense boundary. The module is
- * then evaluated *during render* rather than at module load, which makes a
- * throw an ordinary render error in a subtree React knows how to give up on:
- * it streams this fallback instead, marks the subtree for client rendering, and
- * the response stays a 200 carrying the real page shell. The browser — where
- * `document` exists — renders the workspace a moment later, so a DOM-only
- * dependency costs a flash of skeleton rather than the entire site.
+ * So the import is lazy, lives inside a Suspense boundary, and only ever runs
+ * in the browser (see `WorkspaceMount` below): the server streams the skeleton
+ * and never evaluates the entry, so neither a DOM-only dependency nor the
+ * entry's sheer size can cost the response. The browser — where `document`
+ * exists — renders the workspace a moment after hydration.
  *
  * The error boundary above the Suspense is the second line. If a chunk fails
  * to load in the browser — almost always a tab (or cached script) from before
@@ -126,9 +124,44 @@ class WorkspaceErrorBoundary extends React.Component<
   }
 }
 
-/** The research workspace, mounted so that failing to load it is not a 500. */
+const subscribeNever = () => () => {};
+
+/**
+ * `false` on the server and during hydration, `true` once the browser has
+ * committed. `useSyncExternalStore` hands React the server snapshot while it
+ * hydrates, so the first client render matches the server's skeleton and the
+ * switch to the workspace is an ordinary update afterwards — no mismatch.
+ */
+function useIsBrowser() {
+  return React.useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false,
+  );
+}
+
+/**
+ * The research workspace, mounted so that loading it can never take the page
+ * down — and never loaded on the server at all.
+ *
+ * `React.lazy` is not client-only: rendered on the server, it calls its loader
+ * and the SSR environment dynamic-imports `research-agent-ui/workspace` and its
+ * static graph (~150 modules, ~5 MB of code) inside the Worker. That import is
+ * what failed in production with `Dynamic import exceeded memory limits.` on
+ * `GET /` — the isolate's 128 MB was spent evaluating an editor the server only
+ * ever renders as a 100vh app shell the browser re-renders anyway. Because the
+ * failed import surfaced as a shell error, vinext then retried with
+ * `global-error.tsx`, which needs the SSR handler again, and the request died
+ * there too.
+ *
+ * So the server renders the skeleton and stops; the browser mounts the lazy
+ * view right after hydration.
+ */
 export function WorkspaceMount() {
   traceSsr('workspace:mount:render');
+  const isBrowser = useIsBrowser();
+
+  if (!isBrowser) return <WorkspaceSkeleton />;
 
   return (
     <WorkspaceErrorBoundary>

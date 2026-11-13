@@ -11,9 +11,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * the server answered with Next's error shell and a 500 (see #440, and the
  * homepage 500 that followed it).
  *
- * `WorkspaceMount` is the fix, so this holds the property that matters: when
- * loading that entry throws, server rendering still produces the page with a
- * placeholder in the workspace's place and hands the subtree to the client.
+ * `WorkspaceMount` is the fix. It first made that throw a recoverable render
+ * error; then production showed that even a *successful* server-side import is
+ * too much — `Dynamic import exceeded memory limits.` on `GET /` — because
+ * `React.lazy` runs its loader during SSR. So the property held here is the
+ * stronger one: the server never imports the entry at all, renders the
+ * skeleton, and leaves the workspace to the browser.
  */
 async function renderMount() {
   const { WorkspaceMount } = await import('@/components/layout/WorkspaceMount');
@@ -33,19 +36,22 @@ describe('WorkspaceMount', () => {
     vi.resetModules();
   });
 
-  it('renders the workspace when its chunk loads', async () => {
-    vi.doMock('research-agent-ui/workspace', () => ({
+  it('never imports the workspace entry on the server', async () => {
+    const factory = vi.fn(() => ({
       ResearchWorkspaceView: () =>
         React.createElement('main', { 'data-testid': 'workspace' }, 'workspace'),
     }));
+    vi.doMock('research-agent-ui/workspace', factory);
 
     const { html, errors } = await renderMount();
 
-    expect(html).toContain('data-testid="workspace"');
+    expect(factory).not.toHaveBeenCalled();
+    expect(html).toContain('data-testid="workspace-skeleton"');
+    expect(html).not.toContain('data-testid="workspace"');
     expect(errors).toEqual([]);
   });
 
-  it('still renders a page when loading the workspace throws', async () => {
+  it('still renders the page when the workspace entry would throw', async () => {
     vi.doMock('research-agent-ui/workspace', () => {
       // What a DOM-only dependency does to this entry on a server.
       throw new ReferenceError('document is not defined');
@@ -53,12 +59,9 @@ describe('WorkspaceMount', () => {
 
     const { html, errors } = await renderMount();
 
-    // The response is the page plus a placeholder — not an error shell.
+    // The response is the page plus a placeholder — not an error shell — and
+    // nothing failed, because the server never evaluated the entry.
     expect(html).toContain('data-testid="workspace-skeleton"');
-    expect(html).not.toContain('data-testid="workspace"');
-    // React reported the failure as recoverable and deferred to the client
-    // rather than letting it escape the render. (Vitest rewrites the message of
-    // an error thrown out of a mock factory, so only the count is asserted.)
-    expect(errors).toHaveLength(1);
+    expect(errors).toEqual([]);
   });
 });

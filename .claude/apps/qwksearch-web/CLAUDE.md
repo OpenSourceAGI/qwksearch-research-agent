@@ -27,8 +27,11 @@ it belongs in a package.
   never by importing `research-agent-ui/workspace` into a route. That entry
   carries the REASON editor's whole dependency tree, and a static import of it
   turns one dependency's module-scope `document` read into a 500 for the entire
-  page. The mount loads it lazily inside a Suspense boundary, so the same
-  failure costs a flash of skeleton instead.
+  page. The mount loads it lazily inside a Suspense boundary, and **only in the
+  browser**: the server renders the skeleton and never imports the entry. Don't
+  let it back into SSR — `React.lazy` runs its loader on the server too, and
+  evaluating that tree in the Worker blew the 128 MB isolate on `GET /`
+  ("Dynamic import exceeded memory limits.").
 - **The two builds do not fail the same way.** `bun run dev` is Turbopack;
   `bun run build` is vite/rolldown. An unresolvable
   `new URL("x", import.meta.url)` inside a dependency is a warning to rolldown
