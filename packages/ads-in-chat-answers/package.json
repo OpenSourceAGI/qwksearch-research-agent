@@ -1,6 +1,6 @@
 {
   "name": "ads-in-chat-answers",
-  "version": "0.1.54",
+  "version": "0.1.55",
   "description": "Sponsored placements for AI chat answers: a product-carousel ad under an answer, a sponsored follow-up question, a keyword auction that picks them, and an advertiser panel where an LLM suggests the keywords to buy",
   "keywords": ["react", "ads", "advertising", "chat", "llm", "sponsored", "keywords", "auction", "component-library"],
   "repository": {
