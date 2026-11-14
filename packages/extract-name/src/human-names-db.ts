@@ -2,7 +2,7 @@
  * @fileoverview Holder for the optional 92k human-names database
  * (`human-names-92k.json`, ~1.1 MB).
  *
- * The default `extract-human-name` entry never imports the JSON, so it
+ * The default `extract-name` entry never imports the JSON, so it
  * stays slim. Person-vs-organization detection then runs on the compact
  * built-in name list (`common-names.ts`) and word heuristics. The full
  * 92k database is loaded only when it is needed, one of two ways:
@@ -10,11 +10,11 @@
  * - `loadHumanNamesDB()` lazy-loads it from a CDN at runtime (one shared
  *   request, cached, resolves `null` on failure so an outage never breaks
  *   name extraction), or
- * - import `extract-human-name/full`, which bundles the JSON and registers
+ * - import `extract-name/full`, which bundles the JSON and registers
  *   it on import.
  *
  * `setHumanNamesDB(db)` registers a copy you already hold. Both entries
- * share one database, so importing `extract-human-name/full` once enables
+ * share one database, so importing `extract-name/full` once enables
  * it for the slim import too.
  */
 
@@ -23,7 +23,7 @@ export type HumanNamesDB = Record<string, number>;
 
 /** Published copy of the names JSON, served by jsDelivr from npm. */
 export const HUMAN_NAMES_DB_CDN_URL =
-  "https://cdn.jsdelivr.net/npm/extract-human-name/human-names-92k.json";
+  "https://cdn.jsdelivr.net/npm/extract-name/src/human-names-92k.json";
 
 let namesDB: HumanNamesDB | null = null;
 let loading: Promise<HumanNamesDB | null> | null = null;

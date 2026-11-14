@@ -1,5 +1,5 @@
 /**
- * @fileoverview extract-human-name: the slim default entry.
+ * @fileoverview extract-name: the slim default entry.
  *
  * Extracts, characterizes, and structures human author names from
  * arbitrary text, telling a person ("Dr. John Doe") from an
@@ -12,7 +12,7 @@
  * only when needed:
  *
  * - `await loadHumanNamesDB()` — one lazy fetch from the CDN, or
- * - `import { extractHumanName } from "extract-human-name/full"` —
+ * - `import { extractHumanName } from "extract-name/full"` —
  *   bundles the JSON and registers it on import.
  */
 export * from "./human-name-recognizer";

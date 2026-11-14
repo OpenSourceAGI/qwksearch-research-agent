@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { extractHumanName } from '../human-name-recognizer';
-import { setHumanNamesDB } from '../human-names-db';
+import { extractHumanName } from '../src/human-name-recognizer';
+import { setHumanNamesDB } from '../src/human-names-db';
 
 afterEach(() => setHumanNamesDB(null));
 
