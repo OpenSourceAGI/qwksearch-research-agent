@@ -9,4 +9,4 @@ declare module "*.png" {
 }
 
 declare module "*.css";
-declare module "react-native-app-buttons/styles";
+declare module "react-app-store-buttons/styles";

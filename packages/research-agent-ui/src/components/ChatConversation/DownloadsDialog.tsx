@@ -4,7 +4,7 @@
 'use client';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '../../ui/dialog';
 import { researchAgentUIConfig } from '../../config';
-import { DownloadAppButton } from 'react-native-app-buttons';
+import { DownloadAppButton } from 'react-app-store-buttons';
 
 interface DownloadsDialogProps {
   open: boolean;

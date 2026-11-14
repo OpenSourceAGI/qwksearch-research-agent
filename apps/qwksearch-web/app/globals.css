@@ -30,7 +30,7 @@
    `fumadocs-ui/dist` source registration below. */
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
-@import "react-native-app-buttons/styles" layer(vendor);
+@import "react-app-store-buttons/styles" layer(vendor);
 @import "react-reason-editor/style.css" layer(vendor);
 /* Bundles SVAR's file-manager CSS (the REASON "Files" dialog) alongside the
    sidebar's own class-scoped rules — no reset of its own, so it belongs in

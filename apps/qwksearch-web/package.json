@@ -120,7 +120,7 @@
     "react-icons": "^5.7.0",
     "react-image-crop": "^11.1.2",
     "react-markdown": "^10.1.0",
-    "react-native-app-buttons": "^0.1.4",
+    "react-app-store-buttons": "^0.1.176",
     "react-reason-editor": "workspace:*",
     "react-reason-editor-sidebar": "workspace:*",
     "react-textarea-autosize": "^8.5.9",
