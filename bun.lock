@@ -394,8 +394,8 @@
         "vitest": "^5.0.0",
       },
     },
-    "packages/extract-name": {
-      "name": "extract-name",
+    "packages/extract-human-name": {
+      "name": "extract-human-name",
       "version": "1.0.51",
       "devDependencies": {
         "@types/node": "^26.5.0",
