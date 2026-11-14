@@ -1,0 +1,5 @@
+{
+  "title": "Polymarket",
+  "icon": "ChartPie",
+  "pages": ["index", "markets", "traders", "prices-analytics", "sync-storage"]
+}

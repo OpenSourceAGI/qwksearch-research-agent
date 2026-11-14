@@ -1,0 +1,92 @@
+---
+title: The agents
+description: MarketAnalyst, BullResearcher, BearResearcher, InvestmentJudge and Trader — use them one by one to build your own flow.
+icon: UsersRound
+---
+
+```ts
+import {
+  MarketAnalyst,
+  BullResearcher,
+  BearResearcher,
+  InvestmentJudge,
+  Trader,
+  createLLM,
+  FinancialSituationMemory,
+  type AgentState,
+} from "investing/trading-agents";
+```
+
+Every agent takes the shared `AgentState` and returns a `Partial<AgentState>` to merge back. That makes it
+easy to run a subset, change the order, or add rounds.
+
+| Agent | Constructor | Method | Writes |
+| --- | --- | --- | --- |
+| `MarketAnalyst` | `(llm)` | `analyze(state)` | `marketReport` |
+| `BullResearcher` | `(llm, memory)` | `analyze(state)` | `investmentDebateState` (bull turn) |
+| `BearResearcher` | `(llm, memory)` | `analyze(state)` | `investmentDebateState` (bear turn) |
+| `InvestmentJudge` | `(llm, memory)` | `makeDecision(state)` | `investmentPlan`, `judgeDecision` |
+| `Trader` | `(llm, memory)` | `makeDecision(state)` | `traderInvestmentPlan` |
+
+The repository also has `NewsAnalyst`, risk-team agents (`RiskyAnalyst`, `SafeAnalyst`, `NeutralAnalyst`),
+`FundManager`, debate facilitators and "improved" researchers under `src/trading-agents/agents/`. They are
+not exported from the package yet.
+
+## A five-round debate
+
+The graph runs three rounds. Build your own loop for more:
+
+```ts
+const config = { llmProvider: "openai", deepThinkLLM: "gpt-4o", quickThinkLLM: "gpt-4o-mini" } as const;
+const quick = createLLM(config, config.quickThinkLLM);
+const deep = createLLM(config, config.deepThinkLLM);
+
+const analyst = new MarketAnalyst(quick);
+const bull = new BullResearcher(quick, new FinancialSituationMemory("bull", config));
+const bear = new BearResearcher(quick, new FinancialSituationMemory("bear", config));
+const judge = new InvestmentJudge(deep, new FinancialSituationMemory("judge", config));
+const trader = new Trader(deep, new FinancialSituationMemory("trader", config));
+
+let state: AgentState = {
+  companyOfInterest: "AMD",
+  tradeDate: "2026-11-13",
+  messages: [],
+  sender: "",
+  marketReport: "",
+  sentimentReport: "No social media analysis performed.",
+  newsReport: "No news analysis performed.",
+  fundamentalsReport: "No fundamentals analysis performed.",
+  investmentDebateState: { bullHistory: "", bearHistory: "", history: "", currentResponse: "", judgeDecision: "", count: 0 },
+  investmentPlan: "",
+  traderInvestmentPlan: "",
+  riskDebateState: {
+    riskyHistory: "", safeHistory: "", neutralHistory: "", history: "", latestSpeaker: "",
+    currentRiskyResponse: "", currentSafeResponse: "", currentNeutralResponse: "", judgeDecision: "", count: 0,
+  },
+  finalTradeDecision: "",
+};
+
+state = { ...state, ...(await analyst.analyze(state)) };
+for (let round = 0; round < 5; round++) {
+  state = { ...state, ...(await bull.analyze(state)) };
+  state = { ...state, ...(await bear.analyze(state)) };
+}
+state = { ...state, ...(await judge.makeDecision(state)) };
+state = { ...state, ...(await trader.makeDecision(state)) };
+
+console.log(state.traderInvestmentPlan);
+```
+
+## Bring your own report
+
+Skip the market analyst and feed the debate your own research:
+
+```ts
+import { getQuote, finnhub } from "investing/stocks";
+
+const q = (await getQuote("AMD")).data!;
+const { news = [] } = await finnhub.getNews("AMD");
+state.marketReport = `Price ${q.price}, day ${q.changePercent?.toFixed(2)}%, 52w context from your own data…`;
+state.newsReport = news.slice(0, 8).map((n) => `- ${n.title} (${n.publisher})`).join("\n");
+// …then run the debate loop above
+```

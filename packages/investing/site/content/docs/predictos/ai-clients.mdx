@@ -1,0 +1,104 @@
+---
+title: AI clients & prompts
+description: callOpenAIResponses, callGrokResponses, callBlockRunResponses and the four prompt builders the agents use — for running PredictOS prompts through your own flow.
+icon: Sparkles
+---
+
+```ts
+import {
+  callOpenAIResponses,
+  callGrokResponses,
+  callBlockRunResponses,
+  isBlockRunModel,
+  listBlockRunModels,
+  BLOCKRUN_MODELS,
+  analyzeEventMarketsPrompt,
+  bookmakerAnalysisPrompt,
+  arbitrageAnalysisPrompt,
+  searchQueryGeneratorPrompt,
+} from "investing/predictos/ai";
+```
+
+All three clients call a **Responses-style** API, retry retryable failures (`maxRetries`, default 3) with
+backoff, and throw when the key is missing.
+
+## `callOpenAIResponses(message, systemPrompt, responseFormat, model = "gpt-4.1", maxRetries = 3, options?)`
+
+```ts
+const res = await callOpenAIResponses(
+  "Summarise the case for a December rate cut in 3 bullets.",
+  "You are a macro analyst. Reply in JSON: { bullets: string[] }",
+  "json_object",
+  "gpt-4.1",
+  3,
+  { apiKey: process.env.OPENAI_API_KEY },
+);
+const text = res.output.flatMap((o: any) => o.content ?? []).map((c: any) => c.text).join("");
+console.log(JSON.parse(text).bullets, res.usage);
+```
+
+## `callGrokResponses(message, systemPrompt, responseFormat, model = "grok-4-1-fast-reasoning", maxRetries = 3, tools?, options?)`
+
+The only client that runs **live search tools**: `["x_search"]`, `["web_search"]` or both.
+
+```ts
+const res = await callGrokResponses(
+  "What are traders on X saying about the Fed this week? Cite posts.",
+  "Answer in JSON: { summary: string, sources: string[] }",
+  "json_object",
+  "grok-4-1-fast-reasoning",
+  3,
+  ["x_search"],
+  { apiKey: process.env.XAI_API_KEY },
+);
+```
+
+## `callBlockRunResponses(message, systemPrompt, responseFormat, model = "blockrun/gpt-4o", maxRetries, enableSearch?, options?)`
+
+[BlockRun](https://blockrun.ai) sells model calls for USDC over **x402**: no account or API key, the request
+is signed with an EIP-3009 transfer authorisation from a Base-chain wallet (`walletKey` /
+`BLOCKRUN_WALLET_KEY`). The result carries `blockrun.paymentCost`.
+
+```ts
+isBlockRunModel("blockrun/claude-sonnet-4"); // true
+isBlockRunModel("gpt-4.1");                  // false
+Object.keys(BLOCKRUN_MODELS);
+// blockrun/gpt-4o, gpt-4o-mini, gpt-4.1, gpt-5, o1, o3-mini, claude-sonnet-4, claude-opus-4, claude-haiku,
+// grok-3, grok-3-fast, grok-3-mini, gemini-2.5-pro, gemini-2.5-flash, deepseek-chat, deepseek-reasoner, qwen-max, qwen-plus
+const live = await listBlockRunModels(); // [{ id, name, provider, description, … }] from BlockRun
+```
+
+<Callout type="warn">The on-chain payment flow is ported but untested in this repository. Start with a wallet holding a few dollars.</Callout>
+
+## Prompt builders
+
+Each returns `{ systemPrompt, userPrompt }` and calls nothing, so you can send PredictOS's prompts to any
+model — a local one, Anthropic, or your own gateway.
+
+| Builder | Arguments | Used by |
+| --- | --- | --- |
+| `analyzeEventMarketsPrompt` | `(markets, eventIdentifier, question, pmType, tools?, userCommand?)` | event analysis |
+| `bookmakerAnalysisPrompt` | `(analyses, x402Results, eventIdentifier, pmType)` | bookmaker |
+| `searchQueryGeneratorPrompt` | `({ title, sourcePlatform, targetPlatform })` | arbitrage, step 3 |
+| `arbitrageAnalysisPrompt` | `({ sourceMarket, searchResults, searchPlatform })` | arbitrage, step 5 |
+
+```ts title="Run the event-analysis prompt through Claude"
+import Anthropic from "@anthropic-ai/sdk";
+import { getEvents } from "investing/predictos";
+import { analyzeEventMarketsPrompt } from "investing/predictos/ai";
+import type { MarketAnalysis } from "investing/predictos";
+
+const event = await getEvents({ url });
+const { systemPrompt, userPrompt } = analyzeEventMarketsPrompt(
+  event.markets, event.eventIdentifier, "Where is the edge?", event.pmType,
+);
+
+const msg = await new Anthropic().messages.create({
+  model: "claude-sonnet-5-5",
+  max_tokens: 2000,
+  system: systemPrompt,
+  messages: [{ role: "user", content: userPrompt }],
+});
+const block = msg.content.find((b) => b.type === "text");
+const analysis = JSON.parse(block?.type === "text" ? block.text : "{}") as MarketAnalysis;
+```

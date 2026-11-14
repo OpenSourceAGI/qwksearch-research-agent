@@ -1,0 +1,182 @@
+---
+title: Troubleshooting
+description: The errors people actually hit with investing — broken imports in older versions, missing keys, PredictOS validation errors, database connection and stale README names — and how to fix each.
+icon: LifeBuoy
+---
+
+## Imports and installation
+
+<Accordions>
+<Accordion title="Cannot find module 'predictos'">
+
+PredictOS ships inside this package. Import it as a subpath:
+
+```ts
+import { findArbitrage } from "investing/predictos";
+```
+
+</Accordion>
+<Accordion title="investing/stocks, /prediction, /trading-agents or /alpaca resolve to nothing">
+
+Up to 0.1.346 those subpaths were declared in `package.json` but never built, so they pointed at files that
+did not exist. Upgrade to the next release. On an old version, import the same names from the root
+`investing` instead. `investing/constants` and `investing/utils` are still declared without a build and
+should not be used. See [imports](/docs/imports).
+
+</Accordion>
+<Accordion title='The process exits with "Fetching stock data…" or "existsSync is not a function"'>
+
+Up to 0.1.346, importing the root package (or `investing/stocks`) also ran the stock-names import script,
+which tried to write to `./data` and called `process.exit`. Upgrade; on an old version, import from the
+narrower subpaths such as `investing/predictos`.
+
+</Accordion>
+<Accordion title="require('investing') fails">
+
+The package is ESM-only in practice. Use `import`, set `"type": "module"` in your `package.json`, or load it
+with `await import("investing")` from CommonJS.
+
+</Accordion>
+<Accordion title="Module not found: @solana/… or drizzle-orm">
+
+The database needs `drizzle-orm`, a peer dependency: `bun add drizzle-orm`. The x402 / BlockRun clients
+need `@solana/web3.js`, `@solana/spl-token` and `bs58`, which are optional dependencies; if your install
+skipped them, add them yourself.
+
+</Accordion>
+<Accordion title="xgboost_node fails to load in the browser or on Workers">
+
+[Correlate](/docs/correlate) uses a native binding. Run it in Node or Bun on a server.
+
+</Accordion>
+</Accordions>
+
+## Keys and providers
+
+<Accordions>
+<Accordion title="401 / 403 from Alpaca">
+
+`createAlpacaClient()` does not throw on a missing key; it logs a warning and the first request fails. Set
+`ALPACA_API_KEY` and `ALPACA_SECRET_KEY`, and remember paper and live keys are different: `paper: true` (the
+default) needs paper keys.
+
+</Accordion>
+<Accordion title="401 from DFlow or Dome">
+
+Kalshi data comes through DFlow (`DFLOW_API_KEY`) and some Polymarket wallet data through Dome
+(`DOME_API_KEY`). See [environment](/docs/environment) for the full list.
+
+</Accordion>
+<Accordion title="The tools option has no effect">
+
+`tools` (`x_search`, `web_search`) is only passed to Grok models through xAI. OpenAI and other models ignore it.
+
+</Accordion>
+<Accordion title="model_decommissioned from Groq">
+
+`TradingAgentsGraph` defaults to `llama3-70b-8192` / `llama3-8b-8192`, which Groq has retired. Pass current
+models:
+
+```ts
+new TradingAgentsGraph(["market"], false, {
+  llmProvider: "groq",
+  deepThinkLLM: "llama-3.3-70b-versatile",
+  quickThinkLLM: "llama-3.1-8b-instant",
+});
+```
+
+</Accordion>
+<Accordion title="Fundamentals tool returns an error outside a web app">
+
+The trading agents' `getFundamentals` fetches the relative URL `/api/stocks/quote/:symbol`, which only works
+inside an app that serves that route. In a script it fails; the market and news analysts are unaffected.
+
+</Accordion>
+</Accordions>
+
+## PredictOS
+
+<Accordions>
+<Accordion title="Missing required parameter: 'model' (or 'url', 'eventIdentifier')">
+
+Every agent validates its input and throws before calling a model. Pass the named field; `model` is always
+required, there is no default.
+
+</Accordion>
+<Accordion title="Could not detect prediction market type from URL">
+
+`getEvents` accepts Polymarket (`polymarket.com/event/…`), Kalshi (`kalshi.com/markets/…`) and Jupiter
+prediction URLs. Strip tracking parameters and check the path. `findArbitrage` throws
+`Invalid URL. Must be a Polymarket or Kalshi market URL.` for the same reason.
+
+</Accordion>
+<Accordion title="NoTradeError from runMapperAgent">
+
+Not a bug: the analysis recommended `NO TRADE`. Catch it and move on. A closed market or one not accepting
+orders throws a plain `Error` (`Market is closed`, `Market is not accepting orders`) instead.
+
+```ts
+try { runMapperAgent(req); } catch (e) { if (e instanceof NoTradeError) skip(); else throw e; }
+```
+
+</Accordion>
+<Accordion title="Invalid platform / Kalshi autonomous mode coming soon">
+
+`platform` is case-sensitive: `"Polymarket"`, not `"polymarket"`. Kalshi order mapping is not implemented yet.
+
+</Accordion>
+<Accordion title="Invalid budgetUsd">
+
+The mapper accepts budgets from $1 to $100.
+
+</Accordion>
+<Accordion title="JSON parse errors in the mapper">
+
+Gamma may return `outcomes`, `outcomePrices` and `clobTokenIds` as arrays, but the mapper expects JSON
+strings. `JSON.stringify` them first, as in the [recipes](/docs/recipes).
+
+</Accordion>
+</Accordions>
+
+## Data and database
+
+<Accordions>
+<Accordion title="No Cloudflare D1 connection available">
+
+A `sync*`, `save*` or database-backed `get*` function ran without a connection. On Workers, publish the `DB`
+binding on `globalThis.__CLOUDFLARE_ENV__`; elsewhere set `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_D1_TOKEN` and
+`CLOUDFLARE_DATABASE_ID`. See [database](/docs/database).
+
+</Accordion>
+<Accordion title="Quotes look stale">
+
+`getQuote` accepts `cacheTTL` but ignores it: any cached row is returned. Pass `useCache: false` for a live
+price.
+
+</Accordion>
+<Accordion title="Rolling stats are whole numbers">
+
+`calculateRollingStats` floors its output. Scale small values up first (basis points instead of percent).
+
+</Accordion>
+<Accordion title="R² is wildly negative">
+
+`calculateR2(predicted, actual)` takes its arguments in the opposite order to
+`calculateRMSE(actual, predicted)`. Also check you split by date, not with the shuffling `splitTrainTest`.
+
+</Accordion>
+</Accordions>
+
+## Names from the old README
+
+| README said | Use |
+| --- | --- |
+| `getStockQuote` | `getQuote` from `investing/stocks` |
+| `getHistoricalData` (for stocks) | `getHistoricalQuotes`; `getHistoricalData` is the [Dukascopy](/docs/live-data) function |
+| `createTradingGraph` | `new TradingAgentsGraph(...)` |
+| `stocksTable` | the `positions` table |
+
+## Tests are skipped
+
+The package's tests that call real APIs skip themselves when their key is missing. `bun run test` passing
+with skips is expected; set the keys in `.env` to run them.

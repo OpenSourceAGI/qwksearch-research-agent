@@ -1,0 +1,179 @@
+---
+title: Unified quote service
+description: getQuote, getQuotes, getHistoricalQuotes and getQuoteFromSource — one normalized quote shape from a D1 cache, Alpaca and Yahoo Finance, with timeouts and fallback.
+icon: Gauge
+---
+
+```ts
+import {
+  getQuote,
+  getQuotes,
+  getHistoricalQuotes,
+  getQuoteFromSource,
+  unifiedQuoteService, // the singleton behind the four functions
+  UnifiedQuoteService,
+} from "investing/stocks";
+```
+
+## How a quote is resolved
+
+<Steps>
+<Step>
+**Cache.** Unless `useCache: false`, the service looks the symbol up in the `stock_quote_cache` table in
+Cloudflare D1. A hit returns immediately.
+</Step>
+<Step>
+**Alpaca, 10 second timeout.** Calls `get_latest_quote` on the Alpaca MCP server
+(`NEXT_PUBLIC_ALPACA_MCP_URL`, default `http://localhost:3001`). A timeout or error falls through.
+</Step>
+<Step>
+**Yahoo Finance, 10 second timeout.** `yahoo-finance2`'s `quoteCombine`. No key needed.
+</Step>
+<Step>
+**Write back.** Any fresh quote is saved to the cache (best-effort: a failed write is logged, not thrown).
+</Step>
+</Steps>
+
+<Callout type="info" title="The cache never expires today">
+  `getQuote` accepts `cacheTTL` (ms), but the cache read ignores it: any cached row is returned. Pass
+  `useCache: false` when you need a live price, for example right before placing an order.
+</Callout>
+
+## `getQuote(symbol, options?)`
+
+```ts
+const res = await getQuote("AAPL");                  // cache first
+const live = await getQuote("AAPL", { useCache: false });
+```
+
+Returns a `QuoteServiceResponse`; it never throws for a provider failure, it returns `success: false`.
+
+<TypeTable
+  type={{
+    success: { type: 'boolean', description: 'false when every source failed' },
+    data: { type: 'NormalizedQuote', description: 'present when success is true' },
+    error: { type: 'string', description: 'why it failed' },
+  }}
+/>
+
+### `NormalizedQuote`
+
+<TypeTable
+  type={{
+    symbol: { type: 'string' },
+    price: { type: 'number', description: 'last price' },
+    change: { type: 'number | null', description: 'absolute change on the day' },
+    changePercent: { type: 'number | null', description: 'percent change on the day (2.1 means +2.1 %)' },
+    open: { type: 'number | null' },
+    high: { type: 'number | null' },
+    low: { type: 'number | null' },
+    previousClose: { type: 'number | null' },
+    volume: { type: 'number | null' },
+    marketCap: { type: 'number | null' },
+    currency: { type: 'string | null' },
+    name: { type: 'string | null' },
+    exchange: { type: 'string | null' },
+    timestamp: { type: 'Date' },
+    source: { type: '"yfinance" | "finnhub" | "alpaca"', description: 'which provider answered' },
+  }}
+/>
+
+## `getQuotes(symbols, options?)`
+
+Checks the cache for all symbols at once, then fetches the misses one by one through the same Alpaca →
+Yahoo chain.
+
+```ts
+const res = await getQuotes(["AAPL", "MSFT", "NVDA", "AMZN"]);
+if (res.success && res.data) {
+  console.log(res.data.source); // "alpaca" | "yfinance" | "mixed"
+  console.table(
+    res.data.quotes.map((q) => ({ symbol: q.symbol, price: q.price, pct: q.changePercent, via: q.source })),
+  );
+}
+```
+
+An empty array returns `{ success: false, error: "No symbols provided" }`.
+
+## `getQuoteFromSource(symbol, source)`
+
+Skips the cache and the fallback chain and asks one provider. Useful to compare providers or debug a bad
+price.
+
+```ts
+const [yahoo, finnhub] = await Promise.all([
+  getQuoteFromSource("TSLA", "yfinance"),
+  getQuoteFromSource("TSLA", "finnhub"),
+]);
+console.log(yahoo.data?.price, finnhub.data?.price);
+```
+
+## `getHistoricalQuotes(symbol, start, end, options?)`
+
+Daily bars, filled incrementally: only the trading days missing from `stock_historical_quotes` are fetched.
+
+```ts
+const res = await getHistoricalQuotes("SPY", "2026-01-01", new Date());
+if (res.success && res.data) {
+  const { quotes, meta } = res.data;
+  console.log(meta); // { symbol, cachedCount, fetchedCount, source: "cache" | "alpaca" | "mixed" }
+  const closes = quotes.map((q) => q.close);
+}
+```
+
+1. Read every cached day in the range.
+2. Work out the expected trading days (weekdays) and which are missing.
+3. With `forceRefreshRecent` (default `true`), also refetch the last 2 days, whose bars may still change.
+4. Fetch the gaps from Alpaca (`get_bars`), falling back to Finnhub, then write them back.
+
+## Recipes
+
+<Accordions>
+<Accordion title="A watchlist printer">
+
+```ts
+import { getQuotes } from "investing/stocks";
+
+const WATCHLIST = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA"];
+
+const { data } = await getQuotes(WATCHLIST, { useCache: false });
+for (const q of data?.quotes ?? []) {
+  const pct = q.changePercent ?? 0;
+  const arrow = pct >= 0 ? "▲" : "▼";
+  console.log(`${q.symbol.padEnd(6)} ${q.price.toFixed(2).padStart(9)}  ${arrow} ${pct.toFixed(2)}%`);
+}
+```
+
+</Accordion>
+<Accordion title="20-day moving average from history">
+
+```ts
+import { getHistoricalQuotes } from "investing/stocks";
+
+const end = new Date();
+const start = new Date(end.getTime() - 60 * 864e5);
+const { data } = await getHistoricalQuotes("QQQ", start, end);
+const closes = (data?.quotes ?? []).map((q) => q.close);
+const last20 = closes.slice(-20);
+const sma20 = last20.reduce((a, b) => a + b, 0) / last20.length;
+console.log({ last: closes.at(-1), sma20 });
+```
+
+</Accordion>
+<Accordion title="A quote API route (Next.js)">
+
+```ts title="app/api/quote/[symbol]/route.ts"
+import { getQuote } from "investing/stocks";
+
+export async function GET(_req: Request, { params }: { params: Promise<{ symbol: string }> }) {
+  const { symbol } = await params;
+  const res = await getQuote(symbol.toUpperCase());
+  return Response.json(res, { status: res.success ? 200 : 502 });
+}
+```
+
+</Accordion>
+</Accordions>
+
+The package also ships an executable demo, `examples/unified-quote-demo.ts`, that runs single, batch,
+per-source and cached quotes against the live providers.

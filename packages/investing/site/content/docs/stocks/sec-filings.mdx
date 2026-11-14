@@ -1,0 +1,70 @@
+---
+title: SEC filings
+description: Downloader — look up 10-K, 10-Q, 8-K and every other EDGAR filing by ticker or CIK, and download the primary document.
+icon: FileText
+---
+
+```ts
+import { Downloader } from "investing/stocks";
+
+const sec = new Downloader("Your Company Name", "you@example.com");
+```
+
+The SEC requires every client to identify itself, so the constructor takes a company name and an email; they
+become the `User-Agent`. Use your own. No API key is needed.
+
+## Query formats
+
+`getFilingMetadatas(query, { includeAmends? })` accepts:
+
+| Query | Meaning |
+| --- | --- |
+| `"AAPL/10-K"` | Every 10-K for the ticker, newest first |
+| `"AAPL/10-K/3"` | The latest three |
+| `"320193/10-Q/4"` | A CIK works anywhere a ticker does (zero-padded for you) |
+| `"AAPL/0000320193-24-000123"` | One filing by accession number |
+| `new RequestedFilingsClass("MSFT", "8-K", 5)` | The object form of the first three |
+| `new CompanyAndAccessionNumberClass("MSFT", "0000950170-24-087843")` | The object form of an accession lookup |
+
+Amendments (`10-K/A`) are skipped unless `includeAmends: true`.
+
+Each result is a `FilingMetadata`:
+
+<TypeTable
+  type={{
+    primaryDocUrl: { type: 'string', description: 'URL of the main HTML document' },
+    accessionNumber: { type: 'string' },
+    formType: { type: 'string', description: '10-K, 8-K, …' },
+    filingDate: { type: 'string' },
+    reportDate: { type: 'string' },
+    companyName: { type: 'string' },
+    cik: { type: 'string' },
+    tickers: { type: 'Ticker[]' },
+    items: { type: 'string', description: '8-K item numbers' },
+    primaryDocDescription: { type: 'string' },
+  }}
+/>
+
+## Examples
+
+```ts title="Latest annual reports"
+const filings = await sec.getFilingMetadatas("NVDA/10-K/3");
+for (const f of filings) console.log(f.filingDate, f.formType, f.primaryDocUrl);
+```
+
+```ts title="Download the newest 10-Q as HTML"
+const html = await sec.getFilingHtml({ ticker: "AAPL", form: "10-Q" });
+// throws if the query matches several filings: use getFilingMetadatas + downloadFiling then
+```
+
+```ts title="8-K item scan"
+const eightKs = await sec.getFilingMetadatas("TSLA/8-K/20");
+const leadership = eightKs.filter((f) => f.items.includes("5.02")); // officer departures / appointments
+for (const f of leadership) {
+  const doc = await sec.downloadFiling({ url: f.primaryDocUrl });
+  console.log(f.filingDate, doc.toString("utf8").length, "bytes");
+}
+```
+
+`getFilingHtml` takes either `{ query }` or `{ ticker, form }`, not both, and throws when the query matches
+zero or more than one filing.

@@ -1,0 +1,61 @@
+---
+title: LLM client & memory
+description: UnifiedLLMClient talks to OpenAI, Groq and Anthropic with one call; FinancialSituationMemory recalls similar past situations by keyword overlap.
+icon: MemoryStick
+---
+
+## `UnifiedLLMClient` / `createLLM(config, model)`
+
+```ts
+import { createLLM, UnifiedLLMClient, type LLMResponse } from "investing/trading-agents";
+
+const llm = createLLM({ llmProvider: "groq", deepThinkLLM: "", quickThinkLLM: "" }, "llama-3.3-70b-versatile");
+
+const res = await llm.invoke("In one sentence, what is a golden cross?");
+console.log(res.content);
+
+const chat = await llm.invoke([
+  { role: "system", content: "You are a terse options trader." },
+  { role: "user", content: "Is selling a covered call on NVDA before earnings smart?" },
+]);
+```
+
+- `llmProvider` `"openai"`, `"groq"` or `"anthropic"`; anything else throws `Unsupported LLM provider`.
+- The key comes from `config.apiKeys[provider]`, else `process.env[<PROVIDER>_API_KEY]`.
+- `baseUrl` overrides the endpoint; Groq defaults to `https://api.groq.com/openai/v1/chat/completions`.
+- `invokeWithTools(messages, tools)` passes OpenAI-style tool definitions.
+
+## `FinancialSituationMemory(name, config)`
+
+A small in-memory store the researchers, judge and trader use to remember outcomes.
+
+```ts
+import { FinancialSituationMemory } from "investing/trading-agents";
+
+const memory = new FinancialSituationMemory("trader", config);
+
+await memory.addMemory({
+  situation: "NVDA gapped up 8% on earnings, RSI 78, above upper Bollinger band",
+  decision: "BUY",
+  outcome: -4.2,
+  recommendation: "Don't chase an overbought earnings gap; wait for RSI to cool below 65.",
+  timestamp: new Date(),
+});
+
+const similar = await memory.getMemories("AMD up 9% after earnings, RSI 81, over the upper band", 2);
+console.log(similar.map((m) => m.recommendation));
+```
+
+`getMemories(situation, n = 2)` ranks memories by **Jaccard similarity of their keywords** with the new
+situation and returns the top `n`. Other methods: `getAllMemories()`, `getMemoryCount()`, `clear()`.
+
+Persist it yourself if you need it across processes:
+
+```ts
+import { writeFileSync, readFileSync } from "node:fs";
+
+writeFileSync("trader-memory.json", JSON.stringify(memory.getAllMemories()));
+for (const m of JSON.parse(readFileSync("trader-memory.json", "utf8"))) {
+  await memory.addMemory({ ...m, timestamp: new Date(m.timestamp) });
+}
+```

@@ -1,0 +1,60 @@
+---
+title: Wikipedia pageviews
+description: pageviews — a typed client for the Wikimedia pageviews API, for spotting attention spikes on companies, people and events.
+icon: BookOpenText
+---
+
+```ts
+import { pageviews, WikiPageviews } from "investing";
+```
+
+Attention moves markets: a spike in views of a company's or a candidate's Wikipedia page often comes with
+news. `pageviews` is a ready instance; construct `new WikiPageviews(userAgent)` to send your own
+`User-Agent`, which Wikimedia asks every client to set. No key needed.
+
+| Method | Wikimedia endpoint |
+| --- | --- |
+| `getPerArticlePageviews({ article \| articles, start, end, project?, access?, agent?, granularity? })` | `/metrics/pageviews/per-article` |
+| `getAggregatedPageviews({ start, end, project? \| projects?, access?, agent?, granularity? })` | `/metrics/pageviews/aggregate` |
+| `getTopPageviews({ date \| year+month+day, project?, access?, limit? })` | `/metrics/pageviews/top` |
+| `getTopPageviewsByCountry({ year, month, project?, access? })` | `/metrics/pageviews/top-by-country` |
+| `getUniqueDevices({ project, start, end, accessSite?, granularity? })` | `/metrics/unique-devices` |
+| `getAggregatedLegacyPagecounts({ start, end, accessSite?, granularity? })` | `/metrics/legacy/pagecounts` |
+| `getPageviewsDimensions()` | available dimensions |
+
+Dates accept a `Date` or a string; `project` defaults to `en.wikipedia.org`. Passing `articles` (or
+`projects`) fans out and returns an array of responses.
+
+## Examples
+
+```ts title="Daily views for one company"
+const res = await pageviews.getPerArticlePageviews({
+  article: "Nvidia",
+  start: "2026-10-01",
+  end: "2026-11-13",
+  agent: "user",
+  granularity: "daily",
+});
+const views = (res as any).items.map((i: any) => i.views);
+```
+
+```ts title="Spike detector across a watchlist"
+const pages = { NVDA: "Nvidia", TSLA: "Tesla,_Inc.", PLTR: "Palantir_Technologies" };
+const end = new Date();
+const start = new Date(end.getTime() - 35 * 864e5);
+
+for (const [ticker, article] of Object.entries(pages)) {
+  const { items } = (await pageviews.getPerArticlePageviews({ article, start, end, agent: "user" })) as any;
+  const series = items.map((i: any) => i.views);
+  const baseline = series.slice(0, -1).reduce((a: number, b: number) => a + b, 0) / (series.length - 1);
+  const today = series.at(-1);
+  if (today > baseline * 2.5) console.log(`${ticker}: ${today} views, ${(today / baseline).toFixed(1)}× normal`);
+}
+```
+
+```ts title="What the world is reading"
+const top = (await pageviews.getTopPageviews({ date: "2026-11-12", limit: 10 })) as any;
+console.log(top.items[0].articles.map((a: any) => `${a.rank}. ${a.article} (${a.views})`));
+```
+
+The client is covered by the package's `test/wiki.test.ts` (24 cases, mocked `fetch`).

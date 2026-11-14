@@ -32,3 +32,18 @@ the new number.
 ```bash
 cd packages/investing && bun run test
 ```
+
+`src/stocks/index.ts` deliberately does not re-export `import-stock-names` (a CLI
+script that runs `main()` and `process.exit` on import), and `vite.config.ts`
+externalizes Node builtins so `path`/`fs` are not replaced by browser shims.
+
+## Docs site (`site/`)
+
+A standalone Fumadocs + Next.js 16 site, **not** a Bun workspace. Vercel installs it
+with `site/install-vercel-deps.sh` (`npm install --prefix`) and builds with
+`npm run build`; the Vercel project's Root Directory is `packages/investing/site`.
+Pages live in `site/content/docs/`. The playground imports pure source files through
+the `@investing/*` → `../src/*` tsconfig alias, which is why `turbopack.root` and
+`outputFileTracingRoot` point at the package directory. Only import side-effect-free,
+browser-safe modules that way. Check it with `cd site && npm install && npx next build`.
+When public behaviour changes, update the matching page there too.

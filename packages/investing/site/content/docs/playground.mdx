@@ -1,0 +1,40 @@
+---
+title: Playground
+description: The package's pure functions, running in your browser. Change the inputs and watch the real code respond.
+icon: FlaskConical
+---
+
+Everything on this page imports the package's own source files — `src/predictos/agents/mapper-agent.ts`,
+`src/correlate/metrics.ts`, `src/correlate/rolling-stats.ts` and `src/predictos/data/polymarket.ts` — and
+runs them client-side. Nothing here needs an API key or a network call, because these are the parts of
+`investing` that are pure logic. The network-bound calls (quotes, Polymarket, the AI agents) are covered with
+copy-paste examples on their own pages.
+
+## Turn an analysis into an order
+
+`runMapperAgent` is the last step of the [PredictOS pipeline](/docs/predictos): it turns an analysis
+(`BUY YES`, `BUY NO` or `NO TRADE`) and a market's raw data into Polymarket order parameters. Try a budget
+below $1 or above $100, a closed market, a price so high that the budget buys fewer than 5 shares, or switch
+the platform to Kalshi to see each guard throw.
+
+<OrderMapperPlayground />
+
+## Score a model
+
+The two metrics the [correlate module](/docs/correlate) reports. Note the argument order: `calculateRMSE`
+takes `(actual, predicted)` but `calculateR2` takes `(predicted, actual)`.
+
+<ModelMetricsPlayground />
+
+## Rolling mean and volatility
+
+`calculateRollingStats` appends `<field>_rolling_mean_<window>d` and `<field>_rolling_std_<window>d` to every
+row. Two details worth knowing: rows before the window fills copy the raw value into both columns rather than
+leaving them empty, and both columns are floored to whole numbers (`Math.floor`), so use it on prices, not on
+returns or probabilities.
+
+<RollingStatsPlayground />
+
+## Build market links
+
+<MarketUrlPlayground />

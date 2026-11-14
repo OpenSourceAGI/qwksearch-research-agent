@@ -1,0 +1,176 @@
+---
+title: Alpaca brokerage
+description: createAlpacaClient for paper and live trading, createAlpacaBrokerClient for the Broker API, and AlpacaMCPClient for an Alpaca MCP server.
+icon: Landmark
+---
+
+```ts
+import { createAlpacaClient, createAlpacaBrokerClient, type AlpacaConfig } from "investing/alpaca";
+```
+
+Both factories return an instance of the official
+[`@alpacahq/alpaca-trade-api`](https://github.com/alpacahq/alpaca-trade-api-js) SDK, configured from your
+config object or the environment. Everything the SDK can do — orders, positions, bars, streaming — is
+available on the result.
+
+## `createAlpacaClient(config?)`
+
+<TypeTable
+  type={{
+    paper: { type: 'boolean', default: 'true', description: 'paper account unless you pass false' },
+    keyId: { type: 'string', description: 'falls back to ALPACA_API_KEY, ALPACA_KEY_ID, APCA_API_KEY_ID' },
+    secretKey: { type: 'string', description: 'falls back to ALPACA_SECRET, ALPACA_SECRET_KEY, APCA_API_SECRET_KEY' },
+    baseUrl: { type: 'string', description: 'falls back to ALPACA_BASE_URL / APCA_API_BASE_URL, then the paper or live URL' },
+  }}
+/>
+
+<Callout type="warn" title="paper defaults to true — keep it that way while you test">
+  Live trading needs `paper: false` **and** live keys. A missing key does not throw here; it logs a warning
+  and the first request fails with 401/403.
+</Callout>
+
+### Account and positions
+
+```ts
+const alpaca = createAlpacaClient(); // paper, keys from env
+
+const account = await alpaca.getAccount();
+console.log(`Equity $${account.equity}  buying power $${account.buying_power}`);
+
+const positions = await alpaca.getPositions();
+for (const p of positions) {
+  console.log(p.symbol, p.qty, `P&L ${(Number(p.unrealized_plpc) * 100).toFixed(2)}%`);
+}
+```
+
+### Orders
+
+<Tabs items={['Market', 'Limit', 'Bracket', 'Notional', 'Cancel']}>
+<Tab value="Market">
+
+```ts
+await alpaca.createOrder({ symbol: "AAPL", qty: 5, side: "buy", type: "market", time_in_force: "day" });
+```
+
+</Tab>
+<Tab value="Limit">
+
+```ts
+await alpaca.createOrder({
+  symbol: "MSFT",
+  qty: 2,
+  side: "buy",
+  type: "limit",
+  limit_price: 400,
+  time_in_force: "gtc",
+});
+```
+
+</Tab>
+<Tab value="Bracket">
+
+```ts
+// Enter at market, take profit at +6 %, stop out at -3 %
+const last = 190;
+await alpaca.createOrder({
+  symbol: "NVDA",
+  qty: 10,
+  side: "buy",
+  type: "market",
+  time_in_force: "day",
+  order_class: "bracket",
+  take_profit: { limit_price: Number((last * 1.06).toFixed(2)) },
+  stop_loss: { stop_price: Number((last * 0.97).toFixed(2)) },
+});
+```
+
+</Tab>
+<Tab value="Notional">
+
+```ts
+// Fractional: buy $250 worth
+await alpaca.createOrder({ symbol: "VOO", notional: 250, side: "buy", type: "market", time_in_force: "day" });
+```
+
+</Tab>
+<Tab value="Cancel">
+
+```ts
+const open = await alpaca.getOrders({ status: "open" } as any);
+for (const o of open) await alpaca.cancelOrder(o.id);
+// or: await alpaca.cancelAllOrders();
+```
+
+</Tab>
+</Tabs>
+
+### Market data
+
+```ts
+const bars = alpaca.getBarsV2("SPY", { start: "2026-10-01", end: "2026-11-01", timeframe: "1Day" });
+for await (const bar of bars) console.log(bar.Timestamp, bar.ClosePrice);
+
+const clock = await alpaca.getClock();
+console.log(clock.is_open ? "market open" : `opens ${clock.next_open}`);
+```
+
+### Rebalance to target weights
+
+```ts title="rebalance.ts"
+import { createAlpacaClient } from "investing/alpaca";
+import { getQuotes } from "investing/stocks";
+
+const TARGET = { VTI: 0.6, VXUS: 0.3, BND: 0.1 } as const;
+const alpaca = createAlpacaClient({ paper: true });
+
+const account = await alpaca.getAccount();
+const equity = Number(account.equity);
+const held = new Map((await alpaca.getPositions()).map((p: any) => [p.symbol, Number(p.market_value)]));
+const { data } = await getQuotes(Object.keys(TARGET), { useCache: false });
+
+for (const q of data?.quotes ?? []) {
+  const want = equity * TARGET[q.symbol as keyof typeof TARGET];
+  const diff = want - (held.get(q.symbol) ?? 0);
+  if (Math.abs(diff) < 50) continue; // skip tiny trades
+  await alpaca.createOrder({
+    symbol: q.symbol,
+    notional: Math.abs(diff).toFixed(2),
+    side: diff > 0 ? "buy" : "sell",
+    type: "market",
+    time_in_force: "day",
+  });
+}
+```
+
+## `createAlpacaBrokerClient(config?)`
+
+For platforms that open and manage accounts on behalf of users with the
+[Broker API](https://docs.alpaca.markets/docs/about-broker-api). Reads `ALPACA_BROKER_API_KEY`,
+`ALPACA_BROKER_SECRET_KEY` and `ALPACA_BROKER_BASE_URL` (default `https://broker-api.alpaca.markets`), falling
+back to the trading keys, and **throws** when no key is found.
+
+```ts
+const broker = createAlpacaBrokerClient({ baseUrl: "https://broker-api.sandbox.alpaca.markets" });
+```
+
+## `AlpacaMCPClient` (barrel only)
+
+A thin client for an [Alpaca MCP server](https://github.com/alpacahq/alpaca-mcp-server) exposed over HTTP. It
+POSTs `{ tool, arguments }` to `<baseURL>/mcp/call`. The [unified quote service](/docs/stocks) uses it as its
+fast path.
+
+```ts
+import { getAlpacaMCPClient, AlpacaMCPClient } from "investing";
+
+const mcp = getAlpacaMCPClient(); // singleton; NEXT_PUBLIC_ALPACA_MCP_URL or http://localhost:3001
+// or: new AlpacaMCPClient({ baseURL: "https://mcp.example.com", apiKey, apiSecret })
+
+const quote = await mcp.getQuote("AAPL"); // tool: get_latest_quote
+const snap = await mcp.getSnapshot("AAPL");
+const bars = await mcp.getBars({ symbol: "AAPL", timeframe: "1Day", limit: 30 });
+```
+
+It covers account, positions, orders, bars, snapshots, assets, option chains and option orders, crypto bars
+and orders, watchlists, the market calendar and corporate actions. It also defines a `TradingStrategy` type
+(entry / exit / sizing rules plus `RiskManagement` with `maxPositionSize`, `stopLoss`, `takeProfit`) that
+`generateStrategyFromDescription()` fills in through your app's `/api/alpaca/chat` route.

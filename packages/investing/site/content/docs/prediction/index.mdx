@@ -1,0 +1,75 @@
+---
+title: Polymarket overview
+description: investing/prediction — read Polymarket markets, search, leaderboards, traders, holders and prices, then sync them into Cloudflare D1 and analyse them.
+icon: ChartPie
+---
+
+```ts
+import * as polymarket from "investing/prediction";
+```
+
+`investing/prediction` is a Polymarket data layer in three tiers. The **API** functions need no key and no
+database. The **DB** and **sync** functions write to Cloudflare D1 (see [database](/docs/database)). The
+**analysis** functions read what the sync stored.
+
+| Tier | Functions | Needs |
+| --- | --- | --- |
+| [Markets & search](/docs/prediction/markets) | `fetchMarkets`, `fetchAllMarkets`, `searchMarkets`, `searchPublic`, `fetchMarket`, `fetchActiveMarketsWithPrices`, `isMarketBlocked`, `checkGammaHealth` | nothing |
+| [Traders](/docs/prediction/traders) | `fetchLeaderboard`, `fetchTopTraders`, `fetchTraderPositions`, `fetchTraderProfiles`, `fetchTraderActivity`, `fetchAllTraderActivity` | nothing |
+| [Prices & analytics](/docs/prediction/prices-analytics) | `fetchPriceHistory`, `fetchMarketHolders`, `fetchMarketOrderBook`, `fetchMarketDetails`, `fetchMarketSummary`, `fetchMarketsDashboard`, `calculateGreeks`, `calculatePriceChanges`, `analyzeCategories` | nothing (the last two read D1) |
+| [Sync & storage](/docs/prediction/sync-storage) | `syncAll`, `syncMarkets`, `syncMarketsIncremental`, `syncLeaderboard`, `syncPriceHistory`, `syncMarketHolders`, `syncTopTradersTradeHistory`, `save*` / `get*` | D1 + `drizzle-orm` |
+
+The APIs it talks to:
+
+| Host | Used for |
+| --- | --- |
+| `gamma-api.polymarket.com` | Markets, events, public search, order book, details |
+| `data-api.polymarket.com` | Leaderboard, trader activity, holders |
+| `clob.polymarket.com` | Price history |
+| `polymarketanalytics.com` | Top traders by tag, trader positions, market summaries and dashboards |
+
+## Reading Polymarket's market objects
+
+Gamma markets carry their outcomes, prices and token ids as **JSON strings**, not arrays:
+
+```ts
+const [market] = await polymarket.fetchMarkets(1, "volume24hr");
+
+const outcomes: string[] = JSON.parse(market.outcomes);        // ["Yes", "No"]
+const prices = JSON.parse(market.outcomePrices).map(Number);    // [0.62, 0.38]
+const [yesToken, noToken]: string[] = JSON.parse(market.clobTokenIds);
+
+console.log(market.question, `${(prices[0] * 100).toFixed(1)}% YES`);
+```
+
+The token ids are what [`fetchPriceHistory`](/docs/prediction/prices-analytics) and the CLOB order calls
+take; the `conditionId` is what holders and trader-activity filters take.
+
+## A first dashboard
+
+```ts title="hot-markets.ts"
+import { fetchMarkets, fetchLeaderboard, POLYMARKET_CATEGORIES } from "investing/prediction";
+
+const markets = await fetchMarkets(15, "volume24hr");
+console.table(
+  markets.map((m: any) => ({
+    question: m.question.slice(0, 60),
+    yes: Number(JSON.parse(m.outcomePrices)[0]).toFixed(2),
+    vol24h: Math.round(m.volume24hr),
+    ends: m.endDate?.slice(0, 10),
+  })),
+);
+
+for (const category of POLYMARKET_CATEGORIES.slice(1, 4)) {
+  const [top] = await fetchLeaderboard({ category, timePeriod: "30d", orderBy: "PNL", limit: 1 });
+  console.log(category, top?.userName ?? top?.proxyWallet, top?.pnl);
+}
+```
+
+`POLYMARKET_CATEGORIES` is `Overall`, `Politics`, `Sports`, `Crypto`, `Culture`, `Mentions`, `Weather`,
+`Economics`, `Tech`, `Finance`.
+
+<Callout title="Not the same as PredictOS">
+  This module is Polymarket-only and stateful. For AI analysis of a market, Kalshi, or arbitrage between
+  the two, see [PredictOS](/docs/predictos).
+</Callout>

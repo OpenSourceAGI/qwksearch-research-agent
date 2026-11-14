@@ -1,0 +1,107 @@
+---
+title: Prices & analytics
+description: fetchPriceHistory, holders, order books, market summaries, binary-option Greeks, price-change windows and category P&L.
+icon: Activity
+---
+
+```ts
+import {
+  fetchPriceHistory,
+  fetchMarketHolders,
+  fetchMarketOrderBook,
+  fetchMarketDetails,
+  fetchMarketSummary,
+  fetchMarketsDashboard,
+  calculateGreeks,
+  calculatePriceChanges,
+  analyzeCategories,
+  greeksEnricher,
+} from "investing/prediction";
+```
+
+## `fetchPriceHistory({ market, interval?, startTs?, endTs?, abs? })`
+
+CLOB price history for **one outcome token** (not a market id).
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `market` | — | CLOB token id (from `clobTokenIds`) |
+| `interval` | `"1h"` | `"1m"`, `"1h"`, `"6h"`, `"1d"`, `"1w"`, `"max"` |
+| `startTs`, `endTs` | — | unix seconds |
+| `abs` | `false` | passed through to the CLOB API |
+
+Returns `{ history: [{ t, p }] }` where `t` is unix seconds and `p` the price (0–1). A non-2xx throws with
+the response body in the message.
+
+```ts
+const [yes] = JSON.parse(market.clobTokenIds);
+const { history } = await fetchPriceHistory({ market: yes, interval: "1d" });
+const first = history[0].p, last = history.at(-1)!.p;
+console.log(`moved ${((last - first) * 100).toFixed(1)} points`);
+```
+
+<Callout title="Live test">
+  `test/polymarket-price-history.test.ts` exercises this against the real CLOB API and skips itself when the
+  network is unavailable.
+</Callout>
+
+## Holders and order book
+
+```ts
+const tokens = await fetchMarketHolders(market.conditionId, 10);
+// [{ token, holders: [{ proxyWallet, name, pseudonym, amount, outcomeIndex, … }] }, …] — one entry per outcome
+
+const book = await fetchMarketOrderBook(market.id);
+const details = await fetchMarketDetails(market.id);
+```
+
+`fetchMarketSummary(eventId)` and `fetchMarketsDashboard(eventId)` return polymarketanalytics.com's event
+summaries — volume, open interest and top holders across all of an event's markets.
+
+## `calculateGreeks(currentPrice, tokenId, endDate)`
+
+Treats a YES share as a binary option and returns:
+
+<TypeTable
+  type={{
+    theta: { type: 'number', description: 'time decay in cents per day (negative = decaying toward expiry)' },
+    vega: { type: 'number', description: 'sensitivity to volatility' },
+    impliedVol: { type: 'number', description: 'annualised historical volatility 0–1, from stored price history; 0.5 when unavailable' },
+    uncertainty: { type: 'number', description: 'P × (1 − P), at most 0.25 at a 50 % price' },
+    daysToExpiry: { type: 'number', description: '365 when the market has no end date' },
+  }}
+/>
+
+```ts
+const g = await calculateGreeks(0.34, yesToken, new Date(market.endDate));
+if (g.daysToExpiry < 7 && g.uncertainty > 0.2) console.log("coin-flip close to resolution — volatile", g);
+```
+
+`greeksEnricher` wraps the same calculation as an `Enricher` (`{ name, enrich(signal) }`) for a signal pipeline.
+
+## `calculatePriceChanges(tokenId, currentPrice)`
+
+`{ daily, weekly, monthly }` percentage changes against the **stored** hourly history (run
+[`syncPriceHistory`](/docs/prediction/sync-storage) first). Each is `null` when there is no point old enough.
+
+## `analyzeCategories(positions)`
+
+Pure: sums each position's P&L (`cash_pnl`, `cashPnl`, `realized_pnl` or `realizedPnl`) per tag and returns the
+20 best and 20 worst tags.
+
+```ts
+const { best, worst } = analyzeCategories([
+  { cashPnl: 1200, tags: ["Politics", "US"] },
+  { cashPnl: -300, tags: '["Sports"]' },   // tags may be a JSON string
+  { cashPnl: 450, tags: ["Politics"] },
+]);
+// best:  [{ tag: "Politics", pnl: 1650 }, { tag: "US", pnl: 1200 }, { tag: "Sports", pnl: -300 }]
+// worst: [{ tag: "Sports", pnl: -300 }, …]
+```
+
+## Movement detector
+
+`detectMovements()` and `checkMarket(marketId)` scan cached markets for price moves above a threshold inside
+a time window, and `formatTriggerType(changePercent, windowMinutes)` renders a label like `"UP_15m"` or `"DOWN_60m"`. In
+this package the market cache and detection config are stubs (`getCachedMarkets()` returns `[]`), so the
+detector finds nothing until your app supplies them; treat it as a reference implementation.
