@@ -1,5 +1,5 @@
 /**
- * @fileoverview Public types for extract-human-name.
+ * @fileoverview Public types for extract-name.
  */
 
 /**
