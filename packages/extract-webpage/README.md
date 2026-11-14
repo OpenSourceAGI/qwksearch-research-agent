@@ -1,6 +1,4 @@
 <p align="center">
-    <img width="350px" src="https://i.imgur.com/8JvNmxU.jpeg" />
-    <br />
     <img  src="https://i.imgur.com/7WP62G0.png" />   <br />
     <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <br />
