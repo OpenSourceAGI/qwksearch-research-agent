@@ -1,0 +1,5 @@
+{
+  "title": "Stocks",
+  "icon": "ChartLine",
+  "pages": ["index", "yahoo-finance", "finnhub", "sec-filings", "stock-names"]
+}

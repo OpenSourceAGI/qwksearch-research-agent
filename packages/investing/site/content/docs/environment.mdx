@@ -1,0 +1,128 @@
+---
+title: Environment variables
+description: Every key and setting the package reads, grouped by module, with the config-object field that overrides each one.
+icon: KeyRound
+---
+
+Nothing is hardcoded. Each module reads `process.env` only as a fallback: you can pass every key in code
+instead, which is what you want in a Worker or a multi-tenant server.
+
+```bash title=".env — everything, grouped"
+# ── Brokerage (investing/alpaca, unified quote service) ───────────────
+ALPACA_API_KEY=            # or ALPACA_KEY_ID, or APCA_API_KEY_ID
+ALPACA_SECRET=             # or ALPACA_SECRET_KEY, or APCA_API_SECRET_KEY
+# ALPACA_BASE_URL=https://api.alpaca.markets   # or APCA_API_BASE_URL; omit for paper
+ALPACA_BROKER_API_KEY=     # Broker API only
+ALPACA_BROKER_SECRET_KEY=
+# ALPACA_BROKER_BASE_URL=https://broker-api.alpaca.markets
+
+# ── Stock data ─────────────────────────────────────────────────────────
+FINNHUB_API_KEY=           # optional; Finnhub wrapper falls back to Alpaca without it
+
+# ── PredictOS: AI providers (AIConfig) ─────────────────────────────────
+OPENAI_API_KEY=            # gpt-* models
+XAI_API_KEY=               # grok-* models, and the only ones that honour tools
+BLOCKRUN_WALLET_KEY=       # blockrun/* models, paid per call in USDC on Base
+
+# ── PredictOS: market data (DataConfig) ────────────────────────────────
+DOME_API_KEY=              # Polymarket (and Kalshi) via Dome
+DFLOW_API_KEY=             # Kalshi via DFlow
+
+# ── PredictOS: execution and research agents ───────────────────────────
+POLYMARKET_WALLET_PRIVATE_KEY=
+POLYMARKET_PROXY_WALLET_ADDRESS=
+POLYMARKET_SIGNATURE_TYPE= # 0 EOA, 1 Magic/email, 2 browser proxy
+POLYFACTUAL_API_KEY=
+X402_DISCOVERY_URL=
+X402_FACILITATOR_URL=
+X402_EVM_PRIVATE_KEY=
+X402_SOLANA_PRIVATE_KEY=
+X402_PREFERRED_NETWORK=
+# SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+
+# ── Trading agents / debate generator ──────────────────────────────────
+GROQ_API_KEY=              # TradingAgentsGraph default provider, debate generator
+ANTHROPIC_API_KEY=         # llmProvider: "anthropic"
+TAVILY_API_KEY=            # web research inside generateDebateAnalysis
+
+# ── Storage (Cloudflare D1) ────────────────────────────────────────────
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_D1_TOKEN=       # or CLOUDFLARE_API_TOKEN
+CLOUDFLARE_DATABASE_ID=    # defaults to the project's own database id
+
+# ── Alpaca MCP strategy client ─────────────────────────────────────────
+# NEXT_PUBLIC_ALPACA_MCP_URL=http://localhost:3001
+```
+
+## By module
+
+<Accordions>
+<Accordion title="Alpaca">
+
+`createAlpacaClient(config)` reads, in order:
+
+| Setting | Config field | Env (first match wins) |
+| --- | --- | --- |
+| Key id | `keyId` | `ALPACA_API_KEY`, `ALPACA_KEY_ID`, `APCA_API_KEY_ID` |
+| Secret | `secretKey` | `ALPACA_SECRET`, `ALPACA_SECRET_KEY`, `APCA_API_SECRET_KEY` |
+| Paper | `paper` (default `true`) | — |
+| Base URL | `baseUrl` | `ALPACA_BASE_URL`, `APCA_API_BASE_URL`, then `https://paper-api.alpaca.markets` or `https://api.alpaca.markets` |
+
+Missing keys only log a warning; the first API call is what fails. `createAlpacaBrokerClient` reads the
+`ALPACA_BROKER_*` names (falling back to `ALPACA_API_KEY` / `ALPACA_SECRET`) and **throws** when they are
+missing.
+
+</Accordion>
+<Accordion title="PredictOS (AIConfig, DataConfig)">
+
+Every PredictOS entry point takes the request first and a config object second:
+
+```ts
+await runEventAnalysisAgent(request, { xaiApiKey: env.XAI_API_KEY });
+await findArbitrage(request, { openaiApiKey, dflowApiKey });
+await getEvents({ url }, { dflowApiKey });
+```
+
+| Field | Env fallback | Used by |
+| --- | --- | --- |
+| `openaiApiKey` | `OPENAI_API_KEY` | models in `gpt-5.2`, `gpt-5.1`, `gpt-5-nano`, `gpt-4.1`, `gpt-4.1-mini` or starting `gpt-` |
+| `xaiApiKey` | `XAI_API_KEY` | every other non-BlockRun model (Grok is the default provider) |
+| `blockrunWalletKey` | `BLOCKRUN_WALLET_KEY` | models starting `blockrun/` or listed in `BLOCKRUN_MODELS` |
+| `domeApiKey` | `DOME_API_KEY` | the Dome data client (`investing/predictos/data/polymarket`) |
+| `dflowApiKey` | `DFLOW_API_KEY` | Kalshi in `getEvents` and the arbitrage search |
+
+</Accordion>
+<Accordion title="Trading agents">
+
+`TradingConfig.apiKeys[provider]` wins; otherwise the client reads `<PROVIDER>_API_KEY`
+(`OPENAI_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`). The default config uses Groq.
+
+</Accordion>
+<Accordion title="Database">
+
+On Cloudflare Workers the `db` proxy uses the `DB` binding published on `globalThis.__CLOUDFLARE_ENV__`.
+Anywhere else it talks to D1 over the REST API with `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_D1_TOKEN`
+(`CLOUDFLARE_API_TOKEN` also works). `CLOUDFLARE_DATABASE_ID` defaults to the project's own database, so set
+it to point at yours. See [database](/docs/database).
+
+</Accordion>
+</Accordions>
+
+## Passing keys per request
+
+Because every PredictOS call accepts keys directly, you can serve many users from one process without
+touching `process.env`:
+
+```ts title="app/api/analyze/route.ts"
+import { getEvents, runEventAnalysisAgent } from "investing/predictos";
+
+export async function POST(req: Request) {
+  const { url, model, userKeys } = await req.json();
+  const event = await getEvents({ url }, { dflowApiKey: userKeys.dflow });
+  const result = await runEventAnalysisAgent(
+    { markets: event.markets, eventIdentifier: event.eventIdentifier, pmType: event.pmType, model },
+    { openaiApiKey: userKeys.openai, xaiApiKey: userKeys.xai },
+  );
+  return Response.json(result);
+}
+```

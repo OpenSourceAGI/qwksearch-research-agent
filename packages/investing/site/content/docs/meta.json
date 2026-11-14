@@ -1,0 +1,30 @@
+{
+  "title": "investing",
+  "pages": [
+    "---Guide---",
+    "index",
+    "getting-started",
+    "imports",
+    "environment",
+    "playground",
+    "---Markets & brokerage---",
+    "alpaca",
+    "stocks",
+    "---Prediction markets---",
+    "prediction",
+    "predictos",
+    "---AI agents---",
+    "trading-agents",
+    "debate-generator",
+    "---Analytics---",
+    "correlate",
+    "live-data",
+    "wiki-pageviews",
+    "social-trading",
+    "---Storage---",
+    "database",
+    "---Reference---",
+    "recipes",
+    "troubleshooting"
+  ]
+}

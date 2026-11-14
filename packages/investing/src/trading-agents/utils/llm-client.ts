@@ -84,7 +84,7 @@ export class UnifiedLLMClient {
       throw new Error(`OpenAI API error: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const data: any = await response.json()
     return {
       content: data.choices[0].message.content,
       toolCalls: data.choices[0].message.tool_calls?.map((tc: any) => ({
@@ -118,7 +118,7 @@ export class UnifiedLLMClient {
       throw new Error(`Groq API error: ${response.statusText} - ${errorData}`)
     }
 
-    const data = await response.json()
+    const data: any = await response.json()
     return {
       content: data.choices[0].message.content,
       toolCalls: data.choices[0].message.tool_calls?.map((tc: any) => ({
@@ -161,7 +161,7 @@ export class UnifiedLLMClient {
       throw new Error(`Anthropic API error: ${response.statusText}`)
     }
 
-    const data = await response.json()
+    const data: any = await response.json()
     return {
       content: data.content[0].text
     }
@@ -211,7 +211,7 @@ export class UnifiedLLMClient {
       throw new Error(`${this.provider} API error: ${response.statusText} - ${errorData}`)
     }
 
-    const data = await response.json()
+    const data: any = await response.json()
     return {
       content: data.choices[0].message.content,
       toolCalls: data.choices[0].message.tool_calls?.map((tc: any) => ({

@@ -1,0 +1,5 @@
+{
+  "title": "Trading agents",
+  "icon": "Bot",
+  "pages": ["index", "agents", "llm-memory", "data-tools"]
+}

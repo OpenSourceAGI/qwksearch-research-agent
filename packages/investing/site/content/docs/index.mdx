@@ -1,0 +1,99 @@
+---
+title: Introduction
+description: A TypeScript toolkit for market data, brokerage, prediction-market analysis and AI trading agents, published on npm as investing.
+icon: House
+---
+
+`investing` bundles several fairly independent toolkits behind one npm name. You can use one of them and
+ignore the rest: a script that only needs stock quotes never touches the prediction-market code, and the
+PredictOS agents never touch the database.
+
+```bash
+npm install investing
+```
+
+## What is in the box
+
+<Cards>
+  <Card title="Stock data" href="/docs/stocks" description="getQuote / getQuotes / getHistoricalQuotes with cache → Alpaca → Yahoo fallback, plus full Yahoo Finance, Finnhub and SEC EDGAR clients." />
+  <Card title="Alpaca brokerage" href="/docs/alpaca" description="createAlpacaClient for paper or live trading and createAlpacaBrokerClient for the Broker API." />
+  <Card title="Polymarket" href="/docs/prediction" description="Markets, search, leaderboards, trader activity, holders, order books and price history, with sync jobs into D1." />
+  <Card title="PredictOS" href="/docs/predictos" description="URL → markets → AI analysis → consensus → order parameters, plus a cross-venue arbitrage finder for Kalshi and Polymarket." />
+  <Card title="Trading agents" href="/docs/trading-agents" description="TradingAgentsGraph: analysts, a three-round bull vs. bear debate, a judge and a trader, with memory." />
+  <Card title="Correlate (XGBoost)" href="/docs/correlate" description="Train, predict, score (RMSE, R²), add rolling stats, and persist gradient-boosted models." />
+  <Card title="Live FX & indices" href="/docs/live-data" description="Dukascopy historical and real-time candles and ticks for forex, indices, crypto and commodities." />
+  <Card title="Social trading" href="/docs/social-trading" description="Leaders from Polymarket, NVSTLY and ZuluTrade, synced with their positions." />
+  <Card title="Wikipedia pageviews" href="/docs/wiki-pageviews" description="A typed client for the Wikimedia pageviews API, for attention and trend signals." />
+  <Card title="D1 database" href="/docs/database" description="Drizzle schemas for portfolios, trades, signals and every synced dataset, on Cloudflare D1." />
+</Cards>
+
+## Thirty-second tour
+
+<Tabs items={['Stocks', 'Prediction markets', 'Agents']}>
+<Tab value="Stocks">
+
+```ts
+import { getQuote } from "investing/stocks";
+
+const res = await getQuote("AAPL");
+if (res.success && res.data) {
+  const q = res.data;
+  console.log(`${q.symbol} ${q.price} (${q.changePercent?.toFixed(2)}%) via ${q.source}`);
+}
+```
+
+</Tab>
+<Tab value="Prediction markets">
+
+```ts
+import { fetchMarkets } from "investing/prediction";
+import { getEvents } from "investing/predictos";
+
+const hottest = await fetchMarkets(5, "volume24hr");
+console.log(hottest.map((m: any) => m.question));
+
+const event = await getEvents({ url: "https://polymarket.com/event/fed-decision-in-december" });
+console.log(event.pmType, event.marketsCount);
+```
+
+</Tab>
+<Tab value="Agents">
+
+```ts
+import { TradingAgentsGraph } from "investing/trading-agents";
+
+const graph = new TradingAgentsGraph(["market"], false, {
+  llmProvider: "groq",
+  deepThinkLLM: "llama-3.3-70b-versatile",
+  quickThinkLLM: "llama-3.1-8b-instant",
+});
+const { signal } = await graph.propagate("MSFT", "2026-11-13");
+console.log(signal.action); // "BUY" | "SELL" | "HOLD"
+```
+
+</Tab>
+</Tabs>
+
+## How the docs are organised
+
+- **Guide** — install, the [import paths](/docs/imports) (read this one: some subpaths are declared but not
+  built yet), every [environment variable](/docs/environment), and a [playground](/docs/playground) that runs
+  the pure functions in your browser.
+- **Module pages** — one per toolkit, each with a function reference, the shape of every result, and examples.
+- **Reference** — longer [recipes](/docs/recipes) that combine modules, and a
+  [troubleshooting](/docs/troubleshooting) table keyed by error message.
+
+<Callout type="warn" title="This code reasons about money">
+  Position sizing, budget limits and risk guards are part of the product. The order mapper refuses budgets
+  outside $1–$100 and orders under 5 shares on purpose. Nothing here is financial advice, and examples that
+  trade default to paper accounts.
+</Callout>
+
+## Where it comes from
+
+The package is maintained in the
+[`qwksearch-research-agent`](https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/investing)
+monorepo and vendored from `ai-broker-investing-agent`. The `investing/predictos` module is a derivative of
+[PredictOS](https://github.com/PredictionXBT/PredictOS) by PredictionXBT, MIT licensed; the original Deno /
+Supabase edge functions were refactored into plain typed async functions. It used to be a separate
+`predictos` package and was merged in — see [imports](/docs/imports#the-old-predictos-package).

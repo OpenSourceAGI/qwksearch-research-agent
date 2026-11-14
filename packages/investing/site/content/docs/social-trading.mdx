@@ -1,0 +1,71 @@
+---
+title: Social trading
+description: Pull top traders and their trades from NVSTLY and ZuluTrade (and Polymarket), store them in D1, and query them for copy-trading ideas.
+icon: Users
+---
+
+```ts
+import {
+  // NVSTLY (stocks & options)
+  myLeadersAPI,
+  syncCopyTradingLeadersOrders,
+  // ZuluTrade (forex)
+  fetchZuluTraders,
+  fetchZuluTraderDetail,
+  syncZuluTraders,
+  syncZuluTraderDetails,
+  getZuluTraders,
+  getZuluTraderById,
+  getZuluTopByRank,
+  searchZuluTraders,
+} from "investing";
+```
+
+For Polymarket's leaderboard and whale activity see [leaderboards & traders](/docs/prediction/traders).
+
+## NVSTLY
+
+`myLeadersAPI` talks to NVSTLY's public API (`db.nvstly.com/api`).
+
+```ts
+const leaders = await myLeadersAPI.getTraderRankings("1mo", 25); // [{ id, name, rank, rep, … }]
+const trades = await myLeadersAPI.getTraderTrades(leaders[0].id);
+console.log(leaders[0].name, trades.slice(0, 5));
+```
+
+`syncCopyTradingLeadersOrders()` fetches up to 100 leaders for the last month, then each one's trades, and
+writes both to `nvstly_leaders` / `nvstly_trades` in D1.
+
+## ZuluTrade
+
+```ts
+const traders = await fetchZuluTraders();               // top performers
+const detail = await fetchZuluTraderDetail(traders[0].providerId ?? traders[0].id);
+
+await syncZuluTraders();                                 // → zulu_traders
+await syncZuluTraderDetails(traders.slice(0, 20).map((t: any) => t.providerId ?? t.id)); // → zulu_currency_stats
+
+const best = await getZuluTopByRank(10);
+const filtered = await searchZuluTraders({ minRoi: 50 });
+const one = await getZuluTraderById(123456);
+```
+
+## Recipe: what are the leaders buying?
+
+```ts
+import { myLeadersAPI } from "investing";
+import { getQuotes } from "investing/stocks";
+
+const leaders = await myLeadersAPI.getTraderRankings("1mo", 20);
+const tally = new Map<string, number>();
+for (const l of leaders) {
+  for (const t of await myLeadersAPI.getTraderTrades(l.id)) {
+    if (String(t.side ?? t.type).toLowerCase().includes("buy")) tally.set(t.symbol, (tally.get(t.symbol) ?? 0) + 1);
+  }
+}
+const popular = [...tally].sort((a, b) => b[1] - a[1]).slice(0, 10).map(([s]) => s);
+const { data } = await getQuotes(popular);
+console.table(data?.quotes.map((q) => ({ symbol: q.symbol, buyers: tally.get(q.symbol), price: q.price })));
+```
+
+These endpoints are unofficial and can change shape without notice; log and skip rows you cannot parse.

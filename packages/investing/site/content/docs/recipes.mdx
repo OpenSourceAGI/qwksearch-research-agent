@@ -1,0 +1,177 @@
+---
+title: Recipes
+description: End-to-end scripts that combine several modules — a morning brief, an AI-reviewed paper trade, a prediction-market scanner, an arbitrage alert and an attention-driven watchlist.
+icon: ChefHat
+---
+
+Each recipe is a complete ESM script. Run it with `bun run recipe.ts` (or `npx tsx recipe.ts`) after
+`bun add investing` and setting the keys it lists. None of them place a live trade: Alpaca is in paper mode,
+and the Polymarket recipe stops at the order it *would* place.
+
+<Callout type="warn" title="Not financial advice">
+  These are examples of wiring the library together. Model output is not a trading signal you should trust
+  without your own checks.
+</Callout>
+
+## Morning brief
+
+Quotes for a watchlist, plus the most-traded prediction markets. Needs nothing but network access.
+
+```ts title="brief.ts"
+import { getQuotes } from "investing/stocks";
+import { fetchMarkets } from "investing/prediction";
+
+const WATCHLIST = ["SPY", "QQQ", "NVDA", "AAPL", "TSLA"];
+
+const { data } = await getQuotes(WATCHLIST, { useCache: false });
+console.log("── Stocks");
+for (const q of data?.quotes ?? []) {
+  const pct = q.changePercent ?? 0;
+  console.log(`${q.symbol.padEnd(5)} ${q.price.toFixed(2).padStart(9)}  ${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`);
+}
+
+console.log("── Prediction markets (24h volume)");
+for (const m of await fetchMarkets(8, "volume24hr")) {
+  const [yes] = JSON.parse(m.outcomePrices).map(Number);
+  console.log(`${(yes * 100).toFixed(0).padStart(3)}%  ${m.question}`);
+}
+```
+
+## Ask the agents, then paper-trade
+
+`TradingAgentsGraph` argues bull vs. bear and returns BUY / SELL / HOLD; Alpaca's paper account executes
+it. Needs `GROQ_API_KEY` (or swap the provider) and paper `ALPACA_API_KEY` / `ALPACA_SECRET_KEY`.
+
+```ts title="agent-trade.ts"
+import { TradingAgentsGraph } from "investing/trading-agents";
+import { createAlpacaClient } from "investing/alpaca";
+
+const SYMBOL = "MSFT";
+const today = new Date().toISOString().slice(0, 10);
+
+const graph = new TradingAgentsGraph(["market", "news"], false, {
+  llmProvider: "groq",
+  deepThinkLLM: "llama-3.3-70b-versatile",
+  quickThinkLLM: "llama-3.1-8b-instant",
+});
+const { signal, state } = await graph.propagate(SYMBOL, today);
+console.log(signal.action, "—", state.finalTradeDecision.slice(0, 400));
+
+const alpaca = createAlpacaClient(); // paper: true by default
+if (signal.action === "BUY") {
+  await alpaca.createOrder({ symbol: SYMBOL, notional: 200, side: "buy", type: "market", time_in_force: "day" });
+} else if (signal.action === "SELL") {
+  const held = (await alpaca.getPositions()).find((p: any) => p.symbol === SYMBOL);
+  if (held) await alpaca.createOrder({ symbol: SYMBOL, qty: held.qty, side: "sell", type: "market", time_in_force: "day" });
+}
+```
+
+Later, once you know the return, call `graph.reflectAndRemember(returnPct)` on the same instance so the
+agents learn from it.
+
+## Prediction-market scanner with two models
+
+Run the [PredictOS](/docs/predictos) pipeline on a Polymarket event: two models analyse it, the bookmaker
+merges them, and the mapper sizes an order. Needs `XAI_API_KEY` and `OPENAI_API_KEY`.
+
+```ts title="scan.ts"
+import { getEvents, runEventAnalysisAgent, runBookmakerAgent, runMapperAgent, NoTradeError } from "investing/predictos";
+
+const url = process.argv[2] ?? "https://polymarket.com/event/fed-decision-in-december";
+const event = await getEvents({ url });
+
+const runs = await Promise.all(
+  ["grok-4-1-fast-reasoning", "gpt-4.1"].map((model) =>
+    runEventAnalysisAgent({ markets: event.markets, eventIdentifier: event.eventIdentifier, pmType: event.pmType, model }),
+  ),
+);
+
+const { analysis } = await runBookmakerAgent({
+  analyses: runs.map((r, i) => ({ agentId: `agent-${i}`, model: r.model, analysis: r.analysis })),
+  eventIdentifier: event.eventIdentifier,
+  pmType: event.pmType,
+  model: "gpt-4.1",
+});
+console.log(analysis.agentConsensus.agreementLevel, analysis.recommendedAction, analysis.reasoning);
+
+const market = event.markets[0];
+try {
+  const order = runMapperAgent({
+    platform: "Polymarket",
+    analysisResult: analysis,
+    marketData: {
+      ...market,
+      outcomes: JSON.stringify(market.outcomes),
+      outcomePrices: JSON.stringify(market.outcomePrices),
+      clobTokenIds: JSON.stringify(market.clobTokenIds),
+    },
+    budgetUsd: 25,
+  });
+  console.log("Would place:", order); // pass to runPolymarketPutOrder to trade for real
+} catch (e) {
+  if (e instanceof NoTradeError) console.log("No trade:", e.message);
+  else throw e;
+}
+```
+
+## Cross-venue arbitrage alert
+
+Sweep the top Polymarket events, look for the same event on Kalshi, and print only confident, profitable
+pairs. Needs `OPENAI_API_KEY` and `DFLOW_API_KEY`.
+
+```ts title="arb.ts"
+import { fetchMarkets } from "investing/prediction";
+import { findArbitrage } from "investing/predictos";
+
+const markets = await fetchMarkets(40, "volume24hr");
+const slugs = [...new Set(markets.map((m: any) => m.events?.[0]?.slug).filter(Boolean))];
+
+for (const slug of slugs) {
+  try {
+    const { analysis } = await findArbitrage({ url: `https://polymarket.com/event/${slug}`, model: "gpt-4.1" });
+    const s = analysis.arbitrage.strategy;
+    if (analysis.isSameMarket && analysis.sameMarketConfidence >= 80 && analysis.arbitrage.hasArbitrage && s) {
+      console.log(`${slug}: YES on ${s.buyYesOn} @ ${s.buyYesPrice}¢ + NO on ${s.buyNoOn} @ ${s.buyNoPrice}¢ → +$${s.netProfit}/100`);
+    }
+  } catch (e) {
+    console.warn(slug, (e as Error).message);
+  }
+}
+```
+
+## Attention-driven watchlist
+
+Flag tickers whose Wikipedia page views spiked, then pull a quote and a quick AI debate for each.
+
+```ts title="attention.ts"
+import { pageviews, generateDebateAnalysis } from "investing";
+import { getQuote } from "investing/stocks";
+
+const PAGES: Record<string, string> = { NVDA: "Nvidia", TSLA: "Tesla,_Inc.", PLTR: "Palantir_Technologies", AMD: "AMD" };
+const end = new Date();
+const start = new Date(end.getTime() - 30 * 864e5);
+
+for (const [ticker, article] of Object.entries(PAGES)) {
+  const { items } = (await pageviews.getPerArticlePageviews({ article, start, end, agent: "user" })) as any;
+  const views = items.map((i: any) => i.views);
+  const base = views.slice(0, -1).reduce((a: number, b: number) => a + b, 0) / (views.length - 1);
+  const ratio = views.at(-1) / base;
+  if (ratio < 2) continue;
+
+  const { data } = await getQuote(ticker, { useCache: false });
+  console.log(`${ticker}: ${ratio.toFixed(1)}× normal attention, price ${data?.price}`);
+}
+```
+
+## Backtest a feature set
+
+Use [correlate](/docs/correlate) with a chronological split to see whether indicators predict tomorrow's
+return better than chance. The full script is on that page; the short version:
+
+```ts
+await trainModels(train, "nextReturn", { featuresToUse: features });
+const predicted = await predictFuture(test, { featuresToUse: features });
+console.log("R²", calculateR2(predicted.map((r) => r.predicted), test.map((r) => r.nextReturn)));
+```
+
+An out-of-sample R² near zero is the usual, honest answer for daily returns.

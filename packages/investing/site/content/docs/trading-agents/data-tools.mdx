@@ -1,0 +1,53 @@
+---
+title: Data tools
+description: getStockData and getIndicators — the bars and technical indicators the market analyst reads — plus the fundamentals and news stubs.
+icon: Wrench
+---
+
+```ts
+import { getStockData, getIndicators, getFundamentals, getNews, type StockData, type TechnicalIndicators }
+  from "investing/trading-agents";
+```
+
+## `getStockData(symbol, startDate, endDate)`
+
+Daily bars from Yahoo Finance as `StockData[]` (`{ date, open, high, low, close, volume }`). Throws when Yahoo
+returns nothing.
+
+```ts
+const end = new Date();
+const start = new Date(end.getTime() - 365 * 864e5);
+const bars = await getStockData("SPY", start, end);
+```
+
+## `getIndicators(stockData, indicators)`
+
+Computes the requested indicators over the bars and returns arrays aligned with them.
+
+| Name (alias) | Result keys | Parameters |
+| --- | --- | --- |
+| `close_50_sma` (`sma50`) | `sma50` | 50 |
+| `close_200_sma` (`sma200`) | `sma200` | 200 |
+| `close_10_ema` (`ema10`) | `ema10` | 10 |
+| `rsi` | `rsi` | 14 |
+| `macd` | `macd`, `macdSignal`, `macdHistogram` | 12 / 26 / 9 |
+| `boll` (`bollinger`) | `bollingerUpper`, `bollingerMiddle`, `bollingerLower` | 20, 2σ |
+| `atr` | `atr` | 14 |
+| `vwma` | `vwma` | 20 |
+
+```ts
+const ind = await getIndicators(bars, ["sma50", "sma200", "rsi", "macd", "boll"]);
+
+const last = <T,>(a?: T[]) => a?.at(-1);
+const goldenCross = last(ind.sma50)! > last(ind.sma200)!;
+const overbought = last(ind.rsi)! > 70;
+const aboveBand = bars.at(-1)!.close > last(ind.bollingerUpper)!;
+console.log({ goldenCross, overbought, aboveBand, macdHist: last(ind.macdHistogram) });
+```
+
+## Stubs
+
+- `getFundamentals(symbol)` fetches the **relative** URL `/api/stocks/quote/<symbol>`, so it only works in a
+  browser on an app that serves that route. Use [`yahooFinance.getKeyStatistics`](/docs/stocks/yahoo-finance)
+  in Node.
+- `getNews(symbol, …)` returns `[]` for now. Use [`finnhub.getNews`](/docs/stocks/finnhub).

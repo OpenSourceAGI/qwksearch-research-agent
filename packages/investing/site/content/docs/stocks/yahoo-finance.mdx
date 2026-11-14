@@ -1,0 +1,132 @@
+---
+title: Yahoo Finance
+description: yahooFinance — a wrapper over yahoo-finance2 with quotes, charts, fundamentals, options, earnings, ownership, screeners and more, all returning { success, data | error }.
+icon: ChartCandlestick
+---
+
+```ts
+import { yahooFinance, YahooFinanceWrapper, normalizeChartQuotes, yfinance } from "investing/stocks";
+```
+
+- `yahooFinance` (alias `yahooFinanceWrapper`) is a ready-made `YahooFinanceWrapper` instance.
+- `yfinance` is the raw `yahoo-finance2` instance, for anything the wrapper does not cover.
+- No API key. Yahoo rate-limits by IP, so cache what you can.
+
+Every wrapper method resolves to `{ success: true, data }` or `{ success: false, error }` and never throws.
+
+## Methods
+
+| Method | Returns in `data` | yahoo-finance2 call |
+| --- | --- | --- |
+| `getQuote(symbol, options?)` | Full quote (price, change, market cap, 52-week range…) | `quoteCombine` |
+| `getQuotes(symbols)` | Array of quotes | `quoteCombine` × n |
+| `getHistorical(symbol, { period1, period2?, interval? })` | `HistoricalRow[]` (`1d`, `1wk`, `1mo`; default the last year) | `chart` + `normalizeChartQuotes` |
+| `getChart(symbol, { period1, period2?, interval? })` | Raw chart incl. intraday `1m` `5m` `15m` `1h` | `chart` |
+| `getQuoteSummary(symbol, modules?)` | Selected `quoteSummary` modules | `quoteSummary` |
+| `search(query, { quotesCount?, newsCount? })` | Matching symbols and news (10 / 5 by default) | `search` |
+| `getOptions(symbol, date?)` | Calls and puts for an expiry | `options` |
+| `getRecommendations(symbol)` | Similar symbols analysts follow | `recommendationsBySymbol` |
+| `getTrending(region = "US")` | Trending tickers | `trendingSymbols` |
+| `getInsights(symbol)` | Technical events, valuation, research reports | `insights` |
+| `getFundamentalsTimeSeries(symbol, { period1?, period2?, type? })` | Fundamentals over time | `fundamentalsTimeSeries` |
+| `screener(options)` | Predefined screener results (`day_gainers`, `most_actives`, …) | `screener` |
+| `getCompanyProfile(symbol)` | `{ assetProfile, summaryProfile }` | `quoteSummary` |
+| `getFinancialStatements(symbol)` | Income, balance sheet, cash flow (annual + quarterly) | `quoteSummary` |
+| `getKeyStatistics(symbol)` | `{ keyStatistics, summaryDetail }` | `quoteSummary` |
+| `getEarnings(symbol)` | Earnings, history, trend, calendar | `quoteSummary` |
+| `getOwnership(symbol)` | Institutions, funds, insiders, insider trades | `quoteSummary` |
+| `getSECFilings(symbol)` | Recent filings Yahoo knows about | `quoteSummary` |
+| `getComprehensiveData(symbol)` | Most of the above in one call | several |
+
+## Examples
+
+<Tabs items={['History', 'Fundamentals', 'Options', 'Screener', 'Search']}>
+<Tab value="History">
+
+```ts
+const res = await yahooFinance.getHistorical("AAPL", {
+  period1: "2025-11-01",
+  period2: "2026-11-01",
+  interval: "1wk",
+});
+if (res.success) {
+  for (const row of res.data.slice(-5)) {
+    console.log(row.date.toISOString().slice(0, 10), row.close.toFixed(2), row.volume);
+  }
+}
+```
+
+</Tab>
+<Tab value="Fundamentals">
+
+```ts
+const [stats, earnings, profile] = await Promise.all([
+  yahooFinance.getKeyStatistics("MSFT"),
+  yahooFinance.getEarnings("MSFT"),
+  yahooFinance.getCompanyProfile("MSFT"),
+]);
+
+console.log(stats.data?.keyStatistics?.forwardPE, stats.data?.summaryDetail?.dividendYield);
+console.log(profile.data?.assetProfile?.sector, profile.data?.assetProfile?.fullTimeEmployees);
+```
+
+</Tab>
+<Tab value="Options">
+
+```ts
+const chain = await yahooFinance.getOptions("SPY");
+if (chain.success) {
+  const { expirationDates, options } = chain.data;
+  const nearest = options[0];
+  const atm = nearest.calls.reduce((best: any, c: any) =>
+    Math.abs(c.strike - chain.data.quote.regularMarketPrice) <
+    Math.abs(best.strike - chain.data.quote.regularMarketPrice) ? c : best,
+  );
+  console.log(expirationDates.length, "expiries; ATM call", atm.strike, atm.impliedVolatility);
+}
+```
+
+</Tab>
+<Tab value="Screener">
+
+```ts
+const gainers = await yahooFinance.screener({ scrIds: "day_gainers", count: 10 });
+for (const q of gainers.data?.quotes ?? []) {
+  console.log(q.symbol, q.regularMarketChangePercent?.toFixed(1) + "%");
+}
+```
+
+</Tab>
+<Tab value="Search">
+
+```ts
+const res = await yahooFinance.search("nvidia", { quotesCount: 3, newsCount: 3 });
+console.log(res.data?.quotes.map((q: any) => q.symbol)); // ["NVDA", …]
+console.log(res.data?.news.map((n: any) => n.title));
+```
+
+</Tab>
+</Tabs>
+
+## `normalizeChartQuotes(quotes)`
+
+Yahoo's `chart()` often returns partial rows: the session still in progress, halted symbols, dividend and
+split timestamps. The deprecated `historical()` helper threw on those. `normalizeChartQuotes` instead:
+
+- drops rows with an invalid date or no price at all,
+- backfills the missing OHLC fields from the ones present (`close ?? open ?? adjClose ?? high ?? low`),
+- keeps `high ≥ max(open, close)` and `low ≤ min(open, close)` when filling,
+- sets a missing volume to `0`.
+
+```ts
+import { normalizeChartQuotes } from "investing/stocks";
+
+normalizeChartQuotes([
+  { date: "2026-11-12", open: 10, high: 11, low: 9.5, close: 10.5, volume: 1200 },
+  { date: "2026-11-13", close: 10.8 },                 // partial: filled from close
+  { date: "2026-11-14" },                              // no price: dropped
+]);
+// → [ {…, close: 10.5}, { date, open: 10.8, high: 10.8, low: 10.8, close: 10.8, adjClose: 10.8, volume: 0 } ]
+```
+
+It is covered by the package's `test/yahoo-historical-normalize.test.ts`.

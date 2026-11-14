@@ -1,0 +1,61 @@
+---
+title: Stock names
+description: stockNames — every US-listed symbol with its company name, industry, market cap and CIK, plus cleanCompanyName for display.
+icon: List
+---
+
+```ts
+import { stockNames, cleanCompanyName, type StockNameEntry } from "investing/stocks";
+```
+
+`stockNames` is a bundled array of tuples, built from NASDAQ, NYSE, AMEX, TradingView and SEC data:
+
+```ts
+type StockNameEntry = [
+  symbol: string,
+  name: string,
+  industryId: number,
+  marketCap: number,
+  cik: number,
+];
+```
+
+## Examples
+
+```ts title="Ticker → company"
+const bySymbol = new Map(stockNames.map((row) => [row[0], row]));
+const [, name, , marketCap, cik] = bySymbol.get("AAPL")!;
+console.log(cleanCompanyName(name), `$${(marketCap / 1e12).toFixed(2)}T`, `CIK ${cik}`);
+```
+
+```ts title="Autocomplete"
+function suggest(prefix: string, limit = 8) {
+  const p = prefix.toUpperCase();
+  return stockNames
+    .filter(([symbol, name]) => symbol.startsWith(p) || name.toUpperCase().includes(p))
+    .sort((a, b) => b[3] - a[3]) // biggest companies first
+    .slice(0, limit)
+    .map(([symbol, name]) => `${symbol} — ${cleanCompanyName(name)}`);
+}
+suggest("micro"); // ["MSFT — Microsoft", "MU — Micron Technology", …]
+```
+
+```ts title="Top 10 by market cap"
+const top10 = [...stockNames].sort((a, b) => b[3] - a[3]).slice(0, 10).map((r) => r[0]);
+```
+
+## `cleanCompanyName(name)`
+
+Strips legal suffixes — `Inc.`, `Corporation`, `Ltd`, `PLC`, `AG`, `ASA` and many more — and anything after
+them, then trailing commas and periods. The longest suffix is tried first.
+
+```ts
+cleanCompanyName("Apple Inc. Common Stock"); // "Apple"
+cleanCompanyName("Alphabet Inc. Class A");   // "Alphabet"
+```
+
+## Regenerating the data
+
+The data is produced by `src/stocks/import-stock-names.ts`, a script that downloads the exchange lists and
+writes JSON under `./data`. It is a CLI, not a library export: run it from the package directory with
+`bun src/stocks/import-stock-names.ts`.

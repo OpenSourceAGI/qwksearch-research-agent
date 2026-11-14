@@ -1,0 +1,144 @@
+---
+title: Sync & storage
+description: Jobs that copy Polymarket markets, leaderboards, holders, price history and full trader histories into Cloudflare D1, and the queries that read them back.
+icon: RefreshCw
+---
+
+Everything on this page writes to or reads from Cloudflare D1 through the package's
+[`db`](/docs/database). Install `drizzle-orm`, then run inside a Worker with a `DB` binding or anywhere with
+`CLOUDFLARE_ACCOUNT_ID` + `CLOUDFLARE_D1_TOKEN`.
+
+## Sync jobs
+
+| Function | What it stores | Notes |
+| --- | --- | --- |
+| `syncAll()` | Markets, leaderboard (top 100 by volume), top traders with positions, category stats | One-shot full refresh; returns counts |
+| `syncMarkets(limit = 200, withPrices = true)` | One page of top markets, optionally each market's price history | |
+| `syncAllMarkets(maxMarkets = 0, withPrices = true)` | Every active market | `0` = no cap |
+| `syncMarketsIncremental(maxMarkets = 1000, withPrices = true, withHolders = true)` | Top markets by 24h volume, upserted, plus price history and top holders | Built for frequent cron runs: upserts instead of rewriting the table |
+| `syncLeaderboard({ timePeriod, orderBy, limit })` | `polymarket_leaders` | Same options as `fetchLeaderboard` |
+| `syncLeadersAndCategories()` | Top 50 traders, all their positions, best/worst categories | |
+| `syncPriceHistory(tokenId, { interval, startTs, endTs })` | `polymarket_price_history` | Default `1h` |
+| `syncMarketHolders(marketId, eventId?)` | `polymarket_holders` | |
+| `syncTopTradersTradeHistory(options)` | `polymarket_trade_history` for the top N traders | Resumable, rate-limited |
+| `resumeTradeHistorySync(options)` | Continues an interrupted trade-history sync | |
+| `getTradeHistorySyncProgress()` | Counts of synced / pending / failed traders | |
+
+### Scheduling it on a Worker
+
+```ts title="worker.ts"
+import { syncMarketsIncremental, syncLeaderboard } from "investing/prediction";
+
+export default {
+  async scheduled(event: ScheduledEvent, env: Env) {
+    // the db proxy picks up env.DB from here
+    (globalThis as any).__CLOUDFLARE_ENV__ = env;
+
+    if (event.cron === "*/15 * * * *") await syncMarketsIncremental(500, false, false);
+    if (event.cron === "0 * * * *") await syncLeaderboard({ timePeriod: "1d", orderBy: "PNL", limit: 100 });
+  },
+};
+```
+
+### Full trader histories
+
+```ts
+import { syncTopTradersTradeHistory } from "investing/prediction";
+
+const result = await syncTopTradersTradeHistory({
+  limit: 200,              // top 200 traders on the leaderboard (default 1000)
+  timePeriod: "30d",
+  orderBy: "PNL",
+  batchSize: 10,           // traders processed together (default 10)
+  batchDelay: 1000,        // ms between batches (default 1000)
+  traderDelay: 200,        // ms between traders (default 200)
+  skipRecentlysynced: 24,  // hours; skip traders synced more recently (default 24)
+  onProgress: (p) => console.log(`${p.currentTrader}/${p.totalTraders}`, p),
+});
+console.log(result.tradersProcessed, result.tradersSkipped);
+```
+
+Each trader's sync state is kept in `polymarket_trade_sync_status`, so a crash halfway through resumes with
+`resumeTradeHistorySync()` rather than starting over. The package also exposes the job as the
+`sync:trade-history` npm script.
+
+## Reading it back
+
+<Tabs items={['Markets', 'Leaders', 'Positions & holders', 'Prices', 'Trades', 'Debates']}>
+<Tab value="Markets">
+
+```ts
+import { getMarkets, searchMarketsInDB, getMarketsByCategory } from "investing/prediction";
+
+const top = await getMarkets({ limit: 20, sortBy: "volume24hr", category: "Politics", activeOnly: true });
+const hits = await searchMarketsInDB("election", { limit: 10 });
+const grouped = await getMarketsByCategory();
+```
+
+`sortBy` is `"volume24hr" | "volumeTotal" | "createdAt"`.
+
+</Tab>
+<Tab value="Leaders">
+
+```ts
+import { getLeaders, getCategories } from "investing/prediction";
+
+const byPnl = await getLeaders("pnl", 25); // "vol" | "pnl" | "overallGain"
+const { best, worst } = await getCategories();
+```
+
+</Tab>
+<Tab value="Positions & holders">
+
+```ts
+import { getTraderPositions, getMarketPositions, getMarketHolders } from "investing/prediction";
+
+const mine = await getTraderPositions(traderId);
+const book = await getMarketPositions(marketId);
+const holders = await getMarketHolders(marketId, 10);
+```
+
+</Tab>
+<Tab value="Prices">
+
+```ts
+import { getPriceHistory, calculatePriceChanges } from "investing/prediction";
+
+const rows = await getPriceHistory(tokenId, { interval: "1h" });
+const { daily, weekly, monthly } = await calculatePriceChanges(tokenId, 0.42);
+```
+
+</Tab>
+<Tab value="Trades">
+
+```ts
+import { getTraderTradeHistory, getTraderTradeStats, getLatestTradeTimestamp } from "investing/prediction";
+
+const trades = await getTraderTradeHistory(traderId, { limit: 100 });
+const stats = await getTraderTradeStats(traderId); // counts and volume
+const last = await getLatestTradeTimestamp(traderId); // unix seconds | null
+```
+
+</Tab>
+<Tab value="Debates">
+
+```ts
+import { saveDebate, getMarketDebate } from "investing/prediction";
+import { generateDebateAnalysis } from "investing";
+
+const market = { question, currentYesPrice: 0.41, currentNoPrice: 0.59 };
+const debate = await generateDebateAnalysis(market);
+await saveDebate(marketId, { ...market, ...debate, llmProvider: "groq" });
+const stored = await getMarketDebate(marketId);
+```
+
+See [debate generator](/docs/debate-generator).
+
+</Tab>
+</Tabs>
+
+## Lower-level writers
+
+`saveMarkets`, `saveLeaders`, `saveLeaderboardData`, `savePositions`, `saveMarketPositions`, `saveHolders`,
+`savePriceHistory`, `saveTradeHistory`, `saveCategories` and `updateTradeSyncStatus` are exported too, for
+when you fetch with the API functions yourself and only want the upsert.

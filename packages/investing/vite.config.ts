@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { builtinModules } from "module";
 import { resolve } from "path";
 import dts from "vite-plugin-dts";
 
@@ -23,6 +24,16 @@ export default defineConfig({
       // PredictOS core was merged in here.
       entry: {
         index: resolve(__dirname, "src/index.ts"),
+        // Narrower entries for the subpaths declared in `exports`, so a
+        // consumer that only needs quotes or Polymarket does not load the
+        // whole barrel. `./constants` and `./utils` have no source yet.
+        "alpaca/index": resolve(__dirname, "src/alpaca/client.ts"),
+        "stocks/index": resolve(__dirname, "src/stocks/index.ts"),
+        "prediction/index": resolve(__dirname, "src/prediction/index.ts"),
+        "trading-agents/index": resolve(
+          __dirname,
+          "src/trading-agents/index.ts",
+        ),
         "predictos/index": resolve(__dirname, "src/predictos/index.ts"),
         "predictos/ai/index": resolve(__dirname, "src/predictos/ai/index.ts"),
         "predictos/agents/index": resolve(
@@ -45,6 +56,11 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+        // Node built-ins stay real imports. Without this Vite swaps `fs` and
+        // `path` for empty browser shims, and module-scope calls such as
+        // tv-scraper's `path.join(process.cwd(), …)` crash on import.
+        ...builtinModules,
+        ...builtinModules.map((m) => `node:${m}`),
         "react", "react-dom", "next",
         "axios", "csv-parse", "date-fns", "dotenv", "drizzle-orm",
         "ethers", "indicatorts", "langchain", "nanoid",

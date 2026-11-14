@@ -1,0 +1,101 @@
+---
+title: PredictOS overview
+description: The prediction-market agent pipeline — paste a Kalshi, Polymarket or Jupiter URL, get its markets, an AI analysis with alpha and a predicted winner, a multi-agent consensus, and Polymarket order parameters.
+icon: Brain
+---
+
+```ts
+import {
+  getEvents,              // URL → raw markets
+  runEventAnalysisAgent,  // markets → MarketAnalysis
+  runBookmakerAgent,      // several analyses → AggregatedAnalysis
+  runMapperAgent,         // analysis → PolymarketOrderParams (pure)
+  runPolymarketPutOrder,  // order params → a real order
+  findArbitrage,          // URL → cross-venue mispricing
+  NoTradeError,
+} from "investing/predictos";
+```
+
+Adapted from [PredictOS](https://github.com/PredictionXBT/PredictOS) by PredictionXBT (MIT). The original
+Supabase edge functions became plain async functions: no HTTP handler, no CORS, no `Deno.env`.
+
+## The pipeline
+
+```text
+                 ┌─ runEventAnalysisAgent (model A) ─┐
+URL ─ getEvents ─┤                                   ├─ runBookmakerAgent ─ runMapperAgent ─ runPolymarketPutOrder
+                 └─ runEventAnalysisAgent (model B) ─┘
+URL ─ findArbitrage  (search the other venue, compare prices)
+```
+
+| Step | Page | Network | Keys |
+| --- | --- | --- | --- |
+| `getEvents` | [Events](/docs/predictos/events) | Gamma or DFlow | `DFLOW_API_KEY` for Kalshi |
+| `runEventAnalysisAgent` | [Event analysis](/docs/predictos/event-analysis) | an LLM | the model's provider key |
+| `runBookmakerAgent` | [Bookmaker](/docs/predictos/bookmaker) | an LLM | OpenAI or xAI |
+| `runMapperAgent` | [Mapper](/docs/predictos/mapper) | none | none — try it in the [playground](/docs/playground) |
+| `runPolymarketPutOrder` | [Execution agents](/docs/predictos/execution-agents) | Polymarket CLOB | a Polygon wallet |
+| `findArbitrage` | [Arbitrage](/docs/predictos/arbitrage) | Gamma, DFlow, an LLM | provider key, `DFLOW_API_KEY` |
+
+## Conventions shared by every entry point
+
+- **Signature** `fn(request, config = {})`. `request` is a typed object; `config` is `AIConfig` and/or
+  `DataConfig`, and every field falls back to an environment variable (see
+  [environment](/docs/environment#by-module)).
+- **Validation throws.** A missing `model`, `url`, `markets`, `eventIdentifier` or a bad `pmType` throws an
+  `Error` with a message like `Missing required parameter: 'model'`. Nothing returns `{ success: false }`.
+- **Model routing** picks the provider from the model name: `blockrun/*` (or a key of `BLOCKRUN_MODELS`) goes
+  to BlockRun, `gpt-*` and the listed OpenAI ids go to OpenAI, anything else goes to Grok/xAI.
+- **Tools** (`x_search`, `web_search`) only reach Grok. BlockRun turns them into its own search flag; OpenAI
+  ignores them.
+- **Results carry timing**: `processingTimeMs`, plus `tokensUsed` and, for BlockRun, `paymentCost` (USDC).
+
+## End to end in 25 lines
+
+```ts title="predict.ts"
+import { getEvents, runEventAnalysisAgent, runBookmakerAgent, runMapperAgent, NoTradeError } from "investing/predictos";
+
+const url = "https://polymarket.com/event/fed-decision-in-december";
+const event = await getEvents({ url });
+
+const models = ["grok-4-1-fast-reasoning", "gpt-4.1"];
+const runs = await Promise.all(
+  models.map((model) =>
+    runEventAnalysisAgent({ markets: event.markets, eventIdentifier: event.eventIdentifier, pmType: event.pmType, model }),
+  ),
+);
+
+const { analysis: consensus } = await runBookmakerAgent({
+  analyses: runs.map((r, i) => ({ agentId: `agent-${i}`, model: r.model, analysis: r.analysis })),
+  eventIdentifier: event.eventIdentifier,
+  pmType: event.pmType,
+  model: "gpt-4.1",
+});
+console.log(consensus.agentConsensus.agreementLevel, consensus.recommendedAction);
+
+const market = (event.markets as any[]).find((m) => m.question === consensus.title) ?? event.markets[0];
+try {
+  const { orderParams } = runMapperAgent({
+    platform: "Polymarket",
+    analysisResult: consensus,
+    marketData: { ...market, clobTokenIds: JSON.stringify(market.clobTokenIds), outcomes: JSON.stringify(market.outcomes), outcomePrices: JSON.stringify(market.outcomePrices) },
+    budgetUsd: 20,
+  });
+  console.log(orderParams);
+} catch (e) {
+  if (e instanceof NoTradeError) console.log("Agents say: no trade.");
+  else throw e;
+}
+```
+
+<Callout type="info" title="Gamma arrays vs. strings">
+  `getEvents` returns Gamma's event markets, whose `outcomes`, `outcomePrices` and `clobTokenIds` may already
+  be arrays, while `runMapperAgent` parses them as JSON strings. `JSON.stringify` on the way in, as above,
+  works for both.
+</Callout>
+
+## Not ported (yet)
+
+The Next.js `terminal/` frontend, the Python alpha-hunter examples, pay.sh payment serving, Irys verifiable
+storage, wallet-tracking websockets and Kalshi order mapping. BlockRun's client is ported but its on-chain
+micropayment flow is untested.

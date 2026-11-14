@@ -1,0 +1,15 @@
+{
+  "title": "PredictOS",
+  "icon": "Brain",
+  "pages": [
+    "index",
+    "events",
+    "event-analysis",
+    "bookmaker",
+    "mapper",
+    "arbitrage",
+    "ai-clients",
+    "data-clients",
+    "execution-agents"
+  ]
+}

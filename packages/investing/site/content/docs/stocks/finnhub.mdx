@@ -1,0 +1,53 @@
+---
+title: Finnhub
+description: finnhub — candles with an Alpaca fallback, quote summaries, symbol search, peers, analyst trends, financials, company news and forex rates.
+icon: Newspaper
+---
+
+```ts
+import { finnhub, FinnhubWrapper } from "investing/stocks";
+```
+
+Set `FINNHUB_API_KEY` (a free key works for most endpoints). Responses are `{ success, …, error? }`.
+
+| Method | Result |
+| --- | --- |
+| `getHistoricalData({ symbol, period1, period2, interval? })` | Candles. Interval `"1" "5" "15" "30" "60" "D" "W" "M"` (or `1d`-style, mapped). Falls back to the Alpaca data API when Finnhub has no key or fails |
+| `getQuote({ symbol, modules? })` | Yahoo-shaped `{ price, summaryDetail, defaultKeyStatistics, financialData, summaryProfile }` built from Finnhub's quote, profile and metrics |
+| `search(query)` | `{ results: [{ symbol, shortname, exchange, quoteType }] }` |
+| `getPeers(symbol)` | `{ peers: string[] }` |
+| `getRecommendations(symbol)` | `{ data: { recommendationTrend: { trend: [{ period, strongBuy, buy, hold, sell, strongSell }] } } }` |
+| `getFinancials(symbol)` | Statements plus Finnhub's `metric` and `series` |
+| `getNews(symbol, from?, to?)` | `{ news: [{ title, link, publisher, publishedAt, summary, image, category, related }] }`, last 7 days by default |
+| `getForexRate(base, quote)` | `{ rate }` |
+
+## Examples
+
+```ts title="Analyst consensus"
+const rec = await finnhub.getRecommendations("AMD");
+const latest = rec.data?.recommendationTrend.trend[0];
+if (latest) {
+  const bulls = latest.strongBuy + latest.buy;
+  const total = bulls + latest.hold + latest.sell + latest.strongSell;
+  console.log(`${latest.period}: ${Math.round((bulls / total) * 100)} % buy`);
+}
+```
+
+```ts title="Headlines for a ticker"
+const { news = [] } = await finnhub.getNews("TSLA", "2026-11-01", "2026-11-13");
+for (const n of news.slice(0, 5)) {
+  console.log(n.publishedAt.toISOString().slice(0, 10), n.publisher, "—", n.title);
+}
+```
+
+```ts title="Peers and their prices"
+import { finnhub, getQuotes } from "investing/stocks";
+
+const { peers = [] } = await finnhub.getPeers("NVDA");
+const { data } = await getQuotes(peers.slice(0, 6));
+console.table(data?.quotes.map((q) => ({ symbol: q.symbol, price: q.price })));
+```
+
+```ts title="FX"
+const { rate } = await finnhub.getForexRate("EUR", "USD");
+```

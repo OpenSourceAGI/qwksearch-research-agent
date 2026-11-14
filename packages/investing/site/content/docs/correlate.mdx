@@ -1,0 +1,112 @@
+---
+title: Correlate (XGBoost)
+description: trainModels, predictFuture, calculateRMSE, calculateR2, calculateRollingStats, saveModel and loadModel — gradient-boosted regression on any table of numbers.
+icon: Sigma
+---
+
+```ts
+import {
+  trainModels,
+  splitTrainTest,
+  predictFuture,
+  calculateRMSE,
+  calculateR2,
+  calculateRollingStats,
+  saveModel,
+  loadModel,
+} from "investing";
+```
+
+Backed by the native [`xgboost_node`](https://www.npmjs.com/package/xgboost_node) binding, so it runs in
+Node or Bun on a server — not in the browser and not on Cloudflare Workers. The model lives in that binding:
+`trainModels` replaces it, `predictFuture` and `saveModel` use whatever was trained or loaded last.
+
+## How XGBoost works, briefly
+
+Gradient boosting builds decision trees one after another. Each new tree is fitted to the errors (residuals)
+of all the trees before it, and its prediction is added with a small weight (`eta`). Depth limits, minimum
+leaf weights, row/column subsampling and L1/L2 penalties keep it from memorising the training set.
+
+## `trainModels(rows, target, options)` → R² on the test split
+
+<TypeTable
+  type={{
+    featuresToUse: { type: 'string[]', required: true, description: 'the columns used as inputs, in this order' },
+    testSize: { type: 'number', default: '0.1', description: 'share of rows held out for scoring' },
+    xgbParams: { type: 'XGBoostParams', description: 'replaces the defaults below entirely when given' },
+  }}
+/>
+
+Defaults: `max_depth 7`, `eta 0.07`, `objective "reg:squarederror"`, `subsample 0.85`,
+`colsample_bytree 0.8`, `colsample_bylevel 0.8`, `min_child_weight 5`, `gamma 0.2`, `alpha 0.1`,
+`lambda 1.5`, `nrounds 2000`, `early_stopping_rounds 50`, `tree_method "hist"`, `seed 42`, `nthread 4`.
+
+<Callout type="warn" title="Two gotchas">
+  **Passing `xgbParams` drops every default** (it is a destructuring default, not a merge), so spread what you
+  want to keep. And `splitTrainTest` **shuffles** rows before splitting: on time series that leaks the future
+  into training and flatters R². Split by date yourself and score with `predictFuture` + `calculateR2`.
+</Callout>
+
+```ts title="Predict next-day return from indicators"
+import { trainModels, predictFuture, calculateR2, calculateRollingStats } from "investing";
+import { getStockData, getIndicators } from "investing/trading-agents";
+
+const bars = await getStockData("SPY", new Date("2021-01-01"), new Date("2026-11-01"));
+const ind = await getIndicators(bars, ["rsi", "macd", "atr"]);
+
+let rows = bars.map((b, i) => ({
+  rsi: ind.rsi?.[i],
+  macd: ind.macdHistogram?.[i],
+  atr: ind.atr?.[i],
+  volume: b.volume,
+  nextReturn: i + 1 < bars.length ? (bars[i + 1].close / b.close - 1) * 100 : NaN,
+}));
+rows = calculateRollingStats(rows, "volume", 20);
+rows = rows.filter((r) => Object.values(r).every((v) => v != null && !Number.isNaN(v)));
+
+const features = ["rsi", "macd", "atr", "volume_rolling_mean_20d"];
+const cut = Math.floor(rows.length * 0.8);   // chronological split
+const train = rows.slice(0, cut), test = rows.slice(cut);
+
+await trainModels(train, "nextReturn", { featuresToUse: features, testSize: 0.1 });
+const predicted = await predictFuture(test, { featuresToUse: features });
+console.log("out-of-sample R²", calculateR2(predicted.map((r) => r.predicted), test.map((r) => r.nextReturn)));
+```
+
+## `predictFuture(rows, { featuresToUse })`
+
+Returns the same rows with a `predicted` field added. Use the same `featuresToUse`, in the same order, as
+when training.
+
+```ts
+const out = await predictFuture([{ temperature: 23, humidity: 68, rainfall: 4 }], {
+  featuresToUse: ["temperature", "humidity", "rainfall"],
+});
+// [{ temperature: 23, humidity: 68, rainfall: 4, predicted: 102.5 }]
+```
+
+## Metrics
+
+`calculateRMSE(actual, predicted)` and `calculateR2(predicted, actual)` — mind the **opposite argument
+order**. Try them:
+
+<ModelMetricsPlayground />
+
+## `calculateRollingStats(rows, field, window = 7)`
+
+Adds `<field>_rolling_mean_<window>d` and `<field>_rolling_std_<window>d` to each row. Rows before the window
+is full copy the raw value into both columns; values are **floored to integers**, so scale small numbers up
+first (basis points instead of percent).
+
+<RollingStatsPlayground />
+
+## Persisting a model
+
+```ts
+await trainModels(rows, "nextReturn", { featuresToUse: features });
+await saveModel("./models/spy-next-return.bin");
+
+// later, in another process
+await loadModel("./models/spy-next-return.bin");
+const preds = await predictFuture(todayRows, { featuresToUse: features });
+```

@@ -1,0 +1,102 @@
+---
+title: Markets & search
+description: fetchMarkets, fetchAllMarkets, searchMarkets, searchPublic, fetchMarket, fetchActiveMarketsWithPrices and the category/keyword blocklist.
+icon: Search
+---
+
+```ts
+import {
+  fetchMarkets,
+  fetchAllMarkets,
+  searchMarkets,
+  searchPublic,
+  fetchMarket,
+  fetchActiveMarketsWithPrices,
+  isMarketBlocked,
+  checkGammaHealth,
+} from "investing/prediction";
+```
+
+## `fetchMarkets(limit = 50, sortBy = "volume24hr", offset = 0)`
+
+One page of **active, open** markets from the Gamma API, sorted descending by `sortBy`. Throws on a non-2xx.
+
+```ts
+const byVolume = await fetchMarkets(20);                    // 24h volume
+const byLiquidity = await fetchMarkets(20, "liquidity");
+const newest = await fetchMarkets(20, "startDate");
+const page3 = await fetchMarkets(50, "volume24hr", 100);    // rows 100–149
+```
+
+Any Gamma market field works as `sortBy`: `volume24hr`, `volume`, `liquidity`, `startDate`, `endDate`,
+`competitive`…
+
+## `fetchAllMarkets(sortBy = "volume24hr", maxMarkets = 1000)`
+
+Paginates `fetchMarkets` until it has `maxMarkets` (pass `0` for every active market).
+
+```ts
+const all = await fetchAllMarkets("volume24hr", 0);
+const endingThisWeek = all.filter((m: any) => new Date(m.endDate) < new Date(Date.now() + 7 * 864e5));
+```
+
+## `searchMarkets(query, limit = 100)`
+
+Full-text search through Gamma's public search, returning only markets that are `active && !closed`. An empty
+query returns `[]`.
+
+```ts
+const fed = await searchMarkets("fed rate cut");
+for (const m of fed.slice(0, 5)) console.log(m.question, m.outcomePrices);
+```
+
+## `searchPublic(options)`
+
+The raw public-search endpoint, for events and profiles as well as markets.
+
+```ts
+const res = await searchPublic({
+  q: "bitcoin",
+  events_status: "active",
+  limit_per_type: 10,
+  events_tag: ["crypto"],
+  search_profiles: true,
+  sort: "volume",
+  ascending: false,
+});
+console.log(res.events?.length, res.markets?.length, res.profiles?.length);
+```
+
+Options: `q` (required), `cache`, `events_status`, `limit_per_type`, `page`, `events_tag[]`,
+`keep_closed_markets` (0/1), `sort`, `ascending`, `search_tags`, `search_profiles`, `recurrence`,
+`exclude_tag_id[]`, `optimized`.
+
+## `fetchMarket(marketId)` and `checkGammaHealth()`
+
+```ts
+const market = await fetchMarket("516710"); // Market | null — null on any error
+const up = await checkGammaHealth();          // true when /events answers
+```
+
+## `fetchActiveMarketsWithPrices(blockCategories?, blockKeywords?)`
+
+Every active market with its YES/NO prices parsed to numbers, minus the blocklist. Built for a signal
+pipeline that scans the whole venue.
+
+```ts
+const rows = await fetchActiveMarketsWithPrices(["Sports", "Crypto"], ["up or down", "temperature"]);
+const cheapYes = rows.filter((r) => r.yesPrice > 0.02 && r.yesPrice < 0.1);
+console.log(cheapYes.map((r) => `${r.market.question} @ ${r.yesPrice}`));
+```
+
+## `isMarketBlocked(question, category, blockCategories, blockKeywords)`
+
+```ts
+isMarketBlocked("Bitcoin up or down at 3pm?", "Crypto", ["Sports"], ["up or down"]);
+// → { blocked: true, reason: "keyword", matchedValue: "up or down" }
+
+isMarketBlocked("Will the Fed cut?", "Economics", ["Sports"], []);
+// → { blocked: false }
+```
+
+Matching is case-insensitive; a category match wins over a keyword match.

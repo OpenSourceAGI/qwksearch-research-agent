@@ -7,7 +7,8 @@ description: Guide to investing (packages/investing), the financial-data, tradin
 
 `packages/investing`, published as **investing**. A vendored package (it originates in
 [`ai-broker-investing-agent`](https://github.com/OpenSourceAGI/ai-broker-investing-agent))
-covering four fairly separate concerns behind one name:
+covering four fairly separate concerns behind one name. Full user docs, with examples
+and a live playground, are the Fumadocs site in `packages/investing/site` (deployed on Vercel):
 
 | Area | Lives in | Subpath |
 | --- | --- | --- |
@@ -107,7 +108,12 @@ const { analysis } = await runEventAnalysisAgent({
 });
 
 try {
-  const { orderParams } = await runMapperAgent({ analysis, pmType: event.pmType });
+  const { orderParams } = runMapperAgent({        // synchronous
+    platform: "Polymarket",                           // case-sensitive; "Kalshi" throws
+    analysisResult: analysis,
+    marketData: event.markets[0],                     // JSON.stringify outcomes/outcomePrices/clobTokenIds if arrays
+    budgetUsd: 25,                                    // $1–$100
+  });
 } catch (e) {
   if (e instanceof NoTradeError) { /* the analysis said NO TRADE */ }
 }
@@ -159,7 +165,7 @@ same D1 database over Cloudflare's REST API.
 | `Cannot find module 'predictos'` | The package was merged into `investing`. Import from `investing/predictos` (or `investing/predictos/ai`, `/agents`, `/arbitrage`, `/data/kalshi`, `/data/polymarket`). |
 | `packages/predictos` is missing | Expected — it is now `packages/investing/src/predictos`. |
 | A `investing/predictos/*` import resolves to nothing | The subpath exports point at `dist/`, and the entry has to be declared in `vite.config.ts`'s `build.lib.entry` map as well as in `package.json`'s `exports`. Add it in **both**, then `bun run build`. |
-| `investing/alpaca`, `/stocks`, `/prediction`, `/trading-agents`, `/constants`, `/utils` resolve to nothing | Those subpaths are declared in `exports` but have no matching build entry (and `src/constants` does not exist at all). Import from the `investing` barrel, or add the entry to `vite.config.ts` first. Pre-existing; unrelated to the merge. |
+| `investing/constants` or `/utils` resolve to nothing | Declared in `exports` but never built (`src/constants` does not exist). `./alpaca`, `./stocks`, `./prediction` and `./trading-agents` are built since the docs-site change; on ≤0.1.346 they were missing too, so import those names from the barrel there. |
 | A package edit "doesn't show up" in the web app | Consumers read `dist/`, not `src/`. `bun run build` in `packages/investing`. |
 | `Missing required parameter: 'model'` / `'url'` / `Missing or invalid 'markets'` | PredictOS validates by throwing. `findArbitrage` needs both `url` *and* `model`; `runEventAnalysisAgent` needs `markets`, `eventIdentifier`, `pmType` and `model`. |
 | `NoTradeError` out of `runMapperAgent` | Not a bug — the analysis recommended NO TRADE. Catch it; it is exported from `investing/predictos`. |

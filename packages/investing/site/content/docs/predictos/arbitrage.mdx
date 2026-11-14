@@ -1,0 +1,110 @@
+---
+title: Arbitrage finder
+description: findArbitrage — take a Polymarket or Kalshi URL, find the same event on the other venue, and check whether buying YES on one and NO on the other locks in a profit.
+icon: Scale
+---
+
+```ts
+import { findArbitrage, type ArbitrageAnalysis } from "investing/predictos";
+// or the narrow entry: import { findArbitrage } from "investing/predictos/arbitrage";
+
+const result = await findArbitrage({ url, model }, { openaiApiKey?, xaiApiKey?, dflowApiKey? });
+```
+
+## How it works
+
+<Steps>
+<Step>**Parse the URL.** `polymarket.com/event/<slug>` or `kalshi.com/markets/<series>/<slug>/<ticker>` (also `/events/<ticker>`). Anything else throws `Invalid URL. Must be a Polymarket or Kalshi market URL.`</Step>
+<Step>**Fetch the source event** from Gamma (Polymarket) or DFlow (Kalshi) and normalise YES/NO prices to 0–100.</Step>
+<Step>**Generate a search query** with the model: the one or two keywords most likely to match on the other venue (`searchQueryGeneratorPrompt`).</Step>
+<Step>**Search the other venue**: Gamma public search, or DFlow for Kalshi.</Step>
+<Step>**Ask the model** whether any result is the *same* event (same resolution criteria and date), and if so whether YES + NO across venues costs less than the $1 payout (`arbitrageAnalysisPrompt`).</Step>
+</Steps>
+
+If the search returns nothing, it skips the last model call and returns an analysis with
+`isSameMarket: false` and `model: "none"`.
+
+## Result
+
+```ts
+{
+  analysis: ArbitrageAnalysis,
+  model: string,                 // "none" when no candidates were found
+  tokensUsed?: number,
+  sourceMarket: "polymarket" | "kalshi",
+  searchedMarket: "polymarket" | "kalshi",
+  processingTimeMs: number,
+}
+```
+
+<TypeTable
+  type={{
+    isSameMarket: { type: 'boolean', description: 'do both markets resolve on the same event?' },
+    sameMarketConfidence: { type: 'number', description: '0–100' },
+    marketComparisonReasoning: { type: 'string' },
+    polymarketData: { type: 'ArbitrageMarketData', description: 'name, identifier, yesPrice, noPrice (0–100), volume, liquidity, url' },
+    kalshiData: { type: 'ArbitrageMarketData' },
+    arbitrage: { type: 'ArbitrageOpportunity', description: 'hasArbitrage, profitPercent, strategy' },
+    summary: { type: 'string' },
+    risks: { type: 'string[]' },
+    recommendation: { type: 'string' },
+  }}
+/>
+
+`arbitrage.strategy` spells out the trade for $100 on each side: `buyYesOn`, `buyYesPrice`, `buyNoOn`,
+`buyNoPrice`, `totalCost`, `guaranteedPayout` (100) and `netProfit`.
+
+## The arithmetic
+
+A YES share and a NO share on the same event always pay exactly $1 between them. If YES costs 41¢ on Kalshi
+and NO costs 55¢ on Polymarket, the pair costs 96¢ and pays $1 — 4¢ of profit, **4.2 %** on the money in,
+before fees, regardless of the outcome.
+
+```ts
+const yesKalshi = 41, noPolymarket = 55; // cents
+const cost = yesKalshi + noPolymarket;      // 96
+const profitPct = ((100 - cost) / cost) * 100; // 4.17
+```
+
+The model's job is the hard part: deciding whether two differently worded markets really resolve the same
+way. Read `marketComparisonReasoning` and `risks` before trading — a mismatched resolution date turns
+"arbitrage" into two unrelated bets.
+
+## Examples
+
+```ts title="Scan one URL"
+const { analysis, sourceMarket, searchedMarket } = await findArbitrage({
+  url: "https://polymarket.com/event/fed-decision-in-december",
+  model: "grok-4-1-fast-reasoning",
+});
+
+console.log(`${sourceMarket} → ${searchedMarket}: same event? ${analysis.isSameMarket} (${analysis.sameMarketConfidence}%)`);
+if (analysis.isSameMarket && analysis.arbitrage.hasArbitrage) {
+  const s = analysis.arbitrage.strategy!;
+  console.log(`YES on ${s.buyYesOn} @ ${s.buyYesPrice}, NO on ${s.buyNoOn} @ ${s.buyNoPrice} → +$${s.netProfit} per $100`);
+}
+```
+
+```ts title="Sweep the top Polymarket events"
+import { fetchMarkets } from "investing/prediction";
+import { findArbitrage } from "investing/predictos";
+
+const markets = await fetchMarkets(30, "volume24hr");
+const slugs = [...new Set(markets.map((m: any) => m.events?.[0]?.slug).filter(Boolean))];
+
+for (const slug of slugs) {
+  try {
+    const { analysis } = await findArbitrage({ url: `https://polymarket.com/event/${slug}`, model: "gpt-4.1" });
+    if (analysis.arbitrage.hasArbitrage && analysis.sameMarketConfidence >= 80) {
+      console.log(slug, analysis.arbitrage.profitPercent?.toFixed(2) + "%", analysis.recommendation);
+    }
+  } catch (e) {
+    console.warn(slug, (e as Error).message);
+  }
+}
+```
+
+<Callout type="warn">
+  Prices move between the scan and your orders, both venues charge fees, and Kalshi and Polymarket settle
+  differently. Treat `hasArbitrage` as a lead to verify, not a fill.
+</Callout>

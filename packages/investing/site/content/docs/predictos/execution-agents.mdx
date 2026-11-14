@@ -1,0 +1,113 @@
+---
+title: Execution & research agents
+description: runPolymarketPutOrder, runPolymarketPositionTracker, runPolymarketUpDown15LimitOrderBot, runPolyfactualResearch and runX402Seller — the agents that spend money or buy research.
+icon: Zap
+---
+
+```ts
+import {
+  runPolymarketPutOrder,
+  runPolymarketPositionTracker,
+  runPolymarketUpDown15LimitOrderBot,
+  runPolyfactualResearch,
+  runX402Seller,
+} from "investing/predictos/agents";
+```
+
+<Callout type="error" title="These place real orders">
+  The Polymarket agents sign with `POLYMARKET_WALLET_PRIVATE_KEY` and trade real USDC on Polygon. There is no
+  paper mode. Use a dedicated wallet holding only what you are prepared to lose.
+</Callout>
+
+Polymarket wallet settings: `POLYMARKET_WALLET_PRIVATE_KEY` (required), `POLYMARKET_PROXY_WALLET_ADDRESS`
+(the funder address shown on polymarket.com), `POLYMARKET_SIGNATURE_TYPE` (default `1`). Responses are
+`{ success, data?, error?, metadata: { requestId, timestamp, processingTimeMs } }` — these agents report
+failures in the result instead of throwing.
+
+## `runPolymarketPutOrder(request)`
+
+Places the order the [mapper](/docs/predictos/mapper) produced.
+
+```ts
+import { runMapperAgent, runPolymarketPutOrder } from "investing/predictos";
+
+const { orderParams } = runMapperAgent({ platform: "Polymarket", analysisResult, marketData, budgetUsd: 10 });
+const res = await runPolymarketPutOrder({ orderParams: orderParams as any });
+
+if (res.success) {
+  const { order, market } = res.data!;
+  console.log(order.orderId, order.status, `${order.size} @ ${order.price} = $${order.costUsd}`, market.title);
+} else {
+  console.error(res.error);
+}
+```
+
+Legacy mode, without the mapper: `{ conditionId | marketSlug, side: "YES" | "NO", budgetUsd (1–100), price? }`.
+
+## `runPolymarketPositionTracker({ asset, marketSlug?, tokenIds? })`
+
+Your position in the current (or a given) 15-minute up/down market for `"BTC" | "ETH" | "SOL" | "XRP"`.
+
+```ts
+const pos = await runPolymarketPositionTracker({ asset: "BTC" });
+console.log(pos.data);
+```
+
+## `runPolymarketUpDown15LimitOrderBot(request)`
+
+Posts resting limit orders on **both** sides of the next 15-minute up/down market, so you are filled on
+whichever side the market dips to.
+
+<TypeTable
+  type={{
+    asset: { type: '"BTC" | "ETH" | "SOL" | "XRP"', required: true },
+    price: { type: 'number', default: '48', description: 'percent; ignored in ladder mode' },
+    sizeUsd: { type: 'number', default: '25', description: 'total bankroll, split across rungs in ladder mode' },
+    ladder: { type: 'LadderConfig', description: '{ enabled, maxPrice = 49, minPrice = 35, taperFactor = 1.5 }' },
+  }}
+/>
+
+```ts
+// Single price
+await runPolymarketUpDown15LimitOrderBot({ asset: "ETH", price: 47, sizeUsd: 20 });
+
+// Ladder from 49 % down to 38 %, more size at the cheaper rungs
+const res = await runPolymarketUpDown15LimitOrderBot({
+  asset: "BTC",
+  sizeUsd: 50,
+  ladder: { enabled: true, maxPrice: 49, minPrice: 38, taperFactor: 2 },
+});
+console.log(res.data);
+```
+
+## `runPolyfactualResearch({ query })`
+
+Deep research with citations from the Polyfactual API (`POLYFACTUAL_API_KEY`).
+
+```ts
+const r = await runPolyfactualResearch({ query: "Odds the ECB cuts in December and why" });
+if (r.success) {
+  console.log(r.answer);
+  for (const c of r.citations ?? []) console.log("-", c.title, c.url);
+}
+```
+
+## `runX402Seller(request)` [#x402-seller]
+
+Discover and pay **x402 / PayAI sellers** — APIs that charge per request in USDC.
+
+| `action` | Fields | Does |
+| --- | --- | --- |
+| `"list"` | `network?`, `type?`, `limit?`, `offset?` | List sellers from `X402_DISCOVERY_URL` |
+| `"call"` | `resourceUrl`, `query?`, `method?` | Pay and call one seller (EVM or Solana key) |
+| `"health"` | — | Check the discovery service |
+| `"networks"` | — | Supported payment networks |
+
+```ts
+const sellers = await runX402Seller({ action: "list", network: "base", limit: 10 });
+const answer = await runX402Seller({ action: "call", resourceUrl: "https://seller.example/api/news", query: "Fed December" });
+```
+
+Keys: `X402_EVM_PRIVATE_KEY` and/or `X402_SOLANA_PRIVATE_KEY`, `X402_PREFERRED_NETWORK`,
+`X402_FACILITATOR_URL`, `SOLANA_RPC_URL`. The Solana path needs the optional `@solana/web3.js`,
+`@solana/spl-token` and `bs58` packages installed.

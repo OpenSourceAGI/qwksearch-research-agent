@@ -1,0 +1,108 @@
+---
+title: Import paths
+description: Which subpaths exist, what each one loads, and why importing the barrel costs more than you might expect.
+icon: Route
+---
+
+`investing` has one barrel (`"investing"`) that re-exports almost everything, plus narrower subpaths. Prefer a
+subpath: the barrel pulls in LangChain, the Alpaca SDK, `yahoo-finance2`, the Polymarket CLOB client and the
+native `xgboost_node` binding all at once.
+
+## Subpaths
+
+| Import | Contents | Docs |
+| --- | --- | --- |
+| `investing` | Everything below plus the database schema, correlate, social trading, debate generator, Wikipedia pageviews | — |
+| `investing/alpaca` | `createAlpacaClient`, `createAlpacaBrokerClient`, `AlpacaConfig` | [Alpaca](/docs/alpaca) |
+| `investing/stocks` | Unified quote service, Yahoo Finance wrapper, Finnhub wrapper, SEC `Downloader`, stock names | [Stocks](/docs/stocks) |
+| `investing/prediction` | Polymarket API calls, D1 storage, analysis and sync jobs | [Polymarket](/docs/prediction) |
+| `investing/trading-agents` | `TradingAgentsGraph`, the agent classes, memory, LLM client, data tools | [Trading agents](/docs/trading-agents) |
+| `investing/predictos` | The whole PredictOS core (barrel) | [PredictOS](/docs/predictos) |
+| `investing/predictos/ai` | OpenAI, Grok and BlockRun clients, prompt builders | [AI clients](/docs/predictos/ai-clients) |
+| `investing/predictos/agents` | Event analysis, bookmaker, mapper, and the execution agents | [Agents](/docs/predictos/event-analysis) |
+| `investing/predictos/data/kalshi` | Kalshi via DFlow | [Data clients](/docs/predictos/data-clients) |
+| `investing/predictos/data/polymarket` | Polymarket (and Kalshi) via Dome | [Data clients](/docs/predictos/data-clients) |
+| `investing/predictos/arbitrage` | `findArbitrage` | [Arbitrage](/docs/predictos/arbitrage) |
+
+<Callout type="warn" title="Versions up to 0.1.346">
+  In 0.1.346 and earlier only `investing` and the `investing/predictos/*` subpaths were built:
+  `investing/alpaca`, `/stocks`, `/prediction` and `/trading-agents` were declared in `exports` but had no
+  file behind them. Worse, importing the barrel in Node ran the bundled stock-name importer script and exited
+  the process. Both are fixed in the next release; on an older version, upgrade first.
+</Callout>
+
+Two declared subpaths still have no source behind them: `investing/constants` and `investing/utils`. Don't
+import them. The stock-name data that `./data/*` was meant to expose ships inside the `stocks` module instead
+— see [stock names](/docs/stocks/stock-names).
+
+## Things only the barrel exports
+
+These modules have no subpath of their own, so import them from `"investing"`:
+
+```ts
+import {
+  // database (Cloudflare D1 + drizzle)
+  db, positions, trades, portfolios, polymarketMarkets, stockQuoteCache,
+  // correlate (XGBoost)
+  trainModels, predictFuture, calculateRMSE, calculateR2, calculateRollingStats, saveModel, loadModel,
+  // social trading
+  fetchZuluTraders, syncZuluTraders, myLeadersAPI, syncCopyTradingLeadersOrders,
+  // AI debate for a prediction market
+  generateDebateAnalysis, generateDebateAnalysisWithOpenAI,
+  // Wikipedia pageviews
+  pageviews,
+  // external stock-agents service client
+  stockAgentsAPI, TOP_STOCKS,
+  // Alpaca MCP strategy client
+  getAlpacaMCPClient,
+} from "investing";
+```
+
+The [Dukascopy](/docs/live-data) client lives in `src/live-data` and is not exported at all yet; that page
+shows how to use it from source.
+
+## Name collisions in the PredictOS barrel
+
+Two PredictOS data clients export Kalshi helpers with the same names. The `investing/predictos` barrel keeps
+the **DFlow** versions under their own names and renames the **Dome** ones:
+
+| From `investing/predictos` | Comes from |
+| --- | --- |
+| `getKalshiMarketsByEvent`, `buildKalshiMarketUrl` | DFlow (`data/kalshi`) |
+| `getDomeKalshiMarketsByEvent`, `buildDomeKalshiMarketUrl` | Dome (`data/polymarket`) |
+| `DomeKalshiMarket`, `DomeKalshiMarketsResponse` (types) | Dome |
+
+Three more clients are namespaced on the barrel for the same reason:
+
+```ts
+import { polymarketClob, polyfactual, x402 } from "investing/predictos";
+
+polymarketClob; // Gamma/CLOB trading client (clients/polymarket)
+polyfactual;    // Polyfactual deep-research client
+x402;           // x402 / PayAI seller client
+```
+
+Import from `investing/predictos/data/polymarket` if you want the Dome names unprefixed.
+
+## Two things called "prediction"
+
+| | `investing/prediction` | `investing/predictos` |
+| --- | --- | --- |
+| What | Polymarket sync, storage and analytics | AI analysis agents and arbitrage |
+| State | Writes to Cloudflare D1 | Stateless |
+| Venues | Polymarket only | Polymarket and Kalshi (and Jupiter URLs) |
+| Keys | None for reads, D1 for storage | An AI key, plus `DOME_API_KEY` / `DFLOW_API_KEY` for some calls |
+
+They do not share types: `PolymarketMarket` from one is not the other's.
+
+## The old `predictos` package
+
+`predictos` used to be its own workspace package that `investing` depended on and re-exported. It was merged
+into `src/predictos`. Change the import and nothing else:
+
+```diff
+- import { runEventAnalysisAgent } from "predictos";
++ import { runEventAnalysisAgent } from "investing/predictos";
+```
+
+Every name kept its old spelling.

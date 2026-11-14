@@ -1,0 +1,152 @@
+---
+title: Event analysis agent
+description: runEventAnalysisAgent — ask an LLM for the best opportunity in an event's markets, with estimated probability, alpha, predicted winner, risks and sources.
+icon: ScanSearch
+---
+
+```ts
+import { runEventAnalysisAgent, type MarketAnalysis } from "investing/predictos";
+
+const result = await runEventAnalysisAgent(request, config?);
+```
+
+## Request
+
+<TypeTable
+  type={{
+    markets: { type: 'unknown[]', required: true, description: 'raw markets, usually getEvents(...).markets; must be non-empty' },
+    eventIdentifier: { type: 'string', required: true, description: 'Polymarket slug or Kalshi ticker' },
+    pmType: { type: '"Kalshi" | "Polymarket"', required: true },
+    model: { type: 'string', required: true, description: 'decides the provider, see below' },
+    question: { type: 'string', description: 'defaults to "What is the best trading opportunity in this market?…"' },
+    tools: { type: '("x_search" | "web_search")[]', description: 'Grok only; adds source requirements to the prompt' },
+    userCommand: { type: 'string', description: 'an instruction the analysis must prioritise' },
+  }}
+/>
+
+`config` is `AIConfig`: `{ openaiApiKey?, xaiApiKey?, blockrunWalletKey? }`.
+
+### Which provider runs
+
+| `model` | Provider | Key |
+| --- | --- | --- |
+| `blockrun/gpt-4o`, `blockrun/claude-sonnet-4`, … (see `BLOCKRUN_MODELS`) | BlockRun, paid per call over x402 | `BLOCKRUN_WALLET_KEY` |
+| `gpt-5.2`, `gpt-5.1`, `gpt-5-nano`, `gpt-4.1`, `gpt-4.1-mini`, anything starting `gpt-` | OpenAI Responses API | `OPENAI_API_KEY` |
+| anything else (`grok-4-1-fast-reasoning`, `grok-4-fast`, …) | xAI Responses API | `XAI_API_KEY` |
+
+## Result
+
+```ts
+{
+  analysis: MarketAnalysis,
+  model: string,          // the model the provider reports
+  tokensUsed?: number,
+  paymentCost?: string,   // BlockRun only, e.g. "$0.001234"
+  processingTimeMs: number,
+}
+```
+
+### `MarketAnalysis`
+
+<TypeTable
+  type={{
+    event_ticker: { type: 'string' },
+    ticker: { type: 'string', description: 'the market with the best opportunity' },
+    title: { type: 'string' },
+    marketProbability: { type: 'number', description: '0–100, the price' },
+    estimatedActualProbability: { type: 'number', description: '0–100, the model’s view' },
+    alphaOpportunity: { type: 'number', description: 'estimated − market; positive means buy YES' },
+    hasAlpha: { type: 'boolean' },
+    predictedWinner: { type: '"YES" | "NO"' },
+    winnerConfidence: { type: 'number', description: '0–100' },
+    recommendedAction: { type: '"BUY YES" | "BUY NO" | "NO TRADE"' },
+    reasoning: { type: 'string' },
+    confidence: { type: 'number', description: '0–100, in the whole assessment' },
+    keyFactors: { type: 'string[]' },
+    risks: { type: 'string[]' },
+    questionAnswer: { type: 'string', description: 'direct answer to `question`' },
+    analysisSummary: { type: 'string', description: 'under 270 characters — tweet-sized' },
+    xSources: { type: 'string[]', description: 'with x_search' },
+    webSources: { type: 'string[]', description: 'with web_search' },
+  }}
+/>
+
+## Examples
+
+<Tabs items={['Grok + live search', 'OpenAI', 'Custom question', 'BlockRun']}>
+<Tab value="Grok + live search">
+
+```ts
+const event = await getEvents({ url });
+const { analysis } = await runEventAnalysisAgent({
+  markets: event.markets,
+  eventIdentifier: event.eventIdentifier,
+  pmType: event.pmType,
+  model: "grok-4-1-fast-reasoning",
+  tools: ["x_search", "web_search"],
+});
+console.log(analysis.analysisSummary);
+console.log("X:", analysis.xSources, "Web:", analysis.webSources);
+```
+
+</Tab>
+<Tab value="OpenAI">
+
+```ts
+const { analysis, tokensUsed } = await runEventAnalysisAgent(
+  { markets, eventIdentifier, pmType: "Polymarket", model: "gpt-4.1" },
+  { openaiApiKey: process.env.OPENAI_API_KEY },
+);
+```
+
+</Tab>
+<Tab value="Custom question">
+
+```ts
+const { analysis } = await runEventAnalysisAgent({
+  markets,
+  eventIdentifier,
+  pmType: "Kalshi",
+  model: "grok-4-fast",
+  question: "Which bracket is most underpriced relative to the latest CPI print?",
+  userCommand: "Only consider brackets with more than $50k volume.",
+});
+console.log(analysis.questionAnswer);
+```
+
+</Tab>
+<Tab value="BlockRun">
+
+```ts
+// No API key: each call is paid in USDC from a Base-chain wallet.
+const { analysis, paymentCost } = await runEventAnalysisAgent(
+  { markets, eventIdentifier, pmType, model: "blockrun/claude-sonnet-4" },
+  { blockrunWalletKey: process.env.BLOCKRUN_WALLET_KEY },
+);
+console.log(paymentCost); // "$0.00…"
+```
+
+</Tab>
+</Tabs>
+
+## Acting on the result
+
+```ts
+const MIN_EDGE = 8;        // percentage points
+const MIN_CONFIDENCE = 65;
+
+const tradeable =
+  analysis.hasAlpha &&
+  analysis.recommendedAction !== "NO TRADE" &&
+  Math.abs(analysis.alphaOpportunity) >= MIN_EDGE &&
+  analysis.winnerConfidence >= MIN_CONFIDENCE;
+```
+
+Then hand it to the [mapper](/docs/predictos/mapper), or to the [bookmaker](/docs/predictos/bookmaker) first
+if you ran several models.
+
+## Prompt only
+
+`analyzeEventMarketsPrompt(markets, eventIdentifier, question, pmType, tools?, userCommand?)` from
+`investing/predictos/ai` returns `{ systemPrompt, userPrompt }` without calling anything — useful to run the
+same prompt through your own model client.

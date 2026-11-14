@@ -1,0 +1,81 @@
+---
+title: Mapper agent
+description: runMapperAgent — the pure function that turns an analysis and a market into Polymarket order parameters, with every guard that protects the budget.
+icon: ArrowRightLeft
+---
+
+```ts
+import { runMapperAgent, NoTradeError, type PolymarketOrderParams } from "investing/predictos";
+```
+
+No AI, no network, synchronous. It is the one PredictOS step you can try right here:
+
+<OrderMapperPlayground />
+
+## Request
+
+<TypeTable
+  type={{
+    platform: { type: '"Polymarket" | "Kalshi"', required: true, description: 'Kalshi throws "coming soon"' },
+    analysisResult: { type: 'AnalysisResult', required: true, description: 'recommendedAction, predictedWinner, winnerConfidence, marketProbability, estimatedActualProbability, ticker, title — a MarketAnalysis fits' },
+    marketData: { type: 'MarketData', required: true, description: 'clobTokenIds, outcomes, outcomePrices (JSON strings), minimumTickSize, negRisk, acceptingOrders, closed, conditionId, slug, title / question' },
+    budgetUsd: { type: 'number', required: true, description: '$1 to $100' },
+  }}
+/>
+
+## What it does
+
+<Steps>
+<Step>Validates the platform, the analysis and the market, and that `budgetUsd` is between **$1** and **$100**.</Step>
+<Step>`NO TRADE` → throws `NoTradeError`. Catch it: it is a decision, not a failure.</Step>
+<Step>Refuses closed markets and markets with `acceptingOrders: false`.</Step>
+<Step>Finds the side's token: `BUY YES` picks the outcome named `Yes` or `Up`, `BUY NO` picks `No` or `Down`.</Step>
+<Step>Rounds the current price to the tick size (default `0.01`) and buys `floor(budget / price)` shares.</Step>
+<Step>Throws if that is fewer than **5 shares** (Polymarket's minimum), telling you the minimum budget at this price.</Step>
+</Steps>
+
+## Result
+
+```ts
+{
+  platform: "Polymarket",
+  orderParams: {
+    tokenId: "7132…2563",
+    price: 0.37,
+    side: "BUY",
+    size: 67,
+    feeRateBps: 0,
+    tickSize: "0.01",
+    negRisk: false,
+    conditionId: "0x9c1a…",
+    marketSlug: "will-the-fed-cut-rates-in-december",
+    orderDescription: 'BUY 67 shares of YES @ 37.0% for ~$24.79 on "Will the Fed cut rates in December?"',
+  },
+  analysis: { recommendedAction: "BUY YES", side: "YES", confidence: 72 },
+}
+```
+
+## Handling every outcome
+
+```ts
+import { runMapperAgent, NoTradeError, type AnalysisResult, type MarketData } from "investing/predictos";
+
+function toOrder(analysis: AnalysisResult, market: MarketData, budgetUsd: number) {
+  try {
+    return { kind: "order" as const, ...runMapperAgent({ platform: "Polymarket", analysisResult: analysis, marketData: market, budgetUsd }) };
+  } catch (e) {
+    if (e instanceof NoTradeError) return { kind: "skip" as const, reason: e.message };
+    const msg = (e as Error).message;
+    if (msg.startsWith("Budget too small")) return { kind: "skip" as const, reason: msg };
+    if (msg === "Market is closed" || msg === "Market is not accepting orders") return { kind: "skip" as const, reason: msg };
+    throw e; // bad input: a bug upstream
+  }
+}
+```
+
+<Callout type="warn" title="The limits are deliberate">
+  `$1 ≤ budget ≤ $100` and `size ≥ 5` are risk guards for autonomous runs. Size larger positions with your own
+  logic and several orders, rather than by loosening the mapper.
+</Callout>
+
+Kalshi mapping is not implemented; `KalshiOrderParams` is declared for when it is.
