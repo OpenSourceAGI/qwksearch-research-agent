@@ -4,8 +4,8 @@ import {
   HUMAN_NAMES_DB_CDN_URL,
   loadHumanNamesDB,
   setHumanNamesDB,
-} from '../human-names-db';
-import { extractHumanName } from '../human-name-recognizer';
+} from '../src/human-names-db';
+import { extractHumanName } from '../src/human-name-recognizer';
 
 const okResponse = (body: unknown) =>
   ({ ok: true, status: 200, json: async () => body }) as Response;
@@ -14,7 +14,7 @@ afterEach(() => setHumanNamesDB(null));
 
 describe('human names database', () => {
   it('is not loaded by the slim entry', async () => {
-    await import('../index');
+    await import('../src/index');
     expect(getHumanNamesDB()).toBeNull();
   });
 
@@ -58,7 +58,7 @@ describe('human names database', () => {
   });
 
   it('bundles and registers the full database from the /full entry', async () => {
-    await import('../full');
+    await import('../src/full');
     const db = getHumanNamesDB();
     expect(db).not.toBeNull();
     expect(Object.keys(db!).length).toBeGreaterThan(90000);

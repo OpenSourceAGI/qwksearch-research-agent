@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
-      include: ["*.ts", "types/**/*.ts"],
+      include: ["src/**/*.ts"],
       exclude: ["*.test.ts", "*.spec.ts", "test/**"],
       outDir: "dist",
       rollupTypes: false,
@@ -15,8 +15,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: {
-        "extract-human-name": resolve(__dirname, "index.ts"),
-        "extract-human-name-full": resolve(__dirname, "full.ts"),
+        "extract-name": resolve(__dirname, "src/index.ts"),
+        "extract-name-full": resolve(__dirname, "src/full.ts"),
       },
       formats: ["es", "cjs"],
       fileName: (format, entryName) => `${entryName}.${format}.js`,
@@ -28,7 +28,7 @@ export default defineConfig({
       // Two entries (slim and /full) share one chunk, so both see the same
       // human-names database once either registers or lazy-loads it.
       output: {
-        chunkFileNames: "extract-human-name-[name].[format].js",
+        chunkFileNames: "extract-name-[name].[format].js",
       },
     },
     minify: "terser",

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   cleanProfessionalQualifications,
   extractHumanNameParts,
-} from '../name-parser';
+} from '../src/name-parser';
 
 describe('extractHumanNameParts', () => {
   it('splits a simple first/last name', () => {

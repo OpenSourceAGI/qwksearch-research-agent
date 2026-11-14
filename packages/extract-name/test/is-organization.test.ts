@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { isOrganization } from '../is-organization';
-import { setHumanNamesDB } from '../human-names-db';
+import { isOrganization } from '../src/is-organization';
+import { setHumanNamesDB } from '../src/human-names-db';
 
 afterEach(() => setHumanNamesDB(null));
 

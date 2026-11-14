@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { splitMultipleAuthors } from '../author-splitter';
+import { splitMultipleAuthors } from '../src/author-splitter';
 
 describe('splitMultipleAuthors', () => {
   it('splits on "and"', () => {
