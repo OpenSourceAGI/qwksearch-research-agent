@@ -243,7 +243,7 @@
     },
     "packages/ads-in-chat-answers": {
       "name": "ads-in-chat-answers",
-      "version": "0.1.55",
+      "version": "0.1.58",
       "devDependencies": {
         "@testing-library/react": "^16.3.3",
         "@types/react": "^19.2.18",
@@ -264,7 +264,7 @@
     },
     "packages/chat-agent-toolkit": {
       "name": "chat-agent-toolkit",
-      "version": "1.2.468",
+      "version": "1.2.471",
       "dependencies": {
         "@ai-sdk/anthropic": "^4.0.50",
         "@ai-sdk/google": "^4.0.65",
@@ -311,7 +311,7 @@
     },
     "packages/domain-rank": {
       "name": "domain-rank",
-      "version": "0.1.595",
+      "version": "0.1.598",
       "dependencies": {
         "fuse.js": "^7.5.0",
         "grab-url": "^1.6.22",
@@ -358,7 +358,7 @@
     },
     "packages/education-playlists": {
       "name": "education-playlists",
-      "version": "0.1.143",
+      "version": "0.1.146",
       "devDependencies": {
         "@testing-library/react": "^16.3.3",
         "@types/react": "^19.2.18",
@@ -379,7 +379,7 @@
     },
     "packages/extract-cite": {
       "name": "extract-cite",
-      "version": "1.0.149",
+      "version": "1.0.152",
       "dependencies": {
         "chrono-node": "^2.10.1",
         "linkedom": "^0.18.13",
@@ -394,9 +394,9 @@
         "vitest": "^5.0.0",
       },
     },
-    "packages/extract-human-name": {
-      "name": "extract-human-name",
-      "version": "1.0.51",
+    "packages/extract-name": {
+      "name": "extract-name",
+      "version": "1.0.54",
       "devDependencies": {
         "@types/node": "^26.5.0",
         "@vitest/coverage-v8": "^5.0.0",
@@ -409,7 +409,7 @@
     },
     "packages/extract-pdf": {
       "name": "extract-pdf",
-      "version": "0.1.589",
+      "version": "0.1.592",
       "dependencies": {
         "grab-url": "^1.6.22",
       },
@@ -473,7 +473,7 @@
     },
     "packages/extract-webpage": {
       "name": "extract-webpage",
-      "version": "1.2.461",
+      "version": "1.2.464",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "ai": "^7.0.94",
@@ -522,7 +522,7 @@
     },
     "packages/extract-youtube": {
       "name": "extract-youtube",
-      "version": "1.0.566",
+      "version": "1.0.569",
       "bin": {
         "extract-youtube": "dist/cli.js",
       },
@@ -599,7 +599,7 @@
     },
     "packages/html-renderer-api": {
       "name": "html-renderer-api",
-      "version": "1.0.478",
+      "version": "1.0.481",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.4.0",
       },
@@ -610,7 +610,7 @@
     },
     "packages/investing": {
       "name": "investing",
-      "version": "0.1.347",
+      "version": "0.1.350",
       "dependencies": {
         "@alpacahq/alpaca-trade-api": "^3.1.3",
         "@langchain/core": "^1.1.8",
@@ -657,7 +657,7 @@
     },
     "packages/legal-terms-privacy-policy": {
       "name": "legal-terms-privacy-policy",
-      "version": "0.1.283",
+      "version": "0.1.286",
       "devDependencies": {
         "@testing-library/react": "^16.3.3",
         "@types/react": "^19.2.18",
@@ -676,7 +676,7 @@
     },
     "packages/notebooklm-api-client": {
       "name": "notebooklm-api-client",
-      "version": "0.1.549",
+      "version": "0.1.552",
       "dependencies": {
         "@cloudflare/puppeteer": "^1.4.0",
       },
@@ -718,7 +718,7 @@
     },
     "packages/qwksearch-api-client": {
       "name": "qwksearch-api-client",
-      "version": "1.0.278",
+      "version": "1.0.281",
       "dependencies": {
         "api2client": "^1.0.1",
       },
@@ -767,7 +767,7 @@
     },
     "packages/qwksearch-mcp-server": {
       "name": "qwksearch-mcp-server",
-      "version": "1.0.303",
+      "version": "1.0.306",
       "bin": {
         "qwksearch-mcp": "./bin/qwksearch-mcp.ts",
       },
@@ -784,7 +784,7 @@
     },
     "packages/react-weather-forecast": {
       "name": "use-weather-forecast",
-      "version": "0.1.420",
+      "version": "0.1.423",
       "dependencies": {
         "grab-url": "^1.6.22",
       },
@@ -810,7 +810,7 @@
     },
     "packages/reason-editor": {
       "name": "react-reason-editor",
-      "version": "1.0.270",
+      "version": "1.0.273",
       "dependencies": {
         "@ariakit/react": "^0.4.39",
         "@emoji-mart/data": "1.2.1",
@@ -1018,7 +1018,7 @@
     },
     "packages/reason-editor-sidebar": {
       "name": "react-reason-editor-sidebar",
-      "version": "0.1.325",
+      "version": "0.1.328",
       "dependencies": {
         "@headless-tree/core": "^1.7.0",
         "@headless-tree/react": "^1.7.0",
@@ -1147,7 +1147,7 @@
     },
     "packages/research-agent-ui": {
       "name": "research-agent-ui",
-      "version": "0.1.334",
+      "version": "0.1.337",
       "dependencies": {
         "@radix-ui/react-dialog": "^1.3.1",
         "@radix-ui/react-dropdown-menu": "^2.2.1",
@@ -1247,7 +1247,7 @@
     },
     "packages/search-web-api": {
       "name": "search-web-api",
-      "version": "1.0.320",
+      "version": "1.0.323",
       "dependencies": {
         "@huggingface/transformers": "^4.2.0",
         "@scalar/hono-api-reference": "^0.12.1",
@@ -1267,7 +1267,7 @@
     },
     "packages/shadcn-app-dock": {
       "name": "shadcn-app-dock",
-      "version": "0.1.318",
+      "version": "0.1.321",
       "dependencies": {
         "@radix-ui/react-dropdown-menu": "^2.1.24",
         "@radix-ui/react-slot": "^1.3.3",
@@ -1300,7 +1300,7 @@
     },
     "packages/shadcn-settings": {
       "name": "shadcn-settings",
-      "version": "0.1.196",
+      "version": "0.1.199",
       "dependencies": {
         "@radix-ui/react-select": "^2.3.7",
         "@radix-ui/react-switch": "^1.3.7",
@@ -1329,7 +1329,7 @@
     },
     "packages/trending-news-api": {
       "name": "trending-news-api",
-      "version": "0.1.196",
+      "version": "0.1.199",
       "devDependencies": {
         "@cloudflare/workers-types": "^5.20260908.1",
         "@testing-library/react": "^16.3.3",
@@ -1352,7 +1352,7 @@
     },
     "packages/use-voice-control": {
       "name": "use-voice-control",
-      "version": "0.1.277",
+      "version": "0.1.280",
       "bin": {
         "use-voice-control": "bin/use-voice-control.mjs",
       },
@@ -1385,7 +1385,7 @@
     },
     "packages/write-language": {
       "name": "write-language",
-      "version": "0.1.338",
+      "version": "0.1.341",
       "dependencies": {
         "@ai-sdk/amazon-bedrock": "^5.0.78",
         "@ai-sdk/anthropic": "^4.0.50",
