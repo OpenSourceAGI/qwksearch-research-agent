@@ -12,7 +12,8 @@
     "apps/qwksearch-browser-ext",
     "apps/qwksearch-web",
     "packages/extract-youtube/site",
-    "packages/extract-pdf/site"
+    "packages/extract-pdf/site",
+    "packages/domain-rank/site"
   ],
   "scripts": {
     "merge": "bash .github/scripts/merge.sh",

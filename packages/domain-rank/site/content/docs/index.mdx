@@ -1,0 +1,38 @@
+---
+title: Overview
+description: Offline lookup for top-ranked domains, human-readable source labels, and influence ranks from bundled Tranco and CommonCrawl data.
+icon: House
+---
+
+`domain-rank` looks up domains against a bundled merged dataset from the [Tranco List](https://tranco-list.eu/) and [CommonCrawl](https://commoncrawl.org) backlink data.
+
+Use it for search/URL autocomplete, bookmark launchers, LLM/web source labeling, and domain reputation hints. The dataset is loaded into an in-memory `Map` at module load time, so lookups and searches are local and fast.
+
+## Install
+
+```bash
+npm install domain-rank
+```
+
+## Quick start
+
+```ts
+import { lookupDomain, getTopDomains, searchDomains } from 'domain-rank';
+
+const result = lookupDomain('facebook.com');
+// { domain: 'facebook.com', name: 'Facebook', rank: 1, ... }
+
+const top10 = getTopDomains(10);
+const matches = searchDomains('news', 5);
+```
+
+## What's included
+
+- **Lookup**: `lookupDomain(domain)` returns rank, name, title, and merged metadata for a known domain.
+- **Top lists**: `getTopDomains(n)` returns the highest-ranked domains.
+- **Search**: `searchDomains(query, limit)` finds matches by domain, name, or title.
+- **Formatting/helpers**: domain-to-title formatting, URL/domain utilities, and favicon helpers (re-exported).
+
+## Live demo
+
+See the [live demo](/demo) for sample listings and interactive search over the bundled dataset.

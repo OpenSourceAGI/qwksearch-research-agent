@@ -1,0 +1,60 @@
+---
+title: API
+description: Lookup, search, and utility functions exported by domain-rank.
+icon: Code
+---
+
+## Core functions
+
+### `lookupDomain(domain: string)`
+
+Returns a `DomainLookupResult | null` for the given domain.
+
+```ts
+import { lookupDomain } from 'domain-rank';
+
+const info = lookupDomain('github.com');
+```
+
+### `getTopDomains(n = 100)`
+
+Returns the top `n` domains sorted by rank (ascending).
+
+```ts
+import { getTopDomains } from 'domain-rank';
+
+const top = getTopDomains(20);
+```
+
+### `searchDomains(query: string, limit = 10)`
+
+Searches by domain, name, or title (case-insensitive substring match), sorted by rank.
+
+```ts
+import { searchDomains } from 'domain-rank';
+
+const results = searchDomains('times', 10);
+```
+
+### `getTotalDomains()` / `getAllDomains()`
+
+- `getTotalDomains()` returns the number of bundled entries.
+- `getAllDomains()` returns all entries sorted by rank.
+
+## Re-exported utilities
+
+The package also re-exports helpers from its internal modules:
+
+- `getFaviconForDomain`, `convertURLToDomain`, `isURLValid` (from `domain-api`)
+- `formatDomainAsTitle`, `cleanSourceTitle`, `shouldRemoveDomain`, `findMainDomain`, `getTitleOverride`, `getSourceTitle` (from `domain-name-formatter`)
+
+## Data access
+
+Bundled JSON/data files are available under the package export path:
+
+```ts
+// package export: "domain-rank/data/*"
+import merged from 'domain-rank/data/domain-rank-merged.json';
+```
+
+This is useful for custom builds, analysis, or serving your own listings.

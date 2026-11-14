@@ -1,0 +1,29 @@
+---
+title: Demo & sample listings
+description: Interactive search and sample top domains from the bundled domain-rank dataset.
+icon: PlayCircle
+---
+
+The [live demo](/demo) runs a client-side UI over the bundled `domain-rank` dataset.
+
+## What it shows
+
+- **Search**: find domains by domain, name, or title (`searchDomains`).
+- **Lookup**: resolve an exact domain (`lookupDomain`).
+- **Sample top domains**: default listing uses `getTopDomains(50)`.
+
+## Example: show top 20 domains
+
+```ts
+import { getTopDomains } from 'domain-rank';
+
+const top20 = getTopDomains(20);
+for (const d of top20) {
+  console.log(d.rank, d.domain, d.name);
+}
+```
+
+## Notes
+
+- Results come from the package's bundled offline data (no API calls).
+- The demo is intended as a sample listing/inspection UI; production apps can use the same APIs to power autocomplete, ranking badges, or source labels.

@@ -1,3 +1,25 @@
+<p align="center">
+    <img width="350px" src="https://i.imgur.com/VRk5cbE.png" />
+    <br />
+    <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <br />
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
+    <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/dm/extract-webpage.svg" alt="NPM Monthly Downloads" /></a>
+    <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/v/extract-webpage.svg" alt="npm version" /></a>
+    <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/dt/extract-webpage.svg" alt="NPM Total Downloads" /></a>
+    <a href="https://www.npmjs.com/package/extract-webpage"><img src="https://img.shields.io/npm/types/extract-webpage" alt="TypeScript types" /></a>
+    <a href="https://packagephobia.com/result?p=extract-webpage"><img src="https://packagephobia.com/badge?p=extract-webpage" alt="Install size" /></a>
+    <br />
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"><img src="https://img.shields.io/github/issues/OpenSourceAGI/qwksearch-research-agent?logo=github" alt="GitHub Issues" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls"><img src="https://img.shields.io/github/issues-pr/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs" alt="Open Pull Requests" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/pulls?q=is%3Apr+is%3Aclosed"><img src="https://img.shields.io/github/issues-pr-closed/OpenSourceAGI/qwksearch-research-agent?logo=github&label=PRs%20merged&color=8957e5" alt="Merged Pull Requests" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/discussions"><img src="https://img.shields.io/github/discussions/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Discussions" /></a>
+    <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/commits/master/"><img src="https://img.shields.io/github/last-commit/OpenSourceAGI/qwksearch-research-agent.svg" alt="GitHub last commit" /></a>
+    <br />
+    <a href="https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/extract-webpage"><img height="20px" src="https://developer.stackblitz.com/img/open_in_stackblitz.svg" alt="Open in StackBlitz" /></a>
+</p>
+
+
 # extract-human-name
 
 Extracts, characterizes, and structures human author names from arbitrary text. Tells a person ("Dr. John Doe") from an organization ("The New York Times"), parses a name into its parts, splits multi-author bylines, and formats APA-style citations — no network, no model, no browser.

@@ -1,0 +1,5 @@
+.next
+.source
+node_modules
+out
+.vercel
