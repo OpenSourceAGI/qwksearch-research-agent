@@ -3,7 +3,7 @@
 **Read [`skills/investing`](../../../skills/investing/SKILL.md) first.**
 
 **Vendored from the sibling repo `ai-broker-investing-agent`.** Alpaca, stock
-data, Polymarket sync over D1, LangGraph debate agents, and the PredictOS
+data, Polymarket sync over D1, LangGraph debate agents, and the PredictionAgent
 prediction-market core.
 
 ## Two things to know before editing
@@ -12,9 +12,9 @@ prediction-market core.
    `OpenSourceAGI/ai-broker-investing-agent`, where the same package is actively
    developed. A fix made only here diverges from upstream; prefer fixing it
    there and re-vendoring, and say in the PR which direction you went.
-2. **`src/predictos/` stays MIT (PredictionXBT).** The former `predictos`
-   package was merged into this one — `packages/predictos` no longer exists.
-   Keep the `NOTICE` file and the upstream attribution intact.
+2. **`src/prediction-agent/` stays MIT.** Keep `LICENSE-PredictionAgent-MIT`
+   in the package root and in `files`; the MIT license requires its copyright
+   and permission notice to ship with the code.
 
 ## This code reasons about money
 
@@ -25,9 +25,9 @@ the new number.
 ## Entries
 
 `.` · `./alpaca` · `./stocks` · `./prediction` · `./trading-agents` ·
-`./predictos` · `./predictos/ai` · `./predictos/agents` ·
-`./predictos/data/kalshi` · `./predictos/data/polymarket` ·
-`./predictos/arbitrage` · `./constants` · `./utils` · `./data/*`
+`./prediction-agent` · `./prediction-agent/ai` · `./prediction-agent/agents` ·
+`./prediction-agent/data/kalshi` · `./prediction-agent/data/polymarket` ·
+`./prediction-agent/arbitrage` · `./constants` · `./utils` · `./data/*`
 
 ```bash
 cd packages/investing && bun run test

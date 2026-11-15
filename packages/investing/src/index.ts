@@ -28,9 +28,8 @@ export * from "./stocks";
 // Prediction markets (Polymarket integration)
 export * from "./prediction";
 
-// PredictOS core: multi-agent analysis, data clients, and arbitrage
-// (adapted from PredictionXBT/PredictOS; see src/predictos and NOTICE)
-export * from "./predictos";
+// PredictionAgent core: multi-agent analysis, data clients, and arbitrage
+export * from "./prediction-agent";
 
 // Trading strategies and algorithms
 export * from "./algo-stategies/tv-scraper";

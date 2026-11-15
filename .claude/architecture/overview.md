@@ -88,11 +88,10 @@ memory), `language-model-training` (a GPT on Tinygrad, Python, its own toolchain
 `trending-news-api`, `education-playlists`, `use-voice-control`, `qwksearch-help-docs`.
 
 **Finance** — `investing` (vendored from `ai-broker-investing-agent`): Alpaca, stock
-data, Polymarket sync over D1, LangGraph debate agents, and the PredictOS
-prediction-market core on `investing/predictos` — multi-agent event analysis, Kalshi
-and Polymarket data clients, cross-platform arbitrage. The `predictos` package was
-merged into it; `packages/predictos` no longer exists. The PredictOS code under
-`src/predictos/` stays MIT (PredictionXBT) — see the package's `NOTICE`.
+data, Polymarket sync over D1, LangGraph debate agents, and the PredictionAgent
+prediction-market core on `investing/prediction-agent` — multi-agent event analysis, Kalshi
+and Polymarket data clients, cross-platform arbitrage. The code under
+`src/prediction-agent/` is MIT licensed — see the package's `LICENSE-PredictionAgent-MIT`.
 
 ## `apps/qwk-in-lobe/`
 

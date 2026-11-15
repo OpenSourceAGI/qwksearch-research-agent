@@ -63,7 +63,7 @@ npx skills@latest add https://github.com/OpenSourceAGI/qwksearch-research-agent 
 
 | Skill | Package | Covers |
 | --- | --- | --- |
-| [investing](./investing/SKILL.md) | `investing` | Alpaca, stock data, Polymarket sync, LangGraph debate agents, and the merged PredictOS prediction-market core |
+| [investing](./investing/SKILL.md) | `investing` | Alpaca, stock data, Polymarket sync, LangGraph debate agents, and the merged PredictionAgent prediction-market core |
 
 ### Clients and servers
 
