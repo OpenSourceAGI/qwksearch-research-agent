@@ -299,7 +299,7 @@
   "acceptance.workspace.onboarding.example.description": "پس از نصب، این مثال را به عامل کدنویسی خود ارسال کنید تا اولین بازبینی را ایجاد کنید.",
   "acceptance.workspace.onboarding.example.title": "اولین پذیرش خود را امتحان کنید",
   "acceptance.workspace.onboarding.install.description": "CLI را یک بار روی این دستگاه نصب کنید.",
-  "acceptance.workspace.onboarding.install.title": "نصب CLI LobeHub",
+  "acceptance.workspace.onboarding.install.title": "نصب CLI QwkSearch",
   "acceptance.workspace.onboarding.installSection": "نصب Acceptance",
   "acceptance.workspace.onboarding.manual.description": "هر دو دستور را خودتان از ریشه پروژه اجرا کنید.",
   "acceptance.workspace.onboarding.manual.title": "نصب به صورت دستی",

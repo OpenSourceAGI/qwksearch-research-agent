@@ -46,8 +46,8 @@ export default {
   'email.footer.joinDiscord': 'Join Discord',
   'email.footer.manage': 'Manage notifications',
   'email.footer.preference':
-    'You received this email because of your notification settings on LobeHub.',
-  'email.footer.system': 'This is an important account notification from LobeHub.',
+    'You received this email because of your notification settings on QwkSearch.',
+  'email.footer.system': 'This is an important account notification from QwkSearch.',
   'email.viewDetails': 'View Details',
   'group_transfer_reassigned':
     'A workspace owner transferred your group "{{agentTitle}}" to {{recipientLabel}}.',
@@ -162,6 +162,6 @@ export default {
     'The subscription for workspace "{{workspaceName}}" has ended. Renew within {{days}} days to restore full access before the workspace is downgraded.',
   'workspace_subscription_expired_title': 'Subscription ended for {{workspaceName}}',
   'workspace_waitlist_approved':
-    'Your Workspace beta access is ready. Head to LobeHub to create your first workspace and invite your team.',
+    'Your Workspace beta access is ready. Head to QwkSearch to create your first workspace and invite your team.',
   'workspace_waitlist_approved_title': 'Workspace beta access approved',
 };

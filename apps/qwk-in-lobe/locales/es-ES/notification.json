@@ -43,8 +43,8 @@
   "email.footer.contactSupport": "Contactar soporte",
   "email.footer.joinDiscord": "Unirse a Discord",
   "email.footer.manage": "Gestionar notificaciones",
-  "email.footer.preference": "Recibiste este correo electrónico debido a la configuración de notificaciones en LobeHub.",
-  "email.footer.system": "Esta es una notificación importante de cuenta de LobeHub.",
+  "email.footer.preference": "Recibiste este correo electrónico debido a la configuración de notificaciones en QwkSearch.",
+  "email.footer.system": "Esta es una notificación importante de cuenta de QwkSearch.",
   "email.viewDetails": "Ver detalles",
   "group_transfer_reassigned": "Un propietario del espacio de trabajo transfirió tu grupo \"{{agentTitle}}\" a {{recipientLabel}}.",
   "group_transfer_reassigned_title": "Grupo reasignado",
@@ -128,6 +128,6 @@
   "workspace_primary_ownership_transferred_title": "Ahora eres el propietario principal de {{workspaceName}}",
   "workspace_subscription_expired": "La suscripción para el espacio de trabajo \"{{workspaceName}}\" ha finalizado. Renueva dentro de {{days}} días para restaurar el acceso completo antes de que el espacio de trabajo sea degradado.",
   "workspace_subscription_expired_title": "Suscripción finalizada para {{workspaceName}}",
-  "workspace_waitlist_approved": "El acceso beta a tu espacio de trabajo está listo. Dirígete a LobeHub para crear tu primer espacio de trabajo e invitar a tu equipo.",
+  "workspace_waitlist_approved": "El acceso beta a tu espacio de trabajo está listo. Dirígete a QwkSearch para crear tu primer espacio de trabajo e invitar a tu equipo.",
   "workspace_waitlist_approved_title": "Acceso beta al espacio de trabajo aprobado"
 }

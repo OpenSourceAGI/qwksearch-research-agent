@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "Nhóm WeChat",
   "blog": "Blog sản phẩm",
   "branching": "Tạo chủ đề phụ",
-  "branchingDisable": "Tính năng \"Chủ đề phụ\" không khả dụng trong chế độ hiện tại. Vui lòng chuyển sang chế độ cơ sở dữ liệu Postgres/Pglite hoặc sử dụng LobeHub Cloud để sử dụng tính năng này.",
+  "branchingDisable": "Tính năng \"Chủ đề phụ\" không khả dụng trong chế độ hiện tại. Vui lòng chuyển sang chế độ cơ sở dữ liệu Postgres/Pglite hoặc sử dụng QwkSearch Cloud để sử dụng tính năng này.",
   "branchingRequiresSavedTopic": "Chủ đề hiện tại chưa được lưu, vui lòng lưu trước khi sử dụng tính năng chủ đề phụ",
   "cancel": "Hủy",
   "changelog": "Nhật ký thay đổi",

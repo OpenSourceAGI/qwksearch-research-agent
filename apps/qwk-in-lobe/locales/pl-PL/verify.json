@@ -299,7 +299,7 @@
   "acceptance.workspace.onboarding.example.description": "Po instalacji wyślij ten przykład do swojego agenta kodowania, aby utworzyć pierwszy przegląd.",
   "acceptance.workspace.onboarding.example.title": "Wypróbuj swoje pierwsze acceptance",
   "acceptance.workspace.onboarding.install.description": "Zainstaluj CLI raz na tym urządzeniu.",
-  "acceptance.workspace.onboarding.install.title": "Zainstaluj LobeHub CLI",
+  "acceptance.workspace.onboarding.install.title": "Zainstaluj QwkSearch CLI",
   "acceptance.workspace.onboarding.installSection": "Zainstaluj Acceptance",
   "acceptance.workspace.onboarding.manual.description": "Uruchom oba polecenia samodzielnie z katalogu głównego projektu.",
   "acceptance.workspace.onboarding.manual.title": "Zainstaluj ręcznie",

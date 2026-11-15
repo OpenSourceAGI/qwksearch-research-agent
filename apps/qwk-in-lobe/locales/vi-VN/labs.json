@@ -20,7 +20,7 @@
   "features.groupChat.title": "Trò Chuyện Nhóm (Đa Tác Nhân)",
   "features.heteroSessionImport.desc": "Thêm mục \"Nhập phiên làm việc của đại lý cục bộ\" vào menu danh sách chủ đề: quét các bản ghi Claude Code / Codex CLI cục bộ và nhập chúng dưới dạng chủ đề, với đồng bộ hóa gia tăng khi nhập lại.",
   "features.heteroSessionImport.title": "Nhập Phiên Làm Việc Đại Lý Cục Bộ",
-  "features.imessage.desc": "Kết nối các đại lý với iMessage thông qua cầu nối BlueBubbles LobeHub Desktop cục bộ.",
+  "features.imessage.desc": "Kết nối các đại lý với iMessage thông qua cầu nối BlueBubbles QwkSearch Desktop cục bộ.",
   "features.imessage.title": "Kênh iMessage",
   "features.inAppBrowser.desc": "Hiển thị tab Trình duyệt trong bảng điều khiển bên của cuộc trò chuyện: một trình duyệt nhúng mở kết quả tìm kiếm tại chỗ và cho phép nhân viên hỗ trợ duyệt web một cách rõ ràng.",
   "features.inAppBrowser.title": "Trình duyệt trong ứng dụng",

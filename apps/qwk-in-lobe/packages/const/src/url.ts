@@ -7,7 +7,7 @@ export const OFFICIAL_DOMAIN = 'lobehub.com';
 export const OFFICIAL_DEVICE_GATEWAY_URL = 'https://device-gateway.lobehub.com';
 export const OFFICIAL_AGENT_GATEWAY_URL = 'https://agent-gateway.lobehub.com';
 
-export const OG_URL = '/og/og.webp?v=1';
+export const OG_URL = '/og/og.webp?v=2';
 
 export const LobeHubPath = {
   webapi: {
@@ -15,7 +15,7 @@ export const LobeHubPath = {
   },
 } as const;
 
-export const GITHUB = 'https://github.com/lobehub/lobe-chat';
+export const GITHUB = 'https://github.com/OpenSourceAGI/qwksearch-research-agent';
 export const GITHUB_ISSUES = urlJoin(GITHUB, 'issues/new/choose');
 export const CHANGELOG = 'https://lobehub.com/changelog';
 
@@ -30,12 +30,12 @@ export const DOCUMENTS_REFER_URL = `${DOCUMENTS}?utm_source=chat_preview`;
 export const WIKI_PLUGIN_GUIDE = urlJoin(USAGE_DOCUMENTS, '/plugins/development');
 export const MANUAL_UPGRADE_URL = urlJoin(SELF_HOSTING_DOCUMENTS, '/advanced/upstream-sync');
 
-export const BLOG = urlJoin(OFFICIAL_SITE, 'blog');
+export const BLOG = urlJoin(OFFICIAL_URL, 'blog');
 
-export const ABOUT = OFFICIAL_SITE;
-export const FEEDBACK = 'https://github.com/lobehub/lobe-chat/issues/new/choose';
-export const PRIVACY_URL = urlJoin(OFFICIAL_SITE, '/privacy');
-export const TERMS_URL = urlJoin(OFFICIAL_SITE, '/terms');
+export const ABOUT = OFFICIAL_URL;
+export const FEEDBACK = urlJoin(GITHUB, 'issues/new');
+export const PRIVACY_URL = urlJoin(OFFICIAL_URL, '/legal/privacy');
+export const TERMS_URL = urlJoin(OFFICIAL_URL, '/legal/privacy');
 
 export const PLUGINS_INDEX_URL = 'https://chat-plugins.lobehub.com';
 

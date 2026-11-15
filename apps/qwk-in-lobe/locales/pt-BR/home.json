@@ -139,7 +139,7 @@
   "project.create": "Novo projeto",
   "project.deleteConfirm": "Este projeto será excluído e não poderá ser recuperado. Confirme para continuar.",
   "recommendations.heteroAgent.cta": "Adicionar Agente",
-  "recommendations.heteroAgent.description": "CLI do {{name}} detectado neste dispositivo — adicione o agente {{name}} para interagir com ele a partir do LobeHub.",
+  "recommendations.heteroAgent.description": "CLI do {{name}} detectado neste dispositivo — adicione o agente {{name}} para interagir com ele a partir do QwkSearch.",
   "recommendations.heteroAgent.tag": "Agente de Codificação",
   "recommendations.heteroAgent.title": "Adicionar agente {{name}}",
   "recommendations.subtitle": "Algumas recomendações para sua configuração",

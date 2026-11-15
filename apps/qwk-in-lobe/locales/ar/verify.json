@@ -299,7 +299,7 @@
   "acceptance.workspace.onboarding.example.description": "بعد التثبيت، أرسل هذا المثال إلى وكيل البرمجة الخاص بك لإنشاء المراجعة الأولى.",
   "acceptance.workspace.onboarding.example.title": "جرب أول قبول لك",
   "acceptance.workspace.onboarding.install.description": "قم بتثبيت واجهة سطر الأوامر (CLI) مرة واحدة على هذا الجهاز.",
-  "acceptance.workspace.onboarding.install.title": "تثبيت LobeHub CLI",
+  "acceptance.workspace.onboarding.install.title": "تثبيت QwkSearch CLI",
   "acceptance.workspace.onboarding.installSection": "تثبيت Acceptance",
   "acceptance.workspace.onboarding.manual.description": "قم بتشغيل كلا الأمرين بنفسك من جذر المشروع.",
   "acceptance.workspace.onboarding.manual.title": "التثبيت يدويًا",

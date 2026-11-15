@@ -139,7 +139,7 @@
   "project.create": "新しいプロジェクトを作成",
   "project.deleteConfirm": "このプロジェクトは削除され、復元できません。続行するには確認してください。",
   "recommendations.heteroAgent.cta": "エージェントを追加",
-  "recommendations.heteroAgent.description": "このデバイスで{{name}} CLIが検出されました — {{name}}エージェントを追加してLobeHubからチャットしましょう。",
+  "recommendations.heteroAgent.description": "このデバイスで{{name}} CLIが検出されました — {{name}}エージェントを追加してQwkSearchからチャットしましょう。",
   "recommendations.heteroAgent.tag": "コーディングエージェント",
   "recommendations.heteroAgent.title": "{{name}}エージェントを追加",
   "recommendations.subtitle": "セットアップのためのいくつかのおすすめ",

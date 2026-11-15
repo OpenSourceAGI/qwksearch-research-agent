@@ -20,7 +20,7 @@
   "features.groupChat.title": "Групов чат (многоагентен)",
   "features.heteroSessionImport.desc": "Добавете запис „Импортиране на локални сесии на агент“ в менюто на списъка с теми: сканирайте локални транскрипции на Claude Code / Codex CLI и ги импортирайте като теми, с инкрементална синхронизация при повторно импортиране.",
   "features.heteroSessionImport.title": "Импортиране на локални сесии на агент",
-  "features.imessage.desc": "Свързване на агентите с iMessage чрез локалния LobeHub Desktop BlueBubbles мост.",
+  "features.imessage.desc": "Свързване на агентите с iMessage чрез локалния QwkSearch Desktop BlueBubbles мост.",
   "features.imessage.title": "Канал iMessage",
   "features.inAppBrowser.desc": "Показване на раздела Браузър в страничния панел на разговора: вграден браузър, който отваря резултати от търсене на място и позволява на агентите да разглеждат видимо.",
   "features.inAppBrowser.title": "Вграден браузър",

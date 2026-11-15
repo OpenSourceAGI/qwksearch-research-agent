@@ -20,7 +20,7 @@
   "features.groupChat.title": "گفت‌وگوی گروهی (چندعاملی)",
   "features.heteroSessionImport.desc": "افزودن گزینه \"وارد کردن جلسات عامل محلی\" به منوی لیست موضوعات: اسکن متن‌های Claude Code / Codex CLI محلی و وارد کردن آنها به عنوان موضوعات، با همگام‌سازی افزایشی در وارد کردن مجدد.",
   "features.heteroSessionImport.title": "وارد کردن جلسات عامل محلی",
-  "features.imessage.desc": "اتصال نمایندگان به iMessage از طریق پل BlueBubbles دسکتاپ LobeHub محلی.",
+  "features.imessage.desc": "اتصال نمایندگان به iMessage از طریق پل BlueBubbles دسکتاپ QwkSearch محلی.",
   "features.imessage.title": "کانال iMessage",
   "features.inAppBrowser.desc": "نمایش تب مرورگر در پانل کناری مکالمه: یک مرورگر داخلی که نتایج جستجو را در همانجا باز می‌کند و به نمایندگان اجازه می‌دهد به صورت قابل مشاهده مرور کنند.",
   "features.inAppBrowser.title": "مرورگر داخلی",

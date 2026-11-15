@@ -139,7 +139,7 @@
   "project.create": "Новый проект",
   "project.deleteConfirm": "Этот проект будет удален и не может быть восстановлен. Подтвердите, чтобы продолжить.",
   "recommendations.heteroAgent.cta": "Добавить агента",
-  "recommendations.heteroAgent.description": "Обнаружен CLI {{name}} на этом устройстве — добавьте агента {{name}}, чтобы общаться с ним через LobeHub.",
+  "recommendations.heteroAgent.description": "Обнаружен CLI {{name}} на этом устройстве — добавьте агента {{name}}, чтобы общаться с ним через QwkSearch.",
   "recommendations.heteroAgent.tag": "Агент программирования",
   "recommendations.heteroAgent.title": "Добавить агента {{name}}",
   "recommendations.subtitle": "Некоторые рекомендации для вашей настройки",

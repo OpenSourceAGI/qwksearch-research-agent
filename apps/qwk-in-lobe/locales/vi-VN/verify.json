@@ -299,7 +299,7 @@
   "acceptance.workspace.onboarding.example.description": "Sau khi cài đặt, gửi ví dụ này đến tác nhân mã hóa của bạn để tạo đánh giá đầu tiên.",
   "acceptance.workspace.onboarding.example.title": "Thử nghiệm đầu tiên của bạn với Acceptance",
   "acceptance.workspace.onboarding.install.description": "Cài đặt CLI một lần trên thiết bị này.",
-  "acceptance.workspace.onboarding.install.title": "Cài đặt LobeHub CLI",
+  "acceptance.workspace.onboarding.install.title": "Cài đặt QwkSearch CLI",
   "acceptance.workspace.onboarding.installSection": "Cài đặt Acceptance",
   "acceptance.workspace.onboarding.manual.description": "Tự chạy cả hai lệnh từ thư mục gốc của dự án.",
   "acceptance.workspace.onboarding.manual.title": "Cài đặt thủ công",

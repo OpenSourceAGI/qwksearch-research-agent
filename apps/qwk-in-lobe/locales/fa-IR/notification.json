@@ -43,8 +43,8 @@
   "email.footer.contactSupport": "تماس با پشتیبانی",
   "email.footer.joinDiscord": "به دیسکورد بپیوندید",
   "email.footer.manage": "مدیریت اعلان‌ها",
-  "email.footer.preference": "شما این ایمیل را به دلیل تنظیمات اعلان‌های خود در LobeHub دریافت کرده‌اید.",
-  "email.footer.system": "این یک اعلان مهم حساب از LobeHub است.",
+  "email.footer.preference": "شما این ایمیل را به دلیل تنظیمات اعلان‌های خود در QwkSearch دریافت کرده‌اید.",
+  "email.footer.system": "این یک اعلان مهم حساب از QwkSearch است.",
   "email.viewDetails": "مشاهده جزئیات",
   "group_transfer_reassigned": "یک مالک فضای کاری گروه شما \"{{agentTitle}}\" را به {{recipientLabel}} منتقل کرد.",
   "group_transfer_reassigned_title": "گروه مجدداً اختصاص داده شد",
@@ -128,6 +128,6 @@
   "workspace_primary_ownership_transferred_title": "شما اکنون مالک اصلی {{workspaceName}} هستید",
   "workspace_subscription_expired": "اشتراک فضای کاری \"{{workspaceName}}\" به پایان رسیده است. ظرف {{days}} روز تمدید کنید تا دسترسی کامل بازیابی شود، در غیر این صورت فضای کاری کاهش سطح خواهد یافت.",
   "workspace_subscription_expired_title": "اشتراک برای {{workspaceName}} به پایان رسید",
-  "workspace_waitlist_approved": "دسترسی بتای Workspace شما آماده است. به LobeHub بروید تا اولین Workspace خود را ایجاد کرده و تیم خود را دعوت کنید.",
+  "workspace_waitlist_approved": "دسترسی بتای Workspace شما آماده است. به QwkSearch بروید تا اولین Workspace خود را ایجاد کرده و تیم خود را دعوت کنید.",
   "workspace_waitlist_approved_title": "دسترسی بتای Workspace تأیید شد"
 }

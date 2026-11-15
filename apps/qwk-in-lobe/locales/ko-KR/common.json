@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "위챗 그룹",
   "blog": "제품 블로그",
   "branching": "하위 주제 생성",
-  "branchingDisable": "현재 모드에서는 '하위 주제' 기능을 사용할 수 없습니다. 이 기능을 사용하려면 Postgres/Pglite DB 모드로 전환하거나 LobeHub Cloud를 이용해 주세요",
+  "branchingDisable": "현재 모드에서는 '하위 주제' 기능을 사용할 수 없습니다. 이 기능을 사용하려면 Postgres/Pglite DB 모드로 전환하거나 QwkSearch Cloud를 이용해 주세요",
   "branchingRequiresSavedTopic": "현재 주제가 저장되지 않았습니다. 저장 후 하위 주제 기능을 사용할 수 있습니다",
   "cancel": "취소",
   "changelog": "업데이트 로그",

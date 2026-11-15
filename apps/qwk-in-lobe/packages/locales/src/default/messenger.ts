@@ -8,11 +8,11 @@ export default {
   'messenger.detail.addWorkspace': 'Add workspace',
   'messenger.detail.commands.agents': 'List your agents and switch the active one',
   'messenger.detail.commands.feedback':
-    'Send feedback to the LobeHub team (no AI reply), e.g. /feedback your message',
+    'Send feedback to the QwkSearch team (no AI reply), e.g. /feedback your message',
   'messenger.detail.commands.help': 'Show all commands in the bot',
   'messenger.detail.commands.hint': 'Send these commands to the bot in a direct message.',
   'messenger.detail.commands.new': 'Start a new conversation',
-  'messenger.detail.commands.start': 'Link your account to LobeHub',
+  'messenger.detail.commands.start': 'Link your account to QwkSearch',
   'messenger.detail.commands.stop': 'Stop the current execution',
   'messenger.detail.commands.switch': 'Switch between your personal scope and workspaces',
   'messenger.detail.commands.title': 'Commands',
@@ -36,7 +36,7 @@ export default {
   'messenger.linkCta': 'Connect',
   'messenger.linkModal.continueIn': 'Continue setup on {{platform}}',
   'messenger.linkModal.instructions':
-    'Open the bot, send /start, then tap "Link Account" to connect your LobeHub account.',
+    'Open the bot, send /start, then tap "Link Account" to connect your QwkSearch account.',
   'messenger.linkModal.notConfigured':
     "This connection isn't available right now. Please try again later.",
   'messenger.linkModal.openCta': 'Open in {{platform}}',
@@ -44,23 +44,23 @@ export default {
   'messenger.noPlatformsConfigured': 'No platforms are available yet. Check back soon.',
   'messenger.slack.connectModal.continueButton': 'Continue on Slack',
   'messenger.slack.connectModal.description':
-    'You will be redirected to Slack to authorize the LobeHub workspace install.',
+    'You will be redirected to Slack to authorize the QwkSearch workspace install.',
   'messenger.slack.connectModal.notConfigured':
     "Slack isn't available right now. Please try again later.",
   'messenger.slack.connectModal.title': 'Continue setup on Slack',
   'messenger.slack.connections.disconnectConfirm':
-    'Disconnect the LobeHub bot from this Slack workspace? Existing user links will pause until you re-install.',
+    'Disconnect the QwkSearch bot from this Slack workspace? Existing user links will pause until you re-install.',
   'messenger.slack.connections.disconnectFailed': 'Failed to disconnect.',
   'messenger.slack.connections.disconnectSuccess': 'Workspace disconnected.',
   'messenger.slack.connections.disconnectTitle': 'Disconnect workspace',
   'messenger.slack.installBlocked.dismiss': 'Got it',
   'messenger.slack.installBlocked.suggestion':
-    "DM @LobeHub on Slack to link your personal account — you don't need to install again. Or ask the original installer to disconnect this workspace first if you want to take over ownership.",
+    "DM @QwkSearch on Slack to link your personal account — you don't need to install again. Or ask the original installer to disconnect this workspace first if you want to take over ownership.",
   'messenger.slack.installBlocked.title': 'Workspace already connected',
   'messenger.slack.installBlocked.withName':
-    '"{{workspace}}" is already connected to LobeHub by another user.',
+    '"{{workspace}}" is already connected to QwkSearch by another user.',
   'messenger.slack.installBlocked.withoutName':
-    'This Slack workspace is already connected to LobeHub by another user.',
+    'This Slack workspace is already connected to QwkSearch by another user.',
   'messenger.slack.installResult.failed':
     'Slack install failed ({{reason}}). Please try again or contact support.',
   'messenger.slack.installResult.reasons.accessDenied': 'authorization was cancelled',
@@ -77,7 +77,7 @@ export default {
     'the workspace connection could not be saved',
   'messenger.slack.installResult.success': 'Slack workspace connected.',
   'messenger.discord.connectModal.description':
-    'Add the LobeHub bot to a Discord server you manage.',
+    'Add the QwkSearch bot to a Discord server you manage.',
   'messenger.discord.connectModal.inviteButton': 'Add to Discord server',
   'messenger.discord.connectModal.notConfigured':
     "Discord isn't available right now. Please try again later.",
@@ -89,12 +89,12 @@ export default {
   'messenger.discord.connections.disconnectTitle': 'Remove server',
   'messenger.discord.installBlocked.dismiss': 'Got it',
   'messenger.discord.installBlocked.suggestion':
-    "DM the LobeHub bot on Discord to link your personal account — you don't need to add the bot again. Or ask the original installer to remove this server in LobeHub Settings → Messenger before re-adding it.",
+    "DM the QwkSearch bot on Discord to link your personal account — you don't need to add the bot again. Or ask the original installer to remove this server in QwkSearch Settings → Messenger before re-adding it.",
   'messenger.discord.installBlocked.title': 'Server already connected',
   'messenger.discord.installBlocked.withName':
-    '"{{workspace}}" is already connected to LobeHub by another user.',
+    '"{{workspace}}" is already connected to QwkSearch by another user.',
   'messenger.discord.installBlocked.withoutName':
-    'This Discord server is already connected to LobeHub by another user.',
+    'This Discord server is already connected to QwkSearch by another user.',
   'messenger.discord.installResult.failed':
     'Discord install failed ({{reason}}). Please try again or contact support.',
   'messenger.discord.installResult.reasons.accessDenied': 'authorization was cancelled',
@@ -116,13 +116,13 @@ export default {
     'Open the bot on Discord and send any message to finish linking your account.',
   'messenger.discord.userPending.name': 'Not linked yet',
   'messenger.list.discord.description':
-    'Chat with your LobeHub agents on Discord by DMing the LobeHub bot from any server.',
+    'Chat with your QwkSearch agents on Discord by DMing the QwkSearch bot from any server.',
   'messenger.list.slack.description':
-    'Chat with your LobeHub agents on Slack by DMing or mentioning @LobeHub in any workspace.',
+    'Chat with your QwkSearch agents on Slack by DMing or mentioning @QwkSearch in any workspace.',
   'messenger.list.telegram.description':
-    'Chat with your LobeHub agents on Telegram, and choose which agent replies.',
+    'Chat with your QwkSearch agents on Telegram, and choose which agent replies.',
   'messenger.list.wechat.description':
-    'Scan with WeChat to chat privately with your LobeHub agents and switch agents with /agents.',
+    'Scan with WeChat to chat privately with your QwkSearch agents and switch agents with /agents.',
   'messenger.paidBadge': 'Pro',
   'messenger.push.alwaysAvailable': 'Ready to send',
   'messenger.push.alwaysAvailableHint':
@@ -172,12 +172,12 @@ export default {
   'messenger.setActiveFailed': 'Failed to set as active.',
   'messenger.setActiveSuccess': 'Active agent updated.',
   'messenger.subtitle':
-    'Connect your account to the official LobeHub bot once. Pick which agent receives messages, switch any time from here or from the bot.',
+    'Connect your account to the official QwkSearch bot once. Pick which agent receives messages, switch any time from here or from the bot.',
   'messenger.title': 'Messenger',
   'messenger.unlinkConfirm':
-    'Disconnect your {{platform}} account from LobeHub? Inbound messages will stop until you /start again.',
+    'Disconnect your {{platform}} account from QwkSearch? Inbound messages will stop until you /start again.',
   'messenger.unlinkConfirmWechat':
-    'Disconnect your WeChat account from LobeHub? Inbound messages will stop until you scan the QR code to reconnect.',
+    'Disconnect your WeChat account from QwkSearch? Inbound messages will stop until you scan the QR code to reconnect.',
   'messenger.unlinkCta': 'Disconnect',
   'messenger.unlinkFailed': 'Failed to disconnect.',
   'messenger.unlinkSuccess': 'Disconnected.',
@@ -190,7 +190,7 @@ export default {
   'messenger.wechat.defaultAgentHint':
     'New WeChat messages will be routed to this agent. You can switch later with /agents.',
   'messenger.wechat.error.alreadyLinkedToOther':
-    'This WeChat account is already connected to another LobeHub account.',
+    'This WeChat account is already connected to another QwkSearch account.',
   'messenger.wechat.error.connectionFailed':
     'WeChat was verified, but message delivery could not start. Please try again.',
   'messenger.wechat.error.incompleteConfirmation':
@@ -241,7 +241,7 @@ export default {
   'messenger.wechat.setupTitle': 'Connect WeChat',
   'messenger.wechat.upgradeCta': 'View plans',
   'verify.confirm.conflict.description':
-    'This {{platform}} account is already linked to LobeHub account {{email}}. Sign in to that account to manage the link, or unlink there before retrying.',
+    'This {{platform}} account is already linked to QwkSearch account {{email}}. Sign in to that account to manage the link, or unlink there before retrying.',
   'verify.confirm.conflict.switchAccount': 'Sign in with another account',
   'verify.confirm.conflict.title': 'This account is already linked',
   'verify.confirm.cta': 'Confirm linking',
@@ -249,31 +249,31 @@ export default {
   'verify.confirm.defaultAgentHint':
     'Your messages will be routed here first. You can switch any time via /agents in the bot or from Settings → Messenger.',
   'verify.confirm.defaultAgentPlaceholder': 'Select an agent',
-  'verify.confirm.fields.lobeHubAccount': 'LobeHub account',
+  'verify.confirm.fields.lobeHubAccount': 'QwkSearch account',
   'verify.confirm.fields.platformAccount': '{{platform}} account',
   'verify.confirm.fields.workspace': 'Workspace',
   'verify.confirm.noAgents':
-    "You don't have any agents yet. Create one in LobeHub, then come back to finish linking.",
+    "You don't have any agents yet. Create one in QwkSearch, then come back to finish linking.",
   'verify.confirm.relink.description':
-    'This LobeHub account is already linked to {{platform}} account {{account}}. To link a different {{platform}} account, disconnect the current one first in Settings → Messenger.',
+    'This QwkSearch account is already linked to {{platform}} account {{account}}. To link a different {{platform}} account, disconnect the current one first in Settings → Messenger.',
   'verify.confirm.relink.manage': 'Open Messenger settings',
   'verify.confirm.relink.title': 'Another {{platform}} account is already linked',
   'verify.confirm.title': 'Confirm linking',
   'verify.confirm.workspace': 'Workspace: {{workspace}}',
   'verify.error.alreadyConsumed':
-    'This link has already been used to connect an account. Sign in to that LobeHub account to manage the connection, or return to the bot and send /start again to issue a new link.',
+    'This link has already been used to connect an account. Sign in to that QwkSearch account to manage the connection, or return to the bot and send /start again to issue a new link.',
   'verify.error.alreadyConsumedTitle': 'This link is already used',
   'verify.error.alreadyLinkedToOther':
-    'This account is already linked to a different LobeHub account. Sign in to that account first.',
+    'This account is already linked to a different QwkSearch account. Sign in to that account first.',
   'verify.error.expired': 'This link has expired. Please return to the bot and send /start again.',
   'verify.error.generic': 'Something went wrong. Please try again.',
   'verify.error.missingToken': 'Invalid link. Open this page from the bot.',
   'verify.error.title': 'Unable to confirm link',
   'verify.error.unlinkBeforeRelink':
-    'This LobeHub account is already linked to another account on this platform. Disconnect it in Settings → Messenger before linking a new one.',
+    'This QwkSearch account is already linked to another account on this platform. Disconnect it in Settings → Messenger before linking a new one.',
   'verify.signInCta': 'Sign in to continue',
-  'verify.signInRequired': 'Please sign in to LobeHub to confirm the link.',
-  'verify.success.backToLobeHub': 'Back to LobeHub',
+  'verify.signInRequired': 'Please sign in to QwkSearch to confirm the link.',
+  'verify.success.backToLobeHub': 'Back to QwkSearch',
   'verify.success.description':
     'Your account is now connected to {{platform}}. Open {{platform}} and send your first message.',
   'verify.success.openBot': 'Open in {{platform}}',

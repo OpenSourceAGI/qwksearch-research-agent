@@ -5,7 +5,7 @@ export default {
     'Show graph runtime configuration in an agent profile advanced settings.',
   'features.agentGraphConfig.title': 'Agent Graph Runtime Configuration',
   'features.agentProviderBinding.desc':
-    'Let supported local agents run on API instead of their subscription — through the LobeHub default provider or a configured API provider and model. Available for select agents on Desktop local execution.',
+    'Let supported local agents run on API instead of their subscription — through the QwkSearch default provider or a configured API provider and model. Available for select agents on Desktop local execution.',
   'features.agentProviderBinding.title': 'Agent Provider Binding',
   'features.agentSelfIteration.desc':
     'Allow the agent to reflect, build self-awareness, and continuously iterate through ongoing attempts and interactions.',
@@ -32,7 +32,7 @@ export default {
   'features.evalCapture.title': 'Save a turn as an eval case',
   'features.heteroSessionImport.title': 'Local Agent Session Import',
   'features.imessage.desc':
-    'Connect agents to iMessage through the local LobeHub Desktop BlueBubbles bridge.',
+    'Connect agents to iMessage through the local QwkSearch Desktop BlueBubbles bridge.',
   'features.imessage.title': 'iMessage Channel',
   'features.inAppBrowser.desc':
     'Show the Browser tab in the conversation side panel: an embedded browser that opens search results in place and lets agents browse visibly.',

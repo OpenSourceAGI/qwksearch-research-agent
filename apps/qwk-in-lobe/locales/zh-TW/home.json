@@ -139,7 +139,7 @@
   "project.create": "新增專案",
   "project.deleteConfirm": "此專案將被刪除且無法恢復。確認繼續。",
   "recommendations.heteroAgent.cta": "新增代理",
-  "recommendations.heteroAgent.description": "在此設備上檢測到 {{name}} CLI — 新增 {{name}} 代理以從 LobeHub 與其對話。",
+  "recommendations.heteroAgent.description": "在此設備上檢測到 {{name}} CLI — 新增 {{name}} 代理以從 QwkSearch 與其對話。",
   "recommendations.heteroAgent.tag": "編程代理",
   "recommendations.heteroAgent.title": "新增 {{name}} 代理",
   "recommendations.subtitle": "為您的設置提供一些建議",

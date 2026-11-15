@@ -403,9 +403,9 @@ export default {
   'heterogeneousStatus.apiMode.configureProvider': 'Go to provider settings',
   'heterogeneousStatus.apiMode.enableInLabs': 'Enable in Labs',
   'heterogeneousStatus.apiMode.labDisabled':
-    'API mode is a Labs experiment. Enable it to use the LobeHub default provider or a configured API provider instead of the agent subscription.',
+    'API mode is a Labs experiment. Enable it to use the QwkSearch default provider or a configured API provider instead of the agent subscription.',
   'heterogeneousStatus.apiMode.localOnly': 'Available only for Desktop local execution',
-  'heterogeneousStatus.apiMode.defaultProvider': 'LobeHub',
+  'heterogeneousStatus.apiMode.defaultProvider': 'QwkSearch',
   'heterogeneousStatus.apiMode.model': 'Model',
   'heterogeneousStatus.apiMode.modelPlaceholder': 'Select a model',
   'heterogeneousStatus.apiMode.noProviders':
@@ -594,10 +594,10 @@ export default {
   'devices.connectWizard.cli.connectTitle': 'Start the daemon',
   'devices.connectWizard.cli.installTitle': 'Install the CLI',
   'devices.connectWizard.cli.loginTitle': 'Sign in',
-  'devices.connectWizard.desktop.downloadLink': 'Download LobeHub Desktop',
+  'devices.connectWizard.desktop.downloadLink': 'Download QwkSearch Desktop',
   'devices.connectWizard.desktop.step1': 'Download the desktop app',
   'devices.connectWizard.desktop.step1Desc':
-    'Visit the LobeHub downloads page and get the app for your operating system.',
+    'Visit the QwkSearch downloads page and get the app for your operating system.',
   'devices.connectWizard.desktop.step2': 'Sign in and open the device gateway',
   'devices.connectWizard.desktop.step2Desc':
     "After signing in, click the device gateway icon in the top-right corner and confirm it's turned on.",
@@ -608,10 +608,10 @@ export default {
     'Only device metadata is registered — your data is never accessed.',
   'devices.connectWizard.method.cli': 'Via CLI',
   'devices.connectWizard.method.desktop': 'Via Desktop',
-  'devices.connectWizard.subtitle': 'Choose how to connect your computer to LobeHub.',
+  'devices.connectWizard.subtitle': 'Choose how to connect your computer to QwkSearch.',
   'devices.connectWizard.title': 'Connect Device',
   'devices.empty.desc':
-    'Once connected, LobeHub agents can read/write files, run commands, and call system tools directly on your computer.',
+    'Once connected, QwkSearch agents can read/write files, run commands, and call system tools directly on your computer.',
   'devices.empty.methodCli.desc':
     'Install the CLI in your terminal — great for servers or headless machines.',
   'devices.empty.methodCli.title': 'Connect via CLI',
@@ -667,7 +667,7 @@ export default {
   'devices.workingDirectory': 'Working dir: {{path}}',
   'apps.cli.copied': 'Copied',
   'apps.cli.copy': 'Copy',
-  'apps.cli.desc': 'Scripts, cron jobs, and headless agents — the same LobeHub, from any terminal.',
+  'apps.cli.desc': 'Scripts, cron jobs, and headless agents — the same QwkSearch, from any terminal.',
   'apps.cli.title': 'CLI',
   'apps.desktop.cta': 'Get desktop app',
   'apps.desktop.desc': 'Chat, build, and automate in one app, with full access to this machine:',
@@ -681,13 +681,13 @@ export default {
   'apps.desktop.inUseDesc': "You're already in the desktop app.",
   'apps.desktop.title': 'Desktop',
   'apps.messenger.desc':
-    'Talk to your agents where your team already is — replies land back in LobeHub.',
+    'Talk to your agents where your team already is — replies land back in QwkSearch.',
   'apps.messenger.setup': 'Set up',
   'apps.messenger.title': 'Messenger',
   'apps.mobile.cta': 'Get mobile app',
   'apps.mobile.desc': 'Pick up where you left off — your chats, agents, and files travel with you.',
   'apps.mobile.title': 'Mobile',
-  'apps.title': 'Do more with LobeHub, everywhere you work',
+  'apps.title': 'Do more with QwkSearch, everywhere you work',
   'checkingPermissions': 'Checking permissions...',
   'danger.reset.action': 'Reset Now',
   'danger.reset.confirm': 'Reset all settings?',
@@ -797,7 +797,7 @@ export default {
   'memory.effort.medium': 'Medium — Balanced behavior',
   'memory.effort.title': 'Aggressiveness',
   'memory.enabled.desc':
-    'Allow LobeHub to extract preferences and info from conversations and use them later. You can view, edit, or clear memory anytime.',
+    'Allow QwkSearch to extract preferences and info from conversations and use them later. You can view, edit, or clear memory anytime.',
   'memory.enabled.title': 'Enable Memory',
   'memory.manageEntry': 'Manage memories',
   'memory.title': 'Memory Settings',
@@ -811,18 +811,18 @@ export default {
   'notification.email.desc': 'Receive email notifications when important events occur',
   'notification.im.banner.platformUnlinked': '{{platform}} is not linked yet',
   'notification.im.desc':
-    'Deliver notifications to your linked messenger (Telegram, Discord, Slack, or WeChat) via the LobeHub bot',
+    'Deliver notifications to your linked messenger (Telegram, Discord, Slack, or WeChat) via the QwkSearch bot',
   'notification.im.linkAccount': 'Link account',
   'notification.im.title': 'Messenger Notifications',
   'notification.im.platform.desc':
-    'Deliver notifications to your {{platform}} DM via the LobeHub bot',
+    'Deliver notifications to your {{platform}} DM via the QwkSearch bot',
   'notification.im.platform.enable': 'Enable {{platform}} notifications',
   'notification.im.platform.viewSetup': 'View setup',
   'notification.email.title': 'Email Notifications',
   'notification.inbox.desc': 'Show notifications in the in-app inbox',
   'notification.inbox.title': 'Inbox Notifications',
   'notification.push.desc':
-    'Send push notifications to your mobile devices (LobeHub mobile app required)',
+    'Send push notifications to your mobile devices (QwkSearch mobile app required)',
   'notification.push.title': 'Mobile Push Notifications',
   'notification.test.action': 'Send test notification',
   'notification.test.failed': 'Test notification failed: {{reason}}',
@@ -1019,7 +1019,7 @@ export default {
   'settingAgent.tag.title': 'Tag',
   'settingAgent.title': 'Agent info',
   'settingAppearance.appTray.desc':
-    'Show the LobeHub icon in the system tray or macOS menu bar. Disabling it also removes tray menu access.',
+    'Show the QwkSearch icon in the system tray or macOS menu bar. Disabling it also removes tray menu access.',
   'settingAppearance.appTray.title': 'Show App Tray',
   'settingAppearance.animationMode.agile': 'Agile',
   'settingAppearance.animationMode.desc':
@@ -1365,7 +1365,7 @@ export default {
   'settingSystemTools.tools.grep.desc': 'GNU grep - standard text search tool',
   'settingSystemTools.tools.kimi.desc': 'Kimi Code - Moonshot AI agentic coding CLI',
   'settingSystemTools.tools.mdfind.desc': 'macOS Spotlight search (fast indexed search)',
-  'settingSystemTools.tools.lobehub.desc': 'LobeHub CLI - manage and connect to LobeHub services',
+  'settingSystemTools.tools.lobehub.desc': 'QwkSearch CLI - manage and connect to QwkSearch services',
   'settingSystemTools.tools.bun.desc': 'Bun - fast JavaScript runtime and package manager',
   'settingSystemTools.tools.bunx.desc': 'bunx - Bun package runner for executing npm packages',
   'settingSystemTools.tools.node.desc': 'Node.js - JavaScript runtime for executing JS/TS',
@@ -1417,7 +1417,7 @@ export default {
   'skillStore.search': 'Search skills by name or keyword, press Enter to search…',
   'skillStore.tabs.community': 'Community',
   'skillStore.tabs.custom': 'Custom',
-  'skillStore.tabs.lobehub': 'LobeHub',
+  'skillStore.tabs.lobehub': 'QwkSearch',
   'skillStore.tabs.mcp': 'MCP',
   'skillStore.tabs.skills': 'Skills',
   'skillStore.title': 'Skill Store',
@@ -2232,7 +2232,7 @@ When I am ___, I need ___
   'workspace.apiKey.policy.title': 'API Key creation',
   'workspace.apiKey.policy.updateFailed': 'Failed to update the API Key creation policy',
   'workspace.apiKey.upgrade.benefits.integration.desc':
-    'Call workspace agents and resources from your own systems via the LobeHub API.',
+    'Call workspace agents and resources from your own systems via the QwkSearch API.',
   'workspace.apiKey.upgrade.benefits.integration.title': 'Programmatic access',
   'workspace.apiKey.upgrade.benefits.security.desc':
     'Requests stay bound to the workspace and can never exceed the issuer’s current permissions.',
@@ -2748,7 +2748,7 @@ When I am ___, I need ___
   'workspace.general.url.title': 'Workspace URL',
   'workspace.slugBrandApply.button': 'Apply',
   'workspace.slugBrandApply.mailBody':
-    'Hi LobeHub team,\n\nI would like to request the workspace URL "{{slug}}" (https://lobehub.com/{{slug}}).\n\n- Brand / organization I represent:\n- Official website / domain:\n- My role in the organization:\n- Organization email (please reply from this address):\n\nThanks!',
+    'Hi QwkSearch team,\n\nI would like to request the workspace URL "{{slug}}" (https://lobehub.com/{{slug}}).\n\n- Brand / organization I represent:\n- Official website / domain:\n- My role in the organization:\n- Organization email (please reply from this address):\n\nThanks!',
   'workspace.slugBrandApply.mailButton': 'Apply via email',
   'workspace.slugBrandApply.mailSubject': 'Workspace URL brand request: {{slug}}',
   'workspace.slugBrandApply.modalCreateTip':
@@ -2853,7 +2853,7 @@ When I am ___, I need ___
   'workspace.waitlistPage.enabledSubtitle': 'Workspace is already enabled for your account.',
   'workspace.waitlistPage.enabledTitle': 'Workspace is ready for you',
   'workspace.waitlistPage.entryCta': 'Join Workspace Beta',
-  'workspace.waitlistPage.goHome': 'Back to LobeHub',
+  'workspace.waitlistPage.goHome': 'Back to QwkSearch',
   'workspace.waitlistPage.learnMore': 'Learn more about Workspace',
   'workspace.waitlistPage.learnMoreNewTabHint': 'Opens in a new tab',
   'workspace.waitlistPage.organizationLabel': 'Organization / Group (optional)',
@@ -3416,7 +3416,7 @@ When I am ___, I need ___
     'Manage connections to your desktop devices. List online devices, activate a device for remote operations, and check connection status.',
   'tools.builtins.lobe-remote-device.title': 'Remote Device',
   'tools.builtins.lobe-skill-store.description':
-    'Browse and install agent skills from the LobeHub marketplace. Use this when you need extended capabilities or want to install a specific skill.',
+    'Browse and install agent skills from the QwkSearch marketplace. Use this when you need extended capabilities or want to install a specific skill.',
   'tools.builtins.lobe-skill-store.title': 'Skill Store',
   'tools.builtins.lobe-skills.description': 'Activate and use reusable skill packages',
   'tools.builtins.lobe-skills.title': 'Skills',
@@ -3435,7 +3435,7 @@ When I am ___, I need ___
     'Search the web for current information and crawl web pages to extract content. Supports multiple search engines, categories, and time ranges for comprehensive research.',
   'tools.builtins.lobe-web-browsing.title': 'Web Browsing',
   'tools.builtins.lobe-image-generation.description':
-    'Generate images through LobeHub providers when the current chat model has no native image output.',
+    'Generate images through QwkSearch providers when the current chat model has no native image output.',
   'tools.builtins.lobe-image-generation.readme':
     'Opt-in image generation for models without native image output. Pin this tool to enable it in chat or agent mode; leave unpinned to avoid the tool schema cost.',
   'tools.builtins.lobe-image-generation.title': 'Image Generation',
@@ -3450,8 +3450,8 @@ When I am ___, I need ___
     'Browser automation CLI for AI agents. Use when tasks involve website or Electron interaction such as navigation, form filling, clicking, screenshot capture, scraping data, login flows, and end-to-end app testing.',
   'tools.builtins.lobe-agent-browser.title': 'Agent Browser',
   'tools.builtins.lobehub.description':
-    'Manage the LobeHub platform via CLI — knowledge bases, memory, agents, files, search, generation, and more.',
-  'tools.builtins.lobehub.title': 'LobeHub',
+    'Manage the QwkSearch platform via CLI — knowledge bases, memory, agents, files, search, generation, and more.',
+  'tools.builtins.lobehub.title': 'QwkSearch',
   'tools.builtins.task.description':
     'Task management and execution — create, track, review, and complete tasks via CLI.',
   'tools.builtins.task.title': 'Task',
@@ -3638,7 +3638,7 @@ When I am ___, I need ___
   'tools.lobehubSkill.disconnected': 'Disconnected',
 
   'tools.lobehubSkill.error': 'Error',
-  // LobeHub Skill Providers i18n
+  // QwkSearch Skill Providers i18n
   'tools.lobehubSkill.providers.github.description':
     'GitHub is a platform for version control and collaboration, enabling developers to host, review, and manage code repositories.',
   'tools.lobehubSkill.providers.github.readme':

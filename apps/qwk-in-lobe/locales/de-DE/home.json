@@ -139,7 +139,7 @@
   "project.create": "Neues Projekt",
   "project.deleteConfirm": "Dieses Projekt wird gelöscht und kann nicht wiederhergestellt werden. Bestätigen Sie, um fortzufahren.",
   "recommendations.heteroAgent.cta": "Agent hinzufügen",
-  "recommendations.heteroAgent.description": "Die {{name}} CLI wurde auf diesem Gerät erkannt — fügen Sie den {{name}} Agenten hinzu, um über LobeHub mit ihm zu chatten.",
+  "recommendations.heteroAgent.description": "Die {{name}} CLI wurde auf diesem Gerät erkannt — fügen Sie den {{name}} Agenten hinzu, um über QwkSearch mit ihm zu chatten.",
   "recommendations.heteroAgent.tag": "Coding-Agent",
   "recommendations.heteroAgent.title": "{{name}} Agent hinzufügen",
   "recommendations.subtitle": "Einige Empfehlungen für Ihre Einrichtung",
