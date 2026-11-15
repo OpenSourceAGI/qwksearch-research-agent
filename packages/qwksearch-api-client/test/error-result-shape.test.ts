@@ -19,10 +19,10 @@
  * them. `grab.supports` is the same probe api2client itself uses.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { grab } from 'grab-url';
+import { grab } from 'grab-api.js';
 import { createClient } from '../src/client/client.gen';
 
-/** Whether the installed grab can surface the raw Response (grab >= 1.6.23). */
+/** Whether the installed grab can surface the raw Response (grab-api.js >= 3, grab-url >= 1.6.23). */
 const hasRawResponse =
   (grab as unknown as { supports?: { onRawResponse?: boolean } }).supports
     ?.onRawResponse === true;

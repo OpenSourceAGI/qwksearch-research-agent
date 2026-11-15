@@ -35,12 +35,13 @@ the origin per environment:
 
 | Environment | baseUrl |
 | --- | --- |
-| Browser | `window.NEXT_PUBLIC_BASE_URL` or `location.origin`, + `/api` |
-| Server / Node | `process.env.NEXT_PUBLIC_BASE_URL` or `https://qwksearch.com`, + `/api` |
+| Browser (http/https page) | `window.NEXT_PUBLIC_BASE_URL` or `location.origin`, + `/api` |
+| Browser (extension, webview, Tauri, `file:`) | `window.NEXT_PUBLIC_BASE_URL` or `https://opensourceagi.app`, + `/api` |
+| Server / Node | `process.env.NEXT_PUBLIC_BASE_URL` or `https://opensourceagi.app`, + `/api` |
 
 So in the browser the client talks to **the current origin** — which is what makes the
 same bundle work on localhost, staging and production — and on the server it needs
-`NEXT_PUBLIC_BASE_URL` or it goes to production.
+`NEXT_PUBLIC_BASE_URL` or it goes to the public deployment, `https://opensourceagi.app/api`. Pages with no `/api` beside them (extensions, VS Code webviews, Tauri) also go there.
 
 ## Transport: api2client over grab
 
@@ -126,7 +127,7 @@ the bundle.
 
 | Symptom | Cause → fix |
 | --- | --- |
-| Requests go to `qwksearch.com` from a local server | Server-side `baseUrl` falls back to production. Set `NEXT_PUBLIC_BASE_URL`. |
+| Requests go to `opensourceagi.app` from a local server | Server-side `baseUrl` falls back to production. Set `NEXT_PUBLIC_BASE_URL`. |
 | Requests 404 with a doubled `/api/api/...` | `baseUrl` already appends `/api`; the generated paths are relative to it. Do not add it again. |
 | No exception on a failed call | `throwOnError` defaults to `false` — read `error` from the result, or pass `throwOnError: true`. |
 | `401` everywhere from a non-browser caller | Browser calls carry the session cookie automatically; a server/CLI caller must set an `Authorization` header on its own client. |
