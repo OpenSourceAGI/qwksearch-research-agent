@@ -5,7 +5,7 @@
 
 <!-- template-git-repo:badges:start -->
 <p align="center">
-    <a href="https://qwksearch.com/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
+    <a href="https://opensourceagi.app/api"><img src="https://img.shields.io/badge/Docs-blue?logo=ReadTheDocs&logoColor=white" alt="Documentation" /></a>
     <br />
     <a href="https://github.com/OpenSourceAGI/qwksearch-research-agent/stargazers"><img src="https://img.shields.io/github/stars/OpenSourceAGI/qwksearch-research-agent" alt="GitHub Stars" /></a>
     <a href="https://www.npmjs.com/package/qwksearch-api-client"><img src="https://img.shields.io/npm/dm/qwksearch-api-client.svg" alt="NPM Monthly Downloads" /></a>
@@ -92,7 +92,7 @@ const { data, error } = await agentSearch({
 Or client-wide, for every call on that client:
 
 ```javascript
-import { createClient, createConfig } from 'qwksearch-api-client/client';
+import { agentSearch, createClient, createConfig } from 'qwksearch-api-client';
 
 const client = createClient(createConfig({ cache: true, retryAttempts: 2 }));
 await agentSearch({ query: { q: 'quantum computing' }, client });
@@ -102,16 +102,16 @@ Because grab keys its cache, dedupe and mocks by **path**, an endpoint can be
 stubbed without touching the network:
 
 ```javascript
-import { grab } from 'grab-url';
+import { grab } from 'grab-api.js';
 
 grab.mock['/agent/search'] = { response: { results: [] } };
 ```
 
-> Recovering the HTTP status and the parsed error body from behind grab needs
-> its `onRawResponse` hook, added in **grab-url 1.6.23**. On an older grab,
-> api2client cannot hand back a `Response`, so `result.response` is
-> `undefined` and `result.error` is grab's own `"HTTP error: <status>"` string
-> instead of the handler's JSON body.
+> Failed calls resolve with the HTTP status on `result.response.status` and
+> the handler's parsed JSON body in `result.error`. That relies on grab's
+> `onRawResponse` hook, which `grab-api.js` 3 (pulled in by api2client 2) has.
+> On an older grab (`grab-url` < 1.6.23) `result.response` is `undefined` and
+> `result.error` is grab's own `"HTTP error: <status>"` string.
 
 ## Complete Example: Research Pipeline
 
@@ -164,9 +164,30 @@ throw** by default — read `error`, or pass `throwOnError: true`.
 ---
 
 
+## Pointing the client at a server
+
+Out of the box the client talks to **`https://opensourceagi.app/api`** from
+Node and from pages without an `/api` of their own (browser extensions, VS Code
+webviews, Tauri). A page served over http(s) uses its own origin, so the web
+app works unchanged on localhost and staging. `NEXT_PUBLIC_BASE_URL` (env, or
+`window.NEXT_PUBLIC_BASE_URL`) overrides both.
+
+To change it at runtime, or to send an API key, configure the shared client:
+
+```javascript
+import { client, listSearchEngines } from 'qwksearch-api-client';
+
+client.setConfig({
+  baseUrl: 'https://opensourceagi.app/api',
+  headers: { Authorization: `Bearer ${process.env.QWKSEARCH_API_KEY}` },
+});
+
+const { data } = await listSearchEngines();
+```
+
 ## API Endpoints
 
-The full, current surface is the generated SDK itself — 135 typed functions, one
+The full, current surface is the generated SDK itself — 137 typed functions, one
 per operation in [`qwksearch-openapi.json`](./qwksearch-openapi.json), which
 this package also exports:
 
@@ -174,7 +195,7 @@ this package also exports:
 import spec from 'qwksearch-api-client/openapi.json';
 ```
 
-Browse it rendered at [qwksearch.com/api](https://qwksearch.com/api),
+Browse it rendered at [opensourceagi.app/api](https://opensourceagi.app/api),
 or by area:
 
 | Area | Functions |
@@ -226,7 +247,7 @@ npm install qwksearch-api-client
 - **Documentation**: [airesearch.js.org](https://airesearch.js.org/)
 - **Demo**: [qwksearch.com](https://qwksearch.com/)
 - **GitHub**: [github.com/vtempest/ai-research-agent](https://github.com/vtempest/ai-research-agent)
-- **OpenAPI Spec**: [View Full Specification](./qwksearch-openapi.json) · rendered at [qwksearch.com/api](https://qwksearch.com/api)
+- **OpenAPI Spec**: [View Full Specification](./qwksearch-openapi.json) · rendered at [opensourceagi.app/api](https://opensourceagi.app/api)
 
 - [LLM Training Example](https://github.com/vtempest/ai-research-agent/blob/master/packages/neural-net/src/train/predict-next-word.js)
 - [LangChain ReactAgent Tools](https://medium.com/@terrycho/how-langchain-agent-works-internally-trace-by-using-langsmith-df23766e7fb4)

@@ -14,7 +14,11 @@ the client:
 2. Update the OpenAPI spec.
 3. Regenerate, and commit the result with the same change.
 
-Hand-written helpers go in a separate, clearly non-generated file.
+Hand-written helpers go in a separate, clearly non-generated file **outside
+`src/`**: `openapi-ts` empties `src/` on every regeneration. The package entry
+is `main.ts` (re-exports `src/index.ts` plus `client`, `createClient`,
+`createConfig`, `baseUrl`); the default server is `https://opensourceagi.app/api`
+(`DEFAULT_ORIGIN` in `baseurl.ts`, and `servers[0]` in the spec).
 
 Keeping the spec honest matters beyond this package: `qwksearch-mcp-server`
 exposes the same surface.

@@ -7,8 +7,12 @@
   },
   "servers": [
     {
-      "url": "https://qwksearch.com/api",
+      "url": "https://opensourceagi.app/api",
       "description": "Production"
+    },
+    {
+      "url": "https://qwksearch.com/api",
+      "description": "QwkSearch"
     },
     {
       "url": "/api",
@@ -2025,7 +2029,7 @@
           "Speech"
         ],
         "summary": "Transcribe audio (OpenAI-compatible)",
-        "description": "OpenAI-compatible: point a client's base URL at `https://qwksearch.com/api/v1`. Always requires a QwkSearch API key in a header (`Authorization: Bearer` or `X-API-Key`); a query-string key or a session cookie is rejected. Same Whisper tiers as `/agent/transcript`.",
+        "description": "OpenAI-compatible: point a client's base URL at `https://opensourceagi.app/api/v1`. Always requires a QwkSearch API key in a header (`Authorization: Bearer` or `X-API-Key`); a query-string key or a session cookie is rejected. Same Whisper tiers as `/agent/transcript`.",
         "operationId": "createTranscription",
         "security": [
           {
@@ -3028,7 +3032,7 @@
           "Models"
         ],
         "summary": "List speech-to-text models (OpenAI-compatible)",
-        "description": "OpenAI-compatible: point a client's base URL at `https://qwksearch.com/api/v1`. Always requires a QwkSearch API key in a header (`Authorization: Bearer` or `X-API-Key`); a query-string key or a session cookie is rejected.",
+        "description": "OpenAI-compatible: point a client's base URL at `https://opensourceagi.app/api/v1`. Always requires a QwkSearch API key in a header (`Authorization: Bearer` or `X-API-Key`); a query-string key or a session cookie is rejected.",
         "operationId": "listTranscriptionModels",
         "security": [
           {

@@ -1,6 +1,6 @@
 import { defineConfig } from '@hey-api/openapi-ts';
 
-export const baseUrl = process.env.API_URL || 'https://qwksearch.com/api';
+export const baseUrl = process.env.API_URL || 'https://opensourceagi.app/api';
 
 /**
  * Generation is two steps, both wired into `bun run codegen`:
