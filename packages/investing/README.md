@@ -83,6 +83,25 @@ const order = await alpaca.createOrder({
 });
 ```
 
+### Alpaca on Cloudflare Workers (fetch-only)
+
+`investing/alpaca/rest` has no dependencies beyond `fetch`, so it bundles for Workers,
+Deno, Bun edge and the browser:
+
+```typescript
+import { createAlpacaRest } from "investing/alpaca/rest";
+
+const alpaca = createAlpacaRest({ env }); // paper by default; keys from a Worker env or process.env
+if (await alpaca.isMarketOpen()) {
+  await alpaca.createOrder({ symbol: "VOO", side: "buy", notional: 50 });
+}
+```
+
+### Ready-to-run examples
+
+[`examples/`](./examples) has StackBlitz-ready projects: a stock momentum agent on
+Alpaca, a Polymarket prediction-market agent, and both as Cloudflare Worker cron jobs.
+
 ### Fetch Stock Data
 
 ```typescript

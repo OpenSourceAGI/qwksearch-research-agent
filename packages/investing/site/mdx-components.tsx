@@ -10,6 +10,7 @@ import { MarketUrlPlayground } from '@/components/playground/market-urls';
 import { ModelMetricsPlayground } from '@/components/playground/model-metrics';
 import { OrderMapperPlayground } from '@/components/playground/order-mapper';
 import { RollingStatsPlayground } from '@/components/playground/rolling-stats';
+import { StackBlitzButton } from '@/components/stackblitz-button';
 
 /** Components available in every MDX page without an import. */
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
@@ -28,6 +29,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     ModelMetricsPlayground,
     RollingStatsPlayground,
     MarketUrlPlayground,
+    StackBlitzButton,
     ...components,
   };
 }

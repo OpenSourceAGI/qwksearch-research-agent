@@ -22,6 +22,11 @@
       "import": "./dist/alpaca/index.mjs",
       "require": "./dist/alpaca/index.js"
     },
+    "./alpaca/rest": {
+      "types": "./dist/alpaca/rest.d.ts",
+      "import": "./dist/alpaca/rest.mjs",
+      "require": "./dist/alpaca/rest.js"
+    },
     "./stocks": {
       "types": "./dist/stocks/index.d.ts",
       "import": "./dist/stocks/index.mjs",
@@ -93,6 +98,7 @@
     "test:watch": "vitest",
     "test:debate": "vitest run src/trading-agents/__tests__/debate-agents.test.ts",
     "test:debate:watch": "vitest src/trading-agents/__tests__/debate-agents.test.ts",
+    "skill:docs": "node scripts/build-skill-docs.mjs",
     "ship": "npm run build && npx standard-version --release-as patch; rm CHANGELOG.md; npm publish",
     "import:leaders": "bun lib/leaders/nvsty-leaders.ts",
     "import:stategies": "bun lib/algo-stategies/tv-scraper.ts --pages=10",

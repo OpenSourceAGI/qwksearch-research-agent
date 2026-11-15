@@ -13,7 +13,8 @@ native `xgboost_node` binding all at once.
 | Import | Contents | Docs |
 | --- | --- | --- |
 | `investing` | Everything below plus the database schema, correlate, social trading, debate generator, Wikipedia pageviews | — |
-| `investing/alpaca` | `createAlpacaClient`, `createAlpacaBrokerClient`, `AlpacaConfig` | [Alpaca](/docs/alpaca) |
+| `investing/alpaca` | `createAlpacaClient`, `createAlpacaBrokerClient`, `AlpacaConfig` (plus the REST client below) | [Alpaca](/docs/alpaca) |
+| `investing/alpaca/rest` | `createAlpacaRest`, `AlpacaRest`, `AlpacaApiError` — fetch-only, safe for Cloudflare Workers | [Alpaca](/docs/alpaca#createalpacarestconfig) |
 | `investing/stocks` | Unified quote service, Yahoo Finance wrapper, Finnhub wrapper, SEC `Downloader`, stock names | [Stocks](/docs/stocks) |
 | `investing/prediction` | Polymarket API calls, D1 storage, analysis and sync jobs | [Polymarket](/docs/prediction) |
 | `investing/trading-agents` | `TradingAgentsGraph`, the agent classes, memory, LLM client, data tools | [Trading agents](/docs/trading-agents) |

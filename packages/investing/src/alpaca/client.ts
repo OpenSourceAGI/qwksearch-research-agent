@@ -73,3 +73,9 @@ export function createAlpacaBrokerClient(config?: Partial<AlpacaConfig>) {
     paper: false, // Broker API doesn't use paper trading flag
   })
 }
+
+// Fetch-based client for edge runtimes (Cloudflare Workers, Deno, browser).
+// Import from `investing/alpaca/rest` when bundling for a Worker so the SDK
+// above is never pulled in; it is re-exported here for convenience.
+export { createAlpacaRest, AlpacaRest, AlpacaApiError } from "./rest";
+export type { AlpacaRestConfig } from "./rest";

@@ -1,0 +1,97 @@
+# Import paths
+
+> Which subpaths exist, what each one loads, and why importing the barrel costs more than you might expect.
+>
+> Source: https://investing-lib.vercel.app/docs/imports
+
+`investing` has one barrel (`"investing"`) that re-exports almost everything, plus narrower subpaths. Prefer a
+subpath: the barrel pulls in LangChain, the Alpaca SDK, `yahoo-finance2`, the Polymarket CLOB client and the
+native `xgboost_node` binding all at once.
+
+## Subpaths
+
+| Import | Contents | Docs |
+| --- | --- | --- |
+| `investing` | Everything below plus the database schema, correlate, social trading, debate generator, Wikipedia pageviews | — |
+| `investing/alpaca` | `createAlpacaClient`, `createAlpacaBrokerClient`, `AlpacaConfig` (plus the REST client below) | [Alpaca](https://investing-lib.vercel.app/docs/alpaca) |
+| `investing/alpaca/rest` | `createAlpacaRest`, `AlpacaRest`, `AlpacaApiError` — fetch-only, safe for Cloudflare Workers | [Alpaca](https://investing-lib.vercel.app/docs/alpaca#createalpacarestconfig) |
+| `investing/stocks` | Unified quote service, Yahoo Finance wrapper, Finnhub wrapper, SEC `Downloader`, stock names | [Stocks](https://investing-lib.vercel.app/docs/stocks) |
+| `investing/prediction` | Polymarket API calls, D1 storage, analysis and sync jobs | [Polymarket](https://investing-lib.vercel.app/docs/prediction) |
+| `investing/trading-agents` | `TradingAgentsGraph`, the agent classes, memory, LLM client, data tools | [Trading agents](https://investing-lib.vercel.app/docs/trading-agents) |
+| `investing/prediction-agent` | The whole PredictionAgent core (barrel) | [PredictionAgent](https://investing-lib.vercel.app/docs/prediction-agent) |
+| `investing/prediction-agent/ai` | OpenAI, Grok and BlockRun clients, prompt builders | [AI clients](https://investing-lib.vercel.app/docs/prediction-agent/ai-clients) |
+| `investing/prediction-agent/agents` | Event analysis, bookmaker, mapper, and the execution agents | [Agents](https://investing-lib.vercel.app/docs/prediction-agent/event-analysis) |
+| `investing/prediction-agent/data/kalshi` | Kalshi via DFlow | [Data clients](https://investing-lib.vercel.app/docs/prediction-agent/data-clients) |
+| `investing/prediction-agent/data/polymarket` | Polymarket (and Kalshi) via Dome | [Data clients](https://investing-lib.vercel.app/docs/prediction-agent/data-clients) |
+| `investing/prediction-agent/arbitrage` | `findArbitrage` | [Arbitrage](https://investing-lib.vercel.app/docs/prediction-agent/arbitrage) |
+
+> **WARN: Versions up to 0.1.346**
+>
+> In 0.1.346 and earlier only `investing` and the `investing/prediction-agent/*` subpaths were built:
+> `investing/alpaca`, `/stocks`, `/prediction` and `/trading-agents` were declared in `exports` but had no
+> file behind them. Worse, importing the barrel in Node ran the bundled stock-name importer script and exited
+> the process. Both are fixed in the next release; on an older version, upgrade first.
+
+Two declared subpaths still have no source behind them: `investing/constants` and `investing/utils`. Don't
+import them. The stock-name data that `./data/*` was meant to expose ships inside the `stocks` module instead
+— see [stock names](https://investing-lib.vercel.app/docs/stocks/stock-names).
+
+## Things only the barrel exports
+
+These modules have no subpath of their own, so import them from `"investing"`:
+
+```ts
+import {
+  // database (Cloudflare D1 + drizzle)
+  db, positions, trades, portfolios, polymarketMarkets, stockQuoteCache,
+  // correlate (XGBoost)
+  trainModels, predictFuture, calculateRMSE, calculateR2, calculateRollingStats, saveModel, loadModel,
+  // social trading
+  fetchZuluTraders, syncZuluTraders, myLeadersAPI, syncCopyTradingLeadersOrders,
+  // AI debate for a prediction market
+  generateDebateAnalysis, generateDebateAnalysisWithOpenAI,
+  // Wikipedia pageviews
+  pageviews,
+  // external stock-agents service client
+  stockAgentsAPI, TOP_STOCKS,
+  // Alpaca MCP strategy client
+  getAlpacaMCPClient,
+} from "investing";
+```
+
+The [Dukascopy](https://investing-lib.vercel.app/docs/live-data) client lives in `src/live-data` and is not exported at all yet; that page
+shows how to use it from source.
+
+## Name collisions in the PredictionAgent barrel
+
+Two PredictionAgent data clients export Kalshi helpers with the same names. The `investing/prediction-agent` barrel keeps
+the **DFlow** versions under their own names and renames the **Dome** ones:
+
+| From `investing/prediction-agent` | Comes from |
+| --- | --- |
+| `getKalshiMarketsByEvent`, `buildKalshiMarketUrl` | DFlow (`data/kalshi`) |
+| `getDomeKalshiMarketsByEvent`, `buildDomeKalshiMarketUrl` | Dome (`data/polymarket`) |
+| `DomeKalshiMarket`, `DomeKalshiMarketsResponse` (types) | Dome |
+
+Three more clients are namespaced on the barrel for the same reason:
+
+```ts
+import { polymarketClob, polyfactual, x402 } from "investing/prediction-agent";
+
+polymarketClob; // Gamma/CLOB trading client (clients/polymarket)
+polyfactual;    // Polyfactual deep-research client
+x402;           // x402 / PayAI seller client
+```
+
+Import from `investing/prediction-agent/data/polymarket` if you want the Dome names unprefixed.
+
+## Two things called "prediction"
+
+| | `investing/prediction` | `investing/prediction-agent` |
+| --- | --- | --- |
+| What | Polymarket sync, storage and analytics | AI analysis agents and arbitrage |
+| State | Writes to Cloudflare D1 | Stateless |
+| Venues | Polymarket only | Polymarket and Kalshi (and Jupiter URLs) |
+| Keys | None for reads, D1 for storage | An AI key, plus `DOME_API_KEY` / `DFLOW_API_KEY` for some calls |
+
+They do not share types: `PolymarketMarket` from one is not the other's.

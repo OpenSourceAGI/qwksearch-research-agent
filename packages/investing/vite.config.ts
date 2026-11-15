@@ -27,6 +27,8 @@ export default defineConfig({
         // consumer that only needs quotes or Polymarket does not load the
         // whole barrel. `./constants` and `./utils` have no source yet.
         "alpaca/index": resolve(__dirname, "src/alpaca/client.ts"),
+        // Fetch-only Alpaca client: safe to bundle for Cloudflare Workers.
+        "alpaca/rest": resolve(__dirname, "src/alpaca/rest.ts"),
         "stocks/index": resolve(__dirname, "src/stocks/index.ts"),
         "prediction/index": resolve(__dirname, "src/prediction/index.ts"),
         "trading-agents/index": resolve(

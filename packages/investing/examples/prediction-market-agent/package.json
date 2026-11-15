@@ -1,0 +1,19 @@
+{
+  "name": "investing-prediction-market-agent",
+  "private": true,
+  "type": "module",
+  "description": "Prediction market agent: fetches the most-traded Polymarket events and asks an LLM where the mispricing is.",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "investing": "latest",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,142 @@
+# StackBlitz examples
+
+> Ready-to-run agents you can open in the browser — a stock momentum agent on Alpaca, a prediction-market agent on Polymarket, and both as Cloudflare Worker cron jobs.
+>
+> Source: https://investing-lib.vercel.app/docs/examples
+
+Four complete projects live in
+[`packages/investing/examples`](https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/investing/examples).
+Each button opens the project in StackBlitz, installs `investing` from npm and runs `npm start`. Every
+project also runs locally with `npm install && npm start`.
+
+> **WARN: Paper trading and dry runs by default**
+>
+> The stock agents use an Alpaca **paper** account and start with `DRY_RUN=true`. The prediction agents
+> only analyse and alert; none of them place a Polymarket order. Model output is not financial advice.
+
+## Agents you run on demand
+
+### Stock momentum agent
+
+[Open `stock-momentum-agent` in StackBlitz](https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/investing/examples/stock-momentum-agent?file=src%2Findex.ts) · source: `packages/investing/examples/stock-momentum-agent`
+
+Ranks a watchlist by trend (close above the 50-day SMA) and 3-month momentum, picks the top names and
+plans an equal-weight rebalance on your Alpaca paper account with
+[`createAlpacaRest()`](https://investing-lib.vercel.app/docs/alpaca#createalpacarestconfig). With no keys it runs on generated demo prices,
+so you can see the output before signing up.
+
+```ts title="src/index.ts (core)"
+import { createAlpacaRest } from "investing/alpaca/rest";
+
+const alpaca = createAlpacaRest(); // paper; ALPACA_API_KEY / ALPACA_SECRET
+const bars = await alpaca.getBars("NVDA", { timeframe: "1Day", limit: 200, adjustment: "all" });
+const signal = computeSignal("NVDA", bars.map((b) => b.c));
+// ... pickTargets() -> planTrades() -> alpaca.createOrder({ symbol, side, notional })
+```
+
+| Env | Default | |
+| --- | --- | --- |
+| `ALPACA_API_KEY`, `ALPACA_SECRET` | none | free paper keys; demo prices without them |
+| `WATCHLIST` | 12 large caps | comma-separated |
+| `TOP_N` | `3` | names to hold |
+| `DRY_RUN` | `true` | `false` sends paper market orders while the market is open |
+
+### Prediction market agent
+
+[Open `prediction-market-agent` in StackBlitz](https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/investing/examples/prediction-market-agent?file=src%2Findex.ts) · source: `packages/investing/examples/prediction-market-agent`
+
+Pulls the most-traded live Polymarket events from the public Gamma API (no key needed) and hands each
+event's markets to the [event-analysis agent](https://investing-lib.vercel.app/docs/prediction-agent/event-analysis), which returns its own
+probability, the alpha versus the market price and a `BUY YES` / `BUY NO` / `NO TRADE` call.
+
+```ts title="src/index.ts (core)"
+import { runEventAnalysisAgent } from "investing/prediction-agent/agents";
+
+const events = await getTopEvents(3); // gamma-api.polymarket.com/events?order=volume24hr
+for (const e of events) {
+  const { analysis } = await runEventAnalysisAgent({
+    markets: compactMarkets(e),
+    eventIdentifier: e.slug,
+    pmType: "Polymarket",
+    model: "gpt-4.1-mini",
+  });
+  console.log(analysis.recommendedAction, analysis.title, analysis.alphaOpportunity);
+}
+```
+
+Set `OPENAI_API_KEY` or `XAI_API_KEY` for the AI step; without one it prints prices and the biggest 24h
+movers. `TAG=politics` (or `crypto`, `sports`, …) narrows the scan.
+
+## Agents that run as cron jobs on Cloudflare Workers
+
+Both Worker projects split the work into `src/agent.ts` (one run, plain `fetch`), `src/worker.ts` (the
+`scheduled()` and `fetch()` handlers) and `src/run-once.ts` (one run in Node). On StackBlitz `npm start`
+runs `run-once.ts`, which is the same code path the cron takes. Deploy from your machine:
+
+### Install and log in
+
+```bash
+npm install
+npx wrangler login
+```
+
+### Add secrets
+
+```bash
+npx wrangler secret put ALPACA_API_KEY      # stock worker
+npx wrangler secret put ALPACA_SECRET
+npx wrangler secret put OPENAI_API_KEY      # prediction worker (or XAI_API_KEY)
+npx wrangler secret put ALERT_WEBHOOK_URL   # Discord or Slack incoming webhook
+```
+
+### Test the cron locally, then deploy
+
+```bash
+npm run dev     # wrangler dev --test-scheduled
+curl "http://localhost:8787/__scheduled?cron=0+15+*+*+1-5"
+npm run deploy
+```
+
+### Stock agent cron worker
+
+[Open `stock-cron-worker` in StackBlitz](https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/investing/examples/stock-cron-worker?file=src%2Fagent.ts) · source: `packages/investing/examples/stock-cron-worker`
+
+Runs the momentum agent at `0 15 * * 1-5` (15:00 UTC, mid-session every US trading day), checks Alpaca's
+market clock, and rebalances the paper account when `DRY_RUN` is `"false"` in `wrangler.jsonc`. It imports
+only `investing/alpaca/rest`, so the Worker bundle is about 10 KB.
+
+```ts title="src/worker.ts"
+import { runAgent } from "./agent";
+
+export default {
+  async scheduled(_controller, env, ctx) {
+    ctx.waitUntil(runAgent(env)); // reads ALPACA_* from Worker secrets
+  },
+} satisfies ExportedHandler<Env>;
+```
+
+### Prediction market cron worker
+
+[Open `prediction-cron-worker` in StackBlitz](https://stackblitz.com/github/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/investing/examples/prediction-cron-worker?file=src%2Fagent.ts) · source: `packages/investing/examples/prediction-cron-worker`
+
+Every hour it scans the top 25 Polymarket events, keeps markets that moved more than `MIN_MOVE`
+(default 10 points) in 24h, asks the event-analysis agent whether the move overshot for the top
+`ANALYZE_TOP` movers, and posts the list to `ALERT_WEBHOOK_URL`.
+
+```jsonc title="wrangler.jsonc"
+{
+  "main": "src/worker.ts",
+  "compatibility_flags": ["nodejs_compat"],
+  "triggers": { "crons": ["0 * * * *"] },
+  "vars": { "SCAN_EVENTS": "25", "MIN_MOVE": "0.1", "ANALYZE_TOP": "3" }
+}
+```
+
+Both Workers expose `GET /` (the last report, when you bind the optional `REPORTS` KV namespace) and
+`POST /run` (run now; protect it with a `RUN_TOKEN` secret).
+
+> **NOTE: Why StackBlitz runs Node, not wrangler dev**
+>
+> StackBlitz runs projects in a WebContainer, which can't start Cloudflare's `workerd` runtime. The
+> `run-once.ts` entry gives you the same agent run there; use `npm run dev` on your own machine for a
+> real Worker.
