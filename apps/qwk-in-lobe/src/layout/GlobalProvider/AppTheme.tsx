@@ -12,7 +12,7 @@ import { memo, useEffect, useMemo, useState } from 'react';
 import AntdStaticMethods from '@/components/AntdStaticMethods';
 import Link from '@/components/Link';
 import { genFontFamily, genFontFamilyCode } from '@/const/font';
-import { LOBE_THEME_NEUTRAL_COLOR, LOBE_THEME_PRIMARY_COLOR } from '@/const/theme';
+import { LOBE_THEME_NEUTRAL_COLOR, LOBE_THEME_PRIMARY_COLOR, QWKSEARCH_THEME } from '@/const/theme';
 import { useIsDark } from '@/hooks/useIsDark';
 import { getUILocaleAndResources } from '@/libs/getUILocaleAndResources';
 import type { UILocaleResources } from '@/libs/getUILocaleAndResources.utils';
@@ -93,11 +93,11 @@ export interface AppThemeProps {
 const AppTheme = memo<AppThemeProps>(
   ({
     children,
-    defaultPrimaryColor,
-    defaultNeutralColor,
+    defaultPrimaryColor = QWKSEARCH_THEME.primaryColor,
+    defaultNeutralColor = QWKSEARCH_THEME.neutralColor,
     globalCDN,
-    customFontURL,
-    customFontFamily,
+    customFontURL = QWKSEARCH_THEME.fontURL,
+    customFontFamily = QWKSEARCH_THEME.fontFamily,
   }) => {
     const language = useGlobalStore(systemStatusSelectors.language);
     const isDark = useIsDark();
@@ -172,6 +172,7 @@ const AppTheme = memo<AppThemeProps>(
         theme={{
           cssVar: { key: 'lobe-vars' },
           token: {
+            ...QWKSEARCH_THEME.token,
             fontFamily,
             fontFamilyCode,
             motion: animationMode !== 'disabled',

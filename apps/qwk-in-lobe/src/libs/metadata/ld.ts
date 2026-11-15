@@ -94,8 +94,8 @@ export class Ld {
         'email': BRANDING_EMAIL.support,
       },
       'description':
-        'Agent teammates that grow with you\n' +
-        `${BRANDING_NAME} is a work-and-lifestyle space to find, build, and collaborate with agent teams that grow with you.`,
+        'Research agents that search, read and cite for you\n' +
+        `${BRANDING_NAME} is an AI research workspace: agents search the web, read the sources and give you answers with citations you can check.`,
       'email': BRANDING_EMAIL.business,
       'image': urlJoin(OFFICIAL_URL, BRANDING_LOGO_URL),
       'logo': {

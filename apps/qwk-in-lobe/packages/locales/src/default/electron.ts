@@ -110,7 +110,8 @@ export default {
   'gateway.title': 'Device Gateway',
   'remoteServer.authError': 'Authorization failed: {{error}}',
   'remoteServer.authPending': 'Please complete the authorization in your browser',
-  'remoteServer.configDesc': 'Connect to the remote QwkSearch server to enable data synchronization',
+  'remoteServer.configDesc':
+    'Connect to the remote QwkSearch server to enable data synchronization',
   'remoteServer.configError': 'Configuration error',
   'remoteServer.configTitle': 'Configure Cloud Sync',
   'remoteServer.connect': 'Connect and authorize',

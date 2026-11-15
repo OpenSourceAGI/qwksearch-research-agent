@@ -1,8 +1,8 @@
 {
   "changelog.description": "Blijf op de hoogte van de nieuwe functies en verbeteringen van {{appName}}",
   "changelog.title": "Wijzigingslogboek",
-  "chat.description": "{{appName}} is een werk- en leefruimte om agententeams te vinden, op te bouwen en samen te werken die met je meegroeien.",
-  "chat.title": "{{appName}} · Agententeams die met je meegroeien",
+  "chat.description": "{{appName}} is an AI research workspace: agents search the web, read the sources and give you answers with citations you can check.",
+  "chat.title": "{{appName}} · Research agents that search, read and cite for you",
   "discover.assistants.description": "Inhoud, Q&A, afbeeldingen, video, spraak, workflows—blader door en voeg Agenten toe vanuit de Community.",
   "discover.assistants.title": "Agentencommunity",
   "discover.description": "Ontdek Agenten, Vaardigheden, Providers, modellen en MCP-servers.",

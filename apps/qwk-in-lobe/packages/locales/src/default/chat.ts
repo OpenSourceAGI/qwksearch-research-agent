@@ -1255,13 +1255,13 @@ export default {
   'globalApproval.userRequestLabel': 'Request',
   'followUpPlaceholder': 'Follow up.',
   'followUpPlaceholderHeterogeneous': 'Follow up.',
-  'sendPlaceholder': 'Ask, create, or start a task, <hotkey><hotkey/>',
+  'sendPlaceholder': 'Ask a question or paste a link, <hotkey><hotkey/>',
   'sendPlaceholderChat': 'Ask, search, or brainstorm, <hotkey><hotkey/>',
   'sendPlaceholderChatWithAgentAssignment':
     'Ask, search, or brainstorm. @ to bring in other agents.',
   'sendPlaceholderHeterogeneous': 'Describe a task or ask a question to {{name}}',
   'sendPlaceholderWithAgentAssignment':
-    'Ask, create, or start a task. @ to assign tasks to other agents.',
+    'Ask a question or paste a link. @ to bring in another agent.',
   'sender.unknownMember': 'Member',
   'sessionGroup.config': 'Category Management',
   'sessionGroup.manageCategory': 'Manage Category',

@@ -7,7 +7,7 @@ export const OFFICIAL_DOMAIN = 'lobehub.com';
 export const OFFICIAL_DEVICE_GATEWAY_URL = 'https://device-gateway.lobehub.com';
 export const OFFICIAL_AGENT_GATEWAY_URL = 'https://agent-gateway.lobehub.com';
 
-export const OG_URL = '/og/og.webp?v=2';
+export const OG_URL = '/og/og.webp?v=3';
 
 export const LobeHubPath = {
   webapi: {

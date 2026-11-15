@@ -43,7 +43,7 @@ export const generateMetadata = async (props: DynamicLayoutProps) => {
       images: [
         {
           alt: t('chat.title', { appName: BRANDING_NAME }),
-          height: 640,
+          height: 630,
           url: OG_URL,
           width: 1200,
         },

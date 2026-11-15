@@ -778,7 +778,8 @@ export default {
   'protocolInstall.meta.source': 'Source',
   'protocolInstall.meta.version': 'Version',
   'protocolInstall.official.badge': 'QwkSearch Official Skill',
-  'protocolInstall.official.description': 'Official QwkSearch Skill, verified and security-checked.',
+  'protocolInstall.official.description':
+    'Official QwkSearch Skill, verified and security-checked.',
   'protocolInstall.official.loadingMessage': 'Loading Skill details…',
   'protocolInstall.official.loadingTitle': 'Loading',
   'protocolInstall.official.title': 'Install official Skill',

@@ -12,7 +12,7 @@ import { formatDescLength, formatTitleLength } from '@/utils/genOG';
 
 export class Meta {
   public generate({
-    description = `${BRANDING_NAME} is a work-and-lifestyle space to find, build, and collaborate with agent teams that grow with you.`,
+    description = `${BRANDING_NAME} is an AI research workspace: agents search the web, read the sources and give you answers with citations you can check.`,
     title,
     image = OG_URL,
     url,

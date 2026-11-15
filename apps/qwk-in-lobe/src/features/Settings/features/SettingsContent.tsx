@@ -1,6 +1,5 @@
 'use client';
 
-import { Text } from '@lobehub/ui/base-ui';
 import { Fragment, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +13,8 @@ import { featureFlagsSelectors } from '@/store/serverConfig/selectors';
 
 import { ManageMemoryButton } from '../memory/features/ManageMemoryButton';
 import { componentMap } from './componentMap';
+import SettingsHero from './SettingsHero';
+import { settingsStyles } from './settingsStyles';
 
 const REDIRECT_MAP: Record<string, string> = {
   [SettingsTabs.Common]: SettingsTabs.Appearance,
@@ -154,13 +155,14 @@ const SettingsContent = ({ mobile, activeTab }: SettingsContentProps) => {
             tabKey === SettingsTabs.Memory ? <ManageMemoryButton /> : undefined;
           return (
             <Fragment key={tabKey}>
-              <NavHeader
-                right={compactHeaderExtra}
-                styles={compactHeaderTitle ? { center: { alignItems: 'center' } } : undefined}
+              <NavHeader right={compactHeaderExtra} />
+              <SettingContainer
+                className={settingsStyles.page}
+                maxWidth={1024}
+                paddingBlock={'8px 128px'}
+                paddingInline={24}
               >
-                {compactHeaderTitle && <Text weight={500}>{compactHeaderTitle}</Text>}
-              </NavHeader>
-              <SettingContainer maxWidth={1024} paddingBlock={'24px 128px'} paddingInline={24}>
+                {compactHeaderTitle && <SettingsHero tab={tabKey} title={compactHeaderTitle} />}
                 {content}
               </SettingContainer>
             </Fragment>

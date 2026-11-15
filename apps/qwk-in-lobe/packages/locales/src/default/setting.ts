@@ -667,7 +667,8 @@ export default {
   'devices.workingDirectory': 'Working dir: {{path}}',
   'apps.cli.copied': 'Copied',
   'apps.cli.copy': 'Copy',
-  'apps.cli.desc': 'Scripts, cron jobs, and headless agents — the same QwkSearch, from any terminal.',
+  'apps.cli.desc':
+    'Scripts, cron jobs, and headless agents — the same QwkSearch, from any terminal.',
   'apps.cli.title': 'CLI',
   'apps.desktop.cta': 'Get desktop app',
   'apps.desktop.desc': 'Chat, build, and automate in one app, with full access to this machine:',
@@ -1365,7 +1366,8 @@ export default {
   'settingSystemTools.tools.grep.desc': 'GNU grep - standard text search tool',
   'settingSystemTools.tools.kimi.desc': 'Kimi Code - Moonshot AI agentic coding CLI',
   'settingSystemTools.tools.mdfind.desc': 'macOS Spotlight search (fast indexed search)',
-  'settingSystemTools.tools.lobehub.desc': 'QwkSearch CLI - manage and connect to QwkSearch services',
+  'settingSystemTools.tools.lobehub.desc':
+    'QwkSearch CLI - manage and connect to QwkSearch services',
   'settingSystemTools.tools.bun.desc': 'Bun - fast JavaScript runtime and package manager',
   'settingSystemTools.tools.bunx.desc': 'bunx - Bun package runner for executing npm packages',
   'settingSystemTools.tools.node.desc': 'Node.js - JavaScript runtime for executing JS/TS',
