@@ -1,6 +1,6 @@
 {
   "name": "investing",
-  "version": "0.1.356",
+  "version": "0.1.359",
   "description": "Reusable investment utilities, trading agents, prediction-market analysis (PredictionAgent core) and financial data tools",
   "license": "rights.institute/prosper",
   "author": "vtempest",
