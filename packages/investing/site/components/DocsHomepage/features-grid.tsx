@@ -30,17 +30,17 @@ const modules = [
   },
   {
     icon: Brain,
-    title: 'PredictOS agents',
+    title: 'PredictionAgent agents',
     description: 'Paste a Kalshi or Polymarket URL, get the markets, an AI alpha analysis, a consensus, and order parameters.',
     example: 'runEventAnalysisAgent({ markets, … })',
-    href: '/docs/predictos',
+    href: '/docs/prediction-agent',
   },
   {
     icon: Scale,
     title: 'Cross-venue arbitrage',
     description: 'Finds the same event on the other venue and checks whether YES + NO costs less than the $1 payout.',
     example: "findArbitrage({ url, model: 'grok-4-fast' })",
-    href: '/docs/predictos/arbitrage',
+    href: '/docs/prediction-agent/arbitrage',
   },
   {
     icon: Bot,

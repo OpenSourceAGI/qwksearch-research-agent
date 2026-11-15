@@ -7,8 +7,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { NoTradeError, runMapperAgent } from '@investing/predictos/agents/mapper-agent';
-import type { MapperAgentRequest, MapperAgentResult } from '@investing/predictos/types';
+import { NoTradeError, runMapperAgent } from '@investing/prediction-agent/agents/mapper-agent';
+import type { MapperAgentRequest, MapperAgentResult } from '@investing/prediction-agent/types';
 import { Field, Json, Panel, ResultView, inputClass } from './shared';
 
 type Action = 'BUY YES' | 'BUY NO' | 'NO TRADE';
@@ -64,7 +64,7 @@ export function OrderMapperPlayground() {
   }
 
   return (
-    <Panel title="runMapperAgent — analysis → Polymarket order" source="src/predictos/agents/mapper-agent.ts">
+    <Panel title="runMapperAgent — analysis → Polymarket order" source="src/prediction-agent/agents/mapper-agent.ts">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Field label="platform">
           <select className={inputClass} value={platform} onChange={(e) => setPlatform(e.target.value as 'Polymarket' | 'Kalshi')}>

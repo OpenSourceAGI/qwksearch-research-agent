@@ -37,8 +37,8 @@ A comprehensive TypeScript/JavaScript library for investment analysis, trading a
 - 🤖 **Trading Agents** - Multi-agent framework for automated trading strategies
 - 📊 **Stock Data** - Fetch and analyze stock data from Yahoo Finance, SEC filings, and more
 - 💹 **Prediction Markets** - Polymarket integration for prediction market data
-- 🔮 **PredictOS Core** - Multi-agent prediction-market analysis, Kalshi/Polymarket
-  data clients, and cross-platform arbitrage (merged in from the `predictos` package)
+- 🔮 **PredictionAgent Core** - Multi-agent prediction-market analysis, Kalshi/Polymarket
+  data clients, and cross-platform arbitrage
 - 🔌 **Alpaca Trading API** - Easy-to-use wrapper for Alpaca trading platform
 - 📈 **Technical Analysis** - Algorithmic trading strategies and indicators
 - 🎯 **Social Trading** - Track and analyze top traders and strategies
@@ -117,14 +117,14 @@ const leaders = await fetchLeaderboard({
 });
 ```
 
-### PredictOS — Prediction-Market Analysis & Arbitrage
+### PredictionAgent — Prediction-Market Analysis & Arbitrage
 
 ```typescript
 import {
   runEventAnalysisAgent,
   findArbitrage,
   getEvents,
-} from "investing/predictos";
+} from "investing/prediction-agent";
 
 const url = "https://polymarket.com/event/will-x-happen-by-2026";
 
@@ -252,7 +252,7 @@ Get Polymarket leaderboard of top traders.
 - `limit` - Number of results (default: 20)
 - `category` - Market category (default: 'overall')
 
-### PredictOS Core
+### PredictionAgent Core
 
 ```typescript
 import {
@@ -261,16 +261,10 @@ import {
   runMapperAgent,
   findArbitrage,
   getEvents,
-} from "investing/predictos";
+} from "investing/prediction-agent";
 ```
 
-> Adapted from [PredictOS](https://github.com/PredictionXBT/PredictOS) by
-> **PredictionXBT** (MIT licensed, © 2025). The original code shipped as
-> Deno/Supabase edge functions; here it is refactored into plain, typed,
-> dependency-light library functions with no HTTP/CORS layer. It lived in a
-> sibling `predictos` package until that package was merged into `investing`.
-> See [`NOTICE`](./NOTICE) and
-> [`LICENSE-PredictOS-MIT`](./LICENSE-PredictOS-MIT).
+> Plain, typed, dependency-light library functions with no HTTP/CORS layer.
 
 #### What it covers
 
@@ -280,16 +274,16 @@ import {
   builders (`analyzeEventMarkets`, `bookmakerAnalysis`, `arbitrageAnalysis`,
   `searchQueryGenerator`).
 - **Market data clients** — Kalshi via the DFlow API
-  (`investing/predictos/data/kalshi`) and Polymarket via the Dome API
-  (`investing/predictos/data/polymarket`).
-- **Multi-agent pipeline** (`investing/predictos/agents`):
+  (`investing/prediction-agent/data/kalshi`) and Polymarket via the Dome API
+  (`investing/prediction-agent/data/polymarket`).
+- **Multi-agent pipeline** (`investing/prediction-agent/agents`):
   - `runEventAnalysisAgent` — analyzes an event's markets for alpha and a
     predicted winner.
   - `runBookmakerAgent` — aggregates multiple agent analyses (and optional
     external data sources) into a single consolidated assessment.
   - `runMapperAgent` — turns an analysis into Polymarket order parameters
     (pure logic; Kalshi mapping not yet implemented).
-- **Cross-platform arbitrage** (`investing/predictos/arbitrage`) —
+- **Cross-platform arbitrage** (`investing/prediction-agent/arbitrage`) —
   `findArbitrage` parses a Polymarket/Kalshi URL, generates a search query with
   AI, searches the other platform, and evaluates whether the same event is
   mispriced across venues.
@@ -300,17 +294,17 @@ import {
 
 | Import | Contents |
 | --- | --- |
-| `investing/predictos` | Everything (barrel) |
-| `investing/predictos/ai` | AI clients + prompt builders |
-| `investing/predictos/data/kalshi` | Kalshi (DFlow) data client |
-| `investing/predictos/data/polymarket` | Polymarket (Dome) data client |
-| `investing/predictos/agents` | `runEventAnalysisAgent`, `runBookmakerAgent`, `runMapperAgent` |
-| `investing/predictos/arbitrage` | `findArbitrage` |
+| `investing/prediction-agent` | Everything (barrel) |
+| `investing/prediction-agent/ai` | AI clients + prompt builders |
+| `investing/prediction-agent/data/kalshi` | Kalshi (DFlow) data client |
+| `investing/prediction-agent/data/polymarket` | Polymarket (Dome) data client |
+| `investing/prediction-agent/agents` | `runEventAnalysisAgent`, `runBookmakerAgent`, `runMapperAgent` |
+| `investing/prediction-agent/arbitrage` | `findArbitrage` |
 
 The barrel re-exports the Kalshi (DFlow) client at the top level. The Polymarket
 (Dome) client exposes Kalshi helpers under the same names, so the barrel renames
 those two to `getDomeKalshiMarketsByEvent` / `buildDomeKalshiMarketUrl` — import
-from `investing/predictos/data/polymarket` for their original names. The
+from `investing/prediction-agent/data/polymarket` for their original names. The
 Gamma/CLOB trading client, Polyfactual and x402 are namespaced on the barrel as
 `polymarketClob`, `polyfactual` and `x402` for the same reason.
 
@@ -415,7 +409,7 @@ ALPACA_SECRET=your_secret_here
 # OpenAI for AI-powered analysis
 OPENAI_API_KEY=your_openai_key
 
-# PredictOS: prediction-market analysis and data
+# PredictionAgent: prediction-market analysis and data
 XAI_API_KEY=your_xai_key           # Grok/xAI
 BLOCKRUN_WALLET_KEY=your_wallet_key # BlockRun x402 micropayments
 DOME_API_KEY=your_dome_key          # Polymarket market data
@@ -535,13 +529,6 @@ See the `/examples` directory for complete working examples:
 - [Documentation](https://invest.vtempest.com/docs)
 - [Agent skill](../../skills/investing/SKILL.md)
 - [Examples](./examples)
-
-## Credits
-
-The `predictos` module is a derivative work of
-[PredictOS](https://github.com/PredictionXBT/PredictOS) — all original design and
-logic © 2025 PredictionXBT, MIT licensed. See [`NOTICE`](./NOTICE) and
-[`LICENSE-PredictOS-MIT`](./LICENSE-PredictOS-MIT).
 
 - [GitHub Issues](https://github.com/vtempest/ai-broker-investment-agent/issues)
 - [Documentation](https://invest.vtempest.com/docs)

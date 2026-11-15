@@ -44,7 +44,7 @@ Requirements:
   chunk names do not resolve under `"type": "module"`, so `require("investing")` fails today.
 - **`drizzle-orm`** only if you use the [database](/docs/database) helpers or the Polymarket sync jobs — it
   is a peer dependency.
-- **`@solana/web3.js`, `@solana/spl-token`, `bs58`** only for the x402 Solana payment path in PredictOS. They
+- **`@solana/web3.js`, `@solana/spl-token`, `bs58`** only for the x402 Solana payment path in PredictionAgent. They
   are optional dependencies, loaded dynamically.
 
 ## Pick your first call
@@ -95,7 +95,7 @@ XAI_API_KEY=xai-...        # or OPENAI_API_KEY for gpt-* models
 ```
 
 ```ts title="analyze.ts"
-import { getEvents, runEventAnalysisAgent } from "investing/predictos";
+import { getEvents, runEventAnalysisAgent } from "investing/prediction-agent";
 
 const event = await getEvents({ url: "https://polymarket.com/event/fed-decision-in-december" });
 const { analysis, processingTimeMs } = await runEventAnalysisAgent({

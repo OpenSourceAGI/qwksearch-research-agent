@@ -1,12 +1,12 @@
 /**
  * @file market-urls.tsx
  * @description Interactive buildPolymarketUrl / buildKalshiMarketUrl from the
- * PredictOS data clients. Imports the package source.
+ * PredictionAgent data clients. Imports the package source.
  */
 'use client';
 
 import { useState } from 'react';
-import { buildKalshiMarketUrl, buildPolymarketUrl } from '@investing/predictos/data/polymarket';
+import { buildKalshiMarketUrl, buildPolymarketUrl } from '@investing/prediction-agent/data/polymarket';
 import { Field, Panel, ResultView, inputClass } from './shared';
 
 export function MarketUrlPlayground() {
@@ -14,7 +14,7 @@ export function MarketUrlPlayground() {
   const [ticker, setTicker] = useState('KXFEDDECISION-26DEC-C25');
 
   return (
-    <Panel title="buildPolymarketUrl · buildKalshiMarketUrl" source="src/predictos/data/polymarket.ts">
+    <Panel title="buildPolymarketUrl · buildKalshiMarketUrl" source="src/prediction-agent/data/polymarket.ts">
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="Polymarket event slug">
           <input className={inputClass} value={slug} onChange={(e) => setSlug(e.target.value)} />
