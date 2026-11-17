@@ -1,21 +1,12 @@
 ---
 title: Troubleshooting
-description: The errors people actually hit with investing — broken imports in older versions, missing keys, PredictOS validation errors, database connection and stale README names — and how to fix each.
+description: The errors people actually hit with investing — broken imports in older versions, missing keys, PredictionAgent validation errors, database connection and stale README names — and how to fix each.
 icon: LifeBuoy
 ---
 
 ## Imports and installation
 
 <Accordions>
-<Accordion title="Cannot find module 'predictos'">
-
-PredictOS ships inside this package. Import it as a subpath:
-
-```ts
-import { findArbitrage } from "investing/predictos";
-```
-
-</Accordion>
 <Accordion title="investing/stocks, /prediction, /trading-agents or /alpaca resolve to nothing">
 
 Up to 0.1.346 those subpaths were declared in `package.json` but never built, so they pointed at files that
@@ -28,7 +19,7 @@ should not be used. See [imports](/docs/imports).
 
 Up to 0.1.346, importing the root package (or `investing/stocks`) also ran the stock-names import script,
 which tried to write to `./data` and called `process.exit`. Upgrade; on an old version, import from the
-narrower subpaths such as `investing/predictos`.
+narrower subpaths such as `investing/prediction-agent`.
 
 </Accordion>
 <Accordion title="require('investing') fails">
@@ -94,7 +85,7 @@ inside an app that serves that route. In a script it fails; the market and news 
 </Accordion>
 </Accordions>
 
-## PredictOS
+## PredictionAgent
 
 <Accordions>
 <Accordion title="Missing required parameter: 'model' (or 'url', 'eventIdentifier')">

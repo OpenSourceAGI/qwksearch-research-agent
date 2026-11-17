@@ -43,8 +43,8 @@
   "email.footer.contactSupport": "Свържете се с поддръжката",
   "email.footer.joinDiscord": "Присъединете се към Discord",
   "email.footer.manage": "Управление на известията",
-  "email.footer.preference": "Получихте този имейл заради настройките си за известия в LobeHub.",
-  "email.footer.system": "Това е важно известие за акаунта от LobeHub.",
+  "email.footer.preference": "Получихте този имейл заради настройките си за известия в QwkSearch.",
+  "email.footer.system": "Това е важно известие за акаунта от QwkSearch.",
   "email.viewDetails": "Преглед на подробности",
   "group_transfer_reassigned": "Собственик на работно пространство прехвърли вашата група \"{{agentTitle}}\" на {{recipientLabel}}.",
   "group_transfer_reassigned_title": "Групата е прехвърлена",
@@ -128,6 +128,6 @@
   "workspace_primary_ownership_transferred_title": "Вече сте основният собственик на {{workspaceName}}",
   "workspace_subscription_expired": "Абонаментът за работното пространство \"{{workspaceName}}\" е изтекъл. Подновете в рамките на {{days}} дни, за да възстановите пълния достъп, преди работното пространство да бъде понижено.",
   "workspace_subscription_expired_title": "Абонаментът за {{workspaceName}} е изтекъл",
-  "workspace_waitlist_approved": "Вашият достъп до бета версията на Workspace е готов. Отидете в LobeHub, за да създадете първото си работно пространство и да поканите вашия екип.",
+  "workspace_waitlist_approved": "Вашият достъп до бета версията на Workspace е готов. Отидете в QwkSearch, за да създадете първото си работно пространство и да поканите вашия екип.",
   "workspace_waitlist_approved_title": "Достъпът до бета версията на Workspace е одобрен"
 }

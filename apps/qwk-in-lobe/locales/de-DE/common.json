@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "WeChat-Gruppe",
   "blog": "Produkt-Blog",
   "branching": "Unterthema erstellen",
-  "branchingDisable": "Die Funktion „Unterthema“ ist im aktuellen Modus nicht verfügbar. Bitte wechseln Sie in den Postgres/PGlite-DB-Modus oder nutzen Sie LobeHub Cloud.",
+  "branchingDisable": "Die Funktion „Unterthema“ ist im aktuellen Modus nicht verfügbar. Bitte wechseln Sie in den Postgres/PGlite-DB-Modus oder nutzen Sie QwkSearch Cloud.",
   "branchingRequiresSavedTopic": "Das aktuelle Thema ist nicht gespeichert. Bitte speichern Sie es zuerst, um die Unterthema-Funktion zu nutzen.",
   "cancel": "Abbrechen",
   "changelog": "Änderungsprotokoll",

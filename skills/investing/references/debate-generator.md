@@ -1,0 +1,63 @@
+# Debate generator
+
+> generateDebateAnalysis — web research with Tavily, then a YES-vs-NO argument map for a prediction market from a Groq model.
+>
+> Source: https://investing-lib.vercel.app/docs/debate-generator
+
+```ts
+import { generateDebateAnalysis, generateDebateAnalysisWithOpenAI } from "investing";
+```
+
+Given a market question and its prices, it:
+
+1. searches the web with [Tavily](https://tavily.com) (`TAVILY_API_KEY`; skipped with a warning when unset),
+2. asks `llama-3.3-70b-versatile` on Groq (`GROQ_API_KEY`, or the `apiKey` argument) for a structured debate,
+3. validates that every field came back, and throws `Failed to generate debate analysis: …` otherwise.
+
+## Input
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `question` | `string` |  |  |
+| `description` | `string` |  | resolution criteria help a lot |
+| `currentYesPrice` | `number` |  | 0–1 |
+| `currentNoPrice` | `number` |  | 0–1 |
+| `volume24hr` | `number` |  |  |
+| `volumeTotal` | `number` |  |  |
+| `tags` | `string[]` |  |  |
+
+## Output
+
+```ts
+{
+  yesArguments: string[];
+  noArguments: string[];
+  yesSummary: string;
+  noSummary: string;
+  keyFactors: string[];
+  uncertainties: string[];
+}
+```
+
+## Example
+
+```ts
+import { fetchMarkets, saveDebate } from "investing/prediction";
+import { generateDebateAnalysis } from "investing";
+
+const [m] = await fetchMarkets(1, "volume24hr");
+const [yes, no] = JSON.parse(m.outcomePrices).map(Number);
+const market = { question: m.question, description: m.description, currentYesPrice: yes, currentNoPrice: no, volume24hr: m.volume24hr };
+
+const debate = await generateDebateAnalysis(market);
+console.log("YES:", debate.yesSummary);
+console.log("NO: ", debate.noSummary);
+console.log("Watch:", debate.keyFactors);
+
+await saveDebate(m.id, { ...market, ...debate, llmProvider: "groq" }); // optional: store in D1
+```
+
+> **NOTE: About the OpenAI variant**
+>
+> `generateDebateAnalysisWithOpenAI` uses a slightly different prompt but, despite its name, still calls
+> Groq with `GROQ_API_KEY`.

@@ -1,7 +1,7 @@
 {
   "name": "research-agent-ui",
   "description": "The QwkSearch app UI: conversation window, article reader, search config, file uploads, chat history, and the app shell — exported both with and without the REASON editor and its sidebar",
-  "version": "0.1.338",
+  "version": "0.1.346",
   "author": "vtempest",
   "repository": {
     "type": "git",
@@ -113,7 +113,7 @@
     "quantum-sphere-loading-icon": "^1.0.6",
     "qwksearch-api-client": "workspace:*",
     "react-icons": "^5.7.0",
-    "react-native-app-buttons": "^0.1.4",
+    "react-app-store-buttons": "^0.1.176",
     "react-textarea-autosize": "^8.5.9",
     "search-web-api": "workspace:*",
     "shadcn-app-dock": "workspace:*",

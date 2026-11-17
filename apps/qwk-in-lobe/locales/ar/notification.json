@@ -43,8 +43,8 @@
   "email.footer.contactSupport": "اتصل بالدعم",
   "email.footer.joinDiscord": "انضم إلى Discord",
   "email.footer.manage": "إدارة الإشعارات",
-  "email.footer.preference": "لقد تلقيت هذا البريد الإلكتروني بسبب إعدادات الإشعارات الخاصة بك على LobeHub.",
-  "email.footer.system": "هذا إشعار مهم للحساب من LobeHub.",
+  "email.footer.preference": "لقد تلقيت هذا البريد الإلكتروني بسبب إعدادات الإشعارات الخاصة بك على QwkSearch.",
+  "email.footer.system": "هذا إشعار مهم للحساب من QwkSearch.",
   "email.viewDetails": "عرض التفاصيل",
   "group_transfer_reassigned": "قام مالك مساحة العمل بنقل مجموعتك \"{{agentTitle}}\" إلى {{recipientLabel}}.",
   "group_transfer_reassigned_title": "إعادة تعيين المجموعة",
@@ -128,6 +128,6 @@
   "workspace_primary_ownership_transferred_title": "أنت الآن المالك الأساسي لـ {{workspaceName}}",
   "workspace_subscription_expired": "انتهت الاشتراك لمساحة العمل \"{{workspaceName}}\". قم بالتجديد خلال {{days}} يومًا لاستعادة الوصول الكامل قبل تخفيض مساحة العمل.",
   "workspace_subscription_expired_title": "انتهى الاشتراك لـ {{workspaceName}}",
-  "workspace_waitlist_approved": "تمت الموافقة على وصولك إلى النسخة التجريبية من Workspace. توجه إلى LobeHub لإنشاء أول مساحة عمل لك ودعوة فريقك.",
+  "workspace_waitlist_approved": "تمت الموافقة على وصولك إلى النسخة التجريبية من Workspace. توجه إلى QwkSearch لإنشاء أول مساحة عمل لك ودعوة فريقك.",
   "workspace_waitlist_approved_title": "تمت الموافقة على الوصول إلى النسخة التجريبية من Workspace"
 }

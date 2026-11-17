@@ -20,7 +20,7 @@
   "features.groupChat.title": "グループチャット（マルチアシスタント）",
   "features.heteroSessionImport.desc": "トピックリストメニューに「ローカルエージェントセッションのインポート」エントリを追加します: ローカルのClaude Code / Codex CLIトランスクリプトをスキャンしてトピックとしてインポートし、再インポート時には増分同期を行います。",
   "features.heteroSessionImport.title": "ローカルエージェントセッションのインポート",
-  "features.imessage.desc": "LobeHub Desktop BlueBubblesブリッジを介してエージェントをiMessageに接続します。",
+  "features.imessage.desc": "QwkSearch Desktop BlueBubblesブリッジを介してエージェントをiMessageに接続します。",
   "features.imessage.title": "iMessageチャンネル",
   "features.inAppBrowser.desc": "会話サイドパネルにブラウザータブを表示します: 検索結果をその場で開き、エージェントが目に見える形でブラウズできる埋め込みブラウザー。",
   "features.inAppBrowser.title": "インアプリブラウザー",

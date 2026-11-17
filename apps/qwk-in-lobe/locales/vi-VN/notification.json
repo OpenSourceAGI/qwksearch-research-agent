@@ -43,8 +43,8 @@
   "email.footer.contactSupport": "Liên hệ hỗ trợ",
   "email.footer.joinDiscord": "Tham gia Discord",
   "email.footer.manage": "Quản lý thông báo",
-  "email.footer.preference": "Bạn nhận được email này vì cài đặt thông báo của bạn trên LobeHub.",
-  "email.footer.system": "Đây là thông báo quan trọng về tài khoản từ LobeHub.",
+  "email.footer.preference": "Bạn nhận được email này vì cài đặt thông báo của bạn trên QwkSearch.",
+  "email.footer.system": "Đây là thông báo quan trọng về tài khoản từ QwkSearch.",
   "email.viewDetails": "Xem chi tiết",
   "group_transfer_reassigned": "Một chủ sở hữu không gian làm việc đã chuyển nhóm của bạn \"{{agentTitle}}\" đến {{recipientLabel}}.",
   "group_transfer_reassigned_title": "Nhóm được chuyển giao",
@@ -128,6 +128,6 @@
   "workspace_primary_ownership_transferred_title": "Bạn hiện là chủ sở hữu chính của {{workspaceName}}",
   "workspace_subscription_expired": "Đăng ký cho không gian làm việc \"{{workspaceName}}\" đã kết thúc. Gia hạn trong vòng {{days}} ngày để khôi phục quyền truy cập đầy đủ trước khi không gian làm việc bị hạ cấp.",
   "workspace_subscription_expired_title": "Đăng ký đã kết thúc cho {{workspaceName}}",
-  "workspace_waitlist_approved": "Quyền truy cập beta Workspace của bạn đã sẵn sàng. Truy cập LobeHub để tạo không gian làm việc đầu tiên và mời nhóm của bạn.",
+  "workspace_waitlist_approved": "Quyền truy cập beta Workspace của bạn đã sẵn sàng. Truy cập QwkSearch để tạo không gian làm việc đầu tiên và mời nhóm của bạn.",
   "workspace_waitlist_approved_title": "Quyền truy cập beta Workspace đã được phê duyệt"
 }

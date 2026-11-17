@@ -1,0 +1,7 @@
+{
+  "installDependencies": true,
+  "startCommand": "npm start",
+  "env": {
+    "DRY_RUN": "true"
+  }
+}

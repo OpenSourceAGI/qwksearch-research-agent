@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "Grupo do WeChat",
   "blog": "Blog do Produto",
   "branching": "Criar Subtópico",
-  "branchingDisable": "O recurso \"Subtópico\" não está disponível no modo atual. Para usá-lo, alterne para o modo de banco de dados Postgres/PGlite ou utilize o LobeHub Cloud.",
+  "branchingDisable": "O recurso \"Subtópico\" não está disponível no modo atual. Para usá-lo, alterne para o modo de banco de dados Postgres/PGlite ou utilize o QwkSearch Cloud.",
   "branchingRequiresSavedTopic": "O tópico atual não está salvo, salve-o primeiro para usar o recurso de subtópico",
   "cancel": "Cancelar",
   "changelog": "Registro de Alterações",

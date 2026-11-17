@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "Grupa WeChat",
   "blog": "Blog produktu",
   "branching": "Utwórz podtemat",
-  "branchingDisable": "Funkcja „Podtemat” jest niedostępna w bieżącym trybie. Aby z niej skorzystać, przełącz się na tryb bazy danych Postgres/PGlite lub użyj LobeHub Cloud.",
+  "branchingDisable": "Funkcja „Podtemat” jest niedostępna w bieżącym trybie. Aby z niej skorzystać, przełącz się na tryb bazy danych Postgres/PGlite lub użyj QwkSearch Cloud.",
   "branchingRequiresSavedTopic": "Bieżący temat nie został zapisany, zapisz go najpierw, aby użyć funkcji podtematu",
   "cancel": "Anuluj",
   "changelog": "Lista zmian",

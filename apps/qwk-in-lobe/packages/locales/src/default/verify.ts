@@ -326,7 +326,7 @@ export default {
   'acceptance.workspace.onboarding.enable.description': 'Run this from your project root.',
   'acceptance.workspace.onboarding.enable.title': 'Enable Acceptance',
   'acceptance.workspace.onboarding.install.description': 'Install the CLI once on this device.',
-  'acceptance.workspace.onboarding.install.title': 'Install the LobeHub CLI',
+  'acceptance.workspace.onboarding.install.title': 'Install the QwkSearch CLI',
   'acceptance.workspace.onboarding.installSection': 'Install Acceptance',
   'acceptance.workspace.onboarding.manual.description':
     'Run both commands yourself from the project root.',

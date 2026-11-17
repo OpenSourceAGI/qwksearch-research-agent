@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "WeChat група",
   "blog": "Блог на продукта",
   "branching": "Създай подтема",
-  "branchingDisable": "Функцията „Подтема“ не е налична в текущия режим. За да я използвате, превключете към режим Postgres/Pglite DB или използвайте LobeHub Cloud.",
+  "branchingDisable": "Функцията „Подтема“ не е налична в текущия режим. За да я използвате, превключете към режим Postgres/Pglite DB или използвайте QwkSearch Cloud.",
   "branchingRequiresSavedTopic": "Текущата тема не е запазена, моля, запазете я, за да използвате функцията за подтема",
   "cancel": "Отказ",
   "changelog": "Дневник на промените",

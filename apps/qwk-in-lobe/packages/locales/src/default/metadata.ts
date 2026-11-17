@@ -2,8 +2,8 @@ export default {
   'changelog.description': 'Stay updated on the new features and improvements of {{appName}}',
   'changelog.title': 'Changelog',
   'chat.description':
-    '{{appName}} is a work-and-lifestyle space to find, build, and collaborate with agent teams that grow with you.',
-  'chat.title': '{{appName}} · Agent teammates that grow with you',
+    '{{appName}} is an AI research workspace: agents search the web, read the sources and give you answers with citations you can check.',
+  'chat.title': '{{appName}} · Research agents that search, read and cite for you',
   'discover.assistants.description':
     'Content, Q&A, images, video, voice, workflows—browse and add Agents from the Community.',
   'discover.assistants.title': 'Agent Community',

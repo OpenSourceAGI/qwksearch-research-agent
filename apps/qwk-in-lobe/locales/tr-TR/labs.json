@@ -20,7 +20,7 @@
   "features.groupChat.title": "Grup Sohbeti (Çoklu Temsilci)",
   "features.heteroSessionImport.desc": "Konu listesi menüsüne \"Yerel Aracı Oturumlarını İçe Aktar\" seçeneği ekleyin: yerel Claude Code / Codex CLI transkriptlerini tarayın ve bunları konular olarak içe aktarın, yeniden içe aktarma sırasında artımlı senkronizasyon sağlayın.",
   "features.heteroSessionImport.title": "Yerel Aracı Oturumu İçe Aktarma",
-  "features.imessage.desc": "Ajanları, yerel LobeHub Masaüstü BlueBubbles köprüsü aracılığıyla iMessage'a bağlayın.",
+  "features.imessage.desc": "Ajanları, yerel QwkSearch Masaüstü BlueBubbles köprüsü aracılığıyla iMessage'a bağlayın.",
   "features.imessage.title": "iMessage Kanalı",
   "features.inAppBrowser.desc": "Konuşma yan panelinde Tarayıcı sekmesini göster: arama sonuçlarını yerinde açan ve temsilcilerin görünür bir şekilde gezinmesine olanak tanıyan gömülü bir tarayıcı.",
   "features.inAppBrowser.title": "Uygulama İçi Tarayıcı",

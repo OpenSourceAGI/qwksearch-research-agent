@@ -1,0 +1,130 @@
+# Database (Cloudflare D1)
+
+> The lazy db client, how it finds a Cloudflare D1 connection on Workers or over the REST API, and the tables the sync functions write to.
+>
+> Source: https://investing-lib.vercel.app/docs/database
+
+```ts
+import { db, getD1HttpCredentials, DEFAULT_D1_DATABASE_ID } from "investing";
+```
+
+Every `sync*`, `save*` and `get*FromDb` function in the package goes through one Drizzle client, `db`. It
+talks to **Cloudflare D1** only, and `drizzle-orm` is a **peer dependency**, so install it next to `investing`:
+
+```bash
+bun add investing drizzle-orm
+```
+
+> **NOTE: There is no investing/db entry**
+>
+> `db` and the two helpers come from the root `investing` import. The table objects in `src/db/schema.ts`
+> are not exported from the published package; use the relational query API (`db.query.<table>`) or raw
+> `sql`, both shown below.
+
+## How `db` finds a connection
+
+`db` is a `Proxy`: nothing connects until the first property access, so importing the package never fails
+for lack of a database.
+
+**On Workers**: if `globalThis.__CLOUDFLARE_ENV__.DB` is set (your Worker entry publishes the `DB`
+binding there), it uses `drizzle-orm/d1` on that binding.
+**Anywhere else** (Node, Bun, CI, scripts): it reads `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_D1_TOKEN`
+(or `CLOUDFLARE_API_TOKEN`), and reaches the database over D1's REST API through `drizzle-orm/sqlite-proxy`.
+`CLOUDFLARE_DATABASE_ID` picks the database; without it, the package's own `DEFAULT_D1_DATABASE_ID` is used.
+**Neither**: the first query throws `No Cloudflare D1 connection available. …`, naming the variables to set.
+
+```ts title="worker.ts — publish the binding before the first query"
+export default {
+  async fetch(req: Request, env: { DB: D1Database }) {
+    (globalThis as any).__CLOUDFLARE_ENV__ = env;
+    const { getMarkets } = await import("investing/prediction");
+    return Response.json(await getMarkets({ limit: 10, sortBy: "volume24hr" }));
+  },
+};
+```
+
+```ts title="script.ts — REST API from Node or Bun"
+import { getD1HttpCredentials } from "investing";
+
+if (!getD1HttpCredentials()) throw new Error("Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_D1_TOKEN");
+// Point at your own database, not the package default:
+// CLOUDFLARE_DATABASE_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+> **WARN: Set CLOUDFLARE_DATABASE_ID**
+>
+> `DEFAULT_D1_DATABASE_ID` is the maintainers' project database. Your token will not reach it; create your
+> own D1 database, apply the schema, and set `CLOUDFLARE_DATABASE_ID`.
+
+## Querying
+
+The schema and relations are registered on the client, so the relational API works without importing
+table objects:
+
+```ts
+import { db } from "investing";
+import { sql } from "drizzle-orm";
+
+// Relational API
+const markets = await db.query.polymarketMarkets.findMany({ limit: 20 });
+
+// Raw SQL (table and column names are snake_case)
+const top = await db.all(sql`
+  SELECT question, volume_24hr, outcome_prices
+  FROM polymarket_markets
+  WHERE active = 1 AND closed = 0
+  ORDER BY volume_24hr DESC
+  LIMIT 10
+`);
+```
+
+JSON columns such as `outcomes`, `outcome_prices`, `clob_token_ids` and `tags` are stored as strings:
+`JSON.parse` them on the way out.
+
+## Tables
+
+**Accounts and auth**
+
+`users`, `sessions`, `accounts`, `verifications`, `wallet_addresses`, `user_settings`.
+
+**Trading**
+
+`strategies`, `watchlists`, `watchlist`, `signals`, `positions`, `trades`, `portfolios`.
+`positions` holds open stock and prediction-market positions (`asset`, `type`, `entry_price`,
+`current_price`, `size`, `unrealized_pnl`). Older docs call it `stocksTable`.
+
+**Polymarket**
+
+| Table | Written by |
+| --- | --- |
+| `polymarket_markets` | `syncMarkets`, `syncMarketsIncremental`, `syncAllMarkets` |
+| `polymarket_market_positions`, `polymarket_holders` | `saveMarketPositions`, `syncMarketHolders` |
+| `polymarket_categories` | `saveCategories`, `syncLeadersAndCategories` |
+| `polymarket_price_history` | `syncPriceHistory`, `savePriceHistory` |
+| `polymarket_leaders`, `polymarket_positions` | `syncLeaderboard`, `saveLeaders`, `savePositions` |
+| `polymarket_trade_history`, `polymarket_trade_sync_status` | `syncTraderTradeHistory`, `syncTopTradersTradeHistory` |
+| `polymarket_debates` | `saveDebate` |
+
+See [sync & storage](https://investing-lib.vercel.app/docs/prediction/sync-storage).
+
+**Social trading**
+
+`nvstly_leaders`, `nvstly_trades` (from `syncCopyTradingLeadersOrders`), `zulu_traders`,
+`zulu_currency_stats` (from `syncZuluTraders`, `syncZuluTraderDetails`). See
+[social trading](https://investing-lib.vercel.app/docs/social-trading).
+
+**Stocks and market data caches**
+
+`stock_quote_cache` (the [quote service](https://investing-lib.vercel.app/docs/stocks) cache), `stock_fundamentals`,
+`stock_historical_quotes`, `dukascopy_index_cache`.
+
+**Teams and social features**
+
+`organizations`, `organization_members`, `teams`, `team_members`, `user_follows`, `user_invitations`,
+`shared_items`, `notifications`, `comments`, `likes`, and `agent_api_logs` for agent calls.
+
+## Without a database
+
+Most of the package needs no database at all: quotes (`useCache: false`), Polymarket fetches, PredictionAgent,
+trading agents, arbitrage, correlate and Wikipedia pageviews all work with no D1 connection. Only the
+functions that read from or write to the tables above need one.

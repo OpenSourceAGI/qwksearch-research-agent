@@ -43,8 +43,8 @@
   "email.footer.contactSupport": "聯絡支援",
   "email.footer.joinDiscord": "加入 Discord",
   "email.footer.manage": "管理通知",
-  "email.footer.preference": "您收到此電子郵件是因為您的 LobeHub 通知設定。",
-  "email.footer.system": "這是來自 LobeHub 的重要帳戶通知。",
+  "email.footer.preference": "您收到此電子郵件是因為您的 QwkSearch 通知設定。",
+  "email.footer.system": "這是來自 QwkSearch 的重要帳戶通知。",
   "email.viewDetails": "查看詳情",
   "group_transfer_reassigned": "工作區擁有者已將您的群組「{{agentTitle}}」轉移至 {{recipientLabel}}。",
   "group_transfer_reassigned_title": "群組已重新分配",
@@ -128,6 +128,6 @@
   "workspace_primary_ownership_transferred_title": "您現在是 {{workspaceName}} 的主要擁有者",
   "workspace_subscription_expired": "工作區「{{workspaceName}}」的訂閱已結束。請在 {{days}} 天內續訂以恢復完整訪問權限，否則工作區將被降級。",
   "workspace_subscription_expired_title": "{{workspaceName}} 的訂閱已結束",
-  "workspace_waitlist_approved": "您的 Workspace 測試版已準備就緒。前往 LobeHub 創建您的第一個工作空間並邀請您的團隊。",
+  "workspace_waitlist_approved": "您的 Workspace 測試版已準備就緒。前往 QwkSearch 創建您的第一個工作空間並邀請您的團隊。",
   "workspace_waitlist_approved_title": "Workspace 測試版訪問已獲批准"
 }

@@ -1,10 +1,10 @@
-import { BRANDING_EMAIL, BRANDING_NAME, SOCIAL_URL } from '@lobechat/business-const';
+import { BRANDING_EMAIL, BRANDING_LOGO_URL, BRANDING_NAME, SOCIAL_URL } from '@lobechat/business-const';
 import { isString } from 'es-toolkit/compat';
 import qs from 'query-string';
 import urlJoin from 'url-join';
 
 import { DEFAULT_LANG } from '@/const/locale';
-import { OFFICIAL_SITE, OFFICIAL_URL } from '@/const/url';
+import { OFFICIAL_URL } from '@/const/url';
 import { type Locales } from '@/locales/resources';
 import { getCanonicalUrl } from '@/server/utils/url';
 
@@ -87,27 +87,26 @@ export class Ld {
     return {
       '@id': this.getId(OFFICIAL_URL, '#organization'),
       '@type': 'Organization',
-      'alternateName': 'LobeHub',
+      'alternateName': BRANDING_NAME,
       'contactPoint': {
         '@type': 'ContactPoint',
         'contactType': 'customer support',
         'email': BRANDING_EMAIL.support,
       },
       'description':
-        'Agent teammates that grow with you\n' +
-        'LobeHub is a work-and-lifestyle space to find, build, and collaborate with agent teams that grow with you.',
+        'Research agents that search, read and cite for you\n' +
+        `${BRANDING_NAME} is an AI research workspace: agents search the web, read the sources and give you answers with citations you can check.`,
       'email': BRANDING_EMAIL.business,
-      'founders': [this.getAuthors(['arvinxx']), this.getAuthors(['canisminor'])],
-      'image': urlJoin(OFFICIAL_SITE, '/icon-512x512.png'),
+      'image': urlJoin(OFFICIAL_URL, BRANDING_LOGO_URL),
       'logo': {
         '@type': 'ImageObject',
         'height': 512,
-        'url': urlJoin(OFFICIAL_SITE, '/icon-512x512.png'),
+        'url': urlJoin(OFFICIAL_URL, BRANDING_LOGO_URL),
         'width': 512,
       },
-      'name': 'LobeHub',
+      'name': BRANDING_NAME,
       'sameAs': [SOCIAL_URL.x, SOCIAL_URL.github, SOCIAL_URL.medium, SOCIAL_URL.youtube],
-      'url': OFFICIAL_SITE,
+      'url': OFFICIAL_URL,
     };
   }
 
@@ -256,7 +255,7 @@ export class Ld {
         '@id': this.getId(fixedUrl, '#primaryimage'),
       },
       'inLanguage': locale,
-      'keywords': tags?.join(' ') || 'LobeHub',
+      'keywords': tags?.join(' ') || BRANDING_NAME,
       'mainEntityOfPage': fixedUrl,
       'name': title,
       'publisher': {

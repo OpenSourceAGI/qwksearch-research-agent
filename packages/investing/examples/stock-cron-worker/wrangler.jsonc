@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "investing-stock-cron-agent",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    // UTC. 15:00 UTC Mon-Fri is 10:00 or 11:00 New York time, so the market is
+    // open year-round. The agent also checks Alpaca's clock before trading.
+    "crons": ["0 15 * * 1-5"]
+  },
+  "vars": {
+    "WATCHLIST": "AAPL,MSFT,NVDA,AMZN,GOOGL,META,AVGO,JPM,LLY,COST",
+    "TOP_N": "3",
+    "DRY_RUN": "true"
+  },
+  "observability": { "enabled": true }
+  // Optional: keep the last report so GET / can show it.
+  // "kv_namespaces": [{ "binding": "REPORTS", "id": "<npx wrangler kv namespace create REPORTS>" }]
+}

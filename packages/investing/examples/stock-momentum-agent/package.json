@@ -1,0 +1,19 @@
+{
+  "name": "investing-stock-momentum-agent",
+  "private": true,
+  "type": "module",
+  "description": "Stock trading agent: ranks a watchlist by momentum and trend, then rebalances an Alpaca paper account.",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "investing": "latest",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

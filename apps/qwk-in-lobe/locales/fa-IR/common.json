@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "گروه وی‌چت",
   "blog": "وبلاگ محصول",
   "branching": "ایجاد زیرموضوع",
-  "branchingDisable": "ویژگی «زیرموضوع» در حالت فعلی در دسترس نیست. برای استفاده از این ویژگی، لطفاً به حالت پایگاه داده Postgres/Pglite یا LobeHub Cloud تغییر دهید.",
+  "branchingDisable": "ویژگی «زیرموضوع» در حالت فعلی در دسترس نیست. برای استفاده از این ویژگی، لطفاً به حالت پایگاه داده Postgres/Pglite یا QwkSearch Cloud تغییر دهید.",
   "branchingRequiresSavedTopic": "موضوع فعلی ذخیره نشده است، لطفاً ابتدا آن را ذخیره کنید تا بتوانید از ویژگی زیرموضوع استفاده کنید",
   "cancel": "لغو",
   "changelog": "تغییرات نسخه",

@@ -6,14 +6,14 @@ import dts from 'vite-plugin-dts';
 // bundling them would give this package a private grab instance, and grab's
 // cache, dedupe, rate limiting and `grab.mock` registry are per-instance. A
 // consumer that also uses grab has to be looking at the same one.
-const external = ['api2client', 'grab-url'];
+const external = ['api2client', 'grab-api.js'];
 
 // UMD needs a browser-global name for each external. Nothing exposes these as
 // globals today — the CJS path `require()`s them — but naming them keeps the
 // UMD output valid instead of emitting `undefined`.
 const globals = {
   'api2client': 'api2client',
-  'grab-url': 'grab',
+  'grab-api.js': 'grab',
 };
 
 export default defineConfig({
@@ -27,7 +27,7 @@ export default defineConfig({
       }
     },
     lib: {
-      entry: './src/index.ts',
+      entry: './main.ts',
       formats: ['es', 'umd'],
       fileName: 'api-client',
       name: 'api-client'
@@ -48,7 +48,7 @@ export default defineConfig({
       // advertised a single dist/index.d.ts — hence consumers having to
       // `declare module 'qwksearch-api-client'` to get past TS7016.
       bundleTypes: true,
-      include: ['src']
+      include: ['src', 'baseurl.ts', 'main.ts']
     })
   ]
 });

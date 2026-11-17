@@ -31,7 +31,7 @@ export class OpenRouterError extends Error {
 }
 
 const appHeaders = (): Record<string, string> => {
-  const headers: Record<string, string> = { 'X-Title': 'QwkSearch LobeHub' };
+  const headers: Record<string, string> = { 'X-Title': 'QwkSearch' };
   // OpenRouter uses the referer to attribute traffic to an app.
   if (typeof location !== 'undefined' && location.origin) headers['HTTP-Referer'] = location.origin;
   return headers;

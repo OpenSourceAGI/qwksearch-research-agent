@@ -1,8 +1,8 @@
 {
   "changelog.description": "{{appName}} の新機能と改善を継続的に追跡する",
   "changelog.title": "更新履歴",
-  "chat.description": "{{appName}} は、あなたと共に成長するエージェントチームを見つけ、構築し、協力できるワーク＆ライフスタイル空間です。",
-  "chat.title": "{{appName}} · あなたと共に成長するエージェントチーム",
+  "chat.description": "{{appName}} is an AI research workspace: agents search the web, read the sources and give you answers with citations you can check.",
+  "chat.title": "{{appName}} · Research agents that search, read and cite for you",
   "discover.assistants.description": "コンテンツ作成、コピーライティング、Q&A、画像生成、動画生成、音声生成、インテリジェントアシスタント、自動化ワークフロー、あなた専用のAI / GPTs / OLLaMAインテリジェントアシスタントをカスタマイズ",
   "discover.assistants.title": "インテリジェントアシスタントコミュニティ",
   "discover.description": "コンテンツ作成、コピーライティング、Q&A、画像生成、動画生成、音声生成、インテリジェントアシスタント、自動化ワークフロー、カスタムAIアプリケーション、あなた専用のAIアプリケーションワークスペースをカスタマイズ",

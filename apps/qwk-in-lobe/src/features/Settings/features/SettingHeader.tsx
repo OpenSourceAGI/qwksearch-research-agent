@@ -1,7 +1,6 @@
-import { Flexbox } from '@lobehub/ui';
-import { Text } from '@lobehub/ui/base-ui';
-import { Divider } from 'antd';
 import { type FC, type ReactNode } from 'react';
+
+import SettingsHero from './SettingsHero';
 
 interface SettingHeaderProps {
   description?: ReactNode;
@@ -11,18 +10,9 @@ interface SettingHeaderProps {
 
 const SettingHeader: FC<SettingHeaderProps> = ({ title, description, extra }) => {
   return (
-    <Flexbox gap={24} style={{ paddingTop: 12 }}>
-      <Flexbox horizontal align={'center'} justify={'space-between'}>
-        <Flexbox gap={4}>
-          <Text strong fontSize={24}>
-            {title}
-          </Text>
-          {description && <Text type={'secondary'}>{description}</Text>}
-        </Flexbox>
-        {extra}
-      </Flexbox>
-      <Divider style={{ margin: 0 }} />
-    </Flexbox>
+    <div style={{ paddingTop: 12 }}>
+      <SettingsHero description={description} extra={extra} title={title} />
+    </div>
   );
 };
 

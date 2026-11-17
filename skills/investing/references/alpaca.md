@@ -1,0 +1,247 @@
+# Alpaca brokerage
+
+> createAlpacaClient for paper and live trading, createAlpacaRest for fetch-only runtimes like Cloudflare Workers, createAlpacaBrokerClient for the Broker API, and AlpacaMCPClient for an Alpaca MCP server.
+>
+> Source: https://investing-lib.vercel.app/docs/alpaca
+
+```ts
+import { createAlpacaClient, createAlpacaBrokerClient, type AlpacaConfig } from "investing/alpaca";
+import { createAlpacaRest } from "investing/alpaca/rest"; // fetch-only, runs on Workers
+```
+
+| Client | Built on | Runs on | Use it for |
+| --- | --- | --- | --- |
+| `createAlpacaClient` | official SDK | Node | everything the SDK does, including streaming |
+| `createAlpacaRest` | `fetch` | Node, Bun, Deno, Cloudflare Workers, browser | agents and cron jobs: account, positions, orders, clock, bars, quotes |
+| `createAlpacaBrokerClient` | official SDK | Node | the Broker API |
+| `AlpacaMCPClient` | `fetch` | anywhere | an Alpaca MCP server |
+
+`createAlpacaClient` and `createAlpacaBrokerClient` return an instance of the official
+[`@alpacahq/alpaca-trade-api`](https://github.com/alpacahq/alpaca-trade-api-js) SDK, configured from your
+config object or the environment. Everything the SDK can do — orders, positions, bars, streaming — is
+available on the result.
+
+## `createAlpacaClient(config?)`
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `paper` | `boolean` | `true` | paper account unless you pass false |
+| `keyId` | `string` |  | falls back to ALPACA_API_KEY, ALPACA_KEY_ID, APCA_API_KEY_ID |
+| `secretKey` | `string` |  | falls back to ALPACA_SECRET, ALPACA_SECRET_KEY, APCA_API_SECRET_KEY |
+| `baseUrl` | `string` |  | falls back to ALPACA_BASE_URL / APCA_API_BASE_URL, then the paper or live URL |
+
+> **WARN: paper defaults to true — keep it that way while you test**
+>
+> Live trading needs `paper: false` **and** live keys. A missing key does not throw here; it logs a warning
+> and the first request fails with 401/403.
+
+### Account and positions
+
+```ts
+const alpaca = createAlpacaClient(); // paper, keys from env
+
+const account = await alpaca.getAccount();
+console.log(`Equity $${account.equity}  buying power $${account.buying_power}`);
+
+const positions = await alpaca.getPositions();
+for (const p of positions) {
+  console.log(p.symbol, p.qty, `P&L ${(Number(p.unrealized_plpc) * 100).toFixed(2)}%`);
+}
+```
+
+### Orders
+
+**Market**
+
+```ts
+await alpaca.createOrder({ symbol: "AAPL", qty: 5, side: "buy", type: "market", time_in_force: "day" });
+```
+
+**Limit**
+
+```ts
+await alpaca.createOrder({
+  symbol: "MSFT",
+  qty: 2,
+  side: "buy",
+  type: "limit",
+  limit_price: 400,
+  time_in_force: "gtc",
+});
+```
+
+**Bracket**
+
+```ts
+// Enter at market, take profit at +6 %, stop out at -3 %
+const last = 190;
+await alpaca.createOrder({
+  symbol: "NVDA",
+  qty: 10,
+  side: "buy",
+  type: "market",
+  time_in_force: "day",
+  order_class: "bracket",
+  take_profit: { limit_price: Number((last * 1.06).toFixed(2)) },
+  stop_loss: { stop_price: Number((last * 0.97).toFixed(2)) },
+});
+```
+
+**Notional**
+
+```ts
+// Fractional: buy $250 worth
+await alpaca.createOrder({ symbol: "VOO", notional: 250, side: "buy", type: "market", time_in_force: "day" });
+```
+
+**Cancel**
+
+```ts
+const open = await alpaca.getOrders({ status: "open" } as any);
+for (const o of open) await alpaca.cancelOrder(o.id);
+// or: await alpaca.cancelAllOrders();
+```
+
+### Market data
+
+```ts
+const bars = alpaca.getBarsV2("SPY", { start: "2026-10-01", end: "2026-11-01", timeframe: "1Day" });
+for await (const bar of bars) console.log(bar.Timestamp, bar.ClosePrice);
+
+const clock = await alpaca.getClock();
+console.log(clock.is_open ? "market open" : `opens ${clock.next_open}`);
+```
+
+### Rebalance to target weights
+
+```ts title="rebalance.ts"
+import { createAlpacaClient } from "investing/alpaca";
+import { getQuotes } from "investing/stocks";
+
+const TARGET = { VTI: 0.6, VXUS: 0.3, BND: 0.1 } as const;
+const alpaca = createAlpacaClient({ paper: true });
+
+const account = await alpaca.getAccount();
+const equity = Number(account.equity);
+const held = new Map((await alpaca.getPositions()).map((p: any) => [p.symbol, Number(p.market_value)]));
+const { data } = await getQuotes(Object.keys(TARGET), { useCache: false });
+
+for (const q of data?.quotes ?? []) {
+  const want = equity * TARGET[q.symbol as keyof typeof TARGET];
+  const diff = want - (held.get(q.symbol) ?? 0);
+  if (Math.abs(diff) < 50) continue; // skip tiny trades
+  await alpaca.createOrder({
+    symbol: q.symbol,
+    notional: Math.abs(diff).toFixed(2),
+    side: diff > 0 ? "buy" : "sell",
+    type: "market",
+    time_in_force: "day",
+  });
+}
+```
+
+## `createAlpacaRest(config?)`
+
+A dependency-free client that only needs `fetch`. Import it from `investing/alpaca/rest` so a Worker bundle
+never pulls in the SDK (the whole entry is about 4 KB). It reads the same keys as `createAlpacaClient`, and
+also accepts a Worker's `env` object.
+
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| `keyId` | `string` |  | falls back to ALPACA_API_KEY, ALPACA_KEY_ID, APCA_API_KEY_ID |
+| `secretKey` | `string` |  | falls back to ALPACA_SECRET, ALPACA_SECRET_KEY, APCA_API_SECRET_KEY |
+| `paper` | `boolean` | `true` | or ALPACA_PAPER=false for live |
+| `baseUrl` | `string` |  | trading API; falls back to ALPACA_BASE_URL, then the paper or live URL |
+| `dataUrl` | `string` | `"https://data.alpaca.markets"` | market data API |
+| `feed` | `"iex" \| "sip" \| "delayed_sip"` | `"iex"` | stock data feed (or ALPACA_DATA_FEED); iex is free |
+| `env` | `object` |  | where to read keys — pass a Worker env here; process.env is always checked after it |
+| `fetch` | `typeof fetch` |  | custom fetch for tests or proxies |
+
+```ts
+import { createAlpacaRest } from "investing/alpaca/rest";
+
+const alpaca = createAlpacaRest(); // paper, keys from env
+
+if (await alpaca.isMarketOpen()) {
+  const bars = await alpaca.getBars("SPY", { timeframe: "1Day", limit: 60 });
+  const { ap, bp } = (await alpaca.getLatestQuotes(["SPY"])).SPY;
+  console.log(`SPY last close ${bars.at(-1)?.c}, bid ${bp} ask ${ap}`);
+
+  await alpaca.createOrder({ symbol: "SPY", side: "buy", notional: 100 }); // market / day by default
+  await alpaca.placeBracketOrder({ symbol: "NVDA", qty: 2, referencePrice: 190, takeProfitPct: 0.06, stopLossPct: 0.03 });
+}
+```
+
+| Method | Returns |
+| --- | --- |
+| `getAccount()`, `getClock()`, `isMarketOpen()` | account, market clock, `boolean` |
+| `getPositions()`, `getPosition(symbol)` | positions; `null` when there is no position |
+| `closePosition(symbol, { percentage?, qty? })`, `closeAllPositions(cancelOrders?)` | liquidation orders |
+| `createOrder(order)` | the order; numeric fields are sent as strings for you |
+| `placeBracketOrder({ symbol, qty, referencePrice, takeProfitPct, stopLossPct })` | market entry with take-profit and stop-loss |
+| `getOrders({ status, limit, symbols })`, `getOrder(id)`, `cancelOrder(id)`, `cancelAllOrders()` | orders |
+| `getBars(symbol, { timeframe, start, end, limit, adjustment })` | `AlpacaBar[]` (`t o h l c v`), oldest first, paginated up to `limit` |
+| `getLatestQuotes(symbols)`, `getLatestTrades(symbols)`, `getSnapshots(symbols)` | keyed by symbol |
+| `getLatestCryptoQuotes(["BTC/USD"])` | keyed by pair |
+
+Any non-2xx response throws `AlpacaApiError` with `status`, `body` and `path`. A missing key throws before
+the request is sent (unlike `createAlpacaClient`, which only warns). `hasKeys` lets you check first.
+
+### In a Cloudflare Worker cron
+
+```ts title="src/worker.ts"
+import { createAlpacaRest } from "investing/alpaca/rest";
+
+interface Env { ALPACA_API_KEY: string; ALPACA_SECRET: string }
+
+export default {
+  async scheduled(_controller, env, ctx) {
+    const alpaca = createAlpacaRest({ env });
+    ctx.waitUntil(
+      (async () => {
+        if (!(await alpaca.isMarketOpen())) return;
+        await alpaca.createOrder({ symbol: "VOO", side: "buy", notional: 50 }); // weekly DCA
+      })(),
+    );
+  },
+} satisfies ExportedHandler<Env>;
+```
+
+```jsonc title="wrangler.jsonc"
+{ "main": "src/worker.ts", "triggers": { "crons": ["0 15 * * 1"] } }
+```
+
+Complete projects, with an "Open in StackBlitz" button each, are on the [examples page](https://investing-lib.vercel.app/docs/examples).
+
+## `createAlpacaBrokerClient(config?)`
+
+For platforms that open and manage accounts on behalf of users with the
+[Broker API](https://docs.alpaca.markets/docs/about-broker-api). Reads `ALPACA_BROKER_API_KEY`,
+`ALPACA_BROKER_SECRET_KEY` and `ALPACA_BROKER_BASE_URL` (default `https://broker-api.alpaca.markets`), falling
+back to the trading keys, and **throws** when no key is found.
+
+```ts
+const broker = createAlpacaBrokerClient({ baseUrl: "https://broker-api.sandbox.alpaca.markets" });
+```
+
+## `AlpacaMCPClient` (barrel only)
+
+A thin client for an [Alpaca MCP server](https://github.com/alpacahq/alpaca-mcp-server) exposed over HTTP. It
+POSTs `{ tool, arguments }` to `<baseURL>/mcp/call`. The [unified quote service](https://investing-lib.vercel.app/docs/stocks) uses it as its
+fast path.
+
+```ts
+import { getAlpacaMCPClient, AlpacaMCPClient } from "investing";
+
+const mcp = getAlpacaMCPClient(); // singleton; NEXT_PUBLIC_ALPACA_MCP_URL or http://localhost:3001
+// or: new AlpacaMCPClient({ baseURL: "https://mcp.example.com", apiKey, apiSecret })
+
+const quote = await mcp.getQuote("AAPL"); // tool: get_latest_quote
+const snap = await mcp.getSnapshot("AAPL");
+const bars = await mcp.getBars({ symbol: "AAPL", timeframe: "1Day", limit: 30 });
+```
+
+It covers account, positions, orders, bars, snapshots, assets, option chains and option orders, crypto bars
+and orders, watchlists, the market calendar and corporate actions. It also defines a `TradingStrategy` type
+(entry / exit / sizing rules plus `RiskManagement` with `maxPositionSize`, `stopLoss`, `takeProfit`) that
+`generateStrategyFromDescription()` fills in through your app's `/api/alpaca/chat` route.

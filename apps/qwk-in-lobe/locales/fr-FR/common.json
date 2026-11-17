@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "Groupe WeChat",
   "blog": "Blog produit",
   "branching": "Créer un sous-sujet",
-  "branchingDisable": "La fonctionnalité \"Sous-sujet\" n'est pas disponible dans le mode actuel. Pour l'utiliser, passez en mode base de données Postgres/PGlite ou utilisez LobeHub Cloud.",
+  "branchingDisable": "La fonctionnalité \"Sous-sujet\" n'est pas disponible dans le mode actuel. Pour l'utiliser, passez en mode base de données Postgres/PGlite ou utilisez QwkSearch Cloud.",
   "branchingRequiresSavedTopic": "Le sujet actuel n'est pas enregistré, veuillez l'enregistrer d'abord pour utiliser la fonction de sous-sujet",
   "cancel": "Annuler",
   "changelog": "Journal des modifications",

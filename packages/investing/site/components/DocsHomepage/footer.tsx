@@ -43,11 +43,7 @@ export function Footer() {
             pointing them at a funded account.
           </p>
           <p className="mt-2">
-            The PredictOS module is adapted from{' '}
-            <a href="https://github.com/PredictionXBT/PredictOS" className="text-fd-primary hover:underline">
-              PredictOS
-            </a>{' '}
-            by PredictionXBT (MIT). Made by{' '}
+            Made by{' '}
             <a href="https://github.com/vtempest" className="text-fd-primary hover:underline">
               vtempest
             </a>

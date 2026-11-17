@@ -69,7 +69,7 @@
 
 ### 📈 Investing & Finance
 
-- <a href="https://www.npmjs.com/package/investing"><img src="https://img.shields.io/npm/dm/investing.svg" alt="Monthly Downloads"></a> **investing** — Investment utilities, trading agents and financial data tools: an Alpaca brokerage client, Yahoo/Finnhub/SEC stock data behind a unified quote service, XGBoost timeseries correlation, a Polymarket sync/analysis layer over Cloudflare D1, and LangGraph bull-vs-bear debate agents. Includes the PredictOS prediction-market core on `investing/predictos` — multi-agent event analysis, Kalshi (DFlow) and Polymarket (Dome) data clients, and cross-platform arbitrage detection.
+- <a href="https://www.npmjs.com/package/investing"><img src="https://img.shields.io/npm/dm/investing.svg" alt="Monthly Downloads"></a> **investing** — Investment utilities, trading agents and financial data tools: an Alpaca brokerage client, Yahoo/Finnhub/SEC stock data behind a unified quote service, XGBoost timeseries correlation, a Polymarket sync/analysis layer over Cloudflare D1, and LangGraph bull-vs-bear debate agents. Includes the PredictionAgent prediction-market core on `investing/prediction-agent` — multi-agent event analysis, Kalshi (DFlow) and Polymarket (Dome) data clients, and cross-platform arbitrage detection.
 
 ### 🛠️ Platform, API & Docs
 

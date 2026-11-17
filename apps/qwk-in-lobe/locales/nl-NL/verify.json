@@ -299,7 +299,7 @@
   "acceptance.workspace.onboarding.example.description": "Na installatie, stuur dit voorbeeld naar je code-agent om de eerste review te maken.",
   "acceptance.workspace.onboarding.example.title": "Probeer je eerste acceptance",
   "acceptance.workspace.onboarding.install.description": "Installeer de CLI één keer op dit apparaat.",
-  "acceptance.workspace.onboarding.install.title": "Installeer de LobeHub CLI",
+  "acceptance.workspace.onboarding.install.title": "Installeer de QwkSearch CLI",
   "acceptance.workspace.onboarding.installSection": "Installeer Acceptance",
   "acceptance.workspace.onboarding.manual.description": "Voer beide commando's zelf uit vanuit de root van het project.",
   "acceptance.workspace.onboarding.manual.title": "Handmatig installeren",

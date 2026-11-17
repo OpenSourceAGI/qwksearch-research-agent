@@ -15,7 +15,7 @@ export const PACKAGE_GITHUB_URL = `${GITHUB_URL}/tree/master/packages/investing`
 export const docsConfig: DocsConfig = {
   title: 'investing',
   description:
-    'A TypeScript toolkit for markets: Alpaca brokerage, Yahoo / Finnhub / SEC stock data with a unified quote service, Polymarket sync and analytics, the PredictOS prediction-market agents and arbitrage finder, LangGraph-style bull-vs-bear trading agents, and XGBoost correlation models.',
+    'A TypeScript toolkit for markets: Alpaca brokerage, Yahoo / Finnhub / SEC stock data with a unified quote service, Polymarket sync and analytics, the PredictionAgent prediction-market agents and arbitrage finder, LangGraph-style bull-vs-bear trading agents, and XGBoost correlation models.',
   github: GITHUB_URL,
   githubDocs: `${GITHUB_URL}/tree/master/packages/investing/site/content/docs`,
   favicon: '/icon.svg',

@@ -6,7 +6,7 @@ icon: House
 
 `investing` bundles several fairly independent toolkits behind one npm name. You can use one of them and
 ignore the rest: a script that only needs stock quotes never touches the prediction-market code, and the
-PredictOS agents never touch the database.
+PredictionAgent agents never touch the database.
 
 ```bash
 npm install investing
@@ -18,7 +18,7 @@ npm install investing
   <Card title="Stock data" href="/docs/stocks" description="getQuote / getQuotes / getHistoricalQuotes with cache → Alpaca → Yahoo fallback, plus full Yahoo Finance, Finnhub and SEC EDGAR clients." />
   <Card title="Alpaca brokerage" href="/docs/alpaca" description="createAlpacaClient for paper or live trading and createAlpacaBrokerClient for the Broker API." />
   <Card title="Polymarket" href="/docs/prediction" description="Markets, search, leaderboards, trader activity, holders, order books and price history, with sync jobs into D1." />
-  <Card title="PredictOS" href="/docs/predictos" description="URL → markets → AI analysis → consensus → order parameters, plus a cross-venue arbitrage finder for Kalshi and Polymarket." />
+  <Card title="PredictionAgent" href="/docs/prediction-agent" description="URL → markets → AI analysis → consensus → order parameters, plus a cross-venue arbitrage finder for Kalshi and Polymarket." />
   <Card title="Trading agents" href="/docs/trading-agents" description="TradingAgentsGraph: analysts, a three-round bull vs. bear debate, a judge and a trader, with memory." />
   <Card title="Correlate (XGBoost)" href="/docs/correlate" description="Train, predict, score (RMSE, R²), add rolling stats, and persist gradient-boosted models." />
   <Card title="Live FX & indices" href="/docs/live-data" description="Dukascopy historical and real-time candles and ticks for forex, indices, crypto and commodities." />
@@ -47,7 +47,7 @@ if (res.success && res.data) {
 
 ```ts
 import { fetchMarkets } from "investing/prediction";
-import { getEvents } from "investing/predictos";
+import { getEvents } from "investing/prediction-agent";
 
 const hottest = await fetchMarkets(5, "volume24hr");
 console.log(hottest.map((m: any) => m.question));
@@ -93,7 +93,4 @@ console.log(signal.action); // "BUY" | "SELL" | "HOLD"
 
 The package is maintained in the
 [`qwksearch-research-agent`](https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/investing)
-monorepo and vendored from `ai-broker-investing-agent`. The `investing/predictos` module is a derivative of
-[PredictOS](https://github.com/PredictionXBT/PredictOS) by PredictionXBT, MIT licensed; the original Deno /
-Supabase edge functions were refactored into plain typed async functions. It used to be a separate
-`predictos` package and was merged in — see [imports](/docs/imports#the-old-predictos-package).
+monorepo and vendored from `ai-broker-investing-agent`.

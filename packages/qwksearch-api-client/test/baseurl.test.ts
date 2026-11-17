@@ -20,7 +20,7 @@ describe('baseUrl on the server', () => {
   it('falls back to the public deployment', async () => {
     const { baseUrl } = await importBaseUrl();
 
-    expect(baseUrl).toBe('https://qwksearch.com/api');
+    expect(baseUrl).toBe('https://opensourceagi.app/api');
   });
 
   it('honours NEXT_PUBLIC_BASE_URL', async () => {
@@ -62,6 +62,19 @@ describe('baseUrl in the browser', () => {
     const { baseUrl } = await importBaseUrl();
 
     expect(baseUrl).toBe('http://localhost:3000/api');
+  });
+
+  it.each([
+    ['chrome-extension:', 'abcdefghijklmnop'],
+    ['vscode-webview:', 'some-webview-id'],
+    ['tauri:', 'localhost'],
+    ['file:', ''],
+  ])('falls back to the public deployment on a %s page', async (protocol, host) => {
+    vi.stubGlobal('window', { location: { protocol, host } });
+
+    const { baseUrl } = await importBaseUrl();
+
+    expect(baseUrl).toBe('https://opensourceagi.app/api');
   });
 });
 

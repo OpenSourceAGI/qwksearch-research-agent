@@ -2,6 +2,7 @@
 
 import { Accordion, AccordionItem, Flexbox } from '@lobehub/ui';
 import { Text } from '@lobehub/ui/base-ui';
+import { createStaticStyles, cx } from 'antd-style';
 import { memo, useMemo } from 'react';
 import { Link } from 'react-router';
 
@@ -13,6 +14,32 @@ import { SettingsTabs } from '@/store/global/initialState';
 import { isModifierClick } from '@/utils/navigation';
 
 import { SettingsGroupKey, useCategory } from '../../hooks/useCategory';
+
+const styles = createStaticStyles(({ css, cssVar }) => ({
+  groupTitle: css`
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  `,
+  link: css`
+    position: relative;
+    display: block;
+  `,
+  linkActive: css`
+    &::before {
+      content: '';
+
+      position: absolute;
+      z-index: 1;
+      inset-block: 8px;
+      inset-inline-start: 2px;
+
+      width: 3px;
+      border-radius: 999px;
+
+      background: ${cssVar.colorPrimary};
+    }
+  `,
+}));
 
 const Body = memo(() => {
   const categoryGroups = useCategory();
@@ -49,7 +76,13 @@ const Body = memo(() => {
               paddingBlock={4}
               paddingInline={'8px 4px'}
               title={
-                <Text ellipsis fontSize={12} type={'secondary'} weight={500}>
+                <Text
+                  ellipsis
+                  className={styles.groupTitle}
+                  fontSize={11}
+                  type={'secondary'}
+                  weight={600}
+                >
                   {group.title}
                 </Text>
               }
@@ -59,6 +92,7 @@ const Body = memo(() => {
                   const url = item.href ?? getTabUrl(item.key);
                   return (
                     <Link
+                      className={cx(styles.link, activeTab === item.key && styles.linkActive)}
                       key={item.key}
                       to={url}
                       onClick={(e) => {

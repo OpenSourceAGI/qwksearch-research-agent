@@ -1,7 +1,7 @@
 {
   "name": "investing",
-  "version": "0.1.351",
-  "description": "Reusable investment utilities, trading agents, prediction-market analysis (PredictOS core) and financial data tools",
+  "version": "0.1.359",
+  "description": "Reusable investment utilities, trading agents, prediction-market analysis (PredictionAgent core) and financial data tools",
   "license": "rights.institute/prosper",
   "author": "vtempest",
   "repository": {
@@ -22,6 +22,11 @@
       "import": "./dist/alpaca/index.mjs",
       "require": "./dist/alpaca/index.js"
     },
+    "./alpaca/rest": {
+      "types": "./dist/alpaca/rest.d.ts",
+      "import": "./dist/alpaca/rest.mjs",
+      "require": "./dist/alpaca/rest.js"
+    },
     "./stocks": {
       "types": "./dist/stocks/index.d.ts",
       "import": "./dist/stocks/index.mjs",
@@ -32,35 +37,35 @@
       "import": "./dist/prediction/index.mjs",
       "require": "./dist/prediction/index.js"
     },
-    "./predictos": {
-      "types": "./dist/predictos/index.d.ts",
-      "import": "./dist/predictos/index.mjs",
-      "require": "./dist/predictos/index.js"
+    "./prediction-agent": {
+      "types": "./dist/prediction-agent/index.d.ts",
+      "import": "./dist/prediction-agent/index.mjs",
+      "require": "./dist/prediction-agent/index.js"
     },
-    "./predictos/ai": {
-      "types": "./dist/predictos/ai/index.d.ts",
-      "import": "./dist/predictos/ai/index.mjs",
-      "require": "./dist/predictos/ai/index.js"
+    "./prediction-agent/ai": {
+      "types": "./dist/prediction-agent/ai/index.d.ts",
+      "import": "./dist/prediction-agent/ai/index.mjs",
+      "require": "./dist/prediction-agent/ai/index.js"
     },
-    "./predictos/agents": {
-      "types": "./dist/predictos/agents/index.d.ts",
-      "import": "./dist/predictos/agents/index.mjs",
-      "require": "./dist/predictos/agents/index.js"
+    "./prediction-agent/agents": {
+      "types": "./dist/prediction-agent/agents/index.d.ts",
+      "import": "./dist/prediction-agent/agents/index.mjs",
+      "require": "./dist/prediction-agent/agents/index.js"
     },
-    "./predictos/data/kalshi": {
-      "types": "./dist/predictos/data/kalshi.d.ts",
-      "import": "./dist/predictos/data/kalshi.mjs",
-      "require": "./dist/predictos/data/kalshi.js"
+    "./prediction-agent/data/kalshi": {
+      "types": "./dist/prediction-agent/data/kalshi.d.ts",
+      "import": "./dist/prediction-agent/data/kalshi.mjs",
+      "require": "./dist/prediction-agent/data/kalshi.js"
     },
-    "./predictos/data/polymarket": {
-      "types": "./dist/predictos/data/polymarket.d.ts",
-      "import": "./dist/predictos/data/polymarket.mjs",
-      "require": "./dist/predictos/data/polymarket.js"
+    "./prediction-agent/data/polymarket": {
+      "types": "./dist/prediction-agent/data/polymarket.d.ts",
+      "import": "./dist/prediction-agent/data/polymarket.mjs",
+      "require": "./dist/prediction-agent/data/polymarket.js"
     },
-    "./predictos/arbitrage": {
-      "types": "./dist/predictos/arbitrage.d.ts",
-      "import": "./dist/predictos/arbitrage.mjs",
-      "require": "./dist/predictos/arbitrage.js"
+    "./prediction-agent/arbitrage": {
+      "types": "./dist/prediction-agent/arbitrage.d.ts",
+      "import": "./dist/prediction-agent/arbitrage.mjs",
+      "require": "./dist/prediction-agent/arbitrage.js"
     },
     "./trading-agents": {
       "types": "./dist/trading-agents/index.d.ts",
@@ -85,8 +90,7 @@
     "dist",
     "data",
     "README.md",
-    "NOTICE",
-    "LICENSE-PredictOS-MIT"
+    "LICENSE-PredictionAgent-MIT"
   ],
   "scripts": {
     "build": "vite build",
@@ -94,6 +98,7 @@
     "test:watch": "vitest",
     "test:debate": "vitest run src/trading-agents/__tests__/debate-agents.test.ts",
     "test:debate:watch": "vitest src/trading-agents/__tests__/debate-agents.test.ts",
+    "skill:docs": "node scripts/build-skill-docs.mjs",
     "ship": "npm run build && npx standard-version --release-as patch; rm CHANGELOG.md; npm publish",
     "import:leaders": "bun lib/leaders/nvsty-leaders.ts",
     "import:stategies": "bun lib/algo-stategies/tv-scraper.ts --pages=10",
@@ -114,8 +119,7 @@
     "trading-agents",
     "polymarket",
     "kalshi",
-    "arbitrage",
-    "predictos"
+    "arbitrage"
   ],
   "dependencies": {
     "@alpacahq/alpaca-trade-api": "^3.1.3",

@@ -43,8 +43,8 @@
   "email.footer.contactSupport": "Neem contact op met ondersteuning",
   "email.footer.joinDiscord": "Word lid van Discord",
   "email.footer.manage": "Beheer meldingen",
-  "email.footer.preference": "Je ontvangt deze e-mail vanwege je meldingsinstellingen op LobeHub.",
-  "email.footer.system": "Dit is een belangrijke accountmelding van LobeHub.",
+  "email.footer.preference": "Je ontvangt deze e-mail vanwege je meldingsinstellingen op QwkSearch.",
+  "email.footer.system": "Dit is een belangrijke accountmelding van QwkSearch.",
   "email.viewDetails": "Bekijk details",
   "group_transfer_reassigned": "Een werkruimte-eigenaar heeft jouw groep \"{{agentTitle}}\" overgedragen aan {{recipientLabel}}.",
   "group_transfer_reassigned_title": "Groep opnieuw toegewezen",
@@ -128,6 +128,6 @@
   "workspace_primary_ownership_transferred_title": "U bent nu de primaire eigenaar van {{workspaceName}}",
   "workspace_subscription_expired": "Het abonnement voor werkruimte \"{{workspaceName}}\" is beëindigd. Verlengen binnen {{days}} dagen om volledige toegang te herstellen voordat de werkruimte wordt gedegradeerd.",
   "workspace_subscription_expired_title": "Abonnement beëindigd voor {{workspaceName}}",
-  "workspace_waitlist_approved": "Je Workspace-bèta toegang is klaar. Ga naar LobeHub om je eerste workspace te maken en je team uit te nodigen.",
+  "workspace_waitlist_approved": "Je Workspace-bèta toegang is klaar. Ga naar QwkSearch om je eerste workspace te maken en je team uit te nodigen.",
   "workspace_waitlist_approved_title": "Workspace-bèta toegang goedgekeurd"
 }

@@ -299,7 +299,7 @@
   "acceptance.workspace.onboarding.example.description": "Kurulumdan sonra, ilk incelemeyi oluşturmak için bu örneği kodlama aracınıza gönderin.",
   "acceptance.workspace.onboarding.example.title": "İlk Acceptance'ınızı Deneyin",
   "acceptance.workspace.onboarding.install.description": "CLI'yi bu cihazda bir kez kurun.",
-  "acceptance.workspace.onboarding.install.title": "LobeHub CLI'yi Kurun",
+  "acceptance.workspace.onboarding.install.title": "QwkSearch CLI'yi Kurun",
   "acceptance.workspace.onboarding.installSection": "Acceptance'ı Kurun",
   "acceptance.workspace.onboarding.manual.description": "Her iki komutu da proje kök dizininden kendiniz çalıştırın.",
   "acceptance.workspace.onboarding.manual.title": "Manuel Kurulum Yapın",

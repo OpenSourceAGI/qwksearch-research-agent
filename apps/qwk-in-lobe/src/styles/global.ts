@@ -67,6 +67,19 @@ const genGlobalStyle = ({ token }: { prefixCls: string; token: Theme }) => css`
     -webkit-app-region: no-drag;
   }
 
+  /* QwkSearch look: brand-tinted selection, tighter headings */
+  ::selection {
+    color: ${token.colorText};
+    background: color-mix(in srgb, ${token.colorPrimary} 28%, transparent);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    letter-spacing: -0.015em;
+  }
+
   .${CLASSNAMES.ContextTrigger}[data-popup-open]:not([data-no-highlight]),
   .${CLASSNAMES.DropdownMenuTrigger}[data-popup-open]:not([data-no-highlight]) {
     background: ${token.colorFillTertiary};

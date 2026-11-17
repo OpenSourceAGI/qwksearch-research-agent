@@ -71,11 +71,11 @@ agents learn from it.
 
 ## Prediction-market scanner with two models
 
-Run the [PredictOS](/docs/predictos) pipeline on a Polymarket event: two models analyse it, the bookmaker
+Run the [PredictionAgent](/docs/prediction-agent) pipeline on a Polymarket event: two models analyse it, the bookmaker
 merges them, and the mapper sizes an order. Needs `XAI_API_KEY` and `OPENAI_API_KEY`.
 
 ```ts title="scan.ts"
-import { getEvents, runEventAnalysisAgent, runBookmakerAgent, runMapperAgent, NoTradeError } from "investing/predictos";
+import { getEvents, runEventAnalysisAgent, runBookmakerAgent, runMapperAgent, NoTradeError } from "investing/prediction-agent";
 
 const url = process.argv[2] ?? "https://polymarket.com/event/fed-decision-in-december";
 const event = await getEvents({ url });
@@ -121,7 +121,7 @@ pairs. Needs `OPENAI_API_KEY` and `DFLOW_API_KEY`.
 
 ```ts title="arb.ts"
 import { fetchMarkets } from "investing/prediction";
-import { findArbitrage } from "investing/predictos";
+import { findArbitrage } from "investing/prediction-agent";
 
 const markets = await fetchMarkets(40, "volume24hr");
 const slugs = [...new Set(markets.map((m: any) => m.events?.[0]?.slug).filter(Boolean))];

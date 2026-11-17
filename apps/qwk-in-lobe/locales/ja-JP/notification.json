@@ -43,8 +43,8 @@
   "email.footer.contactSupport": "サポートに連絡する",
   "email.footer.joinDiscord": "Discordに参加する",
   "email.footer.manage": "通知を管理する",
-  "email.footer.preference": "このメールは、LobeHubの通知設定に基づいて送信されました。",
-  "email.footer.system": "これは、LobeHubからの重要なアカウント通知です。",
+  "email.footer.preference": "このメールは、QwkSearchの通知設定に基づいて送信されました。",
+  "email.footer.system": "これは、QwkSearchからの重要なアカウント通知です。",
   "email.viewDetails": "詳細を見る",
   "group_transfer_reassigned": "ワークスペースの所有者があなたのグループ「{{agentTitle}}」を{{recipientLabel}}に移管しました。",
   "group_transfer_reassigned_title": "グループが再割り当てされました",
@@ -128,6 +128,6 @@
   "workspace_primary_ownership_transferred_title": "あなたが{{workspaceName}}のプライマリオーナーになりました",
   "workspace_subscription_expired": "ワークスペース「{{workspaceName}}」のサブスクリプションが終了しました。ワークスペースがダウングレードされる前に、{{days}}日以内に更新して完全なアクセスを復元してください。",
   "workspace_subscription_expired_title": "{{workspaceName}}のサブスクリプションが終了しました",
-  "workspace_waitlist_approved": "ワークスペースのベータアクセスが準備完了しました。LobeHubにアクセスして、最初のワークスペースを作成し、チームを招待してください。",
+  "workspace_waitlist_approved": "ワークスペースのベータアクセスが準備完了しました。QwkSearchにアクセスして、最初のワークスペースを作成し、チームを招待してください。",
   "workspace_waitlist_approved_title": "ワークスペースのベータアクセスが承認されました"
 }

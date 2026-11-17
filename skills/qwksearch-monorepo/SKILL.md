@@ -47,7 +47,7 @@ things look similar:
 | Sponsored ads in chat answers and follow-ups, advertiser keyword panel | `ads-in-chat-answers` | ads-in-chat-answers |
 | The `/docs` help site | `qwksearch-help-docs` | qwksearch-help-docs |
 | Training a GPT from scratch on Wikipedia (Python) | `language-model-training` | language-model-training |
-| Stocks, brokerage, trading agents, prediction markets, arbitrage | `investing` (incl. `investing/predictos`) | investing |
+| Stocks, brokerage, trading agents, prediction markets, arbitrage | `investing` (incl. `investing/prediction-agent`) | investing |
 
 ## The apps (no package skill of their own)
 

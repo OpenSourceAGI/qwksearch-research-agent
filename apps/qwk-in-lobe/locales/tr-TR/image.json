@@ -55,7 +55,7 @@
   "generation.status.generating": "Oluşturuluyor...",
   "generationTopic.notFound.desc": "Bu nesil mevcut değil veya artık erişilebilir değil — sahibi tarafından silinmiş veya özel olarak ayarlanmış olabilir.",
   "generationTopic.notFound.title": "Nesil Kullanılamıyor",
-  "notSupportGuide.desc": "Mevcut dağıtım modu yapay zeka görsel oluşturmayı desteklemiyor. <1>sunucu veritabanı dağıtım moduna</1> geçin veya <3>LobeHub Cloud</3> kullanın.",
+  "notSupportGuide.desc": "Mevcut dağıtım modu yapay zeka görsel oluşturmayı desteklemiyor. <1>sunucu veritabanı dağıtım moduna</1> geçin veya <3>QwkSearch Cloud</3> kullanın.",
   "notSupportGuide.features.fileIntegration.desc": "Dosya yönetim sistemiyle derin entegrasyon; oluşturulan görseller otomatik olarak dosya sistemine kaydedilir ve merkezi olarak yönetilir.",
   "notSupportGuide.features.fileIntegration.title": "Dosya Sistemi Entegrasyonu",
   "notSupportGuide.features.llmAssisted.desc": "Büyük dil modeli yetenekleriyle istemleri akıllıca optimize eder ve genişletir, görsel oluşturma kalitesini artırır (Yakında).",

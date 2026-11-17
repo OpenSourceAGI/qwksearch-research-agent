@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "investing-prediction-cron-agent",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    // Every hour, on the hour (UTC).
+    "crons": ["0 * * * *"]
+  },
+  "vars": {
+    "SCAN_EVENTS": "25",
+    "MIN_MOVE": "0.1",
+    "ANALYZE_TOP": "3"
+  },
+  "observability": { "enabled": true }
+  // Optional: keep the last run so GET / can show it.
+  // "kv_namespaces": [{ "binding": "REPORTS", "id": "<npx wrangler kv namespace create REPORTS>" }]
+}

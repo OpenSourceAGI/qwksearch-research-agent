@@ -1,8 +1,8 @@
 {
   "changelog.description": "Fique por dentro das novas funcionalidades e melhorias do {{appName}}",
   "changelog.title": "Registro de Alterações",
-  "chat.description": "{{appName}} é um espaço de trabalho e estilo de vida para encontrar, construir e colaborar com equipes de agentes que crescem com você.",
-  "chat.title": "{{appName}} · Equipes de agentes que crescem com você",
+  "chat.description": "{{appName}} is an AI research workspace: agents search the web, read the sources and give you answers with citations you can check.",
+  "chat.title": "{{appName}} · Research agents that search, read and cite for you",
   "discover.assistants.description": "Conteúdo, perguntas e respostas, imagens, vídeos, voz, fluxos de trabalho — explore e adicione Agentes da Comunidade.",
   "discover.assistants.title": "Comunidade de Agentes",
   "discover.description": "Explore Agentes, Habilidades, Provedores, Modelos e Servidores MCP.",

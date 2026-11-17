@@ -25,8 +25,8 @@ console.log(batch.data?.source); // "alpaca" | "yfinance" | "mixed"
 
 const history = await getHistoricalQuotes("TSLA", "2026-01-01", "2026-06-30");
 console.log(history.data?.quotes.length, history.data?.meta?.source);`,
-  predictos: `import { getEvents, runEventAnalysisAgent, runMapperAgent, NoTradeError }
-  from "investing/predictos";
+  predictionAgent: `import { getEvents, runEventAnalysisAgent, runMapperAgent, NoTradeError }
+  from "investing/prediction-agent";
 
 const event = await getEvents({ url: "https://kalshi.com/markets/kxfeddecision/fed-meeting/kxfeddecision-26dec" });
 
@@ -39,7 +39,7 @@ const { analysis } = await runEventAnalysisAgent({
 });
 
 console.log(analysis.recommendedAction, analysis.alphaOpportunity, analysis.reasoning);`,
-  arbitrage: `import { findArbitrage } from "investing/predictos";
+  arbitrage: `import { findArbitrage } from "investing/prediction-agent";
 
 const { analysis, sourceMarket, searchedMarket } = await findArbitrage({
   url: "https://polymarket.com/event/fed-decision-in-december",
@@ -79,7 +79,7 @@ type TabKey = keyof typeof codeExamples;
 
 const tabLabels: Record<TabKey, string> = {
   quotes: 'Stock quotes',
-  predictos: 'PredictOS',
+  predictionAgent: 'PredictionAgent',
   arbitrage: 'Arbitrage',
   agents: 'Trading agents',
   polymarket: 'Polymarket',

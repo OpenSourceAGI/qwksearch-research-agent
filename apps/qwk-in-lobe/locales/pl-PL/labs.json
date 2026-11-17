@@ -20,7 +20,7 @@
   "features.groupChat.title": "Czat Grupowy (Wielu Agentów)",
   "features.heteroSessionImport.desc": "Dodaj opcję „Importuj sesje lokalnego agenta” do menu listy tematów: skanuj lokalne transkrypcje Claude Code / Codex CLI i importuj je jako tematy, z możliwością incrementalnej synchronizacji przy ponownym imporcie.",
   "features.heteroSessionImport.title": "Import sesji lokalnego agenta",
-  "features.imessage.desc": "Połącz agentów z iMessage za pośrednictwem lokalnego mostka LobeHub Desktop BlueBubbles.",
+  "features.imessage.desc": "Połącz agentów z iMessage za pośrednictwem lokalnego mostka QwkSearch Desktop BlueBubbles.",
   "features.imessage.title": "Kanał iMessage",
   "features.inAppBrowser.desc": "Wyświetl kartę Przeglądarki w panelu bocznym rozmowy: wbudowaną przeglądarkę, która otwiera wyniki wyszukiwania na miejscu i pozwala agentom przeglądać widocznie.",
   "features.inAppBrowser.title": "Przeglądarka w aplikacji",

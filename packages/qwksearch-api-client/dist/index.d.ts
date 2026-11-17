@@ -1,14 +1,19 @@
-import { Client } from './client';
+import { Client } from './src/client';
+import { Client as Client_2 } from './client';
 import { ClientMeta } from './client';
+import { Config } from './src/client';
+import { createClient } from './src/client';
+import { createConfig } from './src/client';
 import { Options as Options_2 } from './client';
-import { RequestResult } from './client';
+import { RequestResult } from './src/client';
+import { RequestResult as RequestResult_2 } from './client';
 import { ServerSentEventsResult } from './client';
 import { TDataShape } from './client';
 
 /**
  * Accept a playlist invite
  */
-export declare const acceptPlaylistInvite: <ThrowOnError extends boolean = false>(options: Options<AcceptPlaylistInviteData, ThrowOnError>) => RequestResult<AcceptPlaylistInviteResponses, AcceptPlaylistInviteErrors, ThrowOnError>;
+export declare const acceptPlaylistInvite: <ThrowOnError extends boolean = false>(options: Options<AcceptPlaylistInviteData, ThrowOnError>) => RequestResult_2<AcceptPlaylistInviteResponses, AcceptPlaylistInviteErrors, ThrowOnError>;
 
 export declare type AcceptPlaylistInviteData = {
     body: {
@@ -50,7 +55,7 @@ export declare type AcceptPlaylistInviteResponses = {
 /**
  * Add a favorite
  */
-export declare const addFavorite: <ThrowOnError extends boolean = false>(options: Options<AddFavoriteData, ThrowOnError>) => RequestResult<AddFavoriteResponses, AddFavoriteErrors, ThrowOnError>;
+export declare const addFavorite: <ThrowOnError extends boolean = false>(options: Options<AddFavoriteData, ThrowOnError>) => RequestResult_2<AddFavoriteResponses, AddFavoriteErrors, ThrowOnError>;
 
 export declare type AddFavoriteData = {
     body: {
@@ -100,7 +105,7 @@ export declare type AddFavoriteResponses = {
 /**
  * Add an MCP server
  */
-export declare const addMcpServer: <ThrowOnError extends boolean = false>(options: Options<AddMcpServerData, ThrowOnError>) => RequestResult<AddMcpServerResponses, unknown, ThrowOnError>;
+export declare const addMcpServer: <ThrowOnError extends boolean = false>(options: Options<AddMcpServerData, ThrowOnError>) => RequestResult_2<AddMcpServerResponses, unknown, ThrowOnError>;
 
 export declare type AddMcpServerData = {
     body: {
@@ -129,7 +134,7 @@ export declare type AddMcpServerResponses = {
 /**
  * Add a source to a notebook
  */
-export declare const addNotebookSource: <ThrowOnError extends boolean = false>(options: Options<AddNotebookSourceData, ThrowOnError>) => RequestResult<AddNotebookSourceResponses, AddNotebookSourceErrors, ThrowOnError>;
+export declare const addNotebookSource: <ThrowOnError extends boolean = false>(options: Options<AddNotebookSourceData, ThrowOnError>) => RequestResult_2<AddNotebookSourceResponses, AddNotebookSourceErrors, ThrowOnError>;
 
 export declare type AddNotebookSourceData = {
     body: {
@@ -167,7 +172,7 @@ export declare type AddNotebookSourceResponses = {
 /**
  * Add a provider
  */
-export declare const addProvider: <ThrowOnError extends boolean = false>(options: Options<AddProviderData, ThrowOnError>) => RequestResult<AddProviderResponses, unknown, ThrowOnError>;
+export declare const addProvider: <ThrowOnError extends boolean = false>(options: Options<AddProviderData, ThrowOnError>) => RequestResult_2<AddProviderResponses, unknown, ThrowOnError>;
 
 export declare type AddProviderData = {
     body: {
@@ -184,7 +189,7 @@ export declare type AddProviderData = {
 /**
  * Add a model to a provider
  */
-export declare const addProviderModel: <ThrowOnError extends boolean = false>(options: Options<AddProviderModelData, ThrowOnError>) => RequestResult<AddProviderModelResponses, unknown, ThrowOnError>;
+export declare const addProviderModel: <ThrowOnError extends boolean = false>(options: Options<AddProviderModelData, ThrowOnError>) => RequestResult_2<AddProviderModelResponses, unknown, ThrowOnError>;
 
 export declare type AddProviderModelData = {
     body: {
@@ -276,7 +281,7 @@ export declare type AgentChatResponses = {
 /**
  * Meta-search via SearXNG
  */
-export declare const agentSearch: <ThrowOnError extends boolean = false>(options: Options<AgentSearchData, ThrowOnError>) => RequestResult<AgentSearchResponses, AgentSearchErrors, ThrowOnError>;
+export declare const agentSearch: <ThrowOnError extends boolean = false>(options: Options<AgentSearchData, ThrowOnError>) => RequestResult_2<AgentSearchResponses, AgentSearchErrors, ThrowOnError>;
 
 export declare type AgentSearchData = {
     body?: never;
@@ -315,12 +320,35 @@ export declare type AgentSearchResponses = {
     };
 };
 
+export declare type ApiRateLimitOverride = {
+    /**
+     * Path pattern. `*` matches anything; a trailing `*` also matches the bare path.
+     */
+    pattern: string;
+    limit: number;
+    windowSeconds: number;
+};
+
+export declare type ApiRateLimitSettings = {
+    enabled?: boolean;
+    requestsPerWindow?: number;
+    windowSeconds?: number;
+    /**
+     * First match wins; each override counts in its own bucket.
+     */
+    overrides?: Array<ApiRateLimitOverride>;
+    /**
+     * One path pattern per line; matching requests are never counted.
+     */
+    exemptPaths?: string;
+};
+
 /**
  * Approve or deny a partner's sign-in request
  *
  * The consent form's submit, same-origin only. Approving issues a two-minute, PKCE-bound code.
  */
-export declare const approveConnectRequest: <ThrowOnError extends boolean = false>(options: Options<ApproveConnectRequestData, ThrowOnError>) => RequestResult<unknown, ApproveConnectRequestErrors, ThrowOnError>;
+export declare const approveConnectRequest: <ThrowOnError extends boolean = false>(options: Options<ApproveConnectRequestData, ThrowOnError>) => RequestResult_2<unknown, ApproveConnectRequestErrors, ThrowOnError>;
 
 export declare type ApproveConnectRequestData = {
     body: {
@@ -370,7 +398,7 @@ export declare type Article = {
 /**
  * Generate follow-up questions for an article
  */
-export declare const articleFollowups: <ThrowOnError extends boolean = false>(options: Options<ArticleFollowupsData, ThrowOnError>) => RequestResult<ArticleFollowupsResponses, ArticleFollowupsErrors, ThrowOnError>;
+export declare const articleFollowups: <ThrowOnError extends boolean = false>(options: Options<ArticleFollowupsData, ThrowOnError>) => RequestResult_2<ArticleFollowupsResponses, ArticleFollowupsErrors, ThrowOnError>;
 
 export declare type ArticleFollowupsData = {
     body: {
@@ -412,7 +440,7 @@ export declare type ArticleFollowupsResponses = {
 /**
  * Answer a question grounded in an article
  */
-export declare const articleQa: <ThrowOnError extends boolean = false>(options: Options<ArticleQaData, ThrowOnError>) => RequestResult<ArticleQaResponses, ArticleQaErrors, ThrowOnError>;
+export declare const articleQa: <ThrowOnError extends boolean = false>(options: Options<ArticleQaData, ThrowOnError>) => RequestResult_2<ArticleQaResponses, ArticleQaErrors, ThrowOnError>;
 
 export declare type ArticleQaData = {
     body: {
@@ -454,7 +482,7 @@ export declare type ArticleQaResponses = {
 /**
  * Ask a question against a notebook
  */
-export declare const askNotebook: <ThrowOnError extends boolean = false>(options: Options<AskNotebookData, ThrowOnError>) => RequestResult<AskNotebookResponses, AskNotebookErrors, ThrowOnError>;
+export declare const askNotebook: <ThrowOnError extends boolean = false>(options: Options<AskNotebookData, ThrowOnError>) => RequestResult_2<AskNotebookResponses, AskNotebookErrors, ThrowOnError>;
 
 export declare type AskNotebookData = {
     body: {
@@ -490,7 +518,7 @@ export declare type AskNotebookResponses = {
 /**
  * Query autocomplete suggestions
  */
-export declare const autocomplete: <ThrowOnError extends boolean = false>(options: Options<AutocompleteData, ThrowOnError>) => RequestResult<AutocompleteResponses, unknown, ThrowOnError>;
+export declare const autocomplete: <ThrowOnError extends boolean = false>(options: Options<AutocompleteData, ThrowOnError>) => RequestResult_2<AutocompleteResponses, unknown, ThrowOnError>;
 
 export declare type AutocompleteData = {
     body?: never;
@@ -519,10 +547,12 @@ export declare type AutocompleteResponses = {
     };
 };
 
+export declare const baseUrl: string;
+
 /**
  * Change password
  */
-export declare const changePassword: <ThrowOnError extends boolean = false>(options: Options<ChangePasswordData, ThrowOnError>) => RequestResult<ChangePasswordResponses, ChangePasswordErrors, ThrowOnError>;
+export declare const changePassword: <ThrowOnError extends boolean = false>(options: Options<ChangePasswordData, ThrowOnError>) => RequestResult_2<ChangePasswordResponses, ChangePasswordErrors, ThrowOnError>;
 
 export declare type ChangePasswordData = {
     body: {
@@ -565,7 +595,7 @@ export declare type Chat = {
 /**
  * Empty the news archive
  */
-export declare const clearAdminNews: <ThrowOnError extends boolean = false>(options?: Options<ClearAdminNewsData, ThrowOnError>) => RequestResult<ClearAdminNewsResponses, ClearAdminNewsErrors, ThrowOnError>;
+export declare const clearAdminNews: <ThrowOnError extends boolean = false>(options?: Options<ClearAdminNewsData, ThrowOnError>) => RequestResult_2<ClearAdminNewsResponses, ClearAdminNewsErrors, ThrowOnError>;
 
 export declare type ClearAdminNewsData = {
     body?: never;
@@ -605,6 +635,10 @@ export declare type ClearAdminNewsResponses = {
     };
 };
 
+export { Client }
+
+export declare const client: Client_2;
+
 export declare type ClientLocation = {
     ip: string | null;
     city?: string;
@@ -618,8 +652,10 @@ export declare type ClientLocation = {
 };
 
 export declare type ClientOptions = {
-    baseUrl: 'https://qwksearch.com/api' | `${string}://${string}/api` | (string & {});
+    baseUrl: 'https://opensourceagi.app/api' | 'https://qwksearch.com/api' | `${string}://${string}/api` | (string & {});
 };
+
+export { Config }
 
 export declare type ConnectUser = {
     id: string;
@@ -628,10 +664,14 @@ export declare type ConnectUser = {
     image: string | null;
 };
 
+export { createClient }
+
+export { createConfig }
+
 /**
  * Create a document
  */
-export declare const createDocument: <ThrowOnError extends boolean = false>(options: Options<CreateDocumentData, ThrowOnError>) => RequestResult<CreateDocumentResponses, unknown, ThrowOnError>;
+export declare const createDocument: <ThrowOnError extends boolean = false>(options: Options<CreateDocumentData, ThrowOnError>) => RequestResult_2<CreateDocumentResponses, unknown, ThrowOnError>;
 
 export declare type CreateDocumentData = {
     body: {
@@ -662,7 +702,7 @@ export declare type CreateDocumentResponses = {
 /**
  * Save a memory
  */
-export declare const createMemory: <ThrowOnError extends boolean = false>(options: Options<CreateMemoryData, ThrowOnError>) => RequestResult<CreateMemoryResponses, CreateMemoryErrors, ThrowOnError>;
+export declare const createMemory: <ThrowOnError extends boolean = false>(options: Options<CreateMemoryData, ThrowOnError>) => RequestResult_2<CreateMemoryResponses, CreateMemoryErrors, ThrowOnError>;
 
 export declare type CreateMemoryData = {
     body: {
@@ -713,7 +753,7 @@ export declare type CreateMemoryResponses = {
 /**
  * Create a notebook
  */
-export declare const createNotebook: <ThrowOnError extends boolean = false>(options: Options<CreateNotebookData, ThrowOnError>) => RequestResult<CreateNotebookResponses, CreateNotebookErrors, ThrowOnError>;
+export declare const createNotebook: <ThrowOnError extends boolean = false>(options: Options<CreateNotebookData, ThrowOnError>) => RequestResult_2<CreateNotebookResponses, CreateNotebookErrors, ThrowOnError>;
 
 export declare type CreateNotebookData = {
     body: {
@@ -747,7 +787,7 @@ export declare type CreateNotebookResponses = {
 /**
  * Create a quote
  */
-export declare const createQuote: <ThrowOnError extends boolean = false>(options: Options<CreateQuoteData, ThrowOnError>) => RequestResult<CreateQuoteResponses, unknown, ThrowOnError>;
+export declare const createQuote: <ThrowOnError extends boolean = false>(options: Options<CreateQuoteData, ThrowOnError>) => RequestResult_2<CreateQuoteResponses, unknown, ThrowOnError>;
 
 export declare type CreateQuoteData = {
     body: {
@@ -779,9 +819,9 @@ export declare type CreateQuoteResponses = {
 /**
  * Transcribe audio (OpenAI-compatible)
  *
- * OpenAI-compatible: point a client's base URL at `https://qwksearch.com/api/v1`. Always requires a QwkSearch API key in a header (`Authorization: Bearer` or `X-API-Key`); a query-string key or a session cookie is rejected. Same Whisper tiers as `/agent/transcript`.
+ * OpenAI-compatible: point a client's base URL at `https://opensourceagi.app/api/v1`. Always requires a QwkSearch API key in a header (`Authorization: Bearer` or `X-API-Key`); a query-string key or a session cookie is rejected. Same Whisper tiers as `/agent/transcript`.
  */
-export declare const createTranscription: <ThrowOnError extends boolean = false>(options: Options<CreateTranscriptionData, ThrowOnError>) => RequestResult<CreateTranscriptionResponses, CreateTranscriptionErrors, ThrowOnError>;
+export declare const createTranscription: <ThrowOnError extends boolean = false>(options: Options<CreateTranscriptionData, ThrowOnError>) => RequestResult_2<CreateTranscriptionResponses, CreateTranscriptionErrors, ThrowOnError>;
 
 export declare type CreateTranscriptionData = {
     body: {
@@ -826,10 +866,13 @@ export declare type CreateTranscriptionResponses = {
     };
 };
 
+/** The public deployment every client talks to unless told otherwise. */
+export declare const DEFAULT_ORIGIN = "https://opensourceagi.app";
+
 /**
  * Delete a row
  */
-export declare const deleteAdminTableRow: <ThrowOnError extends boolean = false>(options: Options<DeleteAdminTableRowData, ThrowOnError>) => RequestResult<DeleteAdminTableRowResponses, DeleteAdminTableRowErrors, ThrowOnError>;
+export declare const deleteAdminTableRow: <ThrowOnError extends boolean = false>(options: Options<DeleteAdminTableRowData, ThrowOnError>) => RequestResult_2<DeleteAdminTableRowResponses, DeleteAdminTableRowErrors, ThrowOnError>;
 
 export declare type DeleteAdminTableRowData = {
     body?: never;
@@ -875,7 +918,7 @@ export declare type DeleteAdminTableRowResponses = {
 /**
  * Delete a user
  */
-export declare const deleteAdminUser: <ThrowOnError extends boolean = false>(options: Options<DeleteAdminUserData, ThrowOnError>) => RequestResult<DeleteAdminUserResponses, DeleteAdminUserErrors, ThrowOnError>;
+export declare const deleteAdminUser: <ThrowOnError extends boolean = false>(options: Options<DeleteAdminUserData, ThrowOnError>) => RequestResult_2<DeleteAdminUserResponses, DeleteAdminUserErrors, ThrowOnError>;
 
 export declare type DeleteAdminUserData = {
     body?: never;
@@ -917,7 +960,7 @@ export declare type DeleteAdminUserResponses = {
 /**
  * Delete all user chats
  */
-export declare const deleteAllChats: <ThrowOnError extends boolean = false>(options?: Options<DeleteAllChatsData, ThrowOnError>) => RequestResult<DeleteAllChatsResponses, DeleteAllChatsErrors, ThrowOnError>;
+export declare const deleteAllChats: <ThrowOnError extends boolean = false>(options?: Options<DeleteAllChatsData, ThrowOnError>) => RequestResult_2<DeleteAllChatsResponses, DeleteAllChatsErrors, ThrowOnError>;
 
 export declare type DeleteAllChatsData = {
     body?: never;
@@ -947,7 +990,7 @@ export declare type DeleteAllChatsResponses = {
 /**
  * Delete a chat
  */
-export declare const deleteChatById: <ThrowOnError extends boolean = false>(options: Options<DeleteChatByIdData, ThrowOnError>) => RequestResult<DeleteChatByIdResponses, DeleteChatByIdErrors, ThrowOnError>;
+export declare const deleteChatById: <ThrowOnError extends boolean = false>(options: Options<DeleteChatByIdData, ThrowOnError>) => RequestResult_2<DeleteChatByIdResponses, DeleteChatByIdErrors, ThrowOnError>;
 
 export declare type DeleteChatByIdData = {
     body?: never;
@@ -983,7 +1026,7 @@ export declare type DeleteChatByIdResponses = {
 /**
  * Delete a document
  */
-export declare const deleteDocument: <ThrowOnError extends boolean = false>(options: Options<DeleteDocumentData, ThrowOnError>) => RequestResult<DeleteDocumentResponses, DeleteDocumentErrors, ThrowOnError>;
+export declare const deleteDocument: <ThrowOnError extends boolean = false>(options: Options<DeleteDocumentData, ThrowOnError>) => RequestResult_2<DeleteDocumentResponses, DeleteDocumentErrors, ThrowOnError>;
 
 export declare type DeleteDocumentData = {
     body?: never;
@@ -1017,7 +1060,7 @@ export declare type DeleteDocumentResponses = {
 /**
  * Delete an MCP server
  */
-export declare const deleteMcpServer: <ThrowOnError extends boolean = false>(options: Options<DeleteMcpServerData, ThrowOnError>) => RequestResult<DeleteMcpServerResponses, unknown, ThrowOnError>;
+export declare const deleteMcpServer: <ThrowOnError extends boolean = false>(options: Options<DeleteMcpServerData, ThrowOnError>) => RequestResult_2<DeleteMcpServerResponses, unknown, ThrowOnError>;
 
 export declare type DeleteMcpServerData = {
     body?: never;
@@ -1040,7 +1083,7 @@ export declare type DeleteMcpServerResponses = {
 /**
  * Delete a memory
  */
-export declare const deleteMemory: <ThrowOnError extends boolean = false>(options: Options<DeleteMemoryData, ThrowOnError>) => RequestResult<DeleteMemoryResponses, DeleteMemoryErrors, ThrowOnError>;
+export declare const deleteMemory: <ThrowOnError extends boolean = false>(options: Options<DeleteMemoryData, ThrowOnError>) => RequestResult_2<DeleteMemoryResponses, DeleteMemoryErrors, ThrowOnError>;
 
 export declare type DeleteMemoryData = {
     body?: never;
@@ -1076,7 +1119,7 @@ export declare type DeleteMemoryResponses = {
 /**
  * Delete a notebook
  */
-export declare const deleteNotebook: <ThrowOnError extends boolean = false>(options: Options<DeleteNotebookData, ThrowOnError>) => RequestResult<DeleteNotebookResponses, DeleteNotebookErrors, ThrowOnError>;
+export declare const deleteNotebook: <ThrowOnError extends boolean = false>(options: Options<DeleteNotebookData, ThrowOnError>) => RequestResult_2<DeleteNotebookResponses, DeleteNotebookErrors, ThrowOnError>;
 
 export declare type DeleteNotebookData = {
     body?: never;
@@ -1112,7 +1155,7 @@ export declare type DeleteNotebookResponses = {
  *
  * Owner only.
  */
-export declare const deletePlaylist: <ThrowOnError extends boolean = false>(options: Options<DeletePlaylistData, ThrowOnError>) => RequestResult<DeletePlaylistResponses, DeletePlaylistErrors, ThrowOnError>;
+export declare const deletePlaylist: <ThrowOnError extends boolean = false>(options: Options<DeletePlaylistData, ThrowOnError>) => RequestResult_2<DeletePlaylistResponses, DeletePlaylistErrors, ThrowOnError>;
 
 export declare type DeletePlaylistData = {
     body?: never;
@@ -1154,7 +1197,7 @@ export declare type DeletePlaylistResponses = {
 /**
  * Delete a provider
  */
-export declare const deleteProvider: <ThrowOnError extends boolean = false>(options: Options<DeleteProviderData, ThrowOnError>) => RequestResult<DeleteProviderResponses, unknown, ThrowOnError>;
+export declare const deleteProvider: <ThrowOnError extends boolean = false>(options: Options<DeleteProviderData, ThrowOnError>) => RequestResult_2<DeleteProviderResponses, unknown, ThrowOnError>;
 
 export declare type DeleteProviderData = {
     body?: never;
@@ -1168,7 +1211,7 @@ export declare type DeleteProviderData = {
 /**
  * Remove a model from a provider
  */
-export declare const deleteProviderModel: <ThrowOnError extends boolean = false>(options: Options<DeleteProviderModelData, ThrowOnError>) => RequestResult<DeleteProviderModelResponses, unknown, ThrowOnError>;
+export declare const deleteProviderModel: <ThrowOnError extends boolean = false>(options: Options<DeleteProviderModelData, ThrowOnError>) => RequestResult_2<DeleteProviderModelResponses, unknown, ThrowOnError>;
 
 export declare type DeleteProviderModelData = {
     body: {
@@ -1203,7 +1246,7 @@ export declare type DeleteProviderResponses = {
 /**
  * Delete a quote
  */
-export declare const deleteQuote: <ThrowOnError extends boolean = false>(options: Options<DeleteQuoteData, ThrowOnError>) => RequestResult<DeleteQuoteResponses, unknown, ThrowOnError>;
+export declare const deleteQuote: <ThrowOnError extends boolean = false>(options: Options<DeleteQuoteData, ThrowOnError>) => RequestResult_2<DeleteQuoteResponses, unknown, ThrowOnError>;
 
 export declare type DeleteQuoteData = {
     body?: never;
@@ -1231,7 +1274,7 @@ export declare type DeleteQuoteResponses = {
 /**
  * Delete an uploaded file from R2
  */
-export declare const deleteUploadedFile: <ThrowOnError extends boolean = false>(options: Options<DeleteUploadedFileData, ThrowOnError>) => RequestResult<DeleteUploadedFileResponses, unknown, ThrowOnError>;
+export declare const deleteUploadedFile: <ThrowOnError extends boolean = false>(options: Options<DeleteUploadedFileData, ThrowOnError>) => RequestResult_2<DeleteUploadedFileResponses, unknown, ThrowOnError>;
 
 export declare type DeleteUploadedFileData = {
     body?: never;
@@ -1263,12 +1306,12 @@ export declare type DeleteUploadedFileResponses = {
 /**
  * Delete account
  */
-export declare const deleteUser: <ThrowOnError extends boolean = false>(options?: Options<DeleteUserData, ThrowOnError>) => RequestResult<DeleteUserResponses, DeleteUserErrors, ThrowOnError>;
+export declare const deleteUser: <ThrowOnError extends boolean = false>(options?: Options<DeleteUserData, ThrowOnError>) => RequestResult_2<DeleteUserResponses, DeleteUserErrors, ThrowOnError>;
 
 /**
  * Unlink an OAuth account
  */
-export declare const deleteUserAccount: <ThrowOnError extends boolean = false>(options: Options<DeleteUserAccountData, ThrowOnError>) => RequestResult<DeleteUserAccountResponses, DeleteUserAccountErrors, ThrowOnError>;
+export declare const deleteUserAccount: <ThrowOnError extends boolean = false>(options: Options<DeleteUserAccountData, ThrowOnError>) => RequestResult_2<DeleteUserAccountResponses, DeleteUserAccountErrors, ThrowOnError>;
 
 export declare type DeleteUserAccountData = {
     body: {
@@ -1331,7 +1374,7 @@ export declare type DeleteUserResponses = {
 /**
  * Describe a pending "Sign in with QwkSearch" request
  */
-export declare const describeConnectRequest: <ThrowOnError extends boolean = false>(options: Options<DescribeConnectRequestData, ThrowOnError>) => RequestResult<DescribeConnectRequestResponses, DescribeConnectRequestErrors, ThrowOnError>;
+export declare const describeConnectRequest: <ThrowOnError extends boolean = false>(options: Options<DescribeConnectRequestData, ThrowOnError>) => RequestResult_2<DescribeConnectRequestResponses, DescribeConnectRequestErrors, ThrowOnError>;
 
 export declare type DescribeConnectRequestData = {
     body?: never;
@@ -1374,7 +1417,7 @@ export declare type DescribeConnectRequestResponses = {
  *
  * Which provider keys are visible, the provider list guests receive, a live test per provider, and auth diagnostics.
  */
-export declare const diagnoseFreeModels: <ThrowOnError extends boolean = false>(options?: Options<DiagnoseFreeModelsData, ThrowOnError>) => RequestResult<DiagnoseFreeModelsResponses, DiagnoseFreeModelsErrors, ThrowOnError>;
+export declare const diagnoseFreeModels: <ThrowOnError extends boolean = false>(options?: Options<DiagnoseFreeModelsData, ThrowOnError>) => RequestResult_2<DiagnoseFreeModelsResponses, DiagnoseFreeModelsErrors, ThrowOnError>;
 
 export declare type DiagnoseFreeModelsData = {
     body?: never;
@@ -1415,7 +1458,7 @@ export declare type DiagnoseFreeModelsResponses = {
 /**
  * Disconnect NotebookLM
  */
-export declare const disconnectNotebooklm: <ThrowOnError extends boolean = false>(options?: Options<DisconnectNotebooklmData, ThrowOnError>) => RequestResult<DisconnectNotebooklmResponses, DisconnectNotebooklmErrors, ThrowOnError>;
+export declare const disconnectNotebooklm: <ThrowOnError extends boolean = false>(options?: Options<DisconnectNotebooklmData, ThrowOnError>) => RequestResult_2<DisconnectNotebooklmResponses, DisconnectNotebooklmErrors, ThrowOnError>;
 
 export declare type DisconnectNotebooklmData = {
     body?: never;
@@ -1448,7 +1491,7 @@ export declare type DisconnectNotebooklmResponses = {
 /**
  * Discover curated content by topic
  */
-export declare const discoverContent: <ThrowOnError extends boolean = false>(options?: Options<DiscoverContentData, ThrowOnError>) => RequestResult<DiscoverContentResponses, DiscoverContentErrors, ThrowOnError>;
+export declare const discoverContent: <ThrowOnError extends boolean = false>(options?: Options<DiscoverContentData, ThrowOnError>) => RequestResult_2<DiscoverContentResponses, DiscoverContentErrors, ThrowOnError>;
 
 export declare type DiscoverContentData = {
     body?: never;
@@ -1531,7 +1574,7 @@ export declare type ErrorResponse = {
  *
  * Server-to-server, called by the partner with the code, the same `redirect_uri` and its PKCE `code_verifier`. Accepts JSON or a form body.
  */
-export declare const exchangeConnectCode: <ThrowOnError extends boolean = false>(options: Options<ExchangeConnectCodeData, ThrowOnError>) => RequestResult<ExchangeConnectCodeResponses, ExchangeConnectCodeErrors, ThrowOnError>;
+export declare const exchangeConnectCode: <ThrowOnError extends boolean = false>(options: Options<ExchangeConnectCodeData, ThrowOnError>) => RequestResult_2<ExchangeConnectCodeResponses, ExchangeConnectCodeErrors, ThrowOnError>;
 
 export declare type ExchangeConnectCodeData = {
     body: {
@@ -1583,7 +1626,7 @@ export declare type ExchangeConnectCodeResponses = {
 /**
  * Export document to Google Docs
  */
-export declare const exportToGoogleDocs: <ThrowOnError extends boolean = false>(options: Options<ExportToGoogleDocsData, ThrowOnError>) => RequestResult<ExportToGoogleDocsResponses, unknown, ThrowOnError>;
+export declare const exportToGoogleDocs: <ThrowOnError extends boolean = false>(options: Options<ExportToGoogleDocsData, ThrowOnError>) => RequestResult_2<ExportToGoogleDocsResponses, unknown, ThrowOnError>;
 
 export declare type ExportToGoogleDocsData = {
     body: {
@@ -1636,7 +1679,7 @@ export declare type FollowUpQuestion = {
  *
  * Generates a short LLM title from the chat history. When the caller is signed in (or sends their API key) and owns `chatId`, the title is also saved to the chat; it is always returned so guests can store it locally.
  */
-export declare const generateChatTitle: <ThrowOnError extends boolean = false>(options: Options<GenerateChatTitleData, ThrowOnError>) => RequestResult<GenerateChatTitleResponses, GenerateChatTitleErrors, ThrowOnError>;
+export declare const generateChatTitle: <ThrowOnError extends boolean = false>(options: Options<GenerateChatTitleData, ThrowOnError>) => RequestResult_2<GenerateChatTitleResponses, GenerateChatTitleErrors, ThrowOnError>;
 
 export declare type GenerateChatTitleData = {
     body: {
@@ -1681,7 +1724,7 @@ export declare type GenerateChatTitleResponses = {
 /**
  * Generate audio overview for a notebook
  */
-export declare const generateNotebookAudio: <ThrowOnError extends boolean = false>(options: Options<GenerateNotebookAudioData, ThrowOnError>) => RequestResult<GenerateNotebookAudioResponses, GenerateNotebookAudioErrors, ThrowOnError>;
+export declare const generateNotebookAudio: <ThrowOnError extends boolean = false>(options: Options<GenerateNotebookAudioData, ThrowOnError>) => RequestResult_2<GenerateNotebookAudioResponses, GenerateNotebookAudioErrors, ThrowOnError>;
 
 export declare type GenerateNotebookAudioData = {
     body?: {
@@ -1717,7 +1760,7 @@ export declare type GenerateNotebookAudioResponses = {
 /**
  * Generate short tips about a page
  */
-export declare const generatePageTips: <ThrowOnError extends boolean = false>(options: Options<GeneratePageTipsData, ThrowOnError>) => RequestResult<GeneratePageTipsResponses, GeneratePageTipsErrors, ThrowOnError>;
+export declare const generatePageTips: <ThrowOnError extends boolean = false>(options: Options<GeneratePageTipsData, ThrowOnError>) => RequestResult_2<GeneratePageTipsResponses, GeneratePageTipsErrors, ThrowOnError>;
 
 export declare type GeneratePageTipsData = {
     body: {
@@ -1765,7 +1808,7 @@ export declare type GeneratePageTipsResponses = {
 /**
  * Generate follow-up suggestions for a chat
  */
-export declare const generateSuggestions: <ThrowOnError extends boolean = false>(options: Options<GenerateSuggestionsData, ThrowOnError>) => RequestResult<GenerateSuggestionsResponses, GenerateSuggestionsErrors, ThrowOnError>;
+export declare const generateSuggestions: <ThrowOnError extends boolean = false>(options: Options<GenerateSuggestionsData, ThrowOnError>) => RequestResult_2<GenerateSuggestionsResponses, GenerateSuggestionsErrors, ThrowOnError>;
 
 export declare type GenerateSuggestionsData = {
     body: {
@@ -1804,7 +1847,7 @@ export declare type GenerateSuggestionsResponses = {
 /**
  * Suggest related searches for a page
  */
-export declare const generateTopicSearches: <ThrowOnError extends boolean = false>(options: Options<GenerateTopicSearchesData, ThrowOnError>) => RequestResult<GenerateTopicSearchesResponses, GenerateTopicSearchesErrors, ThrowOnError>;
+export declare const generateTopicSearches: <ThrowOnError extends boolean = false>(options: Options<GenerateTopicSearchesData, ThrowOnError>) => RequestResult_2<GenerateTopicSearchesResponses, GenerateTopicSearchesErrors, ThrowOnError>;
 
 export declare type GenerateTopicSearchesData = {
     body: {
@@ -1852,7 +1895,7 @@ export declare type GenerateTopicSearchesResponses = {
 /**
  * List browsable tables and maintenance actions
  */
-export declare const getAdminDatabase: <ThrowOnError extends boolean = false>(options?: Options<GetAdminDatabaseData, ThrowOnError>) => RequestResult<GetAdminDatabaseResponses, GetAdminDatabaseErrors, ThrowOnError>;
+export declare const getAdminDatabase: <ThrowOnError extends boolean = false>(options?: Options<GetAdminDatabaseData, ThrowOnError>) => RequestResult_2<GetAdminDatabaseResponses, GetAdminDatabaseErrors, ThrowOnError>;
 
 export declare type GetAdminDatabaseData = {
     body?: never;
@@ -1888,7 +1931,7 @@ export declare type GetAdminDatabaseResponses = {
 /**
  * Get news widget settings and archive stats
  */
-export declare const getAdminNews: <ThrowOnError extends boolean = false>(options?: Options<GetAdminNewsData, ThrowOnError>) => RequestResult<GetAdminNewsResponses, GetAdminNewsErrors, ThrowOnError>;
+export declare const getAdminNews: <ThrowOnError extends boolean = false>(options?: Options<GetAdminNewsData, ThrowOnError>) => RequestResult_2<GetAdminNewsResponses, GetAdminNewsErrors, ThrowOnError>;
 
 export declare type GetAdminNewsData = {
     body?: never;
@@ -1929,7 +1972,7 @@ export declare type GetAdminNewsResponses = {
 /**
  * Get site telemetry
  */
-export declare const getAdminOverview: <ThrowOnError extends boolean = false>(options?: Options<GetAdminOverviewData, ThrowOnError>) => RequestResult<GetAdminOverviewResponses, GetAdminOverviewErrors, ThrowOnError>;
+export declare const getAdminOverview: <ThrowOnError extends boolean = false>(options?: Options<GetAdminOverviewData, ThrowOnError>) => RequestResult_2<GetAdminOverviewResponses, GetAdminOverviewErrors, ThrowOnError>;
 
 export declare type GetAdminOverviewData = {
     body?: never;
@@ -1963,9 +2006,50 @@ export declare type GetAdminOverviewResponses = {
 };
 
 /**
+ * Get API rate-limit settings and current activity
+ */
+export declare const getAdminRateLimit: <ThrowOnError extends boolean = false>(options?: Options<GetAdminRateLimitData, ThrowOnError>) => RequestResult_2<GetAdminRateLimitResponses, GetAdminRateLimitErrors, ThrowOnError>;
+
+export declare type GetAdminRateLimitData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/rate-limit';
+};
+
+export declare type GetAdminRateLimitError = GetAdminRateLimitErrors[keyof GetAdminRateLimitErrors];
+
+export declare type GetAdminRateLimitErrors = {
+    /**
+     * Authentication required
+     */
+    401: ErrorResponse;
+    /**
+     * Signed in, but not allowed to do this
+     */
+    403: ErrorResponse;
+};
+
+export declare type GetAdminRateLimitResponse = GetAdminRateLimitResponses[keyof GetAdminRateLimitResponses];
+
+export declare type GetAdminRateLimitResponses = {
+    /**
+     * Settings, the busiest open client windows, and how long servers cache the settings
+     */
+    200: {
+        settings?: ApiRateLimitSettings;
+        activity?: {
+            [key: string]: unknown;
+        };
+        settingsCacheSeconds?: number;
+        now?: number;
+    };
+};
+
+/**
  * Fetch and cache article from URL
  */
-export declare const getArticle: <ThrowOnError extends boolean = false>(options: Options<GetArticleData, ThrowOnError>) => RequestResult<GetArticleResponses, GetArticleErrors, ThrowOnError>;
+export declare const getArticle: <ThrowOnError extends boolean = false>(options: Options<GetArticleData, ThrowOnError>) => RequestResult_2<GetArticleResponses, GetArticleErrors, ThrowOnError>;
 
 export declare type GetArticleData = {
     body?: never;
@@ -2005,7 +2089,7 @@ export declare type GetArticleResponses = {
 /**
  * Get a chat with messages
  */
-export declare const getChatById: <ThrowOnError extends boolean = false>(options: Options<GetChatByIdData, ThrowOnError>) => RequestResult<GetChatByIdResponses, GetChatByIdErrors, ThrowOnError>;
+export declare const getChatById: <ThrowOnError extends boolean = false>(options: Options<GetChatByIdData, ThrowOnError>) => RequestResult_2<GetChatByIdResponses, GetChatByIdErrors, ThrowOnError>;
 
 export declare type GetChatByIdData = {
     body?: never;
@@ -2042,7 +2126,7 @@ export declare type GetChatByIdResponses = {
 /**
  * Get the location this request geolocates to
  */
-export declare const getClientLocation: <ThrowOnError extends boolean = false>(options?: Options<GetClientLocationData, ThrowOnError>) => RequestResult<GetClientLocationResponses, GetClientLocationErrors, ThrowOnError>;
+export declare const getClientLocation: <ThrowOnError extends boolean = false>(options?: Options<GetClientLocationData, ThrowOnError>) => RequestResult_2<GetClientLocationResponses, GetClientLocationErrors, ThrowOnError>;
 
 export declare type GetClientLocationData = {
     body?: never;
@@ -2072,7 +2156,7 @@ export declare type GetClientLocationResponses = {
 /**
  * Get application configuration
  */
-export declare const getConfig: <ThrowOnError extends boolean = false>(options?: Options<GetConfigData, ThrowOnError>) => RequestResult<GetConfigResponses, unknown, ThrowOnError>;
+export declare const getConfig: <ThrowOnError extends boolean = false>(options?: Options<GetConfigData, ThrowOnError>) => RequestResult_2<GetConfigResponses, unknown, ThrowOnError>;
 
 export declare type GetConfigData = {
     body?: never;
@@ -2097,7 +2181,7 @@ export declare type GetConfigResponses = {
  *
  * The key must be sent in a header; the query-string form is not accepted here.
  */
-export declare const getConnectedAccount: <ThrowOnError extends boolean = false>(options?: Options<GetConnectedAccountData, ThrowOnError>) => RequestResult<GetConnectedAccountResponses, GetConnectedAccountErrors, ThrowOnError>;
+export declare const getConnectedAccount: <ThrowOnError extends boolean = false>(options?: Options<GetConnectedAccountData, ThrowOnError>) => RequestResult_2<GetConnectedAccountResponses, GetConnectedAccountErrors, ThrowOnError>;
 
 export declare type GetConnectedAccountData = {
     body?: never;
@@ -2139,7 +2223,7 @@ export declare type GetConnectedAccountResponses = {
 /**
  * Get a document by ID
  */
-export declare const getDocumentById: <ThrowOnError extends boolean = false>(options: Options<GetDocumentByIdData, ThrowOnError>) => RequestResult<GetDocumentByIdResponses, GetDocumentByIdErrors, ThrowOnError>;
+export declare const getDocumentById: <ThrowOnError extends boolean = false>(options: Options<GetDocumentByIdData, ThrowOnError>) => RequestResult_2<GetDocumentByIdResponses, GetDocumentByIdErrors, ThrowOnError>;
 
 export declare type GetDocumentByIdData = {
     body?: never;
@@ -2171,7 +2255,7 @@ export declare type GetDocumentByIdResponses = {
 /**
  * Get enabled search engines
  */
-export declare const getEngineStatus: <ThrowOnError extends boolean = false>(options?: Options<GetEngineStatusData, ThrowOnError>) => RequestResult<GetEngineStatusResponses, unknown, ThrowOnError>;
+export declare const getEngineStatus: <ThrowOnError extends boolean = false>(options?: Options<GetEngineStatusData, ThrowOnError>) => RequestResult_2<GetEngineStatusResponses, unknown, ThrowOnError>;
 
 export declare type GetEngineStatusData = {
     body?: never;
@@ -2194,7 +2278,7 @@ export declare type GetEngineStatusResponses = {
 /**
  * Stream a Drive file's contents
  */
-export declare const getGoogleDriveContent: <ThrowOnError extends boolean = false>(options: Options<GetGoogleDriveContentData, ThrowOnError>) => RequestResult<GetGoogleDriveContentResponses, GetGoogleDriveContentErrors, ThrowOnError>;
+export declare const getGoogleDriveContent: <ThrowOnError extends boolean = false>(options: Options<GetGoogleDriveContentData, ThrowOnError>) => RequestResult_2<GetGoogleDriveContentResponses, GetGoogleDriveContentErrors, ThrowOnError>;
 
 export declare type GetGoogleDriveContentData = {
     body?: never;
@@ -2238,7 +2322,7 @@ export declare type GetGoogleDriveContentResponses = {
 /**
  * Download a Google Drive file by ID
  */
-export declare const getGoogleDriveFile: <ThrowOnError extends boolean = false>(options: Options<GetGoogleDriveFileData, ThrowOnError>) => RequestResult<GetGoogleDriveFileResponses, unknown, ThrowOnError>;
+export declare const getGoogleDriveFile: <ThrowOnError extends boolean = false>(options: Options<GetGoogleDriveFileData, ThrowOnError>) => RequestResult_2<GetGoogleDriveFileResponses, unknown, ThrowOnError>;
 
 export declare type GetGoogleDriveFileData = {
     body?: never;
@@ -2263,7 +2347,7 @@ export declare type GetGoogleDriveFileResponses = {
 /**
  * List every file under a Drive folder
  */
-export declare const getGoogleDriveFolderTree: <ThrowOnError extends boolean = false>(options: Options<GetGoogleDriveFolderTreeData, ThrowOnError>) => RequestResult<GetGoogleDriveFolderTreeResponses, GetGoogleDriveFolderTreeErrors, ThrowOnError>;
+export declare const getGoogleDriveFolderTree: <ThrowOnError extends boolean = false>(options: Options<GetGoogleDriveFolderTreeData, ThrowOnError>) => RequestResult_2<GetGoogleDriveFolderTreeResponses, GetGoogleDriveFolderTreeErrors, ThrowOnError>;
 
 export declare type GetGoogleDriveFolderTreeData = {
     body?: never;
@@ -2314,7 +2398,7 @@ export declare type GetGoogleDriveFolderTreeResponses = {
 /**
  * Get Google access token from cookies
  */
-export declare const getGoogleToken: <ThrowOnError extends boolean = false>(options?: Options<GetGoogleTokenData, ThrowOnError>) => RequestResult<GetGoogleTokenResponses, unknown, ThrowOnError>;
+export declare const getGoogleToken: <ThrowOnError extends boolean = false>(options?: Options<GetGoogleTokenData, ThrowOnError>) => RequestResult_2<GetGoogleTokenResponses, unknown, ThrowOnError>;
 
 export declare type GetGoogleTokenData = {
     body?: never;
@@ -2338,7 +2422,7 @@ export declare type GetGoogleTokenResponses = {
 /**
  * Get a memory
  */
-export declare const getMemory: <ThrowOnError extends boolean = false>(options: Options<GetMemoryData, ThrowOnError>) => RequestResult<GetMemoryResponses, GetMemoryErrors, ThrowOnError>;
+export declare const getMemory: <ThrowOnError extends boolean = false>(options: Options<GetMemoryData, ThrowOnError>) => RequestResult_2<GetMemoryResponses, GetMemoryErrors, ThrowOnError>;
 
 export declare type GetMemoryData = {
     body?: never;
@@ -2374,7 +2458,7 @@ export declare type GetMemoryResponses = {
 /**
  * Get the news widget's public settings
  */
-export declare const getNewsSettings: <ThrowOnError extends boolean = false>(options?: Options<GetNewsSettingsData, ThrowOnError>) => RequestResult<GetNewsSettingsResponses, unknown, ThrowOnError>;
+export declare const getNewsSettings: <ThrowOnError extends boolean = false>(options?: Options<GetNewsSettingsData, ThrowOnError>) => RequestResult_2<GetNewsSettingsResponses, unknown, ThrowOnError>;
 
 export declare type GetNewsSettingsData = {
     body?: never;
@@ -2395,7 +2479,7 @@ export declare type GetNewsSettingsResponses = {
 /**
  * Get NotebookLM connection status
  */
-export declare const getNotebooklmStatus: <ThrowOnError extends boolean = false>(options?: Options<GetNotebooklmStatusData, ThrowOnError>) => RequestResult<GetNotebooklmStatusResponses, GetNotebooklmStatusErrors, ThrowOnError>;
+export declare const getNotebooklmStatus: <ThrowOnError extends boolean = false>(options?: Options<GetNotebooklmStatusData, ThrowOnError>) => RequestResult_2<GetNotebooklmStatusResponses, GetNotebooklmStatusErrors, ThrowOnError>;
 
 export declare type GetNotebooklmStatusData = {
     body?: never;
@@ -2432,7 +2516,7 @@ export declare type GetNotebooklmStatusResponses = {
  *
  * Public playlists are readable by anyone; others only by their members.
  */
-export declare const getPlaylist: <ThrowOnError extends boolean = false>(options: Options<GetPlaylistData, ThrowOnError>) => RequestResult<GetPlaylistResponses, GetPlaylistErrors, ThrowOnError>;
+export declare const getPlaylist: <ThrowOnError extends boolean = false>(options: Options<GetPlaylistData, ThrowOnError>) => RequestResult_2<GetPlaylistResponses, GetPlaylistErrors, ThrowOnError>;
 
 export declare type GetPlaylistData = {
     body?: never;
@@ -2466,7 +2550,7 @@ export declare type GetPlaylistResponses = {
 /**
  * Resolve a share token to a document
  */
-export declare const getSharedDocument: <ThrowOnError extends boolean = false>(options: Options<GetSharedDocumentData, ThrowOnError>) => RequestResult<GetSharedDocumentResponses, GetSharedDocumentErrors, ThrowOnError>;
+export declare const getSharedDocument: <ThrowOnError extends boolean = false>(options: Options<GetSharedDocumentData, ThrowOnError>) => RequestResult_2<GetSharedDocumentResponses, GetSharedDocumentErrors, ThrowOnError>;
 
 export declare type GetSharedDocumentData = {
     body?: never;
@@ -2510,7 +2594,7 @@ export declare type GetSharedDocumentResponses = {
  *
  * Wikipedia's daily most-viewed topics joined to matching headlines from The News API. Answers are cached and archived, so an upstream outage serves the last good copy.
  */
-export declare const getTrendingNews: <ThrowOnError extends boolean = false>(options?: Options<GetTrendingNewsData, ThrowOnError>) => RequestResult<GetTrendingNewsResponses, GetTrendingNewsErrors, ThrowOnError>;
+export declare const getTrendingNews: <ThrowOnError extends boolean = false>(options?: Options<GetTrendingNewsData, ThrowOnError>) => RequestResult_2<GetTrendingNewsResponses, GetTrendingNewsErrors, ThrowOnError>;
 
 export declare type GetTrendingNewsData = {
     body?: never;
@@ -2565,7 +2649,7 @@ export declare type GetTrendingNewsResponses = {
 /**
  * Get extracted content for an uploaded file
  */
-export declare const getUploadedFile: <ThrowOnError extends boolean = false>(options: Options<GetUploadedFileData, ThrowOnError>) => RequestResult<GetUploadedFileResponses, unknown, ThrowOnError>;
+export declare const getUploadedFile: <ThrowOnError extends boolean = false>(options: Options<GetUploadedFileData, ThrowOnError>) => RequestResult_2<GetUploadedFileResponses, unknown, ThrowOnError>;
 
 export declare type GetUploadedFileData = {
     body?: never;
@@ -2591,7 +2675,7 @@ export declare type GetUploadedFileResponses = {
 /**
  * Get current user profile
  */
-export declare const getUser: <ThrowOnError extends boolean = false>(options?: Options<GetUserData, ThrowOnError>) => RequestResult<GetUserResponses, GetUserErrors, ThrowOnError>;
+export declare const getUser: <ThrowOnError extends boolean = false>(options?: Options<GetUserData, ThrowOnError>) => RequestResult_2<GetUserResponses, GetUserErrors, ThrowOnError>;
 
 export declare type GetUserData = {
     body?: never;
@@ -2621,7 +2705,7 @@ export declare type GetUserResponses = {
 /**
  * Get storage usage
  */
-export declare const getUserStorage: <ThrowOnError extends boolean = false>(options?: Options<GetUserStorageData, ThrowOnError>) => RequestResult<GetUserStorageResponses, GetUserStorageErrors, ThrowOnError>;
+export declare const getUserStorage: <ThrowOnError extends boolean = false>(options?: Options<GetUserStorageData, ThrowOnError>) => RequestResult_2<GetUserStorageResponses, GetUserStorageErrors, ThrowOnError>;
 
 export declare type GetUserStorageData = {
     body?: never;
@@ -2651,7 +2735,7 @@ export declare type GetUserStorageResponses = {
 /**
  * Get Google OAuth consent URL
  */
-export declare const googleDocsAuth: <ThrowOnError extends boolean = false>(options?: Options<GoogleDocsAuthData, ThrowOnError>) => RequestResult<GoogleDocsAuthResponses, unknown, ThrowOnError>;
+export declare const googleDocsAuth: <ThrowOnError extends boolean = false>(options?: Options<GoogleDocsAuthData, ThrowOnError>) => RequestResult_2<GoogleDocsAuthResponses, unknown, ThrowOnError>;
 
 export declare type GoogleDocsAuthData = {
     body?: never;
@@ -2677,7 +2761,7 @@ export declare type GoogleDocsAuthResponses = {
 /**
  * Check Google Drive connection status
  */
-export declare const googleDocsAuthStatus: <ThrowOnError extends boolean = false>(options?: Options<GoogleDocsAuthStatusData, ThrowOnError>) => RequestResult<GoogleDocsAuthStatusResponses, unknown, ThrowOnError>;
+export declare const googleDocsAuthStatus: <ThrowOnError extends boolean = false>(options?: Options<GoogleDocsAuthStatusData, ThrowOnError>) => RequestResult_2<GoogleDocsAuthStatusResponses, unknown, ThrowOnError>;
 
 export declare type GoogleDocsAuthStatusData = {
     body?: never;
@@ -2703,7 +2787,7 @@ export declare type GoogleDocsAuthStatusResponses = {
 /**
  * OAuth callback — exchanges code for tokens
  */
-export declare const googleDocsCallback: <ThrowOnError extends boolean = false>(options: Options<GoogleDocsCallbackData, ThrowOnError>) => RequestResult<GoogleDocsCallbackResponses, unknown, ThrowOnError>;
+export declare const googleDocsCallback: <ThrowOnError extends boolean = false>(options: Options<GoogleDocsCallbackData, ThrowOnError>) => RequestResult_2<GoogleDocsCallbackResponses, unknown, ThrowOnError>;
 
 export declare type GoogleDocsCallbackData = {
     body?: never;
@@ -2728,7 +2812,7 @@ export declare type IdPath = string;
 /**
  * Import a Google Docs document
  */
-export declare const importFromGoogleDocs: <ThrowOnError extends boolean = false>(options: Options<ImportFromGoogleDocsData, ThrowOnError>) => RequestResult<ImportFromGoogleDocsResponses, unknown, ThrowOnError>;
+export declare const importFromGoogleDocs: <ThrowOnError extends boolean = false>(options: Options<ImportFromGoogleDocsData, ThrowOnError>) => RequestResult_2<ImportFromGoogleDocsResponses, unknown, ThrowOnError>;
 
 export declare type ImportFromGoogleDocsData = {
     body: {
@@ -2758,7 +2842,7 @@ export declare type LimitQuery = number;
 /**
  * Get one page of a table's rows
  */
-export declare const listAdminTableRows: <ThrowOnError extends boolean = false>(options: Options<ListAdminTableRowsData, ThrowOnError>) => RequestResult<ListAdminTableRowsResponses, ListAdminTableRowsErrors, ThrowOnError>;
+export declare const listAdminTableRows: <ThrowOnError extends boolean = false>(options: Options<ListAdminTableRowsData, ThrowOnError>) => RequestResult_2<ListAdminTableRowsResponses, ListAdminTableRowsErrors, ThrowOnError>;
 
 export declare type ListAdminTableRowsData = {
     body?: never;
@@ -2810,7 +2894,7 @@ export declare type ListAdminTableRowsResponses = {
 /**
  * List users with usage counters
  */
-export declare const listAdminUsers: <ThrowOnError extends boolean = false>(options?: Options<ListAdminUsersData, ThrowOnError>) => RequestResult<ListAdminUsersResponses, ListAdminUsersErrors, ThrowOnError>;
+export declare const listAdminUsers: <ThrowOnError extends boolean = false>(options?: Options<ListAdminUsersData, ThrowOnError>) => RequestResult_2<ListAdminUsersResponses, ListAdminUsersErrors, ThrowOnError>;
 
 export declare type ListAdminUsersData = {
     body?: never;
@@ -2876,7 +2960,7 @@ export declare type ListAdminUsersResponses = {
 /**
  * List my saved agent-skill preferences
  */
-export declare const listAgentSkills: <ThrowOnError extends boolean = false>(options?: Options<ListAgentSkillsData, ThrowOnError>) => RequestResult<ListAgentSkillsResponses, ListAgentSkillsErrors, ThrowOnError>;
+export declare const listAgentSkills: <ThrowOnError extends boolean = false>(options?: Options<ListAgentSkillsData, ThrowOnError>) => RequestResult_2<ListAgentSkillsResponses, ListAgentSkillsErrors, ThrowOnError>;
 
 export declare type ListAgentSkillsData = {
     body?: never;
@@ -2910,7 +2994,7 @@ export declare type ListAgentSkillsResponses = {
  *
  * Used to show only the sign-in buttons that will work. Sign-in itself is Better Auth, under `/auth*`.
  */
-export declare const listAuthProviders: <ThrowOnError extends boolean = false>(options?: Options<ListAuthProvidersData, ThrowOnError>) => RequestResult<ListAuthProvidersResponses, unknown, ThrowOnError>;
+export declare const listAuthProviders: <ThrowOnError extends boolean = false>(options?: Options<ListAuthProvidersData, ThrowOnError>) => RequestResult_2<ListAuthProvidersResponses, unknown, ThrowOnError>;
 
 export declare type ListAuthProvidersData = {
     body?: never;
@@ -2933,7 +3017,7 @@ export declare type ListAuthProvidersResponses = {
 /**
  * List user's chats
  */
-export declare const listChats: <ThrowOnError extends boolean = false>(options?: Options<ListChatsData, ThrowOnError>) => RequestResult<ListChatsResponses, ListChatsErrors, ThrowOnError>;
+export declare const listChats: <ThrowOnError extends boolean = false>(options?: Options<ListChatsData, ThrowOnError>) => RequestResult_2<ListChatsResponses, ListChatsErrors, ThrowOnError>;
 
 export declare type ListChatsData = {
     body?: never;
@@ -2965,7 +3049,7 @@ export declare type ListChatsResponses = {
 /**
  * List documents
  */
-export declare const listDocuments: <ThrowOnError extends boolean = false>(options?: Options<ListDocumentsData, ThrowOnError>) => RequestResult<ListDocumentsResponses, unknown, ThrowOnError>;
+export declare const listDocuments: <ThrowOnError extends boolean = false>(options?: Options<ListDocumentsData, ThrowOnError>) => RequestResult_2<ListDocumentsResponses, unknown, ThrowOnError>;
 
 export declare type ListDocumentsData = {
     body?: never;
@@ -2986,7 +3070,7 @@ export declare type ListDocumentsResponses = {
 /**
  * List skills and whether each is enabled
  */
-export declare const listEnabledSkills: <ThrowOnError extends boolean = false>(options?: Options<ListEnabledSkillsData, ThrowOnError>) => RequestResult<ListEnabledSkillsResponses, ListEnabledSkillsErrors, ThrowOnError>;
+export declare const listEnabledSkills: <ThrowOnError extends boolean = false>(options?: Options<ListEnabledSkillsData, ThrowOnError>) => RequestResult_2<ListEnabledSkillsResponses, ListEnabledSkillsErrors, ThrowOnError>;
 
 export declare type ListEnabledSkillsData = {
     body?: never;
@@ -3023,7 +3107,7 @@ export declare type ListEnabledSkillsResponses = {
 /**
  * List favorites
  */
-export declare const listFavorites: <ThrowOnError extends boolean = false>(options?: Options<ListFavoritesData, ThrowOnError>) => RequestResult<ListFavoritesResponses, ListFavoritesErrors, ThrowOnError>;
+export declare const listFavorites: <ThrowOnError extends boolean = false>(options?: Options<ListFavoritesData, ThrowOnError>) => RequestResult_2<ListFavoritesResponses, ListFavoritesErrors, ThrowOnError>;
 
 export declare type ListFavoritesData = {
     body?: never;
@@ -3055,7 +3139,7 @@ export declare type ListFavoritesResponses = {
 /**
  * List the folders inside a Drive folder
  */
-export declare const listGoogleDriveFolders: <ThrowOnError extends boolean = false>(options?: Options<ListGoogleDriveFoldersData, ThrowOnError>) => RequestResult<ListGoogleDriveFoldersResponses, ListGoogleDriveFoldersErrors, ThrowOnError>;
+export declare const listGoogleDriveFolders: <ThrowOnError extends boolean = false>(options?: Options<ListGoogleDriveFoldersData, ThrowOnError>) => RequestResult_2<ListGoogleDriveFoldersResponses, ListGoogleDriveFoldersErrors, ThrowOnError>;
 
 export declare type ListGoogleDriveFoldersData = {
     body?: never;
@@ -3108,7 +3192,7 @@ export declare type ListGoogleDriveFoldersResponses = {
 /**
  * List MCP servers
  */
-export declare const listMcpServers: <ThrowOnError extends boolean = false>(options?: Options<ListMcpServersData, ThrowOnError>) => RequestResult<ListMcpServersResponses, unknown, ThrowOnError>;
+export declare const listMcpServers: <ThrowOnError extends boolean = false>(options?: Options<ListMcpServersData, ThrowOnError>) => RequestResult_2<ListMcpServersResponses, unknown, ThrowOnError>;
 
 export declare type ListMcpServersData = {
     body?: never;
@@ -3131,7 +3215,7 @@ export declare type ListMcpServersResponses = {
 /**
  * List my memories
  */
-export declare const listMemories: <ThrowOnError extends boolean = false>(options?: Options<ListMemoriesData, ThrowOnError>) => RequestResult<ListMemoriesResponses, ListMemoriesErrors, ThrowOnError>;
+export declare const listMemories: <ThrowOnError extends boolean = false>(options?: Options<ListMemoriesData, ThrowOnError>) => RequestResult_2<ListMemoriesResponses, ListMemoriesErrors, ThrowOnError>;
 
 export declare type ListMemoriesData = {
     body?: never;
@@ -3173,7 +3257,7 @@ export declare type ListMemoriesResponses = {
 /**
  * List notebooks
  */
-export declare const listNotebooks: <ThrowOnError extends boolean = false>(options?: Options<ListNotebooksData, ThrowOnError>) => RequestResult<ListNotebooksResponses, ListNotebooksErrors, ThrowOnError>;
+export declare const listNotebooks: <ThrowOnError extends boolean = false>(options?: Options<ListNotebooksData, ThrowOnError>) => RequestResult_2<ListNotebooksResponses, ListNotebooksErrors, ThrowOnError>;
 
 export declare type ListNotebooksData = {
     body?: never;
@@ -3194,7 +3278,7 @@ export declare type ListNotebooksErrors = {
 /**
  * List notebook sources
  */
-export declare const listNotebookSources: <ThrowOnError extends boolean = false>(options: Options<ListNotebookSourcesData, ThrowOnError>) => RequestResult<ListNotebookSourcesResponses, ListNotebookSourcesErrors, ThrowOnError>;
+export declare const listNotebookSources: <ThrowOnError extends boolean = false>(options: Options<ListNotebookSourcesData, ThrowOnError>) => RequestResult_2<ListNotebookSourcesResponses, ListNotebookSourcesErrors, ThrowOnError>;
 
 export declare type ListNotebookSourcesData = {
     body?: never;
@@ -3239,7 +3323,7 @@ export declare type ListNotebooksResponses = {
 /**
  * List my saved playlists and invites
  */
-export declare const listPlaylists: <ThrowOnError extends boolean = false>(options?: Options<ListPlaylistsData, ThrowOnError>) => RequestResult<ListPlaylistsResponses, ListPlaylistsErrors, ThrowOnError>;
+export declare const listPlaylists: <ThrowOnError extends boolean = false>(options?: Options<ListPlaylistsData, ThrowOnError>) => RequestResult_2<ListPlaylistsResponses, ListPlaylistsErrors, ThrowOnError>;
 
 export declare type ListPlaylistsData = {
     body?: never;
@@ -3274,7 +3358,7 @@ export declare type ListPlaylistsResponses = {
 /**
  * List LLM providers
  */
-export declare const listProviders: <ThrowOnError extends boolean = false>(options?: Options<ListProvidersData, ThrowOnError>) => RequestResult<ListProvidersResponses, unknown, ThrowOnError>;
+export declare const listProviders: <ThrowOnError extends boolean = false>(options?: Options<ListProvidersData, ThrowOnError>) => RequestResult_2<ListProvidersResponses, unknown, ThrowOnError>;
 
 export declare type ListProvidersData = {
     body?: never;
@@ -3300,7 +3384,7 @@ export declare type ListProvidersResponses = {
 /**
  * List quotes for a document
  */
-export declare const listQuotes: <ThrowOnError extends boolean = false>(options: Options<ListQuotesData, ThrowOnError>) => RequestResult<ListQuotesResponses, ListQuotesErrors, ThrowOnError>;
+export declare const listQuotes: <ThrowOnError extends boolean = false>(options: Options<ListQuotesData, ThrowOnError>) => RequestResult_2<ListQuotesResponses, ListQuotesErrors, ThrowOnError>;
 
 export declare type ListQuotesData = {
     body?: never;
@@ -3335,7 +3419,7 @@ export declare type ListQuotesResponses = {
 /**
  * List all available search engines by category
  */
-export declare const listSearchEngines: <ThrowOnError extends boolean = false>(options?: Options<ListSearchEnginesData, ThrowOnError>) => RequestResult<ListSearchEnginesResponses, unknown, ThrowOnError>;
+export declare const listSearchEngines: <ThrowOnError extends boolean = false>(options?: Options<ListSearchEnginesData, ThrowOnError>) => RequestResult_2<ListSearchEnginesResponses, unknown, ThrowOnError>;
 
 export declare type ListSearchEnginesData = {
     body?: never;
@@ -3363,7 +3447,7 @@ export declare type ListSearchEnginesResponses = {
 /**
  * List active sessions
  */
-export declare const listSessions: <ThrowOnError extends boolean = false>(options?: Options<ListSessionsData, ThrowOnError>) => RequestResult<ListSessionsResponses, ListSessionsErrors, ThrowOnError>;
+export declare const listSessions: <ThrowOnError extends boolean = false>(options?: Options<ListSessionsData, ThrowOnError>) => RequestResult_2<ListSessionsResponses, ListSessionsErrors, ThrowOnError>;
 
 export declare type ListSessionsData = {
     body?: never;
@@ -3393,9 +3477,9 @@ export declare type ListSessionsResponses = {
 /**
  * List speech-to-text models (OpenAI-compatible)
  *
- * OpenAI-compatible: point a client's base URL at `https://qwksearch.com/api/v1`. Always requires a QwkSearch API key in a header (`Authorization: Bearer` or `X-API-Key`); a query-string key or a session cookie is rejected.
+ * OpenAI-compatible: point a client's base URL at `https://opensourceagi.app/api/v1`. Always requires a QwkSearch API key in a header (`Authorization: Bearer` or `X-API-Key`); a query-string key or a session cookie is rejected.
  */
-export declare const listTranscriptionModels: <ThrowOnError extends boolean = false>(options?: Options<ListTranscriptionModelsData, ThrowOnError>) => RequestResult<ListTranscriptionModelsResponses, ListTranscriptionModelsErrors, ThrowOnError>;
+export declare const listTranscriptionModels: <ThrowOnError extends boolean = false>(options?: Options<ListTranscriptionModelsData, ThrowOnError>) => RequestResult_2<ListTranscriptionModelsResponses, ListTranscriptionModelsErrors, ThrowOnError>;
 
 export declare type ListTranscriptionModelsData = {
     body?: never;
@@ -3437,7 +3521,7 @@ export declare type ListTranscriptionModelsResponses = {
 /**
  * List linked OAuth accounts
  */
-export declare const listUserAccounts: <ThrowOnError extends boolean = false>(options?: Options<ListUserAccountsData, ThrowOnError>) => RequestResult<ListUserAccountsResponses, ListUserAccountsErrors, ThrowOnError>;
+export declare const listUserAccounts: <ThrowOnError extends boolean = false>(options?: Options<ListUserAccountsData, ThrowOnError>) => RequestResult_2<ListUserAccountsResponses, ListUserAccountsErrors, ThrowOnError>;
 
 export declare type ListUserAccountsData = {
     body?: never;
@@ -3544,7 +3628,7 @@ export declare type Notebook = {
 /**
  * Connect NotebookLM with Google credentials
  */
-export declare const notebooklmLogin: <ThrowOnError extends boolean = false>(options: Options<NotebooklmLoginData, ThrowOnError>) => RequestResult<NotebooklmLoginResponses, NotebooklmLoginErrors, ThrowOnError>;
+export declare const notebooklmLogin: <ThrowOnError extends boolean = false>(options: Options<NotebooklmLoginData, ThrowOnError>) => RequestResult_2<NotebooklmLoginResponses, NotebooklmLoginErrors, ThrowOnError>;
 
 export declare type NotebooklmLoginData = {
     body: {
@@ -3604,7 +3688,7 @@ export declare type Options<TData extends TDataShape = TDataShape, ThrowOnError 
      * individual options. This might be also useful if you want to implement a
      * custom client.
      */
-    client?: Client;
+    client?: Client_2;
     /**
      * You can pass arbitrary values through the `meta` object. This can be
      * used to access values that aren't defined as part of the SDK function.
@@ -3631,7 +3715,7 @@ export declare type PlanAnswer = {
  *
  * Plans a self-paced study playlist from free courseware and lecture videos. Past the guest rate limit, or with no model configured, it answers in `offline` mode from the bundled catalog instead of failing.
  */
-export declare const planPlaylist: <ThrowOnError extends boolean = false>(options: Options<PlanPlaylistData, ThrowOnError>) => RequestResult<PlanPlaylistResponses, PlanPlaylistErrors, ThrowOnError>;
+export declare const planPlaylist: <ThrowOnError extends boolean = false>(options: Options<PlanPlaylistData, ThrowOnError>) => RequestResult_2<PlanPlaylistResponses, PlanPlaylistErrors, ThrowOnError>;
 
 export declare type PlanPlaylistData = {
     body: PlanRequest;
@@ -3746,7 +3830,7 @@ export declare type Quote = {
 /**
  * Record that a memory was used
  */
-export declare const recordMemoryUsage: <ThrowOnError extends boolean = false>(options: Options<RecordMemoryUsageData, ThrowOnError>) => RequestResult<RecordMemoryUsageResponses, RecordMemoryUsageErrors, ThrowOnError>;
+export declare const recordMemoryUsage: <ThrowOnError extends boolean = false>(options: Options<RecordMemoryUsageData, ThrowOnError>) => RequestResult_2<RecordMemoryUsageResponses, RecordMemoryUsageErrors, ThrowOnError>;
 
 export declare type RecordMemoryUsageData = {
     body?: never;
@@ -3784,7 +3868,7 @@ export declare type RecordMemoryUsageResponses = {
 /**
  * Refresh Google access token using stored refresh token
  */
-export declare const refreshGoogleToken: <ThrowOnError extends boolean = false>(options?: Options<RefreshGoogleTokenData, ThrowOnError>) => RequestResult<RefreshGoogleTokenResponses, unknown, ThrowOnError>;
+export declare const refreshGoogleToken: <ThrowOnError extends boolean = false>(options?: Options<RefreshGoogleTokenData, ThrowOnError>) => RequestResult_2<RefreshGoogleTokenResponses, unknown, ThrowOnError>;
 
 export declare type RefreshGoogleTokenData = {
     body?: never;
@@ -3811,7 +3895,7 @@ export declare type RefreshGoogleTokenResponses = {
 /**
  * Remove a favorite
  */
-export declare const removeFavorite: <ThrowOnError extends boolean = false>(options: Options<RemoveFavoriteData, ThrowOnError>) => RequestResult<RemoveFavoriteResponses, RemoveFavoriteErrors, ThrowOnError>;
+export declare const removeFavorite: <ThrowOnError extends boolean = false>(options: Options<RemoveFavoriteData, ThrowOnError>) => RequestResult_2<RemoveFavoriteResponses, RemoveFavoriteErrors, ThrowOnError>;
 
 export declare type RemoveFavoriteData = {
     body?: never;
@@ -3845,7 +3929,7 @@ export declare type RemoveFavoriteResponses = {
  *
  * Emails the owner once. A second request for the same document by the same user is refused.
  */
-export declare const requestDocumentAccess: <ThrowOnError extends boolean = false>(options: Options<RequestDocumentAccessData, ThrowOnError>) => RequestResult<RequestDocumentAccessResponses, RequestDocumentAccessErrors, ThrowOnError>;
+export declare const requestDocumentAccess: <ThrowOnError extends boolean = false>(options: Options<RequestDocumentAccessData, ThrowOnError>) => RequestResult_2<RequestDocumentAccessResponses, RequestDocumentAccessErrors, ThrowOnError>;
 
 export declare type RequestDocumentAccessData = {
     body?: never;
@@ -3893,10 +3977,12 @@ export declare type RequestDocumentAccessResponses = {
     };
 };
 
+export { RequestResult }
+
 /**
  * Revoke all other sessions
  */
-export declare const revokeOtherSessions: <ThrowOnError extends boolean = false>(options?: Options<RevokeOtherSessionsData, ThrowOnError>) => RequestResult<RevokeOtherSessionsResponses, RevokeOtherSessionsErrors, ThrowOnError>;
+export declare const revokeOtherSessions: <ThrowOnError extends boolean = false>(options?: Options<RevokeOtherSessionsData, ThrowOnError>) => RequestResult_2<RevokeOtherSessionsResponses, RevokeOtherSessionsErrors, ThrowOnError>;
 
 export declare type RevokeOtherSessionsData = {
     body?: never;
@@ -3926,7 +4012,7 @@ export declare type RevokeOtherSessionsResponses = {
 /**
  * Revoke a specific session
  */
-export declare const revokeSession: <ThrowOnError extends boolean = false>(options: Options<RevokeSessionData, ThrowOnError>) => RequestResult<RevokeSessionResponses, RevokeSessionErrors, ThrowOnError>;
+export declare const revokeSession: <ThrowOnError extends boolean = false>(options: Options<RevokeSessionData, ThrowOnError>) => RequestResult_2<RevokeSessionResponses, RevokeSessionErrors, ThrowOnError>;
 
 export declare type RevokeSessionData = {
     body?: never;
@@ -3958,7 +4044,7 @@ export declare type RevokeSessionResponses = {
 /**
  * Rewrite text with AI (Groq)
  */
-export declare const rewriteText: <ThrowOnError extends boolean = false>(options: Options<RewriteTextData, ThrowOnError>) => RequestResult<RewriteTextResponses, RewriteTextErrors, ThrowOnError>;
+export declare const rewriteText: <ThrowOnError extends boolean = false>(options: Options<RewriteTextData, ThrowOnError>) => RequestResult_2<RewriteTextResponses, RewriteTextErrors, ThrowOnError>;
 
 export declare type RewriteTextData = {
     body: {
@@ -3993,7 +4079,7 @@ export declare type RewriteTextResponses = {
 /**
  * Run a named database cleanup
  */
-export declare const runAdminMaintenance: <ThrowOnError extends boolean = false>(options: Options<RunAdminMaintenanceData, ThrowOnError>) => RequestResult<RunAdminMaintenanceResponses, RunAdminMaintenanceErrors, ThrowOnError>;
+export declare const runAdminMaintenance: <ThrowOnError extends boolean = false>(options: Options<RunAdminMaintenanceData, ThrowOnError>) => RequestResult_2<RunAdminMaintenanceResponses, RunAdminMaintenanceErrors, ThrowOnError>;
 
 export declare type RunAdminMaintenanceData = {
     body: {
@@ -4045,7 +4131,7 @@ export declare type RunAdminMaintenanceResponses = {
  *
  * Admin only.
  */
-export declare const saveConfig: <ThrowOnError extends boolean = false>(options: Options<SaveConfigData, ThrowOnError>) => RequestResult<SaveConfigResponses, SaveConfigErrors, ThrowOnError>;
+export declare const saveConfig: <ThrowOnError extends boolean = false>(options: Options<SaveConfigData, ThrowOnError>) => RequestResult_2<SaveConfigResponses, SaveConfigErrors, ThrowOnError>;
 
 export declare type SaveConfigData = {
     body: {
@@ -4078,7 +4164,7 @@ export declare type SaveConfigResponses = {
 /**
  * Save a chat message
  */
-export declare const saveMessage: <ThrowOnError extends boolean = false>(options: Options<SaveMessageData, ThrowOnError>) => RequestResult<SaveMessageResponses, SaveMessageErrors, ThrowOnError>;
+export declare const saveMessage: <ThrowOnError extends boolean = false>(options: Options<SaveMessageData, ThrowOnError>) => RequestResult_2<SaveMessageResponses, SaveMessageErrors, ThrowOnError>;
 
 export declare type SaveMessageData = {
     body: {
@@ -4119,7 +4205,7 @@ export declare type SaveMessageResponses = {
  *
  * Creates the playlist when `id` is new (201), otherwise updates it (owner or editor).
  */
-export declare const savePlaylist: <ThrowOnError extends boolean = false>(options: Options<SavePlaylistData, ThrowOnError>) => RequestResult<SavePlaylistResponses, SavePlaylistErrors, ThrowOnError>;
+export declare const savePlaylist: <ThrowOnError extends boolean = false>(options: Options<SavePlaylistData, ThrowOnError>) => RequestResult_2<SavePlaylistResponses, SavePlaylistErrors, ThrowOnError>;
 
 export declare type SavePlaylistData = {
     body: Playlist;
@@ -4175,7 +4261,7 @@ export declare type SavePlaylistResponses = {
 /**
  * Scrape a URL (GET)
  */
-export declare const scrapeGet: <ThrowOnError extends boolean = false>(options: Options<ScrapeGetData, ThrowOnError>) => RequestResult<ScrapeGetResponses, unknown, ThrowOnError>;
+export declare const scrapeGet: <ThrowOnError extends boolean = false>(options: Options<ScrapeGetData, ThrowOnError>) => RequestResult_2<ScrapeGetResponses, unknown, ThrowOnError>;
 
 export declare type ScrapeGetData = {
     body?: never;
@@ -4204,7 +4290,7 @@ export declare type ScrapeGetResponses = {
 /**
  * Scrape a URL (POST)
  */
-export declare const scrapePost: <ThrowOnError extends boolean = false>(options: Options<ScrapePostData, ThrowOnError>) => RequestResult<ScrapePostResponses, unknown, ThrowOnError>;
+export declare const scrapePost: <ThrowOnError extends boolean = false>(options: Options<ScrapePostData, ThrowOnError>) => RequestResult_2<ScrapePostResponses, unknown, ThrowOnError>;
 
 export declare type ScrapePostData = {
     body: {
@@ -4233,7 +4319,7 @@ export declare type ScrapePostResponses = {
 /**
  * Search chats by title
  */
-export declare const searchChats: <ThrowOnError extends boolean = false>(options: Options<SearchChatsData, ThrowOnError>) => RequestResult<SearchChatsResponses, SearchChatsErrors, ThrowOnError>;
+export declare const searchChats: <ThrowOnError extends boolean = false>(options: Options<SearchChatsData, ThrowOnError>) => RequestResult_2<SearchChatsResponses, SearchChatsErrors, ThrowOnError>;
 
 export declare type SearchChatsData = {
     body?: never;
@@ -4281,7 +4367,7 @@ export declare type SearchResult = {
 /**
  * Enable or disable an agent skill (saved to the account)
  */
-export declare const setAgentSkill: <ThrowOnError extends boolean = false>(options: Options<SetAgentSkillData, ThrowOnError>) => RequestResult<SetAgentSkillResponses, SetAgentSkillErrors, ThrowOnError>;
+export declare const setAgentSkill: <ThrowOnError extends boolean = false>(options: Options<SetAgentSkillData, ThrowOnError>) => RequestResult_2<SetAgentSkillResponses, SetAgentSkillErrors, ThrowOnError>;
 
 export declare type SetAgentSkillData = {
     body: SkillToggle;
@@ -4315,7 +4401,7 @@ export declare type SetAgentSkillResponses = {
 /**
  * Share a chat
  */
-export declare const shareChat: <ThrowOnError extends boolean = false>(options: Options<ShareChatData, ThrowOnError>) => RequestResult<ShareChatResponses, ShareChatErrors, ThrowOnError>;
+export declare const shareChat: <ThrowOnError extends boolean = false>(options: Options<ShareChatData, ThrowOnError>) => RequestResult_2<ShareChatResponses, ShareChatErrors, ThrowOnError>;
 
 export declare type ShareChatData = {
     body: {
@@ -4353,7 +4439,7 @@ export declare type ShareChatResponses = {
 /**
  * Create or retrieve a share token for a document
  */
-export declare const shareDocument: <ThrowOnError extends boolean = false>(options: Options<ShareDocumentData, ThrowOnError>) => RequestResult<ShareDocumentResponses, unknown, ThrowOnError>;
+export declare const shareDocument: <ThrowOnError extends boolean = false>(options: Options<ShareDocumentData, ThrowOnError>) => RequestResult_2<ShareDocumentResponses, unknown, ThrowOnError>;
 
 export declare type ShareDocumentData = {
     body: {
@@ -4382,7 +4468,7 @@ export declare type ShareDocumentResponses = {
 /**
  * Share a Google Doc
  */
-export declare const shareGoogleDoc: <ThrowOnError extends boolean = false>(options: Options<ShareGoogleDocData, ThrowOnError>) => RequestResult<ShareGoogleDocResponses, unknown, ThrowOnError>;
+export declare const shareGoogleDoc: <ThrowOnError extends boolean = false>(options: Options<ShareGoogleDocData, ThrowOnError>) => RequestResult_2<ShareGoogleDocResponses, unknown, ThrowOnError>;
 
 export declare type ShareGoogleDocData = {
     body: {
@@ -4428,7 +4514,7 @@ export declare type StorageInfo = {
 /**
  * Submit an enterprise / white-label enquiry
  */
-export declare const submitEnterpriseRequest: <ThrowOnError extends boolean = false>(options: Options<SubmitEnterpriseRequestData, ThrowOnError>) => RequestResult<SubmitEnterpriseRequestResponses, SubmitEnterpriseRequestErrors, ThrowOnError>;
+export declare const submitEnterpriseRequest: <ThrowOnError extends boolean = false>(options: Options<SubmitEnterpriseRequestData, ThrowOnError>) => RequestResult_2<SubmitEnterpriseRequestResponses, SubmitEnterpriseRequestErrors, ThrowOnError>;
 
 export declare type SubmitEnterpriseRequestData = {
     body: {
@@ -4475,7 +4561,7 @@ export declare type SuccessResponse = {
 /**
  * Get follow-up questions for a learning goal
  */
-export declare const suggestLearningQuestions: <ThrowOnError extends boolean = false>(options: Options<SuggestLearningQuestionsData, ThrowOnError>) => RequestResult<SuggestLearningQuestionsResponses, SuggestLearningQuestionsErrors, ThrowOnError>;
+export declare const suggestLearningQuestions: <ThrowOnError extends boolean = false>(options: Options<SuggestLearningQuestionsData, ThrowOnError>) => RequestResult_2<SuggestLearningQuestionsResponses, SuggestLearningQuestionsErrors, ThrowOnError>;
 
 export declare type SuggestLearningQuestionsData = {
     body: {
@@ -4512,7 +4598,7 @@ export declare type SuggestLearningQuestionsResponses = {
  *
  * Kokoro or Deepgram text-to-speech. Unlike `/agent/voice` there is no per-guest quota and no account lookup; the response is cacheable for a year.
  */
-export declare const synthesizeSpeech: <ThrowOnError extends boolean = false>(options: Options<SynthesizeSpeechData, ThrowOnError>) => RequestResult<SynthesizeSpeechResponses, SynthesizeSpeechErrors, ThrowOnError>;
+export declare const synthesizeSpeech: <ThrowOnError extends boolean = false>(options: Options<SynthesizeSpeechData, ThrowOnError>) => RequestResult_2<SynthesizeSpeechResponses, SynthesizeSpeechErrors, ThrowOnError>;
 
 export declare type SynthesizeSpeechData = {
     body: {
@@ -4550,7 +4636,7 @@ export declare type SynthesizeSpeechResponses = {
 /**
  * Test which models are available for a provider
  */
-export declare const testModels: <ThrowOnError extends boolean = false>(options: Options<TestModelsData, ThrowOnError>) => RequestResult<TestModelsResponses, unknown, ThrowOnError>;
+export declare const testModels: <ThrowOnError extends boolean = false>(options: Options<TestModelsData, ThrowOnError>) => RequestResult_2<TestModelsResponses, unknown, ThrowOnError>;
 
 export declare type TestModelsData = {
     body: {
@@ -4577,7 +4663,7 @@ export declare type TestModelsResponses = {
 /**
  * Test whether search engines are working
  */
-export declare const testSearchEngines: <ThrowOnError extends boolean = false>(options: Options<TestSearchEnginesData, ThrowOnError>) => RequestResult<TestSearchEnginesResponses, unknown, ThrowOnError>;
+export declare const testSearchEngines: <ThrowOnError extends boolean = false>(options: Options<TestSearchEnginesData, ThrowOnError>) => RequestResult_2<TestSearchEnginesResponses, unknown, ThrowOnError>;
 
 export declare type TestSearchEnginesData = {
     body: {
@@ -4607,7 +4693,7 @@ export declare type TestSearchEnginesResponses = {
 /**
  * Text-to-speech via Kokoro or Deepgram (10/day guest limit)
  */
-export declare const textToSpeech: <ThrowOnError extends boolean = false>(options: Options<TextToSpeechData, ThrowOnError>) => RequestResult<TextToSpeechResponses, TextToSpeechErrors, ThrowOnError>;
+export declare const textToSpeech: <ThrowOnError extends boolean = false>(options: Options<TextToSpeechData, ThrowOnError>) => RequestResult_2<TextToSpeechResponses, TextToSpeechErrors, ThrowOnError>;
 
 export declare type TextToSpeechData = {
     body: {
@@ -4644,7 +4730,7 @@ export declare type TextToSpeechResponses = {
 /**
  * Enable or disable an MCP server
  */
-export declare const toggleMcpServer: <ThrowOnError extends boolean = false>(options: Options<ToggleMcpServerData, ThrowOnError>) => RequestResult<ToggleMcpServerResponses, unknown, ThrowOnError>;
+export declare const toggleMcpServer: <ThrowOnError extends boolean = false>(options: Options<ToggleMcpServerData, ThrowOnError>) => RequestResult_2<ToggleMcpServerResponses, unknown, ThrowOnError>;
 
 export declare type ToggleMcpServerData = {
     body: {
@@ -4671,7 +4757,7 @@ export declare type ToggleMcpServerResponses = {
 /**
  * Enable or disable a skill
  */
-export declare const toggleSkill: <ThrowOnError extends boolean = false>(options: Options<ToggleSkillData, ThrowOnError>) => RequestResult<ToggleSkillResponses, ToggleSkillErrors, ThrowOnError>;
+export declare const toggleSkill: <ThrowOnError extends boolean = false>(options: Options<ToggleSkillData, ThrowOnError>) => RequestResult_2<ToggleSkillResponses, ToggleSkillErrors, ThrowOnError>;
 
 export declare type ToggleSkillData = {
     body: SkillToggle;
@@ -4713,7 +4799,7 @@ export declare type ToggleSkillResponses = {
 /**
  * Enable or disable several skills
  */
-export declare const toggleSkills: <ThrowOnError extends boolean = false>(options: Options<ToggleSkillsData, ThrowOnError>) => RequestResult<ToggleSkillsResponses, ToggleSkillsErrors, ThrowOnError>;
+export declare const toggleSkills: <ThrowOnError extends boolean = false>(options: Options<ToggleSkillsData, ThrowOnError>) => RequestResult_2<ToggleSkillsResponses, ToggleSkillsErrors, ThrowOnError>;
 
 export declare type ToggleSkillsData = {
     body: {
@@ -4756,7 +4842,7 @@ export declare type ToggleSkillsResponses = {
 /**
  * Transcribe audio via Whisper (Cloudflare Workers AI)
  */
-export declare const transcribeAudio: <ThrowOnError extends boolean = false>(options: Options<TranscribeAudioData, ThrowOnError>) => RequestResult<TranscribeAudioResponses, unknown, ThrowOnError>;
+export declare const transcribeAudio: <ThrowOnError extends boolean = false>(options: Options<TranscribeAudioData, ThrowOnError>) => RequestResult_2<TranscribeAudioResponses, unknown, ThrowOnError>;
 
 export declare type TranscribeAudioData = {
     body: {
@@ -4785,7 +4871,7 @@ export declare type TranscribeAudioResponses = {
  *
  * A body with `action` runs it; otherwise the named settings fields are saved (partial update) to D1.
  */
-export declare const updateAdminNews: <ThrowOnError extends boolean = false>(options: Options<UpdateAdminNewsData, ThrowOnError>) => RequestResult<UpdateAdminNewsResponses, UpdateAdminNewsErrors, ThrowOnError>;
+export declare const updateAdminNews: <ThrowOnError extends boolean = false>(options: Options<UpdateAdminNewsData, ThrowOnError>) => RequestResult_2<UpdateAdminNewsResponses, UpdateAdminNewsErrors, ThrowOnError>;
 
 export declare type UpdateAdminNewsData = {
     body: {
@@ -4837,11 +4923,60 @@ export declare type UpdateAdminNewsResponses = {
 };
 
 /**
+ * Save API rate-limit settings, or reset counters
+ *
+ * `{ action: "reset" }` clears every counter; add `bucket` to clear one client's. Otherwise the named settings fields are saved (partial update) to D1 and reach every server within `settingsCacheSeconds`.
+ */
+export declare const updateAdminRateLimit: <ThrowOnError extends boolean = false>(options: Options<UpdateAdminRateLimitData, ThrowOnError>) => RequestResult_2<UpdateAdminRateLimitResponses, UpdateAdminRateLimitErrors, ThrowOnError>;
+
+export declare type UpdateAdminRateLimitData = {
+    body: {
+        action: 'reset';
+        bucket?: string;
+    } | ApiRateLimitSettings;
+    path?: never;
+    query?: never;
+    url: '/admin/rate-limit';
+};
+
+export declare type UpdateAdminRateLimitError = UpdateAdminRateLimitErrors[keyof UpdateAdminRateLimitErrors];
+
+export declare type UpdateAdminRateLimitErrors = {
+    /**
+     * Bad request
+     */
+    400: ErrorResponse;
+    /**
+     * Authentication required
+     */
+    401: ErrorResponse;
+    /**
+     * Signed in, but not allowed to do this
+     */
+    403: ErrorResponse;
+    /**
+     * Internal server error
+     */
+    500: ErrorResponse;
+};
+
+export declare type UpdateAdminRateLimitResponse = UpdateAdminRateLimitResponses[keyof UpdateAdminRateLimitResponses];
+
+export declare type UpdateAdminRateLimitResponses = {
+    /**
+     * Saved settings, or the reset count and fresh activity
+     */
+    200: {
+        [key: string]: unknown;
+    };
+};
+
+/**
  * Update a row
  *
  * Only the registry-approved columns are written; everything else in the body is dropped.
  */
-export declare const updateAdminTableRow: <ThrowOnError extends boolean = false>(options: Options<UpdateAdminTableRowData, ThrowOnError>) => RequestResult<UpdateAdminTableRowResponses, UpdateAdminTableRowErrors, ThrowOnError>;
+export declare const updateAdminTableRow: <ThrowOnError extends boolean = false>(options: Options<UpdateAdminTableRowData, ThrowOnError>) => RequestResult_2<UpdateAdminTableRowResponses, UpdateAdminTableRowErrors, ThrowOnError>;
 
 export declare type UpdateAdminTableRowData = {
     body: {
@@ -4892,7 +5027,7 @@ export declare type UpdateAdminTableRowResponses = {
 /**
  * Update a user
  */
-export declare const updateAdminUser: <ThrowOnError extends boolean = false>(options: Options<UpdateAdminUserData, ThrowOnError>) => RequestResult<UpdateAdminUserResponses, UpdateAdminUserErrors, ThrowOnError>;
+export declare const updateAdminUser: <ThrowOnError extends boolean = false>(options: Options<UpdateAdminUserData, ThrowOnError>) => RequestResult_2<UpdateAdminUserResponses, UpdateAdminUserErrors, ThrowOnError>;
 
 export declare type UpdateAdminUserData = {
     /**
@@ -4947,7 +5082,7 @@ export declare type UpdateAdminUserResponses = {
 /**
  * Store article Q&A or follow-up questions
  */
-export declare const updateArticle: <ThrowOnError extends boolean = false>(options: Options<UpdateArticleData, ThrowOnError>) => RequestResult<UpdateArticleResponses, UpdateArticleErrors, ThrowOnError>;
+export declare const updateArticle: <ThrowOnError extends boolean = false>(options: Options<UpdateArticleData, ThrowOnError>) => RequestResult_2<UpdateArticleResponses, UpdateArticleErrors, ThrowOnError>;
 
 export declare type UpdateArticleData = {
     body: {
@@ -4984,7 +5119,7 @@ export declare type UpdateArticleResponses = {
 /**
  * Update a document
  */
-export declare const updateDocument: <ThrowOnError extends boolean = false>(options: Options<UpdateDocumentData, ThrowOnError>) => RequestResult<UpdateDocumentResponses, UpdateDocumentErrors, ThrowOnError>;
+export declare const updateDocument: <ThrowOnError extends boolean = false>(options: Options<UpdateDocumentData, ThrowOnError>) => RequestResult_2<UpdateDocumentResponses, UpdateDocumentErrors, ThrowOnError>;
 
 export declare type UpdateDocumentData = {
     body: {
@@ -5025,7 +5160,7 @@ export declare type UpdateDocumentResponses = {
 /**
  * Update enabled search engines
  */
-export declare const updateEngineStatus: <ThrowOnError extends boolean = false>(options: Options<UpdateEngineStatusData, ThrowOnError>) => RequestResult<UpdateEngineStatusResponses, unknown, ThrowOnError>;
+export declare const updateEngineStatus: <ThrowOnError extends boolean = false>(options: Options<UpdateEngineStatusData, ThrowOnError>) => RequestResult_2<UpdateEngineStatusResponses, unknown, ThrowOnError>;
 
 export declare type UpdateEngineStatusData = {
     body: {
@@ -5048,7 +5183,7 @@ export declare type UpdateEngineStatusResponses = {
 /**
  * Update an MCP server
  */
-export declare const updateMcpServer: <ThrowOnError extends boolean = false>(options: Options<UpdateMcpServerData, ThrowOnError>) => RequestResult<UpdateMcpServerResponses, unknown, ThrowOnError>;
+export declare const updateMcpServer: <ThrowOnError extends boolean = false>(options: Options<UpdateMcpServerData, ThrowOnError>) => RequestResult_2<UpdateMcpServerResponses, unknown, ThrowOnError>;
 
 export declare type UpdateMcpServerData = {
     body: {
@@ -5078,7 +5213,7 @@ export declare type UpdateMcpServerResponses = {
 /**
  * Update a memory
  */
-export declare const updateMemory: <ThrowOnError extends boolean = false>(options: Options<UpdateMemoryData, ThrowOnError>) => RequestResult<UpdateMemoryResponses, UpdateMemoryErrors, ThrowOnError>;
+export declare const updateMemory: <ThrowOnError extends boolean = false>(options: Options<UpdateMemoryData, ThrowOnError>) => RequestResult_2<UpdateMemoryResponses, UpdateMemoryErrors, ThrowOnError>;
 
 export declare type UpdateMemoryData = {
     body: {
@@ -5125,7 +5260,7 @@ export declare type UpdateMemoryResponses = {
 /**
  * Update a provider
  */
-export declare const updateProvider: <ThrowOnError extends boolean = false>(options: Options<UpdateProviderData, ThrowOnError>) => RequestResult<UpdateProviderResponses, unknown, ThrowOnError>;
+export declare const updateProvider: <ThrowOnError extends boolean = false>(options: Options<UpdateProviderData, ThrowOnError>) => RequestResult_2<UpdateProviderResponses, unknown, ThrowOnError>;
 
 export declare type UpdateProviderData = {
     body: {
@@ -5154,7 +5289,7 @@ export declare type UpdateProviderResponses = {
 /**
  * Update a quote
  */
-export declare const updateQuote: <ThrowOnError extends boolean = false>(options: Options<UpdateQuoteData, ThrowOnError>) => RequestResult<UpdateQuoteResponses, unknown, ThrowOnError>;
+export declare const updateQuote: <ThrowOnError extends boolean = false>(options: Options<UpdateQuoteData, ThrowOnError>) => RequestResult_2<UpdateQuoteResponses, unknown, ThrowOnError>;
 
 export declare type UpdateQuoteData = {
     body: {
@@ -5187,7 +5322,7 @@ export declare type UpdateQuoteResponses = {
 /**
  * Update user profile
  */
-export declare const updateUser: <ThrowOnError extends boolean = false>(options: Options<UpdateUserData, ThrowOnError>) => RequestResult<UpdateUserResponses, UpdateUserErrors, ThrowOnError>;
+export declare const updateUser: <ThrowOnError extends boolean = false>(options: Options<UpdateUserData, ThrowOnError>) => RequestResult_2<UpdateUserResponses, UpdateUserErrors, ThrowOnError>;
 
 export declare type UpdateUserData = {
     body: {
@@ -5229,7 +5364,7 @@ export declare type UploadedFile = {
 /**
  * Upload files to Cloudflare R2 (PDF, DOCX, TXT, HTML)
  */
-export declare const uploadFiles: <ThrowOnError extends boolean = false>(options: Options<UploadFilesData, ThrowOnError>) => RequestResult<UploadFilesResponses, unknown, ThrowOnError>;
+export declare const uploadFiles: <ThrowOnError extends boolean = false>(options: Options<UploadFilesData, ThrowOnError>) => RequestResult_2<UploadFilesResponses, unknown, ThrowOnError>;
 
 export declare type UploadFilesData = {
     body: {

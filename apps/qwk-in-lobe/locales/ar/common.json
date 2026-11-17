@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "مجموعة WeChat",
   "blog": "مدونة المنتج",
   "branching": "إنشاء موضوع فرعي",
-  "branchingDisable": "ميزة \"الموضوع الفرعي\" غير متاحة في الوضع الحالي. لاستخدام هذه الميزة، يرجى التبديل إلى وضع قاعدة بيانات Postgres/Pglite أو استخدام LobeHub Cloud.",
+  "branchingDisable": "ميزة \"الموضوع الفرعي\" غير متاحة في الوضع الحالي. لاستخدام هذه الميزة، يرجى التبديل إلى وضع قاعدة بيانات Postgres/Pglite أو استخدام QwkSearch Cloud.",
   "branchingRequiresSavedTopic": "الموضوع الحالي غير محفوظ، يرجى حفظه أولاً لاستخدام ميزة الموضوع الفرعي",
   "cancel": "إلغاء",
   "changelog": "سجل التغييرات",

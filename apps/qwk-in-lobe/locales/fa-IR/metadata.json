@@ -1,8 +1,8 @@
 {
   "changelog.description": "با ویژگی‌ها و بهبودهای جدید {{appName}} به‌روز بمانید",
   "changelog.title": "تغییرات نسخه",
-  "chat.description": "{{appName}} یک فضای کاری و سبک زندگی است برای یافتن، ساختن و همکاری با تیم‌های عاملی که همراه با شما رشد می‌کنند.",
-  "chat.title": "{{appName}} · تیم‌های عاملی که همراه با شما رشد می‌کنند",
+  "chat.description": "{{appName}} is an AI research workspace: agents search the web, read the sources and give you answers with citations you can check.",
+  "chat.title": "{{appName}} · Research agents that search, read and cite for you",
   "discover.assistants.description": "محتوا، پرسش و پاسخ، تصاویر، ویدیو، صدا، جریان‌های کاری—عامل‌ها را از جامعه انتخاب و اضافه کنید.",
   "discover.assistants.title": "جامعه عامل‌ها",
   "discover.description": "عامل‌ها، مهارت‌ها، ارائه‌دهندگان، مدل‌ها و سرورهای MCP را کاوش کنید.",

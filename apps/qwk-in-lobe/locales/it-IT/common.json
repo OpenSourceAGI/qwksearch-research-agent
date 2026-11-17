@@ -65,7 +65,7 @@
   "betaFeedback.wechat.title": "Gruppo WeChat",
   "blog": "Blog del prodotto",
   "branching": "Crea sottotema",
-  "branchingDisable": "La funzione \"Sottotema\" non è disponibile nella modalità attuale. Per utilizzarla, passa alla modalità DB Postgres/PGlite o usa LobeHub Cloud.",
+  "branchingDisable": "La funzione \"Sottotema\" non è disponibile nella modalità attuale. Per utilizzarla, passa alla modalità DB Postgres/PGlite o usa QwkSearch Cloud.",
   "branchingRequiresSavedTopic": "Il tema attuale non è salvato, salvalo prima per usare la funzione sottotema",
   "cancel": "Annulla",
   "changelog": "Registro delle modifiche",

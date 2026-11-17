@@ -299,7 +299,7 @@
   "acceptance.workspace.onboarding.example.description": "インストール後、この例をコーディングエージェントに送信して最初のレビューを作成してください。",
   "acceptance.workspace.onboarding.example.title": "最初のAcceptanceを試す",
   "acceptance.workspace.onboarding.install.description": "このデバイスにCLIを一度インストールしてください。",
-  "acceptance.workspace.onboarding.install.title": "LobeHub CLIをインストール",
+  "acceptance.workspace.onboarding.install.title": "QwkSearch CLIをインストール",
   "acceptance.workspace.onboarding.installSection": "Acceptanceをインストール",
   "acceptance.workspace.onboarding.manual.description": "プロジェクトのルートディレクトリからこれらのコマンドを自分で実行してください。",
   "acceptance.workspace.onboarding.manual.title": "手動でインストール",

@@ -299,7 +299,7 @@
   "acceptance.workspace.onboarding.example.description": "설치 후, 이 예제를 코딩 에이전트에 보내 첫 리뷰를 생성하세요.",
   "acceptance.workspace.onboarding.example.title": "첫 Acceptance 시도하기",
   "acceptance.workspace.onboarding.install.description": "이 장치에 CLI를 한 번 설치하세요.",
-  "acceptance.workspace.onboarding.install.title": "LobeHub CLI 설치하기",
+  "acceptance.workspace.onboarding.install.title": "QwkSearch CLI 설치하기",
   "acceptance.workspace.onboarding.installSection": "Acceptance 설치",
   "acceptance.workspace.onboarding.manual.description": "프로젝트 루트에서 두 명령어를 직접 실행하세요.",
   "acceptance.workspace.onboarding.manual.title": "수동으로 설치하기",

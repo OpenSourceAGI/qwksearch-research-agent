@@ -15,20 +15,22 @@ ALPACA_SECRET=             # or ALPACA_SECRET_KEY, or APCA_API_SECRET_KEY
 ALPACA_BROKER_API_KEY=     # Broker API only
 ALPACA_BROKER_SECRET_KEY=
 # ALPACA_BROKER_BASE_URL=https://broker-api.alpaca.markets
+# ALPACA_PAPER=false           # createAlpacaRest only: live account
+# ALPACA_DATA_FEED=iex          # createAlpacaRest only: iex (free) or sip
 
 # ── Stock data ─────────────────────────────────────────────────────────
 FINNHUB_API_KEY=           # optional; Finnhub wrapper falls back to Alpaca without it
 
-# ── PredictOS: AI providers (AIConfig) ─────────────────────────────────
+# ── PredictionAgent: AI providers (AIConfig) ─────────────────────────────────
 OPENAI_API_KEY=            # gpt-* models
 XAI_API_KEY=               # grok-* models, and the only ones that honour tools
 BLOCKRUN_WALLET_KEY=       # blockrun/* models, paid per call in USDC on Base
 
-# ── PredictOS: market data (DataConfig) ────────────────────────────────
+# ── PredictionAgent: market data (DataConfig) ────────────────────────────────
 DOME_API_KEY=              # Polymarket (and Kalshi) via Dome
 DFLOW_API_KEY=             # Kalshi via DFlow
 
-# ── PredictOS: execution and research agents ───────────────────────────
+# ── PredictionAgent: execution and research agents ───────────────────────────
 POLYMARKET_WALLET_PRIVATE_KEY=
 POLYMARKET_PROXY_WALLET_ADDRESS=
 POLYMARKET_SIGNATURE_TYPE= # 0 EOA, 1 Magic/email, 2 browser proxy
@@ -73,9 +75,9 @@ Missing keys only log a warning; the first API call is what fails. `createAlpaca
 missing.
 
 </Accordion>
-<Accordion title="PredictOS (AIConfig, DataConfig)">
+<Accordion title="PredictionAgent (AIConfig, DataConfig)">
 
-Every PredictOS entry point takes the request first and a config object second:
+Every PredictionAgent entry point takes the request first and a config object second:
 
 ```ts
 await runEventAnalysisAgent(request, { xaiApiKey: env.XAI_API_KEY });
@@ -88,7 +90,7 @@ await getEvents({ url }, { dflowApiKey });
 | `openaiApiKey` | `OPENAI_API_KEY` | models in `gpt-5.2`, `gpt-5.1`, `gpt-5-nano`, `gpt-4.1`, `gpt-4.1-mini` or starting `gpt-` |
 | `xaiApiKey` | `XAI_API_KEY` | every other non-BlockRun model (Grok is the default provider) |
 | `blockrunWalletKey` | `BLOCKRUN_WALLET_KEY` | models starting `blockrun/` or listed in `BLOCKRUN_MODELS` |
-| `domeApiKey` | `DOME_API_KEY` | the Dome data client (`investing/predictos/data/polymarket`) |
+| `domeApiKey` | `DOME_API_KEY` | the Dome data client (`investing/prediction-agent/data/polymarket`) |
 | `dflowApiKey` | `DFLOW_API_KEY` | Kalshi in `getEvents` and the arbitrage search |
 
 </Accordion>
@@ -110,11 +112,11 @@ it to point at yours. See [database](/docs/database).
 
 ## Passing keys per request
 
-Because every PredictOS call accepts keys directly, you can serve many users from one process without
+Because every PredictionAgent call accepts keys directly, you can serve many users from one process without
 touching `process.env`:
 
 ```ts title="app/api/analyze/route.ts"
-import { getEvents, runEventAnalysisAgent } from "investing/predictos";
+import { getEvents, runEventAnalysisAgent } from "investing/prediction-agent";
 
 export async function POST(req: Request) {
   const { url, model, userKeys } = await req.json();
