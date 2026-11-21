@@ -50,6 +50,7 @@ export default defineConfig({
       'packages/qwksearch-mcp-server',
       'packages/react-weather-forecast',
       'packages/reason-editor',
+      'packages/refdoc',
       'packages/render-url-to-html/scraper-jsdom',
       'packages/render-url-to-html/scraper-puppeteer',
       'packages/research-agent-ui',

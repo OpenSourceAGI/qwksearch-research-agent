@@ -1,5 +1,9 @@
 /**
- * @fileoverview Paper to Web AI — `@debate-ai/paper-to-web`.
+ * @fileoverview refdoc (formerly paper-to-web).
+ *
+ * The refdoc format: one `.refdoc.html` file holding the whole document,
+ * which opens as a Fumadocs docs site (sidebar, contents, search,
+ * references) from a CDN-hosted runtime — see `refdoc.ts`.
  *
  * Any PDF, research paper, archive link, DOI or text → the Synergy Slayer
  * paper format: numbered section pages with Section Summaries and `==card
@@ -7,10 +11,10 @@
  * AI outlines in that format from anything. Standalone: nothing here is
  * mounted by the debate-ai.com site.
  *
- * The React widget is at `@debate-ai/paper-to-web/widget` and the web app
- * handler at `@debate-ai/paper-to-web/server`; the CLI is `paper-to-web`.
+ * The React widget is at `refdoc/widget` and the web app
+ * handler at `refdoc/server`; the CLI is `refdoc`.
  *
- * @module paper-to-web
+ * @module refdoc
  */
 export type { Paper, PaperFigure, PaperSection, SummaryPoint } from "./types"
 export { convertToPaper, type ConvertMode, type ConvertOptions } from "./pipeline"
@@ -38,7 +42,7 @@ export {
   sectionSlug,
   type MdxOptions,
 } from "./mdx"
-export { paperToHtml, renderPaperBody, renderPaperReader, renderReaderToolbar, PAPER_READER_CSS } from "./html"
+export { paperToHtml, figureHtml, paragraphsHtml, renderPaperBody, renderPaperReader, renderReaderToolbar, PAPER_READER_CSS } from "./html"
 export { mountPaperReader, READER_RUNTIME_SOURCE, type PaperReaderHandle, type PaperReaderRuntimeOptions } from "./reader-runtime"
 export {
   createAnthropicGenerator,
@@ -53,3 +57,22 @@ export {
   type OutlineOptions,
 } from "./ai"
 export { markdownInlineToHtml, markdownToPlainText, escapeMdxText } from "./markdown"
+export {
+  paperToRefdoc,
+  paperToRefdocDocument,
+  renderRefdocHtml,
+  parseRefdoc,
+  readRefdocFromDocument,
+  linkCitations,
+  refdocFileName,
+  REFDOC_CDN,
+  REFDOC_VERSION,
+  REFDOC_PACKAGE_VERSION,
+  OVERVIEW_ID,
+  type RefdocDocument,
+  type RefdocMeta,
+  type RefdocPage,
+  type RefdocHeading,
+  type RefdocRuntime,
+  type RenderRefdocOptions,
+} from "./refdoc"

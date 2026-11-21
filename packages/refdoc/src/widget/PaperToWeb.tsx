@@ -101,6 +101,11 @@ export function PaperToWeb({ endpoint = "/api/convert", allowAi = true, classNam
       {result && (
         <>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", margin: "1rem 0" }}>
+            {result.refdoc && (
+              <button type="button" onClick={() => save(`${stem}.refdoc.html`, result.refdoc!, "text/html")}>
+                Download .refdoc.html
+              </button>
+            )}
             <button type="button" onClick={() => save(`${stem}.mdx`, result.mdx, "text/markdown")}>
               Download .mdx
             </button>

@@ -1,0 +1,40 @@
+/*
+ * refdoc runtime styles, appended to Fumadocs UI's prebuilt stylesheet by
+ * scripts/build-runtime.ts. Uses Fumadocs' --color-fd-* tokens so light and
+ * dark follow the theme switch.
+ */
+html.refdoc-ready body { margin: 0; background: var(--color-fd-background); }
+
+/* Reader bar */
+.refdoc-toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 1rem 0 .5rem; padding-bottom: .75rem; border-bottom: 1px solid var(--color-fd-border); }
+.refdoc-toolbar button, .refdoc-toolbar select { font: inherit; font-size: .8125rem; color: var(--color-fd-muted-foreground); background: transparent; border: 1px solid var(--color-fd-border); border-radius: .5rem; padding: .25rem .65rem; cursor: pointer; }
+.refdoc-toolbar button:hover { color: var(--color-fd-foreground); background: var(--color-fd-accent); }
+.refdoc-toolbar button[aria-pressed="true"] { color: var(--color-fd-primary); border-color: var(--color-fd-primary); background: color-mix(in srgb, var(--color-fd-primary) 10%, transparent); }
+.refdoc-toolbar .ptw-u { text-decoration: underline; font-weight: 700; }
+.refdoc-toolbar .ptw-rate { font-size: .8125rem; color: var(--color-fd-muted-foreground); }
+.refdoc-paper:not([data-has-underlining]) .refdoc-toolbar [data-ptw="underline"] { display: none; }
+
+/* Card underlining */
+.refdoc-paper mark.debate-hl { background: transparent; color: inherit; }
+.refdoc-paper[data-underline="on"] mark.debate-hl { background: color-mix(in srgb, #facc15 45%, transparent); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; font-weight: 600; }
+.refdoc-paper [data-voice-reading] { outline: 2px solid var(--color-fd-primary); outline-offset: 4px; border-radius: 4px; }
+
+/* Paper parts */
+.refdoc-paper .ptw-paragraphs > li { margin: .9rem 0; }
+.refdoc-paper .ptw-paragraphs p { margin: 0; }
+.refdoc-paper figure { margin: 1.5rem 0; }
+.refdoc-paper figure img { max-width: 100%; height: auto; border-radius: .5rem; }
+.refdoc-paper figcaption { font-style: italic; color: var(--color-fd-muted-foreground); font-size: .9rem; margin-top: .4rem; }
+.refdoc-byline, .refdoc-keywords { color: var(--color-fd-muted-foreground); }
+.refdoc-summary { border: 1px solid var(--color-fd-border); border-radius: .75rem; padding: .75rem 1rem .75rem 2.25rem !important; background: var(--color-fd-card); }
+.refdoc-references > li { scroll-margin-top: 6rem; }
+.refdoc-references > li:target { background: color-mix(in srgb, var(--color-fd-primary) 12%, transparent); border-radius: .25rem; }
+a.refdoc-cite { text-decoration: none !important; font-weight: 500; }
+
+/* Reader mode: no sidebar or contents, one serif column */
+html:has(.refdoc-paper[data-reader="on"]) #nd-sidebar,
+html:has(.refdoc-paper[data-reader="on"]) #nd-toc,
+html:has(.refdoc-paper[data-reader="on"]) #nd-toc-placeholder { display: none !important; }
+html:has(.refdoc-paper[data-reader="on"]) #nd-docs-layout { --fd-sidebar-width: 0px !important; --fd-toc-width: 0px !important; }
+html:has(.refdoc-paper[data-reader="on"]) #nd-page { max-width: 44rem; margin-inline: auto; }
+.refdoc-paper[data-reader="on"] .ptw-content { font: 1.125rem/1.8 Georgia, "Iowan Old Style", "Times New Roman", serif; }

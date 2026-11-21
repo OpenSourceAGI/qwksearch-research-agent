@@ -26,7 +26,10 @@
     "src/**/*.tsx",
     "test/**/*.ts",
     "test/**/*.tsx",
-    "bin/**/*.ts"
+    "bin/**/*.ts",
+    "runtime/**/*.ts",
+    "runtime/**/*.tsx",
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules",

@@ -25,7 +25,7 @@
 
 - <a href="https://www.npmjs.com/package/extract-name"><img src="https://img.shields.io/npm/dm/extract-name.svg" alt="Monthly Downloads"></a> **extract-name** — Extracts, characterizes, and structures human author names from arbitrary text: tells a person ("Dr. John Doe") from an organization ("The New York Times"), parses name parts (title, first, middle, last, honorific), splits multi-author bylines, and formats APA-style citations. Ships a compact built-in name list by default; the 92k-entry names database (~1.1 MB) loads lazily from a CDN or via the `/full` entry.
 
-- <a href="https://www.npmjs.com/package/paper-to-web"><img src="https://img.shields.io/npm/dm/paper-to-web.svg" alt="Monthly Downloads"></a> **paper-to-web** — Paper to Web AI: turns any PDF, research paper or archive link into Synergy Slayer-style MDX sections with reader mode, card underlining and voice read-aloud, and generates outlines in that format from anything.
+- <a href="https://www.npmjs.com/package/refdoc"><img src="https://img.shields.io/npm/dm/refdoc.svg" alt="Monthly Downloads"></a> **refdoc** — turns any PDF, research paper, archive link or text into one shareable `.refdoc.html` file that opens as a full Fumadocs docs site (sidebar, contents, search, references, reader mode, voice) from a CDN-hosted runtime. Formerly paper-to-web.
 
 ### 🌐 Page Rendering & Scraping
 

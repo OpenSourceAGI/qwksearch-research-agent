@@ -104,7 +104,8 @@ function usableCite(cite: string | undefined): string | undefined {
 
 function metaFrom(extracted: ExtractedSource, sourceUrl?: string): PaperMeta {
   return {
-    title: extracted.title?.trim() || undefined,
+    // PDFs with no Title field come back as "untitled"; let the file name or first heading win.
+    title: extracted.title?.trim().replace(/^untitled(\s+document)?$/i, "") || undefined,
     author: extracted.author?.trim() || undefined,
     date: extracted.date?.trim() || undefined,
     cite: usableCite(extracted.cite),
@@ -117,6 +118,7 @@ function metaFrom(extracted: ExtractedSource, sourceUrl?: string): PaperMeta {
  * pass for summaries and underlining):
  * - a URL, arXiv link, archive link or DOI → scraped and extracted;
  * - `Uint8Array` bytes of a PDF or `.docx` → extracted;
+ * - text with an `.html` `fileName` → read as markup;
  * - anything else → read as pasted text or markdown.
  */
 export async function loadPaper(input: string | Uint8Array, options: LoadOptions = {}): Promise<Paper> {
@@ -130,6 +132,12 @@ export async function loadPaper(input: string | Uint8Array, options: LoadOptions
     return htmlToPaper(extracted.html, meta)
   }
 
+  // A local .html file is already markup: lay it out like a scraped page.
+  if (/\.x?html?$/i.test(options.fileName ?? "")) {
+    const paper = htmlToPaper(input)
+    if (!paper.title) paper.title = options.fileName!.replace(/\.[^.]+$/, "")
+    return paper
+  }
   if (!isLinkInput(input)) return textToPaper(input)
 
   const errors: string[] = []
