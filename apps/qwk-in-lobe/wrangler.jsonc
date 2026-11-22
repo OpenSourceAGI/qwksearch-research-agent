@@ -95,19 +95,28 @@
 		"cpu_ms": 300000
 	},
 	// Workers Logs and traces for every request, so a failing render or tRPC call
-	// shows up in the dashboard with its message instead of a bare 500.
+	// shows up in the dashboard with its message instead of a bare 500. Both are
+	// also exported to Sentry through the account's OpenTelemetry destinations
+	// `sentry-logs` and `sentry-traces` (Workers & Pages > Observability >
+	// Destinations); the names here must match the dashboard exactly.
 	"observability": {
 		"enabled": true,
 		"head_sampling_rate": 1,
 		"logs": {
 			"enabled": true,
 			"invocation_logs": true,
-			"persist": true
+			"persist": true,
+			"destinations": [
+				"sentry-logs"
+			]
 		},
 		"traces": {
 			"enabled": true,
 			"head_sampling_rate": 1,
-			"persist": true
+			"persist": true,
+			"destinations": [
+				"sentry-traces"
+			]
 		}
 	},
 	// A named environment deploys a *separate* Worker — `lobe-production`,

@@ -78,6 +78,9 @@
       ],
     },
   },
+  // Workers Logs and traces, also exported to Sentry through the account's
+  // OpenTelemetry destinations `sentry-logs` and `sentry-traces` (Workers &
+  // Pages > Observability > Destinations); names must match the dashboard.
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1,
@@ -86,11 +89,13 @@
       "head_sampling_rate": 1,
       "persist": true,
       "invocation_logs": true,
+      "destinations": ["sentry-logs"],
     },
     "traces": {
       "enabled": true,
       "persist": true,
       "head_sampling_rate": 1,
+      "destinations": ["sentry-traces"],
     },
   },
 }
