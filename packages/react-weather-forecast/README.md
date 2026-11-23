@@ -36,6 +36,8 @@ React weather forecast component using Open-Meteo for current, hourly, and daily
 - Current weather.
 - Next hours forecast.
 - Next days forecast.
+- Sunrise and sunset, computed on the device with [SunCalc](https://www.npmjs.com/package/suncalc)
+  (no API call), with whichever comes next highlighted and a countdown to it.
 - Four weather upstreams tried in order, four IP geolocation upstreams behind that.
 - Every request validated before it is sent, retried with backoff when it can recover.
 - A resolved location cached for 12 hours, so a refreshing widget never spends a
@@ -173,6 +175,43 @@ each provider said. `reloadAttempts={0}` shows it immediately instead.
   onProviderError={({ provider, stage, error }) => console.warn(stage, provider, error.message)}
 />
 ```
+
+## Sunrise and sunset
+
+Both layouts show sunrise and sunset, worked out locally from the forecast
+location's coordinates with [SunCalc](https://www.npmjs.com/package/suncalc),
+so they cost no request and work with every weather provider and every cached
+forecast. Times are formatted in the location's own time zone.
+
+- **Full card:** the next two events in order under the temperature, the coming
+  one in bold with a countdown (`Sunset 5:14 PM in 2h 13m · Sunrise 7:22 AM`),
+  plus `↑ sunrise ↓ sunset` on every day of the daily list.
+- **Compact card:** only the next event (sunrise icon and time, or sunset icon
+  and time) in a cell after the clock; the one after it is on the hover text.
+- **Polar day and night:** when neither event happens in the next two days the
+  card says `No sunset` (midnight sun) or `No sunrise` (polar night) instead.
+
+Turn it off with `showSunTimes={false}`.
+
+The helpers are exported for use on their own:
+
+```ts
+import { getDaySunTimes, getNextSunEvent, getSunTimes } from 'use-weather-forecast';
+
+// Argument order is date, latitude, longitude. West longitudes are negative.
+getSunTimes(new Date(), 37.3688, -122.0363); // { sunrise: Date | null, sunset: Date | null }
+
+// Whichever comes next: today's sunset while the sun is up, otherwise the next sunrise.
+getNextSunEvent(new Date(), 37.3688, -122.0363); // { type: 'sunrise' | 'sunset', time: Date } | null
+
+// One calendar day at the place, read at local noon in its time zone so the
+// answer is for that day wherever the place is.
+getDaySunTimes('2027-01-15', 37.3688, -122.0363, 'America/Los_Angeles');
+```
+
+`null` means the event does not happen (SunCalc's Invalid Date is never passed
+on). `getSunSummary(now, lat, lng)` returns today's times, the next event and
+`isUp` in one call.
 
 ## Direct API usage
 

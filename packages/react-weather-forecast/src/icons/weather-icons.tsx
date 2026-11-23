@@ -41,3 +41,9 @@ export const SunIcon = (props: IconProps) => (
 export const WindIcon = (props: IconProps) => (
   <BaseIcon {...props}><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" /></BaseIcon>
 );
+export const SunriseIcon = (props: IconProps) => (
+  <BaseIcon {...props}><path d="M12 2v6m-3-3 3-3 3 3M4.22 10.22l1.42 1.42M2 18h2m16 0h2m-3.64-6.36 1.42-1.42M22 22H2M16 18a4 4 0 0 0-8 0" /></BaseIcon>
+);
+export const SunsetIcon = (props: IconProps) => (
+  <BaseIcon {...props}><path d="M12 8V2m-3 3 3 3 3-3M4.22 10.22l1.42 1.42M2 18h2m16 0h2m-3.64-6.36 1.42-1.42M22 22H2M16 18a4 4 0 0 0-8 0" /></BaseIcon>
+);

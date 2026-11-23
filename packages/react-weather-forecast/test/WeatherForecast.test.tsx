@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WeatherForecast } from '../src/components/WeatherForecast';
 import * as forecastApi from '../src/api/forecast';
 import type { WeatherForecastData } from '../src/types';
@@ -252,6 +252,100 @@ describe('<WeatherForecast />', () => {
 
     await screen.findByText('Austin, Texas');
     expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  describe('sunrise and sunset', () => {
+    // Austin, 1 Jan 2024: sunrise 7:28 AM, sunset 5:42 PM (CST).
+    const NOON_CST = new Date('2024-01-01T18:00:00Z');
+    const NINE_PM_CST = new Date('2024-01-02T03:00:00Z');
+
+    function at(instant: Date) {
+      vi.useFakeTimers({ toFake: ['Date'], now: instant });
+    }
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('highlights the coming sunset during the day, then the sunrise after it', async () => {
+      at(NOON_CST);
+      vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
+
+      render(<WeatherForecast latitude={1} longitude={2} />);
+
+      const row = await screen.findByTestId('sun-times');
+      // textContent includes each icon's <title>.
+      expect(row.textContent).toMatch(/Sunset 5:42\sPMin 5h 4\dm.*Sunrise 7:28\sAM$/);
+      expect(row.textContent!.indexOf('Sunset 5:42')).toBeLessThan(row.textContent!.indexOf('Sunrise 7:28'));
+      expect(row.getAttribute('title')).toMatch(/^Next: Sunset at 5:42\sPM/);
+    });
+
+    it('shows the next sunrise once sunset has passed', async () => {
+      at(NINE_PM_CST);
+      vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
+
+      render(<WeatherForecast latitude={1} longitude={2} />);
+
+      const row = await screen.findByTestId('sun-times');
+      expect(row.textContent).toMatch(/Sunrise 7:28\sAMin 10h \d+m.*Sunset 5:43\sPM$/);
+    });
+
+    it('lists each day\'s sunrise and sunset in the location\'s time zone', async () => {
+      at(NOON_CST);
+      vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
+
+      render(<WeatherForecast latitude={1} longitude={2} />);
+
+      await screen.findByTestId('sun-times');
+      const days = screen.getAllByTitle('Sunrise and sunset');
+      expect(days).toHaveLength(5);
+      expect(days[1].textContent).toMatch(/7:28\sAM.*5:43\sPM/);
+    });
+
+    it('puts only the next event in the compact row, with the rest on hover', async () => {
+      at(NINE_PM_CST);
+      vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
+
+      render(<WeatherForecast latitude={1} longitude={2} compact />);
+
+      const cell = await screen.findByTestId('sun-next');
+      expect(cell.textContent).toMatch(/^Sunrise7:28\sAM$/);
+      expect(cell.getAttribute('title')).toMatch(/Next: Sunrise at 7:28\sAM .* then Sunset at 5:4\d\sPM/);
+    });
+
+    it('says there is no sunset under the midnight sun', async () => {
+      at(new Date('2024-06-21T11:00:00Z'));
+      vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(
+        forecast({ location: { city: 'Tromsø', timezone: 'Europe/Oslo', latitude: 69.65, longitude: 18.96 } })
+      );
+
+      render(<WeatherForecast latitude={1} longitude={2} compact />);
+
+      expect((await screen.findByTestId('sun-next')).textContent).toContain('No sunset');
+    });
+
+    it('can be turned off', async () => {
+      at(NOON_CST);
+      vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(forecast());
+
+      render(<WeatherForecast latitude={1} longitude={2} showSunTimes={false} />);
+
+      await screen.findByText('Austin, Texas');
+      expect(screen.queryByTestId('sun-times')).toBeNull();
+      expect(screen.queryAllByTitle('Sunrise and sunset')).toHaveLength(0);
+    });
+
+    it('is left out when the location has no coordinates', async () => {
+      at(NOON_CST);
+      vi.spyOn(forecastApi, 'getWeatherForecast').mockResolvedValue(
+        forecast({ location: undefined })
+      );
+
+      render(<WeatherForecast latitude={1} longitude={2} compact />);
+
+      await screen.findByText('Current location');
+      expect(screen.queryByTestId('sun-next')).toBeNull();
+    });
   });
 
   it('falls back to the local timezone when the location timezone is invalid', async () => {

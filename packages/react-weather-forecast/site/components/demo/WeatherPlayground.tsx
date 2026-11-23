@@ -73,6 +73,7 @@ export function WeatherPlayground() {
   const [source, setSource] = useState<Source>('live');
   const [place, setPlace] = useState<Place>('auto');
   const [compact, setCompact] = useState(false);
+  const [showSunTimes, setShowSunTimes] = useState(true);
   const [temperatureUnit, setTemperatureUnit] = useState<TemperatureUnit>('fahrenheit');
   const [windSpeedUnit, setWindSpeedUnit] = useState<WindSpeedUnit>('mph');
   const [forecastDays, setForecastDays] = useState(5);
@@ -100,6 +101,7 @@ export function WeatherPlayground() {
   const props = useMemo(() => {
     const base: Record<string, unknown> = { forecastDays, forecastHours, temperatureUnit, windSpeedUnit };
     if (compact) base.compact = true;
+    if (!showSunTimes) base.showSunTimes = false;
     if (source === 'live') {
       if (place === 'multi') base.locations = LIVE_CITIES.slice(0, 4).map((c) => ({ ...c }));
       else if (place !== 'auto') {
@@ -112,7 +114,7 @@ export function WeatherPlayground() {
       Object.assign(base, scenarioLocation(place as Scenario));
     }
     return base;
-  }, [source, place, compact, temperatureUnit, windSpeedUnit, forecastDays, forecastHours]);
+  }, [source, place, compact, showSunTimes, temperatureUnit, windSpeedUnit, forecastDays, forecastHours]);
 
   const weatherProviders = useMemo(
     () => (source === 'sample' ? [fixtureProvider(place === 'multi' ? 'sunny' : (place as Scenario))] : undefined),
@@ -176,6 +178,18 @@ export function WeatherPlayground() {
             options={[
               { value: 'full', label: 'Full' },
               { value: 'compact', label: 'Compact' },
+            ]}
+          />
+        </Field>
+
+        <Field label="Sunrise / sunset">
+          <Segmented
+            label="Sunrise and sunset"
+            value={showSunTimes ? 'on' : 'off'}
+            onChange={(v) => setShowSunTimes(v === 'on')}
+            options={[
+              { value: 'on', label: 'Show' },
+              { value: 'off', label: 'Hide' },
             ]}
           />
         </Field>
