@@ -1,18 +1,32 @@
-# refdoc
+# extract-refdoc
 
-`refdoc` turns any PDF, research paper, archive link, DOI or text into **one shareable HTML
+`extract-refdoc` turns any PDF, research paper, archive link, DOI or text into **one shareable HTML
 file** that opens as a full [Fumadocs](https://fumadocs.dev) docs site: sidebar, table of
 contents, ⌘K search, references, previous/next, light and dark, plus Reader mode, card
 Underlining and Voice read-aloud.
 
 ```bash
-bunx refdoc https://arxiv.org/abs/1706.03762     # → attention-is-all-you-need.refdoc.html
+bunx extract-refdoc https://arxiv.org/abs/1706.03762     # → attention-is-all-you-need.refdoc.html
 ```
 
 Send that one file to anyone. Opening it (from disk, an email attachment or any web host)
 loads a small runtime from the CDN and boots the docs UI around the content inside the file.
-Formerly `paper-to-web`; everything it did (MDX docs folders, outlines, the widget and server)
-is still here.
+Formerly `paper-to-web` / `refdoc`; everything it did (MDX docs folders, outlines, the widget and
+server) is still here.
+
+## Citation style badges
+
+A document may show one of these citation-style badges:
+
+![APA](https://i.imgur.com/AMDxELp.png)
+
+![Chicago-Number](https://i.imgur.com/U2f1MaU.png)
+
+![Chicago](https://i.imgur.com/Gs3HNXZ.png)
+
+![Harvard](https://i.imgur.com/JLQUXZc.png)
+
+![IEEE](https://i.imgur.com/EkIKeCA.png)
 
 ## The refdoc format
 
@@ -23,10 +37,10 @@ A `.refdoc.html` file is ordinary HTML with three parts:
 <html lang="en" class="refdoc-booting">
 <head>
   <title>Attention Is All You Need</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/refdoc@0/dist/refdoc.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/extract-refdoc@0/dist/refdoc.css" />
   <!-- 1. Document metadata -->
   <script type="application/refdoc+json" id="refdoc-meta">
-    {"format":"refdoc","version":1,"title":"Attention Is All You Need","author":"…","sourceUrl":"…","generator":"refdoc 0.2.0"}
+    {"format":"refdoc","version":1,"title":"Attention Is All You Need","author":"…","sourceUrl":"…","generator":"extract-refdoc 0.2.0"}
   </script>
 </head>
 <body>
@@ -43,18 +57,18 @@ A `.refdoc.html` file is ordinary HTML with three parts:
     </article>
   </div>
   <!-- 3. The runtime loader -->
-  <script defer src="https://cdn.jsdelivr.net/npm/refdoc@0/dist/refdoc.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/extract-refdoc@0/dist/refdoc.js"></script>
 </body>
 </html>
 ```
 
 | Part | Rules |
 | --- | --- |
-| `#refdoc-meta` | JSON with `format: "refdoc"`, `version: 1`, `title`, and optional `description`, `author`, `date`, `sourceUrl`, `cite`, `keywords`, `generator`. `<` is written as `<`. |
+| `#refdoc-meta` | JSON with `format: "refdoc"`, `version: 1`, `title`, and optional `description`, `author`, `date`, `sourceUrl`, `cite`, `keywords`, `generator`. `<` is written as `\u003c`. |
 | `<article data-refdoc-page>` | One per page, in sidebar order. The value is the page slug; `""` is the overview. `data-title`, `data-description` and `data-part` (a sidebar separator opened by this page) are optional. The body is plain HTML. |
 | ids | Each article's `id` is its slug (`overview` for the overview) and every `id` inside a page is prefixed with that page's slug, so a single `#id` names a page or a place on one. `h2`–`h4` with an `id` become the page's table of contents. |
 | `[data-refdoc-fallback]` | A title block for reading the file without the runtime. The runtime drops it and renders its own title. |
-| runtime | `refdoc.css` + `refdoc.js` from `https://cdn.jsdelivr.net/npm/refdoc@0/dist/` (any 0.x), another base URL, or embedded inline. |
+| runtime | `refdoc.css` + `refdoc.js` from `https://cdn.jsdelivr.net/npm/extract-refdoc@0/dist/` (any 0.x), another base URL, or embedded inline. |
 
 Because the content is plain HTML and exists exactly once, the file stays small (the runtime is
 not inside it), reads as one long page if the CDN is unreachable, and is indexable by search
@@ -77,14 +91,14 @@ the file and renders Fumadocs' `DocsLayout` and `DocsPage` around them, all clie
 ## CLI
 
 ```bash
-bunx refdoc https://arxiv.org/abs/1706.03762                  # → ./<title>.refdoc.html
-bunx refdoc paper.pdf --out shared                            # local PDF, .docx, .md, .txt or .html
-bunx refdoc paper.pdf --runtime inline                        # embed the runtime: works offline (~520 KB)
-bunx refdoc https://bitcoin.org/bitcoin.pdf --ai              # Claude writes summaries + underlining
-bunx refdoc paper.pdf --format all                            # refdoc + MDX folder + .mdx + .html + .json
-bunx refdoc "critiques in policy debate" --outline --ai
-cat notes.md | bunx refdoc - --outline
-bunx refdoc serve --port 8787                                 # the converter widget as a web app
+bunx extract-refdoc https://arxiv.org/abs/1706.03762                  # → ./<title>.refdoc.html
+bunx extract-refdoc paper.pdf --out shared                            # local PDF, .docx, .md, .txt or .html
+bunx extract-refdoc paper.pdf --runtime inline                        # embed the runtime: works offline (~520 KB)
+bunx extract-refdoc https://bitcoin.org/bitcoin.pdf --ai              # Claude writes summaries + underlining
+bunx extract-refdoc paper.pdf --format all                            # refdoc + MDX folder + .mdx + .html + .json
+bunx extract-refdoc "critiques in policy debate" --outline --ai
+cat notes.md | bunx extract-refdoc - --outline
+bunx extract-refdoc serve --port 8787                                 # the converter widget as a web app
 ```
 
 | Option | |
@@ -106,12 +120,12 @@ headings survive), archive.org and web.archive.org links, DOIs, local `.pdf`, `.
 ## Library
 
 ```ts
-import { convertToPaper, paperToRefdoc, parseRefdoc, renderRefdocHtml } from "refdoc"
+import { convertToPaper, paperToRefdoc, parseRefdoc, renderRefdocHtml } from "extract-refdoc"
 
 const paper = await convertToPaper("https://arxiv.org/abs/1706.03762")
 const html = paperToRefdoc(paper)                                  // runtime from the CDN
 const offline = paperToRefdoc(paper, { runtime: { js, css } })     // runtime embedded
-const pinned = paperToRefdoc(paper, { runtime: { base: "https://cdn.jsdelivr.net/npm/refdoc@0.2.0/dist" } })
+const pinned = paperToRefdoc(paper, { runtime: { base: "https://cdn.jsdelivr.net/npm/extract-refdoc@0.2.0/dist" } })
 
 const doc = parseRefdoc(html) // { title, author, …, pages: [{ slug, title, html, headings }] }
 ```
@@ -124,14 +138,14 @@ are unchanged: `paperToMdxFiles(paper)` (Fumadocs docs folder), `paperToSingleMd
 ## Widget and server
 
 ```tsx
-import { PaperToWeb, PaperReader } from "refdoc/widget"
+import { PaperToWeb, PaperReader } from "extract-refdoc/widget"
 
 <PaperToWeb endpoint="/api/convert" />        // the converter: input, mode, AI, downloads (incl. .refdoc.html)
 <PaperReader paper={paper} speak={myTts} />   // just the reader, optionally with your own voice
 ```
 
 ```ts
-import { createPaperToWebHandler } from "refdoc/server"
+import { createPaperToWebHandler } from "extract-refdoc/server"
 export default { fetch: createPaperToWebHandler({ generate: createAnthropicGenerator() }) }
 ```
 
@@ -153,6 +167,7 @@ swapped for stubs (`runtime/stubs/`), since refdoc searches the file itself; tha
 bundle.
 
 The CDN copy is the npm package: the repo's npm publish workflow runs `bun run build` and
-publishes `refdoc`, and jsDelivr serves `dist/` at `https://cdn.jsdelivr.net/npm/refdoc@0/dist/`.
-Files pin `@0`, so they pick up runtime fixes within 0.x; a breaking format change bumps the
-major version and `version` in `#refdoc-meta`.
+publishes `extract-refdoc`, and jsDelivr serves `dist/` at
+`https://cdn.jsdelivr.net/npm/extract-refdoc@0/dist/`. Files pin `@0`, so they pick up runtime
+fixes within 0.x; a breaking format change bumps the major version and `version` in
+`#refdoc-meta`.

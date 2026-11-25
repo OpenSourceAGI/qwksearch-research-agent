@@ -62,7 +62,7 @@ describe("paperToRefdoc", () => {
     expect(doc.version).toBe(1)
     expect(doc.title).toBe("Debate Is Testing")
     expect(doc.author).toBe("A. Author")
-    expect(doc.generator).toMatch(/^refdoc \d/)
+    expect(doc.generator).toMatch(/^extract-refdoc \d/)
     expect(doc.pages.map((p) => p.slug)).toEqual(["", "01-introduction", "02-method", "references"])
     expect(doc.pages[1].title).toBe("1. Introduction")
     expect(doc.pages[1].description).toBe("Why the gateway framing fails.")

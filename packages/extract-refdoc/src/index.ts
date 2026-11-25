@@ -1,5 +1,5 @@
 /**
- * @fileoverview refdoc (formerly paper-to-web).
+ * @fileoverview extract-refdoc (formerly paper-to-web / refdoc).
  *
  * The refdoc format: one `.refdoc.html` file holding the whole document,
  * which opens as a Fumadocs docs site (sidebar, contents, search,
@@ -11,10 +11,10 @@
  * AI outlines in that format from anything. Standalone: nothing here is
  * mounted by the debate-ai.com site.
  *
- * The React widget is at `refdoc/widget` and the web app
- * handler at `refdoc/server`; the CLI is `refdoc`.
+ * The React widget is at `extract-refdoc/widget` and the web app
+ * handler at `extract-refdoc/server`; the CLI is `extract-refdoc`.
  *
- * @module refdoc
+ * @module extract-refdoc
  */
 export type { Paper, PaperFigure, PaperSection, SummaryPoint } from "./types"
 export { convertToPaper, type ConvertMode, type ConvertOptions } from "./pipeline"

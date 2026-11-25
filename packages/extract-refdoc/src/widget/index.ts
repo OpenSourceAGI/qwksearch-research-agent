@@ -1,5 +1,5 @@
 /**
- * @fileoverview React entry: `refdoc/widget`.
+ * @fileoverview React entry: `extract-refdoc/widget`.
  * @module widget
  */
 export { PaperReader, type PaperReaderProps } from "./PaperReader"

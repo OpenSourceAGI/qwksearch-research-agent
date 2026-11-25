@@ -7,7 +7,7 @@
  * - `dist/refdoc.css` — Fumadocs UI's prebuilt stylesheet + `runtime/refdoc.css`.
  *
  * The npm publish workflow runs this as the package's `build`, and jsDelivr
- * serves the published files at https://cdn.jsdelivr.net/npm/refdoc@0/dist/.
+ * serves the published files at https://cdn.jsdelivr.net/npm/extract-refdoc@0/dist/.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { createRequire } from "node:module"
