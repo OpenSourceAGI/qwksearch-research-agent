@@ -131,7 +131,7 @@ export function widgetPageHtml(): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>refdoc</title>
+<title>extract-refdoc</title>
 <style>
 :root{--bg:#fff;--fg:#1c1917;--muted:#78716c;--border:#e7e5e4;--accent:#2563eb}
 @media (prefers-color-scheme:dark){:root{--bg:#0c0a09;--fg:#e7e5e4;--muted:#a8a29e;--border:#292524;--accent:#60a5fa}}
@@ -151,7 +151,7 @@ ${PAPER_READER_CSS}
 </head>
 <body>
 <main class="ptw-app">
-<h1>refdoc</h1>
+<h1>extract-refdoc</h1>
 <p>Turn a PDF, research paper, archive link or any text into paper sections with summaries, card underlining, reader mode and voice, or write an outline in that format.</p>
 <form class="ptw-form" id="ptw-form">
   <textarea name="input" placeholder="Paste a link (arXiv, DOI, archive.org, any article or PDF URL), a topic, or the text itself"></textarea>

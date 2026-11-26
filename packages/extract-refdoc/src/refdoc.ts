@@ -6,8 +6,8 @@
  * a little metadata JSON, and two tags that load the runtime from a CDN:
  *
  * ```html
- * <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/refdoc@0/dist/refdoc.css">
- * <script defer src="https://cdn.jsdelivr.net/npm/refdoc@0/dist/refdoc.js"></script>
+ * <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/extract-refdoc@0/dist/refdoc.css">
+ * <script defer src="https://cdn.jsdelivr.net/npm/extract-refdoc@0/dist/refdoc.js"></script>
  * ```
  *
  * The runtime (`runtime/main.tsx`, built to `dist/refdoc.js`) reads the
@@ -38,7 +38,7 @@ export { readRefdocFromDocument, REFDOC_VERSION, type RefdocDocument, type Refdo
 export const REFDOC_PACKAGE_VERSION = "0.2.0"
 
 /** Where the runtime is served from: the npm package on jsDelivr, any 0.x. */
-export const REFDOC_CDN = "https://cdn.jsdelivr.net/npm/refdoc@0/dist"
+export const REFDOC_CDN = "https://cdn.jsdelivr.net/npm/extract-refdoc@0/dist"
 
 /** The id of the overview page's `<article>` (its slug is ""). */
 export const OVERVIEW_ID = "overview"
@@ -75,7 +75,7 @@ html.refdoc-booting #refdoc-root{visibility:hidden}`
 /** Write any `RefdocDocument` as one `.refdoc.html` file (see the module doc). */
 export function renderRefdocHtml(doc: RefdocDocument, options: RenderRefdocOptions = {}): string {
   const { pages, ...rest } = doc
-  const meta: RefdocMeta = { ...rest, format: "refdoc", version: REFDOC_VERSION, generator: rest.generator ?? `refdoc ${REFDOC_PACKAGE_VERSION}` }
+  const meta: RefdocMeta = { ...rest, format: "refdoc", version: REFDOC_VERSION, generator: rest.generator ?? `extract-refdoc ${REFDOC_PACKAGE_VERSION}` }
   const runtime = options.runtime ?? "cdn"
 
   let head: string

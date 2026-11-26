@@ -1,15 +1,15 @@
 {
-  "name": "refdoc",
+  "name": "extract-refdoc",
   "version": "0.2.0",
-  "description": "refdoc: turn any PDF, research paper, archive link or text into one shareable .refdoc.html file that opens as a full Fumadocs docs site (sidebar, contents, search, references, reader mode, voice) from a CDN-hosted runtime",
+  "description": "extract-refdoc: turn any PDF, research paper, archive link or text into one shareable .refdoc.html file that opens as a full Fumadocs docs site (sidebar, contents, search, references, reader mode, voice) from a CDN-hosted runtime",
   "type": "module",
   "author": "vtempest",
   "license": "rights.institute/prosper",
-  "homepage": "https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/refdoc#readme",
+  "homepage": "https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/extract-refdoc#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
-    "directory": "packages/refdoc"
+    "directory": "packages/extract-refdoc"
   },
   "bugs": {
     "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"
@@ -25,7 +25,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "refdoc": "./bin/refdoc.ts"
+    "extract-refdoc": "./bin/extract-refdoc.ts"
   },
   "files": [
     "src",
@@ -39,9 +39,9 @@
   },
   "scripts": {
     "build": "bun ./scripts/build-runtime.ts",
-    "cli": "bun ./bin/refdoc.ts",
-    "serve": "bun ./bin/refdoc.ts serve",
-    "example": "bun ./scripts/build-runtime.ts && bun ./bin/refdoc.ts test/fixtures/arxiv-like.html --runtime inline --out dist/example",
+    "cli": "bun ./bin/extract-refdoc.ts",
+    "serve": "bun ./bin/extract-refdoc.ts serve",
+    "example": "bun ./scripts/build-runtime.ts && bun ./bin/extract-refdoc.ts test/fixtures/arxiv-like.html --runtime inline --out dist/example",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -74,6 +74,7 @@
     "vitest": "^5.0.5"
   },
   "keywords": [
+    "extract-refdoc",
     "refdoc",
     "pdf",
     "paper",

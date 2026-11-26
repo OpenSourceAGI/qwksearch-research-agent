@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 /**
- * @fileoverview `refdoc` — the command-line front end.
+ * @fileoverview `extract-refdoc` — the command-line front end.
  *
  * ```
- * refdoc <url | doi | file | -> [options]   convert one input
- * refdoc serve [--port 8787]                 run the widget web app
+ * extract-refdoc <url | doi | file | -> [options]   convert one input
+ * extract-refdoc serve [--port 8787]                 run the widget web app
  *
  *   --outline          write an outline in the paper format instead
  *   --ai               use Claude for summaries, underlining and outlines
@@ -17,7 +17,7 @@
  *                      or a base URL that serves refdoc.js and refdoc.css
  * ```
  *
- * `refdoc` writes `<title>.refdoc.html`: the whole document in one file that
+ * `extract-refdoc` writes `<title>.refdoc.html`: the whole document in one file that
  * opens as a Fumadocs docs site. `mdx` writes the docs folder (index.mdx, 01-….mdx, references.mdx,
  * meta.json), ready to drop into a Fumadocs content directory; `single` one
  * combined page; `html` a self-contained reader page.
@@ -33,8 +33,8 @@ import { convertToPaper } from "../src/pipeline"
 import { paperToRefdoc, refdocFileName, type RefdocRuntime } from "../src/refdoc"
 import { createPaperToWebHandler } from "../src/server"
 
-const HELP = `refdoc <url | doi | file | -> [--outline] [--ai] [--model id] [--focus text] [--out dir] [--format refdoc,mdx,single,html,json|all] [--runtime cdn|inline|<url>]
-refdoc serve [--port 8787] [--ai]`
+const HELP = `extract-refdoc <url | doi | file | -> [--outline] [--ai] [--model id] [--focus text] [--out dir] [--format refdoc,mdx,single,html,json|all] [--runtime cdn|inline|<url>]
+extract-refdoc serve [--port 8787] [--ai]`
 
 /** The built runtime next to this package, for --runtime inline. */
 async function inlineRuntime(): Promise<RefdocRuntime> {
@@ -42,7 +42,7 @@ async function inlineRuntime(): Promise<RefdocRuntime> {
   try {
     return { js: await readFile(path.join(dist, "refdoc.js"), "utf8"), css: await readFile(path.join(dist, "refdoc.css"), "utf8") }
   } catch {
-    throw new Error(`--runtime inline needs the built runtime in ${dist}: run \`bun run build\` in packages/refdoc`)
+    throw new Error(`--runtime inline needs the built runtime in ${dist}: run \`bun run build\` in packages/extract-refdoc`)
   }
 }
 
@@ -75,9 +75,9 @@ async function main() {
 
   if (positionals[0] === "serve") {
     const Bun = (globalThis as { Bun?: { serve(options: { port: number; fetch(request: Request): Promise<Response> }): { url: URL } } }).Bun
-    if (!Bun) throw new Error("`refdoc serve` runs under Bun: bunx refdoc serve")
+    if (!Bun) throw new Error("`extract-refdoc serve` runs under Bun: bunx extract-refdoc serve")
     const server = Bun.serve({ port: Number(values.port), fetch: createPaperToWebHandler({ generate: generate ?? (process.env.ANTHROPIC_API_KEY ? createAnthropicGenerator({ model: values.model }) : undefined) }) })
-    console.log(`refdoc on ${server.url}`)
+    console.log(`extract-refdoc on ${server.url}`)
     return
   }
 
