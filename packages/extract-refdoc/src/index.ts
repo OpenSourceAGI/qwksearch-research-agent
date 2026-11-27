@@ -76,3 +76,37 @@ export {
   type RefdocRuntime,
   type RenderRefdocOptions,
 } from "./refdoc"
+export {
+  groupReferenceEntries,
+  parseCardHeader,
+  parseReferenceEntry,
+  referenceCardHtml,
+  referenceFlags,
+  cardTextStatusLabel,
+  REFERENCE_FLAG_LABELS,
+  type ReferenceCard,
+} from "./reference-card"
+export {
+  analyzeReference,
+  classifySource,
+  condenseQualification,
+  formatAuthorsDisplay,
+  isInstitutionName,
+  isQualifiedText,
+  parseCitationAuthors,
+  parseTagAuthors,
+  shortYear,
+  type ParsedAuthors,
+  type ReferenceInput,
+  type ReferenceMeta,
+  type ReferenceType,
+} from "./reference-meta"
+export { analyzeCardText, cardTextStatus, MIN_FULL_WORDS, MIN_FRAGMENT_WORDS, type CardTextAnalysis, type CardTextStatus } from "./card-text-status"
+export {
+  buildSubmissionPayload,
+  isSubmitEndpoint,
+  validateCardTextSuggestion,
+  CARD_TEXT_MIN_LENGTH,
+  CARD_TEXT_MAX_LENGTH,
+  type CardTextSubmissionPayload,
+} from "./card-text-submission"

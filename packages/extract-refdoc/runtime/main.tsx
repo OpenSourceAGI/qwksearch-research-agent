@@ -9,7 +9,10 @@
  * - ⌘K / Ctrl+K search over every page, heading and paragraph;
  * - the Reader mode / Underlining / Voice bar from `reader-runtime.ts`;
  * - numeric citations linked to the references page, with the reference as
- *   a tooltip.
+ *   a tooltip;
+ * - the card-text status button on each citation card: full and partial
+ *   toggle the card text, the red X (missing) opens a "suggest the full text"
+ *   dialog that posts to the file's `submitEndpoint`.
  *
  * Routing is by `#id`, where the id is a page slug or any element id on a
  * page (heading ids are prefixed with their page slug, so they are unique),
@@ -36,10 +39,12 @@ import type { SharedProps } from "fumadocs-ui/contexts/search"
 import { DocsLayout } from "fumadocs-ui/layouts/docs"
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/layouts/docs/page"
 import { RootProvider } from "fumadocs-ui/provider/base"
-import { type ComponentProps, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
+import { type ComponentProps, type MouseEvent, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import { createRoot } from "react-dom/client"
+import { isSubmitEndpoint } from "../src/card-text-submission"
 import { mountPaperReader } from "../src/reader-runtime"
 import { readRefdocFromDocument, type RefdocDocument, type RefdocPage } from "../src/refdoc-read"
+import { CardTextModal, type SuggestTarget } from "./card-text-modal"
 
 const OVERVIEW_ID = "overview"
 
@@ -246,9 +251,36 @@ function ReaderToolbar() {
   )
 }
 
+/** The submit endpoint: a `data-submit-endpoint` on the runtime's script tag wins over the one written into the file. */
+function submitEndpointOf(doc: RefdocDocument): string | null {
+  const fromScript = window.document.querySelector("script[data-submit-endpoint]")?.getAttribute("data-submit-endpoint")
+  const endpoint = fromScript || doc.submitEndpoint
+  return isSubmitEndpoint(endpoint) ? endpoint.trim() : null
+}
+
 function PageView({ doc, route }: { doc: RefdocDocument; route: Route }) {
   const { page, anchor } = route
   const root = useRef<HTMLDivElement>(null)
+  const endpoint = useMemo(() => submitEndpointOf(doc), [doc])
+  const [suggest, setSuggest] = useState<SuggestTarget | null>(null)
+
+  useEffect(() => setSuggest(null), [page])
+
+  const onBodyClick = (event: MouseEvent<HTMLDivElement>) => {
+    const button = (event.target as Element).closest<HTMLButtonElement>("button.refdoc-text-status")
+    if (!button) return
+    const card = button.closest("li.refdoc-ref")
+    const status = button.getAttribute("data-text-status")
+    if (status === "missing") {
+      if (!endpoint) return
+      const author = card?.querySelector(".refdoc-ref-author")?.textContent?.trim()
+      const citation = card?.querySelector(".refdoc-ref-citation")?.textContent?.trim()
+      setSuggest({ key: button.getAttribute("data-ref-key") || card?.id || "", label: [author, citation].filter(Boolean).join(" — ").slice(0, 300) })
+      return
+    }
+    const details = card?.querySelector("details")
+    if (details) details.open = !details.open
+  }
   const toc = useMemo<TOCItemType[]>(() => page.headings.map((h) => ({ title: h.title, url: `#${h.id}`, depth: h.depth })), [page])
   const hasUnderlining = useMemo(() => page.html.includes("debate-hl"), [page])
 
@@ -275,8 +307,9 @@ function PageView({ doc, route }: { doc: RefdocDocument; route: Route }) {
       <div ref={root} className="refdoc-paper" data-underline="on" data-reader="off" data-has-underlining={hasUnderlining ? "" : undefined}>
         <ReaderToolbar />
         <DocsBody className="ptw-content">
-          <div dangerouslySetInnerHTML={{ __html: page.html }} />
+          <div onClick={onBodyClick} dangerouslySetInnerHTML={{ __html: page.html }} />
         </DocsBody>
+        {suggest && endpoint ? <CardTextModal endpoint={endpoint} document={{ id: doc.sourceUrl || doc.title, title: doc.title }} target={suggest} onClose={() => setSuggest(null)} /> : null}
       </div>
     </DocsPage>
   )
