@@ -14,6 +14,30 @@ html.refdoc-ready body { margin: 0; background: var(--color-fd-background); }
 .refdoc-toolbar .ptw-rate { font-size: .8125rem; color: var(--color-fd-muted-foreground); }
 .refdoc-paper:not([data-has-underlining]) .refdoc-toolbar [data-ptw="underline"] { display: none; }
 
+/* Info → Page stats popover */
+.refdoc-info { position: relative; margin-left: auto; }
+.refdoc-info > button { display: inline-flex; align-items: center; gap: .35rem; }
+.refdoc-info-icon { width: .875rem; height: .875rem; }
+.refdoc-info-popover { position: absolute; right: 0; top: calc(100% + .35rem); z-index: 50; width: 18rem; padding: .75rem; border: 1px solid var(--color-fd-border); border-radius: .5rem; background: var(--color-fd-popover); color: var(--color-fd-popover-foreground); box-shadow: 0 10px 25px -5px rgb(0 0 0 / .15), 0 4px 6px -4px rgb(0 0 0 / .1); font-size: .875rem; line-height: 1.4; }
+.refdoc-info-title { margin: 0 0 .5rem; font-size: .75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--color-fd-muted-foreground); }
+.refdoc-info-popover dl { margin: 0; display: grid; grid-template-columns: 1fr auto; column-gap: 1rem; }
+.refdoc-info-popover dl > div { display: contents; }
+.refdoc-info-popover dt { display: flex; align-items: center; gap: .5rem; color: var(--color-fd-muted-foreground); }
+.refdoc-info-popover dd { margin: 0; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; }
+.refdoc-info-rows { row-gap: .25rem; }
+.refdoc-info-rows dt svg { width: .875rem; height: .875rem; flex-shrink: 0; }
+.refdoc-info-readability { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--color-fd-border); }
+.refdoc-info-score { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; margin-bottom: .25rem; }
+.refdoc-info-score span { color: var(--color-fd-muted-foreground); }
+.refdoc-info-score strong { font-weight: 500; font-variant-numeric: tabular-nums; }
+.refdoc-info-bar { height: .5rem; width: 100%; overflow: hidden; border-radius: 9999px; background: var(--color-fd-muted); }
+.refdoc-info-bar > div { height: 100%; border-radius: 9999px; }
+.refdoc-info-grades { margin-top: .5rem; }
+.refdoc-info-grades summary { cursor: pointer; user-select: none; font-size: .75rem; color: var(--color-fd-muted-foreground); }
+.refdoc-info-grades summary:hover { color: var(--color-fd-foreground); }
+.refdoc-info-grades dl { margin-top: .25rem; row-gap: .125rem; font-size: .75rem; }
+.refdoc-info-note { margin: .25rem 0 0; font-size: .75rem; color: var(--color-fd-muted-foreground); }
+
 /* Card underlining */
 .refdoc-paper mark.debate-hl { background: transparent; color: inherit; }
 .refdoc-paper[data-underline="on"] mark.debate-hl { background: color-mix(in srgb, #facc15 45%, transparent); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; font-weight: 600; }
