@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import {
   BoldIcon,
-  Code2Icon,
+  CodeIcon,
   ItalicIcon,
   StrikethroughIcon,
   UnderlineIcon,
@@ -37,20 +37,20 @@ export function FloatingToolbarButtons() {
       </ToolbarGroup>
 
       <ToolbarGroup>
-        <MarkToolbarButton nodeType={KEYS.bold} tooltip="Bold (⌘B)">
+        <MarkToolbarButton nodeType={KEYS.bold} toolbarId="bold">
           <BoldIcon />
         </MarkToolbarButton>
-        <MarkToolbarButton nodeType={KEYS.italic} tooltip="Italic (⌘I)">
+        <MarkToolbarButton nodeType={KEYS.italic} toolbarId="italic">
           <ItalicIcon />
         </MarkToolbarButton>
-        <MarkToolbarButton nodeType={KEYS.underline} tooltip="Underline (⌘U)">
+        <MarkToolbarButton nodeType={KEYS.underline} toolbarId="underline">
           <UnderlineIcon />
         </MarkToolbarButton>
-        <MarkToolbarButton nodeType={KEYS.strikethrough} tooltip="Strikethrough (⌘⇧X)">
+        <MarkToolbarButton nodeType={KEYS.strikethrough} toolbarId="strike">
           <StrikethroughIcon />
         </MarkToolbarButton>
-        <MarkToolbarButton nodeType={KEYS.code} tooltip="Code (⌘E)">
-          <Code2Icon />
+        <MarkToolbarButton nodeType={KEYS.code} toolbarId="code">
+          <CodeIcon />
         </MarkToolbarButton>
       </ToolbarGroup>
 
