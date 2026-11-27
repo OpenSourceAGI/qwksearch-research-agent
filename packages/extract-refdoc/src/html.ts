@@ -14,6 +14,7 @@
  */
 import { escapeHtml, isSubheading, markdownInlineToHtml, markdownToPlainText } from "./markdown"
 import { sectionSlug } from "./mdx"
+import { cleanReferenceEntry } from "./reference-meta"
 import { READER_RUNTIME_SOURCE } from "./reader-runtime"
 import type { Paper, PaperFigure } from "./types"
 
@@ -95,7 +96,7 @@ export function renderPaperBody(paper: Paper): string {
     out.push("</section>")
   })
   if (paper.references.length > 0) {
-    out.push(`<section class="ptw-section ptw-references" id="references"><h2>References</h2><ol>${paper.references.map((ref) => `<li>${markdownInlineToHtml(ref)}</li>`).join("")}</ol></section>`)
+    out.push(`<section class="ptw-section ptw-references" id="references"><h2>References</h2><ol>${paper.references.map((ref) => `<li>${markdownInlineToHtml(cleanReferenceEntry(ref))}</li>`).join("")}</ol></section>`)
   }
   return out.join("\n")
 }

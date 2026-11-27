@@ -287,6 +287,39 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
 
+// ── Video length ───────────────────────────────────────────────────────────
+
+const CLOCK = String.raw`(?:\d{1,2}:)?\d{1,2}:\d{2}`
+const SPAN = String.raw`\d{1,3}\s*(?:hours?|hrs?|h)\b(?:\s*\d{1,2}\s*(?:minutes?|mins?|m)\b)?(?:\s*\d{1,2}\s*(?:seconds?|secs?|s)\b)?|\d{1,3}\s*(?:minutes?|mins?)\b(?:\s*\d{1,2}\s*(?:seconds?|secs?)\b)?`
+const LENGTH = `(?:${CLOCK}(?!\\d|:|\\s?[ap]\\.?m\\b)|${SPAN})`
+const LABEL = String.raw`(?:(?:video\s+)?(?:length|duration|runtime|running time)\s*:?\s*)?`
+const VIDEO_LENGTH_BRACKETED = new RegExp(String.raw`\s*[(\[]\s*${LABEL}${LENGTH}\s*[)\]]`, "gi")
+const VIDEO_LENGTH_BARE = new RegExp(String.raw`(?:,\s*|\s+)${LABEL}${LENGTH}(?![\w/:-])`, "gi")
+
+/**
+ * Drops the video length from a video citation: `(12:34)`, `[1:02:03]`,
+ * `YouTube video, 12:04.`, `Duration: 12 min`, `1 hr 5 min`. Only video
+ * citations are touched (see `classifySource`); the rest of the citation, its
+ * date and its URL stay as written.
+ */
+export function stripVideoLength(citation: string): string {
+  if (classifySource(citation) !== "video") return citation
+  return citation
+    .replace(VIDEO_LENGTH_BRACKETED, "")
+    .replace(VIDEO_LENGTH_BARE, "")
+    .replace(/[ \t]+([,.;])/g, "$1")
+    .replace(/,\s*(?=[,.;)])/g, "")
+    .replace(/(\w)\.\.(?!\.)/g, "$1.")
+    .replace(/[ \t]{2,}/g, " ")
+}
+
+/** A reference entry as it is displayed or exported: the citation on its first line without a video length. */
+export function cleanReferenceEntry(entry: string): string {
+  const at = entry.indexOf("\n")
+  if (at < 0) return stripVideoLength(entry)
+  return stripVideoLength(entry.slice(0, at)) + entry.slice(at)
+}
+
 // ── Source type ────────────────────────────────────────────────────────────
 
 const NEWS_OUTLETS =

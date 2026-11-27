@@ -28,7 +28,7 @@
  */
 import { analyzeCardText, type CardTextAnalysis, type CardTextStatus } from "./card-text-status"
 import { escapeHtml, markdownInlineToHtml, markdownToPlainText } from "./markdown"
-import { analyzeReference, looksLikeQualifications, parseCitationAuthors, parseTagAuthors, type ReferenceMeta, type ReferenceType } from "./reference-meta"
+import { analyzeReference, cleanReferenceEntry, looksLikeQualifications, parseCitationAuthors, parseTagAuthors, type ReferenceMeta, type ReferenceType } from "./reference-meta"
 
 /** A reference entry taken apart. */
 export interface ReferenceCard {
@@ -97,7 +97,7 @@ export function parseReferenceEntry(entry: string): ReferenceCard {
     .split(/\n+/)
     .map((block) => block.trim())
     .filter(Boolean)
-  const first = blocks[0] ?? ""
+  const first = cleanReferenceEntry(blocks[0] ?? "")
   const header = parseCardHeader(first)
   const card: ReferenceCard = header ? { number: header.number, tag: header.tag, citation: header.citation, cardText: [] } : { citation: first, cardText: [] }
   const authorNames = (header ? parseTagAuthors(header.tag)?.names : undefined) ?? []
