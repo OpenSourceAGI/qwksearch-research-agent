@@ -7,7 +7,8 @@
  * - sidebar from the pages (parts become separators), breadcrumb and
  *   previous/next, table of contents with scroll-spy, light/dark switch;
  * - ⌘K / Ctrl+K search over every page, heading and paragraph;
- * - the Reader mode / Underlining / Voice bar from `reader-runtime.ts`;
+ * - the Reader mode / Underlining / Voice / marking bar from `reader-runtime.ts`,
+ *   with Undo mark / Redo mark (Cmd or Ctrl+Z, +Shift+Z, Ctrl+Y);
  * - numeric citations linked to the references page, with the reference as
  *   a tooltip.
  *
@@ -38,6 +39,8 @@ import { DocsBody, DocsDescription, DocsPage, DocsTitle } from "fumadocs-ui/layo
 import { RootProvider } from "fumadocs-ui/provider/base"
 import { type ComponentProps, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react"
 import { createRoot } from "react-dom/client"
+import { autoUnderlinePhrases } from "../src/highlight"
+import { MARK_MENU } from "../src/mark-history"
 import { mountPaperReader } from "../src/reader-runtime"
 import { readRefdocFromDocument, type RefdocDocument, type RefdocPage } from "../src/refdoc-read"
 
@@ -242,6 +245,13 @@ function ReaderToolbar() {
           <option value="2">2×</option>
         </select>
       </label>
+      <span className="ptw-marks" role="group" aria-label="Marking">
+        {MARK_MENU.map((item) => (
+          <button key={item.name} type="button" data-ptw={item.name} disabled={item.disabled}>
+            {item.label}
+          </button>
+        ))}
+      </span>
     </div>
   )
 }
@@ -255,7 +265,7 @@ function PageView({ doc, route }: { doc: RefdocDocument; route: Route }) {
   // The reader bar is plain DOM wiring; remount it for each page.
   useEffect(() => {
     if (!root.current) return
-    const handle = mountPaperReader(root.current, { storageKey: "refdoc" })
+    const handle = mountPaperReader(root.current, { storageKey: "refdoc", autoMarkPhrases: autoUnderlinePhrases })
     return () => handle.destroy()
   }, [page])
 

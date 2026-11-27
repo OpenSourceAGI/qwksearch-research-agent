@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { applyUnderlines, autoUnderline, coreClause, splitSentences, stripUnderlines, underlinedRuns } from "../src/highlight"
+import { applyUnderlines, autoUnderline, autoUnderlinePhrases, coreClause, splitSentences, stripUnderlines, underlinedRuns } from "../src/highlight"
 
 describe("applyUnderlines", () => {
   it("marks only phrases that occur verbatim and never changes the prose", () => {
@@ -50,5 +50,17 @@ describe("splitSentences", () => {
       "It holds, e.g. in rounds.",
       "Done!",
     ])
+  })
+})
+
+describe("autoUnderlinePhrases", () => {
+  it("returns the clauses autoUnderline would mark, and none for short or marked paragraphs", () => {
+    const paragraph =
+      "Markets reward patient capital over many years. Therefore the strongest position is to hold broad index funds through every cycle, because timing the market has failed most professionals."
+    const phrases = autoUnderlinePhrases(paragraph)
+    expect(phrases.length).toBeGreaterThan(0)
+    expect(autoUnderline(paragraph)).toBe(applyUnderlines(paragraph, phrases))
+    expect(autoUnderlinePhrases("Too short to be a card.")).toEqual([])
+    expect(autoUnderlinePhrases("==Marked== already and long enough to count as a real paragraph of text here.")).toEqual([])
   })
 })

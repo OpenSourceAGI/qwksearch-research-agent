@@ -106,20 +106,26 @@ export function coreClause(sentence: string): string {
 }
 
 /**
+ * The phrases offline underlining would mark in a paragraph: the core clause
+ * of the topic (first) sentence and of the strongest claim sentence after it.
+ * Empty for paragraphs that already carry marks or are too short to be a card.
+ */
+export function autoUnderlinePhrases(paragraph: string): string[] {
+  if (hasUnderlines(paragraph)) return []
+  // Mark against the paragraph without link/image syntax in the way.
+  const sentences = splitSentences(paragraph.replace(/!?\[[^\]]*\]\([^)]*\)/g, " "))
+  if (sentences.length === 0 || paragraph.split(/\s+/).length < 12) return []
+  const phrases = [coreClause(sentences[0])]
+  const claim = sentences.slice(1).find((sentence) => CLAIM_SIGNAL.test(sentence))
+  if (claim) phrases.push(coreClause(claim))
+  return phrases.filter((phrase) => phrase.split(/\s+/).length >= 3 && !/[*`[\]]/.test(phrase))
+}
+
+/**
  * Offline underlining: marks the core clause of the topic (first) sentence
  * and of the strongest claim sentence after it. Paragraphs that already carry
  * marks, or are too short to be a card, are returned unchanged.
  */
 export function autoUnderline(paragraph: string): string {
-  if (hasUnderlines(paragraph)) return paragraph
-  // Mark against the paragraph without link/image syntax in the way.
-  const sentences = splitSentences(paragraph.replace(/!?\[[^\]]*\]\([^)]*\)/g, " "))
-  if (sentences.length === 0 || paragraph.split(/\s+/).length < 12) return paragraph
-  const phrases = [coreClause(sentences[0])]
-  const claim = sentences.slice(1).find((sentence) => CLAIM_SIGNAL.test(sentence))
-  if (claim) phrases.push(coreClause(claim))
-  return applyUnderlines(
-    paragraph,
-    phrases.filter((phrase) => phrase.split(/\s+/).length >= 3 && !/[*`[\]]/.test(phrase)),
-  )
+  return applyUnderlines(paragraph, autoUnderlinePhrases(paragraph))
 }

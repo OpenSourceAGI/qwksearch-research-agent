@@ -30,7 +30,7 @@ export {
 } from "./source"
 export { htmlToPaper, textToPaper, stripSectionNumber, mergeBrokenParagraphs, type PaperMeta } from "./html-to-paper"
 export { finishPaper, readOnlyUnderlined, summarizeSection, describeSection } from "./finish"
-export { applyUnderlines, autoUnderline, stripUnderlines, underlinedRuns, splitSentences } from "./highlight"
+export { applyUnderlines, autoUnderline, autoUnderlinePhrases, stripUnderlines, underlinedRuns, splitSentences } from "./highlight"
 export {
   paperToMdxFiles,
   paperToSingleMdx,
@@ -43,7 +43,16 @@ export {
   type MdxOptions,
 } from "./mdx"
 export { paperToHtml, figureHtml, paragraphsHtml, renderPaperBody, renderPaperReader, renderReaderToolbar, PAPER_READER_CSS } from "./html"
-export { mountPaperReader, READER_RUNTIME_SOURCE, type PaperReaderHandle, type PaperReaderRuntimeOptions } from "./reader-runtime"
+export { mountPaperReader, READER_RUNTIME_SOURCE, type MarkEntry, type PaperReaderHandle, type PaperReaderRuntimeOptions } from "./reader-runtime"
+export {
+  createMarkHistory,
+  MARK_HISTORY_LIMIT,
+  MARK_MENU,
+  type MarkAction,
+  type MarkChange,
+  type MarkHistory,
+  type MarkSource,
+} from "./mark-history"
 export {
   createAnthropicGenerator,
   enhancePaperWithAi,
