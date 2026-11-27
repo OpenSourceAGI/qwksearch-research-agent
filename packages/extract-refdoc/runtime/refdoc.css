@@ -31,6 +31,12 @@ html.refdoc-ready body { margin: 0; background: var(--color-fd-background); }
 .refdoc-references > li:target { background: color-mix(in srgb, var(--color-fd-primary) 12%, transparent); border-radius: .25rem; }
 a.refdoc-cite { text-decoration: none !important; font-weight: 500; }
 
+/* Right-hand contents panel: 25% narrower than Fumadocs' 268px (201px). Fumadocs only shows it from
+   the xl breakpoint (80rem) up and hides it below, so small screens never get the extra width. */
+@media (width >= 80rem) {
+  html #nd-docs-layout:has(#nd-toc, #nd-toc-placeholder) { --fd-toc-width: 201px; }
+}
+
 /* Reader mode: no sidebar or contents, one serif column */
 html:has(.refdoc-paper[data-reader="on"]) #nd-sidebar,
 html:has(.refdoc-paper[data-reader="on"]) #nd-toc,
