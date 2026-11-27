@@ -26,7 +26,12 @@ routed to `extract-pdf` via a dynamic import.
 
 `cite`, `html`, `url`, `title`, `author`, `author_cite` (Last, First Middle),
 `author_short` (Last), `author_type` (`single` / `two-author` / `more-than-two` /
-`organization`), `date`, `source`, `word_count`, `format`, `error`.
+`organization`), `date`, `source`, `word_count`, `metrics`, `format`, `error`.
+
+`metrics` is the [`paper-metrics`](../../packages/paper-metrics) `TextMetrics` of
+the extracted text: words, characters, sentences, paragraphs, reading minutes,
+Flesch Reading Ease with its label, and the grade-level scores (Flesch-Kincaid,
+Gunning Fog, SMOG, ARI, Coleman-Liau, Linsear Write, Dale-Chall, text standard).
 
 ## Fetching
 

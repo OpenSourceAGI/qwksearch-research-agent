@@ -17,7 +17,8 @@ import { extractContent } from "extract-webpage";
 
 const article = await extractContent("https://example.com/article", { timeout: 10 });
 // { title, author, author_cite, author_short, author_type, date, source,
-//   cite, html, url, word_count, format }  — or { error }
+//   cite, html, url, word_count, metrics, format }  — or { error }
+// metrics: paper-metrics TextMetrics (sentences, reading time, readability, grade levels)
 ```
 
 Failures are returned as `{ error }` rather than thrown. `extractContent` also accepts

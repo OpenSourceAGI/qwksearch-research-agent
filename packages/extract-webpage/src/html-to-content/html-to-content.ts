@@ -5,6 +5,7 @@
  */
 import { parseHTML } from "linkedom";
 import { extractCite, extractHumanName } from "extract-cite";
+import { getHtmlMetrics } from "paper-metrics";
 import { convertHTMLToBasicHTML } from "./html-to-basic-html";
 import {
   convertMarkdownToFormattedHTML,
@@ -33,6 +34,7 @@ import { extractMainContentFromHTML2 } from "./extract-content/extract-content-m
  * @property {string} date - The publication date
  * @property {string} source - The source of the document
  * @property {string} html - The extracted HTML content
+ * @property {import("paper-metrics").TextMetrics} metrics - Text statistics and readability of the extracted text
  * @author [vtempest (2025)](https://github.com/vtempest)
  */
 export function extractContentAndCite(documentOrHTML, options = {}) {
@@ -94,6 +96,7 @@ export function extractContentAndCite(documentOrHTML, options = {}) {
     date,
     source,
     html,
+    metrics: getHtmlMetrics(html || ""),
   };
 }
 /**
@@ -105,5 +108,6 @@ export function extractContentAndCite(documentOrHTML, options = {}) {
  * @property {string} date - The publication date
  * @property {string} source - The source of the content
  * @property {string} html - The extracted main content in HTML format
+ * @property {import("paper-metrics").TextMetrics} metrics - Text statistics and readability of the extracted text
  * @private
  */

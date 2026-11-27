@@ -85,6 +85,40 @@ describe('extract_page handler', () => {
     expect(text).not.toContain('Author:');
     expect(text).not.toContain('Citation:');
     expect(text).not.toContain('Word Count:');
+    expect(text).not.toContain('Sentences:');
+    expect(text).not.toContain('Readability:');
+  });
+
+  it('renders the paper-metrics sentence count, reading time and readability', async () => {
+    extractContent.mockResolvedValue({
+      title: 'Article',
+      metrics: {
+        words: 82,
+        sentences: 3,
+        readingMinutes: 1,
+        readabilityScore: 45,
+        readabilityLabel: 'Difficult',
+        textStandardLabel: '13th and 14th grade',
+      },
+    });
+
+    const text = (await register().handler(DEFAULT_ARGS)).content[0].text;
+
+    expect(text).toContain('Sentences: 3');
+    expect(text).toContain('Reading Time: 1 min');
+    expect(text).toContain('Readability: 45/100 Difficult (13th and 14th grade)');
+  });
+
+  it('omits the readability line when the text is too short to score', async () => {
+    extractContent.mockResolvedValue({
+      title: 'Article',
+      metrics: { words: 3, sentences: 1, readingMinutes: 1, readabilityScore: null, readabilityLabel: null, textStandardLabel: null },
+    });
+
+    const text = (await register().handler(DEFAULT_ARGS)).content[0].text;
+
+    expect(text).toContain('Sentences: 1');
+    expect(text).not.toContain('Readability:');
   });
 
   it('flags an extractor-reported error', async () => {
