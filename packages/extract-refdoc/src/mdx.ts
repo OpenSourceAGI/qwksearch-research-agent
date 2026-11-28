@@ -17,6 +17,7 @@
  *
  * @module mdx
  */
+import { cleanReferenceEntry } from "./reference-meta"
 import { escapeMdxText, isSubheading, markdownToPlainText } from "./markdown"
 import type { Paper, PaperFigure, PaperSection } from "./types"
 
@@ -127,7 +128,7 @@ export function indexToMdx(paper: Paper): string {
 
 /** The references page. */
 export function referencesToMdx(paper: Paper): string {
-  return `${frontmatter("References")}\n\n${paper.references.map((ref, i) => `${i + 1}. ${ref}`).join("\n")}\n`
+  return `${frontmatter("References")}\n\n${paper.references.map((ref, i) => `${i + 1}. ${cleanReferenceEntry(ref)}`).join("\n")}\n`
 }
 
 /** Fumadocs `meta.json`: page order, with a "---Part---" separator before each section that opens a part. */
@@ -176,7 +177,7 @@ export function paperToSingleMdx(paper: Paper): string {
     parts.push(block.join("\n\n"))
   })
   if (paper.references.length > 0) {
-    parts.push(`## References\n\n${paper.references.map((ref, i) => `${i + 1}. ${ref}`).join("\n")}`)
+    parts.push(`## References\n\n${paper.references.map((ref, i) => `${i + 1}. ${cleanReferenceEntry(ref)}`).join("\n")}`)
   }
   return `${parts.join("\n\n")}\n`
 }

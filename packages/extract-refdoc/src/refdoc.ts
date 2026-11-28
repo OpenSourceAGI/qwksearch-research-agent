@@ -29,6 +29,8 @@ import { parseHTML } from "linkedom"
 import { figureHtml, paragraphsHtml } from "./html"
 import { escapeHtml, markdownInlineToHtml, markdownToPlainText } from "./markdown"
 import { sectionSlug, slugify } from "./mdx"
+import { isSubmitEndpoint } from "./card-text-submission"
+import { groupReferenceEntries, referenceCardHtml, referenceCitationText } from "./reference-card"
 import { readRefdocFromDocument, REFDOC_VERSION, type RefdocDocument, type RefdocMeta, type RefdocPage } from "./refdoc-read"
 import type { Paper } from "./types"
 
@@ -54,6 +56,8 @@ export type RefdocRuntime =
 
 export interface RenderRefdocOptions {
   runtime?: RefdocRuntime
+  /** An http(s) URL or path the runtime posts suggested card text to (see `card-text-submission.ts`). */
+  submitEndpoint?: string
 }
 
 function escapeJsonForScript(json: string): string {
@@ -70,12 +74,18 @@ const FALLBACK_CSS = `#refdoc-root{max-width:46rem;margin:0 auto;padding:1.5rem 
 #refdoc-root img{max-width:100%;height:auto}#refdoc-root a{color:#2563eb}
 #refdoc-root mark.debate-hl{background:#fef08a;border:3px solid #eab308;border-radius:.25em;padding:0 .15em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 @media (prefers-color-scheme:dark){body{background:#0c0a09}#refdoc-root{color:#e7e5e4}#refdoc-root article{border-color:#292524}#refdoc-root a{color:#60a5fa}#refdoc-root mark.debate-hl{background:#854d0e;color:inherit}}
+#refdoc-root .refdoc-references{list-style:none;padding:0}
+#refdoc-root .refdoc-ref{position:relative;border:1px solid #e7e5e4;border-radius:.6rem;padding:.6rem 2.4rem .6rem .9rem;margin:.6rem 0}
+#refdoc-root .refdoc-ref p{margin:.25rem 0}#refdoc-root .refdoc-ref-summary{font-weight:600}
+#refdoc-root .refdoc-ref-flags{position:absolute;top:.5rem;right:.5rem;display:flex;flex-direction:column;gap:.3rem}
 html.refdoc-booting #refdoc-root{visibility:hidden}`
 
 /** Write any `RefdocDocument` as one `.refdoc.html` file (see the module doc). */
 export function renderRefdocHtml(doc: RefdocDocument, options: RenderRefdocOptions = {}): string {
   const { pages, ...rest } = doc
-  const meta: RefdocMeta = { ...rest, format: "refdoc", version: REFDOC_VERSION, generator: rest.generator ?? `extract-refdoc ${REFDOC_PACKAGE_VERSION}` }
+  const submitEndpoint = options.submitEndpoint ?? rest.submitEndpoint
+  if (submitEndpoint !== undefined && !isSubmitEndpoint(submitEndpoint)) throw new Error(`submitEndpoint must be an http(s) URL or a path: ${submitEndpoint}`)
+  const meta: RefdocMeta = { ...rest, format: "refdoc", version: REFDOC_VERSION, generator: rest.generator ?? `extract-refdoc ${REFDOC_PACKAGE_VERSION}`, submitEndpoint }
   const runtime = options.runtime ?? "cdn"
 
   let head: string
@@ -136,7 +146,7 @@ export function parseRefdoc(html: string): RefdocDocument {
  */
 export function linkCitations(html: string, references: string[]): string {
   if (references.length === 0) return html
-  const titles = references.map((ref) => escapeHtml(markdownToPlainText(ref).slice(0, 300)))
+  const titles = references.map((ref) => escapeHtml(referenceCitationText(ref).slice(0, 300)))
   const link = (n: number) => `<a class="refdoc-cite" href="#ref-${n}" title="${titles[n - 1]}">${n}</a>`
   // Only in text, never inside a tag.
   return html.replace(/(<[^>]*>)|\[(\d{1,4}(?:\s*[,–-]\s*\d{1,4})*)\]/g, (match, tag: string | undefined, list: string | undefined) => {
@@ -151,7 +161,8 @@ export function linkCitations(html: string, references: string[]): string {
 /** The `Paper` → refdoc pages: an overview, one page per section, and the references. */
 export function paperToRefdocDocument(paper: Paper): RefdocDocument {
   const pages: RefdocPage[] = []
-  const cite = (html: string) => linkCitations(html, paper.references)
+  const references = groupReferenceEntries(paper.references)
+  const cite = (html: string) => linkCitations(html, references)
 
   // Overview: byline, figure, abstract, keywords, citation, contents.
   const overview: string[] = []
@@ -216,11 +227,11 @@ export function paperToRefdocDocument(paper: Paper): RefdocDocument {
     })
   })
 
-  if (paper.references.length > 0) {
+  if (references.length > 0) {
     pages.push({
       slug: "references",
       title: "References",
-      html: `<ol class="refdoc-references">${paper.references.map((ref, i) => `<li id="ref-${i + 1}">${markdownInlineToHtml(ref)}</li>`).join("")}</ol>`,
+      html: `<ol class="refdoc-references">${references.map((ref, i) => referenceCardHtml(ref, `ref-${i + 1}`)).join("")}</ol>`,
       headings: [],
     })
   }
