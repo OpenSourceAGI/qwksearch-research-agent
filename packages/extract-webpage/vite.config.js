@@ -24,7 +24,10 @@ export default defineConfig({
       // Library build: every bare import stays a runtime dependency instead of
       // being bundled. Bundling deps dragged in Node-only modules (fs, etc.)
       // that then needed browser polyfills and a missing fs-mock alias.
-      external: (id) => !id.startsWith(".") && !id.startsWith("/") && !id.startsWith("\0"),
+      // paper-metrics publishes TypeScript source, so it is bundled rather
+      // than left for consumers' Node to import.
+      external: (id) =>
+        !id.startsWith(".") && !id.startsWith("/") && !id.startsWith("\0") && !id.startsWith("paper-metrics"),
       output: {
         codeSplitting: false,
       },

@@ -88,6 +88,7 @@
     "marked": "^18.0.12",
     "marked-highlight": "^2.2.4",
     "node-fetch": "^3.3.2",
+    "paper-metrics": "workspace:*",
     "qwksearch-api-client": "^0.9.225",
     "zod": "^4.5.4"
   },

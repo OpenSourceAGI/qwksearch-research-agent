@@ -10,6 +10,7 @@ import { getDB } from "@/lib/database";
 import { articleCache, articleQA } from "@/lib/database/schema";
 import { eq, sql } from "drizzle-orm";
 import { extractContent } from "extract-webpage/url-to-content/url-to-content";
+import { getHtmlMetrics, type TextMetrics } from "paper-metrics";
 import { extractArticleViaScraper, extractViaTavily } from "@/lib/scraper";
 import { getTavilyApiKey } from "@/lib/config/serverRegistry";
 import { withCors, corsPreflight } from "@/lib/cors";
@@ -26,6 +27,8 @@ interface Article {
   date?: string;
   source?: string;
   word_count?: number;
+  /** Text statistics and readability of the article text (paper-metrics). */
+  metrics?: TextMetrics;
 }
 
 interface CachedArticle extends Article {
@@ -143,6 +146,7 @@ async function articleGet(req: NextRequest) {
         source: cachedArticle.source || undefined,
         word_count: cachedArticle.word_count || undefined,
         html: cachedArticle.html || undefined,
+        metrics: getHtmlMetrics(cachedArticle.html),
         followUpQuestions: cachedArticle.followUpQuestions as string[],
         qaHistory: qaHistory,
       };
@@ -302,6 +306,7 @@ async function articleGet(req: NextRequest) {
       cached: false,
       article: {
         ...article,
+        metrics: article.metrics ?? getHtmlMetrics(article.html),
         followUpQuestions: [],
         qaHistory: [],
       },

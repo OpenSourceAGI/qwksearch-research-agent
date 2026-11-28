@@ -3,7 +3,7 @@
  */
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useId, useRef } from 'react';
 import {
   getArticle,
   updateArticle,
@@ -28,6 +28,9 @@ import {
   ArticleExtractPanelProps
 } from '.';
 import { ARTICLE_TOOLBAR_SHORTCUTS } from './ArticleActionButtons';
+import ArticleOutline from './ArticleOutline';
+import ArticleSidebarTabs, { articleTabIds, type ArticleSidebarTab } from './ArticleSidebarTabs';
+import type { ArticleOutlineItem } from './articleOutline';
 import { researchAgentUIConfig } from '../../config';
 import { useSession } from '../../hooks/useSession';
 import { useChat } from '../../hooks/useChat';
@@ -72,6 +75,10 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
   const [isResizing, setIsResizing] = useState(false);
   const [isPanelReady, setIsPanelReady] = useState(false);
   const [fontScale, setFontScale] = useState(1);
+  const [sidebarTab, setSidebarTab] = useState<ArticleSidebarTab>('questions');
+  const [outlineItems, setOutlineItems] = useState<ArticleOutlineItem[]>([]);
+  const tabsIdBase = useId();
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
   // Holds the latest toolbar action handlers so the global keydown listener
   // (registered once per open) always calls current closures, never stale ones.
@@ -97,6 +104,13 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
     } catch (error) {
       console.error('Error storing article font scale:', error);
     }
+  };
+
+  const handleSidebarTabChange = (tab: ArticleSidebarTab) => {
+    setSidebarTab(tab);
+    // The questions sit at the top of the scrolling column; coming back to
+    // them from deep in the article should show them, not the article's middle.
+    if (tab === 'questions') scrollAreaRef.current?.scrollTo?.({ top: 0 });
   };
 
   const handleZoomIn = () => persistFontScale(fontScale + FONT_SCALE_STEP);
@@ -555,7 +569,24 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="shrink-0 px-4 pt-2">
+        <ArticleSidebarTabs value={sidebarTab} onValueChange={handleSidebarTabChange} idBase={tabsIdBase} />
+      </div>
+
+      {/* Pinned above the scrolling article, so the active heading stays in
+          view while the article scrolls. Mounted only while selected: the
+          scroll-spy has to start after the article's headings exist. */}
+      <div
+        role="tabpanel"
+        id={articleTabIds(tabsIdBase, 'outline').panel}
+        aria-labelledby={articleTabIds(tabsIdBase, 'outline').tab}
+        hidden={sidebarTab !== 'outline'}
+        className="flex max-h-[40%] min-h-0 shrink-0 flex-col border-b border-border px-4"
+      >
+        {sidebarTab === 'outline' && <ArticleOutline items={outlineItems} />}
+      </div>
+
+      <div ref={scrollAreaRef} className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-6">
             <div className="space-y-4">
               {showCopiedMessage && (
@@ -570,18 +601,26 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
                 </div>
               )}
 
-              <ArticlePromptInput
-                value={userPrompt}
-                onChange={setUserPrompt}
-                onSubmit={() => callLanguageAPI('question')}
-              />
+              <div
+                role="tabpanel"
+                id={articleTabIds(tabsIdBase, 'questions').panel}
+                aria-labelledby={articleTabIds(tabsIdBase, 'questions').tab}
+                hidden={sidebarTab !== 'questions'}
+                className="space-y-4"
+              >
+                <ArticlePromptInput
+                  value={userPrompt}
+                  onChange={setUserPrompt}
+                  onSubmit={() => callLanguageAPI('question')}
+                />
 
-              <ArticleFollowupQuestions
-                questions={followupQuestions}
-                isLoading={isLoadingFollowups}
-                error={followupError}
-                onQuestionClick={handleQuestionClick}
-              />
+                <ArticleFollowupQuestions
+                  questions={followupQuestions}
+                  isLoading={isLoadingFollowups}
+                  error={followupError}
+                  onQuestionClick={handleQuestionClick}
+                />
+              </div>
 
               {/* Chat History */}
               {chatHistory.length > 0 && (
@@ -628,6 +667,7 @@ const ArticleExtractPanel: React.FC<ArticleExtractPanelProps> = (props) => {
                 article={extractedArticle}
                 isHighlightMode={isHighlightMode}
                 fontScale={fontScale}
+                onOutlineChange={setOutlineItems}
               />
             )}
           </div>
