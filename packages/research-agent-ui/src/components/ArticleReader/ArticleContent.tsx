@@ -6,14 +6,16 @@
 import React from 'react';
 import { Article } from '../../types/research';
 import LexicalArticleViewer from './LexicalArticleViewer';
+import type { ArticleOutlineItem } from './articleOutline';
 
 interface ArticleContentProps {
   article: Article;
   isHighlightMode: boolean;
   fontScale?: number;
+  onOutlineChange?: (items: ArticleOutlineItem[]) => void;
 }
 
-const ArticleContent: React.FC<ArticleContentProps> = ({ article, isHighlightMode, fontScale = 1 }) => {
+const ArticleContent: React.FC<ArticleContentProps> = ({ article, isHighlightMode, fontScale = 1, onOutlineChange }) => {
   return (
     <div className="border-t border-border pt-6">
       <div>
@@ -44,6 +46,7 @@ const ArticleContent: React.FC<ArticleContentProps> = ({ article, isHighlightMod
             html={article.html || ''}
             isHighlightMode={isHighlightMode}
             fontScale={fontScale}
+            onOutlineChange={onOutlineChange}
           />
         </div>
       </div>

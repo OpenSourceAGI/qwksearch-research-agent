@@ -46,6 +46,7 @@ export default defineConfig({
       'packages/html-renderer-api',
       'packages/legal-terms-privacy-policy',
       'packages/notebooklm-api-client',
+      'packages/paper-metrics',
       'packages/qwksearch-api-client',
       'packages/qwksearch-mcp-server',
       'packages/react-weather-forecast',
