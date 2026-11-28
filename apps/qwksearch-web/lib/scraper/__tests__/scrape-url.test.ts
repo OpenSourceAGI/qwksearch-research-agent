@@ -80,6 +80,15 @@ describe('extractArticleViaScraper', () => {
     expect(result.error).toBeUndefined()
     expect(result.via).toBe('scraper')
     expect(result.html).toBe('<p>Article content</p>')
+    expect(result.metrics).toMatchObject({ words: 2, paragraphs: 1 })
+  })
+
+  it('keeps metrics the extractor already computed', async () => {
+    const metrics = { words: 99 }
+    mockRender.mockResolvedValue({ html: '<html>content</html>', url: 'https://example.com' })
+    mockExtract.mockResolvedValue({ ...goodExtracted, metrics })
+    const result = await extractArticleViaScraper('https://example.com')
+    expect(result.metrics).toBe(metrics)
   })
 
   it('sets via="scraper" on success', async () => {
@@ -197,6 +206,7 @@ describe('extractViaTavily', () => {
     expect(result.title).toBe('Test Article')
     expect(result.html).toContain('<p>')
     expect(result.word_count).toBeGreaterThan(0)
+    expect(result.metrics).toMatchObject({ words: 4, sentences: 2, paragraphs: 2 })
   })
 
   it('uses explicit apiKey over env var', async () => {

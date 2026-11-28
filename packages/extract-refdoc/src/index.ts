@@ -44,6 +44,7 @@ export {
 } from "./mdx"
 export { paperToHtml, figureHtml, paragraphsHtml, renderPaperBody, renderPaperReader, renderReaderToolbar, PAPER_READER_CSS } from "./html"
 export { mountPaperReader, READER_RUNTIME_SOURCE, type PaperReaderHandle, type PaperReaderRuntimeOptions } from "./reader-runtime"
+export { refdocPageInfo, type RefdocPageInfo } from "./page-info"
 export {
   createAnthropicGenerator,
   enhancePaperWithAi,
@@ -76,3 +77,39 @@ export {
   type RefdocRuntime,
   type RenderRefdocOptions,
 } from "./refdoc"
+export {
+  groupReferenceEntries,
+  parseCardHeader,
+  parseReferenceEntry,
+  referenceCardHtml,
+  referenceFlags,
+  cardTextStatusLabel,
+  REFERENCE_FLAG_LABELS,
+  type ReferenceCard,
+} from "./reference-card"
+export {
+  analyzeReference,
+  classifySource,
+  condenseQualification,
+  formatAuthorsDisplay,
+  isInstitutionName,
+  cleanReferenceEntry,
+  isQualifiedText,
+  stripVideoLength,
+  parseCitationAuthors,
+  parseTagAuthors,
+  shortYear,
+  type ParsedAuthors,
+  type ReferenceInput,
+  type ReferenceMeta,
+  type ReferenceType,
+} from "./reference-meta"
+export { analyzeCardText, cardTextStatus, MIN_FULL_WORDS, MIN_FRAGMENT_WORDS, type CardTextAnalysis, type CardTextStatus } from "./card-text-status"
+export {
+  buildSubmissionPayload,
+  isSubmitEndpoint,
+  validateCardTextSuggestion,
+  CARD_TEXT_MIN_LENGTH,
+  CARD_TEXT_MAX_LENGTH,
+  type CardTextSubmissionPayload,
+} from "./card-text-submission"

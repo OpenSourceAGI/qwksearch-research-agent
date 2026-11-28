@@ -87,7 +87,7 @@ describe("paperToRefdoc", () => {
     const method = parseRefdoc(html).pages[2].html
     expect(method).toContain("[9]")
     expect(method).not.toContain("refdoc-cite")
-    expect(parseRefdoc(html).pages[3].html).toContain('<li id="ref-1">')
+    expect(parseRefdoc(html).pages[3].html).toContain('id="ref-1"')
   })
 
   it("keeps every element id unique across pages, so one #id routes anywhere", () => {
@@ -137,5 +137,17 @@ describe("linkCitations", () => {
 
   it("does nothing without references", () => {
     expect(linkCitations("see [1]", [])).toBe("see [1]")
+  })
+})
+
+describe("submitEndpoint", () => {
+  it("is written into the file's meta when given", () => {
+    const html = paperToRefdoc(paper, { submitEndpoint: "https://example.com/api/card-text-submissions" })
+    expect(parseRefdoc(html).submitEndpoint).toBe("https://example.com/api/card-text-submissions")
+    expect(parseRefdoc(paperToRefdoc(paper)).submitEndpoint).toBeUndefined()
+  })
+
+  it("refuses an endpoint that is not an http(s) URL or path", () => {
+    expect(() => paperToRefdoc(paper, { submitEndpoint: "javascript:alert(1)" })).toThrow(/submitEndpoint/)
   })
 })

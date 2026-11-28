@@ -53,7 +53,7 @@ export function EmojiToolbarButton({
   return (
     <EmojiPopover
       control={
-        <ToolbarButton pressed={isOpen} tooltip="Emoji" isDropdown {...props}>
+        <ToolbarButton pressed={isOpen} toolbarId="emoji" isDropdown {...props}>
           <SmileIcon />
         </ToolbarButton>
       }

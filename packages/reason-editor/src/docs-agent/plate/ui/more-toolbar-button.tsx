@@ -5,7 +5,7 @@ import * as React from 'react';
 import {
   EraserIcon,
   KeyboardIcon,
-  MoreHorizontalIcon,
+  EllipsisIcon,
   SubscriptIcon,
   SuperscriptIcon,
 } from 'lucide-react';
@@ -48,8 +48,8 @@ export function MoreToolbarButton(
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false} {...props}>
       <DropdownMenuTrigger asChild>
-        <ToolbarButton pressed={open} tooltip="More">
-          <MoreHorizontalIcon />
+        <ToolbarButton pressed={open} toolbarId="text-styles-more">
+          <EllipsisIcon />
         </ToolbarButton>
       </DropdownMenuTrigger>
 

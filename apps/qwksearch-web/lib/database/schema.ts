@@ -653,3 +653,55 @@ export const apiRateLimitCounters = sqliteTable(
 );
 
 export type ApiRateLimitCounterRow = typeof apiRateLimitCounters.$inferSelect;
+
+/**
+ * Full text suggested by readers for an `extract-refdoc` citation card whose
+ * quoted text is missing (the red X on the references page). Public: anyone
+ * can submit without an account, so there is no required user reference —
+ * `userId` is filled only when the request happens to carry a session, and the
+ * submitter is otherwise known only by `submitterIpHash`, a salted SHA-256 of
+ * their address used to rate-limit, never the address itself.
+ *
+ * A card is named by `documentKey` (the refdoc's source URL, else its title)
+ * and `referenceKey` ("ref-3", the id of the card on the references page).
+ * Submissions wait as `pending` until an admin approves or rejects them in
+ * `/admin/card-text`.
+ */
+export const cardTextSubmissions = sqliteTable(
+  "card_text_submissions",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    documentKey: text("documentKey").notNull(),
+    documentTitle: text("documentTitle"),
+    referenceKey: text("referenceKey").notNull(),
+    /** Author line and citation of the card, so a reviewer can tell which card this is. */
+    referenceLabel: text("referenceLabel"),
+    submittedText: text("submittedText").notNull(),
+    status: text("status", { enum: ["pending", "approved", "rejected"] })
+      .notNull()
+      .default("pending"),
+    submitterIpHash: text("submitterIpHash"),
+    userId: text("userId"),
+    createdAt: text("createdAt")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    reviewedAt: text("reviewedAt"),
+    reviewedBy: text("reviewedBy"),
+  },
+  (table) => ({
+    cardIdx: index("idx_card_text_submissions_card").on(
+      table.documentKey,
+      table.referenceKey,
+    ),
+    statusIdx: index("idx_card_text_submissions_status_createdAt").on(
+      table.status,
+      table.createdAt,
+    ),
+    ipIdx: index("idx_card_text_submissions_ip_createdAt").on(
+      table.submitterIpHash,
+      table.createdAt,
+    ),
+  }),
+);
+
+export type CardTextSubmissionRow = typeof cardTextSubmissions.$inferSelect;
