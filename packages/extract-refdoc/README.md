@@ -95,6 +95,13 @@ the file and renders Fumadocs' `DocsLayout` and `DocsPage` around them, all clie
   Without an endpoint the X does nothing.
 - **Reader mode / Underlining / Voice**: the reading bar from the original paper reader. Voice
   reads only the `==underlined==` words while Underlining is on.
+- **Marking menu**: Mark selection, Unmark selection, Auto-mark (underlines the core claims of
+  unmarked paragraphs) and Clear marks, plus **Undo mark** / **Redo mark**. Every marking change is
+  kept in a history of the last 30 changes (add or remove, manual or auto); the two items are
+  greyed out when there is nothing to undo or redo. Cmd+Z / Ctrl+Z undoes, Cmd+Shift+Z /
+  Ctrl+Shift+Z (and Ctrl+Y off macOS) redoes. The shortcuts never act while you are typing in an
+  input, textarea or editor, and only when the reader is what you are working in. The history
+  lives in memory for the open page (`handle.markHistory`).
 - **Routing by `#id`**, so it works from `file://` and links can point at any heading.
 
 ## CLI

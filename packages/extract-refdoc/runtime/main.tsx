@@ -290,7 +290,7 @@ function PageView({ doc, route }: { doc: RefdocDocument; route: Route }) {
   // The reader bar is plain DOM wiring; remount it for each page.
   useEffect(() => {
     if (!root.current) return
-    const handle = mountPaperReader(root.current, { storageKey: "refdoc" })
+    const handle = mountPaperReader(root.current, { storageKey: "refdoc", autoMarkPhrases: autoUnderlinePhrases })
     return () => handle.destroy()
   }, [page])
 

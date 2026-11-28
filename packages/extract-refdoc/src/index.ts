@@ -30,7 +30,7 @@ export {
 } from "./source"
 export { htmlToPaper, textToPaper, stripSectionNumber, mergeBrokenParagraphs, type PaperMeta } from "./html-to-paper"
 export { finishPaper, readOnlyUnderlined, summarizeSection, describeSection } from "./finish"
-export { applyUnderlines, autoUnderline, stripUnderlines, underlinedRuns, splitSentences } from "./highlight"
+export { applyUnderlines, autoUnderline, autoUnderlinePhrases, stripUnderlines, underlinedRuns, splitSentences } from "./highlight"
 export {
   paperToMdxFiles,
   paperToSingleMdx,

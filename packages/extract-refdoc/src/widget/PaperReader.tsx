@@ -8,6 +8,7 @@
  * @module widget/PaperReader
  */
 import { useEffect, useMemo, useRef } from "react"
+import { autoUnderlinePhrases } from "../highlight"
 import { PAPER_READER_CSS, renderPaperReader } from "../html"
 import { mountPaperReader, type PaperReaderRuntimeOptions } from "../reader-runtime"
 import type { Paper } from "../types"
@@ -28,7 +29,7 @@ export function PaperReader({ paper, speak, cancelSpeech, className }: PaperRead
   useEffect(() => {
     const root = ref.current?.querySelector(".ptw-paper")
     if (!root) return
-    const handle = mountPaperReader(root, { speak, cancelSpeech })
+    const handle = mountPaperReader(root, { speak, cancelSpeech, autoMarkPhrases: autoUnderlinePhrases })
     return () => handle.destroy()
   }, [markup, speak, cancelSpeech])
 
