@@ -1,6 +1,6 @@
 {
   "name": "extract-refdoc",
-  "version": "0.2.0",
+  "version": "0.2.8",
   "description": "extract-refdoc: turn any PDF, research paper, archive link or text into one shareable .refdoc.html file that opens as a full Fumadocs docs site (sidebar, contents, search, references, reader mode, voice) from a CDN-hosted runtime",
   "type": "module",
   "author": "vtempest",

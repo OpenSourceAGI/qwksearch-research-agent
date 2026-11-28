@@ -1,6 +1,6 @@
 {
   "name": "share-img",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "CLI that uploads images to Imgur by URL, file or folder and prints the Imgur link for each one (JPEG is converted to PNG)",
   "type": "module",
   "bin": {
