@@ -93,7 +93,10 @@ export function FontSizeToolbarButton() {
 
   return (
     <div className="flex h-7 items-center gap-1 rounded-md bg-muted/60 p-0">
-      <ToolbarButton onClick={() => handleFontSizeChange(-1)}>
+      <ToolbarButton
+        onClick={() => handleFontSizeChange(-1)}
+        toolbarId="font-size-decrease"
+      >
         <Minus />
       </ToolbarButton>
 
@@ -146,7 +149,10 @@ export function FontSizeToolbarButton() {
         </PopoverContent>
       </Popover>
 
-      <ToolbarButton onClick={() => handleFontSizeChange(1)}>
+      <ToolbarButton
+        onClick={() => handleFontSizeChange(1)}
+        toolbarId="font-size-increase"
+      >
         <Plus />
       </ToolbarButton>
     </div>

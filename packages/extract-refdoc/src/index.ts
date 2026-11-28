@@ -44,6 +44,7 @@ export {
 } from "./mdx"
 export { paperToHtml, figureHtml, paragraphsHtml, renderPaperBody, renderPaperReader, renderReaderToolbar, PAPER_READER_CSS } from "./html"
 export { mountPaperReader, READER_RUNTIME_SOURCE, type PaperReaderHandle, type PaperReaderRuntimeOptions } from "./reader-runtime"
+export { refdocPageInfo, type RefdocPageInfo } from "./page-info"
 export {
   createAnthropicGenerator,
   enhancePaperWithAi,

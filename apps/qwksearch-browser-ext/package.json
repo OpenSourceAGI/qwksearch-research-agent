@@ -23,6 +23,8 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "fumadocs-core": "^16.15.17",
+    "fumadocs-ui": "^16.15.17",
     "lucide-react": "^1.43.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

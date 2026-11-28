@@ -36,11 +36,14 @@ export function TranscribeToolbarButton(
 
   return (
     <ToolbarButton
+      aria-label="Dictate"
       {...props}
       disabled={!supported}
       onClick={() => controller.toggle()}
       pressed={listening}
-      tooltip={supported ? 'Dictate (Ctrl+Shift+D)' : 'Dictation is unavailable'}
+      {...(supported
+        ? { toolbarId: 'transcribe' }
+        : { tooltip: 'Dictation is unavailable in this browser' })}
     >
       <MicIcon />
     </ToolbarButton>

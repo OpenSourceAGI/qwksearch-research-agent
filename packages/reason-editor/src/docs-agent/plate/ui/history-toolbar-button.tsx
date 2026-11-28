@@ -22,7 +22,7 @@ export function RedoToolbarButton(
       disabled={disabled}
       onClick={() => editor.redo()}
       onMouseDown={(e) => e.preventDefault()}
-      tooltip="Redo (⇧⌘Z)"
+      toolbarId="redo"
     >
       <Redo2Icon />
     </ToolbarButton>
@@ -44,7 +44,7 @@ export function UndoToolbarButton(
       disabled={disabled}
       onClick={() => editor.undo()}
       onMouseDown={(e) => e.preventDefault()}
-      tooltip="Undo (⌘Z)"
+      toolbarId="undo"
     >
       <Undo2Icon />
     </ToolbarButton>

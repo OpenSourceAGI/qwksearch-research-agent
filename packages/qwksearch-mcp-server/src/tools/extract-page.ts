@@ -36,6 +36,15 @@ export function registerExtractPageTool(server: McpServer) {
       if (result.date) text += `Date: ${result.date}\n`;
       if (result.source) text += `Source: ${result.source}\n`;
       if (result.word_count) text += `Word Count: ${result.word_count}\n`;
+      const metrics = result.metrics;
+      if (metrics?.words) {
+        text += `Sentences: ${metrics.sentences}\n`;
+        text += `Reading Time: ${metrics.readingMinutes} min\n`;
+        if (metrics.readabilityScore !== null) {
+          text += `Readability: ${metrics.readabilityScore}/100 ${metrics.readabilityLabel}`;
+          text += metrics.textStandardLabel ? ` (${metrics.textStandardLabel})\n` : "\n";
+        }
+      }
       if (result.cite) text += `Citation: ${result.cite}\n`;
       if (result.html) text += `\nContent:\n${result.html}\n`;
 

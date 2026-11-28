@@ -5,14 +5,17 @@
  */
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import DOMPurify from 'dompurify';
+import { extractOutline, type ArticleOutlineItem } from './articleOutline';
 
 interface LexicalArticleViewerProps {
   html: string;
   isHighlightMode?: boolean;
   /** Reading zoom multiplier applied to the article font size (1 = 100%). */
   fontScale?: number;
+  /** Called with the article's H1–H3 headings each time the rendered HTML changes. */
+  onOutlineChange?: (items: ArticleOutlineItem[]) => void;
 }
 
 /**
@@ -27,16 +30,21 @@ const LexicalArticleViewer: React.FC<LexicalArticleViewerProps> = ({
   html,
   isHighlightMode = false,
   fontScale = 1,
+  onOutlineChange,
 }) => {
   const [cleanHtml, setCleanHtml] = useState('');
+  const onOutlineChangeRef = useRef(onOutlineChange);
+  onOutlineChangeRef.current = onOutlineChange;
 
   useEffect(() => {
-    setCleanHtml(
-      DOMPurify.sanitize(html || '', {
-        ADD_TAGS: ['figure', 'figcaption'],
-        ADD_ATTR: ['loading'],
-      }),
-    );
+    const sanitized = DOMPurify.sanitize(html || '', {
+      ADD_TAGS: ['figure', 'figcaption'],
+      ADD_ATTR: ['loading'],
+    });
+    // Headings get ids here so the outline's links resolve to them.
+    const outline = extractOutline(sanitized);
+    setCleanHtml(outline.html);
+    onOutlineChangeRef.current?.(outline.items);
   }, [html]);
 
   return (

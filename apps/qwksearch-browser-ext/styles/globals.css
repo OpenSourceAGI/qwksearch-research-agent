@@ -1,7 +1,15 @@
 /* Tailwind v4 entry. The v3 `@tailwind base/components/utilities` directives
    generated almost no utilities under v4, which left the side panel unstyled. */
 @import "tailwindcss";
+/* The article reader's Outline tab is the Fumadocs table of contents. Its
+   `--color-fd-*` tokens (light, and `.dark`) are the stock neutral theme; the
+   `@source` below makes Tailwind generate the utilities its compiled
+   components use. Neither pulls in Fumadocs' layout or reset styles. The
+   `@import` stays above `@config`: Vite inlines imports with postcss-import,
+   which skips any that follow another at-rule. */
+@import "fumadocs-ui/css/neutral.css";
 @config "../tailwind.config.ts";
+@source "../node_modules/fumadocs-ui/dist/components/toc";
 
 @layer base {
   :root {
