@@ -1,0 +1,20 @@
+<chat-window>
+  <infinite-scroller>
+    <div class="conversation-container">
+      <user-query><div class="query-content"><h2 class="cdk-visually-hidden">You said</h2><div class="query-text"><p class="query-text-line">How do I reverse a list in Python?</p></div></div></user-query>
+      <model-response><div class="response-container"><h2 class="cdk-visually-hidden">Gemini said</h2>
+        <message-content><div class="markdown markdown-main-panel">
+          <p>You can slice it with a negative step:</p>
+          <div class="code-block"><div class="code-block-decoration"><span>Python</span><button>Copy</button></div><pre><code class="code-container language-python">reversed_list = my_list[::-1]</code></pre></div>
+          <p>Other options:</p>
+          <ul><li>Use <code>reversed()</code> for an iterator</li><li>Use <b>sorted</b> with <code>reverse=True</code></li></ul>
+        </div></message-content>
+      </div></model-response>
+    </div>
+    <div class="conversation-container">
+      <user-query><div class="query-content"><h2 class="cdk-visually-hidden">You said</h2><div class="query-text"><p>And in place?</p></div></div></user-query>
+      <model-response><message-content><div class="markdown"><p>Use <code>my_list.reverse()</code>.</p></div></message-content></model-response>
+    </div>
+  </infinite-scroller>
+  <input-area-v2><div class="input-area-container"><rich-textarea><div class="ql-editor textarea" contenteditable="true" role="textbox"><p><br></p></div></rich-textarea></div></input-area-v2>
+</chat-window>

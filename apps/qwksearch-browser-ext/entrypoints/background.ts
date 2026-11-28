@@ -4,6 +4,7 @@
 import "@/leotabs/extension/background.js"
 import { setupContextMenu } from "@/background/context-menu"
 import { setupAllowCORS } from "@/background/allow-cors"
+import { setupChatHandoff } from "@/background/chat-handoff"
 import { scrapeURLViaOffscreen } from "@/background/offscreen-scraper"
 import { handleInstalled } from "@/lib/welcome"
 import { getOpenInTab, openFullPage, OPEN_IN_TAB_KEY } from "@/lib/extension-settings"
@@ -11,6 +12,7 @@ import { getOpenInTab, openFullPage, OPEN_IN_TAB_KEY } from "@/lib/extension-set
 export default defineBackground(() => {
   setupContextMenu()
   setupAllowCORS()
+  setupChatHandoff()
 
   /** FIRST INSTALL: the welcome page with every feature and how to reach it */
   chrome.runtime.onInstalled.addListener((details) => {
