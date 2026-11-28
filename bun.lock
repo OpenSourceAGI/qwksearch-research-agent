@@ -40,6 +40,8 @@
       "version": "6.1.0",
       "dependencies": {
         "clsx": "^2.1.1",
+        "fumadocs-core": "^16.15.17",
+        "fumadocs-ui": "^16.15.17",
         "lucide-react": "^1.43.0",
         "react": "^19.2.8",
         "react-dom": "^19.2.8",
@@ -1181,6 +1183,8 @@
         "drizzle-orm": "^0.45.4",
         "education-playlists": "workspace:*",
         "extract-webpage": "workspace:*",
+        "fumadocs-core": "^16.15.17",
+        "fumadocs-ui": "^16.15.17",
         "grab-url": "^3.0.9",
         "html2canvas": "^1.4.1",
         "kokoro-js": "^1.2.1",
