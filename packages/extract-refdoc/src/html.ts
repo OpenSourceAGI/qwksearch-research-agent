@@ -17,14 +17,17 @@ import { sectionSlug } from "./mdx"
 import { READER_RUNTIME_SOURCE } from "./reader-runtime"
 import type { Paper, PaperFigure } from "./types"
 
-function figureHtml(figure: PaperFigure, number: number): string {
+export function figureHtml(figure: PaperFigure, number: number): string {
   const caption = escapeHtml(figure.caption)
   const img = `<img src="${escapeHtml(figure.src)}" alt="${caption || `Figure ${number}`}" loading="lazy" />`
   return `<figure>${img}${caption ? `<figcaption>Figure ${number}: ${caption}</figcaption>` : ""}</figure>`
 }
 
-/** Numbered paragraphs, split into lists around `### ` subheadings; numbering continues across them. */
-function paragraphsHtml(paragraphs: string[]): string {
+/**
+ * Numbered paragraphs, split into lists around `### ` subheadings; numbering
+ * continues across them. With `headingId`, each subheading gets an `id`.
+ */
+export function paragraphsHtml(paragraphs: string[], headingId?: (text: string) => string): string {
   const out: string[] = []
   let items: string[] = []
   let n = 0
@@ -35,7 +38,8 @@ function paragraphsHtml(paragraphs: string[]): string {
   for (const p of paragraphs) {
     if (isSubheading(p)) {
       flush()
-      out.push(`<h3>${markdownInlineToHtml(p.slice(4))}</h3>`)
+      const id = headingId ? ` id="${escapeHtml(headingId(markdownToPlainText(p.slice(4))))}"` : ""
+      out.push(`<h3${id}>${markdownInlineToHtml(p.slice(4))}</h3>`)
     } else {
       n += 1
       items.push(`<li><p>${markdownInlineToHtml(p)}</p></li>`)

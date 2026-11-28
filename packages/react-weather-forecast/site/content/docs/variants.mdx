@@ -23,7 +23,7 @@ The default: the place and its local time, the current temperature with a
 
 `compact` is a single 36px row: the place, the current temperature with the
 °F / °C switch, today's high and low, the wind, a ticking clock with its zone,
-the next three days and the date, left to right. It never grows a second line.
+the next sunrise or sunset, the next three days and the date, left to right. It never grows a second line.
 When the container is too narrow for all of it, whole items drop off the end of
 the row instead — the date first, then the later days — and each day keeps its
 rainfall and peak wind as hover text. It takes its colours from the container,
@@ -36,6 +36,31 @@ so it suits a coloured or dark background.
 ```
 
 <WeatherPreview compact dark scenario="snowy" temperatureUnit="celsius" windSpeedUnit="ms" />
+
+## Sunrise and sunset
+
+Both cards show sunrise and sunset. They are computed on the device with
+[SunCalc](https://www.npmjs.com/package/suncalc) from the location's
+coordinates, so they need no request and work with every provider, and they
+are shown in the location's own time zone.
+
+The full card lists the next two events in order under the temperature, the
+coming one in bold with a countdown, and adds `↑ sunrise ↓ sunset` to every
+day. The compact card has room for one: the next sunrise or sunset, with the
+other on hover. Near the poles, when neither happens in the next two days, the
+card says **No sunset** (midnight sun) or **No sunrise** (polar night).
+
+<WeatherPreview scenario="rainy" forecastDays={3} forecastHours={6} />
+
+```tsx
+<WeatherForecast />                     // on by default
+<WeatherForecast showSunTimes={false} /> // turned off
+```
+
+The calculation is exported too: `getSunTimes(date, latitude, longitude)`,
+`getNextSunEvent(now, latitude, longitude)` and
+`getDaySunTimes('YYYY-MM-DD', latitude, longitude, timeZone)` return `Date`s, or
+`null` for an event that does not happen.
 
 ## Units
 

@@ -29,14 +29,14 @@ export interface PaperReaderRuntimeOptions {
   speak?: (text: string, rate: number) => Promise<void>
   /** Stop whatever `speak` is playing. */
   cancelSpeech?: () => void
-  /** localStorage key prefix for the toggles (default "paper-to-web"). */
+  /** localStorage key prefix for the toggles (default "refdoc"). */
   storageKey?: string
 }
 
 /** The script text. Plain ES2017, no imports, no outer references. */
 export const READER_RUNTIME_SOURCE = String.raw`function mountPaperReader(root, options) {
   options = options || {};
-  var key = options.storageKey || "paper-to-web";
+  var key = options.storageKey || "refdoc";
   var doc = root.ownerDocument;
   var win = doc.defaultView;
   var BLOCK = "p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, dt, dd, summary, pre, div";

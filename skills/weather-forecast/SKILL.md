@@ -68,16 +68,28 @@ default chain — requesting it raises the permission prompt. Put it first expli
 | `reloadAttempts` | `2` | Whole reloads after a load that failed on every provider; `0` shows the error at once |
 | `reloadDelay` | `3000` | Milliseconds before the first reload, doubling after that |
 
-The component adds `className`, `style` and `compact`.
+The component adds `className`, `style`, `compact` and `showSunTimes` (default `true`).
 
 `compact` is a single fluid row, 36px tall (`COMPACT_ROW_HEIGHT`): place, current
-temperature and the °F / °C switch, today's range, wind, clock and zone, the next three
-days, then the date pushed to the right. The row is a wrapping flex container of fixed
+temperature and the °F / °C switch, today's range, wind, clock and zone, the next sunrise
+or sunset, the next three days, then the date pushed to the right. The row is a wrapping flex container of fixed
 height with `overflow: hidden`, and every cell is one row tall, so when the container is
 too narrow the trailing cells wrap onto a clipped second line — whole items drop off the
 end (date first, then the later days) instead of the card growing. Order the cells by
 priority for that reason. On the qwksearch homepage it sits below the chat input and the
 other widgets, so never let it grow a second line; trim or reorder content instead.
+
+Sunrise and sunset come from `src/lib/sun.ts`, computed on the device with `suncalc` from
+`data.location.latitude/longitude` (no request, so every provider and cached forecast gets
+them). `getSunTimes(date, lat, lng)` returns `{ sunrise, sunset }` as `Date | null` — SunCalc's
+Invalid Date on a polar day or night becomes `null`. `getNextSunEvent(now, lat, lng)` searches
+the solar days around `now` and returns the earliest future event (`{ type, time }`), or `null`
+when none happens within two days. `getDaySunTimes('YYYY-MM-DD', lat, lng, timeZone)` reads the
+day at **local noon in that zone** (`localNoon`, solar noon from the longitude if the zone is
+unknown) — never a fixed UTC hour, which lands on the wrong day somewhere. Times are formatted
+with `Intl.DateTimeFormat` in `data.location.timezone`. The full card shows the next two events
+(the first bold, with a countdown) and `↑/↓` per daily row; the compact card shows only the next
+event. `showSunTimes={false}` hides all of it.
 
 Data: `WeatherForecastData { location, current, hourly[], daily[] }` with
 `CurrentWeather { time, temperature, weatherCode, icon, isDay?, rain?, showers?,

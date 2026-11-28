@@ -64,4 +64,12 @@ describe("loadPaper", () => {
     expect(extract).not.toHaveBeenCalled()
     expect(paper.sections[0].title).toBe("A")
   })
+
+  it("reads a local .html file as markup, titled by its <h1>", async () => {
+    const extract = vi.fn<Extractor>()
+    const paper = await loadPaper(ARTICLE, { extract, fileName: "saved-page.html" })
+    expect(extract).not.toHaveBeenCalled()
+    expect(paper.title).toBe("Title")
+    expect(paper.sections.map((s) => s.title)).toEqual(["One", "Two"])
+  })
 })

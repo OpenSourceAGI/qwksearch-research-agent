@@ -1,0 +1,86 @@
+{
+  "name": "extract-refdoc",
+  "version": "0.2.0",
+  "description": "extract-refdoc: turn any PDF, research paper, archive link or text into one shareable .refdoc.html file that opens as a full Fumadocs docs site (sidebar, contents, search, references, reader mode, voice) from a CDN-hosted runtime",
+  "type": "module",
+  "author": "vtempest",
+  "license": "rights.institute/prosper",
+  "homepage": "https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/extract-refdoc#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/extract-refdoc"
+  },
+  "bugs": {
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./widget": "./src/widget/index.ts",
+    "./server": "./src/server.ts",
+    "./runtime": "./dist/refdoc.js",
+    "./runtime.css": "./dist/refdoc.css",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "extract-refdoc": "./bin/extract-refdoc.ts"
+  },
+  "files": [
+    "src",
+    "bin",
+    "dist/refdoc.js",
+    "dist/refdoc.css",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "bun ./scripts/build-runtime.ts",
+    "cli": "bun ./bin/extract-refdoc.ts",
+    "serve": "bun ./bin/extract-refdoc.ts serve",
+    "example": "bun ./scripts/build-runtime.ts && bun ./bin/extract-refdoc.ts test/fixtures/arxiv-like.html --runtime inline --out dist/example",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0",
+    "extract-pdf": "^0.1.555",
+    "extract-webpage": "^1.2.427",
+    "linkedom": "^0.18.13"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@mdx-js/mdx": "^3.1.1",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitest/coverage-v8": "^5.0.5",
+    "fumadocs-core": "16.15.17",
+    "fumadocs-ui": "16.15.17",
+    "jsdom": "^30.1.3",
+    "lucide-react": "^1.66.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "remark-gfm": "^4.0.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  },
+  "keywords": [
+    "extract-refdoc",
+    "refdoc",
+    "pdf",
+    "paper",
+    "fumadocs",
+    "html",
+    "docs",
+    "reader"
+  ]
+}

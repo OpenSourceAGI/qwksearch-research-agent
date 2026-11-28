@@ -1,35 +1,50 @@
 #!/usr/bin/env bun
 /**
- * @fileoverview `paper-to-web` — the command-line front end.
+ * @fileoverview `extract-refdoc` — the command-line front end.
  *
  * ```
- * paper-to-web <url | doi | file | -> [options]   convert one input
- * paper-to-web serve [--port 8787]                 run the widget web app
+ * extract-refdoc <url | doi | file | -> [options]   convert one input
+ * extract-refdoc serve [--port 8787]                 run the widget web app
  *
  *   --outline          write an outline in the paper format instead
  *   --ai               use Claude for summaries, underlining and outlines
  *                      (ANTHROPIC_API_KEY or an `ant auth login` profile)
  *   --model <id>       model for --ai (default claude-opus-5-5)
  *   --focus <text>     steer an outline (an angle, resolution or side)
- *   --out <dir>        where to write (default ./<title-slug>)
- *   --format <list>    mdx, single, html, json or all (default mdx,html)
+ *   --out <dir>        where to write (default: here for refdoc alone, else ./<title-slug>)
+ *   --format <list>    refdoc, mdx, single, html, json or all (default refdoc)
+ *   --runtime <how>    refdoc runtime: cdn (default), inline (works offline),
+ *                      or a base URL that serves refdoc.js and refdoc.css
  * ```
  *
- * `mdx` writes the docs folder (index.mdx, 01-….mdx, references.mdx,
+ * `extract-refdoc` writes `<title>.refdoc.html`: the whole document in one file that
+ * opens as a Fumadocs docs site. `mdx` writes the docs folder (index.mdx, 01-….mdx, references.mdx,
  * meta.json), ready to drop into a Fumadocs content directory; `single` one
  * combined page; `html` a self-contained reader page.
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { parseArgs } from "node:util"
+import { fileURLToPath } from "node:url"
 import { createAnthropicGenerator } from "../src/ai"
 import { paperToHtml } from "../src/html"
 import { paperToMdxFiles, paperToSingleMdx, slugify } from "../src/mdx"
 import { convertToPaper } from "../src/pipeline"
+import { paperToRefdoc, refdocFileName, type RefdocRuntime } from "../src/refdoc"
 import { createPaperToWebHandler } from "../src/server"
 
-const HELP = `paper-to-web <url | doi | file | -> [--outline] [--ai] [--model id] [--focus text] [--out dir] [--format mdx,single,html,json|all]
-paper-to-web serve [--port 8787] [--ai]`
+const HELP = `extract-refdoc <url | doi | file | -> [--outline] [--ai] [--model id] [--focus text] [--out dir] [--format refdoc,mdx,single,html,json|all] [--runtime cdn|inline|<url>]
+extract-refdoc serve [--port 8787] [--ai]`
+
+/** The built runtime next to this package, for --runtime inline. */
+async function inlineRuntime(): Promise<RefdocRuntime> {
+  const dist = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "dist")
+  try {
+    return { js: await readFile(path.join(dist, "refdoc.js"), "utf8"), css: await readFile(path.join(dist, "refdoc.css"), "utf8") }
+  } catch {
+    throw new Error(`--runtime inline needs the built runtime in ${dist}: run \`bun run build\` in packages/extract-refdoc`)
+  }
+}
 
 async function readStdin(): Promise<string> {
   const chunks: Buffer[] = []
@@ -46,7 +61,8 @@ async function main() {
       model: { type: "string" },
       focus: { type: "string" },
       out: { type: "string" },
-      format: { type: "string", default: "mdx,html" },
+      format: { type: "string", default: "refdoc" },
+      runtime: { type: "string", default: "cdn" },
       port: { type: "string", default: "8787" },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -59,9 +75,9 @@ async function main() {
 
   if (positionals[0] === "serve") {
     const Bun = (globalThis as { Bun?: { serve(options: { port: number; fetch(request: Request): Promise<Response> }): { url: URL } } }).Bun
-    if (!Bun) throw new Error("`paper-to-web serve` runs under Bun: bunx paper-to-web serve")
+    if (!Bun) throw new Error("`extract-refdoc serve` runs under Bun: bunx extract-refdoc serve")
     const server = Bun.serve({ port: Number(values.port), fetch: createPaperToWebHandler({ generate: generate ?? (process.env.ANTHROPIC_API_KEY ? createAnthropicGenerator({ model: values.model }) : undefined) }) })
-    console.log(`Paper to Web AI on ${server.url}`)
+    console.log(`extract-refdoc on ${server.url}`)
     return
   }
 
@@ -90,13 +106,19 @@ async function main() {
     onProgress: (message) => console.error(message),
   })
 
-  const outDir = path.resolve(values.out ?? slugify(paper.title))
+  const formats = new Set((values.format === "all" ? "refdoc,mdx,single,html,json" : values.format!).split(",").map((f) => f.trim()))
+  // A lone .refdoc.html needs no folder of its own.
+  const onlyRefdoc = formats.size === 1 && formats.has("refdoc")
+  const outDir = path.resolve(values.out ?? (onlyRefdoc ? "." : slugify(paper.title)))
   await mkdir(outDir, { recursive: true })
-  const formats = new Set((values.format === "all" ? "mdx,single,html,json" : values.format!).split(",").map((f) => f.trim()))
   const written: string[] = []
   const put = async (name: string, text: string) => {
     await writeFile(path.join(outDir, name), text)
     written.push(name)
+  }
+  if (formats.has("refdoc")) {
+    const runtime: RefdocRuntime = values.runtime === "inline" ? await inlineRuntime() : values.runtime === "cdn" ? "cdn" : { base: values.runtime! }
+    await put(refdocFileName(paper.title), paperToRefdoc(paper, { runtime }))
   }
   if (formats.has("mdx")) for (const [name, text] of Object.entries(paperToMdxFiles(paper))) await put(name, text)
   if (formats.has("single")) await put(`${slugify(paper.title)}.mdx`, paperToSingleMdx(paper))

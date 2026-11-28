@@ -7,9 +7,9 @@
  * - `GET /` — the widget page: paste a link, DOI or text, or drop a PDF /
  *   `.docx`; pick "Paper" or "Outline"; read the result with Reader mode,
  *   Underlining and Voice; download the MDX folder files, one combined
- *   `.mdx`, a standalone `.html`, or the JSON.
+ *   `.mdx`, a standalone `.html`, the `.refdoc.html`, or the JSON.
  * - `POST /api/convert` — JSON `{ input, mode, ai }` or multipart with a
- *   `file` field. Replies `{ paper, reader, files, mdx, html }`.
+ *   `file` field. Replies `{ paper, reader, files, mdx, html, refdoc }`.
  * - `GET /api/status` — `{ ai }`, whether a model is configured.
  *
  * Scraping runs server-side, so the page has no CORS limits on what it can
@@ -21,6 +21,7 @@ import type { TextGenerator } from "./ai"
 import { paperToHtml, PAPER_READER_CSS, renderPaperReader } from "./html"
 import { paperToMdxFiles, paperToSingleMdx } from "./mdx"
 import { convertToPaper, type ConvertMode } from "./pipeline"
+import { paperToRefdoc } from "./refdoc"
 import { READER_RUNTIME_SOURCE } from "./reader-runtime"
 import type { Extractor } from "./source"
 import type { Paper } from "./types"
@@ -45,6 +46,8 @@ export interface ConvertResponse {
   mdx: string
   /** A self-contained HTML page. */
   html: string
+  /** The `.refdoc.html` file: the whole paper as a Fumadocs docs site (runtime from the CDN). */
+  refdoc: string
 }
 
 /** Build the response body for a converted paper. */
@@ -55,6 +58,7 @@ export function buildConvertResponse(paper: Paper): ConvertResponse {
     files: paperToMdxFiles(paper),
     mdx: paperToSingleMdx(paper),
     html: paperToHtml(paper),
+    refdoc: paperToRefdoc(paper),
   }
 }
 
@@ -127,7 +131,7 @@ export function widgetPageHtml(): string {
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Paper to Web AI</title>
+<title>extract-refdoc</title>
 <style>
 :root{--bg:#fff;--fg:#1c1917;--muted:#78716c;--border:#e7e5e4;--accent:#2563eb}
 @media (prefers-color-scheme:dark){:root{--bg:#0c0a09;--fg:#e7e5e4;--muted:#a8a29e;--border:#292524;--accent:#60a5fa}}
@@ -147,7 +151,7 @@ ${PAPER_READER_CSS}
 </head>
 <body>
 <main class="ptw-app">
-<h1>Paper to Web AI</h1>
+<h1>extract-refdoc</h1>
 <p>Turn a PDF, research paper, archive link or any text into paper sections with summaries, card underlining, reader mode and voice, or write an outline in that format.</p>
 <form class="ptw-form" id="ptw-form">
   <textarea name="input" placeholder="Paste a link (arXiv, DOI, archive.org, any article or PDF URL), a topic, or the text itself"></textarea>
@@ -197,6 +201,7 @@ var mountPaperReader = ${READER_RUNTIME_SOURCE};
       var base = slug(body.paper.title);
       downloads.innerHTML = ""; downloads.hidden = false;
       button("Download .mdx", function () { save(base + ".mdx", body.mdx, "text/markdown"); });
+      button("Download .refdoc.html", function () { save(base + ".refdoc.html", body.refdoc, "text/html"); });
       button("Download .html", function () { save(base + ".html", body.html, "text/html"); });
       button("Download .json", function () { save(base + ".json", JSON.stringify(body.paper, null, 2), "application/json"); });
       Object.keys(body.files).forEach(function (name) { button(name, function () { save(name, body.files[name], "text/plain"); }); });

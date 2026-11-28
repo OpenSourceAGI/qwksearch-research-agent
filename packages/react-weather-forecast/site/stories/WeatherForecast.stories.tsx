@@ -27,8 +27,10 @@ const meta = {
     temperatureUnit: 'fahrenheit',
     windSpeedUnit: 'mph',
     compact: false,
+    showSunTimes: true,
   },
   argTypes: {
+    showSunTimes: { control: 'boolean' },
     temperatureUnit: { control: 'inline-radio', options: ['fahrenheit', 'celsius'] },
     windSpeedUnit: { control: 'inline-radio', options: ['mph', 'kmh', 'ms', 'kn'] },
     forecastDays: { control: { type: 'range', min: 1, max: 16 } },
@@ -49,7 +51,8 @@ export const Default: Story = {};
 
 /**
  * `compact`: the one-row card the qwksearch homepage uses. Place, current
- * temperature, today's range, wind, clock, the next three days and the date
+ * temperature, today's range, wind, clock, the next sunrise or sunset, the
+ * next three days and the date
  * share a single 36px row; items that do not fit drop off the end.
  */
 export const Compact: Story = {
@@ -84,6 +87,33 @@ export const Storms: Story = {
     windSpeedUnit: 'kn',
     compact: true,
   },
+};
+
+/**
+ * Sunrise and sunset in the high Arctic (Longyearbyen, Svalbard). Depending on
+ * today's date it shows normal times, "No sunrise" (polar night, late October
+ * to mid February) or "No sunset" (midnight sun, late April to late August).
+ * The times are computed on the device, so this story follows the real date.
+ */
+export const HighArctic: Story = {
+  args: {
+    latitude: 78.2232,
+    longitude: 15.6267,
+    location: { city: 'Longyearbyen', region: 'Svalbard', timezone: 'Arctic/Longyearbyen' },
+    weatherProviders: [fixtureProvider('snowy')],
+    temperatureUnit: 'celsius',
+    windSpeedUnit: 'ms',
+  },
+};
+
+/** The compact card with the next sunrise or sunset only, the other on hover. */
+export const CompactSunTimes: Story = {
+  args: { ...scenarioLocation('rainy'), weatherProviders: [fixtureProvider('rainy')], compact: true },
+};
+
+/** `showSunTimes={false}` hides sunrise and sunset in both layouts. */
+export const WithoutSunTimes: Story = {
+  args: { showSunTimes: false },
 };
 
 /** `locations`: one card per place, each in its own timezone. */

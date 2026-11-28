@@ -2,12 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useWeatherForecast } from '../hooks/useWeatherForecast';
 import type { DailyWeather, TemperatureUnit, WeatherForecastOptions, WindSpeedUnit } from '../types';
 import { WeatherIcon } from '../icons/WeatherIcon';
-import { WindIcon } from '../icons/weather-icons';
+import { SunriseIcon, SunsetIcon, WindIcon } from '../icons/weather-icons';
+import { getDaySunTimes, getNextSunEvent, isSunUp, type NextSunEvent } from '../lib/sun';
 
 type Props = WeatherForecastOptions & {
   className?: string;
   style?: React.CSSProperties;
   compact?: boolean;
+  /**
+   * default=true Show sunrise and sunset, computed on the device from the
+   * location's coordinates (no extra request). Whichever comes next is
+   * highlighted; the full card also lists them for each day.
+   */
+  showSunTimes?: boolean;
 };
 
 const WIND_SPEED_UNIT_LABELS: Record<WindSpeedUnit, string> = {
@@ -90,6 +97,40 @@ function upcomingDayDetail(day: DailyWeather, windSpeedUnitLabel: string): strin
   if (day.precipitationSum !== undefined) details.push(`${day.precipitationSum.toFixed(1)} mm`);
   if (day.windSpeedMax !== undefined) details.push(`${day.windSpeedMax.toFixed(1)} ${windSpeedUnitLabel} wind`);
   return details.length > 0 ? details.join(' · ') : undefined;
+}
+
+// Sunrise / sunset as "7:22 AM" in the location's own zone.
+function formatSunTime(instant: Date, timezone: string | undefined): string {
+  return formatInZone(instant, timezone, { hour: 'numeric', minute: '2-digit' });
+}
+
+// "2h 13m" / "45m" until a coming event.
+function formatCountdown(from: Date, to: Date): string {
+  const minutes = Math.max(0, Math.round((to.getTime() - from.getTime()) / 60000));
+  const hours = Math.floor(minutes / 60);
+  return hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+}
+
+const SUN_EVENT_LABELS = { sunrise: 'Sunrise', sunset: 'Sunset' } as const;
+
+type SunState =
+  /** The next two horizon crossings, in order -- the first one is "next". */
+  | { kind: 'events'; next: NextSunEvent; after: NextSunEvent | null }
+  /** Neither event in the next two days: midnight sun (`up`) or polar night. */
+  | { kind: 'polar'; up: boolean };
+
+function sunState(now: Date, latitude: number, longitude: number): SunState {
+  const next = getNextSunEvent(now, latitude, longitude);
+  if (!next) return { kind: 'polar', up: isSunUp(now, latitude, longitude) };
+  return { kind: 'events', next, after: getNextSunEvent(new Date(next.time.getTime() + 1000), latitude, longitude) };
+}
+
+function SunEventIcon({ type, size }: { type: 'sunrise' | 'sunset'; size: number }) {
+  return type === 'sunrise' ? (
+    <SunriseIcon width={size} height={size} title="Sunrise" />
+  ) : (
+    <SunsetIcon width={size} height={size} title="Sunset" />
+  );
 }
 
 /** Height, in pixels, of the compact card's single row (and so of the whole card). */
@@ -178,6 +219,11 @@ const styles = {
   upcomingTemps: { whiteSpace: 'nowrap' } as React.CSSProperties,
   unitSwitch: { display: 'inline-flex', alignItems: 'center', cursor: 'pointer', userSelect: 'none' } as React.CSSProperties,
   rain: { color: '#2563eb', whiteSpace: 'nowrap' } as React.CSSProperties,
+  sunRow: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, marginTop: 8, fontSize: 13 } as React.CSSProperties,
+  sunEvent: { display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', opacity: 0.7 } as React.CSSProperties,
+  sunEventNext: { opacity: 1, fontWeight: 600 } as React.CSSProperties,
+  sunNextBadge: { fontSize: 11, fontWeight: 500, color: '#b45309' } as React.CSSProperties,
+  daySun: { fontSize: 12, opacity: 0.65, whiteSpace: 'nowrap', marginLeft: 'auto' } as React.CSSProperties,
   tz: { fontSize: 12, opacity: 0.7, marginTop: 2 } as React.CSSProperties,
   list: { display: 'flex', flexDirection: 'column' } as React.CSSProperties,
 };
@@ -257,6 +303,25 @@ function SingleWeatherForecast(props: Props) {
   const currentClock = clockParts(now, timezone);
   const currentZone = zoneLabel(now, timezone);
 
+  // Sunrise / sunset are computed from the coordinates, so they need nothing
+  // from the provider and are skipped only when the place has no position.
+  const latitude = data.location?.latitude;
+  const longitude = data.location?.longitude;
+  const hasPosition = typeof latitude === 'number' && typeof longitude === 'number';
+  const sun = props.showSunTimes !== false && hasPosition ? sunState(now, latitude, longitude) : null;
+  const sunSummary = !sun
+    ? ''
+    : sun.kind === 'polar'
+      ? sun.up
+        ? 'Midnight sun: no sunset in the next two days'
+        : 'Polar night: no sunrise in the next two days'
+      : [
+          `Next: ${SUN_EVENT_LABELS[sun.next.type]} at ${formatSunTime(sun.next.time, timezone)} (in ${formatCountdown(now, sun.next.time)})`,
+          sun.after ? `then ${SUN_EVENT_LABELS[sun.after.type]} at ${formatSunTime(sun.after.time, timezone)}` : '',
+        ]
+          .filter(Boolean)
+          .join(' · ');
+
   if (props.compact) {
     const today = data.daily[0];
     const windSpeedUnitLabel = WIND_SPEED_UNIT_LABELS[props.windSpeedUnit ?? 'mph'];
@@ -296,6 +361,24 @@ function SingleWeatherForecast(props: Props) {
           {currentClock.tail && <span style={styles.compactSeconds}>{currentClock.tail}</span>}
           {currentZone && <span style={styles.compactZone}>{currentZone}</span>}
         </div>
+
+        {/* Only the next sunrise or sunset fits the one-row card; the one
+            after it is on the hover text. */}
+        {sun && (
+          <div style={{ ...styles.compactCell, gap: 4 }} title={sunSummary} data-testid="sun-next">
+            {sun.kind === 'events' ? (
+              <>
+                <SunEventIcon type={sun.next.type} size={14} />
+                {formatSunTime(sun.next.time, timezone)}
+              </>
+            ) : (
+              <>
+                <SunEventIcon type={sun.up ? 'sunset' : 'sunrise'} size={14} />
+                {sun.up ? 'No sunset' : 'No sunrise'}
+              </>
+            )}
+          </div>
+        )}
 
         {upcomingDays.map((day, index) => (
           <div key={day.date} style={{ ...styles.compactCell, gap: 0 }}>
@@ -337,6 +420,26 @@ function SingleWeatherForecast(props: Props) {
           <strong style={{ fontSize: 28 }}>{data.current.temperature}</strong>
           {renderUnitSwitch(14)}
         </div>
+        {sun && (
+          <div style={styles.sunRow} title={sunSummary} data-testid="sun-times">
+            {sun.kind === 'events' ? (
+              [sun.next, sun.after].map((event, index) =>
+                event ? (
+                  <span key={event.type} style={{ ...styles.sunEvent, ...(index === 0 ? styles.sunEventNext : null) }}>
+                    <SunEventIcon type={event.type} size={16} />
+                    {SUN_EVENT_LABELS[event.type]} {formatSunTime(event.time, timezone)}
+                    {index === 0 && <span style={styles.sunNextBadge}>in {formatCountdown(now, event.time)}</span>}
+                  </span>
+                ) : null
+              )
+            ) : (
+              <span style={{ ...styles.sunEvent, ...styles.sunEventNext }}>
+                <SunEventIcon type={sun.up ? 'sunset' : 'sunrise'} size={16} />
+                {sun.up ? 'Midnight sun, no sunset' : 'Polar night, no sunrise'}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div style={{ marginTop: 20 }}>
@@ -358,7 +461,9 @@ function SingleWeatherForecast(props: Props) {
       <div style={{ marginTop: 20 }}>
         <h4 style={{ margin: '0 0 10px 0' }}>Next days</h4>
         <div>
-          {data.daily.map((day) => (
+          {data.daily.map((day) => {
+            const daySun = sun && hasPosition ? getDaySunTimes(day.date, latitude, longitude, timezone) : null;
+            return (
             <div key={day.date} style={styles.dayRow}>
               <div style={{ width: 120 }}>{new Date(day.date).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}</div>
               <WeatherIcon condition={day.icon} width={20} height={20} />
@@ -368,8 +473,15 @@ function SingleWeatherForecast(props: Props) {
                   <span style={styles.rain}> &middot; {day.precipitationProbabilityMax}%</span>
                 )}
               </div>
+              {daySun && (
+                <div style={styles.daySun} title="Sunrise and sunset">
+                  &uarr; {daySun.sunrise ? formatSunTime(daySun.sunrise, timezone) : '—'} &darr;{' '}
+                  {daySun.sunset ? formatSunTime(daySun.sunset, timezone) : '—'}
+                </div>
+              )}
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

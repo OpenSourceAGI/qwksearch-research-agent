@@ -19,4 +19,17 @@ export * from './api/geolocation';
 export * from './api/forecast';
 export * from './hooks/useWeatherForecast';
 export * from './icons/WeatherIcon';
+export { SunriseIcon, SunsetIcon } from './icons/weather-icons';
+export {
+  getSunTimes,
+  getSunSummary,
+  getNextSunEvent,
+  getDaySunTimes,
+  isSunUp,
+  localNoon,
+  type SunTimes,
+  type SunSummary,
+  type NextSunEvent,
+  type SunEventType,
+} from './lib/sun';
 export * from './components/WeatherForecast';

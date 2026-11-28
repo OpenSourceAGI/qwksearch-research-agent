@@ -1,5 +1,5 @@
 /**
- * @fileoverview React entry: `@debate-ai/paper-to-web/widget`.
+ * @fileoverview React entry: `extract-refdoc/widget`.
  * @module widget
  */
 export { PaperReader, type PaperReaderProps } from "./PaperReader"

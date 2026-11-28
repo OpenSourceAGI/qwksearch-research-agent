@@ -11,7 +11,7 @@ describe("createPaperToWebHandler", () => {
     const response = await handler(new Request("http://localhost/"))
     expect(response.headers.get("content-type")).toContain("text/html")
     const html = await response.text()
-    expect(html).toContain("Paper to Web AI")
+    expect(html).toContain("<h1>extract-refdoc</h1>")
     expect(html).toContain("var mountPaperReader = function mountPaperReader")
   })
 
