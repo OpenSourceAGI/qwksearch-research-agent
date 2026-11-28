@@ -40,7 +40,7 @@ html.refdoc-ready body { margin: 0; background: var(--color-fd-background); }
 
 /* Card underlining */
 .refdoc-paper mark.debate-hl { background: transparent; color: inherit; }
-.refdoc-paper[data-underline="on"] mark.debate-hl { background: color-mix(in srgb, #facc15 45%, transparent); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; font-weight: 600; }
+.refdoc-paper[data-underline="on"] mark.debate-hl { background: color-mix(in srgb, #facc15 45%, transparent); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; font-weight: 600; border: 3px solid #eab308; border-radius: .25em; padding: 0 .15em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .refdoc-paper [data-voice-reading] { outline: 2px solid var(--color-fd-primary); outline-offset: 4px; border-radius: 4px; }
 
 /* Paper parts */

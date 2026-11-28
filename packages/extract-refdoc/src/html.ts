@@ -132,7 +132,7 @@ export const PAPER_READER_CSS = `
 .ptw-summary summary{cursor:pointer;font-weight:600}
 .ptw-paragraphs>li{margin:.9rem 0}.ptw-paragraphs p{margin:0}
 .ptw-paper mark.debate-hl{background:transparent;color:inherit}
-.ptw-paper[data-underline="on"] mark.debate-hl{background:var(--ptw-mark);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px;font-weight:600}
+.ptw-paper[data-underline="on"] mark.debate-hl{background:var(--ptw-mark);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px;font-weight:600;border:3px solid #eab308;border-radius:.25em;padding:0 .15em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .ptw-paper [data-voice-reading]{outline:2px solid var(--ptw-accent);outline-offset:4px;border-radius:4px}
 .ptw-paper[data-reader="on"]{grid-template-columns:minmax(0,1fr);background:var(--ptw-reader-bg)}
 .ptw-paper[data-reader="on"] .ptw-toolbar{background:var(--ptw-reader-bg)}

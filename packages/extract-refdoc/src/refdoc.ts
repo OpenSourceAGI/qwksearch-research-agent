@@ -68,7 +68,7 @@ function escapeInlineScript(js: string): string {
 const FALLBACK_CSS = `#refdoc-root{max-width:46rem;margin:0 auto;padding:1.5rem 1rem 4rem;font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;color:#1c1917}
 #refdoc-root article{border-bottom:1px solid #e7e5e4;padding-bottom:2rem;margin-bottom:2rem}
 #refdoc-root img{max-width:100%;height:auto}#refdoc-root a{color:#2563eb}
-#refdoc-root mark.debate-hl{background:#fef08a}
+#refdoc-root mark.debate-hl{background:#fef08a;border:3px solid #eab308;border-radius:.25em;padding:0 .15em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 @media (prefers-color-scheme:dark){body{background:#0c0a09}#refdoc-root{color:#e7e5e4}#refdoc-root article{border-color:#292524}#refdoc-root a{color:#60a5fa}#refdoc-root mark.debate-hl{background:#854d0e;color:inherit}}
 html.refdoc-booting #refdoc-root{visibility:hidden}`
 
