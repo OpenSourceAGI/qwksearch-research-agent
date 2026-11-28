@@ -94,7 +94,8 @@ export function TurnIntoToolbarButton(
           className="min-w-[110px] justify-start"
           isDropdown
           pressed={open}
-          tooltip="Turn into"
+          toolbarId="turn-into"
+          aria-label={`Turn into: ${selectedItem.label}`}
         >
           {selectedItem.label}
         </ToolbarButton>

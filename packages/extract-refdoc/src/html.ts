@@ -13,7 +13,9 @@
  * @module html
  */
 import { escapeHtml, isSubheading, markdownInlineToHtml, markdownToPlainText } from "./markdown"
+import { MARK_MENU } from "./mark-history"
 import { sectionSlug } from "./mdx"
+import { cleanReferenceEntry } from "./reference-meta"
 import { READER_RUNTIME_SOURCE } from "./reader-runtime"
 import type { Paper, PaperFigure } from "./types"
 
@@ -56,6 +58,7 @@ export function renderReaderToolbar(): string {
   <button type="button" data-ptw="underline" aria-pressed="true"><span aria-hidden="true" class="ptw-u">U</span> <span data-ptw-label>Underlining on</span></button>
   <button type="button" data-ptw="voice" aria-pressed="false"><span aria-hidden="true">🔊</span> <span data-ptw-label>Voice</span></button>
   <label class="ptw-rate">Speed <select data-ptw="rate"><option value="1">1×</option><option value="1.2" selected>1.2×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label>
+  <span class="ptw-marks" role="group" aria-label="Marking">${MARK_MENU.map((item) => `<button type="button" data-ptw="${item.name}"${item.disabled ? " disabled" : ""}>${item.label}</button>`).join("")}</span>
 </div>`
 }
 
@@ -95,7 +98,7 @@ export function renderPaperBody(paper: Paper): string {
     out.push("</section>")
   })
   if (paper.references.length > 0) {
-    out.push(`<section class="ptw-section ptw-references" id="references"><h2>References</h2><ol>${paper.references.map((ref) => `<li>${markdownInlineToHtml(ref)}</li>`).join("")}</ol></section>`)
+    out.push(`<section class="ptw-section ptw-references" id="references"><h2>References</h2><ol>${paper.references.map((ref) => `<li>${markdownInlineToHtml(cleanReferenceEntry(ref))}</li>`).join("")}</ol></section>`)
   }
   return out.join("\n")
 }
@@ -116,6 +119,8 @@ export const PAPER_READER_CSS = `
 .ptw-toolbar{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;position:sticky;top:0;z-index:2;padding:.5rem 0;background:var(--ptw-bg);border-bottom:1px solid var(--ptw-border)}
 .ptw-toolbar button,.ptw-toolbar select{font:inherit;font-size:.875rem;color:inherit;background:transparent;border:1px solid var(--ptw-border);border-radius:.5rem;padding:.3rem .7rem;cursor:pointer}
 .ptw-toolbar button[aria-pressed="true"]{background:color-mix(in srgb,var(--ptw-accent) 15%,transparent);border-color:var(--ptw-accent)}
+.ptw-toolbar button:disabled{opacity:.45;cursor:not-allowed}
+.ptw-marks{display:contents}
 .ptw-u{text-decoration:underline;font-weight:700}
 .ptw-rate{font-size:.875rem;color:var(--ptw-muted)}
 .ptw-toc{position:sticky;top:3.5rem;align-self:start;font-size:.875rem;max-height:calc(100vh - 5rem);overflow:auto}
@@ -132,7 +137,7 @@ export const PAPER_READER_CSS = `
 .ptw-summary summary{cursor:pointer;font-weight:600}
 .ptw-paragraphs>li{margin:.9rem 0}.ptw-paragraphs p{margin:0}
 .ptw-paper mark.debate-hl{background:transparent;color:inherit}
-.ptw-paper[data-underline="on"] mark.debate-hl{background:var(--ptw-mark);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px;font-weight:600}
+.ptw-paper[data-underline="on"] mark.debate-hl{background:var(--ptw-mark);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px;font-weight:600;border:3px solid #eab308;border-radius:.25em;padding:0 .15em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 .ptw-paper [data-voice-reading]{outline:2px solid var(--ptw-accent);outline-offset:4px;border-radius:4px}
 .ptw-paper[data-reader="on"]{grid-template-columns:minmax(0,1fr);background:var(--ptw-reader-bg)}
 .ptw-paper[data-reader="on"] .ptw-toolbar{background:var(--ptw-reader-bg)}

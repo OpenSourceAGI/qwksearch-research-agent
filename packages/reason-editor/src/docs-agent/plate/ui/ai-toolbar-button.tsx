@@ -28,7 +28,7 @@ export function AIToolbarButton(props: React.ComponentProps<typeof ToolbarButton
       data-plate-focus
       onClick={() => getPlateAiController(editor).open()}
       onMouseDown={(event) => event.preventDefault()}
-      tooltip="Ask AI (⌘J)"
+      toolbarId="ask-ai"
     >
       <SparklesIcon />
       {props.children}

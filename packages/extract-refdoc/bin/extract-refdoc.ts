@@ -15,6 +15,8 @@
  *   --format <list>    refdoc, mdx, single, html, json or all (default refdoc)
  *   --runtime <how>    refdoc runtime: cdn (default), inline (works offline),
  *                      or a base URL that serves refdoc.js and refdoc.css
+ *   --submit-endpoint <url>  where the red X on a card with no text posts suggested
+ *                      full text (e.g. https://qwksearch.com/api/card-text-submissions)
  * ```
  *
  * `extract-refdoc` writes `<title>.refdoc.html`: the whole document in one file that
@@ -33,7 +35,7 @@ import { convertToPaper } from "../src/pipeline"
 import { paperToRefdoc, refdocFileName, type RefdocRuntime } from "../src/refdoc"
 import { createPaperToWebHandler } from "../src/server"
 
-const HELP = `extract-refdoc <url | doi | file | -> [--outline] [--ai] [--model id] [--focus text] [--out dir] [--format refdoc,mdx,single,html,json|all] [--runtime cdn|inline|<url>]
+const HELP = `extract-refdoc <url | doi | file | -> [--outline] [--ai] [--model id] [--focus text] [--out dir] [--format refdoc,mdx,single,html,json|all] [--runtime cdn|inline|<url>] [--submit-endpoint <url>]
 extract-refdoc serve [--port 8787] [--ai]`
 
 /** The built runtime next to this package, for --runtime inline. */
@@ -63,6 +65,7 @@ async function main() {
       out: { type: "string" },
       format: { type: "string", default: "refdoc" },
       runtime: { type: "string", default: "cdn" },
+      "submit-endpoint": { type: "string" },
       port: { type: "string", default: "8787" },
       help: { type: "boolean", short: "h", default: false },
     },
@@ -118,7 +121,7 @@ async function main() {
   }
   if (formats.has("refdoc")) {
     const runtime: RefdocRuntime = values.runtime === "inline" ? await inlineRuntime() : values.runtime === "cdn" ? "cdn" : { base: values.runtime! }
-    await put(refdocFileName(paper.title), paperToRefdoc(paper, { runtime }))
+    await put(refdocFileName(paper.title), paperToRefdoc(paper, { runtime, submitEndpoint: values["submit-endpoint"] }))
   }
   if (formats.has("mdx")) for (const [name, text] of Object.entries(paperToMdxFiles(paper))) await put(name, text)
   if (formats.has("single")) await put(`${slugify(paper.title)}.mdx`, paperToSingleMdx(paper))

@@ -5,7 +5,7 @@ import * as React from 'react';
 import {
   BaselineIcon,
   BoldIcon,
-  Code2Icon,
+  CodeIcon,
   HighlighterIcon,
   ItalicIcon,
   PaintBucketIcon,
@@ -37,7 +37,7 @@ import { MediaToolbarButton } from './media-toolbar-button';
 import { MoreToolbarButton } from './more-toolbar-button';
 import { TableToolbarButton } from './table-toolbar-button';
 import { ToggleToolbarButton } from './toggle-toolbar-button';
-import { ToolbarGroup } from './toolbar';
+import { ToolbarGroup, ToolbarTooltipProvider } from './toolbar';
 import { TranscribeToolbarButton } from './transcribe-toolbar-button';
 import { TurnIntoToolbarButton } from './turn-into-toolbar-button';
 
@@ -61,7 +61,7 @@ export function FixedToolbarButtons() {
   if (readOnly) return null;
 
   return (
-    <>
+    <ToolbarTooltipProvider>
       <ToolbarGroup>
         <UndoToolbarButton />
         <RedoToolbarButton />
@@ -73,32 +73,32 @@ export function FixedToolbarButtons() {
       </ToolbarGroup>
 
       <ToolbarGroup>
-        <MarkToolbarButton nodeType={KEYS.bold} tooltip="Bold (⌘B)">
+        <MarkToolbarButton nodeType={KEYS.bold} toolbarId="bold">
           <BoldIcon />
         </MarkToolbarButton>
-        <MarkToolbarButton nodeType={KEYS.italic} tooltip="Italic (⌘I)">
+        <MarkToolbarButton nodeType={KEYS.italic} toolbarId="italic">
           <ItalicIcon />
         </MarkToolbarButton>
-        <MarkToolbarButton nodeType={KEYS.underline} tooltip="Underline (⌘U)">
+        <MarkToolbarButton nodeType={KEYS.underline} toolbarId="underline">
           <UnderlineIcon />
         </MarkToolbarButton>
-        <MarkToolbarButton nodeType={KEYS.strikethrough} tooltip="Strikethrough (⌘⇧X)">
+        <MarkToolbarButton nodeType={KEYS.strikethrough} toolbarId="strike">
           <StrikethroughIcon />
         </MarkToolbarButton>
-        <MarkToolbarButton nodeType={KEYS.code} tooltip="Code (⌘E)">
-          <Code2Icon />
+        <MarkToolbarButton nodeType={KEYS.code} toolbarId="code">
+          <CodeIcon />
         </MarkToolbarButton>
         <MoreToolbarButton />
       </ToolbarGroup>
 
       <ToolbarGroup>
-        <FontColorToolbarButton nodeType={KEYS.color} tooltip="Text colour">
+        <FontColorToolbarButton nodeType={KEYS.color} toolbarId="text-color">
           <BaselineIcon />
         </FontColorToolbarButton>
-        <FontColorToolbarButton nodeType={KEYS.backgroundColor} tooltip="Background colour">
+        <FontColorToolbarButton nodeType={KEYS.backgroundColor} toolbarId="background-color">
           <PaintBucketIcon />
         </FontColorToolbarButton>
-        <MarkToolbarButton nodeType={KEYS.highlight} tooltip="Highlight (⌘⇧H)">
+        <MarkToolbarButton nodeType={KEYS.highlight} toolbarId="highlight">
           <HighlighterIcon />
         </MarkToolbarButton>
       </ToolbarGroup>
@@ -137,6 +137,6 @@ export function FixedToolbarButtons() {
         <ExportToolbarButton />
         <TranscribeToolbarButton />
       </ToolbarGroup>
-    </>
+    </ToolbarTooltipProvider>
   );
 }

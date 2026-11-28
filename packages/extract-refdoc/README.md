@@ -84,8 +84,24 @@ the file and renders Fumadocs' `DocsLayout` and `DocsPage` around them, all clie
 - **Search** (⌘K / Ctrl+K) over every page title, heading and paragraph in the file.
 - **References**: numeric citations like `[3]`, `[3, 5]` or `[3–5]` link to the references page,
   with the reference as a tooltip.
+- **Reference cards**: each reference shows its tag line, an author line (`Galloway '20 — longtime
+  college debate coach at Samford University`), the full citation, and the quoted card text
+  folded away until opened. Flags on the edge give the source type, a qualified author, and an
+  institutional author; a text-status button shows whether the card text is full, partial, or
+  missing. Clicking the red X on a missing one opens a form that posts a suggested text to the
+  `submitEndpoint` (the `renderRefdocHtml` option, `--submit-endpoint <url>` on the CLI, or a
+  `data-submit-endpoint` attribute on the runtime script tag). The file itself stores nothing:
+  the endpoint is a backend you host, e.g. `POST /api/card-text-submissions` in `qwksearch-web`.
+  Without an endpoint the X does nothing.
 - **Reader mode / Underlining / Voice**: the reading bar from the original paper reader. Voice
   reads only the `==underlined==` words while Underlining is on.
+- **Marking menu**: Mark selection, Unmark selection, Auto-mark (underlines the core claims of
+  unmarked paragraphs) and Clear marks, plus **Undo mark** / **Redo mark**. Every marking change is
+  kept in a history of the last 30 changes (add or remove, manual or auto); the two items are
+  greyed out when there is nothing to undo or redo. Cmd+Z / Ctrl+Z undoes, Cmd+Shift+Z /
+  Ctrl+Shift+Z (and Ctrl+Y off macOS) redoes. The shortcuts never act while you are typing in an
+  input, textarea or editor, and only when the reader is what you are working in. The history
+  lives in memory for the open page (`handle.markHistory`).
 - **Routing by `#id`**, so it works from `file://` and links can point at any heading.
 
 ## CLI
@@ -109,6 +125,7 @@ bunx extract-refdoc serve --port 8787                                 # the conv
 | `--ai` | Use Claude (`ANTHROPIC_API_KEY`, or an `ant auth login` profile) |
 | `--model <id>` | Model for `--ai` (default `claude-opus-5-5`) |
 | `--focus <text>` | Steer an outline: an angle, a resolution, a side |
+| `--submit-endpoint <url>` | Where the "suggest the full text" form on a card with no text posts (`https://…` or a path) |
 | `--out <dir>` | Output folder (default: the current folder for `refdoc` alone, else the title as a slug) |
 
 Inputs: any article or PDF URL, arXiv `abs/`/`pdf/` links (read from arXiv's HTML render so

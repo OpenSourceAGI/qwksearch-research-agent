@@ -10,9 +10,12 @@ html.refdoc-ready body { margin: 0; background: var(--color-fd-background); }
 .refdoc-toolbar button, .refdoc-toolbar select { font: inherit; font-size: .8125rem; color: var(--color-fd-muted-foreground); background: transparent; border: 1px solid var(--color-fd-border); border-radius: .5rem; padding: .25rem .65rem; cursor: pointer; }
 .refdoc-toolbar button:hover { color: var(--color-fd-foreground); background: var(--color-fd-accent); }
 .refdoc-toolbar button[aria-pressed="true"] { color: var(--color-fd-primary); border-color: var(--color-fd-primary); background: color-mix(in srgb, var(--color-fd-primary) 10%, transparent); }
+.refdoc-toolbar button:disabled { opacity: .45; cursor: not-allowed; pointer-events: none; }
+.refdoc-toolbar .ptw-marks { display: contents; }
 .refdoc-toolbar .ptw-u { text-decoration: underline; font-weight: 700; }
 .refdoc-toolbar .ptw-rate { font-size: .8125rem; color: var(--color-fd-muted-foreground); }
 .refdoc-paper:not([data-has-underlining]) .refdoc-toolbar [data-ptw="underline"] { display: none; }
+.refdoc-toolbar [hidden] { display: none; }
 
 /* Info → Page stats popover */
 .refdoc-info { position: relative; margin-left: auto; }
@@ -40,7 +43,7 @@ html.refdoc-ready body { margin: 0; background: var(--color-fd-background); }
 
 /* Card underlining */
 .refdoc-paper mark.debate-hl { background: transparent; color: inherit; }
-.refdoc-paper[data-underline="on"] mark.debate-hl { background: color-mix(in srgb, #facc15 45%, transparent); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; font-weight: 600; }
+.refdoc-paper[data-underline="on"] mark.debate-hl { background: color-mix(in srgb, #facc15 45%, transparent); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 2px; font-weight: 600; border: 3px solid #eab308; border-radius: .25em; padding: 0 .15em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .refdoc-paper [data-voice-reading] { outline: 2px solid var(--color-fd-primary); outline-offset: 4px; border-radius: 4px; }
 
 /* Paper parts */
@@ -53,7 +56,60 @@ html.refdoc-ready body { margin: 0; background: var(--color-fd-background); }
 .refdoc-summary { border: 1px solid var(--color-fd-border); border-radius: .75rem; padding: .75rem 1rem .75rem 2.25rem !important; background: var(--color-fd-card); }
 .refdoc-references > li { scroll-margin-top: 6rem; }
 .refdoc-references > li:target { background: color-mix(in srgb, var(--color-fd-primary) 12%, transparent); border-radius: .25rem; }
+
+/* Citation cards: summary, author line, citation, collapsible card text, flags on the outer edge */
+.refdoc-paper ol.refdoc-references { list-style: none; padding: 0; margin: 1rem 0; counter-reset: refdoc-ref; }
+.refdoc-paper .refdoc-ref { position: relative; counter-increment: refdoc-ref; margin: .85rem 0 .85rem 1.75rem; padding: .75rem 2.5rem .75rem 1rem; border: 1px solid var(--color-fd-border); border-radius: .75rem; background: var(--color-fd-card); }
+.refdoc-paper .refdoc-ref::before { content: counter(refdoc-ref); position: absolute; right: 100%; top: .8rem; margin-right: .5rem; font-size: .75rem; line-height: 1; color: var(--color-fd-muted-foreground); font-variant-numeric: tabular-nums; }
+.refdoc-paper .refdoc-ref:target { background: color-mix(in srgb, var(--color-fd-primary) 12%, var(--color-fd-card)); }
+.refdoc-paper .refdoc-ref p { margin: .3rem 0; }
+.refdoc-paper .refdoc-ref-summary { font-weight: 600; }
+.refdoc-paper .refdoc-ref-author { font-size: .9rem; color: var(--color-fd-muted-foreground); }
+.refdoc-paper .refdoc-ref-author strong { color: var(--color-fd-foreground); }
+.refdoc-paper .refdoc-ref-citation { font-size: .875rem; }
+.refdoc-paper .refdoc-ref-text { margin-top: .5rem; font-size: .875rem; }
+.refdoc-paper .refdoc-ref-text > summary { cursor: pointer; width: fit-content; color: var(--color-fd-primary); font-size: .8125rem; }
+.refdoc-paper .refdoc-ref-text > p { margin: .5rem 0 0; }
+.refdoc-paper .refdoc-ref-flags { position: absolute; top: .6rem; right: -.7rem; display: flex; flex-direction: column; gap: .3rem; }
+.refdoc-paper .refdoc-flag { display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 999px; border: 1px solid var(--color-fd-border); background: var(--color-fd-background); color: var(--color-fd-muted-foreground); cursor: help; }
+.refdoc-paper .refdoc-flag[data-flag="qualified"] { color: #16a34a; }
+.refdoc-paper .refdoc-flag[data-flag="institution"] { color: #d97706; }
+.refdoc-paper button.refdoc-text-status { padding: 0; font: inherit; }
+.refdoc-paper .refdoc-text-status[data-text-status="full"] { color: #16a34a; border-color: color-mix(in srgb, #16a34a 50%, var(--color-fd-border)); }
+.refdoc-paper .refdoc-text-status[data-text-status="partial"] { color: #d97706; border-color: color-mix(in srgb, #d97706 50%, var(--color-fd-border)); }
+.refdoc-paper .refdoc-text-status[data-text-status="missing"] { color: #fff; background: #dc2626; border-color: #dc2626; }
+.refdoc-paper .refdoc-text-status[data-text-status="missing"]:hover { background: #b91c1c; }
+.refdoc-paper .refdoc-text-status:focus-visible { outline: 2px solid var(--color-fd-primary); outline-offset: 2px; }
+
+/* Suggest-the-full-text dialog */
+.refdoc-modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; background: rgb(0 0 0 / .5); }
+.refdoc-modal { width: min(40rem, 100%); max-height: 90vh; overflow: auto; padding: 1.25rem; border: 1px solid var(--color-fd-border); border-radius: .75rem; background: var(--color-fd-background); color: var(--color-fd-foreground); font-size: .9rem; }
+.refdoc-modal h2 { margin: 0 0 .25rem; font-size: 1.1rem; font-weight: 600; }
+.refdoc-modal-card { margin: 0 0 .75rem; color: var(--color-fd-muted-foreground); font-size: .8125rem; }
+.refdoc-modal label { display: block; margin-bottom: .35rem; }
+.refdoc-modal textarea { width: 100%; box-sizing: border-box; padding: .5rem; font: inherit; color: inherit; background: var(--color-fd-card); border: 1px solid var(--color-fd-border); border-radius: .5rem; resize: vertical; }
+.refdoc-modal textarea[aria-invalid="true"] { border-color: #dc2626; }
+.refdoc-modal-count { margin-top: .25rem; text-align: right; font-size: .75rem; color: var(--color-fd-muted-foreground); }
+.refdoc-modal-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+.refdoc-modal-error { margin: .5rem 0 0; color: #dc2626; }
+.refdoc-modal-ok { margin: 0; color: #16a34a; }
+.refdoc-modal-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .75rem; }
+.refdoc-modal-actions button { font: inherit; padding: .35rem .9rem; color: inherit; background: transparent; border: 1px solid var(--color-fd-border); border-radius: .5rem; cursor: pointer; }
+.refdoc-modal-actions button[data-primary] { color: var(--color-fd-primary-foreground); background: var(--color-fd-primary); border-color: var(--color-fd-primary); }
+.refdoc-modal-actions button:disabled { opacity: .6; cursor: progress; }
+
+@media (max-width: 640px) {
+  .refdoc-paper .refdoc-ref { margin-left: 0; }
+  .refdoc-paper .refdoc-ref::before { display: none; }
+  .refdoc-paper .refdoc-ref-flags { right: .5rem; }
+}
 a.refdoc-cite { text-decoration: none !important; font-weight: 500; }
+
+/* Right-hand contents panel: 25% narrower than Fumadocs' 268px (201px). Fumadocs only shows it from
+   the xl breakpoint (80rem) up and hides it below, so small screens never get the extra width. */
+@media (width >= 80rem) {
+  html #nd-docs-layout:has(#nd-toc, #nd-toc-placeholder) { --fd-toc-width: 201px; }
+}
 
 /* Reader mode: no sidebar or contents, one serif column */
 html:has(.refdoc-paper[data-reader="on"]) #nd-sidebar,

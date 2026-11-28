@@ -74,10 +74,10 @@ function getEditorColorMarks(editor: PlateEditor, nodeType: string): string[] {
 export function FontColorToolbarButton({
   children,
   nodeType,
-  tooltip,
+  toolbarId,
 }: {
   nodeType: string;
-  tooltip?: string;
+  toolbarId?: string;
 } & DropdownMenuProps) {
   const editor = useEditorRef();
 
@@ -190,7 +190,7 @@ export function FontColorToolbarButton({
   return (
     <DropdownMenu modal onOpenChange={onToggle} open={open}>
       <DropdownMenuTrigger asChild>
-        <ToolbarButton pressed={open} tooltip={tooltip}>
+        <ToolbarButton pressed={open} toolbarId={toolbarId}>
           {children}
         </ToolbarButton>
       </DropdownMenuTrigger>

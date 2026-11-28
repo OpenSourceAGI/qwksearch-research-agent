@@ -40,6 +40,8 @@ export interface RefdocMeta {
   keywords?: string[]
   /** What wrote the file, e.g. "refdoc 0.2.0". */
   generator?: string
+  /** Where the "suggest the full text" form for a card with no text posts to (see `card-text-submission.ts`). Off when absent. */
+  submitEndpoint?: string
 }
 
 /** One heading inside a page, for the table of contents and search. */
