@@ -129,6 +129,7 @@ describe('GET /api/doc/article cache hits', () => {
     expect(data.article.title).toBe('Cached title')
     expect(data.article.followUpQuestions).toEqual(['next?'])
     expect(data.article.qaHistory).toEqual([{ question: 'q', answer: 'a' }])
+    expect(data.article.metrics).toMatchObject({ words: 1, paragraphs: 1, readabilityScore: null })
     expect(mockScraper).not.toHaveBeenCalled()
   })
 
@@ -184,6 +185,21 @@ describe('GET /api/doc/article extraction fallback chain', () => {
     expect(data.article.title).toBe('Tavily')
     expect(mockTavily).toHaveBeenCalledWith('https://example.com/a', 'tvly-key')
     expect(mockExtract).not.toHaveBeenCalled()
+  })
+
+  it('adds paper-metrics to a fresh result that has none, and keeps one that does', async () => {
+    setup()
+    mockScraper.mockResolvedValue({
+      html: '<p>Playing games is important. Adults should play too.</p>',
+      title: 'Scraped',
+    })
+    const fresh = await (await GET(getRequest('https://example.com/a'))).json()
+    expect(fresh.article.metrics).toMatchObject({ words: 8, sentences: 2, paragraphs: 1 })
+
+    const metrics = { words: 99 }
+    mockScraper.mockResolvedValue({ html: '<p>Scraped</p>', title: 'Scraped', metrics })
+    const kept = await (await GET(getRequest('https://example.com/b'))).json()
+    expect(kept.article.metrics).toEqual(metrics)
   })
 
   it('falls back to Tavily when the scraper throws', async () => {

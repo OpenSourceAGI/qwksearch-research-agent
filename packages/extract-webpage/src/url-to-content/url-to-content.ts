@@ -2,6 +2,7 @@
  * @fileoverview High-level orchestrator for extracting content from any URL or binary buffer.
  * Supports YouTube transcripts, PDFs, DOCX, and web articles.
  */
+import { getHtmlMetrics, type TextMetrics } from "paper-metrics";
 import { extractContentAndCite } from "../html-to-content/html-to-content";
 import { detectMarkdown } from "../html-to-content/html-utils";
 import { getURLYoutubeVideo, convertYoutubeToText } from "./youtube-helpers";
@@ -55,6 +56,8 @@ export interface ExtractedArticle {
   title?: string;
   source?: string;
   word_count?: number;
+  /** Text statistics and readability of the extracted text (paper-metrics). */
+  metrics?: TextMetrics;
   format?: string;
   error?: string | number;
 }
@@ -79,6 +82,7 @@ type UrlLikeDocument = {
  * @property {string} title - The title of the article
  * @property {string} source - The source or publisher of the article
  * @property {number} word_count - The word count of the full text (without HTML tags)
+ * @property {TextMetrics} metrics - Text statistics and readability of the full text (paper-metrics)
  * @category Extract
  */
 
@@ -129,7 +133,8 @@ type UrlLikeDocument = {
  *  date: string,
  *  source: string,
  *  html: string,
- *  word_count: number
+ *  word_count: number,
+ *  metrics: TextMetrics
  * }}
  * cite - Cite in APA Format with Author name in Last, First Initial format
  * url - The URL of the article
@@ -142,6 +147,7 @@ type UrlLikeDocument = {
  *  title - The title of the article
  *  source - The source or origin of the article
  *  word_count - The word count of the full text (without HTML tags)
+ *  metrics - Words, sentences, paragraphs, reading time and readability scores of the full text
  * @category Extract
  * @author [vtempest (2025)](https://github.com/vtempest)
  * @example
@@ -340,6 +346,8 @@ export async function extractContent(
   response.word_count = response.html
     ?.replace(/<[^>]*>/g, " ")
     .split(" ").length;
+
+  response.metrics ??= getHtmlMetrics(response.html);
 
   //make APA cite
 

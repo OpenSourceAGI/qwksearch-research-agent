@@ -7,7 +7,9 @@
  * - sidebar from the pages (parts become separators), breadcrumb and
  *   previous/next, table of contents with scroll-spy, light/dark switch;
  * - ⌘K / Ctrl+K search over every page, heading and paragraph;
- * - the Reader mode / Underlining / Voice bar from `reader-runtime.ts`;
+ * - the Reader mode / Underlining / Voice bar from `reader-runtime.ts`, and
+ *   its Info button (`page-info.tsx`): page stats and readability from
+ *   paper-metrics;
  * - numeric citations linked to the references page, with the reference as
  *   a tooltip.
  *
@@ -40,6 +42,7 @@ import { type ComponentProps, type ReactNode, useEffect, useLayoutEffect, useMem
 import { createRoot } from "react-dom/client"
 import { mountPaperReader } from "../src/reader-runtime"
 import { readRefdocFromDocument, type RefdocDocument, type RefdocPage } from "../src/refdoc-read"
+import { PageInfoButton } from "./page-info"
 
 const OVERVIEW_ID = "overview"
 
@@ -221,7 +224,7 @@ function createSearchDialog(doc: RefdocDocument, index: IndexEntry[]) {
 
 // ── Pages ──────────────────────────────────────────────────────────────────
 
-function ReaderToolbar() {
+function ReaderToolbar({ getContent, lastUpdated }: { getContent: () => Element | null; lastUpdated?: string }) {
   return (
     <div className="ptw-toolbar refdoc-toolbar" role="toolbar" aria-label="Reading options">
       <button type="button" data-ptw="reader" aria-pressed="false">
@@ -242,6 +245,7 @@ function ReaderToolbar() {
           <option value="2">2×</option>
         </select>
       </label>
+      <PageInfoButton getContent={getContent} lastUpdated={lastUpdated} />
     </div>
   )
 }
@@ -273,7 +277,7 @@ function PageView({ doc, route }: { doc: RefdocDocument; route: Route }) {
       <DocsTitle>{page.slug === "" ? doc.title : page.title}</DocsTitle>
       {page.description ? <DocsDescription>{page.description}</DocsDescription> : null}
       <div ref={root} className="refdoc-paper" data-underline="on" data-reader="off" data-has-underlining={hasUnderlining ? "" : undefined}>
-        <ReaderToolbar />
+        <ReaderToolbar key={page.slug} getContent={() => root.current?.querySelector(".ptw-content") ?? null} lastUpdated={doc.date} />
         <DocsBody className="ptw-content">
           <div dangerouslySetInnerHTML={{ __html: page.html }} />
         </DocsBody>

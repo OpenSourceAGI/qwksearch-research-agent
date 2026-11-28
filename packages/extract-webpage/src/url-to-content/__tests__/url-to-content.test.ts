@@ -323,6 +323,29 @@ describe("extractContent", () => {
       expect(result.word_count).toBeGreaterThan(0);
     });
 
+    it("adds paper-metrics text metrics to results that lack them (PDF, YouTube, DOCX)", async () => {
+      mockConvertPDFToHTML.mockResolvedValueOnce({
+        title: "PDF Document",
+        html: "<h1>Title</h1><p>Playing games is important for children. Adults should play games too. It releases tension.</p>",
+      } as any);
+
+      const result = await extractContent("https://example.com/document.pdf");
+
+      expect(result.metrics).toMatchObject({ words: 15, sentences: 4, paragraphs: 2 });
+      expect(result.metrics?.readabilityLabel).toEqual(expect.any(String));
+      expect(result.word_count).toBeGreaterThan(0);
+    });
+
+    it("keeps the metrics extractContentAndCite already computed", async () => {
+      const metrics = { words: 99 } as any;
+      mockScrapeURL.mockResolvedValueOnce("<html><body>Content</body></html>");
+      mockExtractContentAndCite.mockReturnValueOnce({ title: "T", html: "<p>Two words</p>", metrics });
+
+      const result = await extractContent("https://example.com/article");
+
+      expect(result.metrics).toBe(metrics);
+    });
+
     it("should generate APA citation", async () => {
       const mockHtml = "<html><body>Content</body></html>";
       const mockExtracted = {
