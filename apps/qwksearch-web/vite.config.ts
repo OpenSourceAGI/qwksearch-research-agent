@@ -117,6 +117,7 @@ export default defineConfig(({ command }) => ({
       "extract-webpage",
       "extract-pdf",
       "extract-youtube",
+      "paper-metrics",
       "qwksearch-api-client",
       "write-language",
       "shadcn-app-dock",

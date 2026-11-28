@@ -143,7 +143,7 @@ export function InsertToolbarButton(
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false} {...props}>
       <DropdownMenuTrigger asChild>
-        <ToolbarButton isDropdown pressed={open} tooltip="Insert">
+        <ToolbarButton isDropdown pressed={open} toolbarId="insert">
           <PlusIcon />
         </ToolbarButton>
       </DropdownMenuTrigger>

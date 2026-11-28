@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { MarkdownPlugin } from '@platejs/markdown';
-import { ArrowDownToLineIcon } from 'lucide-react';
+import { FileOutputIcon } from 'lucide-react';
 import { useEditorRef } from 'platejs/react';
 
 import {
@@ -38,8 +38,8 @@ export function ExportToolbarButton(
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false} {...props}>
       <DropdownMenuTrigger asChild>
-        <ToolbarButton isDropdown pressed={open} tooltip="Export">
-          <ArrowDownToLineIcon />
+        <ToolbarButton isDropdown pressed={open} toolbarId="export">
+          <FileOutputIcon />
         </ToolbarButton>
       </DropdownMenuTrigger>
 
