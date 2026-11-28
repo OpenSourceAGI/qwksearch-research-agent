@@ -1,0 +1,21 @@
+<div class="flex-1 flex flex-col">
+  <div data-test-render-count="1">
+    <div data-testid="user-message" class="font-user-message"><p class="whitespace-pre-wrap">How do I reverse a list in Python?</p></div>
+  </div>
+  <div data-test-render-count="1">
+    <div class="font-claude-response relative">
+      <div class="grid-cols-1 standard-markdown">
+        <p>You can slice it with a negative step:</p>
+        <pre class="code-block__code"><div class="text-text-300">python</div><code class="language-python">reversed_list = my_list[::-1]</code></pre>
+        <p>Other options:</p>
+        <ul><li><p>Use <code>reversed()</code> for an iterator</p></li><li><p>Use <strong>sorted</strong> with <code>reverse=True</code></p></li></ul>
+      </div>
+      <button data-testid="action-bar-copy">Copy</button>
+    </div>
+  </div>
+  <div><div data-testid="user-message"><p>And in place?</p></div></div>
+  <div><div class="font-claude-response"><div class="standard-markdown"><p>Use <code>my_list.reverse()</code>.</p></div></div></div>
+</div>
+<fieldset class="flex w-full min-w-0 flex-col">
+  <div class="composer"><div contenteditable="true" data-testid="chat-input" class="ProseMirror"><p data-placeholder="Reply to Claude..."></p></div></div>
+</fieldset>

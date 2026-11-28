@@ -1,0 +1,12 @@
+<div class="chat">
+  <div data-content="user-message"><div class="text">How do I reverse a list in Python?</div></div>
+  <div data-content="ai-message">
+    <p>You can slice it with a negative step:</p>
+    <pre><code class="language-python">reversed_list = my_list[::-1]</code></pre>
+    <p>Other options:</p>
+    <ul><li>Use <code>reversed()</code> for an iterator</li><li>Use <strong>sorted</strong> with <code>reverse=True</code></li></ul>
+  </div>
+  <div data-content="user-message"><div class="text">And in place?</div></div>
+  <div data-content="ai-message"><p>Use <code>my_list.reverse()</code>.</p></div>
+</div>
+<div data-testid="composer"><textarea id="userInput" placeholder="Message Copilot"></textarea></div>

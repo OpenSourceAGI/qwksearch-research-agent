@@ -1,0 +1,27 @@
+<main>
+  <div class="flex flex-col">
+    <article data-testid="conversation-turn-1">
+      <div data-message-author-role="user" data-message-id="a1">
+        <div class="whitespace-pre-wrap">How do I reverse a list in Python?</div>
+      </div>
+    </article>
+    <article data-testid="conversation-turn-2">
+      <div data-message-author-role="assistant" data-message-id="a2">
+        <div class="markdown prose dark:prose-invert">
+          <p>You can slice it with a negative step:</p>
+          <pre><div class="flex items-center">python<button>Copy code</button></div><code class="language-python">reversed_list = my_list[::-1]</code></pre>
+          <p>Other options:</p>
+          <ul><li>Use <code>reversed()</code> for an iterator</li><li>Use <strong>sorted</strong> with <code>reverse=True</code></li></ul>
+        </div>
+        <div class="flex"><button aria-label="Copy">Copy</button></div>
+      </div>
+    </article>
+    <article data-testid="conversation-turn-3">
+      <div data-message-author-role="user"><div class="whitespace-pre-wrap">And in place?</div></div>
+    </article>
+    <article data-testid="conversation-turn-4">
+      <div data-message-author-role="assistant"><div class="markdown"><p>Use <code>my_list.reverse()</code>.</p></div></div>
+    </article>
+  </div>
+  <form class="w-full"><div id="prompt-textarea" contenteditable="true" class="ProseMirror"><p data-placeholder="Ask anything"><br></p></div><button type="button">Send</button></form>
+</main>

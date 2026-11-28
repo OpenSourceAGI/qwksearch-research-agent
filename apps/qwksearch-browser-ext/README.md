@@ -36,6 +36,9 @@ manager and a research assistant over whatever you have open.
   sentences, the spoken line highlighted and followed, click to seek, search
   and copy
 - Ask AI about the text of open and saved tabs
+- **Continue a chat elsewhere**: an "Ask AI" button under the prompt box on
+  ChatGPT, Claude, Perplexity, Gemini, Grok, DeepSeek, Copilot, Le Chat and Poe
+  copies the whole conversation as Markdown and opens it in another provider
 
 Open the side panel with <kbd>Ctrl</kbd>+<kbd>Q</kbd>
 (<kbd>Cmd</kbd>+<kbd>B</kbd> on macOS).
@@ -96,6 +99,31 @@ rewritten in React:
 - `leotabs/extension/lib/host.js` detects the host (a manifest with a side
   panel) so LeoTabs leaves the toolbar click and the install page to
   QwkSearch. Loaded on its own, `leotabs/extension` still works standalone.
+
+## Continuing a chat in another AI
+
+`content/chat-handoff/` adds an "Ask AI" button just under the prompt box of the
+AI chat sites. Clicking it copies the conversation (every turn, in order, with
+`## User` / `## Assistant` headings) to the clipboard and opens a menu of the
+other providers. Picking one opens it in a new tab and puts the transcript in
+its prompt box: in the URL (`?q=`) for sites that support it and short chats,
+otherwise pasted by the content script. The extension never presses Enter; a
+toast says what to do if auto-fill is unavailable. Chats over ~60,000
+characters offer to send only the newest turns; over ~400,000 only the
+clipboard is used. Nothing is sent anywhere except the URL of the tab you open.
+
+| File | Role |
+| --- | --- |
+| `providers.ts` | Site registry: hosts, content-script matches, new-chat URL, prefill parameter |
+| `adapters/<site>.ts` | The only place with that site's selectors (prompt box, composer, message extraction) |
+| `markdown.ts`, `transcript.ts` | DOM to Markdown, transcript formatting, truncation |
+| `inject.ts`, `ui.ts` | Button and menu (shadow DOM), SPA-safe injection |
+| `destination.ts`, `fill.ts` | Fills the prompt box on the tab that was opened |
+| `background/chat-handoff.ts` | Opens the tab and passes the transcript over; builds URLs from the registry only |
+
+To support another site add a provider and an adapter, then a fixture in
+`test/fixtures/chat-handoff/`. When a site changes its markup, update that
+site's adapter and fixture.
 
 ## Setup
 

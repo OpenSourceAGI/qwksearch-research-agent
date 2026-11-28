@@ -107,6 +107,11 @@ export const FEATURE_GROUPS: FeatureGroup[] = [
         access: 'Click the sparkle LLM button at the top of the side panel.',
       },
       {
+        title: 'Continue a chat in another AI',
+        description: 'Copy a whole ChatGPT, Claude, Perplexity, Gemini, Grok, DeepSeek, Copilot, Le Chat or Poe chat and continue it in a different provider.',
+        access: 'Open one of those chats and click "Ask AI" under the message box.',
+      },
+      {
         title: 'Search inside open tabs',
         description: 'Search the text of every open page, not just titles, or search the web from the same box.',
         access: 'Side panel → Tabs → search box.',
