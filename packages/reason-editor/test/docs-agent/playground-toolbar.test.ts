@@ -86,22 +86,14 @@ describe('playground insert menu', () => {
 });
 
 describe('REASON_TOOLBAR_SKIN', () => {
-  // `shared/toolbar-renderer.tsx` is the source of these values; the skin exists
-  // to reproduce them over Plate's registry buttons, so a change to one that
-  // does not reach the other is the regression worth catching.
-  it.each([
-    'gap-0.5',
-    'px-2',
-    'py-1',
-    'border-b-gray-200',
-    'dark:border-b-slate-700',
-    'text-gray-600',
-    'bg-gray-100',
-    'bg-gray-200',
-    'bg-slate-700',
-  ])('keeps the shared toolbar token %s', (token) => {
-    expect(REASON_TOOLBAR_SKIN).toContain(token);
-  });
+  // The strip comes from `shared/toolbar-look.ts`, the same constants
+  // `shared/toolbar-renderer.tsx` renders, so the two toolbars cannot drift.
+  it.each(['gap-0.5', 'px-2', 'border-b-border', 'bg-background'])(
+    'keeps the shared toolbar token %s',
+    (token) => {
+      expect(REASON_TOOLBAR_SKIN).toContain(token);
+    },
+  );
 
   it('sizes icons like the shared toolbar but spares dropdown chevrons', () => {
     expect(REASON_TOOLBAR_SKIN).toContain('svg:not([data-icon])]:size-4');

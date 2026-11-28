@@ -6,7 +6,7 @@ import type { DropdownMenuProps } from '@radix-ui/react-dropdown-menu';
 
 import { LineHeightPlugin } from '@platejs/basic-styles/react';
 import { DropdownMenuItemIndicator } from '@radix-ui/react-dropdown-menu';
-import { CheckIcon, WrapText } from 'lucide-react';
+import { CheckIcon, LineHeightIcon } from 'lucide-react';
 import { useEditorRef, useSelectionFragmentProp } from 'platejs/react';
 
 import {
@@ -34,8 +34,8 @@ export function LineHeightToolbarButton(props: DropdownMenuProps) {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false} {...props}>
       <DropdownMenuTrigger asChild>
-        <ToolbarButton pressed={open} tooltip="Line height" isDropdown>
-          <WrapText />
+        <ToolbarButton pressed={open} toolbarId="line-height" isDropdown>
+          <LineHeightIcon />
         </ToolbarButton>
       </DropdownMenuTrigger>
 

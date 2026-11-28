@@ -5,8 +5,8 @@ import * as React from 'react';
 import {
   AudioLinesIcon,
   FileUpIcon,
-  FilmIcon,
   ImageIcon,
+  VideoIcon,
 } from 'lucide-react';
 import { KEYS } from 'platejs';
 import { useEditorRef } from 'platejs/react';
@@ -16,10 +16,10 @@ import { insertBlock } from '@/docs-agent/plate/kits/transforms';
 import { ToolbarButton } from './toolbar';
 
 const MEDIA = {
-  [KEYS.audio]: { icon: AudioLinesIcon, label: 'Audio' },
-  [KEYS.file]: { icon: FileUpIcon, label: 'File' },
-  [KEYS.img]: { icon: ImageIcon, label: 'Image' },
-  [KEYS.video]: { icon: FilmIcon, label: 'Video' },
+  [KEYS.audio]: { icon: AudioLinesIcon, id: 'audio' },
+  [KEYS.file]: { icon: FileUpIcon, id: 'file' },
+  [KEYS.img]: { icon: ImageIcon, id: 'image' },
+  [KEYS.video]: { icon: VideoIcon, id: 'video' },
 } as const;
 
 export type MediaNodeType = keyof typeof MEDIA;
@@ -35,7 +35,7 @@ export function MediaToolbarButton({
   ...props
 }: React.ComponentProps<typeof ToolbarButton> & { nodeType: MediaNodeType }) {
   const editor = useEditorRef();
-  const { icon: Icon, label } = MEDIA[nodeType];
+  const { icon: Icon, id } = MEDIA[nodeType];
 
   return (
     <ToolbarButton
@@ -44,7 +44,7 @@ export function MediaToolbarButton({
         insertBlock(editor, nodeType);
         editor.tf.focus();
       }}
-      tooltip={label}
+      toolbarId={id}
     >
       <Icon />
     </ToolbarButton>

@@ -24,21 +24,28 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Button } from '@/app-ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '@/app-ui/tooltip';
 import { cn } from '@/lib/utils';
 
 import type { EditorToolbarAdapter } from './editor-types';
+import { TOOLBAR_ROW_CLASS, TOOLBAR_SEPARATOR_CLASS, toolbarButtonClass } from './toolbar-look';
 import { REASON_TOOLBAR, type ToolbarItem } from './toolbar-schema';
+import {
+  formatShortcutLabel,
+  resolveToolbarShortcut,
+  type ToolbarShortcut,
+} from './toolbar-shortcuts';
+import { ToolbarTooltipBody, useIsMac } from './toolbar-tooltip';
 
-const triggerClass =
-  'flex items-center justify-center rounded p-1.5 text-gray-600 transition-colors dark:text-gray-300 disabled:cursor-not-allowed disabled:opacity-40 hover:enabled:bg-gray-100 dark:hover:enabled:bg-slate-800';
+const triggerClass = toolbarButtonClass('sm');
 
-const activeClass = 'bg-gray-200 text-gray-900 dark:bg-slate-700 dark:text-white';
+const activeClass = 'bg-accent text-accent-foreground';
 
 const menuItemClass =
   'flex w-full cursor-pointer items-center gap-2 text-xs data-disabled:cursor-not-allowed data-disabled:opacity-40';
@@ -58,12 +65,20 @@ function useAdapterRevision(adapter: EditorToolbarAdapter): number {
   return revision;
 }
 
-function Shortcut({ shortcut }: { shortcut?: string }) {
-  if (!shortcut) return null;
+function Shortcut({
+  shortcut,
+  engine,
+}: {
+  shortcut?: ToolbarShortcut;
+  engine: EditorToolbarAdapter['engine'];
+}) {
+  const mac = useIsMac();
+  const combo = resolveToolbarShortcut(shortcut, engine);
+  if (!combo) return null;
 
   return (
-    <span className="ml-auto pl-4 text-[10px] tracking-widest text-gray-400 dark:text-gray-500">
-      {shortcut}
+    <span className="ml-auto pl-4 text-[10px] tracking-widest text-muted-foreground">
+      {formatShortcutLabel(combo, mac)}
     </span>
   );
 }
@@ -87,7 +102,7 @@ function MenuItems({
           return (
             <DropdownMenuLabel
               key={item.id}
-              className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400"
+              className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
             >
               {item.label}
             </DropdownMenuLabel>
@@ -100,7 +115,7 @@ function MenuItems({
           return (
             <DropdownMenuSub key={item.id}>
               <DropdownMenuSubTrigger className={menuItemClass}>
-                <Icon className="size-3.5 shrink-0 text-gray-500 dark:text-gray-400" />
+                <Icon className="size-3.5 shrink-0 text-muted-foreground" />
                 {item.label}
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
@@ -125,9 +140,9 @@ function MenuItems({
             disabled={!adapter.isEnabled(item.id)}
             onSelect={() => void adapter.execute(item.id)}
           >
-            <Icon className="size-3.5 shrink-0 text-gray-500 dark:text-gray-400" />
+            <Icon className="size-3.5 shrink-0 text-muted-foreground" />
             <span className="truncate">{item.label}</span>
-            <Shortcut shortcut={item.shortcut} />
+            <Shortcut engine={adapter.engine} shortcut={item.shortcut} />
           </DropdownMenuItem>
         );
       })}
@@ -144,12 +159,12 @@ function TopLevelItem({
   adapter: EditorToolbarAdapter;
 }) {
   if (item.kind === 'separator') {
-    return <div className="mx-1 h-5 w-px bg-gray-200 dark:bg-slate-700" />;
+    return <div aria-hidden className={TOOLBAR_SEPARATOR_CLASS} data-slot="toolbar-separator" role="presentation" />;
   }
 
   if (item.kind === 'group-label') {
     return (
-      <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+      <span className="px-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         {item.label}
       </span>
     );
@@ -168,15 +183,25 @@ function TopLevelItem({
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger asChild>
-            <DropdownMenuTrigger
-              aria-label={item.label}
-              className={cn(triggerClass, 'data-[state=open]:bg-gray-200 dark:data-[state=open]:bg-slate-700')}
-              data-menu={item.id}
-            >
-              <Icon className="size-4" />
+            <DropdownMenuTrigger asChild>
+              <Button
+                aria-label={item.label}
+                className={triggerClass}
+                data-menu={item.id}
+                size="sm"
+                variant="ghost"
+              >
+                <Icon />
+              </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          <TooltipContent side="bottom">{item.label}</TooltipContent>
+          <TooltipContent side="bottom">
+            <ToolbarTooltipBody
+              description={item.description}
+              engine={adapter.engine}
+              label={item.label}
+            />
+          </TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="start" className="min-w-[240px]">
           <MenuItems items={item.children} adapter={adapter} />
@@ -189,29 +214,36 @@ function TopLevelItem({
   const active = adapter.isActive(item.id);
   const enabled = adapter.isEnabled(item.id);
 
+  const button = (
+    <Button
+      aria-label={item.label}
+      aria-pressed={active}
+      className={triggerClass}
+      data-command={item.id}
+      data-state={active ? 'active' : 'inactive'}
+      disabled={!enabled}
+      onClick={() => void adapter.execute(item.id)}
+      size="sm"
+      type="button"
+      variant="ghost"
+    >
+      <Icon />
+    </Button>
+  );
+
   return (
     <Tooltip>
+      {/* A disabled button swallows pointer events, so the span keeps its tooltip. */}
       <TooltipTrigger asChild>
-        <button
-          aria-label={item.label}
-          aria-pressed={active}
-          className={cn(triggerClass, active && activeClass)}
-          data-command={item.id}
-          data-state={active ? 'active' : 'inactive'}
-          disabled={!enabled}
-          onClick={() => void adapter.execute(item.id)}
-          type="button"
-        >
-          <Icon className="size-4" />
-        </button>
+        {enabled ? button : <span className="inline-flex">{button}</span>}
       </TooltipTrigger>
       <TooltipContent side="bottom">
-        {item.label}
-        {item.shortcut ? (
-          <span className="ml-2 text-[10px] tracking-widest opacity-70">
-            {item.shortcut}
-          </span>
-        ) : null}
+        <ToolbarTooltipBody
+          description={item.description}
+          engine={adapter.engine}
+          label={item.label}
+          shortcut={item.shortcut}
+        />
       </TooltipContent>
     </Tooltip>
   );
@@ -237,12 +269,9 @@ export function ReasonToolbar({
   useAdapterRevision(adapter);
 
   return (
-    <TooltipProvider delayDuration={300}>
+    <TooltipProvider delayDuration={0}>
       <div
-        className={cn(
-          'flex flex-wrap items-center gap-0.5 border-b border-gray-200 px-2 py-1 dark:border-slate-700',
-          className,
-        )}
+        className={cn(TOOLBAR_ROW_CLASS, className)}
         data-engine={adapter.engine}
         role="toolbar"
       >

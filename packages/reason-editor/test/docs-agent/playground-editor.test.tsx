@@ -67,7 +67,7 @@ describe('playground fixed toolbar', () => {
 
     expect(toolbar).not.toBeNull();
     expect(toolbar!.className).toContain('gap-0.5');
-    expect(toolbar!.className).toContain('border-b-gray-200');
+    expect(toolbar!.className).toContain('border-b-border');
   });
 
   it('labels the Turn into trigger with the current block type', () => {
