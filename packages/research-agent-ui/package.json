@@ -103,6 +103,8 @@
     "dompurify": "^3.4.17",
     "drizzle-orm": "^0.45.4",
     "extract-webpage": "workspace:*",
+    "fumadocs-core": "^16.15.17",
+    "fumadocs-ui": "^16.15.17",
     "grab-url": "^3.0.9",
     "html2canvas": "^1.4.1",
     "kokoro-js": "^1.2.1",

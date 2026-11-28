@@ -7,7 +7,7 @@
  */
 "use client"
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { AutocompleteDropdown, useAutocomplete, type FetchSuggestions } from "search-autocomplete/react";
 import { Icons } from "./MessageInputIconSet";
@@ -21,6 +21,18 @@ import { useFileHandling } from '../FileUpload/useFileHandling';
 import FileUploadDropdown from '../FileUpload/FileUploadDropdown';
 import { LiveWaveform } from '../../ui/live-waveform';
 import { autocomplete } from 'qwksearch-api-client';
+import {
+    SlashMenu,
+    slashComboboxProps,
+    useSlashMenu,
+    useCaret,
+    buildSlashCommands,
+    buildSlashFileItems,
+    libraryDocumentToFile,
+} from '../SlashMenu';
+import { detectSlashTrigger } from '../SlashMenu/slashTrigger';
+import { useLibraryDocuments } from '../SlashMenu/useLibraryDocuments';
+import { researchAgentUIConfig } from '../../config';
 
 // Through the generated client rather than the hook's default fetch, so the
 // request honours the client's configured base URL (the extensions and the
@@ -73,7 +85,7 @@ interface ChatInputBoxProps {
 }
 
 const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
-    const { loading, sendMessage, stopStreaming, files: contextFiles, fileIds: contextFileIds, setFiles: setContextFiles, setFileIds: setContextFileIds, newChat, sections } = useChat();
+    const { loading, sendMessage, stopStreaming, files: contextFiles, fileIds: contextFileIds, setFiles: setContextFiles, setFileIds: setContextFileIds, newChat, sections, incognito, setIncognito, focusMode, setFocusMode } = useChat();
     const [message, setMessage] = useState("");
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -145,6 +157,58 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
 
     useVoiceAutoStart({ isSpeechSupported, isListening, toggleSpeech });
 
+    // Slash menu: `/` at the start of a word lists commands and files.
+    const { caret, sync: syncCaret, place: placeCaret } = useCaret(textareaRef);
+    const slashPossible = !loading && detectSlashTrigger(message, caret) !== null;
+    const { documents: libraryDocuments, loading: loadingLibrary } = useLibraryDocuments(slashPossible);
+
+    const openFilePicker = () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.multiple = true;
+        input.onchange = () => { if (input.files?.length) handleFiles(input.files); };
+        input.click();
+    };
+
+    const slashItems = useMemo(
+        () => [
+            ...buildSlashCommands({
+                newChat,
+                clearComposer: resetInput,
+                openSettings: () => {
+                    if (!researchAgentUIConfig.onOpenSettings?.()) window.location.assign("/settings");
+                },
+                openFilePicker,
+                incognito,
+                setIncognito,
+                focusMode,
+                setFocusMode,
+                summarizePrompt: researchAgentUIConfig.defaultSummarizePrompt,
+                toggleVoice: isSpeechSupported ? toggleSpeech : undefined,
+                isListening,
+            }),
+            ...buildSlashFileItems({
+                documents: libraryDocuments,
+                attachedFiles: contextFiles,
+                attachDocument: (doc) => handleFiles([libraryDocumentToFile(doc)]),
+            }),
+        ],
+        // The callbacks above are re-created every render; the data they close over is what matters.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [newChat, incognito, setIncognito, focusMode, setFocusMode, isSpeechSupported, toggleSpeech, isListening, libraryDocuments, contextFiles, handleFiles],
+    );
+
+    const slashMenu = useSlashMenu({
+        value: message,
+        caret,
+        items: slashItems,
+        disabled: loading,
+        onApply: (value, nextCaret) => {
+            setMessage(value);
+            placeCaret(nextCaret);
+        },
+    });
+
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const [showPlaceholder, setShowPlaceholder] = useState(true);
     const [isActive, setIsActive] = useState(false);
@@ -154,7 +218,7 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
     } = useAutocomplete({
         value: message,
         onChange: setMessage,
-        enabled: isActive,
+        enabled: isActive && !slashMenu.open,
         fetchSuggestions,
         anchorRef: wrapperRef,
         inputRef: textareaRef,
@@ -197,6 +261,7 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (slashMenu.handleKeyDown(e)) return;
         if (handleAutocompleteKeyDown(e)) return;
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -283,7 +348,10 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
                             <textarea
                                 ref={textareaRef}
                                 value={message}
-                                onChange={(e) => setMessage(e.target.value)}
+                                onChange={(e) => { setMessage(e.target.value); syncCaret(); }}
+                                onSelect={syncCaret}
+                                {...slashComboboxProps(slashMenu)}
+                                aria-label="Message"
                                 onPaste={handlePaste}
                                 onKeyDown={handleKeyDown}
                                 onFocus={() => setIsActive(true)}
@@ -388,6 +456,9 @@ const ChatInputBox = ({ onNewChat }: ChatInputBoxProps) => {
                 </div>
 
             </motion.div>
+
+            {/* Slash menu: commands and files */}
+            <SlashMenu menu={slashMenu} anchorRef={wrapperRef} loadingFiles={loadingLibrary} />
 
             {/* Autocomplete Dropdown */}
             <AutocompleteDropdown {...autocompleteState} />

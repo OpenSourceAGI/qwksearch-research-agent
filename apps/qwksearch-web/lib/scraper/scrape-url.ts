@@ -19,6 +19,7 @@
 
 import { renderUrlWithMetadata } from "./cloudflare-scraper-client";
 import { extractContent } from "extract-webpage/url-to-content/url-to-content";
+import { getHtmlMetrics, type TextMetrics } from "paper-metrics";
 
 /** Hard deadline for the Cloudflare scraper path before falling back. */
 export const SCRAPER_DEADLINE_MS = 8000;
@@ -35,6 +36,8 @@ export interface ScrapedArticle {
   date?: string;
   source?: string;
   word_count?: number;
+  /** Text statistics and readability of the extracted text (paper-metrics). */
+  metrics?: TextMetrics;
   /** Which path produced this article: "scraper" | "tavily". */
   via?: string;
   error?: string;
@@ -184,6 +187,7 @@ export async function extractArticleViaScraper(
       url: rendered.url || url,
       source,
       word_count: extracted.word_count ?? countWords(extracted.html),
+      metrics: extracted.metrics ?? getHtmlMetrics(extracted.html),
       via: "scraper",
     };
     enriched.cite = extracted.cite || buildCite(enriched, url);
@@ -303,6 +307,7 @@ export async function extractViaTavily(
     html,
     source,
     word_count: countWords(html),
+    metrics: getHtmlMetrics(html),
     via: "tavily",
   };
   article.cite = buildCite(article, url);

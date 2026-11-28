@@ -1,0 +1,60 @@
+{
+  "name": "paper-metrics",
+  "version": "0.1.0",
+  "description": "paper-metrics: text statistics and readability for any text, a dependency-free TypeScript rewrite of textstat — syllables, words, sentences, Flesch Reading Ease, Flesch-Kincaid, Gunning Fog, SMOG, ARI, Coleman-Liau, Linsear Write, Dale-Chall, text standard, reading time and page stats",
+  "type": "module",
+  "author": "vtempest",
+  "license": "rights.institute/prosper",
+  "homepage": "https://github.com/OpenSourceAGI/qwksearch-research-agent/tree/master/packages/paper-metrics#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenSourceAGI/qwksearch-research-agent.git",
+    "directory": "packages/paper-metrics"
+  },
+  "bugs": {
+    "url": "https://github.com/OpenSourceAGI/qwksearch-research-agent/issues"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^5.0.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  },
+  "keywords": [
+    "paper-metrics",
+    "readability",
+    "textstat",
+    "text-readability",
+    "flesch",
+    "flesch-kincaid",
+    "gunning-fog",
+    "smog",
+    "coleman-liau",
+    "dale-chall",
+    "syllables",
+    "word-count",
+    "reading-time"
+  ]
+}
